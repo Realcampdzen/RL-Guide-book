@@ -1,0 +1,15 @@
+{
+  "user_id": "test_user",
+  "current_category": "1",
+  "current_badge": null,
+  "interests": [
+    "творчество",
+    "спорт"
+  ],
+  "level": "beginner",
+  "session_data": {
+    "current_view": null,
+    "web_category": null,
+    "web_badge": null
+  }
+}

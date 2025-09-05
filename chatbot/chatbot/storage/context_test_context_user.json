@@ -1,0 +1,16 @@
+{
+  "user_id": "test_context_user",
+  "current_category": "1",
+  "current_badge": null,
+  "interests": [],
+  "level": "beginner",
+  "session_data": {
+    "current_view": "category",
+    "web_category": {
+      "id": "1",
+      "title": "За личные достижения",
+      "emoji": "⭐"
+    },
+    "web_badge": null
+  }
+}

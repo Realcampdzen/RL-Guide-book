@@ -1,0 +1,12 @@
+{
+  "user_id": "web_user",
+  "current_category": "3",
+  "current_badge": null,
+  "interests": [],
+  "level": "beginner",
+  "session_data": {
+    "current_view": "chat",
+    "web_category": null,
+    "web_badge": null
+  }
+}
