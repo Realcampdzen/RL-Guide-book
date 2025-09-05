@@ -1064,11 +1064,11 @@ const App: React.FC = () => {
            // Определяем фон в зависимости от уровня
       const getBackgroundImage = () => {
         if (selectedLevel === 'Продвинутый уровень' || selectedLevel === 'Продвинутый уровень ') {
-          return 'url("./фон 5.png")';
+          return 'url("./экран 5 фон.png")';
         } else if (selectedLevel === 'Экспертный уровень') {
-          return 'url("./фон 6.png")';
+          return 'url("./экран 6 фон.png")';
         }
-        return 'url("./фон 3.png")'; // Дефолтный фон для других уровней
+        return 'url("./экран 3 фон.png")'; // Дефолтный фон для других уровней
       };
 
     // Определяем группу значка для уровня
@@ -1405,7 +1405,7 @@ const App: React.FC = () => {
           align-items: center;
           background: 
             linear-gradient(135deg, rgba(12, 12, 12, 0.3) 0%, rgba(26, 26, 46, 0.3) 50%, rgba(22, 33, 62, 0.3) 100%),
-            url('./фон 1.png') center center / 100% auto no-repeat;
+            url('./экран 1 фон copy.png') center top / 100% 100% no-repeat;
           backdrop-filter: blur(10px);
         }
 
@@ -1559,7 +1559,7 @@ const App: React.FC = () => {
             padding: 1rem;
             background: 
               linear-gradient(135deg, rgba(12, 12, 12, 0.3) 0%, rgba(26, 26, 46, 0.3) 50%, rgba(22, 33, 62, 0.3) 100%),
-                             url('./фон 2.png') center center / cover no-repeat;
+                             url('./экран 2 фон.png') center center / cover no-repeat;
           }
 
                    .category-screen,
@@ -1574,7 +1574,7 @@ const App: React.FC = () => {
             padding: 1rem;
             background: 
               linear-gradient(135deg, rgba(12, 12, 12, 0.3) 0%, rgba(26, 26, 46, 0.3) 50%, rgba(22, 33, 62, 0.3) 100%),
-                             url('./фон 3.png') center top / 100% no-repeat;
+                             url('./экран 3 фон.png') center top / cover no-repeat;
           }
 
           .badge-level-screen {
@@ -2331,7 +2331,7 @@ const App: React.FC = () => {
           padding: 1rem;
           background: 
             linear-gradient(135deg, rgba(12, 12, 12, 0.3) 0%, rgba(26, 26, 46, 0.3) 50%, rgba(22, 33, 62, 0.3) 100%),
-            url('./фон 3.png') center center / 100% no-repeat;
+            url('./экран 3 фон.png') center center / cover no-repeat;
         }
 
         .introduction-content, .additional-material-content {
