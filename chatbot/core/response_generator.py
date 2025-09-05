@@ -102,6 +102,15 @@ class ResponseGenerator:
             elif context.current_category:
                 return "category_info"
         
+        # Если спрашивают про категорию в общем (например "расскажи про ии")
+        if any(word in message_lower for word in ["про ", "про ", "категория", "категории"]):
+            if context.current_category:
+                return "category_info"
+        
+        # Специальная обработка для вопросов про ИИ
+        if any(word in message_lower for word in ["ии", "искусственный интеллект", "нейросети", "нейро", "ai"]):
+            return "general"
+        
         if any(word in message_lower for word in ["идеи", "как сделать", "примеры", "варианты"]):
             return "creative_ideas"
         
@@ -187,7 +196,7 @@ class ResponseGenerator:
         return "\n".join(response_parts)
     
     def _generate_category_info(self, message: str, context: UserContext) -> str:
-        """Генерирует информацию о категории"""
+        """Генерирует краткую информацию о категории"""
         if not context.current_category:
             return "Выберите категорию, о которой хотите узнать больше! 📚"
         
@@ -195,22 +204,17 @@ class ResponseGenerator:
         if not category:
             return "Извините, не удалось найти информацию об этой категории."
         
-        # Формируем информацию о категории
-        category_info = f"""
-**{category.emoji} {category.title}**
-
-{category.introduction or "Описание категории пока не доступно."}
-
-Значки в этой категории:
-"""
+        # Краткое описание категории
+        intro_text = category.introduction or "Описание категории пока не доступно."
         
-        for badge in category.badges[:5]:  # Показываем первые 5 значков
-            category_info += f"\n• {badge.emoji} {badge.title}"
+        # Берем только первые 2-3 предложения из введения
+        sentences = intro_text.split('. ')
+        short_intro = '. '.join(sentences[:2])
+        if len(sentences) > 2:
+            short_intro += "..."
         
-        if len(category.badges) > 5:
-            category_info += f"\n• ... и еще {len(category.badges) - 5} значков"
-        
-        category_info += "\n\nКакой значок вас интересует? 🤔"
+        # Формируем краткую информацию о категории
+        category_info = f"{category.emoji} **{category.title}**\n\n{short_intro}\n\nВ этой категории {len(category.badges)} значков для развития разных навыков.\n\nКакой значок вас интересует? 🤔"
         
         return category_info
     
@@ -250,7 +254,7 @@ class ResponseGenerator:
         context: UserContext,
         conversation_history: List[Message]
     ) -> str:
-        """Генерирует общий ответ"""
+        """Генерирует краткий общий ответ"""
         # Формируем системный промпт с контекстом
         system_prompt = get_system_prompt_with_context(
             current_category=context.current_category or "",
@@ -258,6 +262,9 @@ class ResponseGenerator:
             user_level=context.level,
             user_interests=context.interests
         )
+        
+        # Добавляем инструкцию о краткости ответов
+        system_prompt += "\n\n## ВАЖНО: Отвечай кратко и по делу! Максимум 2-3 предложения. Не выдавай огромные куски текста."
         
         # Добавляем контекстную информацию о значках/категориях
         context_info = self._get_contextual_info(context)

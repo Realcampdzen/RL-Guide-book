@@ -338,7 +338,7 @@ interface Badge {
   howToBecome?: string; // Как стать...
 }
 
-type View = 'intro' | 'categories' | 'category' | 'badge' | 'badge-level' | 'introduction' | 'additional-material';
+type View = 'intro' | 'categories' | 'category' | 'badge' | 'badge-level' | 'introduction' | 'additional-material' | 'about-camp' | 'registration-form';
 
 const App: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -355,6 +355,16 @@ const App: React.FC = () => {
   } | null>(null);
   const [loading, setLoading] = useState(true);
   const [isChatOpen, setIsChatOpen] = useState(false);
+  
+  // Form states
+  const [formData, setFormData] = useState({
+    childName: '',
+    parentName: '',
+    phone: '',
+    email: '',
+    childAge: '',
+    specialRequests: ''
+  });
 
 
   // Загружаем данные при монтировании
@@ -444,6 +454,37 @@ const App: React.FC = () => {
     setCurrentView('introduction');
   };
 
+  const handleTelegramContact = () => {
+    setCurrentView('registration-form');
+  };
+
+  const handleFormSubmit = () => {
+    const message = `🎪 Заявка на осеннюю смену "Осенний 4К-вайб в Реальном Лагере"
+
+👶 Имя ребёнка: ${formData.childName}
+👨‍👩‍👧‍👦 Имя родителя: ${formData.parentName}
+📞 Телефон: ${formData.phone}
+📧 Email: ${formData.email}
+🎂 Возраст ребёнка: ${formData.childAge}
+💭 Особые пожелания: ${formData.specialRequests}
+
+Готовы записаться на смену! 🚀`;
+
+    const telegramUrl = `https://t.me/Stivanovv?text=${encodeURIComponent(message)}`;
+    window.open(telegramUrl, '_blank');
+  };
+
+  const handleFormInputChange = (field: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleBackToAboutCamp = () => {
+    setCurrentView('about-camp');
+  };
+
   const handleAdditionalMaterialClick = (type: 'checklist' | 'methodology', key: string) => {
     console.log('App: Additional material clicked:', type, key);
     if (!selectedCategory?.additional_materials) return;
@@ -484,6 +525,10 @@ const App: React.FC = () => {
     setSelectedLevel('');
   };
 
+  const handleLogoClick = () => {
+    setCurrentView('about-camp');
+  };
+
   const handleBackToCategory = () => {
     console.log('App: Back to category clicked');
     setCurrentView('category');
@@ -508,8 +553,9 @@ const App: React.FC = () => {
   // ЭКРАН 1: Приветствие
   const renderIntro = () => (
     <div className="intro-screen">
-      <div className="intro-logo">
+      <div className="intro-logo" onClick={handleLogoClick}>
         <img src="./pictures/домик_AI.jpg" alt="Логотип" />
+        <div className="logo-hover-text">ОСЕННЯЯ СМЕНА 2025</div>
       </div>
       <div className="intro-content">
         <h1>Путеводитель по Реальному Лагерю</h1>
@@ -1252,9 +1298,31 @@ const App: React.FC = () => {
     );
   }
 
+  // Функция для очистки HTML от лишних пробелов и разрывов
+  const cleanHtmlContent = (html: string) => {
+    return html
+      // Убираем множественные пробелы
+      .replace(/\s+/g, ' ')
+      // Убираем множественные переносы строк
+      .replace(/\n\s*\n\s*\n/g, '\n\n')
+      // Убираем пробелы в начале и конце строк
+      .replace(/^\s+|\s+$/gm, '')
+      // Убираем пустые параграфы
+      .replace(/<p>\s*<\/p>/g, '')
+      // Убираем множественные <br>
+      .replace(/(<br\s*\/?>)\s*(<br\s*\/?>)/g, '<br>')
+      // Убираем пробелы между тегами
+      .replace(/>\s+</g, '><')
+      // Убираем лишние пробелы в тексте
+      .replace(/\s{2,}/g, ' ')
+      .trim();
+  };
+
   // ЭКРАН: Introduction
   const renderIntroduction = () => {
     if (!selectedCategory?.introduction?.has_introduction) return null;
+    
+    const cleanedHtml = cleanHtmlContent(selectedCategory.introduction.html);
     
     return (
       <div className="introduction-screen">
@@ -1267,16 +1335,264 @@ const App: React.FC = () => {
         <div className="introduction-content">
           <div 
             className="introduction-text"
-            dangerouslySetInnerHTML={{ __html: selectedCategory.introduction.html }}
+            dangerouslySetInnerHTML={{ __html: cleanedHtml }}
           />
         </div>
       </div>
     );
   };
 
+  // ЭКРАН: О лагере
+  const renderAboutCamp = () => (
+    <div className="about-camp-screen">
+      <div className="header">
+        <button onClick={handleBackToIntro} className="back-button">
+          ← Назад к главной
+        </button>
+        <h1 style={{color: '#FFD700', textShadow: '2px 2px 4px rgba(0,0,0,0.8)', fontWeight: 'bold'}}>🌟 Реальный Лагерь</h1>
+      </div>
+      <div className="about-camp-content">
+        <div className="camp-description">
+          <h2>🚀 Реальный Лагерь — развиваем навыки будущего!</h2>
+          <p>
+            За смену подростки получают навыки и опыт, которые будут полезны далеко за пределами лагеря и школы: 
+            <strong>лидерство, креативность, коммуникативность, работа с ИИ и умение работать в команде.</strong>
+          </p>
+          <p>
+            <strong>7 событий в день</strong> — от создания музыки с нейросетями до организации собственных мероприятий и душевных вечеров с песнями под гитару и скрипку. 
+            Ваш ребёнок вернётся домой <strong>с новым взглядом на себя и мир.</strong>
+          </p>
+          
+          <h3>🎯 Что мы развиваем</h3>
+          <div className="benefits-grid">
+                            <div className="benefit-item clickable" onClick={() => {
+                  const category = categories.find(c => c.id === "13");
+                  if (category) {
+                    handleCategoryClick(category);
+                  }
+                }}>
+                  <h4>🧩 Навыки 4K</h4>
+                  <p>
+                    🎨 Креативность<br/>
+                    💬 Коммуникация<br/>
+                    🤝 Коллаборация<br/>
+                    🧠 Критическое мышление
+                  </p>
+                </div>
+            <div className="benefit-item clickable" style={{
+              background: 
+                'linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url("./pictures/ии 2.png") center/cover no-repeat',
+              cursor: 'pointer'
+            }} onClick={() => {
+              const category = categories.find(c => c.id === "12");
+              if (category) {
+                handleCategoryClick(category);
+              }
+            }}>
+              <h4 style={{
+                color: '#FFD700',
+                textShadow: '2px 2px 4px rgba(0, 0, 0, 0.8)',
+                fontWeight: 'bold'
+              }}>✨Нейролагерь – нейросети для детей</h4>
+              <p style={{
+                color: '#fff',
+                fontWeight: '600',
+                textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8)'
+              }}>Изучаем нейросети как инструмент для обучения, творчества, проектной деятельности, создания стратегий.</p>
+            </div>
+            <div className="benefit-item clickable" style={{
+              background: 
+                'linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url("./pictures/photo_2025-07-12_00-47-35.jpg") center 20% / 100% no-repeat',
+              cursor: 'pointer'
+            }} onClick={() => {
+              const category = categories.find(c => c.id === "9");
+              if (category) {
+                handleCategoryClick(category);
+              }
+            }}>
+              <h4 style={{
+                color: '#FFD700',
+                textShadow: '2px 2px 4px rgba(0, 0, 0, 0.8)',
+                fontWeight: 'bold'
+              }}>🔥 Соуправление и лидерские качества</h4>
+              <p style={{
+                color: '#fff',
+                fontWeight: '600',
+                textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8)'
+              }}>Организация мероприятий, помощь другим, ответственность — качества настоящего лидера</p>
+            </div>
+          </div>
+
+
+
+          <h3>🔗 Полезные ссылки</h3>
+          <div className="links-section">
+            <a href="https://realcampspb.ru" target="_blank" rel="noopener noreferrer" className="camp-link">
+              🌐 Официальный сайт: realcampspb.ru
+            </a>
+            <a href="https://vk.com/realcampspb" target="_blank" rel="noopener noreferrer" className="camp-link">
+              📱 ВКонтакте: vk.com/realcampspb (блог лагеря)
+            </a>
+            <a href="https://zen.yandex.ru/realcamp" target="_blank" rel="noopener noreferrer" className="camp-link">
+              📝 Наш блог в Яндекс.Дзен: zen.yandex.ru/realcamp
+            </a>
+            <a href="https://www.coo-molod.ru/" target="_blank" rel="noopener noreferrer" className="camp-link">
+              🏛️ Сертификаты: coo-molod.ru
+            </a>
+          </div>
+
+          <h3>📸 Как это выглядит на практике</h3>
+          <div className="posts-section">
+            <a href="https://vk.com/wall-57701087_9100" target="_blank" rel="noopener noreferrer" className="post-link">
+              <div className="post-image">
+                <img src="./pictures/E83kZjD-R0X5rVyIWh-4g2ZfX0uUWj2KPEW37uF73N1elgXzbdeCy46vJzdQICJ-6FNviwvlOplHPs_8_fZpvM_F.jpg" alt="Пост 1" />
+              </div>
+              <div className="post-title">
+                <div className="post-main-title">🔥 Вожатские кейсы и педагогика</div>
+                <div className="post-subtitle">Разбор сложных ситуаций: от ночных посиделок до буллинга</div>
+                <div className="post-highlights">
+                  <span className="highlight">💡 Практические навыки</span>
+                  <span className="highlight">🎭 Ролевые игры</span>
+                  <span className="highlight">🚀 Значок "Реальный Фасилитатор"</span>
+                </div>
+              </div>
+            </a>
+            <a href="https://vk.com/wall-57701087_9080" target="_blank" rel="noopener noreferrer" className="post-link">
+              <div className="post-image">
+                <img src="./pictures/HvRgNN4EUqGaVKKmQYwOnSESzm3zhN8NLN7psGe2xTbuscFg5h0oIIxbtlYIkCIO1zj2TUQYoFAKy9pYquEpfGrR.jpg" alt="Пост 2" />
+              </div>
+              <div className="post-title">
+                <div className="post-main-title">🚀 Дети сами организуют отрядные дела!</div>
+                <div className="post-subtitle">Игра "Бросвящение": от кинематографа до оригами</div>
+                <div className="post-highlights">
+                  <span className="highlight">🎬 Игра по станциям</span>
+                  <span className="highlight">🎨 Мастер-классы</span>
+                  <span className="highlight">🔥 Лидерство</span>
+                </div>
+              </div>
+            </a>
+            <a href="https://vk.com/wall-57701087_9072" target="_blank" rel="noopener noreferrer" className="post-link">
+              <div className="post-image">
+                <img src="./pictures/sZn6aZO0WMdSNnL0qvBUsUlMoYySzf5-3eYIv4wnvUfLEkBUKk3qtRwlwPVcHa7dGxIs1_VgNVjFnriMepAkmQTh.jpg" alt="Пост 3" />
+              </div>
+              <div className="post-title">
+                <div className="post-main-title">🎨 Нейродизайн и агентные системы</div>
+                <div className="post-subtitle">От идеи до реального значка: Genspark, FLUX, ChatGPT</div>
+                <div className="post-highlights">
+                  <span className="highlight">🤖 Итерационный подход</span>
+                  <span className="highlight">🎯 Реальные продукты</span>
+                  <span className="highlight">🧠 Метапромтинг</span>
+                </div>
+              </div>
+            </a>
+            <a href="https://vk.com/wall-57701087_9049" target="_blank" rel="noopener noreferrer" className="post-link">
+              <div className="post-image">
+                <img src="./pictures/2025-09-05_23-59-25.png" alt="Пост 4" />
+              </div>
+              <div className="post-title">
+                <div className="post-main-title">🏴‍☠️ Пираты похитили Бурыча!</div>
+                <div className="post-subtitle">Форт Боярд в лагере: эстафеты, головоломки, спасение</div>
+                <div className="post-highlights">
+                  <span className="highlight">⚔️ Командные испытания</span>
+                  <span className="highlight">🧩 Головоломки</span>
+                  <span className="highlight">🎯 Форт Боярд</span>
+                </div>
+              </div>
+            </a>
+            <a href="https://vk.com/wall-57701087_9009" target="_blank" rel="noopener noreferrer" className="post-link">
+              <div className="post-image">
+                <img src="./pictures/4pCDWvEw_uyf3q8yQbhfsPpfDSVOMYkkexIZCudbxTsmqN8iA3jIT8TwpNtXbGliD_YCpD2nZhQZXajz4-0KFg-1.jpg" alt="Пост 5" />
+              </div>
+              <div className="post-title">
+                <div className="post-main-title">🎶 Музыкальный продюсер с Suno AI</div>
+                <div className="post-subtitle">От текста до готового трека: творчество без границ</div>
+                <div className="post-highlights">
+                  <span className="highlight">🎹 Создание треков</span>
+                  <span className="highlight">🎤 Запись голоса</span>
+                  <span className="highlight">🎵 Значок "AI-Композитор"</span>
+                </div>
+              </div>
+            </a>
+            <a href="https://vk.com/wall-57701087_9006" target="_blank" rel="noopener noreferrer" className="post-link">
+              <div className="post-image">
+                <img src="./pictures/7zwq9TM56YIgLvgyfgG1FJUm0lRtQ2-1TTi5EIEwubGUDg7_u77CYs5eMnz5CJ1v9zNTvoP49-UlGtYArl_fERQ7.jpg" alt="Пост 6" />
+              </div>
+              <div className="post-title">
+                <div className="post-main-title">🥊 Мастер-класс по самообороне</div>
+                <div className="post-subtitle">С Тимофеем: ценные уроки и невероятная атмосфера</div>
+                <div className="post-highlights">
+                  <span className="highlight">🥊 Самооборона</span>
+                  <span className="highlight">🌟 Мастерство</span>
+                  <span className="highlight">🙌 Ценные уроки</span>
+                </div>
+              </div>
+            </a>
+            <a href="https://vk.com/wall-57701087_8995" target="_blank" rel="noopener noreferrer" className="post-link">
+              <div className="post-image">
+                <img src="./pictures/2025-09-06_00-12-54.png" alt="Пост 7" />
+              </div>
+              <div className="post-title">
+                <div className="post-main-title">🕯️ Огонёк откровений</div>
+                <div className="post-subtitle">Безопасное пространство для открытого общения</div>
+                <div className="post-highlights">
+                  <span className="highlight">🫂 Принятие</span>
+                  <span className="highlight">🎯 Доверие</span>
+                  <span className="highlight">🏡 Семейные отношения</span>
+                </div>
+              </div>
+            </a>
+            <a href="https://vk.com/wall-57701087_8994" target="_blank" rel="noopener noreferrer" className="post-link">
+              <div className="post-image">
+                <img src="./pictures/s2h4cMVKTb8nvRA56BUTpjsa16sTjMNfenMAdMBdQbPJWWJwSGooE5u1D8b-0hQ0IQNp59LW4IsDHse46SZavWEA.jpg" alt="Пост 8" />
+              </div>
+              <div className="post-title">
+                <div className="post-main-title">🚀 EggX: лётно-конструкторские испытания</div>
+                <div className="post-subtitle">Инженерный челлендж: яйцелёты с высоты 3 метров</div>
+                <div className="post-highlights">
+                  <span className="highlight">🧪 Конструкторские бюро</span>
+                  <span className="highlight">🔬 Техническая смекалка</span>
+                  <span className="highlight">👨‍🚀 Командная работа</span>
+                </div>
+              </div>
+            </a>
+            <a href="https://vk.com/wall-57701087_8927" target="_blank" rel="noopener noreferrer" className="post-link">
+              <div className="post-image">
+                <img src="./pictures/2025-09-06_00-16-20.png" alt="Пост 9" />
+              </div>
+              <div className="post-title">
+                <div className="post-main-title">😎 Сигма-Бро в Реальном Лагере</div>
+                <div className="post-subtitle">Лето, Soft Skills, нейросети и добро круглый год</div>
+                <div className="post-highlights">
+                  <span className="highlight">☀️ Родительский час</span>
+                  <span className="highlight">💜 Атмосфера</span>
+                  <span className="highlight">🌟 Воспоминания</span>
+                </div>
+              </div>
+            </a>
+          </div>
+
+
+          <h3>📅 ОСЕННЯЯ СМЕНА 2025</h3>
+          <div className="session-info clickable" onClick={handleTelegramContact} style={{ cursor: 'pointer' }}>
+            <h4>🎪 "Осенний 4К-вайб в Реальном Лагере: навыки будущего + нейросети для обучения и творчества"</h4>
+            <p><strong>Когда:</strong> с 25 октября по 2 ноября 2025 года</p>
+            <p><strong>Стоимость:</strong></p>
+            <ul>
+              <li>30 500 ₽ — со скидкой по сертификату СПб</li>
+              <li>35 500 ₽ — полная стоимость</li>
+            </ul>
+            <p><em>Читайте отзывы родителей в нашей группе ВКонтакте!</em></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
   // ЭКРАН: Additional Material
   const renderAdditionalMaterial = () => {
     if (!selectedAdditionalMaterial) return null;
+    
+    const cleanedHtml = cleanHtmlContent(selectedAdditionalMaterial.content);
     
     return (
       <div className="additional-material-screen">
@@ -1289,8 +1605,105 @@ const App: React.FC = () => {
         <div className="additional-material-content">
           <div 
             className="additional-material-text"
-            dangerouslySetInnerHTML={{ __html: selectedAdditionalMaterial.content }}
+            dangerouslySetInnerHTML={{ __html: cleanedHtml }}
           />
+        </div>
+      </div>
+    );
+  };
+
+  // ЭКРАН: Registration Form
+  const renderRegistrationForm = () => {
+    return (
+      <div className="registration-form-screen">
+        <div className="header">
+          <button onClick={handleBackToAboutCamp} className="back-button">
+            ← Назад
+          </button>
+          <h1 style={{color: '#FFD700', textShadow: '2px 2px 4px rgba(0,0,0,0.8)', fontWeight: 'bold'}}>
+            🎪 Запись на осеннюю смену
+          </h1>
+        </div>
+        
+        <div className="registration-form-content">
+          <div className="form-container">
+            <h2>📝 Заполните форму для записи</h2>
+            <p>Мы свяжемся с вами в течение дня для подтверждения записи</p>
+            
+            <div className="form-group">
+              <label>👶 Имя ребёнка *</label>
+              <input
+                type="text"
+                value={formData.childName}
+                onChange={(e) => handleFormInputChange('childName', e.target.value)}
+                placeholder="Введите имя ребёнка"
+                required
+              />
+            </div>
+            
+            <div className="form-group">
+              <label>👨‍👩‍👧‍👦 Имя родителя *</label>
+              <input
+                type="text"
+                value={formData.parentName}
+                onChange={(e) => handleFormInputChange('parentName', e.target.value)}
+                placeholder="Введите ваше имя"
+                required
+              />
+            </div>
+            
+            <div className="form-group">
+              <label>📞 Телефон *</label>
+              <input
+                type="tel"
+                value={formData.phone}
+                onChange={(e) => handleFormInputChange('phone', e.target.value)}
+                placeholder="+7 (999) 123-45-67"
+                required
+              />
+            </div>
+            
+            <div className="form-group">
+              <label>📧 Email</label>
+              <input
+                type="email"
+                value={formData.email}
+                onChange={(e) => handleFormInputChange('email', e.target.value)}
+                placeholder="your@email.com"
+              />
+            </div>
+            
+            <div className="form-group">
+              <label>🎂 Возраст ребёнка *</label>
+              <input
+                type="number"
+                value={formData.childAge}
+                onChange={(e) => handleFormInputChange('childAge', e.target.value)}
+                placeholder="8"
+                min="6"
+                max="17"
+                required
+              />
+            </div>
+            
+            <div className="form-group">
+              <label>💭 Особые пожелания</label>
+              <textarea
+                value={formData.specialRequests}
+                onChange={(e) => handleFormInputChange('specialRequests', e.target.value)}
+                placeholder="Аллергии, особенности питания, медицинские показания..."
+                rows={3}
+              />
+            </div>
+            
+            <button 
+              className="submit-button"
+              onClick={handleFormSubmit}
+              disabled={!formData.childName || !formData.parentName || !formData.phone || !formData.childAge}
+            >
+              🚀 Отправить заявку в Telegram
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -1305,6 +1718,8 @@ const App: React.FC = () => {
       {currentView === 'badge-level' && renderBadgeLevel()}
       {currentView === 'introduction' && renderIntroduction()}
       {currentView === 'additional-material' && renderAdditionalMaterial()}
+      {currentView === 'about-camp' && renderAboutCamp()}
+      {currentView === 'registration-form' && renderRegistrationForm()}
       
       {/* Чат-бот НейроВалюша */}
       <ChatButton 
@@ -1394,20 +1809,20 @@ const App: React.FC = () => {
           100% { transform: rotate(360deg); }
         }
 
-                         .intro-screen {
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          background: 
-            linear-gradient(135deg, rgba(12, 12, 12, 0.3) 0%, rgba(26, 26, 46, 0.3) 50%, rgba(22, 33, 62, 0.3) 100%),
+                 .intro-screen {
+           position: absolute;
+           top: 0;
+           left: 0;
+           width: 100%;
+           height: 100%;
+           display: flex;
+           justify-content: center;
+           align-items: center;
+           background: 
+             linear-gradient(135deg, rgba(12, 12, 12, 0.3) 0%, rgba(26, 26, 46, 0.3) 50%, rgba(22, 33, 62, 0.3) 100%),
             url('./экран 1 фон copy.png') center top / 100% 100% no-repeat;
-          backdrop-filter: blur(10px);
-        }
+           backdrop-filter: blur(10px);
+         }
 
         .intro-logo {
           position: absolute;
@@ -1417,6 +1832,7 @@ const App: React.FC = () => {
           display: flex;
           flex-direction: column;
           align-items: flex-start;
+          transition: all 0.3s ease;
         }
 
         .intro-logo img {
@@ -1425,9 +1841,405 @@ const App: React.FC = () => {
           object-fit: cover;
           object-position: center;
           border-radius: 18px;
-          box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+          box-shadow: 
+            0 6px 20px rgba(0, 0, 0, 0.4),
+            0 0 0 2px rgba(255, 215, 0, 1),
+            0 0 20px rgba(255, 215, 0, 0.5),
+            0 0 40px rgba(255, 215, 0, 0.3),
+            inset 0 0 0 1px rgba(255, 255, 0, 0.8),
+            inset 0 0 20px rgba(255, 215, 0, 0.4),
+            inset 0 0 40px rgba(255, 215, 0, 0.2);
           background: rgba(255, 255, 255, 0.1);
           padding: 0px;
+          transition: all 0.3s ease;
+        }
+
+        .intro-logo:hover {
+          transform: scale(1.02);
+        }
+
+        .intro-logo:hover img {
+          box-shadow: 
+            0 12px 32px rgba(0, 0, 0, 0.5),
+            0 0 0 3px rgba(255, 215, 0, 1),
+            0 0 30px rgba(255, 215, 0, 0.8),
+            0 0 60px rgba(255, 215, 0, 0.6),
+            0 0 100px rgba(255, 215, 0, 0.4),
+            inset 0 0 0 2px rgba(255, 255, 0, 1),
+            inset 0 0 30px rgba(255, 215, 0, 0.6),
+            inset 0 0 60px rgba(255, 215, 0, 0.3);
+        }
+
+        .logo-hover-text {
+          position: absolute;
+          bottom: -40px;
+          left: 50%;
+          transform: translateX(-50%);
+          color: #FFD700;
+          font-size: 14px;
+          font-weight: bold;
+          text-shadow: 
+            0 0 10px rgba(255, 215, 0, 0.8),
+            0 0 20px rgba(255, 215, 0, 0.6),
+            0 0 30px rgba(255, 215, 0, 0.4);
+          opacity: 0;
+          transition: all 0.3s ease;
+          white-space: nowrap;
+          letter-spacing: 1px;
+        }
+
+        .intro-logo:hover .logo-hover-text {
+          opacity: 1;
+          transform: translateX(-50%) translateY(-5px);
+        }
+
+        .about-camp-screen {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: 
+            linear-gradient(135deg, rgba(12, 12, 12, 0.3) 0%, rgba(26, 26, 46, 0.3) 50%, rgba(22, 33, 62, 0.3) 100%),
+            url('./экран 1 фон copy.png') center top / 100% 100% no-repeat;
+          backdrop-filter: blur(10px);
+          overflow-y: auto;
+        }
+
+        .about-camp-content {
+          max-width: 1000px;
+          margin: 0 auto;
+          padding: 2rem;
+          background: rgba(0, 0, 0, 0.3);
+          border-radius: 20px;
+          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+          backdrop-filter: blur(4px);
+        }
+
+        .camp-description h2 {
+          color: #FFD700;
+          font-size: 1.8rem;
+          margin-bottom: 1rem;
+          text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        }
+
+        .camp-description h3 {
+          color: #FFA500;
+          font-size: 1.4rem;
+          margin: 1.5rem 0 1rem 0;
+          text-shadow: 1px 1px 2px rgba(0,0,0,0.6);
+        }
+
+        .camp-description p {
+          color: #E6F7FF;
+          line-height: 1.6;
+          margin-bottom: 1rem;
+          font-size: 1rem;
+        }
+
+        .camp-description ul {
+          color: #E6F7FF;
+          line-height: 1.6;
+          margin-bottom: 1.5rem;
+          padding-left: 1.5rem;
+        }
+
+        .camp-description li {
+          margin-bottom: 0.5rem;
+        }
+
+        .links-section {
+          display: flex;
+          flex-direction: column;
+          gap: 1rem;
+          margin: 1.5rem 0;
+        }
+
+        .camp-link {
+          color: #4ECDC4;
+          text-decoration: none;
+          padding: 0.8rem 1.2rem;
+          background: rgba(78, 205, 196, 0.1);
+          border: 1px solid rgba(78, 205, 196, 0.3);
+          border-radius: 10px;
+          transition: all 0.3s ease;
+          font-weight: 500;
+        }
+
+        .camp-link:hover {
+          background: rgba(78, 205, 196, 0.2);
+          border-color: rgba(78, 205, 196, 0.5);
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(78, 205, 196, 0.3);
+        }
+
+        .session-info {
+          background: rgba(255, 215, 0, 0.1);
+          border: 1px solid rgba(255, 215, 0, 0.3);
+          border-radius: 15px;
+          padding: 1.5rem;
+          margin-top: 1rem;
+        }
+
+        .session-info h4 {
+          color: #FFD700;
+          font-size: 1.2rem;
+          margin-bottom: 1rem;
+          text-shadow: 1px 1px 2px rgba(0,0,0,0.6);
+        }
+
+        .session-info p {
+          margin-bottom: 0.8rem;
+        }
+
+        .session-info ul {
+          margin: 0.5rem 0 1rem 1.5rem;
+        }
+
+        .session-info li {
+          margin-bottom: 0.3rem;
+        }
+
+        .posts-section {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+          gap: 1rem;
+          margin: 1.5rem 0;
+        }
+
+        .post-link {
+          color: #FFA500;
+          text-decoration: none;
+          padding: 1rem;
+          background: rgba(255, 165, 0, 0.1);
+          border: 1px solid rgba(255, 165, 0, 0.3);
+          border-radius: 10px;
+          transition: all 0.3s ease;
+          font-weight: 500;
+          text-align: center;
+          display: block;
+        }
+
+        .post-link:hover {
+          background: rgba(255, 165, 0, 0.2);
+          border-color: rgba(255, 165, 0, 0.5);
+          transform: translateY(-3px);
+          box-shadow: 0 6px 16px rgba(255, 165, 0, 0.3);
+        }
+
+        .post-image {
+          width: 100%;
+          height: 150px;
+          overflow: hidden;
+          border-radius: 8px;
+          margin-bottom: 0.8rem;
+        }
+
+        .post-image img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          object-position: center;
+          transition: transform 0.3s ease;
+        }
+
+        .post-link:hover .post-image img {
+          transform: scale(1.05);
+        }
+
+        /* Benefits Grid */
+        .benefits-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+          gap: 20px;
+          margin: 20px 0;
+        }
+
+        .benefit-item {
+          background: linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(255, 165, 0, 0.1) 100%);
+          border: 2px solid rgba(255, 215, 0, 0.3);
+          border-radius: 15px;
+          padding: 20px;
+          text-align: center;
+          transition: all 0.3s ease;
+        }
+
+        .benefit-item:hover {
+          transform: translateY(-5px);
+          box-shadow: 0 10px 25px rgba(255, 215, 0, 0.2);
+          border-color: rgba(255, 215, 0, 0.6);
+        }
+
+        .benefit-item.clickable {
+          cursor: pointer;
+          position: relative;
+          overflow: hidden;
+          background: 
+            linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)),
+            url('./pictures/софт скиллз.png') center/cover no-repeat;
+        }
+
+        .benefit-item.clickable::after {
+          content: '👆';
+          position: absolute;
+          top: 10px;
+          right: 10px;
+          font-size: 16px;
+          opacity: 0.7;
+          transition: all 0.3s ease;
+        }
+
+        .benefit-item.clickable:hover::after {
+          opacity: 1;
+          transform: scale(1.2);
+        }
+
+        .benefit-item.clickable:hover {
+          transform: translateY(-8px) scale(1.02);
+          box-shadow: 0 15px 35px rgba(255, 215, 0, 0.3);
+          border-color: rgba(255, 215, 0, 0.8);
+        }
+
+        .benefit-item h4 {
+          color: #FFD700;
+          margin-bottom: 10px;
+          font-size: 18px;
+        }
+
+        .benefit-item.clickable h4 {
+          color: #FFD700;
+          text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+          font-weight: bold;
+        }
+
+        .benefit-item p {
+          color: #333;
+          font-size: 14px;
+          line-height: 1.4;
+        }
+
+        .benefit-item.clickable p {
+          color: #fff;
+          font-weight: 600;
+          text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+        }
+
+        /* Daily Activities */
+        .daily-activities {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+          gap: 15px;
+          margin: 20px 0;
+        }
+
+        .activity-item {
+          display: flex;
+          align-items: center;
+          background: rgba(255, 255, 255, 0.9);
+          border-radius: 12px;
+          padding: 15px;
+          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+          transition: all 0.3s ease;
+        }
+
+        .activity-item:hover {
+          transform: translateX(5px);
+          box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .activity-icon {
+          font-size: 32px;
+          margin-right: 15px;
+          min-width: 40px;
+        }
+
+        .activity-item div {
+          flex: 1;
+        }
+
+        .activity-item strong {
+          color: #2c3e50;
+          font-size: 16px;
+          display: block;
+          margin-bottom: 5px;
+        }
+
+        .activity-item p {
+          color: #666;
+          font-size: 13px;
+          margin: 0;
+          line-height: 1.3;
+        }
+
+        /* CTA Section */
+        .cta-section {
+          background: linear-gradient(135deg, rgba(255, 215, 0, 0.15) 0%, rgba(255, 165, 0, 0.15) 100%);
+          border: 3px solid rgba(255, 215, 0, 0.4);
+          border-radius: 20px;
+          padding: 25px;
+          text-align: center;
+          margin: 30px 0;
+          box-shadow: 0 8px 25px rgba(255, 215, 0, 0.2);
+        }
+
+        .cta-section h3 {
+          color: #FFD700;
+          font-size: 24px;
+          margin-bottom: 15px;
+          text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .cta-section p {
+          font-size: 16px;
+          line-height: 1.6;
+          margin-bottom: 10px;
+        }
+
+        .cta-section p:last-child {
+          margin-bottom: 0;
+          font-size: 14px;
+          color: #e74c3c;
+          font-weight: bold;
+        }
+
+        .post-link:nth-child(3) .post-image img {
+          object-position: center 20%;
+        }
+
+        .post-title {
+          font-size: 0.9rem;
+          line-height: 1.3;
+        }
+
+        .post-main-title {
+          font-size: 1rem;
+          font-weight: bold;
+          color: #FFD700;
+          margin-bottom: 0.3rem;
+          text-shadow: 1px 1px 2px rgba(0,0,0,0.6);
+        }
+
+        .post-subtitle {
+          font-size: 0.8rem;
+          color: #E6F7FF;
+          margin-bottom: 0.5rem;
+          line-height: 1.2;
+        }
+
+        .post-highlights {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.3rem;
+          justify-content: center;
+        }
+
+        .highlight {
+          font-size: 0.7rem;
+          background: rgba(78, 205, 196, 0.2);
+          color: #4ECDC4;
+          padding: 0.2rem 0.4rem;
+          border-radius: 4px;
+          border: 1px solid rgba(78, 205, 196, 0.3);
         }
 
 
@@ -1602,6 +2414,30 @@ const App: React.FC = () => {
             background: 
               linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.2) 100%),
               url('./pictures/паттерн значки.jpg') center 71% / 100% no-repeat !important;
+            position: relative;
+          }
+
+          .category-screen .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+              radial-gradient(circle at 15% 25%, rgba(0, 0, 0, 0.4) 0%, transparent 30%),
+              radial-gradient(circle at 85% 15%, rgba(0, 0, 0, 0.3) 0%, transparent 25%),
+              radial-gradient(circle at 25% 75%, rgba(0, 0, 0, 0.35) 0%, transparent 35%),
+              radial-gradient(circle at 75% 85%, rgba(0, 0, 0, 0.3) 0%, transparent 30%),
+              radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0.2) 0%, transparent 40%);
+            filter: hue-rotate(270deg) saturate(1.5) brightness(0.8);
+            pointer-events: none;
+            z-index: 1;
+          }
+
+          .category-screen .header > * {
+            position: relative;
+            z-index: 2;
           }
 
                  .back-button {
@@ -1805,7 +2641,7 @@ const App: React.FC = () => {
     .category-10-icon {
       width: 160% !important;
       height: 160% !important;
-    }
+            }
 
                      .category-text {
              display: flex;
@@ -2335,84 +3171,255 @@ const App: React.FC = () => {
         }
 
         .introduction-content, .additional-material-content {
-          max-width: 800px;
+          max-width: 700px;
           margin: 0 auto;
-          background: rgba(0, 0, 0, 0.7);
-          padding: 2rem;
-          border-radius: 20px;
-          backdrop-filter: blur(10px);
-          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+          background: rgba(0, 0, 0, 0.4);
+          padding: 1.5rem;
+          border-radius: 15px;
+          backdrop-filter: blur(15px);
+          box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+          border: 1px solid rgba(255, 215, 0, 0.3);
+          position: relative;
+          overflow: hidden;
+        }
+
+        .introduction-content::before, .additional-material-content::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          height: 2px;
+          background: linear-gradient(90deg, #FFD700, #FFA500, #FFD700);
+          background-size: 200% 100%;
+          animation: shimmer 3s ease-in-out infinite;
         }
 
         .introduction-text, .additional-material-text {
           color: #ffffff;
-          line-height: 1.6;
-          font-size: 1rem;
+          line-height: 1.5;
+          font-size: 0.95rem;
+          position: relative;
+          z-index: 1;
+          white-space: pre-line;
         }
 
-        .introduction-text h1, .additional-material-text h1 {
-          color: #4ecdc4;
-          font-size: 2rem;
-          margin-bottom: 1rem;
-          text-align: center;
-        }
-
-        .introduction-text h2, .additional-material-text h2 {
-          color: #4ecdc4;
-          font-size: 1.5rem;
-          margin: 1.5rem 0 1rem 0;
-        }
-
-        .introduction-text h3, .additional-material-text h3 {
-          color: #4ecdc4;
-          font-size: 1.2rem;
-          margin: 1rem 0 0.5rem 0;
-        }
-
-        .introduction-text h4, .additional-material-text h4 {
-          color: #4ecdc4;
-          font-size: 1.1rem;
-          margin: 0.8rem 0 0.4rem 0;
+        /* Нормализация текста - убираем лишние пробелы и разрывы */
+        .introduction-text *, .additional-material-text * {
+          white-space: normal;
         }
 
         .introduction-text p, .additional-material-text p {
-          margin: 0.8rem 0;
+          white-space: pre-line;
+        }
+
+        /* Убираем двойные пробелы и нормализуем текст */
+        .introduction-text, .additional-material-text {
+          text-rendering: optimizeLegibility;
+          font-variant-ligatures: none;
+        }
+
+        /* Нормализация пробелов в тексте */
+        .introduction-text p, .additional-material-text p {
+          text-align: justify;
+          word-spacing: normal;
+          letter-spacing: normal;
+        }
+
+        /* Убираем лишние отступы в начале и конце */
+        .introduction-text p:first-child, .additional-material-text p:first-child {
+          margin-top: 0;
+        }
+
+        .introduction-text p:last-child, .additional-material-text p:last-child {
+          margin-bottom: 0;
+        }
+
+        /* Обработка HTML контента с лишними пробелами */
+        .introduction-text br + br, .additional-material-text br + br {
+          display: none;
+        }
+
+        .introduction-text p:empty, .additional-material-text p:empty {
+          display: none;
+        }
+
+        /* Убираем лишние разрывы между абзацами */
+        .introduction-text p + p, .additional-material-text p + p {
+          margin-top: 0.1rem !important;
+        }
+
+        /* Убираем лишние разрывы после заголовков */
+        .introduction-text h1 + p, .additional-material-text h1 + p,
+        .introduction-text h2 + p, .additional-material-text h2 + p,
+        .introduction-text h3 + p, .additional-material-text h3 + p,
+        .introduction-text h4 + p, .additional-material-text h4 + p {
+          margin-top: 0.1rem !important;
+        }
+
+        /* Убираем лишние разрывы перед заголовками */
+        .introduction-text p + h1, .additional-material-text p + h1,
+        .introduction-text p + h2, .additional-material-text p + h2,
+        .introduction-text p + h3, .additional-material-text p + h3,
+        .introduction-text p + h4, .additional-material-text p + h4 {
+          margin-top: 0.2rem !important;
+        }
+
+        /* Нормализация пробелов в HTML */
+        .introduction-text, .additional-material-text {
+          font-kerning: normal;
+          text-transform: none;
+        }
+
+        /* Агрессивное убирание всех лишних отступов */
+        .introduction-text *, .additional-material-text * {
+          margin-top: 0 !important;
+          margin-bottom: 0 !important;
+        }
+
+        /* Восстанавливаем минимальные отступы только там, где нужно */
+        .introduction-text p, .additional-material-text p {
+          margin-top: 0.1rem !important;
+          margin-bottom: 0.1rem !important;
+        }
+
+        .introduction-text h1, .additional-material-text h1 {
+          margin-top: 0 !important;
+          margin-bottom: 0.1rem !important;
+        }
+
+        .introduction-text h2, .additional-material-text h2 {
+          margin-top: 0.2rem !important;
+          margin-bottom: 0.1rem !important;
+        }
+
+        .introduction-text h3, .additional-material-text h3 {
+          margin-top: 0.2rem !important;
+          margin-bottom: 0.1rem !important;
+        }
+
+        .introduction-text h4, .additional-material-text h4 {
+          margin-top: 0.1rem !important;
+          margin-bottom: 0.05rem !important;
+        }
+
+
+        /* Убираем лишние отступы между заголовками и параграфами */
+        .introduction-text h1 + p, .additional-material-text h1 + p,
+        .introduction-text h2 + p, .additional-material-text h2 + p,
+        .introduction-text h3 + p, .additional-material-text h3 + p,
+        .introduction-text h4 + p, .additional-material-text h4 + p {
+          margin-top: 0.1rem;
+        }
+
+        .introduction-text p + h1, .additional-material-text p + h1,
+        .introduction-text p + h2, .additional-material-text p + h2,
+        .introduction-text p + h3, .additional-material-text p + h3,
+        .introduction-text p + h4, .additional-material-text p + h4 {
+          margin-top: 0.2rem;
+        }
+
+        .introduction-text h1 + h2, .additional-material-text h1 + h2,
+        .introduction-text h2 + h3, .additional-material-text h2 + h3,
+        .introduction-text h3 + h4, .additional-material-text h3 + h4 {
+          margin-top: 0.1rem;
+        }
+
+        .introduction-text h1, .additional-material-text h1 {
+          color: #FFD700;
+          font-size: 1.8rem;
+          margin-top: 0;
+          margin-bottom: 0.1rem;
+          text-align: center;
+          text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+          font-weight: bold;
+        }
+
+        .introduction-text h2, .additional-material-text h2 {
+          color: #FFA500;
+          font-size: 1.4rem;
+          margin-top: 0.2rem;
+          margin-bottom: 0.1rem;
+          text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+          font-weight: 600;
+        }
+
+        .introduction-text h3, .additional-material-text h3 {
+          color: #FFD700;
+          font-size: 1.1rem;
+          margin-top: 0.2rem;
+          margin-bottom: 0.1rem;
+          font-weight: 600;
+        }
+
+        .introduction-text h4, .additional-material-text h4 {
+          color: #FFA500;
+          font-size: 1rem;
+          margin-top: 0.1rem;
+          margin-bottom: 0.05rem;
+          font-weight: 600;
+        }
+
+        .introduction-text p, .additional-material-text p {
+          margin-top: 0.1rem;
+          margin-bottom: 0.1rem;
+          color: #e8e8e8;
+          opacity: 0.95;
+        }
+
+        .introduction-text ul, .additional-material-text ul,
+        .introduction-text ol, .additional-material-text ol {
+          margin-top: 0.1rem;
+          margin-bottom: 0.1rem;
+          padding-left: 1.2rem;
         }
 
         .introduction-text li, .additional-material-text li {
-          margin: 0.4rem 0;
+          margin-top: 0.02rem;
+          margin-bottom: 0.02rem;
+          color: #e8e8e8;
+          opacity: 0.95;
         }
 
         .introduction-text strong, .additional-material-text strong {
-          color: #4ecdc4;
+          color: #FFD700;
+          font-weight: bold;
+          opacity: 1;
         }
 
         .introduction-text em, .additional-material-text em {
-          color: #ffd700;
+          color: #FFA500;
+          font-style: italic;
+          opacity: 1;
         }
 
         .introduction-text pre, .additional-material-text pre {
-          background: rgba(0, 0, 0, 0.5);
-          padding: 1rem;
-          border-radius: 10px;
+          background: rgba(0, 0, 0, 0.6);
+          padding: 0.6rem;
+          border-radius: 8px;
           overflow-x: auto;
-          margin: 1rem 0;
+          margin-top: 0.1rem;
+          margin-bottom: 0.1rem;
+          border: 1px solid rgba(255, 215, 0, 0.2);
         }
 
         .introduction-text code, .additional-material-text code {
-          background: rgba(0, 0, 0, 0.5);
+          background: rgba(0, 0, 0, 0.6);
           padding: 0.2rem 0.4rem;
           border-radius: 4px;
           font-family: 'Courier New', monospace;
+          color: #FFD700;
+          border: 1px solid rgba(255, 215, 0, 0.2);
         }
 
         .introduction-text blockquote, .additional-material-text blockquote {
-          border-left: 4px solid #4ecdc4;
-          padding-left: 1rem;
-          margin: 1rem 0;
-          background: rgba(78, 205, 196, 0.1);
-          padding: 1rem;
-          border-radius: 0 10px 10px 0;
+          border-left: 3px solid #FFD700;
+          padding-left: 0.6rem;
+          margin-top: 0.1rem;
+          margin-bottom: 0.1rem;
+          background: rgba(255, 215, 0, 0.1);
+          padding: 0.6rem;
+          border-radius: 0 8px 8px 0;
         }
 
         /* Адаптивность для мобильных устройств */
@@ -2428,16 +3435,280 @@ const App: React.FC = () => {
           }
 
           .introduction-content, .additional-material-content {
-            padding: 1rem;
+            padding: 1.2rem;
             margin: 0.5rem;
+            max-width: 95%;
           }
 
           .introduction-text h1, .additional-material-text h1 {
-            font-size: 1.5rem;
+            font-size: 1.6rem;
           }
 
           .introduction-text h2, .additional-material-text h2 {
             font-size: 1.3rem;
+          }
+
+          .introduction-text h3, .additional-material-text h3 {
+            font-size: 1.1rem;
+          }
+
+          .introduction-text h4, .additional-material-text h4 {
+            font-size: 1rem;
+          }
+        }
+
+        /* Session Info Styles */
+        .session-info {
+          background: 
+            linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)),
+            url('./pictures/весна 2.jpg') center 10%/50% no-repeat;
+          border: 2px solid rgba(255, 215, 0, 0.6);
+          border-radius: 15px;
+          padding: 15px;
+          margin: 15px 0;
+          box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+          backdrop-filter: blur(5px);
+          transition: all 0.3s ease;
+          position: relative;
+          overflow: hidden;
+        }
+
+        .session-info::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          height: 3px;
+          background: linear-gradient(90deg, #FFD700, #FFA500, #FFD700);
+          background-size: 200% 100%;
+          animation: shimmer 3s ease-in-out infinite;
+        }
+
+        @keyframes shimmer {
+          0%, 100% { background-position: 200% 0; }
+          50% { background-position: -200% 0; }
+        }
+
+        .session-info.clickable:hover {
+          transform: translateY(-5px);
+          box-shadow: 0 15px 40px rgba(255, 215, 0, 0.3);
+          border-color: rgba(255, 215, 0, 0.9);
+          background: 
+            linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)),
+            url('./pictures/весна 2.jpg') center 10%/50% no-repeat;
+        }
+
+        .session-info h4 {
+          color: #FFD700;
+          margin-bottom: 10px;
+          font-size: 16px;
+          font-weight: bold;
+          text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+        }
+
+        .session-info p {
+          color: #ffffff;
+          margin-bottom: 8px;
+          font-size: 13px;
+          line-height: 1.4;
+        }
+
+        .session-info ul {
+          color: #ffffff;
+          margin: 10px 0;
+          padding-left: 20px;
+        }
+
+        .session-info li {
+          margin-bottom: 5px;
+          font-size: 13px;
+          line-height: 1.3;
+        }
+
+        .session-info em {
+          color: #FFD700;
+          font-weight: bold;
+          text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+        }
+
+        .session-image {
+          width: 100%;
+          max-width: 300px;
+          height: auto;
+          border-radius: 10px;
+          margin-bottom: 12px;
+          box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+          transition: all 0.3s ease;
+        }
+
+        .session-info:hover .session-image {
+          transform: scale(1.02);
+          box-shadow: 0 12px 25px rgba(255, 215, 0, 0.2);
+        }
+
+        /* Registration Form Styles */
+        .registration-form-screen {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          overflow-x: hidden;
+          overflow-y: auto;
+          padding: 1rem;
+          background: 
+            linear-gradient(135deg, rgba(12, 12, 12, 0.3) 0%, rgba(26, 26, 46, 0.3) 50%, rgba(22, 33, 62, 0.3) 100%),
+            url('./экран 3 фон.png') center center / cover no-repeat;
+        }
+
+        .registration-form-content {
+          max-width: 500px;
+          margin: 0 auto;
+          padding: 1.5rem 0;
+        }
+
+        .form-container {
+          background: rgba(0, 0, 0, 0.4);
+          padding: 1.5rem;
+          border-radius: 15px;
+          backdrop-filter: blur(15px);
+          box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+          border: 1px solid rgba(255, 215, 0, 0.5);
+          position: relative;
+          overflow: hidden;
+        }
+
+        .form-container::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          height: 2px;
+          background: linear-gradient(90deg, #FFD700, #FFA500, #FFD700);
+          background-size: 200% 100%;
+          animation: shimmer 3s ease-in-out infinite;
+        }
+
+        .form-container h2 {
+          color: #FFD700;
+          font-size: 22px;
+          margin-bottom: 8px;
+          text-align: center;
+          text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+          font-weight: bold;
+        }
+
+        .form-container p {
+          color: #ffffff;
+          text-align: center;
+          margin-bottom: 25px;
+          font-size: 14px;
+          opacity: 0.8;
+          line-height: 1.4;
+        }
+
+        .form-group {
+          margin-bottom: 16px;
+        }
+
+        .form-group label {
+          display: block;
+          color: #FFD700;
+          font-size: 14px;
+          font-weight: bold;
+          margin-bottom: 6px;
+          text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+        }
+
+        .form-group input,
+        .form-group textarea {
+          width: 100%;
+          padding: 10px 14px;
+          border: 1px solid rgba(255, 215, 0, 0.4);
+          border-radius: 8px;
+          background: rgba(0, 0, 0, 0.3);
+          color: #ffffff;
+          font-size: 14px;
+          transition: all 0.3s ease;
+          box-sizing: border-box;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+          outline: none;
+          border-color: rgba(255, 215, 0, 0.8);
+          box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+          background: rgba(0, 0, 0, 0.5);
+        }
+
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+          color: rgba(255, 255, 255, 0.4);
+        }
+
+        .form-group textarea {
+          resize: vertical;
+          min-height: 70px;
+        }
+
+        .submit-button {
+          width: 100%;
+          padding: 12px 20px;
+          background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+          color: #2c3e50;
+          border: none;
+          border-radius: 10px;
+          font-size: 16px;
+          font-weight: bold;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          box-shadow: 0 6px 20px rgba(255, 215, 0, 0.3);
+          margin-top: 15px;
+        }
+
+        .submit-button:hover:not(:disabled) {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 25px rgba(255, 215, 0, 0.4);
+          background: linear-gradient(135deg, #FFE55C 0%, #FFB84D 100%);
+        }
+
+        .submit-button:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+          transform: none;
+        }
+
+        /* Адаптивность для мобильных устройств */
+        @media (max-width: 768px) {
+          .registration-form-content {
+            padding: 1rem 0;
+            max-width: 90%;
+          }
+
+          .form-container {
+            padding: 1.2rem;
+            margin: 0 0.5rem;
+          }
+
+          .form-container h2 {
+            font-size: 18px;
+          }
+
+          .form-container p {
+            font-size: 13px;
+          }
+
+          .form-group input,
+          .form-group textarea {
+            font-size: 16px; /* Предотвращает зум на iOS */
+            padding: 12px 14px;
+          }
+
+          .submit-button {
+            padding: 14px 20px;
+            font-size: 16px;
           }
         }
       `}</style>
