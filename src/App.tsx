@@ -376,44 +376,45 @@ const App: React.FC = () => {
 
   const loadData = async () => {
     try {
-      console.log('App: Loading data from API...');
+      console.log('App: Loading data...');
       setLoading(true);
-      const response = await fetch('/api/data');
-      const data = await response.json();
-      setCategories(data.categories);
-      setBadges(data.badges);
-      console.log('App: Data loaded from API:', data.categories.length, 'categories');
+      
+      // Загружаем данные из локальных файлов
+      const categoriesResponse = await fetch('/ai-data/MASTER_INDEX.json');
+      const categoriesData = await categoriesResponse.json();
+      
+      // Преобразуем данные в нужный формат
+      const formattedCategories = categoriesData.categories.map((cat: any) => ({
+        id: cat.id,
+        title: cat.title,
+        badge_count: cat.badge_count,
+        expected_badges: cat.expected_badges
+      }));
+      
+      setCategories(formattedCategories);
+      setBadges(categoriesData.badges || []);
+      console.log('App: Data loaded:', formattedCategories.length, 'categories');
+      
     } catch (error) {
       console.error('Ошибка загрузки данных:', error);
-      // Используем данные из perfect_parsed_data.json если API недоступен
-      try {
-        console.log('App: Loading fallback data...');
-        const response = await fetch('/perfect_parsed_data.json');
-        const data = await response.json();
-        setCategories(data.categories);
-        setBadges(data.badges);
-        console.log('App: Fallback data loaded:', data.categories.length, 'categories');
-      } catch (fallbackError) {
-        console.error('Ошибка загрузки fallback данных:', fallbackError);
-        // Используем тестовые данные
-        console.log('App: Using test data');
-        setCategories([
-          { id: '1', title: 'За личные достижения', badge_count: 40, expected_badges: 40 },
-          { id: '2', title: 'За легендарные дела', badge_count: 9, expected_badges: 9 },
-          { id: '3', title: 'Медиа значки', badge_count: 9, expected_badges: 9 },
-          { id: '4', title: 'За лагерные дела', badge_count: 10, expected_badges: 10 },
-          { id: '5', title: 'За отрядные дела', badge_count: 20, expected_badges: 20 },
-          { id: '6', title: 'Гармония и порядок', badge_count: 12, expected_badges: 12 },
-          { id: '7', title: 'За творческие достижения', badge_count: 24, expected_badges: 24 },
-          { id: '8', title: 'Значки Движков', badge_count: 9, expected_badges: 9 },
-          { id: '9', title: 'Значки Бро – Движения', badge_count: 10, expected_badges: 10 },
-          { id: '10', title: 'Значки на флаг отряда', badge_count: 3, expected_badges: 3 },
-          { id: '11', title: 'Осознанность', badge_count: 16, expected_badges: 16 },
-          { id: '12', title: 'ИИ: нейросети для обучения и творчества', badge_count: 35, expected_badges: 35 },
-          { id: '13', title: 'Софт-скиллз интенсив — развитие гибких навыков', badge_count: 26, expected_badges: 26 },
-          { id: '14', title: 'Значки Инспектора Пользы', badge_count: 19, expected_badges: 19 }
-        ]);
-      }
+      // Используем тестовые данные как fallback
+      console.log('App: Using fallback data');
+      setCategories([
+        { id: '1', title: 'За личные достижения', badge_count: 40, expected_badges: 40 },
+        { id: '2', title: 'За легендарные дела', badge_count: 9, expected_badges: 9 },
+        { id: '3', title: 'Медиа значки', badge_count: 9, expected_badges: 9 },
+        { id: '4', title: 'За лагерные дела', badge_count: 10, expected_badges: 10 },
+        { id: '5', title: 'За отрядные дела', badge_count: 20, expected_badges: 20 },
+        { id: '6', title: 'Гармония и порядок', badge_count: 12, expected_badges: 12 },
+        { id: '7', title: 'За творческие достижения', badge_count: 24, expected_badges: 24 },
+        { id: '8', title: 'Значки Движков', badge_count: 9, expected_badges: 9 },
+        { id: '9', title: 'Значки Бро – Движения', badge_count: 10, expected_badges: 10 },
+        { id: '10', title: 'Значки на флаг отряда', badge_count: 3, expected_badges: 3 },
+        { id: '11', title: 'Осознанность', badge_count: 16, expected_badges: 16 },
+        { id: '12', title: 'ИИ: нейросети для обучения и творчества', badge_count: 35, expected_badges: 35 },
+        { id: '13', title: 'Софт-скиллз интенсив — развитие гибких навыков', badge_count: 26, expected_badges: 26 },
+        { id: '14', title: 'Значки Инспектора Пользы', badge_count: 19, expected_badges: 19 }
+      ]);
     } finally {
       setLoading(false);
       console.log('App: Loading completed');
