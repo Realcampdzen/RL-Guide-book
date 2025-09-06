@@ -16,11 +16,12 @@
    - В разделе "Custom domain" укажите `putevoditel.realcampspb.ru`
    - Включите "Enforce HTTPS"
 
+**Важно:** Новый workflow не требует настройки environment protection rules и должен работать сразу после push в ветку `master`.
+
 ### Workflow файлы
 
-- **`.github/workflows/deploy.yml`** - Основной деплой на GitHub Pages
+- **`.github/workflows/deploy-github-pages.yml`** - Основной деплой на GitHub Pages (без environment protection)
 - **`.github/workflows/ci.yml`** - Проверка качества кода
-- **`.github/workflows/pages.yml`** - Альтернативный деплой через Pages API
 
 ### Триггеры автоматического деплоя
 
