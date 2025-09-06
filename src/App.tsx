@@ -295,6 +295,7 @@ const layoutOverrides = {
 interface Category {
   id: string;
   title: string;
+  emoji?: string;
   badge_count: number;
   expected_badges: number;
   description?: string;
@@ -608,56 +609,56 @@ const App: React.FC = () => {
 
      // ЭКРАН 2: 14 категорий
    const renderCategories = () => {
-                                                                                                                                                                                               const getConstellationPosition = (index: number, total: number) => {
-          // Простая сетка 4x4 с равномерными интервалами
-          const marginX = 20; // Отступ от краев по X (%)
-          const marginY = 15; // Отступ от краев по Y (%)
-          
-          // Определяем строку и позицию в строке
-          let row, col;
-          
-          if (index < 2) {
-            // Верхняя строка - 2 пузыря
-            row = 0;
-            col = index;
-          } else if (index < 6) {
-            // Вторая строка - 4 пузыря
-            row = 1;
-            col = index - 2;
-          } else if (index < 10) {
-            // Третья строка - 4 пузыря
-            row = 2;
-            col = index - 6;
-          } else {
-            // Нижняя строка - 4 пузыря
-            row = 3;
-            col = index - 10;
-          }
-          
-          const availableWidth = 100 - 2 * marginX;
-          const availableHeight = 100 - 2 * marginY;
-          
-          // Простое равномерное распределение
-          let x, y;
-          
-          if (row === 0) {
-            // Для верхней строки (2 пузыря) - равномерно по всей ширине
-            x = marginX + (col / 1) * availableWidth;
-          } else {
-            // Для остальных строк (4 пузыря) - равномерно по всей ширине
-            x = marginX + (col / 3) * availableWidth;
-          }
-          
-          // Равномерные интервалы по вертикали
-          y = marginY + (row / 3) * availableHeight;
-          
-          // Специальная обработка для ИИ (индекс 11 в массиве) - опускаем ниже, но не слишком
-          if (index === 11) {
-            y += 8; // Опускаем на 8% ниже (уменьшили с 15%)
-          }
-          
-          return { x, y };
-        };
+    // const getConstellationPosition = (index: number, _total: number) => {
+    //       // Простая сетка 4x4 с равномерными интервалами
+    //       const marginX = 20; // Отступ от краев по X (%)
+    //       const marginY = 15; // Отступ от краев по Y (%)
+    //       
+    //       // Определяем строку и позицию в строке
+    //       let row, col;
+    //       
+    //       if (index < 2) {
+    //         // Верхняя строка - 2 пузыря
+    //         row = 0;
+    //         col = index;
+    //       } else if (index < 6) {
+    //         // Вторая строка - 4 пузыря
+    //         row = 1;
+    //         col = index - 2;
+    //       } else if (index < 10) {
+    //         // Третья строка - 4 пузыря
+    //         row = 2;
+    //         col = index - 6;
+    //       } else {
+    //         // Нижняя строка - 4 пузыря
+    //         row = 3;
+    //         col = index - 10;
+    //       }
+    //       
+    //       const availableWidth = 100 - 2 * marginX;
+    //       const availableHeight = 100 - 2 * marginY;
+    //       
+    //       // Простое равномерное распределение
+    //       let x, y;
+    //       
+    //       if (row === 0) {
+    //         // Для верхней строки (2 пузыря) - равномерно по всей ширине
+    //         x = marginX + (col / 1) * availableWidth;
+    //       } else {
+    //         // Для остальных строк (4 пузыря) - равномерно по всей ширине
+    //         x = marginX + (col / 3) * availableWidth;
+    //       }
+    //       
+    //       // Равномерные интервалы по вертикали
+    //       y = marginY + (row / 3) * availableHeight;
+    //       
+    //       // Специальная обработка для ИИ (индекс 11 в массиве) - опускаем ниже, но не слишком
+    //       if (index === 11) {
+    //         y += 8; // Опускаем на 8% ниже (уменьшили с 15%)
+    //       }
+    //       
+    //       return { x, y };
+    //     };
 
                                                                                                                                                                                                const getCircleSize = (badgeCount: number) => {
             // Размеры круга пропорционально количеству значков
@@ -675,12 +676,12 @@ const App: React.FC = () => {
             return Math.round(size);
           };
 
-                               const getTextLines = (title: string) => {
-           // Система определения количества строк
-           if (title.length > 35) return 3; // Очень длинные названия - 3 строки
-           if (title.length > 20) return 2; // Длинные названия - 2 строки
-           return 1; // Короткие названия - 1 строка
-         };
+                               // const getTextLines = (title: string) => {
+           // // Система определения количества строк
+           // if (title.length > 35) return 3; // Очень длинные названия - 3 строки
+           // if (title.length > 20) return 2; // Длинные названия - 2 строки
+           // return 1; // Короткие названия - 1 строка
+         // };
 
              
 
@@ -696,7 +697,7 @@ const App: React.FC = () => {
                        <div className="categories-grid">
               {categories.map((category, index) => {
                 const circleSize = getCircleSize(category.badge_count);
-                const textLines = getTextLines(category.title);
+                // const textLines = getTextLines(category.title);
                 
                 return (
                   <div 
@@ -849,16 +850,16 @@ const App: React.FC = () => {
       : selectedBadge;
 
     // Получаем критерии базового уровня из данных с автоматическим форматированием
-    const getCriteriaFromBadge = (badge: Badge | null) => {
-      if (!badge || !badge.criteria) return [] as string[];
-      const criteriaText = badge.criteria.replace(/^Как получить значок «[^»]+»:\s*/, '');
-      const shouldFormat = shouldApplyFormatting(badge.id);
-      const processedCriteria = shouldFormat ? fixCriteriaFormatting(criteriaText) : criteriaText;
-      return processedCriteria
-        .split('✅')
-        .filter(c => c.trim())
-        .map(c => c.trim());
-    };
+    // const _getCriteriaFromBadge = (badge: Badge | null) => {
+    //   if (!badge || !badge.criteria) return [] as string[];
+    //   const criteriaText = badge.criteria.replace(/^Как получить значок «[^»]+»:\s*/, '');
+    //   const shouldFormat = shouldApplyFormatting(badge.id);
+    //   const processedCriteria = shouldFormat ? fixCriteriaFormatting(criteriaText) : criteriaText;
+    //   return processedCriteria
+    //     .split('✅')
+    //     .filter(c => c.trim())
+    //     .map(c => c.trim());
+    // };
 
     // Получаем критерии и подтверждение из данных значка
     let evidenceText: string | null = null;

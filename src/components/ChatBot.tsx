@@ -14,7 +14,7 @@ interface ChatBotProps {
   currentCategory?: {
     id: string;
     title: string;
-    emoji: string;
+    emoji?: string;
   };
   currentBadge?: {
     id: string;
@@ -126,9 +126,9 @@ const ChatBot: React.FC<ChatBotProps> = ({
   };
 
   // Очистка истории
-  const clearHistory = () => {
-    setMessages([]);
-  };
+  // const _clearHistory = () => {
+  //   setMessages([]);
+  // };
 
   if (!isOpen) return null;
 
