@@ -380,7 +380,7 @@ const App: React.FC = () => {
       setLoading(true);
       
       // Загружаем данные из локальных файлов
-      const categoriesResponse = await fetch('/ai-data/MASTER_INDEX.json');
+      const categoriesResponse = await fetch('/MASTER_INDEX.json');
       const categoriesData = await categoriesResponse.json();
       
       // Преобразуем данные в нужный формат
