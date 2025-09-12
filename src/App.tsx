@@ -75,7 +75,7 @@ const getCategoryIcon = (categoryId: string): string | JSX.Element => {
     case '3': // Категория 3
       return <img 
         className="category-3-icon"
-        src="./pictures/Stan_Pol__beutiful_camera__vector_logo_e16e2508-69e8-4bf6-9cdf-8b7012558c5e.png" 
+        src="/Stan_Pol_children_holding_hands_standing_on_the_stage_facing_th_01f27cc8-9419-4c58-90a6-aab2eff6e0e2.png" 
         alt="Категория 3" 
       />;
     case '8': // Категория 8
@@ -98,31 +98,31 @@ const getCategoryIcon = (categoryId: string): string | JSX.Element => {
     case '7': // Категория 7
       return <img 
         className="category-7-icon"
-        src="./pictures/Stan_Pol__beutiful_electric_guitar__vector_logo_78eadd19-04e1-4a7e-b538-865c6dd62d71.png" 
+        src="/stanpol__happy_emotional_teenagers_in_camp_vibrant_vector_logo_df250ab9-3fbd-4680-91fa-ed1052a1c57e.png" 
         alt="Категория 7" 
       />;
     case '6': // Категория 6
       return <img 
         className="category-6-icon"
-        src="./pictures/Stan_Pol__magic_broom__4k__vector_logo_bdb44597-56aa-4530-92f6-104178793d0b.png" 
+        src="/stanpol__Teenagers_in_a_modern_summer_camp_creating_a_mosaic_fr_4efdbbe3-8c4d-44c2-adbb-3e0f93f5eb93.png" 
         alt="Категория 6" 
       />;
     case '10': // Категория 10
       return <img 
         className="category-10-icon"
-        src="./pictures/Stan_Pol__beutiful_lighthouse__vector_logo_5c815e45-0aa8-48e0-9cd4-9ab06fc0b735.png" 
+        src="/stanpol__vector_logo_symbol_of_AI_and_creativity_for_children_a_a7e3ac1a-6ecd-48ee-a84b-11cca3a6047f.png" 
         alt="Категория 10" 
       />;
     case '11': // Категория 11
       return <img 
         className="category-11-icon"
-        src="./pictures/stanpol__A_modern_logo_for_a_Neuro_shift_themed_camp_combining__577b1903-fc11-49cd-85a6-91211e30ec56.png" 
+        src="/skills_4k.png" 
         alt="Категория 11" 
       />;
     case '5': // Категория 5
       return <img 
         className="category-5-icon"
-        src="./pictures/Stan_Pol_realistic_campfire__vector_logo__in_the_style_of_a_glo_5b853e9f-93d3-4a2e-aa6a-f3345776e834.png" 
+        src="/co_management.png" 
         alt="Категория 5" 
       />;
     case '4': // Категория 4
@@ -855,7 +855,7 @@ const App: React.FC = () => {
   const renderIntro = () => (
     <div className="intro-screen">
       <div className="intro-logo" onClick={handleLogoClick}>
-        <img src="./pictures/домик_AI.jpg" alt="Логотип" />
+        <img src="/домик_AI.jpg" alt="Логотип" />
         <div className="logo-hover-text">ОСЕННЯЯ СМЕНА 2025</div>
       </div>
       <div className="intro-content">
