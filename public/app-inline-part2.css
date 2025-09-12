@@ -1,0 +1,377 @@
+/* App Inline Styles Part 2 - Extracted from App.tsx */
+
+/* Badge Headers and Content */
+.badge-header,
+.level-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.badge-emoji-large {
+  font-size: 4rem;
+}
+
+.badge-category,
+.level-title {
+  color: #4ecdc4;
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.badge-content,
+.level-content {
+  margin-top: 1rem;
+}
+
+.badge-summary {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.8rem;
+}
+
+@media (min-width: 992px) {
+  .badge-summary {
+    grid-template-columns: 1.2fr 0.8fr;
+    align-items: start;
+  }
+}
+
+.badge-summary__block {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 0.8rem;
+  height: auto;
+  min-height: fit-content;
+}
+
+.badge-summary__block--tall {
+  min-height: 460px;
+}
+
+.badge-summary__right { 
+  display: grid; 
+  gap: 0.8rem; 
+  align-items: start;
+  height: auto;
+  min-height: 100%;
+  overflow: visible;
+}
+
+.badge-summary__text {
+  color: #ddd;
+  margin: 0.2rem 0 0.6rem 0;
+  line-height: 1.6;
+  white-space: pre-line;
+  max-height: none;
+  overflow: visible;
+}
+
+.badge-summary__block h4 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #4ecdc4;
+  margin: 24px 0 12px 0;
+  padding: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 8px;
+}
+
+.badge-evidence {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  color: #9ec;
+  font-style: italic;
+}
+
+.criterion-text {
+  margin-bottom: 8px;
+}
+
+.criterion-examples {
+  margin-top: 8px;
+  padding-left: 16px;
+}
+
+.criterion-example {
+  margin: 4px 0;
+  font-size: 0.95em;
+  opacity: 0.9;
+}
+
+.badge-summary__block--tall .badge-summary__text {
+  max-height: var(--info-max-em, 40em);
+}
+
+.badge-summary__block--tall-override .badge-summary__text {
+  max-height: 45em;
+}
+
+.badge-meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.6rem;
+}
+
+.badge-meta div {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 0.6rem 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.badge-meta div + div { 
+  margin-left: 10px; 
+}
+
+.badge-meta div span { 
+  margin-right: 8px; 
+}
+
+.badge-meta span { 
+  color: #9ec; 
+}
+
+.badge-meta strong { 
+  color: #fff; 
+  font-weight: 600; 
+}
+
+.badge-description,
+.level-description,
+.level-criteria {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.badge-description h3,
+.level-description h3,
+.level-criteria h3 {
+  color: #4ecdc4;
+  margin: 0 0 1rem 0;
+}
+
+.badge-description p,
+.level-description p,
+.level-criteria p {
+  color: #ccc;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.badge-levels h3 {
+  color: #4ecdc4;
+  margin: 0 0 1rem 0;
+}
+
+.levels-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1rem;
+}
+
+/* Компактная сетка карточек уровней */
+.levels-grid-compact {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  align-items: start;
+}
+
+.level-compact {
+  min-height: 120px;
+}
+
+.levels-grid-compact .badge-card__title {
+  display: block;
+  -webkit-line-clamp: initial;
+  -webkit-box-orient: initial;
+  white-space: normal;
+  overflow: visible;
+  font-size: 13px;
+}
+
+.level-card {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  padding: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.level-card__head { 
+  display: flex; 
+  align-items: center; 
+  gap: 0.6rem; 
+}
+
+.level-card__emoji { 
+  font-size: 1.4rem; 
+}
+
+.level-card__criteria { 
+  color: #ccc; 
+  margin: 0.4rem 0 0.2rem 0; 
+  white-space: pre-line; 
+  max-height: none; 
+  overflow: visible; 
+}
+
+.level-card__desc { 
+  color: #bbb; 
+  margin: 0; 
+}
+
+.level-card__btn {
+  margin-top: 0.8rem;
+  background: rgba(78, 205, 196, 0.2);
+  color: #4ecdc4;
+  border: 1px solid rgba(78, 205, 196, 0.6);
+  border-radius: 8px;
+  padding: 0.4rem 0.8rem;
+  cursor: pointer;
+}
+
+.level-card__btn:hover { 
+  background: rgba(78, 205, 196, 0.35); 
+}
+
+.level-card:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: #4ecdc4;
+}
+
+.level-card h4 {
+  color: #4ecdc4;
+  margin: 0 0 0.5rem 0;
+}
+
+.level-card p {
+  color: #ccc;
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+/* Steps (right panel) */
+.badge-steps { 
+  background: rgba(255,255,255,0.06); 
+  border-radius: 16px; 
+  padding: 20px 24px; 
+  backdrop-filter: blur(6px); 
+}
+
+.badge-steps__title { 
+  margin: 0 0 12px; 
+  font-size: 20px; 
+  font-weight: 700; 
+}
+
+.badge-steps__list { 
+  margin: 0; 
+  padding-left: 0; 
+  list-style: none; 
+}
+
+.badge-steps__list li { 
+  position: relative; 
+  padding-left: 28px; 
+  margin: 10px 0; 
+  white-space: pre-line; 
+}
+
+.badge-steps__list li::before { 
+  content: '✅'; 
+  position: absolute; 
+  left: 0; 
+  top: 0; 
+  line-height: 1.1; 
+}
+
+/* Bottom levels grid */
+.levels-grid-bottom {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+
+.level-card-bottom { 
+  display: flex; 
+  flex-direction: column; 
+  align-items: center; 
+  padding: 0; 
+  border-radius: 0; 
+  background: transparent; 
+  backdrop-filter: none; 
+  min-height: auto; 
+  cursor: pointer; 
+  transition: all 0.3s ease; 
+}
+
+.level-card-bottom:hover { 
+  transform: translateY(-4px); 
+  background: transparent; 
+}
+
+.level-card__icon { 
+  width: 100px; 
+  height: 100px; 
+  border-radius: 50%; 
+  display: grid; 
+  place-items: center; 
+  margin-bottom: 16px; 
+  background: rgba(0,0,0,0.45); 
+  border: 1px solid rgba(255,255,255,0.25); 
+  transition: all 0.3s ease; 
+}
+
+.level-card__title { 
+  text-align: center; 
+  font-size: 17px; 
+  line-height: 1.2; 
+  margin: 6px 0 4px; 
+  display: -webkit-box; 
+  -webkit-line-clamp: 2; 
+  -webkit-box-orient: vertical; 
+  overflow: hidden; 
+  text-overflow: ellipsis; 
+  word-break: break-word; 
+  hyphens: auto; 
+  color: #4ecdc4; 
+  white-space: pre-line !important; 
+}
+
+.level-card__subtitle { 
+  opacity: .85; 
+  font-size: 14px; 
+  text-align: center; 
+  color: #ccc; 
+}
+
+.level-card-bottom:hover .level-card__icon {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: #4ecdc4;
+  box-shadow: 0 0 20px rgba(78, 205, 196, 0.3);
+  transform: scale(1.1);
+}
+
+.level-bubble__emoji {
+  font-size: 2.5rem;
+  transition: all 0.3s ease;
+}
+
+.level-card-bottom:hover .level-bubble__emoji {
+  transform: scale(1.2);
+  filter: drop-shadow(0 0 10px rgba(78, 205, 196, 0.5));
+}
