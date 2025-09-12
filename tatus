@@ -1,0 +1,10 @@
+[33m5f1b08f[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m, [m[1;31morigin/master[m[33m)[m fix: добавлен простой workflow для деплоя на GitHub Pages
+[33mc78ca49[m fix: встроены данные категорий в код приложения
+[33m04b4978[m fix: перемещен MASTER_INDEX.json в public для статической загрузки
+[33mf915332[m fix: исправлена загрузка данных для GitHub Pages
+[33m8212e10[m fix: возвращен environment в workflow
+[33me4b2a0c[m fix: убран environment из workflow для обхода protection rules
+[33mdcd7477[m fix: переключен на официальный GitHub Pages action
+[33mae3b511[m fix: добавлены permissions для GitHub Actions
+[33mab81900[m fix: исправлен base path в vite.config.ts для GitHub Pages
+[33mbd48f08[m fix: обновлен workflow для деплоя в ветку gh-pages

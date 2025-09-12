@@ -63,13 +63,13 @@ const getCategoryIcon = (categoryId: string): string | JSX.Element => {
     case '13': // Категория 13
       return <img 
         className="category-13-icon"
-        src="./pictures/софт скиллз.png" 
+        src="/skills_4k.png" 
         alt="Категория 13" 
       />;
     case '2': // Категория 2
       return <img 
         className="category-2-icon"
-        src="./pictures/stanpol__kittens_0482e39f-9d2d-4929-a25b-1888131d0cf2.png" 
+        src="/category_2.png" 
         alt="Категория 2" 
       />;
     case '3': // Категория 3
@@ -81,18 +81,18 @@ const getCategoryIcon = (categoryId: string): string | JSX.Element => {
     case '8': // Категория 8
       return <img 
         className="category-8-icon"
-        src="./pictures/stanpol__kittens_840096ea-9470-4d6c-b8bc-0e8ab4703a38.png" 
+        src="/category_8.png" 
         alt="Категория 8" 
       />;
     case '9': // Категория 9
       return <img 
         className="category-9-icon"
-        src="./pictures/stanpol__The_mighty_kitten_guardian_of_light_a_halo_of_bright_m_56a19c5f-dfa8-4d0c-beb0-4f2e15d29dbb.png" 
+        src="/category_9.png" 
         alt="Категория 9" 
       />;
     case '1': // Категория 1
       return <img 
-        src="./pictures/stanpol__soviet_wave__actual_design__yellow_and_red_stars_on_a__326a67a1-e41c-4a9a-be9a-29c51d05b0a9.png" 
+        src="/pictures/Stan_Pol__beutiful_camera__vector_logo_e16e2508-69e8-4bf6-9cdf-8b7012558c5e.png" 
         alt="Категория 1" 
       />;
     case '7': // Категория 7
@@ -128,7 +128,7 @@ const getCategoryIcon = (categoryId: string): string | JSX.Element => {
     case '4': // Категория 4
       return <img 
         className="category-4-icon"
-        src="./pictures/Stan_Pol_a_group_of_children_holding_hands_standing_on_the_stag_0ee8f1ee-ec32-4a75-b756-3f9b23e6b345.png" 
+        src="/pictures/Stan_Pol_a_group_of_children_holding_hands_standing_on_the_stag_0ee8f1ee-ec32-4a75-b756-3f9b23e6b345.png" 
         alt="Категория 4" 
       />;
     case '14': // Категория 14
@@ -1537,11 +1537,11 @@ const App: React.FC = () => {
            // Определяем фон в зависимости от уровня
       const getBackgroundImage = () => {
         if (selectedLevel === 'Продвинутый уровень' || selectedLevel === 'Продвинутый уровень ') {
-          return 'url("./экран 5 фон.png")';
+          return 'url("/экран 5 фон.png")';
         } else if (selectedLevel === 'Экспертный уровень') {
-          return 'url("./экран 6 фон.png")';
+          return 'url("/экран 6 фон.png")';
         }
-        return 'url("./экран 3 фон.png")'; // Дефолтный фон для других уровней
+        return 'url("/экран 3 фон.png")'; // Дефолтный фон для других уровней
       };
 
     // Определяем группу значка для уровня
@@ -1915,7 +1915,7 @@ const App: React.FC = () => {
           <div className="benefits-grid">
                             <div className="benefit-item clickable" style={{
                   background: 
-                    'linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url("./skills_4k.png") center/cover no-repeat',
+                    'linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url("/skills_4k.png") center/cover no-repeat',
                   cursor: 'pointer'
                 }} onClick={() => {
                   const category = categories.find(c => c.id === "13");
@@ -1941,7 +1941,7 @@ const App: React.FC = () => {
                 </div>
             <div className="benefit-item clickable" style={{
               background: 
-                'linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url("./ai_camp.png") center/cover no-repeat',
+                'linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url("/ai_camp.png") center/cover no-repeat',
               cursor: 'pointer'
             }} onClick={() => {
               const category = categories.find(c => c.id === "12");
@@ -1962,7 +1962,7 @@ const App: React.FC = () => {
             </div>
             <div className="benefit-item clickable" style={{
               background: 
-                'linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url("./co_management.png") center/cover no-repeat',
+                'linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url("/co_management.png") center/cover no-repeat',
               cursor: 'pointer'
             }} onClick={() => {
               const category = categories.find(c => c.id === "9");
@@ -2410,7 +2410,7 @@ const App: React.FC = () => {
            align-items: center;
            background: 
              linear-gradient(135deg, rgba(12, 12, 12, 0.3) 0%, rgba(26, 26, 46, 0.3) 50%, rgba(22, 33, 62, 0.3) 100%),
-            url('./экран 1 фон copy.png') center top / 100% 100% no-repeat;
+            url('/экран 1 фон copy.png') center top / 100% 100% no-repeat;
            backdrop-filter: blur(10px);
          }
 
@@ -2491,7 +2491,7 @@ const App: React.FC = () => {
           height: 100%;
           background: 
             linear-gradient(135deg, rgba(12, 12, 12, 0.3) 0%, rgba(26, 26, 46, 0.3) 50%, rgba(22, 33, 62, 0.3) 100%),
-            url('./экран 1 фон copy.png') center top / 100% 100% no-repeat;
+            url('/экран 1 фон copy.png') center top / 100% 100% no-repeat;
           backdrop-filter: blur(10px);
           overflow-y: auto;
         }
@@ -2666,7 +2666,7 @@ const App: React.FC = () => {
           overflow: hidden;
           background: 
             linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)),
-            url('./pictures/софт скиллз.png') center/cover no-repeat;
+            url('/pictures/Stan_Pol__beutiful_camera__vector_logo_e16e2508-69e8-4bf6-9cdf-8b7012558c5e.png') center/cover no-repeat;
         }
 
         .benefit-item.clickable::after {
@@ -3090,7 +3090,7 @@ const App: React.FC = () => {
             padding: 1rem;
             background: 
               linear-gradient(135deg, rgba(12, 12, 12, 0.3) 0%, rgba(26, 26, 46, 0.3) 50%, rgba(22, 33, 62, 0.3) 100%),
-                             url('./экран 2 фон.png') center center / cover no-repeat;
+                             url('/экран 2 фон.png') center center / cover no-repeat;
           }
 
                    .category-screen,
@@ -3105,7 +3105,7 @@ const App: React.FC = () => {
             padding: 1rem;
             background: 
               linear-gradient(135deg, rgba(12, 12, 12, 0.3) 0%, rgba(26, 26, 46, 0.3) 50%, rgba(22, 33, 62, 0.3) 100%),
-                             url('./экран 3 фон.png') center top / cover no-repeat;
+                             url('/экран 3 фон.png') center top / cover no-repeat;
           }
 
           .badge-level-screen {
@@ -3123,7 +3123,7 @@ const App: React.FC = () => {
             margin-bottom: 0.4rem; /* Уменьшили отступ снизу */
             background: 
               linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.2) 100%),
-              url('./pictures/паттерн стикеры — копия (2).jpg') center center / 100% no-repeat;
+              url('/pattern_stickers.jpg') center center / 100% no-repeat;
             padding: 0.3rem; /* Уменьшили padding */
             border-radius: 15px;
             backdrop-filter: blur(5px);
@@ -3136,7 +3136,7 @@ const App: React.FC = () => {
           .category-screen .header {
             background: 
               linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.2) 100%),
-              url('./pictures/паттерн значки.jpg') center 71% / 100% no-repeat !important;
+              url('/badges_photo.jpg') center 71% / 100% no-repeat !important;
             position: relative;
           }
 
@@ -4112,7 +4112,7 @@ const App: React.FC = () => {
           padding: 1rem;
           background: 
             linear-gradient(135deg, rgba(12, 12, 12, 0.3) 0%, rgba(26, 26, 46, 0.3) 50%, rgba(22, 33, 62, 0.3) 100%),
-            url('./экран 3 фон.png') center center / cover no-repeat;
+            url('/экран 3 фон.png') center center / cover no-repeat;
         }
 
         .introduction-content, .additional-material-content {
@@ -4406,7 +4406,7 @@ const App: React.FC = () => {
         .session-info {
           background: 
             linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)),
-            url('./pictures/весна 2.jpg') center 10%/50% no-repeat;
+            url('/pictures/Stan_Pol__beutiful_camera__vector_logo_e16e2508-69e8-4bf6-9cdf-8b7012558c5e.png') center 10%/50% no-repeat;
           border: 2px solid rgba(255, 215, 0, 0.6);
           border-radius: 15px;
           padding: 15px;
@@ -4441,7 +4441,7 @@ const App: React.FC = () => {
           border-color: rgba(255, 215, 0, 0.9);
           background: 
             linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)),
-            url('./pictures/весна 2.jpg') center 10%/50% no-repeat;
+            url('/pictures/Stan_Pol__beutiful_camera__vector_logo_e16e2508-69e8-4bf6-9cdf-8b7012558c5e.png') center 10%/50% no-repeat;
         }
 
         .session-info h4 {
@@ -4504,7 +4504,7 @@ const App: React.FC = () => {
           padding: 1rem;
           background: 
             linear-gradient(135deg, rgba(12, 12, 12, 0.3) 0%, rgba(26, 26, 46, 0.3) 50%, rgba(22, 33, 62, 0.3) 100%),
-            url('./экран 3 фон.png') center center / cover no-repeat;
+            url('/экран 3 фон.png') center center / cover no-repeat;
         }
 
         .registration-form-content {
