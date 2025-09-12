@@ -65,7 +65,7 @@ const ChatButton: React.FC<ChatButtonProps> = ({ onClick, isOpen = false, classN
     >
       <div style={{ position: 'relative' }}>
         <img 
-          src="/Валюша.jpg" 
+          src="/RL-Guide-book/Валюша.jpg" 
           alt="НейроВалюша" 
           style={{ 
             width: '40px', 
