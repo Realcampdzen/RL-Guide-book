@@ -3097,7 +3097,7 @@ const App: React.FC = () => {
             padding: 1rem;
             background: 
               linear-gradient(135deg, rgba(12, 12, 12, 0.3) 0%, rgba(26, 26, 46, 0.3) 50%, rgba(22, 33, 62, 0.3) 100%),
-                             url('/экран 3 фон.png') center top / cover no-repeat;
+                             url('/экран 3 фон.png') center top / 100% no-repeat;
           }
 
           .badge-level-screen {
@@ -4104,7 +4104,7 @@ const App: React.FC = () => {
           padding: 1rem;
           background: 
             linear-gradient(135deg, rgba(12, 12, 12, 0.3) 0%, rgba(26, 26, 46, 0.3) 50%, rgba(22, 33, 62, 0.3) 100%),
-            url('/экран 3 фон.png') center center / cover no-repeat;
+            url('/экран 3 фон.png') center center / 100% no-repeat;
         }
 
         .introduction-content, .additional-material-content {
@@ -4496,7 +4496,7 @@ const App: React.FC = () => {
           padding: 1rem;
           background: 
             linear-gradient(135deg, rgba(12, 12, 12, 0.3) 0%, rgba(26, 26, 46, 0.3) 50%, rgba(22, 33, 62, 0.3) 100%),
-            url('/экран 3 фон.png') center center / cover no-repeat;
+            url('/экран 3 фон.png') center center / 100% no-repeat;
         }
 
         .registration-form-content {
