@@ -7,7 +7,7 @@ import {
   fixCriteriaFormatting, 
   extractEvidenceSection,
   shouldApplyFormatting
-} from './utils';
+} from './utils/textFormatting';
 
 // Normalize level values coming from AI data
 const canonicalizeLevel = (lvl: unknown): string => {
