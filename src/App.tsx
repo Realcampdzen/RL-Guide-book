@@ -7,7 +7,7 @@ import {
   fixCriteriaFormatting, 
   extractEvidenceSection,
   shouldApplyFormatting
-} from './utils/textFormatting';
+} from './utils/textFormatting.js';
 
 // Normalize level values coming from AI data
 const canonicalizeLevel = (lvl: unknown): string => {
@@ -1227,8 +1227,8 @@ const App: React.FC = () => {
           const criteriaText = mainText;
           baseCriteria = criteriaText
             .split('✅')
-            .filter(c => c.trim())
-            .map(c => c.trim());
+            .filter((c: string) => c.trim())
+            .map((c: string) => c.trim());
         } else {
           // Если нет отдельного confirmation, используем весь текст criteria
           const { mainText, evidenceText: extractedEvidence } = extractEvidenceSection(processedRaw);
@@ -1236,8 +1236,8 @@ const App: React.FC = () => {
           const criteriaText = mainText;
           baseCriteria = criteriaText
             .split('✅')
-            .filter(c => c.trim())
-            .map(c => c.trim());
+            .filter((c: string) => c.trim())
+            .map((c: string) => c.trim());
         }
       }
       } catch (err) {
@@ -1520,7 +1520,7 @@ const App: React.FC = () => {
        const criteriaText = badge.criteria.replace(/^Как получить значок «[^»]+»:\s*/, '');
        const shouldFormat = shouldApplyFormatting(badge.id);
        const processedCriteria = shouldFormat ? fixCriteriaFormatting(criteriaText) : criteriaText;
-       const criteria = processedCriteria.split('✅').filter(c => c.trim()).map(c => c.trim());
+       const criteria = processedCriteria.split('✅').filter((c: string) => c.trim()).map((c: string) => c.trim());
        
        return criteria.length > 0 ? criteria : [
          'Выполнить все базовые требования значка.',
@@ -1688,7 +1688,7 @@ const App: React.FC = () => {
                 <h3>Как получить {selectedLevel.toLowerCase()}</h3>
                 {levelCriteria.length > 0 ? (
                   <ul className="badge-steps__list">
-                    {levelCriteria.map((criterion, index) => {
+                    {levelCriteria.map((criterion: string, index: number) => {
                       const hasExamples = criterion.includes('Например:');
                       if (!hasExamples) {
                         return (
@@ -1707,8 +1707,8 @@ const App: React.FC = () => {
                        const tail = exampleSplit.slice(1).join('Например:');
                        const exampleLines = tail
                          .split('\n')
-                         .map(l => l.trim())
-                         .filter(l => l.length > 0 && (l.startsWith('•') || l.startsWith('✅') || l.includes('Помочь') || l.includes('Проследить'))); // фильтруем только нужные строки
+                         .map((l: string) => l.trim())
+                         .filter((l: string) => l.length > 0 && (l.startsWith('•') || l.startsWith('✅') || l.includes('Помочь') || l.includes('Проследить'))); // фильтруем только нужные строки
 
                        return (
                          <li key={index}>
@@ -1716,7 +1716,7 @@ const App: React.FC = () => {
                            {exampleLines.length > 0 && (
                              <div className="criterion-examples">
                                <p className="criterion-example">Например:</p>
-                               {exampleLines.map((l, i) => (
+                               {exampleLines.map((l: string, i: number) => (
                                  <p className="criterion-example" key={i}>{l}</p>
                                ))}
                              </div>
