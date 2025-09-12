@@ -1,70 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import ChatBot from './components/ChatBot';
 import ChatButton from './components/ChatButton';
-import { pluralizeRu } from './utils/textFormatting';
-
-// Text processing functions for automatic formatting
-const fixDescriptionFormatting = (text: string): string => {
-  if (!text) return text;
-  
-  return text
-    // Only add breaks before clear section headers
-    .replace(/([.!?])\s*([А-ЯЁ][а-яё]+:)/g, '$1\n\n$2') // Add breaks before section headers like "Цель:", "Примеры:"
-    .replace(/([.!?])\s*([А-ЯЁ][а-яё]{2,} [А-ЯЁ][а-яё]+:)/g, '$1\n\n$2') // Add breaks before longer section headers
-    // Don't add breaks after every sentence - only after clear section endings
-    .replace(/([.!?])\s*([А-ЯЁ][а-яё]{3,} [А-ЯЁ][а-яё]+)/g, '$1\n\n$2') // Add breaks before new topics
-    // Don't add breaks before emojis in lists - they should stay inline
-    .replace(/\n{3,}/g, '\n\n') // Normalize multiple line breaks
-    .trim();
-};
-
-const fixCriteriaFormatting = (text: string): string => {
-  if (!text) return text;
-  
-  return text
-    // Ensure proper spacing for bullet points and checkmarks
-    .replace(/([.!?])\s*•/g, '$1\n\n•')
-    // Fix section headers in criteria
-    .replace(/([.!?])\s*([А-ЯЁ][а-яё]+:)/g, '$1\n\n$2')
-    // Add breaks before "Например:" sections
-    .replace(/([.!?])\s*Например:/g, '$1\n\nНапример:')
-    // Add breaks before "Это может быть:" sections
-    .replace(/([.!?])\s*Это может быть:/g, '$1\n\nЭто может быть:')
-    // Special handling for bullet point lists - ensure single line breaks between items
-    .replace(/(•[^•]*?)\n{2,}(•)/g, '$1\n$2')
-    .replace(/(•[^•]*?)\n{3,}(•)/g, '$1\n$2')
-    .replace(/(•[^•]*?)\n\n\n(•)/g, '$1\n$2')
-    .replace(/(•[^•]*?)\n\n\n\n(•)/g, '$1\n$2')
-    // Additional rule to handle any remaining multiple line breaks between bullet points
-    .replace(/(•[^•]*?)(\n{2,})(•)/g, '$1\n$3')
-    // Special handling for lists that start with "включая:" - ensure proper spacing
-    .replace(/(включая:)\n(•)/g, '$1\n\n$2')
-    // Don't add breaks before emojis in lists - they should stay inline
-    .replace(/\n{3,}/g, '\n\n')
-    .trim();
-};
-
-const extractEvidenceSection = (text: string): { mainText: string; evidenceText: string | null } => {
-  if (!text) return { mainText: text, evidenceText: null };
-  
-  const evidenceMatch = text.match(/(Чем подтверждается:.*?)(?=\n\n|$)/s);
-  if (evidenceMatch) {
-    const evidenceText = evidenceMatch[1].trim();
-    const mainText = text.replace(evidenceMatch[0], '').trim();
-    return { mainText, evidenceText };
-  }
-  
-  return { mainText: text, evidenceText: null };
-};
-
-// Function to check if formatting should be applied
-const shouldApplyFormatting = (badgeId: string): boolean => {
-  // List of badges where automatic formatting might cause issues
-  const skipFormattingFor: string[] = [
-    // Add badge IDs here if needed
-  ];
-  return !skipFormattingFor.includes(badgeId);
-};
+import { 
+  pluralizeRu, 
+  fixDescriptionFormatting, 
+  fixCriteriaFormatting, 
+  extractEvidenceSection,
+  shouldApplyFormatting
+} from './utils/textFormatting';
 
 // Normalize level values coming from AI data
 const canonicalizeLevel = (lvl: unknown): string => {
