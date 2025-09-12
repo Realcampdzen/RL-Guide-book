@@ -3983,7 +3983,11 @@ const App: React.FC = () => {
              font-size: 1rem;
            }
 
-           .categories-grid,
+           .categories-grid {
+             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+             gap: 1rem;
+           }
+           
            .badges-grid {
              grid-template-columns: 1fr;
            }
