@@ -39,6 +39,8 @@ class WebContext(BaseModel):
     current_view: Optional[str] = Field(None, description="Текущий экран")
     current_category: Optional[Dict[str, Any]] = Field(None, description="Текущая категория")
     current_badge: Optional[Dict[str, Any]] = Field(None, description="Текущий значок")
+    current_level: Optional[str] = Field(None, description="Текущий уровень значка")
+    current_level_badge_title: Optional[str] = Field(None, description="Название конкретного уровня значка")
 
 
 class ChatRequest(BaseModel):

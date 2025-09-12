@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import ChatBot from './components/ChatBot';
 import ChatButton from './components/ChatButton';
+import { pluralizeRu } from './utils/textFormatting';
 
 // Text processing functions for automatic formatting
 const fixDescriptionFormatting = (text: string): string => {
@@ -65,12 +66,55 @@ const shouldApplyFormatting = (badgeId: string): boolean => {
   return !skipFormattingFor.includes(badgeId);
 };
 
+// Normalize level values coming from AI data
+const canonicalizeLevel = (lvl: unknown): string => {
+  const raw = String(lvl ?? '').trim();
+  if (!raw) return '';
+  const low = raw.toLowerCase();
+  if (low === '1' || low === 'базовый' || low === 'базовый уровень') return 'Базовый уровень';
+  if (low === '2' || low === 'продвинутый' || low === 'продвинутый уровень') return 'Продвинутый уровень';
+  if (low === '3' || low === 'экспертный' || low === 'экспертный уровень' || low === 'вожатский' || low === 'вожатский уровень') return 'Экспертный уровень';
+  return raw;
+};
+
+// Split-safe badge id helpers
+const splitId = (id: string | undefined | null): string[] => String(id ?? '').split('.');
+const sameBaseTwoSegments = (a: string, b: string): boolean => {
+  const as = splitId(a);
+  const bs = splitId(b);
+  return as.length >= 2 && bs.length >= 2 && as[0] === bs[0] && as[1] === bs[1];
+};
+
+// Fallback emoji mapping for categories when AI data lacks proper emojis
+const getFallbackEmojiFor = (categoryId: string, _title?: string): string => {
+  switch (categoryId) {
+    case '12': // ИИ
+      return '🤖';
+    case '11': // Инспектор пользы
+      return '🕵️';
+    case '14': // Лидерство / Бро-движения
+      return '⭐';
+    default:
+      return '✨';
+  }
+};
+
 // Function to get category icon (emoji or image)
 const getCategoryIcon = (categoryId: string): string | JSX.Element => {
+  // Quick safe overrides to ensure correct icons for latest version
+  // if (categoryId === '12') {
+  //   return <img src="/category_12.png" alt="ИИ" />;
+  // }
+  if (categoryId === '13') {
+    return <img className="category-13-icon" src="/category_13.png" alt="Категория 13" />;
+  }
+  if (categoryId === '11') {
+    return <img className="category-11-icon" src="/category_11.png" alt="Категория 11" />;
+  }
   switch (categoryId) {
     case '12': // ИИ
       return <img 
-        src="./pictures/ии 2.png" 
+        src="/stanpol__vector_logo_symbol_of_AI_and_creativity_for_children_a_a7e3ac1a-6ecd-48ee-a84b-11cca3a6047f.png" 
         alt="ИИ" 
       />;
     case '13': // Категория 13
@@ -141,19 +185,22 @@ const getCategoryIcon = (categoryId: string): string | JSX.Element => {
     case '4': // Категория 4
       return <img 
         className="category-4-icon"
-        src="./pictures/Stan_Pol_beautiful_star__neon__4k__vector_logo_fbadf503-7e7b-4c8d-949f-e75c9a43b636.png" 
+        src="./pictures/Stan_Pol_a_group_of_children_holding_hands_standing_on_the_stag_0ee8f1ee-ec32-4a75-b756-3f9b23e6b345.png" 
         alt="Категория 4" 
       />;
     case '14': // Категория 14
       return <img 
         className="category-14-icon"
-        src="./pictures/stanpol___kittens_astronauts__against_the_background_of_a_magic_c43ee4e3-1f7c-45c2-8263-065fe08abf49.png" 
+        src="/category_14.png" 
         alt="Категория 14" 
       />;
     default:
       return '🏆';
   }
 };
+
+// Feature toggles
+const SHOW_RELATED = false; // Показывать ли блок "Похожие значки"
 
 // Layout configuration overrides for specific badge groups
 const layoutOverrides = {
@@ -349,7 +396,7 @@ const App: React.FC = () => {
   const [selectedBadge, setSelectedBadge] = useState<Badge | null>(null);
   const [selectedLevel, setSelectedLevel] = useState<string>('');
   const [selectedAdditionalMaterial, setSelectedAdditionalMaterial] = useState<{
-    type: 'checklist' | 'methodology';
+    type: 'checklists' | 'methodology';
     key: string;
     title: string;
     content: string;
@@ -371,30 +418,188 @@ const App: React.FC = () => {
   // Загружаем данные при монтировании
   useEffect(() => {
     console.log('App: Component mounted, loading data');
-    loadData();
+    loadDataFromAi();
   }, []);
+
+  // very small markdown to html (headings, lists, paragraphs, bold/italics)
+  const markdownToHtml = (md: string): string => {
+    if (!md) return '';
+
+    // Normalize new lines
+    let html = md.replace(/\r\n?/g, '\n');
+
+    // Headings (support # to ######)
+    html = html
+      .replace(/^(#{1,6})\s+(.+)$/gm, (_m, hashes: string, text: string) => {
+        const level = Math.min(6, Math.max(1, hashes.length));
+        return `<h${level}>${text}<\/h${level}>`;
+      })
+      // Simple lists
+      .replace(/^\*\s+(.*)$/gim, '<li>$1<\/li>')
+      .replace(/^\-\s+(.*)$/gim, '<li>$1<\/li>')
+      // Ordered list items like `1. text`
+      .replace(/^\d+\.\s+(.*)$/gim, '<li>$1<\/li>')
+      // Horizontal rule
+      .replace(/^\s*---\s*$/gm, '<hr>')
+      // Blockquote lines starting with `>`
+      .replace(/^>\s+(.*)$/gm, '<blockquote>$1<\/blockquote>');
+
+    // Inline formatting: bold and italics
+    // Bold first to avoid interfering with italics
+    html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1<\/strong>');
+    // Italic: avoid matching list markers and bold
+    html = html.replace(/(^|[^*])\*(?!\s)([^*]+?)\*(?!\*)/g, '$1<em>$2<\/em>');
+
+    // Wrap plain lines to <p>
+    html = html
+      .split('\n')
+      .map((line) => /<\/?(h\d|li|ul|ol|p|blockquote|pre|code|strong|em|hr)>/i.test(line) || /<\/li>/.test(line)
+        ? line
+        : (line.trim() ? `<p>${line}<\/p>` : ''))
+      .join('\n');
+
+    // Group list items into <ul> blocks (naive but sufficient for our simple md)
+    html = html
+      // Group list items into a single unordered list block (simple heuristic)
+      .replace(/(<p><li>)/g, '<ul><li>')
+      .replace(/<\/li><\/p>(\n?<p><li>)/g, '<\/li>$1')
+      .replace(/<\/li><\/p>/g, '<\/li><\/ul>');
+
+    return html;
+  };
+
+
+  const loadCategoryIntroduction = async (categoryId: string) => {
+    try {
+      const res = await fetch(`/ai-data/category-${categoryId}/introduction.md`);
+      if (!res.ok) return;
+      const md = await res.text();
+      const html = markdownToHtml(md);
+      const cleaned = cleanHtmlContent(html);
+      setSelectedCategory(prev => prev && prev.id === categoryId
+        ? ({ ...prev, introduction: { has_introduction: true, html: cleaned, markdown: '' } })
+        : prev);
+    } catch (e) {
+      console.error('App: failed to load introduction.md for category', categoryId, e);
+    }
+  };
+
+  const loadDataFromAi = async () => {
+    try {
+      console.log('App: Loading AI data...');
+      setLoading(true);
+      const masterRes = await fetch('/ai-data/MASTER_INDEX.json');
+      const master = await masterRes.json();
+
+      const categoriesData: any[] = [];
+      const badgesData: any[] = [];
+
+      for (const aiCategory of master.categories) {
+        const idxRes = await fetch(`/ai-data/${aiCategory.path}index.json`);
+        const catIndex = await idxRes.json();
+
+        categoriesData.push({
+          id: aiCategory.id,
+          title: aiCategory.title,
+          emoji: aiCategory.emoji,
+          badge_count: catIndex.levels || catIndex.totalLevels || aiCategory.badges,
+          expected_badges: catIndex.levels || catIndex.totalLevels || aiCategory.badges,
+          introduction: { has_introduction: true, html: '' },
+          additional_materials: catIndex.additional_materials
+        });
+
+
+        for (const badgeIndex of (catIndex.badgesData || [])) {
+          const badgeRes = await fetch(`/ai-data/${aiCategory.path}${badgeIndex.id}.json`);
+          const aiBadge = await badgeRes.json();
+
+          if (aiBadge.levels && aiBadge.levels.length) {
+            for (const level of aiBadge.levels) {
+                const rawCriteria = (level as any).criteria as unknown;
+                const rawConfirmation = (level as any).confirmation as unknown;
+                const criteriaText = Array.isArray(rawCriteria)
+                  ? (rawCriteria as any[]).map((s) => String(s).trim()).filter(Boolean).map((s) => `• ${s}`).join('\n')
+                  : (rawCriteria as string) || '';
+                const confirmationText = Array.isArray(rawConfirmation)
+                  ? (rawConfirmation as any[]).map((s) => String(s).trim()).filter(Boolean).map((s) => `• ${s}`).join('\n')
+                  : (rawConfirmation as string) || '';
+              badgesData.push({
+                id: (level as any).id,
+                title: aiBadge.title,
+                emoji: ((typeof ((level as any).emoji ?? aiBadge.emoji) === 'string' && (((level as any).emoji ?? aiBadge.emoji).replace(/\?/g, '').trim().length > 0)) ? ((level as any).emoji ?? aiBadge.emoji) : getFallbackEmojiFor(aiCategory.id, aiBadge.title)),
+                category_id: aiCategory.id,
+                  level: canonicalizeLevel((level as any).level ?? level),
+                description: aiBadge.description,
+                  criteria: criteriaText,
+                  confirmation: confirmationText,
+                nameExplanation: aiBadge.nameExplanation,
+                skillTips: aiBadge.skillTips,
+                examples: aiBadge.examples,
+                importance: aiBadge.importance,
+                philosophy: aiBadge.philosophy,
+                howToBecome: aiBadge.howToBecome
+              });
+            }
+          } else {
+              const rawCriteria = (aiBadge as any).criteria as unknown;
+              const rawConfirmation = (aiBadge as any).confirmation as unknown;
+              const criteriaText = Array.isArray(rawCriteria)
+                ? (rawCriteria as any[]).map((s) => String(s).trim()).filter(Boolean).map((s) => `• ${s}`).join('\n')
+                : (rawCriteria as string) || '';
+              const confirmationText = Array.isArray(rawConfirmation)
+                ? (rawConfirmation as any[]).map((s) => String(s).trim()).filter(Boolean).map((s) => `• ${s}`).join('\n')
+                : (rawConfirmation as string) || '';
+            badgesData.push({
+              id: aiBadge.id,
+              title: aiBadge.title,
+              emoji: ((typeof aiBadge.emoji === 'string' && aiBadge.emoji.replace(/\?/g, '').trim().length > 0) ? aiBadge.emoji : getFallbackEmojiFor(aiCategory.id, aiBadge.title)),
+              category_id: aiCategory.id,
+              level: 'Описание',
+              description: aiBadge.description,
+                criteria: criteriaText,
+                confirmation: confirmationText,
+              nameExplanation: aiBadge.nameExplanation,
+              skillTips: aiBadge.skillTips,
+              examples: aiBadge.examples,
+              importance: aiBadge.importance,
+              philosophy: aiBadge.philosophy,
+              howToBecome: aiBadge.howToBecome
+            });
+          }
+        }
+      }
+
+      setCategories(categoriesData);
+      setBadges(badgesData);
+      console.log('App: AI data loaded:', categoriesData.length, 'categories,', badgesData.length, 'badges');
+    } catch (e) {
+      console.error('App: Error loading AI data', e);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const loadData = async () => {
     try {
       console.log('App: Loading data...');
       setLoading(true);
       
-      // Используем встроенные данные категорий
+      // Используем встроенные данные категорий с правильным количеством уровней
       const categoriesData = [
-        { id: '1', title: 'За личные достижения', badge_count: 16, expected_badges: 16 },
-        { id: '2', title: 'За легендарные дела', badge_count: 6, expected_badges: 6 },
-        { id: '3', title: 'Медиа значки', badge_count: 3, expected_badges: 3 },
-        { id: '4', title: 'За лагерные дела', badge_count: 4, expected_badges: 4 },
-        { id: '5', title: 'За отрядные дела', badge_count: 10, expected_badges: 10 },
-        { id: '6', title: 'Гармония и порядок', badge_count: 4, expected_badges: 4 },
-        { id: '7', title: 'За творческие достижения', badge_count: 8, expected_badges: 8 },
-        { id: '8', title: 'Значки Движков', badge_count: 7, expected_badges: 7 },
+        { id: '1', title: 'За личные достижения', badge_count: 38, expected_badges: 38 },
+        { id: '2', title: 'За легендарные дела', badge_count: 9, expected_badges: 9 },
+        { id: '3', title: 'Медиа значки', badge_count: 9, expected_badges: 9 },
+        { id: '4', title: 'За лагерные дела', badge_count: 10, expected_badges: 10 },
+        { id: '5', title: 'За отрядные дела', badge_count: 20, expected_badges: 20 },
+        { id: '6', title: 'Гармония и порядок', badge_count: 12, expected_badges: 12 },
+        { id: '7', title: 'За творческие достижения', badge_count: 24, expected_badges: 24 },
+        { id: '8', title: 'Значки Движков', badge_count: 9, expected_badges: 9 },
         { id: '9', title: 'Значки Бро – Движения', badge_count: 10, expected_badges: 10 },
         { id: '10', title: 'Значки на флаг отряда', badge_count: 3, expected_badges: 3 },
-        { id: '11', title: 'Осознанность', badge_count: 16, expected_badges: 16 },
-        { id: '12', title: 'ИИ: нейросети для обучения и творчества', badge_count: 12, expected_badges: 12 },
-        { id: '13', title: 'Софт-скиллз интенсив — развитие гибких навыков', badge_count: 12, expected_badges: 12 },
-        { id: '14', title: 'Значки Инспектора Пользы', badge_count: 9, expected_badges: 9 }
+        { id: '11', title: 'Реальность: осознанность и внимательность', badge_count: 16, expected_badges: 16 },
+        { id: '12', title: 'ИИ: нейросети для обучения и творчества', badge_count: 35, expected_badges: 35 },
+        { id: '13', title: 'Софт-скиллз интенсив — развитие гибких навыков', badge_count: 26, expected_badges: 26 },
+        { id: '14', title: 'Значки Инспектора Пользы', badge_count: 19, expected_badges: 19 }
       ];
       
       setCategories(categoriesData);
@@ -403,22 +608,22 @@ const App: React.FC = () => {
       
     } catch (error) {
       console.error('Ошибка загрузки данных:', error);
-      // Fallback данные
+      // Fallback данные с правильным количеством уровней
       setCategories([
-        { id: '1', title: 'За личные достижения', badge_count: 16, expected_badges: 16 },
-        { id: '2', title: 'За легендарные дела', badge_count: 6, expected_badges: 6 },
-        { id: '3', title: 'Медиа значки', badge_count: 3, expected_badges: 3 },
-        { id: '4', title: 'За лагерные дела', badge_count: 4, expected_badges: 4 },
-        { id: '5', title: 'За отрядные дела', badge_count: 10, expected_badges: 10 },
-        { id: '6', title: 'Гармония и порядок', badge_count: 4, expected_badges: 4 },
-        { id: '7', title: 'За творческие достижения', badge_count: 8, expected_badges: 8 },
-        { id: '8', title: 'Значки Движков', badge_count: 7, expected_badges: 7 },
+        { id: '1', title: 'За личные достижения', badge_count: 38, expected_badges: 38 },
+        { id: '2', title: 'За легендарные дела', badge_count: 9, expected_badges: 9 },
+        { id: '3', title: 'Медиа значки', badge_count: 9, expected_badges: 9 },
+        { id: '4', title: 'За лагерные дела', badge_count: 10, expected_badges: 10 },
+        { id: '5', title: 'За отрядные дела', badge_count: 20, expected_badges: 20 },
+        { id: '6', title: 'Гармония и порядок', badge_count: 12, expected_badges: 12 },
+        { id: '7', title: 'За творческие достижения', badge_count: 24, expected_badges: 24 },
+        { id: '8', title: 'Значки Движков', badge_count: 9, expected_badges: 9 },
         { id: '9', title: 'Значки Бро – Движения', badge_count: 10, expected_badges: 10 },
         { id: '10', title: 'Значки на флаг отряда', badge_count: 3, expected_badges: 3 },
-        { id: '11', title: 'Осознанность', badge_count: 16, expected_badges: 16 },
-        { id: '12', title: 'ИИ: нейросети для обучения и творчества', badge_count: 12, expected_badges: 12 },
-        { id: '13', title: 'Софт-скиллз интенсив — развитие гибких навыков', badge_count: 12, expected_badges: 12 },
-        { id: '14', title: 'Значки Инспектора Пользы', badge_count: 9, expected_badges: 9 }
+        { id: '11', title: 'Реальность: осознанность и внимательность', badge_count: 16, expected_badges: 16 },
+        { id: '12', title: 'ИИ: нейросети для обучения и творчества', badge_count: 35, expected_badges: 35 },
+        { id: '13', title: 'Софт-скиллз интенсив — развитие гибких навыков', badge_count: 26, expected_badges: 26 },
+        { id: '14', title: 'Значки Инспектора Пользы', badge_count: 19, expected_badges: 19 }
       ]);
     } finally {
       setLoading(false);
@@ -426,6 +631,8 @@ const App: React.FC = () => {
     }
   };
 
+  // Prevent TS noUnusedLocals error for legacy helper
+  void loadData;
   const handleIntroClick = () => {
     console.log('App: Intro clicked - switching to categories view');
     setCurrentView('categories');
@@ -445,6 +652,9 @@ const App: React.FC = () => {
 
   const handleBadgeClick = (badge: Badge) => {
     console.log('App: Badge clicked:', badge.title);
+    // Ensure selectedCategory matches the badge's category for proper navigation/back
+    const cat = categories.find((c) => c.id === badge.category_id);
+    if (cat) setSelectedCategory(cat);
     setSelectedBadge(badge);
     setCurrentView('badge');
     setSelectedLevel('');
@@ -456,9 +666,20 @@ const App: React.FC = () => {
     setCurrentView('badge-level');
   };
 
-  const handleIntroductionClick = () => {
-    console.log('App: Introduction clicked');
-    setCurrentView('introduction');
+  // Helper: get category title by id
+  const categoryTitleById = (cid: string): string => {
+    const c = categories.find((x) => x.id === cid);
+    return c ? c.title : '';
+  };
+
+  const handleIntroductionClick = async () => {
+    try {
+      if (selectedCategory) {
+        await loadCategoryIntroduction(selectedCategory.id);
+      }
+    } finally {
+      setCurrentView('introduction');
+    }
   };
 
   const handleTelegramContact = () => {
@@ -492,22 +713,152 @@ const App: React.FC = () => {
     setCurrentView('about-camp');
   };
 
-  const handleAdditionalMaterialClick = (type: 'checklist' | 'methodology', key: string) => {
+  // Функция для обработки интерактивных ссылок в тексте
+  const processInteractiveLinks = (text: string): string => {
+    // Заменяем ссылки формата [текст](checklist:filename.md) или [текст](methodology:filename.md)
+    return text.replace(/\[([^\]]+)\]\((checklist|methodology|checklists):([^)]+)\)/g, (_, linkText, type, filename) => {
+      const actualType = type === 'checklist' ? 'checklists' : type;
+      return `<a href="#" onclick="window.handleMaterialClick('${actualType}', '${filename}'); return false;" style="color: #4ecdc4; text-decoration: underline; cursor: pointer;">${linkText}</a>`;
+    });
+  };
+
+  // Расширенная обработка: добавляет автоссылки на значки по шаблонам "см. 11.1", "см. раздел 3.2"
+  const processInteractiveLinksPlus = (text: string): string => {
+    const base = processInteractiveLinks(text || '');
+    return base.replace(/\bсм\.?\s*(?:раздел|значок)?\s*(\d{1,2}\.\d{1,2}(?:\.\d{1,2})?)\b/gi, (_m: string, bid: string) => {
+      const safeId = bid;
+      return `<a href="#" onclick="window.openBadgeById('${safeId}'); return false;" style="color: #4ecdc4; text-decoration: underline; cursor: pointer;">см. ${safeId}</a>`;
+    });
+  };
+  // CSP-safe version without inline JS/CSS
+  const processInteractiveLinksSafe = (text: string): string => {
+    return text.replace(/\[([^\]]+)\]\((checklist|methodology|checklists):([^)]+)\)/g, (_, linkText, type, filename) => {
+      const actualType = type === 'checklist' ? 'checklists' : type;
+      return `<a href=\"#\" data-material-type=\"${actualType}\" data-filename=\"${filename}\" class=\"interactive-link\">${linkText}</a>`;
+    });
+  };
+
+  // CSP-safe extended linking: also link references like "см. 11.1" or "см. раздел 3.2"
+  const processInteractiveLinksPlusSafe = (text: string): string => {
+    const base = processInteractiveLinksSafe(text || '');
+    return base.replace(/\bсм\.?\s*(?:раздел|значок)?\s*(\d{1,2}\.\d{1,2}(?:\.\d{1,2})?)\b/gi, (_m: string, bid: string) => {
+      const safeId = bid;
+      return `<a href=\"#\" data-badge-id=\"${safeId}\" class=\"interactive-link\">см. ${safeId}</a>`;
+    });
+  };
+  // Keep referenced to avoid TS noUnusedLocals error if not used
+  void processInteractiveLinksSafe;
+
+  // Глобальная функция для обработки кликов по ссылкам
+  (window as any).handleMaterialClick = (type: string, filename: string) => {
+    handleAdditionalMaterialClick(type as 'checklists' | 'methodology', filename);
+  };
+
+  // Глобальная функция: открыть значок по его ID (для автоссылок)
+  (window as any).openBadgeById = (rawId: string) => {
+    try {
+      const parts = (rawId || '').split('.');
+      const baseKey = parts.length >= 2 ? `${parts[0]}.${parts[1]}` : rawId;
+      const group = badges.filter((b) => (b.id || '').startsWith(baseKey + '.') || b.id === baseKey);
+      if (!group.length) return;
+      const base = group.find((b) => String(b.level || '').toLowerCase().includes('базов')) || group[0];
+      const cat = categories.find((c) => c.id === base.category_id);
+      if (cat) {
+        setSelectedCategory(cat);
+        setCurrentView('category');
+      }
+      handleBadgeClick(base);
+    } catch (e) {
+      console.warn('openBadgeById error', e);
+    }
+  };
+
+  // Delegated click handler for CSP-safe interactive links
+  const handleInteractiveLinkClick = (e: React.MouseEvent) => {
+    const target = e.target as HTMLElement | null;
+    if (!target) return;
+    const anchor = target.closest('a') as HTMLAnchorElement | null;
+    if (!anchor) return;
+    const matType = anchor.getAttribute('data-material-type');
+    const matFile = anchor.getAttribute('data-filename');
+    const badgeId = anchor.getAttribute('data-badge-id');
+
+    if (matType && matFile) {
+      e.preventDefault();
+      handleAdditionalMaterialClick(matType as 'checklists' | 'methodology', matFile);
+      return;
+    }
+    if (badgeId) {
+      e.preventDefault();
+      (window as any).openBadgeById?.(badgeId);
+      return;
+    }
+  };
+
+
+  const handleAdditionalMaterialClick = async (type: 'checklists' | 'methodology', key: string) => {
     console.log('App: Additional material clicked:', type, key);
-    if (!selectedCategory?.additional_materials) return;
+    if (!selectedCategory) return;
     
-    const material = type === 'checklist' 
-      ? selectedCategory.additional_materials.checklists?.[key]
-      : selectedCategory.additional_materials.methodology?.[key];
-    
-    if (material) {
+    try {
+      // Нормализуем часто встречающиеся псевдонимы файлов
+      const alias = (k: string) => {
+        const map: Record<string, string> = {
+          'inspector-codex.md': 'inspector-methodology.md',
+          'i-messages-guide.md': 'inspector-methodology.md',
+          'friendship-rules.md': 'inspector-methodology.md',
+          'friendship-guide.md': 'inspector-methodology.md',
+        };
+        return map[k] || k;
+      };
+      const normalizedKey = alias(key);
+
+      // Путь по текущей категории
+      const primaryPath = `/ai-data/category-${selectedCategory.id}/${type}/${normalizedKey}`;
+      let response = await fetch(primaryPath);
+      
+      // Если файл отсутствует в категории, пробуем стандартную папку категории 14
+      if (!response.ok) {
+        const fallbackPath = `/ai-data/category-14/${type}/${normalizedKey}`;
+        console.warn('Primary material not found, trying fallback:', primaryPath, '->', fallbackPath);
+        response = await fetch(fallbackPath);
+        if (!response.ok) {
+          console.error('Failed to load additional material:', response.status, response.statusText);
+          return;
+        }
+      }
+
+      if (!response.ok) {
+        console.error('Failed to load additional material:', response.status, response.statusText);
+        return;
+      }
+      
+      const markdownContent = await response.text();
+
+      // Преобразуем markdown в HTML, используя общий мини‑парсер
+      const htmlContent = markdownToHtml(markdownContent);
+      
+      // Создаем более читаемый заголовок
+      const titleMap: { [key: string]: string } = {
+        'general-checklist.md': '📋 Общий чек-лист',
+        'challenges-checklist.md': '🎯 Чек-лист с челленджами', 
+        'active-checklist.md': '🚀 Активная версия чек-листа',
+        'inspector-methodology.md': '📚 Методика Инспектора Пользы',
+        'inspector-codex.md': '📜 Кодекс Инспектора Реального Лагеря',
+        'friendship-guide.md': '🤝 Памятка как получить значки Инспектора Дружбы',
+        'i-messages-guide.md': '💬 Памятка Я сообщений для Инспектора Дружбы',
+        'friendship-rules.md': '📋 Список правил Инспектора Дружбы'
+      };
+      
       setSelectedAdditionalMaterial({
         type,
         key,
-        title: material.title,
-        content: material.html
+        title: titleMap[key] || key.replace('.md', '').replace(/-/g, ' '),
+        content: htmlContent
       });
       setCurrentView('additional-material');
+    } catch (error) {
+      console.error('Error loading additional material:', error);
     }
   };
 
@@ -668,10 +1019,10 @@ const App: React.FC = () => {
 
                                                                                                                                                                                                const getCircleSize = (badgeCount: number) => {
             // Размеры круга пропорционально количеству значков
-            const minSize = 60;   // Минимальный размер (пиксели)
-            const maxSize = 120;  // Максимальный размер (пиксели)
+            const minSize = 72;   // Минимальный размер (пиксели)
+            const maxSize = 140;  // Максимальный размер (пиксели)
             const minBadges = 3;  // Минимальное количество значков
-            const maxBadges = 40; // Максимальное количество значков
+            const maxBadges = 40; // Максимальное количество значков (обновлено для новых данных)
             
             // Нормализуем количество значков от 0 до 1
             const normalized = Math.min(Math.max((badgeCount - minBadges) / (maxBadges - minBadges), 0), 1);
@@ -695,13 +1046,15 @@ const App: React.FC = () => {
           <div className="categories-screen">
            <div className="header">
              <button onClick={handleBackToIntro} className="back-button">
-               ← Назад к приветствию
-             </button>
-             <h1 style={{color: '#FFD700', textShadow: '2px 2px 4px rgba(0,0,0,0.8)', fontWeight: 'bold'}}>Категории значков</h1>
-             <p style={{color: '#FFA500', textShadow: '1px 1px 2px rgba(0,0,0,0.6)', fontWeight: '600'}}>Выберите категорию для изучения</p>
+              ← Назад к введению
+            </button>
+            <div className="header-content">
+             <h1 className="heading-gold">Категории значков</h1>
+             <p className="subtitle-orange">Выберите категорию для изучения</p>
+            </div>
            </div>
                        <div className="categories-grid">
-              {categories.map((category, index) => {
+              {categories.slice().sort((a,b) => Number(a.id) - Number(b.id)).map((category, index) => {
                 const circleSize = getCircleSize(category.badge_count);
                 // const textLines = getTextLines(category.title);
                 
@@ -724,8 +1077,8 @@ const App: React.FC = () => {
                       <div className="category-icon">{getCategoryIcon(category.id)}</div>
                     </div>
                                          <div className="category-text">
-                       <h3>
-                         {category.title}
+                       <h3 style={{ whiteSpace: 'pre-line' }}>
+                         {category.id === '5' ? 'За Отрядные Дела\nОДэ 😈' : category.title}
                        </h3>
                        <p>{category.badge_count} значков</p>
                      </div>
@@ -745,12 +1098,20 @@ const App: React.FC = () => {
       return null;
     }
 
-    const categoryBadges = badges.filter(badge => 
-      badge.category_id === selectedCategory.id &&
-      (badge.level === 'Базовый уровень' || badge.level === 'Одноуровневый' || badge.level === 'Вожатский уровень' ||
-       // Для категорий 8 и 9 показываем все значки, включая многоуровневые, кроме подуровней Легендарного Движка
-       ((selectedCategory.id === '8' || selectedCategory.id === '9') && badge.id !== '8.5.2' && badge.id !== '8.5.3'))
-    );
+    // Группируем по базовому ключу (первые две части id)
+    const grouped: Record<string, any[]> = {};
+    badges.forEach((b) => {
+      if (b.category_id !== selectedCategory.id) return;
+      const parts = (b.id || '').split('.');
+      const baseKey = parts.length >= 2 ? `${parts[0]}.${parts[1]}` : (b.id || '');
+      if (!grouped[baseKey]) grouped[baseKey] = [];
+      grouped[baseKey].push(b);
+    });
+    const categoryBadges = Object.values(grouped).map((list: any[]) => {
+      const base = list.find(x => (x.level || '').toLowerCase().includes('баз')) || list[0];
+      (base as any).allLevels = list.length > 1 ? list.sort((a: any,b: any)=> (a.id||'').localeCompare(b.id||'')) : [];
+      return base;
+    });
 
     return (
       <div className="category-screen">
@@ -759,8 +1120,8 @@ const App: React.FC = () => {
             ← Назад к категориям
           </button>
           <div className="header-content">
-            <h1 style={{color: '#FFD700', textShadow: '2px 2px 4px rgba(0,0,0,0.8)', fontWeight: 'bold'}}>{selectedCategory.title}</h1>
-            <p style={{color: '#FFA500', textShadow: '1px 1px 2px rgba(0,0,0,0.6)', fontWeight: '600'}}>{categoryBadges.length} базовых значков</p>
+            <h1 className="heading-gold">{selectedCategory.title}</h1>
+            <p className="subtitle-orange">{categoryBadges.length} базовых значков</p>
             {selectedCategory.introduction?.has_introduction && (
               <button 
                 onClick={handleIntroductionClick} 
@@ -770,34 +1131,30 @@ const App: React.FC = () => {
                 💡 Подсказка
               </button>
             )}
-            {selectedCategory.id === '14' && selectedCategory.additional_materials && (
+            {selectedCategory.id === '14' && (
               <div className="additional-materials-buttons">
-                {selectedCategory.additional_materials.checklists && (
                   <>
                     <button 
-                      onClick={() => handleAdditionalMaterialClick('checklist', 'general-checklist.md')}
+                    onClick={() => handleAdditionalMaterialClick('checklists', 'general-checklist.md')}
                       className="material-button"
                       title="Общий чек-лист"
                     >
                       📋 Чек-лист
                     </button>
                     <button 
-                      onClick={() => handleAdditionalMaterialClick('checklist', 'challenges-checklist.md')}
+                    onClick={() => handleAdditionalMaterialClick('checklists', 'challenges-checklist.md')}
                       className="material-button"
                       title="Чек-лист с челленджами"
                     >
                       🎯 Челленджи
                     </button>
                                    <button
-                 onClick={() => handleAdditionalMaterialClick('checklist', 'active-checklist.md')}
+                    onClick={() => handleAdditionalMaterialClick('checklists', 'active-checklist.md')}
                  className="material-button"
                  title="Активная версия чек-листа"
                >
                  🚀 Активная версия
                </button>
-                  </>
-                )}
-                {selectedCategory.additional_materials.methodology && (
                   <button 
                     onClick={() => handleAdditionalMaterialClick('methodology', 'inspector-methodology.md')}
                     className="material-button"
@@ -805,7 +1162,35 @@ const App: React.FC = () => {
                   >
                     📚 Методика
                   </button>
-                )}
+                  <button 
+                    onClick={() => handleAdditionalMaterialClick('methodology', 'inspector-codex.md')}
+                    className="material-button"
+                    title="Кодекс Инспектора Реального Лагеря"
+                  >
+                    📜 Кодекс
+                  </button>
+                  <button 
+                    onClick={() => handleAdditionalMaterialClick('methodology', 'friendship-guide.md')}
+                    className="material-button"
+                    title="Памятка как получить значки Инспектора Дружбы"
+                  >
+                    🤝 Памятка Дружбы
+                  </button>
+                  <button 
+                    onClick={() => handleAdditionalMaterialClick('methodology', 'i-messages-guide.md')}
+                    className="material-button"
+                    title="Памятка Я сообщений для Инспектора Дружбы"
+                  >
+                    💬 Я-сообщения
+                  </button>
+                  <button 
+                    onClick={() => handleAdditionalMaterialClick('methodology', 'friendship-rules.md')}
+                    className="material-button"
+                    title="Список правил Инспектора Дружбы"
+                  >
+                    📋 Правила Дружбы
+                  </button>
+                </>
               </div>
             )}
           </div>
@@ -824,7 +1209,11 @@ const App: React.FC = () => {
                  <div className="badge-emoji">{badge.emoji || (badge.id === '1.11' ? '♾️' : '')}</div>
                </div>
               <h3 className="badge-card__title">{badge.title}</h3>
-              <div className="badge-card__level">{badge.level}</div>
+              <div className="badge-card__level">
+                {Array.isArray((badge as any).allLevels) && (badge as any).allLevels.length > 1
+                  ? `${(badge as any).allLevels.length} ${pluralizeRu((badge as any).allLevels.length, ['уровень', 'уровня', 'уровней'])}`
+                  : 'одноуровневый'}
+              </div>
             </article>
           ))}
         </div>
@@ -839,15 +1228,17 @@ const App: React.FC = () => {
     // Все уровни конкретного значка (группируем по префиксу ID, например 1.1.x)
     const idSegments = (selectedBadge.id || '').split('.');
     const isMultiLevel = idSegments.length === 3;
-    const baseKey = isMultiLevel ? idSegments.slice(0, 2).join('.') + '.' : selectedBadge.id;
+    // const baseKey = isMultiLevel ? idSegments.slice(0, 2).join('.') + '.' : selectedBadge.id;
 
     const badgeLevels = badges.filter(b => {
       if (b.category_id !== selectedBadge.category_id) return false;
       if (isMultiLevel) {
-        return (b.id || '').startsWith(baseKey);
+        // Только уровни выбранного значка: совпадают первые две части ID и всего 3 сегмента
+        const seg = (b.id || '').split('.');
+        return seg.length === 3 && sameBaseTwoSegments(b.id, selectedBadge.id);
       }
-      // одноуровневый
-      return b.id === selectedBadge.id;
+      // Одноуровневый — показываем только сам значок
+      return (b.id || '') === (selectedBadge.id || '');
     });
 
     // Базовый уровень (если есть), для одноуровневых — сам значок
@@ -875,6 +1266,7 @@ const App: React.FC = () => {
     const sourceBadge = baseLevelBadge || selectedBadge;
     
     if (sourceBadge) {
+      try {
       // Используем поле confirmation если оно есть, иначе извлекаем из criteria
       if (sourceBadge.confirmation) {
         evidenceText = sourceBadge.confirmation;
@@ -903,6 +1295,16 @@ const App: React.FC = () => {
             .split('✅')
             .filter(c => c.trim())
             .map(c => c.trim());
+        }
+      }
+      } catch (err) {
+        const rawCriteriaAny = (sourceBadge as any)?.criteria;
+        if (Array.isArray(rawCriteriaAny)) {
+          baseCriteria = rawCriteriaAny.map((c: any) => String(c).trim()).filter(Boolean);
+        }
+        const confAny = (sourceBadge as any)?.confirmation;
+        if (!evidenceText && confAny) {
+          evidenceText = Array.isArray(confAny) ? confAny.map((c: any) => String(c)).join('\n') : String(confAny);
         }
       }
     }
@@ -940,13 +1342,13 @@ const App: React.FC = () => {
           <div className="badge-header">
             <div className="badge-emoji-large">{selectedEmoji}</div>
             <div>
-              <h1 style={{color: '#FFD700', textShadow: '2px 2px 4px rgba(0,0,0,0.8)', fontWeight: 'bold'}}>{selectedBadge.title}</h1>
-              <p className="badge-category" style={{color: '#FFA500', textShadow: '1px 1px 2px rgba(0,0,0,0.6)', fontWeight: '600'}}>{selectedCategory?.title}</p>
+              <h1 className="heading-gold">{selectedBadge.title}</h1>
+              <p className="badge-category subtitle-orange">{selectedCategory?.title}</p>
             </div>
           </div>
         </div>
 
-        <div className="badge-content">
+        <div className="badge-content" onClick={handleInteractiveLinkClick}>
           <section className="badge-summary">
                           <div 
               className={`badge-summary__block ${isTallInfo ? 'badge-summary__block--tall' : ''}`}
@@ -961,7 +1363,7 @@ const App: React.FC = () => {
                     const { mainText, evidenceText: descEvidenceText } = extractEvidenceSection(processedDescription);
                     return (
                       <>
-                        {mainText}
+                        <span dangerouslySetInnerHTML={{__html: processInteractiveLinksPlusSafe(mainText.replace(/\n/g, '<br>'))}}></span>
                         {descEvidenceText && (
                           <>
                             <br /><br />
@@ -984,14 +1386,14 @@ const App: React.FC = () => {
                 {baseLevelBadge?.skillTips && (
                   <>
                     <h4>Как прокачать навык</h4>
-                    <p className="badge-summary__text">{baseLevelBadge.skillTips}</p>
+                    <p className="badge-summary__text" dangerouslySetInnerHTML={{__html: processInteractiveLinksPlusSafe(baseLevelBadge.skillTips.replace(/\n/g, '<br>'))}}></p>
                   </>
                 )}
 
                 {baseLevelBadge?.examples && (
                   <>
                     <h4>Примеры</h4>
-                    <p className="badge-summary__text">{baseLevelBadge.examples}</p>
+                    <p className="badge-summary__text" dangerouslySetInnerHTML={{__html: processInteractiveLinksPlusSafe(baseLevelBadge.examples.replace(/\n/g, '<br>'))}}></p>
                   </>
                 )}
 
@@ -1012,7 +1414,7 @@ const App: React.FC = () => {
                 {baseLevelBadge?.howToBecome && (
                   <>
                     <h4>Как стать</h4>
-                    <p className="badge-summary__text">{baseLevelBadge.howToBecome}</p>
+                    <p className="badge-summary__text" dangerouslySetInnerHTML={{__html: processInteractiveLinksPlusSafe(baseLevelBadge.howToBecome.replace(/\n/g, '<br>'))}}></p>
                   </>
                 )}
               <div className="badge-meta">
@@ -1028,7 +1430,9 @@ const App: React.FC = () => {
                 {baseCriteria.length > 0 ? (
                   <ul className="badge-steps__list">
                     {baseCriteria.map((criterion, index) => (
-                      <li key={index}>{criterion}</li>
+                      <li key={index}>
+                        <span dangerouslySetInnerHTML={{ __html: processInteractiveLinksPlusSafe(String(criterion).replace(/\n/g, '<br>')) }} />
+                      </li>
                     ))}
                   </ul>
                 ) : (
@@ -1047,18 +1451,91 @@ const App: React.FC = () => {
               </div>
 
               {otherLevels.length > 0 && (
-                <div className="levels-grid-bottom">
+                <div className="levels-grid-bottom levels-dock">
                   {otherLevels.map(level => (
-                    <article key={level.id} className="level-card-bottom" onClick={() => handleLevelClick(level.level)}>
+                    <article key={level.id} className="level-card-bottom" onClick={() => handleLevelClick(String(level.level))}>
                       <div className="level-card__icon">
                         <span className="level-bubble__emoji">{level.emoji || '🏆'}</span>
                       </div>
                       <h4 className="level-card__title">{level.title}</h4>
-                      <div className="level-card__subtitle">{level.level}</div>
+                      <div className="level-card__subtitle">{String(level.level)}</div>
                     </article>
                   ))}
                 </div>
               )}
+
+              {SHOW_RELATED && (() => {
+                // Inline related-badges calculation using lightweight topical keywords
+                const TOPICS: Record<string, string[]> = {
+                  'ИИ/Медиа': [' ии', 'нейросет', 'chatgpt', 'чатgpt', 'midjourney', 'stable', 'изображен', 'видео', 'монтаж', 'аудио', 'подкаст', 'канал', 'пост', 'статья', 'контент', 'медиа'],
+                  'Творчество/Сцена': ['сцена', 'концерт', 'музык', 'танц', 'театр', 'песня', 'рису', 'жюри', 'выступ', 'шоу', 'творч'],
+                  'Организация/Лидерство': ['организ', 'лидер', 'ведущ', 'отряд', 'план', 'ответствен', 'инициатив', 'координац', 'расписан'],
+                  'Команда/Коммуникации': ['команд', 'общен', 'коммуник', 'конфликт', 'договор', 'дружб', 'уважен', 'вежлив', 'помощ', 'вовлеч', 'модерац', 'обратн'],
+                  'Порядок/Быт': ['уборк', 'поряд', 'чист', 'уют', 'зона', 'декор', 'гармони', 'распорядок'],
+                  'Осознанность/Психо': ['осознан', 'внимател', 'эмоци', 'настроен', 'стресс', 'спокойств', 'фокус', 'медита', 'рефлекс'],
+                };
+                const textOf = (b: Badge | null | undefined): string => {
+                  if (!b) return '';
+                  const anyB = b as any;
+                  return [anyB.description, anyB.importance, anyB.skillTips, anyB.examples, anyB.howToBecome]
+                    .map((v) => (typeof v === 'string' ? v : ''))
+                    .join('\n');
+                };
+                const topicsFor = (txt: string): string[] => {
+                  const tset = new Set<string>();
+                  const low = ` ${txt.toLowerCase()} `;
+                  Object.entries(TOPICS).forEach(([t, keys]) => {
+                    if (keys.some((k) => low.includes(k))) tset.add(t);
+                  });
+                  return Array.from(tset);
+                };
+                const baseKey = (id: string) => {
+                  const parts = (id || '').split('.');
+                  return parts.length >= 2 ? `${parts[0]}.${parts[1]}` : id;
+                };
+                const sameGroup = (a: string, b: string) => baseKey(a) === baseKey(b);
+                const pickBase = (list: Badge[]): Badge => {
+                  const found = list.find((x) => (x.level || '').toLowerCase().includes('базовый'));
+                  return found || list.sort((a, b) => (a.id || '').localeCompare(b.id || ''))[0];
+                };
+                // Build representatives by group
+                const grouped: Record<string, Badge[]> = {};
+                badges.forEach((b) => {
+                  const key = baseKey(b.id);
+                  (grouped[key] ||= []).push(b);
+                });
+                const representatives = Object.entries(grouped).map(([, list]) => pickBase(list));
+                // Topics of current
+                const currentTopics = new Set(topicsFor(textOf(baseLevelBadge || selectedBadge)));
+                if (currentTopics.size === 0) return null;
+                // Score reps by overlap, prefer different categories
+                type Scored = { badge: Badge; score: number };
+                const scored: Scored[] = [];
+                for (const rb of representatives) {
+                  if (sameGroup(rb.id, selectedBadge.id)) continue;
+                  if (rb.category_id === selectedBadge.category_id) continue; // перекрёстные — в другие категории
+                  const t = new Set(topicsFor(textOf(rb)));
+                  let overlap = 0;
+                  t.forEach((x) => { if (currentTopics.has(x)) overlap++; });
+                  if (overlap > 0) scored.push({ badge: rb, score: overlap });
+                }
+                scored.sort((a, b) => b.score - a.score || a.badge.title.localeCompare(b.badge.title));
+                const related = scored.slice(0, 6).map((s) => s.badge);
+                if (related.length === 0) return null;
+                return (
+                  <div className="levels-grid-bottom levels-dock">
+                    {related.map((rb) => (
+                      <article key={rb.id} className="level-card-bottom" onClick={() => handleBadgeClick(rb)} title={categoryTitleById(rb.category_id)}>
+                        <div className="level-card__icon">
+                          <span className="level-bubble__emoji">{rb.emoji || '🏅'}</span>
+                        </div>
+                        <h4 className="level-card__title">{rb.title}</h4>
+                        <div className="level-card__subtitle">{categoryTitleById(rb.category_id)}</div>
+                      </article>
+                    ))}
+                  </div>
+                );
+              })()}
             </div>
           </section>
         </div>
@@ -1140,6 +1617,29 @@ const App: React.FC = () => {
     
     // Применяем CSS переменную для максимальной высоты текста
     const levelTextMaxEm = levelGroupOverride?.textMaxEm || 28;
+    // Keep level bubbles visible in level view as a quick switcher
+    const siblingLevels = badges.filter(b => {
+      if (b.category_id !== selectedBadge.category_id) return false;
+      if (isMultiLevel) {
+        const seg = (b.id || '').split('.');
+        return seg.length === 3 && sameBaseTwoSegments(b.id, selectedBadge.id);
+      }
+      return (b.id || '') === (selectedBadge.id || '');
+    });
+    // Stable order: by numeric level if possible, then by id
+    const toNum = (v: any) => {
+      if (typeof v?.level === 'number') return v.level;
+      if (typeof v?.level === 'string' && /^\d+$/.test(v.level)) return parseInt(v.level, 10);
+      return Number.POSITIVE_INFINITY;
+    };
+    const levelsAll = siblingLevels.slice().sort((a: any, b: any) => {
+      const an = toNum(a);
+      const bn = toNum(b);
+      if (an !== bn) return an - bn;
+      return (a.id || '').localeCompare(b.id || '');
+    });
+    // Only show alternative levels (exclude currently selected)
+    const otherLevels = levelsAll.filter(l => String(l.level) !== String(selectedLevel));
 
     return (
       <div 
@@ -1158,13 +1658,13 @@ const App: React.FC = () => {
            <div className="level-header">
              <div className="badge-emoji-large">{levelBadge.emoji || '🏆'}</div>
              <div>
-               <h1 style={{color: '#FFD700', textShadow: '2px 2px 4px rgba(0,0,0,0.8)', fontWeight: 'bold'}}>{levelBadge.title}</h1>
-               <p className="level-title" style={{color: '#FFA500', textShadow: '1px 1px 2px rgba(0,0,0,0.6)', fontWeight: '600'}}>{selectedLevel}</p>
+               <h1 className="heading-gold">{levelBadge.title}</h1>
+               <p className="level-title subtitle-orange">{selectedLevel}</p>
              </div>
            </div>
          </div>
          
-         <div className="level-content">
+        <div className="level-content" onClick={handleInteractiveLinkClick}>
            <section className="badge-summary">
              <div 
                className={`badge-summary__block ${isTallInfoLevel ? 'badge-summary__block--tall' : ''}`}
@@ -1179,7 +1679,7 @@ const App: React.FC = () => {
                     const { mainText, evidenceText: descEvidenceText } = extractEvidenceSection(processedDescription);
                     return (
                       <>
-                        {mainText}
+                        <span dangerouslySetInnerHTML={{__html: processInteractiveLinksPlusSafe(mainText.replace(/\n/g, '<br>'))}}></span>
                         {descEvidenceText && (
                           <>
                             <br /><br />
@@ -1202,14 +1702,14 @@ const App: React.FC = () => {
                 {levelBadge.skillTips && (
                   <>
                     <h4>Как прокачать навык</h4>
-                    <p className="badge-summary__text">{levelBadge.skillTips}</p>
+                    <p className="badge-summary__text" dangerouslySetInnerHTML={{__html: processInteractiveLinksPlusSafe(levelBadge.skillTips.replace(/\n/g, '<br>'))}}></p>
                   </>
                 )}
 
                 {levelBadge.examples && (
                   <>
                     <h4>Примеры</h4>
-                    <p className="badge-summary__text">{levelBadge.examples}</p>
+                    <p className="badge-summary__text" dangerouslySetInnerHTML={{__html: processInteractiveLinksPlusSafe(levelBadge.examples.replace(/\n/g, '<br>'))}}></p>
                   </>
                 )}
 
@@ -1230,7 +1730,7 @@ const App: React.FC = () => {
                 {levelBadge.howToBecome && (
                   <>
                     <h4>Как стать</h4>
-                    <p className="badge-summary__text">{levelBadge.howToBecome}</p>
+                    <p className="badge-summary__text" dangerouslySetInnerHTML={{__html: processInteractiveLinksPlusSafe(levelBadge.howToBecome.replace(/\n/g, '<br>'))}}></p>
                   </>
                 )}
                <div className="badge-meta">
@@ -1240,14 +1740,23 @@ const App: React.FC = () => {
                </div>
              </div>
 
-                           <div className="badge-summary__block">
+             <div className="badge-summary__right">
+               <div className="badge-summary__block">
                 <h3>Как получить {selectedLevel.toLowerCase()}</h3>
                 {levelCriteria.length > 0 ? (
                   <ul className="badge-steps__list">
                     {levelCriteria.map((criterion, index) => {
                       const hasExamples = criterion.includes('Например:');
                       if (!hasExamples) {
-                        return (<li key={index}>{criterion}</li>);
+                        return (
+                          <li key={index}>
+                            <span
+                              dangerouslySetInnerHTML={{
+                                __html: processInteractiveLinksPlus(String(criterion).replace(/\n/g, '<br>')),
+                              }}
+                            />
+                          </li>
+                        );
                       }
 
                                              const exampleSplit = criterion.split('Например:');
@@ -1260,7 +1769,7 @@ const App: React.FC = () => {
 
                        return (
                          <li key={index}>
-                           <div className="criterion-text">{headText}</div>
+                           <div className="criterion-text" dangerouslySetInnerHTML={{__html: processInteractiveLinksPlus(headText.replace(/\n/g, '<br>'))}}></div>
                            {exampleLines.length > 0 && (
                              <div className="criterion-examples">
                                <p className="criterion-example">Например:</p>
@@ -1288,6 +1797,95 @@ const App: React.FC = () => {
                   </>
                 )}
               </div>
+
+              {otherLevels.length > 0 && (
+                <div className="levels-grid-bottom levels-dock">
+                  {otherLevels.map(level => (
+                    <article
+                      key={level.id}
+                      className="level-card-bottom"
+                      onClick={() => handleLevelClick(String(level.level))}
+                    >
+                      <div className="level-card__icon">
+                        <span className="level-bubble__emoji">{level.emoji || '??'}</span>
+                      </div>
+                      <h4 className="level-card__title">{level.title}</h4>
+                      <div className="level-card__subtitle">{String(level.level)}</div>
+                    </article>
+                  ))}
+                </div>
+              )}
+
+              {SHOW_RELATED && (() => {
+                // Похожие значки (уровневый экран): используем ту же логику, что и на экране значка
+                const TOPICS: Record<string, string[]> = {
+                  'ИИ/Медиа': [' ии', 'нейросет', 'chatgpt', 'чатgpt', 'midjourney', 'stable', 'изображен', 'видео', 'монтаж', 'аудио', 'подкаст', 'канал', 'пост', 'статья', 'контент', 'медиа'],
+                  'Творчество/Сцена': ['сцена', 'концерт', 'музык', 'танц', 'театр', 'песня', 'рису', 'жюри', 'выступ', 'шоу', 'творч'],
+                  'Организация/Лидерство': ['организ', 'лидер', 'ведущ', 'отряд', 'план', 'ответствен', 'инициатив', 'координац', 'расписан'],
+                  'Команда/Коммуникации': ['команд', 'общен', 'коммуник', 'конфликт', 'договор', 'дружб', 'уважен', 'вежлив', 'помощ', 'вовлеч', 'модерац', 'обратн'],
+                  'Порядок/Быт': ['уборк', 'поряд', 'чист', 'уют', 'зона', 'декор', 'гармони', 'распорядок'],
+                  'Осознанность/Психо': ['осознан', 'внимател', 'эмоци', 'настроен', 'стресс', 'спокойств', 'фокус', 'медита', 'рефлекс'],
+                };
+                const textOf = (b: Badge | null | undefined): string => {
+                  if (!b) return '';
+                  const anyB = b as any;
+                  return [anyB.description, anyB.importance, anyB.skillTips, anyB.examples, anyB.howToBecome]
+                    .map((v) => (typeof v === 'string' ? v : ''))
+                    .join('\n');
+                };
+                const topicsFor = (txt: string): string[] => {
+                  const tset = new Set<string>();
+                  const low = ` ${txt.toLowerCase()} `;
+                  Object.entries(TOPICS).forEach(([t, keys]) => {
+                    if (keys.some((k) => low.includes(k))) tset.add(t);
+                  });
+                  return Array.from(tset);
+                };
+                const baseKey = (id: string) => {
+                  const parts = (id || '').split('.');
+                  return parts.length >= 2 ? `${parts[0]}.${parts[1]}` : id;
+                };
+                const sameGroup = (a: string, b: string) => baseKey(a) === baseKey(b);
+                const pickBase = (list: Badge[]): Badge => {
+                  const found = list.find((x) => (x.level || '').toLowerCase().includes('базовый'));
+                  return found || list.sort((a, b) => (a.id || '').localeCompare(b.id || ''))[0];
+                };
+                const grouped: Record<string, Badge[]> = {};
+                badges.forEach((b) => {
+                  const key = baseKey(b.id);
+                  (grouped[key] ||= []).push(b);
+                });
+                 const representatives = Object.entries(grouped).map(([, list]) => pickBase(list));
+                const currentTopics = new Set(topicsFor(textOf(levelBadge)));
+                if (currentTopics.size === 0) return null;
+                type Scored = { badge: Badge; score: number };
+                const scored: Scored[] = [];
+                for (const rb of representatives) {
+                  if (sameGroup(rb.id, levelBadge.id)) continue;
+                  if (rb.category_id === levelBadge.category_id) continue;
+                  const t = new Set(topicsFor(textOf(rb)));
+                  let overlap = 0;
+                  t.forEach((x) => { if (currentTopics.has(x)) overlap++; });
+                  if (overlap > 0) scored.push({ badge: rb, score: overlap });
+                }
+                scored.sort((a, b) => b.score - a.score || a.badge.title.localeCompare(b.badge.title));
+                const related = scored.slice(0, 6).map((s) => s.badge);
+                if (related.length === 0) return null;
+                return (
+                  <div className="levels-grid-bottom levels-dock">
+                    {related.map((rb) => (
+                      <article key={rb.id} className="level-card-bottom" onClick={() => handleBadgeClick(rb)} title={categoryTitleById(rb.category_id)}>
+                        <div className="level-card__icon">
+                          <span className="level-bubble__emoji">{rb.emoji || '🏅'}</span>
+                        </div>
+                        <h4 className="level-card__title">{rb.title}</h4>
+                        <div className="level-card__subtitle">{categoryTitleById(rb.category_id)}</div>
+                      </article>
+                    ))}
+                  </div>
+                );
+              })()}
+             </div>
            </section>
          </div>
        </div>
@@ -1337,7 +1935,7 @@ const App: React.FC = () => {
           <button onClick={handleBackToCategoryFromIntroduction} className="back-button">
             ← Назад к категории
           </button>
-          <h1 style={{color: '#FFD700', textShadow: '2px 2px 4px rgba(0,0,0,0.8)', fontWeight: 'bold'}}>💡 Подсказка: {selectedCategory.title}</h1>
+          <h1 className="heading-gold">💡 Подсказка: {selectedCategory.title}</h1>
         </div>
         <div className="introduction-content">
           <div 
@@ -1356,7 +1954,7 @@ const App: React.FC = () => {
         <button onClick={handleBackToIntro} className="back-button">
           ← Назад к главной
         </button>
-        <h1 style={{color: '#FFD700', textShadow: '2px 2px 4px rgba(0,0,0,0.8)', fontWeight: 'bold'}}>🌟 Реальный Лагерь</h1>
+        <h1 className="heading-gold">🌟 Реальный Лагерь</h1>
       </div>
       <div className="about-camp-content">
         <div className="camp-description">
@@ -1372,14 +1970,26 @@ const App: React.FC = () => {
           
           <h3>🎯 Что мы развиваем</h3>
           <div className="benefits-grid">
-                            <div className="benefit-item clickable" onClick={() => {
+                            <div className="benefit-item clickable" style={{
+                  background: 
+                    'linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url("./skills_4k.png") center/cover no-repeat',
+                  cursor: 'pointer'
+                }} onClick={() => {
                   const category = categories.find(c => c.id === "13");
                   if (category) {
                     handleCategoryClick(category);
                   }
                 }}>
-                  <h4>🧩 Навыки 4K</h4>
-                  <p>
+                  <h4 style={{
+                    color: '#FFD700',
+                    textShadow: '2px 2px 4px rgba(0, 0, 0, 0.8)',
+                    fontWeight: 'bold'
+                  }}>🧩 Навыки 4K</h4>
+                  <p style={{
+                    color: '#fff',
+                    fontWeight: '600',
+                    textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8)'
+                  }}>
                     🎨 Креативность<br/>
                     💬 Коммуникация<br/>
                     🤝 Коллаборация<br/>
@@ -1388,7 +1998,7 @@ const App: React.FC = () => {
                 </div>
             <div className="benefit-item clickable" style={{
               background: 
-                'linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url("./pictures/ии 2.png") center/cover no-repeat',
+                'linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url("./ai_camp.png") center/cover no-repeat',
               cursor: 'pointer'
             }} onClick={() => {
               const category = categories.find(c => c.id === "12");
@@ -1409,7 +2019,7 @@ const App: React.FC = () => {
             </div>
             <div className="benefit-item clickable" style={{
               background: 
-                'linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url("./pictures/photo_2025-07-12_00-47-35.jpg") center 20% / 100% no-repeat',
+                'linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url("./co_management.png") center/cover no-repeat',
               cursor: 'pointer'
             }} onClick={() => {
               const category = categories.find(c => c.id === "9");
@@ -1432,27 +2042,11 @@ const App: React.FC = () => {
 
 
 
-          <h3>🔗 Полезные ссылки</h3>
-          <div className="links-section">
-            <a href="https://realcampspb.ru" target="_blank" rel="noopener noreferrer" className="camp-link">
-              🌐 Официальный сайт: realcampspb.ru
-            </a>
-            <a href="https://vk.com/realcampspb" target="_blank" rel="noopener noreferrer" className="camp-link">
-              📱 ВКонтакте: vk.com/realcampspb (блог лагеря)
-            </a>
-            <a href="https://zen.yandex.ru/realcamp" target="_blank" rel="noopener noreferrer" className="camp-link">
-              📝 Наш блог в Яндекс.Дзен: zen.yandex.ru/realcamp
-            </a>
-            <a href="https://www.coo-molod.ru/" target="_blank" rel="noopener noreferrer" className="camp-link">
-              🏛️ Сертификаты: coo-molod.ru
-            </a>
-          </div>
-
           <h3>📸 Как это выглядит на практике</h3>
           <div className="posts-section">
             <a href="https://vk.com/wall-57701087_9100" target="_blank" rel="noopener noreferrer" className="post-link">
               <div className="post-image">
-                <img src="./pictures/E83kZjD-R0X5rVyIWh-4g2ZfX0uUWj2KPEW37uF73N1elgXzbdeCy46vJzdQICJ-6FNviwvlOplHPs_8_fZpvM_F.jpg" alt="Пост 1" />
+                <img src="/pictures/Wr8s1lqBl95mo9__Pw4CSouLulbnCQRdCt31tWGcKWGlLmXRD60QviGdQG1ASrS3KkfW4t6wFumMhG4myCTZEaKT.jpg" alt="Пост 1" />
               </div>
               <div className="post-title">
                 <div className="post-main-title">🔥 Вожатские кейсы и педагогика</div>
@@ -1466,7 +2060,7 @@ const App: React.FC = () => {
             </a>
             <a href="https://vk.com/wall-57701087_9080" target="_blank" rel="noopener noreferrer" className="post-link">
               <div className="post-image">
-                <img src="./pictures/HvRgNN4EUqGaVKKmQYwOnSESzm3zhN8NLN7psGe2xTbuscFg5h0oIIxbtlYIkCIO1zj2TUQYoFAKy9pYquEpfGrR.jpg" alt="Пост 2" />
+                <img src="/pictures/HvRgNN4EUqGaVKKmQYwOnSESzm3zhN8NLN7psGe2xTbuscFg5h0oIIxbtlYIkCIO1zj2TUQYoFAKy9pYquEpfGrR.jpg" alt="Пост 2" />
               </div>
               <div className="post-title">
                 <div className="post-main-title">🚀 Дети сами организуют отрядные дела!</div>
@@ -1480,7 +2074,7 @@ const App: React.FC = () => {
             </a>
             <a href="https://vk.com/wall-57701087_9072" target="_blank" rel="noopener noreferrer" className="post-link">
               <div className="post-image">
-                <img src="./pictures/sZn6aZO0WMdSNnL0qvBUsUlMoYySzf5-3eYIv4wnvUfLEkBUKk3qtRwlwPVcHa7dGxIs1_VgNVjFnriMepAkmQTh.jpg" alt="Пост 3" />
+                <img src="/pictures/wa1Ma_l5j4S2gV8sBeNLTw0cftt3WLplAEvXI9RW-qd5-uWJCslMqRRXGcFhKFEIr0Ck2teKZBiFzyRIeMfWLiLE.jpg" alt="Пост 3" />
               </div>
               <div className="post-title">
                 <div className="post-main-title">🎨 Нейродизайн и агентные системы</div>
@@ -1494,7 +2088,7 @@ const App: React.FC = () => {
             </a>
             <a href="https://vk.com/wall-57701087_9049" target="_blank" rel="noopener noreferrer" className="post-link">
               <div className="post-image">
-                <img src="./pictures/2025-09-05_23-59-25.png" alt="Пост 4" />
+                <img src="/pictures/2025-09-11_05-28-13.png" alt="Пост 4" />
               </div>
               <div className="post-title">
                 <div className="post-main-title">🏴‍☠️ Пираты похитили Бурыча!</div>
@@ -1508,7 +2102,7 @@ const App: React.FC = () => {
             </a>
             <a href="https://vk.com/wall-57701087_9009" target="_blank" rel="noopener noreferrer" className="post-link">
               <div className="post-image">
-                <img src="./pictures/4pCDWvEw_uyf3q8yQbhfsPpfDSVOMYkkexIZCudbxTsmqN8iA3jIT8TwpNtXbGliD_YCpD2nZhQZXajz4-0KFg-1.jpg" alt="Пост 5" />
+                <img src="/pictures/4pCDWvEw_uyf3q8yQbhfsPpfDSVOMYkkexIZCudbxTsmqN8iA3jIT8TwpNtXbGliD_YCpD2nZhQZXajz4-0KFg-1.jpg" alt="Пост 5" />
               </div>
               <div className="post-title">
                 <div className="post-main-title">🎶 Музыкальный продюсер с Suno AI</div>
@@ -1522,7 +2116,7 @@ const App: React.FC = () => {
             </a>
             <a href="https://vk.com/wall-57701087_9006" target="_blank" rel="noopener noreferrer" className="post-link">
               <div className="post-image">
-                <img src="./pictures/7zwq9TM56YIgLvgyfgG1FJUm0lRtQ2-1TTi5EIEwubGUDg7_u77CYs5eMnz5CJ1v9zNTvoP49-UlGtYArl_fERQ7.jpg" alt="Пост 6" />
+                <img src="/pictures/w38A7umTNl1ECHO8HtrN9KRFmpwNLoCd19DGmO1qdPcLBENPbYsFQuzJOoDej_zxEcHDnRvDGUayZgs1mOMSkam3.jpg" alt="Пост 6" />
               </div>
               <div className="post-title">
                 <div className="post-main-title">🥊 Мастер-класс по самообороне</div>
@@ -1536,7 +2130,7 @@ const App: React.FC = () => {
             </a>
             <a href="https://vk.com/wall-57701087_8995" target="_blank" rel="noopener noreferrer" className="post-link">
               <div className="post-image">
-                <img src="./pictures/2025-09-06_00-12-54.png" alt="Пост 7" />
+                <img src="/pictures/2025-09-11_05-25-15.png" alt="Пост 7" />
               </div>
               <div className="post-title">
                 <div className="post-main-title">🕯️ Огонёк откровений</div>
@@ -1550,7 +2144,7 @@ const App: React.FC = () => {
             </a>
             <a href="https://vk.com/wall-57701087_8994" target="_blank" rel="noopener noreferrer" className="post-link">
               <div className="post-image">
-                <img src="./pictures/s2h4cMVKTb8nvRA56BUTpjsa16sTjMNfenMAdMBdQbPJWWJwSGooE5u1D8b-0hQ0IQNp59LW4IsDHse46SZavWEA.jpg" alt="Пост 8" />
+                <img src="/pictures/vKjyH96aNgNYbg14n545f0j1tZqG12tBI3L83kyz-8ofHa9DnmG-p41grb0hrbwUoNGteh0fdssSerJNH2GXffZN.jpg" alt="Пост 8" />
               </div>
               <div className="post-title">
                 <div className="post-main-title">🚀 EggX: лётно-конструкторские испытания</div>
@@ -1564,7 +2158,7 @@ const App: React.FC = () => {
             </a>
             <a href="https://vk.com/wall-57701087_8927" target="_blank" rel="noopener noreferrer" className="post-link">
               <div className="post-image">
-                <img src="./pictures/2025-09-06_00-16-20.png" alt="Пост 9" />
+                <img src="/pictures/2025-09-11_05-21-21.png" alt="Пост 9" />
               </div>
               <div className="post-title">
                 <div className="post-main-title">😎 Сигма-Бро в Реальном Лагере</div>
@@ -1578,9 +2172,39 @@ const App: React.FC = () => {
             </a>
           </div>
 
+          <h3>💬 Отзывы родителей</h3>
+          <div className="reviews-section">
+            <div className="reviews-container">
+              <div className="reviews-image">
+                <div className="reviews-content">
+                  <h4>🌟 Что говорят родители о Реальном Лагере</h4>
+                  <p>Читайте реальные отзывы родителей, чьи дети уже побывали в нашем лагере и получили незабываемые впечатления!</p>
+                  <a href="https://vk.com/realcampspb?from=groups&ref=group_menu&w=app6326142_-57701087" target="_blank" rel="noopener noreferrer" className="reviews-button">
+                    📖 Читать отзывы
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <h3>🔗 Полезные ссылки</h3>
+          <div className="links-section">
+            <a href="https://realcampspb.ru" target="_blank" rel="noopener noreferrer" className="camp-link">
+              🌐 Официальный сайт: realcampspb.ru
+            </a>
+            <a href="https://vk.com/realcampspb" target="_blank" rel="noopener noreferrer" className="camp-link">
+              📱 ВКонтакте: vk.com/realcampspb - блог лагеря
+            </a>
+            <a href="https://zen.yandex.ru/realcamp" target="_blank" rel="noopener noreferrer" className="camp-link">
+              📝 Наш блог в Яндекс.Дзен: zen.yandex.ru/realcamp
+            </a>
+            <a href="https://www.coo-molod.ru/" target="_blank" rel="noopener noreferrer" className="camp-link">
+              🏛️ Сертификаты: coo-molod.ru
+            </a>
+          </div>
 
           <h3>📅 ОСЕННЯЯ СМЕНА 2025</h3>
-          <div className="session-info clickable" onClick={handleTelegramContact} style={{ cursor: 'pointer' }}>
+          <div className="session-info clickable cursor-pointer" onClick={handleTelegramContact}>
             <h4>🎪 "Осенний 4К-вайб в Реальном Лагере: навыки будущего + нейросети для обучения и творчества"</h4>
             <p><strong>Когда:</strong> с 25 октября по 2 ноября 2025 года</p>
             <p><strong>Стоимость:</strong></p>
@@ -1607,7 +2231,7 @@ const App: React.FC = () => {
           <button onClick={handleBackToCategoryFromAdditional} className="back-button">
             ← Назад к категории
           </button>
-          <h1 style={{color: '#FFD700', textShadow: '2px 2px 4px rgba(0,0,0,0.8)', fontWeight: 'bold'}}>{selectedAdditionalMaterial.title}</h1>
+          <h1 className="heading-gold">{selectedAdditionalMaterial.title}</h1>
         </div>
         <div className="additional-material-content">
           <div 
@@ -1627,7 +2251,7 @@ const App: React.FC = () => {
           <button onClick={handleBackToAboutCamp} className="back-button">
             ← Назад
           </button>
-          <h1 style={{color: '#FFD700', textShadow: '2px 2px 4px rgba(0,0,0,0.8)', fontWeight: 'bold'}}>
+          <h1 className="heading-gold">
             🎪 Запись на осеннюю смену
           </h1>
         </div>
@@ -1748,6 +2372,22 @@ const App: React.FC = () => {
           emoji: selectedBadge.emoji,
           categoryId: selectedBadge.category_id
         } : undefined}
+        currentLevel={selectedLevel || undefined}
+        currentLevelBadgeTitle={
+          currentView === 'badge-level' && selectedBadge && selectedLevel ? (() => {
+            const idSegments = (selectedBadge.id || '').split('.');
+            const isMultiLevel = idSegments.length === 3;
+            const baseKey = isMultiLevel ? idSegments.slice(0, 2).join('.') + '.' : selectedBadge.id;
+            const lb = badges.find(b => {
+              if (b.category_id !== selectedBadge.category_id) return false;
+              if (isMultiLevel) {
+                return (b.id || '').startsWith(baseKey) && String(b.level) === String(selectedLevel);
+              }
+              return b.id === selectedBadge.id && String(b.level) === String(selectedLevel);
+            });
+            return lb?.title;
+          })() : undefined
+        }
       />
       
       <style>{`
@@ -2209,8 +2849,137 @@ const App: React.FC = () => {
           font-weight: bold;
         }
 
+        .post-link:nth-child(1) .post-image img {
+          object-position: center 10%;
+        }
+
+        .post-link:nth-child(2) .post-image img {
+          object-position: center 30%;
+        }
+
         .post-link:nth-child(3) .post-image img {
           object-position: center 20%;
+          transform: scale(1.4);
+        }
+
+        .post-link:nth-child(4) .post-image img {
+          object-position: center 25%;
+        }
+
+        .post-link:nth-child(6) .post-image img {
+          object-position: center 30%;
+        }
+
+        .post-link:nth-child(8) .post-image img {
+          object-position: center 30%;
+        }
+
+        .post-link:nth-child(9) .post-image img {
+          object-position: center 30%;
+        }
+
+        /* Reviews Section Styles */
+        .reviews-section {
+          margin: 2rem 0;
+        }
+
+        .reviews-container {
+          background: rgba(255, 165, 0, 0.1);
+          border: 1px solid rgba(255, 165, 0, 0.3);
+          border-radius: 15px;
+          padding: 0;
+          transition: all 0.3s ease;
+          overflow: hidden;
+        }
+
+        .reviews-container:hover {
+          background: rgba(255, 165, 0, 0.15);
+          border-color: rgba(255, 165, 0, 0.5);
+          transform: translateY(-3px);
+          box-shadow: 0 6px 16px rgba(255, 165, 0, 0.3);
+        }
+
+        .reviews-image {
+          position: relative;
+          width: 100%;
+          height: 200px;
+          border-radius: 15px;
+          background: 
+            linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)),
+            url('/pictures/nCaCWzejfe1KQgvdwHWHGKONG2w1lF7h9SxMAlW-iojQZrvq7_gmxF4ZJyNBFuXZkuPE5WE489c9OXvgknit3wsR.jpg') center/50% no-repeat;
+          transition: all 0.3s ease;
+          display: flex;
+          align-items: flex-end;
+          justify-content: center;
+          padding-bottom: 1rem;
+        }
+
+        .reviews-container:hover .reviews-image {
+          background: 
+            linear-gradient(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.1)),
+            url('/pictures/nCaCWzejfe1KQgvdwHWHGKONG2w1lF7h9SxMAlW-iojQZrvq7_gmxF4ZJyNBFuXZkuPE5WE489c9OXvgknit3wsR.jpg') center/50% no-repeat;
+          transform: scale(1.02);
+        }
+
+        .reviews-content {
+          position: relative;
+          z-index: 2;
+          text-align: center;
+          padding: 1rem;
+        }
+
+        .reviews-content h4 {
+          color: #FFD700;
+          font-size: 1.3rem;
+          margin-bottom: 0.8rem;
+          font-weight: bold;
+        }
+
+        .reviews-content p {
+          color: #ffffff;
+          font-size: 1rem;
+          line-height: 1.5;
+          margin-bottom: 1.5rem;
+        }
+
+        .reviews-button {
+          display: inline-block;
+          background: rgba(255, 215, 0, 0.2);
+          color: #FFD700;
+          padding: 12px 24px;
+          border-radius: 25px;
+          text-decoration: none;
+          font-weight: bold;
+          font-size: 1rem;
+          transition: all 0.3s ease;
+          border: 2px solid rgba(255, 215, 0, 0.5);
+        }
+
+        .reviews-button:hover {
+          background: rgba(255, 215, 0, 0.4);
+          border-color: rgba(255, 215, 0, 0.8);
+          transform: translateY(-2px);
+          box-shadow: 0 6px 20px rgba(255, 215, 0, 0.3);
+        }
+
+        /* Mobile responsiveness for reviews */
+        @media (max-width: 768px) {
+          .reviews-image {
+            height: 150px;
+            background-size: 80%;
+          }
+
+          .reviews-content {
+            padding: 0.8rem;
+          }
+
+          .reviews-content h4 {
+            font-size: 1.1rem;
+          }
+
+          .reviews-content p {
+            font-size: 0.9rem;
+          }
         }
 
         .post-title {
@@ -2415,6 +3184,10 @@ const App: React.FC = () => {
             padding: 0.3rem; /* Уменьшили padding */
             border-radius: 15px;
             backdrop-filter: blur(5px);
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.4rem;
           }
 
           .category-screen .header {
@@ -2467,7 +3240,8 @@ const App: React.FC = () => {
             color: #4ecdc4;
             font-size: 1.1rem; /* Уменьшили размер заголовка */
             margin: 0 0 0.1rem 0; /* Уменьшили отступ */
-            white-space: pre-line !important;
+            white-space: normal; /* не ломаем переносы в заголовке */
+            line-height: 1.25;
           }
 
                   .header p {
@@ -2487,6 +3261,41 @@ const App: React.FC = () => {
               }
 
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                .category-container {
+                   display: flex;
+                   align-items: center;
+                   gap: 0.8rem; /* Увеличили отступ между пузырем и текстом */
+                    cursor: pointer;
+                    padding: 0;
+                    background: transparent;
+                    border: none;
+                    border-radius: 0;
+                    backdrop-filter: none;
+                    transition: all 0.3s ease;
+                 }
+
+                                                                                                                                                                               .category-card {
+                background: rgba(0, 0, 0, 0.8);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                border-radius: 50%;
+                padding: 0.5rem;
+                cursor: pointer;
+                transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+                backdrop-filter: blur(10px);
+                text-align: center;
+                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+                aspect-ratio: 1;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                position: relative;
+                min-width: 60px;
+                min-height: 60px;
+                overflow: hidden;
+                flex-shrink: 0;
+              }
+
+                                       
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    -
                    display: flex;
                    align-items: center;
                    gap: 0;
@@ -2518,7 +3327,12 @@ const App: React.FC = () => {
                 min-height: 60px;
                 overflow: hidden;
                 flex-shrink: 0;
+                animation: breath 3s ease-in-out infinite;
               }
+
+                                       .category-container {
+             z-index: 9999;
+           }
 
                                        .category-container.floating {
              animation: float 6s ease-in-out infinite;
@@ -2545,6 +3359,21 @@ const App: React.FC = () => {
            transform: translate(-50%, -50%);
            pointer-events: none;
            animation: pulse 3s ease-in-out infinite;
+           box-shadow: 0 0 15px rgba(78, 205, 196, 0.2);
+         }
+         
+         .category-card::after {
+           content: '';
+           position: absolute;
+           top: 50%;
+           left: 50%;
+           width: 60%;
+           height: 60%;
+           border: 1px solid rgba(78, 205, 196, 0.1);
+           border-radius: 50%;
+           transform: translate(-50%, -50%);
+           pointer-events: none;
+           animation: pulse 2s ease-in-out infinite reverse;
          }
 
          @keyframes pulse {
@@ -2557,20 +3386,78 @@ const App: React.FC = () => {
              opacity: 0.6;
            }
          }
+         
+         @keyframes emojiFloat {
+           0%, 100% { 
+             transform: scale(1.25) rotate(5deg) translateY(0px);
+           }
+           50% { 
+             transform: scale(1.25) rotate(5deg) translateY(-3px);
+           }
+         }
+         
+         @keyframes activeGlow {
+           0%, 100% { 
+             box-shadow: 
+               0 0 25px rgba(78, 205, 196, 0.6),
+               0 0 40px rgba(78, 205, 196, 0.3),
+               inset 0 0 15px rgba(78, 205, 196, 0.1);
+           }
+           50% { 
+             box-shadow: 
+               0 0 35px rgba(78, 205, 196, 0.8),
+               0 0 60px rgba(78, 205, 196, 0.4),
+               inset 0 0 20px rgba(78, 205, 196, 0.15);
+           }
+         }
 
-                                   .category-container:hover .category-card {
-            transform: translateY(-5px) scale(1.05);
-            box-shadow: none;
+          /* Pulsing glow for the currently selected badge bubble in header */
+          @keyframes selectedGlow {
+            0%, 100% {
+              box-shadow:
+                0 6px 18px rgba(0, 0, 0, 0.6),
+                0 0 30px rgba(78, 205, 196, 0.68),
+                0 0 55px rgba(78, 205, 196, 0.35),
+                inset 0 0 16px rgba(78, 205, 196, 0.18);
+            }
+            50% {
+              box-shadow:
+                0 8px 22px rgba(0, 0, 0, 0.65),
+                0 0 42px rgba(78, 205, 196, 0.9),
+                0 0 75px rgba(78, 205, 196, 0.55),
+                inset 0 0 22px rgba(78, 205, 196, 0.24);
+            }
+          }
+
+                                    .category-container:hover .category-card {
+            transform: translateY(-8px) scale(1.08);
+            box-shadow: 
+              0 0 30px rgba(78, 205, 196, 0.8),
+              0 0 60px rgba(78, 205, 196, 0.4),
+              inset 0 0 20px rgba(78, 205, 196, 0.1);
             border-color: #4ecdc4;
+            filter: brightness(1.1);
           }
 
           .category-container:hover .category-card::before {
             border-color: rgba(78, 205, 196, 0.8);
             animation-duration: 1s;
+            box-shadow: 0 0 25px rgba(78, 205, 196, 0.6);
+          }
+          
+          .category-container:hover .category-card::after {
+            border-color: rgba(78, 205, 196, 0.4);
+            animation-duration: 0.8s;
+            box-shadow: 0 0 15px rgba(78, 205, 196, 0.3);
           }
 
           .category-container:hover .category-text h3 {
             color: #4ecdc4;
+          }
+          
+          .category-container:hover .category-icon {
+            filter: drop-shadow(0 0 15px rgba(78, 205, 196, 0.6));
+            transform: scale(1.1);
           }
 
                                                                                                                                                                                                                        .category-icon {
@@ -2581,11 +3468,12 @@ const App: React.FC = () => {
               align-items: center;
               width: 100%;
               height: 100%;
+              transition: all 0.3s ease;
             }
             
             .category-icon img {
-              width: 118%;
-              height: 118%;
+              width: 140%;
+              height: 140%;
               object-fit: cover;
               object-position: center;
             }
@@ -2658,7 +3546,7 @@ const App: React.FC = () => {
              flex: 1;
            }
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       .category-text h3 {
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                ... [truncated]
                       margin: 0;
                       color: #4ecdc4;
                       font-size: clamp(0.6rem, 1.5vw, 0.9rem);
@@ -2708,11 +3596,15 @@ const App: React.FC = () => {
              cursor: pointer;
              transition: all 0.3s ease;
              box-sizing: border-box;
+             z-index: 9999;
            }
 
         .badge-card:hover {
-          transform: translateY(-5px);
-          box-shadow: none;
+          transform: translateY(-8px) scale(1.02);
+          box-shadow: 
+            0 0 25px rgba(78, 205, 196, 0.6),
+            0 0 50px rgba(78, 205, 196, 0.3);
+          filter: brightness(1.05);
         }
 
                                      .badge-card__icon {
@@ -2728,10 +3620,13 @@ const App: React.FC = () => {
            }
 
                   .badge-card:hover .badge-card__icon {
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.15);
             border-color: #4ecdc4;
-            box-shadow: 0 0 20px rgba(78, 205, 196, 0.3);
-            transform: scale(1.1);
+            box-shadow: 
+              0 0 25px rgba(78, 205, 196, 0.5),
+              0 0 40px rgba(78, 205, 196, 0.2),
+              inset 0 0 15px rgba(78, 205, 196, 0.1);
+            transform: scale(1.15);
           }
 
                                      .badge-card__title {
@@ -2761,8 +3656,12 @@ const App: React.FC = () => {
            }
 
                   .badge-card:hover .badge-emoji {
-            transform: scale(1.2);
-            filter: drop-shadow(0 0 10px rgba(78, 205, 196, 0.5));
+            transform: scale(1.25) rotate(5deg);
+            filter: 
+              drop-shadow(0 0 15px rgba(78, 205, 196, 0.7))
+              drop-shadow(0 0 25px rgba(78, 205, 196, 0.4))
+              brightness(1.1);
+            animation: emojiFloat 2s ease-in-out infinite;
           }
 
                                      @media (min-width: 576px) {
@@ -2808,9 +3707,28 @@ const App: React.FC = () => {
           gap: 1rem;
         }
 
+        /* Badge screen: keep the emoji inside a glowing bubble */
         .badge-emoji-large {
-          font-size: 4rem;
+          width: 92px;
+          height: 92px;
+          border-radius: 50%;
+          display: grid;
+          place-items: center;
+          background: radial-gradient(circle at 50% 45%, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.7) 65%, rgba(0, 0, 0, 0.55) 100%);
+          border: 1.5px solid rgba(78, 205, 196, 0.5);
+          box-shadow:
+            0 6px 18px rgba(0, 0, 0, 0.6), /* отрыв от баннера */
+            0 0 30px rgba(78, 205, 196, 0.7),
+            0 0 55px rgba(78, 205, 196, 0.35),
+            inset 0 0 18px rgba(78, 205, 196, 0.18);
+          font-size: 4rem; /* emoji size */
+          line-height: 1;
+          animation: selectedGlow 2.6s ease-in-out infinite;
         }
+
+        /* Category screen: remove rectangular glow on hover; keep only circular bubble glow */
+        .category-screen .badge-card:hover { box-shadow: none; }
+        .category-screen .badge-card { box-shadow: none; }
 
         .badge-category,
         .level-title {
@@ -3026,25 +3944,49 @@ const App: React.FC = () => {
         .badge-steps__list li::before { content: '✅'; position: absolute; left: 0; top: 0; line-height: 1.1; }
 
         /* Bottom levels grid */
-        .levels-grid-bottom {
+        .levels-grid-bottom { display:flex; justify-content:flex-end; gap:24px; margin-top:0; margin-right: 300px; flex-wrap:nowrap; align-items:center; position: relative; z-index: 9999; }
+        /* Stick by top so it visually sits near the bottom of the viewport,
+           but keep it aligned to the viewport's right edge regardless of inner container width */
+        .levels-dock {
+          position: relative; /* sits right under the block above */
+          right: auto;
+          bottom: auto;
+          z-index: 9999;
           display: flex;
-          justify-content: center; /* центрируем по горизонтали */
-          gap: 24px;               /* расстояние между кружочками */
-          margin-top: 16px;
-          flex-wrap: wrap;
-          align-items: flex-start;
+          justify-content: flex-end;
+          margin-top: 0;
+          margin-right: 300px;
         }
-        .level-card-bottom { display: flex; flex-direction: column; align-items: center; padding: 0; border-radius: 0; background: transparent; backdrop-filter: none; min-height: auto; cursor: pointer; transition: all 0.3s ease; }
-        .level-card-bottom:hover { transform: translateY(-4px); background: transparent; }
-        .level-card__icon { width: 100px; height: 100px; border-radius: 50%; display: grid; place-items: center; margin-bottom: 16px; background: rgba(0,0,0,0.45); border: 1px solid rgba(255,255,255,0.25); transition: all 0.3s ease; }
+        @media (max-width: 900px) {
+          .levels-dock { margin-top: 0; margin-right: 300px; }
+        }
+        .level-card-bottom { display: flex; flex-direction: column; align-items: center; padding: 0; border-radius: 0; background: transparent; backdrop-filter: none; min-height: auto; cursor: pointer; transition: all 0.3s ease; position: relative; z-index: 9999; }
+        .level-card-bottom:hover { 
+          transform: translateY(-6px) scale(1.05); 
+          background: transparent;
+          filter: brightness(1.1);
+        }
+        .level-card__icon { width: 100px; height: 100px; border-radius: 50%; display: grid; place-items: center; margin-bottom: 16px; background: rgba(0,0,0,0.45); border: 1px solid rgba(255,255,255,0.25); transition: all 0.3s ease; z-index: 9999; }
                  .level-card__title { text-align: center; font-size: 17px; line-height: 1.2; margin: 6px 0 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; word-break: break-word; hyphens: auto; color: #4ecdc4; white-space: pre-line !important; }
         .level-card__subtitle { opacity: .85; font-size: 14px; text-align: center; color: #ccc; }
         
         .level-card-bottom:hover .level-card__icon {
-          background: rgba(255, 255, 255, 0.1);
+          background: rgba(255, 255, 255, 0.15);
           border-color: #4ecdc4;
-          box-shadow: 0 0 20px rgba(78, 205, 196, 0.3);
-          transform: scale(1.1);
+          box-shadow: 
+            0 0 25px rgba(78, 205, 196, 0.5),
+            0 0 40px rgba(78, 205, 196, 0.2),
+            inset 0 0 15px rgba(78, 205, 196, 0.1);
+          transform: scale(1.15);
+        }
+        .level-card-bottom.active .level-card__icon {
+          background: rgba(78, 205, 196, 0.2);
+          border-color: #4ecdc4;
+          box-shadow: 
+            0 0 25px rgba(78, 205, 196, 0.6),
+            0 0 40px rgba(78, 205, 196, 0.3),
+            inset 0 0 15px rgba(78, 205, 196, 0.1);
+          animation: activeGlow 2s ease-in-out infinite;
         }
         
                  .level-bubble__emoji {
@@ -3053,8 +3995,12 @@ const App: React.FC = () => {
          }
          
          .level-card-bottom:hover .level-bubble__emoji {
-           transform: scale(1.2);
-           filter: drop-shadow(0 0 10px rgba(78, 205, 196, 0.5));
+           transform: scale(1.25) rotate(3deg);
+           filter: 
+             drop-shadow(0 0 15px rgba(78, 205, 196, 0.7))
+             drop-shadow(0 0 25px rgba(78, 205, 196, 0.4))
+             brightness(1.1);
+           animation: emojiFloat 2s ease-in-out infinite;
          }
 
                  @media (max-width: 768px) {
@@ -3117,6 +4063,31 @@ const App: React.FC = () => {
              text-align: center;
            }
          }
+        /* Универсальные стили для всех экранов значков - фиксированная позиция пузырей */
+        .badge-screen .badge-summary__right {
+          height: auto;
+          min-height: 100%;
+          overflow: visible;
+          padding-bottom: 24px;
+        }
+        /* ЕДИНЫЕ стили для экранов значка и уровня — пузыри фиксируются в одном месте */
+        .badge-screen .levels-grid-bottom,
+        .badge-level-screen .levels-grid-bottom { 
+          display:flex !important; 
+          justify-content:flex-start !important; 
+          gap:24px !important; 
+          margin-top:0 !important; 
+          margin-right: 0 !important; 
+          flex-wrap:nowrap !important; 
+          align-items:center !important; 
+          position: relative !important;
+        }
+        /* Снимаем отступ-«пришвартовку» справа для дока на экране уровня тоже */
+        .badge-level-screen .levels-dock { 
+          margin-right: 0 !important; 
+          justify-content: flex-start !important;
+        }
+        
         /* Точечные правки для группы 1.4 */
         .badge--group-1-4 .badge-summary__right {
           height: auto;
@@ -3124,15 +4095,21 @@ const App: React.FC = () => {
           overflow: visible;
           padding-bottom: 24px;
         }
-        .badge--group-1-4 .levels-grid-bottom { margin-top: 1rem; }
         .badge-evidence { margin-top: 0.6rem; border-top: 1px dashed rgba(255,255,255,0.2); padding-top: 0.6rem; }
 
         /* Стили для новых экранов */
         .header-content {
           display: flex;
           flex-direction: column;
-          align-items: center;
+          align-items: flex-start;
           gap: 0.5rem;
+        }
+        /* Center header texts on screens 2 and 3 */
+        .categories-screen .header-content,
+        .category-screen .header-content {
+          align-items: center;
+          text-align: center;
+          width: 100%;
         }
 
         .hint-button, .material-button {
@@ -3161,6 +4138,24 @@ const App: React.FC = () => {
           flex-wrap: wrap;
           justify-content: center;
           margin-top: 0.5rem;
+          max-width: 100%;
+        }
+        
+        .material-button {
+          font-size: 0.8rem;
+          padding: 0.4rem 0.6rem;
+          white-space: nowrap;
+          min-width: fit-content;
+          transition: all 0.3s ease;
+          border: 1px solid rgba(78, 205, 196, 0.3);
+          background: rgba(78, 205, 196, 0.1);
+        }
+        
+        .material-button:hover {
+          background: rgba(78, 205, 196, 0.2);
+          border-color: #4ecdc4;
+          box-shadow: 0 0 15px rgba(78, 205, 196, 0.4);
+          transform: translateY(-2px) scale(1.05);
         }
 
         .introduction-screen, .additional-material-screen {
@@ -3717,6 +4712,91 @@ const App: React.FC = () => {
             padding: 14px 20px;
             font-size: 16px;
           }
+        }
+        /* Override: banners */
+        .header { 
+          background: 
+            linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.2) 100%),
+            url('/pattern_stickers.jpg') center top / cover no-repeat !important;
+        }
+        .category-screen .header { 
+          background: 
+            linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.2) 100%),
+            url('/badges_photo.jpg') center 40% / cover no-repeat !important;
+        }
+        .badge-screen .header { 
+          background: 
+            linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.2) 100%),
+            url('/pattern_stickers.jpg') center top / cover no-repeat !important;
+        }
+        /* Unify header heights between categories (screen 2) and category (screen 3) */
+        .categories-screen .header,
+        .category-screen .header {
+          min-height: 140px;
+          display: block;
+          padding: 0.6rem 0.8rem;
+        }
+        /* Center content within header on screens 2 and 3 */
+        .categories-screen .header,
+        .category-screen .header {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          position: relative;
+        }
+        .categories-screen .header .back-button,
+        .category-screen .header .back-button {
+          position: absolute;
+          left: 8px;
+          top: 8px;
+          margin-bottom: 0;
+          z-index: 5;
+          pointer-events: auto;
+        }
+        /* Normalize About Camp banner and center content */
+        .about-camp-screen .header {
+          background:
+            linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.2) 100%),
+            url('/pattern_stickers.jpg') center top / cover no-repeat !important;
+          min-height: 140px;
+          padding: 0.6rem 0.8rem;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          position: relative;
+        }
+        .about-camp-screen .header .back-button {
+          position: absolute;
+          left: 8px;
+          top: 8px;
+          margin-bottom: 0;
+          z-index: 5;
+          pointer-events: auto;
+        }
+        /* Center header content on other screens as well */
+        .introduction-screen .header,
+        .additional-material-screen .header,
+        .registration-form-screen .header,
+        .badge-screen .header,
+        .badge-level-screen .header {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          position: relative;
+          padding: 0.6rem 0.8rem;
+          min-height: 140px; /* align with other screens */
+        }
+        .introduction-screen .header .back-button,
+        .additional-material-screen .header .back-button,
+        .registration-form-screen .header .back-button,
+        .badge-screen .header .back-button,
+        .badge-level-screen .header .back-button {
+          position: absolute;
+          left: 8px;
+          top: 8px;
+          margin-bottom: 0;
+          z-index: 5;
+          pointer-events: auto;
         }
       `}</style>
     </div>

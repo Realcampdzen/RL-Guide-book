@@ -6,16 +6,23 @@ export default defineConfig({
   plugins: [react()],
   base: '/',
   server: {
-    port: 3000,
+    port: 3001,
     host: true,
     proxy: {
-      '/api': {
-        target: 'http://localhost:5000',
+      '/api/chat': {
+        target: 'http://127.0.0.1:5000',
         changeOrigin: true,
-        secure: false,
+        secure: false
+      },
+      '/api': {
+        target: 'http://127.0.0.1:5000',
+        changeOrigin: true,
+        secure: false
       }
     }
   },
+  publicDir: 'public',
+  assetsInclude: ['**/*.md'],
   build: {
     outDir: 'dist',
     sourcemap: true,

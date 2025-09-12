@@ -8,11 +8,27 @@ from pydantic import BaseModel, Field, validator
 class BadgeLevel(BaseModel):
     """Уровень значка"""
     id: str = Field(..., description="ID уровня (например, 1.1.1)")
-    level: str = Field(..., description="Название уровня")
+    level: Union[str, int] = Field(..., description="Название уровня")
     title: str = Field(..., description="Название значка на этом уровне")
     emoji: str = Field(..., description="Эмодзи уровня")
-    criteria: str = Field(..., description="Критерии получения")
-    confirmation: str = Field(..., description="Способы подтверждения")
+    criteria: Union[str, List[str]] = Field(..., description="Критерии получения")
+    confirmation: Union[str, List[str]] = Field(..., description="Способы подтверждения")
+    
+    @validator('level', pre=True)
+    def normalize_level(cls, v):
+        return str(v)
+    
+    @validator('criteria', pre=True)
+    def normalize_criteria(cls, v):
+        if isinstance(v, list):
+            return '\n'.join(v)
+        return str(v)
+    
+    @validator('confirmation', pre=True)
+    def normalize_confirmation(cls, v):
+        if isinstance(v, list):
+            return '\n'.join(v)
+        return str(v)
 
 
 class Badge(BaseModel):

@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 import json
 import os
 
-from models.conversation import UserContext, Conversation
+from models.conversation import UserContext, Conversation, Message
 from core.data_loader import DataLoader
 
 
@@ -31,6 +31,9 @@ class ContextManager:
         
         # Загружаем сохраненные контексты
         self._load_contexts()
+        
+        # Загружаем сохраненные диалоги
+        self._load_conversations()
     
     def get_user_context(self, user_id: str) -> UserContext:
         """Получает контекст пользователя"""
@@ -99,25 +102,37 @@ class ContextManager:
         context = self.get_user_context(user_id)
         message_lower = message.lower()
         
-        # Поиск упоминаний категорий
-        categories = self.data_loader.get_all_categories()
-        for category in categories:
-            if (category.title.lower() in message_lower or
-                category.emoji in message or
-                f"категория {category.id}" in message_lower):
-                context.current_category = category.id
-                context.current_badge = None  # Сбрасываем значок при смене категории
-                break
         
-        # Поиск упоминаний значков (глобальный поиск)
-        all_badges = self.data_loader.get_all_badges()
-        for badge in all_badges:
-            if (badge.title.lower() in message_lower or
-                badge.emoji in message or
-                f"значок {badge.id}" in message_lower):
-                context.current_badge = badge.id
-                context.current_category = badge.categoryId  # Устанавливаем категорию
-                break
+        # Поиск упоминаний категорий (только если не установлена из веб-контекста)
+        if not context.current_category:
+            categories = self.data_loader.get_all_categories()
+            for category in categories:
+                # Более точный поиск - ищем полное название категории или точные упоминания
+                category_title_lower = category.title.lower()
+                if (category_title_lower == message_lower or  # Точное совпадение
+                    f" {category_title_lower} " in f" {message_lower} " or  # Категория как отдельное слово
+                    category.emoji in message or
+                    f"категория {category.id}" in message_lower or
+                    f"категории {category.id}" in message_lower):
+                    context.current_category = category.id
+                    context.current_badge = None  # Сбрасываем значок при смене категории
+                    break
+        
+        # Поиск упоминаний значков (только если не установлен из веб-контекста)
+        if not context.current_badge:
+            all_badges = self.data_loader.get_all_badges()
+            for badge in all_badges:
+                # Более точный поиск - ищем полное название значка или точные упоминания
+                badge_title_lower = badge.title.lower()
+                if (badge_title_lower == message_lower or  # Точное совпадение
+                    f" {badge_title_lower} " in f" {message_lower} " or  # Значок как отдельное слово
+                    badge.emoji in message or
+                    f"значок {badge.id}" in message_lower or
+                    f"значка {badge.id}" in message_lower):
+                    context.current_badge = badge.id
+                    if not context.current_category:  # Устанавливаем категорию только если не установлена
+                        context.current_category = badge.categoryId
+                    break
         
         # Определение интересов по ключевым словам
         interest_keywords = {
@@ -149,6 +164,7 @@ class ContextManager:
         
         # Сохраняем обновленный контекст
         self._save_context(context)
+        
         
         return context
     
@@ -305,6 +321,73 @@ class ContextManager:
                 except Exception as e:
                     print(f"Ошибка загрузки контекста {filename}: {e}")
     
+    def get_conversation_history(self, user_id: str) -> List[Message]:
+        """
+        Получает историю сообщений пользователя
+        
+        Args:
+            user_id: ID пользователя
+            
+        Returns:
+            Список сообщений из истории
+        """
+        if user_id not in self._conversations:
+            self._conversations[user_id] = Conversation(
+                conversation_id=f"conv_{user_id}",
+                user_context=self.get_user_context(user_id)
+            )
+        
+        return self._conversations[user_id].messages
+    
+    def add_message_to_history(self, user_id: str, message: Message):
+        """
+        Добавляет сообщение в историю пользователя
+        
+        Args:
+            user_id: ID пользователя
+            message: Сообщение для добавления
+        """
+        if user_id not in self._conversations:
+            self._conversations[user_id] = Conversation(
+                conversation_id=f"conv_{user_id}",
+                user_context=self.get_user_context(user_id)
+            )
+        
+        conversation = self._conversations[user_id]
+        conversation.messages.append(message)
+        conversation.updated_at = datetime.now()
+        
+        # Ограничиваем историю последними 20 сообщениями
+        if len(conversation.messages) > 20:
+            conversation.messages = conversation.messages[-20:]
+        
+        # Сохраняем историю
+        self._save_conversation(conversation)
+    
+    def _save_conversation(self, conversation: Conversation):
+        """Сохраняет историю диалога"""
+        file_path = os.path.join(self.storage_path, f"conversation_{conversation.conversation_id}.json")
+        with open(file_path, 'w', encoding='utf-8') as f:
+            json.dump(conversation.dict(), f, ensure_ascii=False, indent=2, default=str)
+    
+    def _load_conversations(self):
+        """Загружает сохраненные диалоги"""
+        if not os.path.exists(self.storage_path):
+            return
+        
+        for filename in os.listdir(self.storage_path):
+            if filename.startswith("conversation_") and filename.endswith(".json"):
+                file_path = os.path.join(self.storage_path, filename)
+                try:
+                    with open(file_path, 'r', encoding='utf-8') as f:
+                        data = json.load(f)
+                    conversation = Conversation(**data)
+                    # Извлекаем user_id из conversation_id
+                    user_id = conversation.conversation_id.replace("conv_", "")
+                    self._conversations[user_id] = conversation
+                except Exception as e:
+                    print(f"Ошибка загрузки диалога {filename}: {e}")
+    
     def clear_old_contexts(self, days: int = 30):
         """Очищает старые контексты"""
         cutoff_date = datetime.now() - timedelta(days=days)
@@ -327,20 +410,32 @@ class ContextManager:
         # Обновляем контекст на основе веб-интерфейса
         if web_context.current_category:
             context.current_category = web_context.current_category.get('id')
-            # Сбрасываем значок при смене категории
-            if not web_context.current_badge:
-                context.current_badge = None
         
         if web_context.current_badge:
-            context.current_badge = web_context.current_badge.get('id')
+            raw_badge_id = web_context.current_badge.get('id')
+            # Нормализуем ID значка: если это уровень вида 11.3.2 -> приводим к базовому 11.3
+            if isinstance(raw_badge_id, str) and raw_badge_id.count('.') >= 2:
+                parts = raw_badge_id.split('.')
+                norm_badge_id = '.'.join(parts[:2])
+            else:
+                norm_badge_id = raw_badge_id
+            context.current_badge = norm_badge_id
             # Убеждаемся, что категория установлена
             if web_context.current_badge.get('category_id'):
                 context.current_category = web_context.current_badge.get('category_id')
+
+        # Если веб-контекст явно не задаёт категорию/значок — очищаем, чтобы не было "залипших" значений
+        if web_context.current_badge is None:
+            context.current_badge = None
+        if web_context.current_category is None and context.current_badge is None:
+            context.current_category = None
         
         # Сохраняем информацию о текущем экране
         context.session_data['current_view'] = web_context.current_view
         context.session_data['web_category'] = web_context.current_category
         context.session_data['web_badge'] = web_context.current_badge
+        context.session_data['current_level'] = web_context.current_level
+        context.session_data['current_level_badge_title'] = web_context.current_level_badge_title
         
         # Сохраняем обновленный контекст
         self._save_context(context)
@@ -349,3 +444,5 @@ class ContextManager:
         print(f"   📱 Экран: {web_context.current_view}")
         print(f"   📁 Категория: {context.current_category}")
         print(f"   🏆 Значок: {context.current_badge}")
+        if web_context.current_level_badge_title:
+            print(f"   🎯 Название уровня: {web_context.current_level_badge_title}")

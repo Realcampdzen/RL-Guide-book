@@ -1,5 +1,5 @@
 """
-Система загрузки данных значков из ai-data/
+Система загрузки данных значков из perfect_parsed_data.json
 """
 import json
 import os
@@ -12,12 +12,12 @@ from models.badge import Badge, BadgeLevel, Category, BadgeData
 class DataLoader:
     """Загрузчик данных значков"""
     
-    def __init__(self, data_path: str = "../ai-data"):
+    def __init__(self, data_path: str = "perfect_parsed_data.json"):
         """
         Инициализация загрузчика
         
         Args:
-            data_path: Путь к папке с данными ai-data/
+            data_path: Путь к файлу perfect_parsed_data.json
         """
         self.data_path = Path(data_path)
         self._badge_data: Optional[BadgeData] = None
@@ -25,106 +25,102 @@ class DataLoader:
         self._badges_cache: Dict[str, Badge] = {}
     
     def load_all_data(self) -> BadgeData:
-        """Загружает все данные значков"""
+        """Загружает все данные значков из perfect_parsed_data.json"""
         if self._badge_data is not None:
             return self._badge_data
         
-        # Загружаем главный индекс
-        master_index_path = self.data_path / "MASTER_INDEX.json"
-        if not master_index_path.exists():
-            raise FileNotFoundError(f"Не найден файл {master_index_path}")
+        if not self.data_path.exists():
+            raise FileNotFoundError(f"Не найден файл {self.data_path}")
         
-        with open(master_index_path, 'r', encoding='utf-8') as f:
-            master_data = json.load(f)
+        with open(self.data_path, 'r', encoding='utf-8') as f:
+            perfect_data = json.load(f)
         
         # Загружаем все категории
         categories = []
-        for category_info in master_data["categories"]:
-            category = self._load_category(category_info)
+        for category_info in perfect_data["categories"]:
+            category = self._load_category_from_perfect_data(category_info, perfect_data["badges"])
             categories.append(category)
         
         # Создаем объект BadgeData
         self._badge_data = BadgeData(
-            project=master_data["project"],
-            version=master_data["version"],
-            totalCategories=master_data["totalCategories"],
-            totalBadges=master_data["totalBadges"],
+            project="Путеводитель",
+            version="1.0",
+            totalCategories=perfect_data["metadata"]["total_categories"],
+            totalBadges=perfect_data["metadata"]["total_badges"],
             categories=categories
         )
         
         return self._badge_data
     
-    def _load_category(self, category_info: Dict) -> Category:
-        """Загружает категорию и все её значки"""
+    def _load_category_from_perfect_data(self, category_info: Dict, all_badges: List[Dict]) -> Category:
+        """Загружает категорию и все её значки из perfect_parsed_data.json"""
         category_id = category_info["id"]
-        category_path = self.data_path / category_info["path"]
         
-        # Загружаем индекс категории
-        index_path = category_path / "index.json"
-        with open(index_path, 'r', encoding='utf-8') as f:
-            category_index = json.load(f)
+        # Фильтруем значки для этой категории
+        category_badges = [badge for badge in all_badges if badge["category_id"] == category_id]
         
-        # Загружаем введение категории
-        intro_path = category_path / "introduction.md"
-        introduction = None
-        if intro_path.exists():
-            with open(intro_path, 'r', encoding='utf-8') as f:
-                introduction = f.read()
+        # Группируем значки по базовому ID (например, 12.9.1, 12.9.2, 12.9.3 -> 12.9)
+        badge_groups = {}
+        for badge_data in category_badges:
+            badge_id = badge_data["id"]
+            if '.' in badge_id:
+                base_id = '.'.join(badge_id.split('.')[:-1])  # 12.9.1 -> 12.9
+            else:
+                base_id = badge_id
+            
+            if base_id not in badge_groups:
+                badge_groups[base_id] = []
+            badge_groups[base_id].append(badge_data)
         
         # Загружаем все значки категории
         badges = []
-        for badge_info in category_index["badges"]:
-            badge = self._load_badge(category_path, badge_info)
+        for base_id, badge_group in badge_groups.items():
+            badge = self._load_badge_from_perfect_data(base_id, badge_group)
             badges.append(badge)
             self._badges_cache[badge.id] = badge
         
         category = Category(
             id=category_id,
             title=category_info["title"],
-            emoji=category_info["emoji"],
-            path=category_info["path"],
+            emoji="",  # В perfect_parsed_data.json нет emoji для категорий
+            path=f"category-{category_id}",
             badges=badges,
-            introduction=introduction
+            introduction=None
         )
         
         self._categories_cache[category_id] = category
         return category
     
-    def _load_badge(self, category_path: Path, badge_info: Dict) -> Badge:
-        """Загружает значок из JSON файла"""
-        badge_id = badge_info["id"]
-        badge_file = category_path / f"{badge_id}.json"
+    def _load_badge_from_perfect_data(self, base_id: str, badge_group: List[Dict]) -> Badge:
+        """Загружает значок из perfect_parsed_data.json"""
+        # Берем первый элемент группы как основной значок
+        main_badge = badge_group[0]
         
-        if not badge_file.exists():
-            raise FileNotFoundError(f"Не найден файл значка {badge_file}")
-        
-        with open(badge_file, 'r', encoding='utf-8') as f:
-            badge_data = json.load(f)
-        
-        # Загружаем уровни значка
+        # Создаем уровни значка
         levels = []
-        for level_data in badge_data.get("levels", []):
+        for badge_data in badge_group:
             level = BadgeLevel(
-                id=level_data["id"],
-                level=level_data["level"],
-                title=level_data["title"],
-                emoji=level_data["emoji"],
-                criteria=level_data["criteria"],
-                confirmation=level_data["confirmation"]
+                id=badge_data["id"],
+                level=badge_data.get("level", "Базовый уровень"),
+                title=badge_data["title"],
+                emoji=badge_data["emoji"],
+                criteria=badge_data.get("criteria") or "",
+                confirmation=badge_data.get("confirmation") or ""
             )
             levels.append(level)
         
+        # Создаем основной значок
         badge = Badge(
-            id=badge_data["id"],
-            title=badge_data["title"],
-            emoji=badge_data["emoji"],
-            categoryId=badge_data["categoryId"],
-            description=badge_data["description"],
-            nameExplanation=badge_data.get("nameExplanation"),
-            skillTips=badge_data.get("skillTips"),
-            examples=badge_data.get("examples"),
-            philosophy=badge_data.get("philosophy"),
-            howToBecome=badge_data.get("howToBecome"),
+            id=base_id,
+            title=main_badge["title"],
+            emoji=main_badge["emoji"],
+            categoryId=main_badge["category_id"],
+            description=main_badge.get("description") or "",
+            nameExplanation=None,
+            skillTips=None,
+            examples=None,
+            philosophy=None,
+            howToBecome=None,
             levels=levels
         )
         
@@ -186,6 +182,8 @@ class DataLoader:
     
     def get_all_badges(self) -> List[Badge]:
         """Получает все значки из всех категорий"""
+        if not self._badge_data:
+            self.load_all_data()
         all_badges = []
         for category in self._badge_data.categories:
             all_badges.extend(category.badges)

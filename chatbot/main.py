@@ -39,6 +39,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Монтирование статических файлов (независимо от текущей рабочей директории)
+BASE_DIR = Path(__file__).parent
+STATIC_DIR = BASE_DIR / "static"
+app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+
 # Глобальные переменные для компонентов
 data_loader: Optional[DataLoader] = None
 openai_client: Optional[OpenAIClient] = None
@@ -52,26 +57,28 @@ async def startup_event():
     global data_loader, openai_client, context_manager, response_generator
     
     try:
-        print("🚀 Запуск чат-бота Путеводителя...")
+        # Печать без эмодзи для совместимости с консолью Windows CP1251
+        print("Zapusk chat-bota Putevoditelja...")
         
         # Инициализация компонентов
-        print("📚 Загрузка данных значков...")
+        print("Zagruzka dannyh znachkov...")
         data_loader = DataLoader()
         data_loader.load_all_data()
         
-        print("🤖 Инициализация OpenAI клиента...")
+        print("Initsializacija OpenAI klienta...")
         openai_client = OpenAIClient()
         
-        print("🧠 Настройка системы контекста...")
+        print("Nastrojka sistemy konteksta...")
         context_manager = ContextManager(data_loader)
         
-        print("💬 Инициализация генератора ответов...")
+        print("Initsializacija generatora otvetov...")
         response_generator = ResponseGenerator(openai_client, data_loader, context_manager)
         
-        print("✅ Чат-бот готов к работе!")
+        print("Chat-bot gotov k rabote!")
         
     except Exception as e:
-        print(f"❌ Ошибка инициализации: {e}")
+        # Без эмодзи, чтобы избежать ошибок кодировки в консоли
+        print(f"Oshibka initsializacii: {e}")
         raise
 
 
@@ -85,104 +92,7 @@ async def root():
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>НейроВалюша - Чат-бот Путеводителя</title>
-        <style>
-            body {
-                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                margin: 0;
-                padding: 20px;
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                min-height: 100vh;
-            }
-            .container {
-                max-width: 800px;
-                margin: 0 auto;
-                background: white;
-                border-radius: 20px;
-                box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-                overflow: hidden;
-            }
-            .header {
-                background: linear-gradient(135deg, #ff6b6b, #ffa500);
-                color: white;
-                padding: 20px;
-                text-align: center;
-            }
-            .header h1 {
-                margin: 0;
-                font-size: 2em;
-            }
-            .header p {
-                margin: 10px 0 0 0;
-                opacity: 0.9;
-            }
-            .chat-container {
-                height: 500px;
-                overflow-y: auto;
-                padding: 20px;
-                background: #f8f9fa;
-            }
-            .message {
-                margin: 15px 0;
-                padding: 15px;
-                border-radius: 15px;
-                max-width: 80%;
-            }
-            .user-message {
-                background: #007bff;
-                color: white;
-                margin-left: auto;
-                text-align: right;
-            }
-            .bot-message {
-                background: white;
-                border: 1px solid #e9ecef;
-                margin-right: auto;
-            }
-            .input-container {
-                padding: 20px;
-                background: white;
-                border-top: 1px solid #e9ecef;
-                display: flex;
-                gap: 10px;
-            }
-            .input-container input {
-                flex: 1;
-                padding: 15px;
-                border: 1px solid #ddd;
-                border-radius: 25px;
-                font-size: 16px;
-                outline: none;
-            }
-            .input-container button {
-                padding: 15px 25px;
-                background: #007bff;
-                color: white;
-                border: none;
-                border-radius: 25px;
-                cursor: pointer;
-                font-size: 16px;
-            }
-            .input-container button:hover {
-                background: #0056b3;
-            }
-            .suggestions {
-                padding: 10px 20px;
-                background: #f8f9fa;
-                border-top: 1px solid #e9ecef;
-            }
-            .suggestion {
-                display: inline-block;
-                margin: 5px;
-                padding: 8px 15px;
-                background: #e9ecef;
-                border-radius: 20px;
-                cursor: pointer;
-                font-size: 14px;
-            }
-            .suggestion:hover {
-                background: #dee2e6;
-            }
-        </style>
+        <link rel="stylesheet" href="/static/chatbot.css">
     </head>
     <body>
         <div class="container">
@@ -201,101 +111,18 @@ async def root():
             </div>
             
             <div class="suggestions" id="suggestions">
-                <div class="suggestion" onclick="sendMessage('Покажи все категории значков')">📚 Все категории</div>
-                <div class="suggestion" onclick="sendMessage('Рекомендуй значки по моим интересам')">🎯 Рекомендации</div>
-                <div class="suggestion" onclick="sendMessage('Объясни философию системы значков')">💭 Философия</div>
+                <div class="suggestion" data-message="Покажи все категории значков">📚 Все категории</div>
+                <div class="suggestion" data-message="Рекомендуй значки по моим интересам">🎯 Рекомендации</div>
+                <div class="suggestion" data-message="Объясни философию системы значков">💭 Философия</div>
             </div>
             
             <div class="input-container">
-                <input type="text" id="messageInput" placeholder="Напиши свой вопрос..." onkeypress="handleKeyPress(event)">
-                <button onclick="sendMessage()">Отправить</button>
+                <input type="text" id="messageInput" placeholder="Напиши свой вопрос...">
+                <button id="sendButton">Отправить</button>
             </div>
         </div>
 
-        <script>
-            let userId = 'user_' + Math.random().toString(36).substr(2, 9);
-            
-            function handleKeyPress(event) {
-                if (event.key === 'Enter') {
-                    sendMessage();
-                }
-            }
-            
-            async function sendMessage(message = null) {
-                const input = document.getElementById('messageInput');
-                const messageText = message || input.value.trim();
-                
-                if (!messageText) return;
-                
-                // Добавляем сообщение пользователя
-                addMessage(messageText, 'user');
-                input.value = '';
-                
-                // Показываем индикатор загрузки
-                const loadingId = addMessage('Думаю... 🤔', 'bot');
-                
-                try {
-                    const response = await fetch('/chat', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            message: messageText,
-                            user_id: userId
-                        })
-                    });
-                    
-                    const data = await response.json();
-                    
-                    // Удаляем индикатор загрузки
-                    removeMessage(loadingId);
-                    
-                    // Добавляем ответ бота
-                    addMessage(data.response, 'bot');
-                    
-                    // Обновляем предложения
-                    updateSuggestions(data.suggestions || []);
-                    
-                } catch (error) {
-                    removeMessage(loadingId);
-                    addMessage('Извините, произошла ошибка. Попробуйте еще раз.', 'bot');
-                }
-            }
-            
-            function addMessage(text, sender) {
-                const container = document.getElementById('chatContainer');
-                const messageDiv = document.createElement('div');
-                messageDiv.className = `message ${sender}-message`;
-                messageDiv.textContent = text;
-                messageDiv.id = 'msg_' + Date.now();
-                
-                container.appendChild(messageDiv);
-                container.scrollTop = container.scrollHeight;
-                
-                return messageDiv.id;
-            }
-            
-            function removeMessage(messageId) {
-                const message = document.getElementById(messageId);
-                if (message) {
-                    message.remove();
-                }
-            }
-            
-            function updateSuggestions(suggestions) {
-                const container = document.getElementById('suggestions');
-                container.innerHTML = '';
-                
-                suggestions.forEach(suggestion => {
-                    const div = document.createElement('div');
-                    div.className = 'suggestion';
-                    div.textContent = suggestion;
-                    div.onclick = () => sendMessage(suggestion);
-                    container.appendChild(div);
-                });
-            }
-        </script>
+        <script src="/static/chatbot.js"></script>
     </body>
     </html>
     """
@@ -317,10 +144,12 @@ async def chat(request: ChatRequest):
                 web_context=request.context
             )
         
-        # Создаем историю сообщений (пока простую)
-        conversation_history = [
-            Message(role="user", content=request.message, metadata={})
-        ]
+        # Получаем историю сообщений пользователя
+        conversation_history = response_generator.context_manager.get_conversation_history(request.user_id)
+        
+        # Добавляем новое сообщение пользователя в историю
+        user_message = Message(role="user", content=request.message, metadata={})
+        response_generator.context_manager.add_message_to_history(request.user_id, user_message)
         
         # Генерируем ответ
         response = response_generator.generate_response(
@@ -329,10 +158,31 @@ async def chat(request: ChatRequest):
             conversation_history=conversation_history
         )
         
+        # Добавляем ответ бота в историю
+        bot_message = Message(role="assistant", content=response.response, metadata=response.metadata)
+        response_generator.context_manager.add_message_to_history(request.user_id, bot_message)
+        
         return response
         
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Ошибка генерации ответа: {str(e)}")
+        # Возвращаем дружелюбное сообщение вместо 500, чтобы фронтенд не падал
+        try:
+            user_ctx = response_generator.context_manager.get_user_context(request.user_id) if response_generator else None
+        except Exception:
+            user_ctx = None
+        return ChatResponse(
+            response=f"Извини, сейчас не получилось ответить: {str(e)}",
+            suggestions=[
+                "Покажи все категории значков",
+                "Рекомендуй значки по моим интересам",
+                "Объясни философию системы значков"
+            ],
+            context_updates=user_ctx,
+            metadata={
+                "error": str(e),
+                "timestamp": datetime.now().isoformat()
+            }
+        )
 
 
 @app.get("/categories")
@@ -366,7 +216,10 @@ async def get_badges_by_category(category_id: str):
         if not data_loader:
             raise HTTPException(status_code=500, detail="Загрузчик данных не инициализирован")
         
-        badges = data_loader.get_badges_by_category(category_id)
+        category = data_loader.get_category(category_id)
+        if not category:
+            raise HTTPException(status_code=404, detail="Категория не найдена")
+        badges = category.badges
         return {
             "category_id": category_id,
             "badges": [

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface ChatButtonProps {
   onClick: () => void;
@@ -16,7 +16,7 @@ const ChatButton: React.FC<ChatButtonProps> = ({ onClick, isOpen = false, classN
         position: 'fixed',
         bottom: '24px',
         right: '24px',
-        zIndex: 1001,
+        zIndex: 100,
         background: isOpen 
           ? 'linear-gradient(135deg, rgba(255, 107, 107, 0.95) 0%, rgba(12, 12, 12, 0.95) 50%, rgba(46, 26, 26, 0.95) 100%)'
           : 'linear-gradient(135deg, rgba(78, 205, 196, 0.95) 0%, rgba(12, 12, 12, 0.95) 50%, rgba(26, 26, 46, 0.95) 100%)',
@@ -65,7 +65,7 @@ const ChatButton: React.FC<ChatButtonProps> = ({ onClick, isOpen = false, classN
     >
       <div style={{ position: 'relative' }}>
         <img 
-          src="/public/Валюша.jpg" 
+          src="/Валюша.jpg" 
           alt="НейроВалюша" 
           style={{ 
             width: '40px', 

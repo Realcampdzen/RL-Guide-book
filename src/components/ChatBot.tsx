@@ -22,17 +22,23 @@ interface ChatBotProps {
     emoji: string;
     categoryId: string;
   };
+  currentLevel?: string;
+  currentLevelBadgeTitle?: string;
 }
 
 const ChatBot: React.FC<ChatBotProps> = ({ 
   isOpen, 
   onClose, 
+  currentView,
   currentCategory, 
-  currentBadge 
+  currentBadge,
+  currentLevel,
+  currentLevelBadgeTitle
 }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Автопрокрутка к последнему сообщению
@@ -44,13 +50,21 @@ const ChatBot: React.FC<ChatBotProps> = ({
     scrollToBottom();
   }, [messages]);
 
-  // Отправка сообщения
-  const sendMessage = async () => {
-    if (!inputText.trim() || isLoading) return;
+  // Автофокус на поле ввода при открытии чата
+  useEffect(() => {
+    if (isOpen) {
+      // Даем React дорендерить DOM и ставим фокус
+      setTimeout(() => inputRef.current?.focus(), 0);
+    }
+  }, [isOpen]);
+
+  // Универсальная отправка текста (используется инпутом и кликом по подсказке)
+  const sendText = async (text: string) => {
+    if (!text.trim() || isLoading) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
-      text: inputText,
+      text,
       isUser: true,
       timestamp: new Date()
     };
@@ -66,10 +80,10 @@ const ChatBot: React.FC<ChatBotProps> = ({
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          message: inputText,
+          message: text,
           user_id: 'web_user',
           context: {
-            current_view: 'chat',
+            current_view: currentView || 'chat',
             current_category: currentCategory ? {
               id: currentCategory.id,
               title: currentCategory.title,
@@ -80,7 +94,9 @@ const ChatBot: React.FC<ChatBotProps> = ({
               title: currentBadge.title,
               emoji: currentBadge.emoji,
               category_id: currentBadge.categoryId
-            } : null
+            } : null,
+            current_level: currentLevel || null,
+            current_level_badge_title: currentLevelBadgeTitle || null
           }
         }),
       });
@@ -114,7 +130,14 @@ const ChatBot: React.FC<ChatBotProps> = ({
       setMessages(prev => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
+      // Возвращаем фокус в поле ввода после ответа бота/ошибки
+      setTimeout(() => inputRef.current?.focus(), 0);
     }
+  };
+
+  // Отправка из поля ввода
+  const sendMessage = async () => {
+    await sendText(inputText);
   };
 
   // Обработка нажатия Enter
@@ -246,14 +269,36 @@ const ChatBot: React.FC<ChatBotProps> = ({
         </div>
 
         {/* Контекстная информация */}
-        {(currentCategory || currentBadge) && (
+        {(currentView || currentCategory || currentBadge || currentLevel) && (
           <div style={{
             padding: '10px 16px',
             background: 'rgba(78, 205, 196, 0.08)',
             borderBottom: '1px solid rgba(78, 205, 196, 0.2)',
             borderLeft: '3px solid #4ecdc4'
           }}>
-            <div style={{ fontSize: '12px', color: '#4ecdc4', fontWeight: '500' }}>
+            <div style={{ fontSize: '12px', color: '#4ecdc4', fontWeight: '500', display: 'flex', flexDirection: 'column', gap: '3px' }}>
+              {currentView && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span style={{ fontSize: '14px' }}>🧭</span>
+                  <span>
+                    Экран: {
+                      (
+                        {
+                          'intro': 'Главная',
+                          'categories': 'Список категорий',
+                          'category': 'Категория',
+                          'badge': 'Страница значка',
+                          'badge-level': 'Уровень значка',
+                          'introduction': 'Введение',
+                          'additional-material': 'Доп. материалы',
+                          'about-camp': 'Информация о лагере',
+                          'registration-form': 'Форма регистрации'
+                        } as Record<string, string>
+                      )[currentView] || currentView
+                    }
+                  </span>
+                </div>
+              )}
               {currentCategory && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <span style={{ fontSize: '14px' }}>📁</span>
@@ -264,6 +309,12 @@ const ChatBot: React.FC<ChatBotProps> = ({
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: currentCategory ? '3px' : '0' }}>
                   <span style={{ fontSize: '14px' }}>🏆</span>
                   <span>Значок: {currentBadge.emoji} {currentBadge.title}</span>
+                </div>
+              )}
+              {currentLevel && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span style={{ fontSize: '14px' }}>🎯</span>
+                  <span>Уровень: {currentLevel}{currentLevelBadgeTitle ? ` — ${currentLevelBadgeTitle}` : ''}</span>
                 </div>
               )}
             </div>
@@ -422,6 +473,8 @@ const ChatBot: React.FC<ChatBotProps> = ({
           <div ref={messagesEndRef} />
         </div>
 
+        {/* Подсказки отключены */}
+
         {/* Поле ввода */}
         <div style={{
           padding: '16px',
@@ -431,6 +484,8 @@ const ChatBot: React.FC<ChatBotProps> = ({
         }}>
           <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-end' }}>
             <input
+              ref={inputRef}
+              autoFocus
               type="text"
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}

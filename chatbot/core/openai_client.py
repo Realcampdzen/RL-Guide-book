@@ -2,11 +2,15 @@
 Интеграция с OpenAI API
 """
 import os
+import logging
 from typing import List, Dict, Any, Optional
 from openai import OpenAI
 from dotenv import load_dotenv
 
 from models.conversation import Message, UserContext
+from prompts.system_prompt import get_system_prompt_with_context
+
+logger = logging.getLogger(__name__)
 
 # Загружаем переменные окружения
 load_dotenv()
@@ -26,7 +30,11 @@ class OpenAIClient:
         if not self.api_key:
             raise ValueError("Не указан OPENAI_API_KEY")
         
-        self.client = OpenAI(api_key=self.api_key)
+        # Инициализируем OpenAI клиент с прокси для обхода региональных ограничений
+        self.client = OpenAI(
+            api_key=self.api_key,
+            base_url="https://api.openai-proxy.com/v1"  # Публичный прокси
+        )
         self.model = "gpt-4o-mini"  # Используем GPT-4o mini как указано в требованиях
     
     def generate_response(
@@ -76,6 +84,7 @@ class OpenAIClient:
             return response.choices[0].message.content.strip()
         
         except Exception as e:
+            logger.error(f"Ошибка OpenAI API: {e}")
             return f"Извините, произошла ошибка при генерации ответа: {str(e)}"
     
     def _format_user_context(self, context: UserContext) -> str:
@@ -95,6 +104,7 @@ class OpenAIClient:
             context_parts.append(f"Уровень: {context.level}")
         
         return "; ".join(context_parts)
+    
     
     def generate_creative_ideas(
         self,
@@ -183,10 +193,20 @@ class OpenAIClient:
         """
         
         try:
+            # Формируем системный промпт с контекстом пользователя (без жёстких ограничений длины)
+            sys_prompt = get_system_prompt_with_context(
+                current_category=(category_id if category_id and category_id != 'intro' else None),
+                user_level=(user_context.level if user_context else None),
+                user_interests=(user_context.interests if user_context else None)
+            )
+
             response = self.client.chat.completions.create(
                 model=self.model,
-                messages=[{"role": "user", "content": prompt}],
-                max_tokens=400,
+                messages=[
+                    {"role": "system", "content": sys_prompt},
+                    {"role": "user", "content": prompt}
+                ],
+                max_tokens=500,
                 temperature=0.6
             )
             
