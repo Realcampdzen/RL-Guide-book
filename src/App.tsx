@@ -114,7 +114,7 @@ const getCategoryIcon = (categoryId: string): string | JSX.Element => {
     case '12': // ИИ
       return <img 
         className="category-12-icon"
-        src="/category_12.png" 
+        src="/stanpol__vector_logo_symbol_of_AI_and_creativity_for_children_a_a7e3ac1a-6ecd-48ee-a84b-11cca3a6047f.png" 
         alt="ИИ" 
       />;
     case '13': // Категория 13
