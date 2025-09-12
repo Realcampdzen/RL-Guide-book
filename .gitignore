@@ -92,7 +92,6 @@ dist
 
 # Gatsby files
 .cache/
-public
 
 # Storybook build outputs
 .out
@@ -154,12 +153,8 @@ AI-DATA-WORKFLOW.md
 perfect_parsed_data.json
 test_data.json
 
-# Pictures (keep only essential ones)
-pictures/
-фон*.png
-
-# Keep only essential images
-!public/Валюша.jpg
+# Pictures are now tracked
+# (commit only necessary images)
 
 # Batch files (Windows specific)
 *.bat

@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import ChatBot from './components/ChatBot';
 import ChatButton from './components/ChatButton';
-import { 
-  pluralizeRu, 
-  fixDescriptionFormatting, 
-  fixCriteriaFormatting, 
+import {
+  pluralizeRu,
+  fixDescriptionFormatting,
+  fixCriteriaFormatting,
   extractEvidenceSection,
   shouldApplyFormatting
 } from './utils/textFormatting';
+
+// Base path for static assets so that GitHub Pages serves images correctly
+const assetBase = import.meta.env.BASE_URL;
 
 // Normalize level values coming from AI data
 const canonicalizeLevel = (lvl: unknown): string => {
@@ -49,17 +52,19 @@ const getCategoryIcon = (categoryId: string): string | JSX.Element => {
   //   return <img src="/category_12.png" alt="ИИ" />;
   // }
   if (categoryId === '13') {
-    return <img className="category-13-icon" src="/category_13.png" alt="Категория 13" />;
+    return <img className="category-13-icon" src={`${assetBase}category_13.png`} alt="Категория 13" />;
   }
   if (categoryId === '11') {
-    return <img className="category-11-icon" src="/category_11.png" alt="Категория 11" />;
+    return <img className="category-11-icon" src={`${assetBase}category_11.png`} alt="Категория 11" />;
   }
   switch (categoryId) {
     case '12': // ИИ
-      return <img 
-        src="/stanpol__vector_logo_symbol_of_AI_and_creativity_for_children_a_a7e3ac1a-6ecd-48ee-a84b-11cca3a6047f.png" 
-        alt="ИИ" 
-      />;
+      return (
+        <img
+          src={`${assetBase}stanpol__vector_logo_symbol_of_AI_and_creativity_for_children_a_a7e3ac1a-6ecd-48ee-a84b-11cca3a6047f.png`}
+          alt="ИИ"
+        />
+      );
     case '13': // Категория 13
       return <img 
         className="category-13-icon"
@@ -132,11 +137,13 @@ const getCategoryIcon = (categoryId: string): string | JSX.Element => {
         alt="Категория 4" 
       />;
     case '14': // Категория 14
-      return <img 
-        className="category-14-icon"
-        src="/category_14.png" 
-        alt="Категория 14" 
-      />;
+      return (
+        <img
+          className="category-14-icon"
+          src={`${assetBase}category_14.png`}
+          alt="Категория 14"
+        />
+      );
     default:
       return '🏆';
   }
@@ -1989,7 +1996,7 @@ const App: React.FC = () => {
           <div className="posts-section">
             <a href="https://vk.com/wall-57701087_9100" target="_blank" rel="noopener noreferrer" className="post-link">
               <div className="post-image">
-                <img src="/pictures/Wr8s1lqBl95mo9__Pw4CSouLulbnCQRdCt31tWGcKWGlLmXRD60QviGdQG1ASrS3KkfW4t6wFumMhG4myCTZEaKT.jpg" alt="Пост 1" />
+                <img src={`${assetBase}pictures/Wr8s1lqBl95mo9__Pw4CSouLulbnCQRdCt31tWGcKWGlLmXRD60QviGdQG1ASrS3KkfW4t6wFumMhG4myCTZEaKT.jpg`} alt="Пост 1" />
               </div>
               <div className="post-title">
                 <div className="post-main-title">🔥 Вожатские кейсы и педагогика</div>
@@ -2003,7 +2010,7 @@ const App: React.FC = () => {
             </a>
             <a href="https://vk.com/wall-57701087_9080" target="_blank" rel="noopener noreferrer" className="post-link">
               <div className="post-image">
-                <img src="/pictures/HvRgNN4EUqGaVKKmQYwOnSESzm3zhN8NLN7psGe2xTbuscFg5h0oIIxbtlYIkCIO1zj2TUQYoFAKy9pYquEpfGrR.jpg" alt="Пост 2" />
+                <img src={`${assetBase}pictures/HvRgNN4EUqGaVKKmQYwOnSESzm3zhN8NLN7psGe2xTbuscFg5h0oIIxbtlYIkCIO1zj2TUQYoFAKy9pYquEpfGrR.jpg`} alt="Пост 2" />
               </div>
               <div className="post-title">
                 <div className="post-main-title">🚀 Дети сами организуют отрядные дела!</div>
@@ -2017,7 +2024,7 @@ const App: React.FC = () => {
             </a>
             <a href="https://vk.com/wall-57701087_9072" target="_blank" rel="noopener noreferrer" className="post-link">
               <div className="post-image">
-                <img src="/pictures/wa1Ma_l5j4S2gV8sBeNLTw0cftt3WLplAEvXI9RW-qd5-uWJCslMqRRXGcFhKFEIr0Ck2teKZBiFzyRIeMfWLiLE.jpg" alt="Пост 3" />
+                <img src={`${assetBase}pictures/wa1Ma_l5j4S2gV8sBeNLTw0cftt3WLplAEvXI9RW-qd5-uWJCslMqRRXGcFhKFEIr0Ck2teKZBiFzyRIeMfWLiLE.jpg`} alt="Пост 3" />
               </div>
               <div className="post-title">
                 <div className="post-main-title">🎨 Нейродизайн и агентные системы</div>
@@ -2031,7 +2038,7 @@ const App: React.FC = () => {
             </a>
             <a href="https://vk.com/wall-57701087_9049" target="_blank" rel="noopener noreferrer" className="post-link">
               <div className="post-image">
-                <img src="/pictures/2025-09-11_05-28-13.png" alt="Пост 4" />
+                <img src={`${assetBase}pictures/2025-09-11_05-28-13.png`} alt="Пост 4" />
               </div>
               <div className="post-title">
                 <div className="post-main-title">🏴‍☠️ Пираты похитили Бурыча!</div>
@@ -2045,7 +2052,7 @@ const App: React.FC = () => {
             </a>
             <a href="https://vk.com/wall-57701087_9009" target="_blank" rel="noopener noreferrer" className="post-link">
               <div className="post-image">
-                <img src="/pictures/4pCDWvEw_uyf3q8yQbhfsPpfDSVOMYkkexIZCudbxTsmqN8iA3jIT8TwpNtXbGliD_YCpD2nZhQZXajz4-0KFg-1.jpg" alt="Пост 5" />
+                <img src={`${assetBase}pictures/4pCDWvEw_uyf3q8yQbhfsPpfDSVOMYkkexIZCudbxTsmqN8iA3jIT8TwpNtXbGliD_YCpD2nZhQZXajz4-0KFg-1.jpg`} alt="Пост 5" />
               </div>
               <div className="post-title">
                 <div className="post-main-title">🎶 Музыкальный продюсер с Suno AI</div>
@@ -2059,7 +2066,7 @@ const App: React.FC = () => {
             </a>
             <a href="https://vk.com/wall-57701087_9006" target="_blank" rel="noopener noreferrer" className="post-link">
               <div className="post-image">
-                <img src="/pictures/w38A7umTNl1ECHO8HtrN9KRFmpwNLoCd19DGmO1qdPcLBENPbYsFQuzJOoDej_zxEcHDnRvDGUayZgs1mOMSkam3.jpg" alt="Пост 6" />
+                <img src={`${assetBase}pictures/w38A7umTNl1ECHO8HtrN9KRFmpwNLoCd19DGmO1qdPcLBENPbYsFQuzJOoDej_zxEcHDnRvDGUayZgs1mOMSkam3.jpg`} alt="Пост 6" />
               </div>
               <div className="post-title">
                 <div className="post-main-title">🥊 Мастер-класс по самообороне</div>
@@ -2073,7 +2080,7 @@ const App: React.FC = () => {
             </a>
             <a href="https://vk.com/wall-57701087_8995" target="_blank" rel="noopener noreferrer" className="post-link">
               <div className="post-image">
-                <img src="/pictures/2025-09-11_05-25-15.png" alt="Пост 7" />
+                <img src={`${assetBase}pictures/2025-09-11_05-25-15.png`} alt="Пост 7" />
               </div>
               <div className="post-title">
                 <div className="post-main-title">🕯️ Огонёк откровений</div>
@@ -2087,7 +2094,7 @@ const App: React.FC = () => {
             </a>
             <a href="https://vk.com/wall-57701087_8994" target="_blank" rel="noopener noreferrer" className="post-link">
               <div className="post-image">
-                <img src="/pictures/vKjyH96aNgNYbg14n545f0j1tZqG12tBI3L83kyz-8ofHa9DnmG-p41grb0hrbwUoNGteh0fdssSerJNH2GXffZN.jpg" alt="Пост 8" />
+                <img src={`${assetBase}pictures/vKjyH96aNgNYbg14n545f0j1tZqG12tBI3L83kyz-8ofHa9DnmG-p41grb0hrbwUoNGteh0fdssSerJNH2GXffZN.jpg`} alt="Пост 8" />
               </div>
               <div className="post-title">
                 <div className="post-main-title">🚀 EggX: лётно-конструкторские испытания</div>
@@ -2101,7 +2108,7 @@ const App: React.FC = () => {
             </a>
             <a href="https://vk.com/wall-57701087_8927" target="_blank" rel="noopener noreferrer" className="post-link">
               <div className="post-image">
-                <img src="/pictures/2025-09-11_05-21-21.png" alt="Пост 9" />
+                <img src={`${assetBase}pictures/2025-09-11_05-21-21.png`} alt="Пост 9" />
               </div>
               <div className="post-title">
                 <div className="post-main-title">😎 Сигма-Бро в Реальном Лагере</div>
