@@ -155,7 +155,7 @@ perfect_parsed_data.json
 test_data.json
 
 # Pictures (keep only essential ones)
-pictures/
+# pictures/ - commented out to allow pictures folder for GitHub Pages
 # фон*.png - commented out to allow background images for GitHub Pages
 
 # Keep only essential images
