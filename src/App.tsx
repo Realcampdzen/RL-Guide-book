@@ -44,27 +44,12 @@ const getFallbackEmojiFor = (categoryId: string, _title?: string): string => {
 
 // Function to get category icon (emoji or image)
 const getCategoryIcon = (categoryId: string): string | JSX.Element => {
-  // Quick safe overrides to ensure correct icons for latest version
-  // if (categoryId === '12') {
-  //   return <img src="/category_12.png" alt="ИИ" />;
-  // }
-  if (categoryId === '13') {
-    return <img className="category-13-icon" src="/category_13.png" alt="Категория 13" />;
-  }
-  if (categoryId === '11') {
-    return <img className="category-11-icon" src="/category_11.png" alt="Категория 11" />;
-  }
   switch (categoryId) {
-    case '12': // ИИ
+    case '1': // Категория 1
       return <img 
-        src="/stanpol__vector_logo_symbol_of_AI_and_creativity_for_children_a_a7e3ac1a-6ecd-48ee-a84b-11cca3a6047f.png" 
-        alt="ИИ" 
-      />;
-    case '13': // Категория 13
-      return <img 
-        className="category-13-icon"
-        src="/skills_4k.png" 
-        alt="Категория 13" 
+        className="category-1-icon"
+        src="/category_1.png" 
+        alt="Категория 1" 
       />;
     case '2': // Категория 2
       return <img 
@@ -75,8 +60,32 @@ const getCategoryIcon = (categoryId: string): string | JSX.Element => {
     case '3': // Категория 3
       return <img 
         className="category-3-icon"
-        src="/Stan_Pol_children_holding_hands_standing_on_the_stage_facing_th_01f27cc8-9419-4c58-90a6-aab2eff6e0e2.png" 
+        src="/category_3.png" 
         alt="Категория 3" 
+      />;
+    case '4': // Категория 4
+      return <img 
+        className="category-4-icon"
+        src="/category_4.png" 
+        alt="Категория 4" 
+      />;
+    case '5': // Категория 5
+      return <img 
+        className="category-5-icon"
+        src="/category_5.png" 
+        alt="Категория 5" 
+      />;
+    case '6': // Категория 6
+      return <img 
+        className="category-6-icon"
+        src="/category_6.png" 
+        alt="Категория 6" 
+      />;
+    case '7': // Категория 7
+      return <img 
+        className="category-7-icon"
+        src="/category_7.png" 
+        alt="Категория 7" 
       />;
     case '8': // Категория 8
       return <img 
@@ -90,46 +99,29 @@ const getCategoryIcon = (categoryId: string): string | JSX.Element => {
         src="/category_9.png" 
         alt="Категория 9" 
       />;
-    case '1': // Категория 1
-      return <img 
-        src="/pictures/Stan_Pol__beutiful_camera__vector_logo_e16e2508-69e8-4bf6-9cdf-8b7012558c5e.png" 
-        alt="Категория 1" 
-      />;
-    case '7': // Категория 7
-      return <img 
-        className="category-7-icon"
-        src="/stanpol__happy_emotional_teenagers_in_camp_vibrant_vector_logo_df250ab9-3fbd-4680-91fa-ed1052a1c57e.png" 
-        alt="Категория 7" 
-      />;
-    case '6': // Категория 6
-      return <img 
-        className="category-6-icon"
-        src="/stanpol__Teenagers_in_a_modern_summer_camp_creating_a_mosaic_fr_4efdbbe3-8c4d-44c2-adbb-3e0f93f5eb93.png" 
-        alt="Категория 6" 
-      />;
     case '10': // Категория 10
       return <img 
         className="category-10-icon"
-        src="/stanpol__vector_logo_symbol_of_AI_and_creativity_for_children_a_a7e3ac1a-6ecd-48ee-a84b-11cca3a6047f.png" 
+        src="/category_10.png" 
         alt="Категория 10" 
       />;
     case '11': // Категория 11
       return <img 
         className="category-11-icon"
-        src="/skills_4k.png" 
+        src="/category_11.png" 
         alt="Категория 11" 
       />;
-    case '5': // Категория 5
+    case '12': // ИИ
       return <img 
-        className="category-5-icon"
-        src="/co_management.png" 
-        alt="Категория 5" 
+        className="category-12-icon"
+        src="/category_12.png" 
+        alt="ИИ" 
       />;
-    case '4': // Категория 4
+    case '13': // Категория 13
       return <img 
-        className="category-4-icon"
-        src="/pictures/Stan_Pol_a_group_of_children_holding_hands_standing_on_the_stag_0ee8f1ee-ec32-4a75-b756-3f9b23e6b345.png" 
-        alt="Категория 4" 
+        className="category-13-icon"
+        src="/category_13.png" 
+        alt="Категория 13" 
       />;
     case '14': // Категория 14
       return <img 
