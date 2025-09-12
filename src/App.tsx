@@ -66,75 +66,75 @@ const getCategoryIcon = (categoryId: string): string | JSX.Element => {
         />
       );
     case '13': // Категория 13
-      return <img 
+      return <img
         className="category-13-icon"
-        src="./pictures/софт скиллз.png" 
-        alt="Категория 13" 
+        src={`${assetBase}pictures/софт скиллз.png`}
+        alt="Категория 13"
       />;
     case '2': // Категория 2
-      return <img 
+      return <img
         className="category-2-icon"
-        src="./pictures/stanpol__kittens_0482e39f-9d2d-4929-a25b-1888131d0cf2.png" 
-        alt="Категория 2" 
+        src={`${assetBase}pictures/stanpol__kittens_0482e39f-9d2d-4929-a25b-1888131d0cf2.png`}
+        alt="Категория 2"
       />;
     case '3': // Категория 3
-      return <img 
+      return <img
         className="category-3-icon"
-        src="./pictures/Stan_Pol__beutiful_camera__vector_logo_e16e2508-69e8-4bf6-9cdf-8b7012558c5e.png" 
-        alt="Категория 3" 
+        src={`${assetBase}pictures/Stan_Pol__beutiful_camera__vector_logo_e16e2508-69e8-4bf6-9cdf-8b7012558c5e.png`}
+        alt="Категория 3"
       />;
     case '8': // Категория 8
-      return <img 
+      return <img
         className="category-8-icon"
-        src="./pictures/stanpol__kittens_840096ea-9470-4d6c-b8bc-0e8ab4703a38.png" 
-        alt="Категория 8" 
+        src={`${assetBase}pictures/stanpol__kittens_840096ea-9470-4d6c-b8bc-0e8ab4703a38.png`}
+        alt="Категория 8"
       />;
     case '9': // Категория 9
-      return <img 
+      return <img
         className="category-9-icon"
-        src="./pictures/stanpol__The_mighty_kitten_guardian_of_light_a_halo_of_bright_m_56a19c5f-dfa8-4d0c-beb0-4f2e15d29dbb.png" 
-        alt="Категория 9" 
+        src={`${assetBase}pictures/stanpol__The_mighty_kitten_guardian_of_light_a_halo_of_bright_m_56a19c5f-dfa8-4d0c-beb0-4f2e15d29dbb.png`}
+        alt="Категория 9"
       />;
     case '1': // Категория 1
-      return <img 
-        src="./pictures/stanpol__soviet_wave__actual_design__yellow_and_red_stars_on_a__326a67a1-e41c-4a9a-be9a-29c51d05b0a9.png" 
-        alt="Категория 1" 
+      return <img
+        src={`${assetBase}pictures/stanpol__soviet_wave__actual_design__yellow_and_red_stars_on_a__326a67a1-e41c-4a9a-be9a-29c51d05b0a9.png`}
+        alt="Категория 1"
       />;
     case '7': // Категория 7
-      return <img 
+      return <img
         className="category-7-icon"
-        src="./pictures/Stan_Pol__beutiful_electric_guitar__vector_logo_78eadd19-04e1-4a7e-b538-865c6dd62d71.png" 
-        alt="Категория 7" 
+        src={`${assetBase}pictures/Stan_Pol__beutiful_electric_guitar__vector_logo_78eadd19-04e1-4a7e-b538-865c6dd62d71.png`}
+        alt="Категория 7"
       />;
     case '6': // Категория 6
-      return <img 
+      return <img
         className="category-6-icon"
-        src="./pictures/Stan_Pol__magic_broom__4k__vector_logo_bdb44597-56aa-4530-92f6-104178793d0b.png" 
-        alt="Категория 6" 
+        src={`${assetBase}pictures/Stan_Pol__magic_broom__4k__vector_logo_bdb44597-56aa-4530-92f6-104178793d0b.png`}
+        alt="Категория 6"
       />;
     case '10': // Категория 10
-      return <img 
+      return <img
         className="category-10-icon"
-        src="./pictures/Stan_Pol__beutiful_lighthouse__vector_logo_5c815e45-0aa8-48e0-9cd4-9ab06fc0b735.png" 
-        alt="Категория 10" 
+        src={`${assetBase}pictures/Stan_Pol__beutiful_lighthouse__vector_logo_5c815e45-0aa8-48e0-9cd4-9ab06fc0b735.png`}
+        alt="Категория 10"
       />;
     case '11': // Категория 11
-      return <img 
+      return <img
         className="category-11-icon"
-        src="./pictures/stanpol__A_modern_logo_for_a_Neuro_shift_themed_camp_combining__577b1903-fc11-49cd-85a6-91211e30ec56.png" 
-        alt="Категория 11" 
+        src={`${assetBase}pictures/stanpol__A_modern_logo_for_a_Neuro_shift_themed_camp_combining__577b1903-fc11-49cd-85a6-91211e30ec56.png`}
+        alt="Категория 11"
       />;
     case '5': // Категория 5
-      return <img 
+      return <img
         className="category-5-icon"
-        src="./pictures/Stan_Pol_realistic_campfire__vector_logo__in_the_style_of_a_glo_5b853e9f-93d3-4a2e-aa6a-f3345776e834.png" 
-        alt="Категория 5" 
+        src={`${assetBase}pictures/Stan_Pol_realistic_campfire__vector_logo__in_the_style_of_a_glo_5b853e9f-93d3-4a2e-aa6a-f3345776e834.png`}
+        alt="Категория 5"
       />;
     case '4': // Категория 4
-      return <img 
+      return <img
         className="category-4-icon"
-        src="./pictures/Stan_Pol_a_group_of_children_holding_hands_standing_on_the_stag_0ee8f1ee-ec32-4a75-b756-3f9b23e6b345.png" 
-        alt="Категория 4" 
+        src={`${assetBase}pictures/Stan_Pol_a_group_of_children_holding_hands_standing_on_the_stag_0ee8f1ee-ec32-4a75-b756-3f9b23e6b345.png`}
+        alt="Категория 4"
       />;
     case '14': // Категория 14
       return (
@@ -421,7 +421,7 @@ const App: React.FC = () => {
 
   const loadCategoryIntroduction = async (categoryId: string) => {
     try {
-      const res = await fetch(`/ai-data/category-${categoryId}/introduction.md`);
+      const res = await fetch(`${assetBase}ai-data/category-${categoryId}/introduction.md`);
       if (!res.ok) return;
       const md = await res.text();
       const html = markdownToHtml(md);
@@ -438,14 +438,14 @@ const App: React.FC = () => {
     try {
       console.log('App: Loading AI data...');
       setLoading(true);
-      const masterRes = await fetch('/ai-data/MASTER_INDEX.json');
+      const masterRes = await fetch(`${assetBase}ai-data/MASTER_INDEX.json`);
       const master = await masterRes.json();
 
       const categoriesData: any[] = [];
       const badgesData: any[] = [];
 
       for (const aiCategory of master.categories) {
-        const idxRes = await fetch(`/ai-data/${aiCategory.path}index.json`);
+        const idxRes = await fetch(`${assetBase}ai-data/${aiCategory.path}index.json`);
         const catIndex = await idxRes.json();
 
         categoriesData.push({
@@ -460,7 +460,7 @@ const App: React.FC = () => {
 
 
         for (const badgeIndex of (catIndex.badgesData || [])) {
-          const badgeRes = await fetch(`/ai-data/${aiCategory.path}${badgeIndex.id}.json`);
+          const badgeRes = await fetch(`${assetBase}ai-data/${aiCategory.path}${badgeIndex.id}.json`);
           const aiBadge = await badgeRes.json();
 
           if (aiBadge.levels && aiBadge.levels.length) {
@@ -764,12 +764,12 @@ const App: React.FC = () => {
       const normalizedKey = alias(key);
 
       // Путь по текущей категории
-      const primaryPath = `/ai-data/category-${selectedCategory.id}/${type}/${normalizedKey}`;
+      const primaryPath = `${assetBase}ai-data/category-${selectedCategory.id}/${type}/${normalizedKey}`;
       let response = await fetch(primaryPath);
       
       // Если файл отсутствует в категории, пробуем стандартную папку категории 14
       if (!response.ok) {
-        const fallbackPath = `/ai-data/category-14/${type}/${normalizedKey}`;
+        const fallbackPath = `${assetBase}ai-data/category-14/${type}/${normalizedKey}`;
         console.warn('Primary material not found, trying fallback:', primaryPath, '->', fallbackPath);
         response = await fetch(fallbackPath);
         if (!response.ok) {
@@ -862,7 +862,7 @@ const App: React.FC = () => {
   const renderIntro = () => (
     <div className="intro-screen">
       <div className="intro-logo" onClick={handleLogoClick}>
-        <img src="./pictures/домик_AI.jpg" alt="Логотип" />
+        <img src={`${assetBase}pictures/домик_AI.jpg`} alt="Логотип" />
         <div className="logo-hover-text">ОСЕННЯЯ СМЕНА 2025</div>
       </div>
       <div className="intro-content">
@@ -2671,9 +2671,9 @@ const App: React.FC = () => {
           cursor: pointer;
           position: relative;
           overflow: hidden;
-          background: 
+          background:
             linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)),
-            url('./pictures/софт скиллз.png') center/cover no-repeat;
+            url('${assetBase}pictures/софт скиллз.png') center/cover no-repeat;
         }
 
         .benefit-item.clickable::after {
@@ -2854,9 +2854,9 @@ const App: React.FC = () => {
           width: 100%;
           height: 200px;
           border-radius: 15px;
-          background: 
+          background:
             linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)),
-            url('/pictures/nCaCWzejfe1KQgvdwHWHGKONG2w1lF7h9SxMAlW-iojQZrvq7_gmxF4ZJyNBFuXZkuPE5WE489c9OXvgknit3wsR.jpg') center/50% no-repeat;
+            url('${assetBase}pictures/nCaCWzejfe1KQgvdwHWHGKONG2w1lF7h9SxMAlW-iojQZrvq7_gmxF4ZJyNBFuXZkuPE5WE489c9OXvgknit3wsR.jpg') center/50% no-repeat;
           transition: all 0.3s ease;
           display: flex;
           align-items: flex-end;
@@ -2865,9 +2865,9 @@ const App: React.FC = () => {
         }
 
         .reviews-container:hover .reviews-image {
-          background: 
+          background:
             linear-gradient(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.1)),
-            url('/pictures/nCaCWzejfe1KQgvdwHWHGKONG2w1lF7h9SxMAlW-iojQZrvq7_gmxF4ZJyNBFuXZkuPE5WE489c9OXvgknit3wsR.jpg') center/50% no-repeat;
+            url('${assetBase}pictures/nCaCWzejfe1KQgvdwHWHGKONG2w1lF7h9SxMAlW-iojQZrvq7_gmxF4ZJyNBFuXZkuPE5WE489c9OXvgknit3wsR.jpg') center/50% no-repeat;
           transform: scale(1.02);
         }
 
@@ -3128,9 +3128,9 @@ const App: React.FC = () => {
 
                                    .header {
             margin-bottom: 0.4rem; /* Уменьшили отступ снизу */
-            background: 
+            background:
               linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.2) 100%),
-              url('./pictures/паттерн стикеры — копия (2).jpg') center center / 100% no-repeat;
+              url('${assetBase}pictures/паттерн стикеры — копия (2).jpg') center center / 100% no-repeat;
             padding: 0.3rem; /* Уменьшили padding */
             border-radius: 15px;
             backdrop-filter: blur(5px);
@@ -3141,9 +3141,9 @@ const App: React.FC = () => {
           }
 
           .category-screen .header {
-            background: 
+            background:
               linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.2) 100%),
-              url('./pictures/паттерн значки.jpg') center 71% / 100% no-repeat !important;
+              url('${assetBase}pictures/паттерн значки.jpg') center 71% / 100% no-repeat !important;
             position: relative;
           }
 
@@ -4411,9 +4411,9 @@ const App: React.FC = () => {
 
         /* Session Info Styles */
         .session-info {
-          background: 
+          background:
             linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)),
-            url('./pictures/весна 2.jpg') center 10%/50% no-repeat;
+            url('${assetBase}pictures/весна 2.jpg') center 10%/50% no-repeat;
           border: 2px solid rgba(255, 215, 0, 0.6);
           border-radius: 15px;
           padding: 15px;
@@ -4446,9 +4446,9 @@ const App: React.FC = () => {
           transform: translateY(-5px);
           box-shadow: 0 15px 40px rgba(255, 215, 0, 0.3);
           border-color: rgba(255, 215, 0, 0.9);
-          background: 
+          background:
             linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)),
-            url('./pictures/весна 2.jpg') center 10%/50% no-repeat;
+            url('${assetBase}pictures/весна 2.jpg') center 10%/50% no-repeat;
         }
 
         .session-info h4 {
