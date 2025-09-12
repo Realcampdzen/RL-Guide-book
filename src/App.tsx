@@ -1529,11 +1529,11 @@ const App: React.FC = () => {
            // Определяем фон в зависимости от уровня
       const getBackgroundImage = () => {
         if (selectedLevel === 'Продвинутый уровень' || selectedLevel === 'Продвинутый уровень ') {
-          return 'url("/RL-Guide-book/экран 5 фон.png")';
+          return 'url("/RL-Guide-book/screen5_bg.png")';
         } else if (selectedLevel === 'Экспертный уровень') {
-          return 'url("/RL-Guide-book/экран 6 фон.png")';
+          return 'url("/RL-Guide-book/screen6_bg.png")';
         }
-        return 'url("/RL-Guide-book/экран 3 фон.png")'; // Дефолтный фон для других уровней
+        return 'url("/RL-Guide-book/screen3_bg.png")'; // Дефолтный фон для других уровней
       };
 
     // Определяем группу значка для уровня
@@ -3097,7 +3097,7 @@ const App: React.FC = () => {
             padding: 1rem;
             background: 
               linear-gradient(135deg, rgba(12, 12, 12, 0.3) 0%, rgba(26, 26, 46, 0.3) 50%, rgba(22, 33, 62, 0.3) 100%),
-                             url('/RL-Guide-book/экран 3 фон.png') center top / 100% no-repeat;
+                             url('/RL-Guide-book/screen3_bg.png') center top / 100% no-repeat;
           }
 
           .badge-level-screen {
@@ -4104,7 +4104,7 @@ const App: React.FC = () => {
           padding: 1rem;
           background: 
             linear-gradient(135deg, rgba(12, 12, 12, 0.3) 0%, rgba(26, 26, 46, 0.3) 50%, rgba(22, 33, 62, 0.3) 100%),
-            url('/RL-Guide-book/экран 3 фон.png') center center / 100% no-repeat;
+            url('/RL-Guide-book/screen3_bg.png') center center / 100% no-repeat;
         }
 
         .introduction-content, .additional-material-content {
@@ -4496,7 +4496,7 @@ const App: React.FC = () => {
           padding: 1rem;
           background: 
             linear-gradient(135deg, rgba(12, 12, 12, 0.3) 0%, rgba(26, 26, 46, 0.3) 50%, rgba(22, 33, 62, 0.3) 100%),
-            url('/RL-Guide-book/экран 3 фон.png') center center / 100% no-repeat;
+            url('/RL-Guide-book/screen3_bg.png') center center / 100% no-repeat;
         }
 
         .registration-form-content {
