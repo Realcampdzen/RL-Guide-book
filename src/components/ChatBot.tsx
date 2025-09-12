@@ -166,7 +166,7 @@ const ChatBot: React.FC<ChatBotProps> = ({
       display: 'flex',
       alignItems: 'flex-start',
       justifyContent: 'flex-end',
-      zIndex: 1000,
+      zIndex: 10000,
       padding: '20px',
       animation: 'fadeIn 0.3s ease-out',
       pointerEvents: 'none' // Позволяет кликать сквозь фон
