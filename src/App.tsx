@@ -48,85 +48,85 @@ const getCategoryIcon = (categoryId: string): string | JSX.Element => {
     case '1': // Категория 1
       return <img 
         className="category-1-icon"
-        src="/category_1.png" 
+        src="/RL-Guide-book/category_1.png" 
         alt="Категория 1" 
       />;
     case '2': // Категория 2
       return <img 
         className="category-2-icon"
-        src="/category_2.png" 
+        src="/RL-Guide-book/category_2.png" 
         alt="Категория 2" 
       />;
     case '3': // Категория 3
       return <img 
         className="category-3-icon"
-        src="/category_3.png" 
+        src="/RL-Guide-book/category_3.png" 
         alt="Категория 3" 
       />;
     case '4': // Категория 4
       return <img 
         className="category-4-icon"
-        src="/category_4.png" 
+        src="/RL-Guide-book/category_4.png" 
         alt="Категория 4" 
       />;
     case '5': // Категория 5
       return <img 
         className="category-5-icon"
-        src="/category_5.png" 
+        src="/RL-Guide-book/category_5.png" 
         alt="Категория 5" 
       />;
     case '6': // Категория 6
       return <img 
         className="category-6-icon"
-        src="/category_6.png" 
+        src="/RL-Guide-book/category_6.png" 
         alt="Категория 6" 
       />;
     case '7': // Категория 7
       return <img 
         className="category-7-icon"
-        src="/category_7.png" 
+        src="/RL-Guide-book/category_7.png" 
         alt="Категория 7" 
       />;
     case '8': // Категория 8
       return <img 
         className="category-8-icon"
-        src="/category_8.png" 
+        src="/RL-Guide-book/category_8.png" 
         alt="Категория 8" 
       />;
     case '9': // Категория 9
       return <img 
         className="category-9-icon"
-        src="/category_9.png" 
+        src="/RL-Guide-book/category_9.png" 
         alt="Категория 9" 
       />;
     case '10': // Категория 10
       return <img 
         className="category-10-icon"
-        src="/category_10.png" 
+        src="/RL-Guide-book/category_10.png" 
         alt="Категория 10" 
       />;
     case '11': // Категория 11
       return <img 
         className="category-11-icon"
-        src="/category_11.png" 
+        src="/RL-Guide-book/category_11.png" 
         alt="Категория 11" 
       />;
     case '12': // ИИ
       return <img 
         className="category-12-icon"
-        src="/stanpol__vector_logo_symbol_of_AI_and_creativity_for_children_a_a7e3ac1a-6ecd-48ee-a84b-11cca3a6047f.png" 
+        src="/RL-Guide-book/pictures/stanpol__vector_logo_symbol_of_AI_and_creativity_for_children_a_a7e3ac1a-6ecd-48ee-a84b-11cca3a6047f.png" 
         alt="ИИ" 
       />;
     case '13': // Категория 13
       return <img 
         className="category-13-icon"
-        src="/category_13.png" 
+        src="/RL-Guide-book/category_13.png" 
         alt="Категория 13" 
       />;
     case '14': // Категория 14
       return <img 
         className="category-14-icon"
-        src="/category_14.png" 
+        src="/RL-Guide-book/category_14.png" 
         alt="Категория 14" 
       />;
     default:
@@ -847,7 +847,7 @@ const App: React.FC = () => {
   const renderIntro = () => (
     <div className="intro-screen">
       <div className="intro-logo" onClick={handleLogoClick}>
-        <img src="/домик_AI.jpg" alt="Логотип" />
+        <img src="/RL-Guide-book/домик_AI.jpg" alt="Логотип" />
         <div className="logo-hover-text">ОСЕННЯЯ СМЕНА 2025</div>
       </div>
       <div className="intro-content">
@@ -1907,7 +1907,7 @@ const App: React.FC = () => {
           <div className="benefits-grid">
                             <div className="benefit-item clickable" style={{
                   background: 
-                    'linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url("/skills_4k.png") center/cover no-repeat',
+                    'linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url("/RL-Guide-book/skills_4k.png") center/cover no-repeat',
                   cursor: 'pointer'
                 }} onClick={() => {
                   const category = categories.find(c => c.id === "13");
@@ -1933,7 +1933,7 @@ const App: React.FC = () => {
                 </div>
             <div className="benefit-item clickable" style={{
               background: 
-                'linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url("/ai_camp.png") center/cover no-repeat',
+                'linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url("/RL-Guide-book/ai_camp.png") center/cover no-repeat',
               cursor: 'pointer'
             }} onClick={() => {
               const category = categories.find(c => c.id === "12");
@@ -1954,7 +1954,7 @@ const App: React.FC = () => {
             </div>
             <div className="benefit-item clickable" style={{
               background: 
-                'linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url("/co_management.png") center/cover no-repeat',
+                'linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url("/RL-Guide-book/co_management.png") center/cover no-repeat',
               cursor: 'pointer'
             }} onClick={() => {
               const category = categories.find(c => c.id === "9");
@@ -1981,7 +1981,7 @@ const App: React.FC = () => {
           <div className="posts-section">
             <a href="https://vk.com/wall-57701087_9100" target="_blank" rel="noopener noreferrer" className="post-link">
               <div className="post-image">
-                <img src="/pictures/Wr8s1lqBl95mo9__Pw4CSouLulbnCQRdCt31tWGcKWGlLmXRD60QviGdQG1ASrS3KkfW4t6wFumMhG4myCTZEaKT.jpg" alt="Пост 1" />
+                <img src="/RL-Guide-book/pictures/Wr8s1lqBl95mo9__Pw4CSouLulbnCQRdCt31tWGcKWGlLmXRD60QviGdQG1ASrS3KkfW4t6wFumMhG4myCTZEaKT.jpg" alt="Пост 1" />
               </div>
               <div className="post-title">
                 <div className="post-main-title">🔥 Вожатские кейсы и педагогика</div>
@@ -1995,7 +1995,7 @@ const App: React.FC = () => {
             </a>
             <a href="https://vk.com/wall-57701087_9080" target="_blank" rel="noopener noreferrer" className="post-link">
               <div className="post-image">
-                <img src="/pictures/HvRgNN4EUqGaVKKmQYwOnSESzm3zhN8NLN7psGe2xTbuscFg5h0oIIxbtlYIkCIO1zj2TUQYoFAKy9pYquEpfGrR.jpg" alt="Пост 2" />
+                <img src="/RL-Guide-book/pictures/HvRgNN4EUqGaVKKmQYwOnSESzm3zhN8NLN7psGe2xTbuscFg5h0oIIxbtlYIkCIO1zj2TUQYoFAKy9pYquEpfGrR.jpg" alt="Пост 2" />
               </div>
               <div className="post-title">
                 <div className="post-main-title">🚀 Дети сами организуют отрядные дела!</div>
@@ -2009,7 +2009,7 @@ const App: React.FC = () => {
             </a>
             <a href="https://vk.com/wall-57701087_9072" target="_blank" rel="noopener noreferrer" className="post-link">
               <div className="post-image">
-                <img src="/pictures/wa1Ma_l5j4S2gV8sBeNLTw0cftt3WLplAEvXI9RW-qd5-uWJCslMqRRXGcFhKFEIr0Ck2teKZBiFzyRIeMfWLiLE.jpg" alt="Пост 3" />
+                <img src="/RL-Guide-book/pictures/wa1Ma_l5j4S2gV8sBeNLTw0cftt3WLplAEvXI9RW-qd5-uWJCslMqRRXGcFhKFEIr0Ck2teKZBiFzyRIeMfWLiLE.jpg" alt="Пост 3" />
               </div>
               <div className="post-title">
                 <div className="post-main-title">🎨 Нейродизайн и агентные системы</div>
@@ -2023,7 +2023,7 @@ const App: React.FC = () => {
             </a>
             <a href="https://vk.com/wall-57701087_9049" target="_blank" rel="noopener noreferrer" className="post-link">
               <div className="post-image">
-                <img src="/pictures/2025-09-11_05-28-13.png" alt="Пост 4" />
+                <img src="/RL-Guide-book/pictures/2025-09-11_05-28-13.png" alt="Пост 4" />
               </div>
               <div className="post-title">
                 <div className="post-main-title">🏴‍☠️ Пираты похитили Бурыча!</div>
@@ -2037,7 +2037,7 @@ const App: React.FC = () => {
             </a>
             <a href="https://vk.com/wall-57701087_9009" target="_blank" rel="noopener noreferrer" className="post-link">
               <div className="post-image">
-                <img src="/pictures/4pCDWvEw_uyf3q8yQbhfsPpfDSVOMYkkexIZCudbxTsmqN8iA3jIT8TwpNtXbGliD_YCpD2nZhQZXajz4-0KFg-1.jpg" alt="Пост 5" />
+                <img src="/RL-Guide-book/pictures/4pCDWvEw_uyf3q8yQbhfsPpfDSVOMYkkexIZCudbxTsmqN8iA3jIT8TwpNtXbGliD_YCpD2nZhQZXajz4-0KFg-1.jpg" alt="Пост 5" />
               </div>
               <div className="post-title">
                 <div className="post-main-title">🎶 Музыкальный продюсер с Suno AI</div>
@@ -2051,7 +2051,7 @@ const App: React.FC = () => {
             </a>
             <a href="https://vk.com/wall-57701087_9006" target="_blank" rel="noopener noreferrer" className="post-link">
               <div className="post-image">
-                <img src="/pictures/w38A7umTNl1ECHO8HtrN9KRFmpwNLoCd19DGmO1qdPcLBENPbYsFQuzJOoDej_zxEcHDnRvDGUayZgs1mOMSkam3.jpg" alt="Пост 6" />
+                <img src="/RL-Guide-book/pictures/w38A7umTNl1ECHO8HtrN9KRFmpwNLoCd19DGmO1qdPcLBENPbYsFQuzJOoDej_zxEcHDnRvDGUayZgs1mOMSkam3.jpg" alt="Пост 6" />
               </div>
               <div className="post-title">
                 <div className="post-main-title">🥊 Мастер-класс по самообороне</div>
@@ -2065,7 +2065,7 @@ const App: React.FC = () => {
             </a>
             <a href="https://vk.com/wall-57701087_8995" target="_blank" rel="noopener noreferrer" className="post-link">
               <div className="post-image">
-                <img src="/pictures/2025-09-11_05-25-15.png" alt="Пост 7" />
+                <img src="/RL-Guide-book/pictures/2025-09-11_05-25-15.png" alt="Пост 7" />
               </div>
               <div className="post-title">
                 <div className="post-main-title">🕯️ Огонёк откровений</div>
@@ -2079,7 +2079,7 @@ const App: React.FC = () => {
             </a>
             <a href="https://vk.com/wall-57701087_8994" target="_blank" rel="noopener noreferrer" className="post-link">
               <div className="post-image">
-                <img src="/pictures/vKjyH96aNgNYbg14n545f0j1tZqG12tBI3L83kyz-8ofHa9DnmG-p41grb0hrbwUoNGteh0fdssSerJNH2GXffZN.jpg" alt="Пост 8" />
+                <img src="/RL-Guide-book/pictures/vKjyH96aNgNYbg14n545f0j1tZqG12tBI3L83kyz-8ofHa9DnmG-p41grb0hrbwUoNGteh0fdssSerJNH2GXffZN.jpg" alt="Пост 8" />
               </div>
               <div className="post-title">
                 <div className="post-main-title">🚀 EggX: лётно-конструкторские испытания</div>
@@ -2093,7 +2093,7 @@ const App: React.FC = () => {
             </a>
             <a href="https://vk.com/wall-57701087_8927" target="_blank" rel="noopener noreferrer" className="post-link">
               <div className="post-image">
-                <img src="/pictures/2025-09-11_05-21-21.png" alt="Пост 9" />
+                <img src="/RL-Guide-book/pictures/2025-09-11_05-21-21.png" alt="Пост 9" />
               </div>
               <div className="post-title">
                 <div className="post-main-title">😎 Сигма-Бро в Реальном Лагере</div>
@@ -2402,7 +2402,7 @@ const App: React.FC = () => {
            align-items: center;
            background: 
              linear-gradient(135deg, rgba(12, 12, 12, 0.3) 0%, rgba(26, 26, 46, 0.3) 50%, rgba(22, 33, 62, 0.3) 100%),
-            url('/экран 1 фон copy.png') center top / 100% 100% no-repeat;
+            url('/RL-Guide-book/экран 1 фон copy.png') center top / 100% 100% no-repeat;
            backdrop-filter: blur(10px);
          }
 
@@ -2483,7 +2483,7 @@ const App: React.FC = () => {
           height: 100%;
           background: 
             linear-gradient(135deg, rgba(12, 12, 12, 0.3) 0%, rgba(26, 26, 46, 0.3) 50%, rgba(22, 33, 62, 0.3) 100%),
-            url('/экран 1 фон copy.png') center top / 100% 100% no-repeat;
+            url('/RL-Guide-book/экран 1 фон copy.png') center top / 100% 100% no-repeat;
           backdrop-filter: blur(10px);
           overflow-y: auto;
         }
@@ -2658,7 +2658,7 @@ const App: React.FC = () => {
           overflow: hidden;
           background: 
             linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)),
-            url('/pictures/Stan_Pol__beutiful_camera__vector_logo_e16e2508-69e8-4bf6-9cdf-8b7012558c5e.png') center/cover no-repeat;
+            url('/RL-Guide-book/pictures/Stan_Pol__beutiful_camera__vector_logo_e16e2508-69e8-4bf6-9cdf-8b7012558c5e.png') center/cover no-repeat;
         }
 
         .benefit-item.clickable::after {
@@ -2841,7 +2841,7 @@ const App: React.FC = () => {
           border-radius: 15px;
           background: 
             linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)),
-            url('/pictures/nCaCWzejfe1KQgvdwHWHGKONG2w1lF7h9SxMAlW-iojQZrvq7_gmxF4ZJyNBFuXZkuPE5WE489c9OXvgknit3wsR.jpg') center/50% no-repeat;
+            url('/RL-Guide-book/pictures/nCaCWzejfe1KQgvdwHWHGKONG2w1lF7h9SxMAlW-iojQZrvq7_gmxF4ZJyNBFuXZkuPE5WE489c9OXvgknit3wsR.jpg') center/50% no-repeat;
           transition: all 0.3s ease;
           display: flex;
           align-items: flex-end;
@@ -2852,7 +2852,7 @@ const App: React.FC = () => {
         .reviews-container:hover .reviews-image {
           background: 
             linear-gradient(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.1)),
-            url('/pictures/nCaCWzejfe1KQgvdwHWHGKONG2w1lF7h9SxMAlW-iojQZrvq7_gmxF4ZJyNBFuXZkuPE5WE489c9OXvgknit3wsR.jpg') center/50% no-repeat;
+            url('/RL-Guide-book/pictures/nCaCWzejfe1KQgvdwHWHGKONG2w1lF7h9SxMAlW-iojQZrvq7_gmxF4ZJyNBFuXZkuPE5WE489c9OXvgknit3wsR.jpg') center/50% no-repeat;
           transform: scale(1.02);
         }
 
@@ -3082,7 +3082,7 @@ const App: React.FC = () => {
             padding: 1rem;
             background: 
               linear-gradient(135deg, rgba(12, 12, 12, 0.3) 0%, rgba(26, 26, 46, 0.3) 50%, rgba(22, 33, 62, 0.3) 100%),
-                             url('/экран 2 фон.png') center center / cover no-repeat;
+                             url('/RL-Guide-book/экран 2 фон.png') center center / cover no-repeat;
           }
 
                    .category-screen,
@@ -3115,7 +3115,7 @@ const App: React.FC = () => {
             margin-bottom: 0.4rem; /* Уменьшили отступ снизу */
             background: 
               linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.2) 100%),
-              url('/pattern_stickers.jpg') center center / 100% no-repeat;
+              url('/RL-Guide-book/pattern_stickers.jpg') center center / 100% no-repeat;
             padding: 0.3rem; /* Уменьшили padding */
             border-radius: 15px;
             backdrop-filter: blur(5px);
@@ -3128,7 +3128,7 @@ const App: React.FC = () => {
           .category-screen .header {
             background: 
               linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.2) 100%),
-              url('/badges_photo.jpg') center 71% / 100% no-repeat !important;
+              url('/RL-Guide-book/badges_photo.jpg') center 71% / 100% no-repeat !important;
             position: relative;
           }
 
@@ -4398,7 +4398,7 @@ const App: React.FC = () => {
         .session-info {
           background: 
             linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)),
-            url('/pictures/Stan_Pol__beutiful_camera__vector_logo_e16e2508-69e8-4bf6-9cdf-8b7012558c5e.png') center 10%/50% no-repeat;
+            url('/RL-Guide-book/pictures/Stan_Pol__beutiful_camera__vector_logo_e16e2508-69e8-4bf6-9cdf-8b7012558c5e.png') center 10%/50% no-repeat;
           border: 2px solid rgba(255, 215, 0, 0.6);
           border-radius: 15px;
           padding: 15px;
@@ -4433,7 +4433,7 @@ const App: React.FC = () => {
           border-color: rgba(255, 215, 0, 0.9);
           background: 
             linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)),
-            url('/pictures/Stan_Pol__beutiful_camera__vector_logo_e16e2508-69e8-4bf6-9cdf-8b7012558c5e.png') center 10%/50% no-repeat;
+            url('/RL-Guide-book/pictures/Stan_Pol__beutiful_camera__vector_logo_e16e2508-69e8-4bf6-9cdf-8b7012558c5e.png') center 10%/50% no-repeat;
         }
 
         .session-info h4 {
@@ -4652,17 +4652,17 @@ const App: React.FC = () => {
         .header { 
           background: 
             linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.2) 100%),
-            url('/pattern_stickers.jpg') center top / cover no-repeat !important;
+            url('/RL-Guide-book/pattern_stickers.jpg') center top / cover no-repeat !important;
         }
         .category-screen .header { 
           background: 
             linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.2) 100%),
-            url('/badges_photo.jpg') center 40% / cover no-repeat !important;
+            url('/RL-Guide-book/badges_photo.jpg') center 40% / cover no-repeat !important;
         }
         .badge-screen .header { 
           background: 
             linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.2) 100%),
-            url('/pattern_stickers.jpg') center top / cover no-repeat !important;
+            url('/RL-Guide-book/pattern_stickers.jpg') center top / cover no-repeat !important;
         }
         /* Unify header heights between categories (screen 2) and category (screen 3) */
         .categories-screen .header,
@@ -4692,7 +4692,7 @@ const App: React.FC = () => {
         .about-camp-screen .header {
           background:
             linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.2) 100%),
-            url('/pattern_stickers.jpg') center top / cover no-repeat !important;
+            url('/RL-Guide-book/pattern_stickers.jpg') center top / cover no-repeat !important;
           min-height: 140px;
           padding: 0.6rem 0.8rem;
           display: flex;
