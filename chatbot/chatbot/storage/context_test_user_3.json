@@ -1,0 +1,21 @@
+{
+  "user_id": "test_user_3",
+  "current_category": "1",
+  "current_badge": "1.1",
+  "interests": [],
+  "level": "beginner",
+  "session_data": {
+    "current_view": "badge",
+    "web_category": {
+      "id": "1",
+      "title": "За личные достижения",
+      "emoji": "⭐"
+    },
+    "web_badge": {
+      "id": "1.1",
+      "title": "За личные достижения — Валюша",
+      "emoji": "🔹",
+      "category_id": "1"
+    }
+  }
+}

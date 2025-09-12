@@ -1,0 +1,169 @@
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+
+# nyc test coverage
+.nyc_output
+
+# Dependency directories
+jspm_packages/
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Microbundle cache
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# parcel-bundler cache (https://parceljs.org/)
+.cache
+.parcel-cache
+
+# Next.js build output
+.next
+
+# Nuxt.js build / generate output
+.nuxt
+dist
+
+# Gatsby files
+.cache/
+public
+
+# Storybook build outputs
+.out
+.storybook-out
+
+# Temporary folders
+tmp/
+temp/
+
+# Build outputs
+build/
+dist/
+
+# Test files (keep only essential ones)
+test_*.py
+test_*.html
+test_*.json
+debug_*.py
+simple_*.html
+
+# Reports (keep only final ones)
+*_REPORT.md
+*_FINAL_REPORT.md
+*_COMPLETE_REPORT.md
+*_STATUS_REPORT.md
+*_DEBUG_REPORT.md
+*_FIXED_REPORT.md
+*_INTEGRATION_REPORT.md
+*_WORKFLOW_REPORT.md
+*_INSTRUCTIONS.md
+*_GUIDE.md
+*_PLAN.md
+*_SETUP_REPORT.md
+*_ANALYSIS_REPORT.md
+*_UNDERSTANDING_REPORT.md
+*_PATTERN_REPORT.md
+*_AVATAR_REPORT.md
+*_UPDATE_REPORT.md
+*_FILTER_REPORT.md
+*_COMPLETION_REPORT.md
+*_PREPARATION_REPORT.md
+
+# Keep only essential reports
+!README.md
+!QUICK_START.md
+!LICENSE
+!CHANGELOG.md
+
+# Agent OS files (development only)
+agent-os/
+
+# AI Dev Tasks (development only)
+ai-dev-tasks/
+AI-DEV-TASKS-GUIDE.md
+AI-WORKFLOW.md
+AI-DATA-WORKFLOW.md
+
+# Temporary data files
+perfect_parsed_data.json
+test_data.json
+
+# Pictures (keep only essential ones)
+pictures/
+фон*.png
+
+# Keep only essential images
+!public/Валюша.jpg
+
+# Batch files (Windows specific)
+*.bat
+
+# Keep only essential batch files
+!start_all_services.bat
+!start_servers.bat

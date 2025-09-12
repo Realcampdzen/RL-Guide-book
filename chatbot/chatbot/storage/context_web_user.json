@@ -1,0 +1,14 @@
+{
+  "user_id": "web_user",
+  "current_category": "1",
+  "current_badge": null,
+  "interests": [],
+  "level": "beginner",
+  "session_data": {
+    "current_view": "about-camp",
+    "web_category": null,
+    "web_badge": null,
+    "current_level": null,
+    "current_level_badge_title": null
+  }
+}
