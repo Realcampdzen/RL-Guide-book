@@ -199,7 +199,7 @@ const ChatBot: React.FC<ChatBotProps> = ({
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div style={{ position: 'relative' }}>
               <img 
-                src="/Валюша.jpg" 
+                src="/RL-Guide-book/Валюша.jpg" 
                 alt="НейроВалюша" 
                 style={{ 
                   width: '40px', 
@@ -336,7 +336,7 @@ const ChatBot: React.FC<ChatBotProps> = ({
             <div style={{ textAlign: 'center', color: '#a0aec0', padding: '30px 0' }}>
               <div style={{ position: 'relative', display: 'inline-block', marginBottom: '20px' }}>
                 <img 
-                  src="/Валюша.jpg" 
+                  src="/RL-Guide-book/Валюша.jpg" 
                   alt="НейроВалюша" 
                   style={{ 
                     width: '80px', 

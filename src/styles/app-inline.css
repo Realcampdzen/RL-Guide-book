@@ -12,7 +12,7 @@
   align-items: center;
   background: 
     linear-gradient(135deg, rgba(12, 12, 12, 0.3) 0%, rgba(26, 26, 46, 0.3) 50%, rgba(22, 33, 62, 0.3) 100%),
-    url('/ai_camp.png') center top / 100% 100% no-repeat;
+    url('/RL-Guide-book/ai_camp.png') center top / 100% 100% no-repeat;
   backdrop-filter: blur(10px);
 }
 
@@ -114,7 +114,7 @@
   overflow: hidden;
   background: 
     linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)),
-    url('/pattern_stickers.jpg') center/cover no-repeat;
+    url('/RL-Guide-book/pattern_stickers.jpg') center/cover no-repeat;
 }
 
 .benefit-item.clickable::after {
@@ -410,7 +410,7 @@
   padding: 1rem;
   background: 
     linear-gradient(135deg, rgba(12, 12, 12, 0.3) 0%, rgba(26, 26, 46, 0.3) 50%, rgba(22, 33, 62, 0.3) 100%),
-    url('/экран 2 фон.png') center center / cover no-repeat;
+    url('/RL-Guide-book/экран 2 фон.png') center center / cover no-repeat;
 }
 
 .category-screen,
@@ -425,7 +425,7 @@
   padding: 1rem;
   background: 
     linear-gradient(135deg, rgba(12, 12, 12, 0.3) 0%, rgba(26, 26, 46, 0.3) 50%, rgba(22, 33, 62, 0.3) 100%),
-    url('/экран 3 фон.png') center top / cover no-repeat;
+    url('/RL-Guide-book/экран 3 фон.png') center top / cover no-repeat;
 }
 
 .badge-level-screen {
@@ -443,7 +443,7 @@
   margin-bottom: 0.4rem;
   background: 
     linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.2) 100%),
-    url('/pattern_stickers.jpg') center center / 100% no-repeat;
+    url('/RL-Guide-book/pattern_stickers.jpg') center center / 100% no-repeat;
   padding: 0.3rem;
   border-radius: 15px;
   backdrop-filter: blur(5px);
@@ -452,7 +452,7 @@
 .category-screen .header {
   background: 
     linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.2) 100%),
-    url('/badges_photo.jpg') center 71% / 100% no-repeat !important;
+    url('/RL-Guide-book/badges_photo.jpg') center 71% / 100% no-repeat !important;
   position: relative;
 }
 

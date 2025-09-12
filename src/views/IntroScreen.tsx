@@ -8,7 +8,7 @@ interface IntroScreenProps {
 const IntroScreen: React.FC<IntroScreenProps> = ({ onLogoClick, onStartClick }) => (
   <div className="intro-screen">
     <div className="intro-logo" onClick={onLogoClick}>
-      <img src="/домик_AI.jpg" alt="Логотип" />
+      <img src="/RL-Guide-book/домик_AI.jpg" alt="Логотип" />
       <div className="logo-hover-text">Звёздный Городок 2025</div>
     </div>
     <div className="intro-content">
