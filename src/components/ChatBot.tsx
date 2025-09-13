@@ -74,39 +74,30 @@ const ChatBot: React.FC<ChatBotProps> = ({
     setIsLoading(true);
 
     try {
-      // Прямой вызов OpenAI API
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      // Используем наш backend API
+      const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${(import.meta as any).env.VITE_OPENAI_API_KEY || 'YOUR_API_KEY_HERE'}`
         },
         body: JSON.stringify({
-          model: "gpt-3.5-turbo",
-          messages: [
-            {
-              role: "system",
-              content: `Ты НейроВалюша - цифровая вожатая проекта "Реальный Лагерь". Помогаешь участникам с системой значков и достижений. Отвечай дружелюбно и по-русски.`
-            },
-            {
-              role: "user", 
-              content: text
-            }
-          ],
-          max_tokens: 500,
-          temperature: 0.7
+          message: text,
+          user_id: 'web_user',
+          context: {
+            currentView,
+            currentCategory,
+            currentBadge,
+            currentLevelBadgeTitle
+          }
         }),
       });
 
       const data = await response.json();
       
-      // Обрабатываем ответ OpenAI
-      const botResponse = data.choices?.[0]?.message?.content || 'Извините, не могу ответить сейчас.';
-
       if (response.ok) {
         const botMessage: Message = {
           id: (Date.now() + 1).toString(),
-          text: botResponse,
+          text: data.response || 'Извините, не могу ответить сейчас.',
           isUser: false,
           timestamp: new Date()
         };
@@ -114,16 +105,27 @@ const ChatBot: React.FC<ChatBotProps> = ({
       } else {
         const errorMessage: Message = {
           id: (Date.now() + 1).toString(),
-          text: data.message || 'Чат-бот временно недоступен',
+          text: data.message || 'Ошибка соединения. Проверьте, что чат-бот запущен.',
           isUser: false,
           timestamp: new Date()
         };
         setMessages(prev => [...prev, errorMessage]);
       }
     } catch (error) {
+      // Fallback ответы для случая, когда backend недоступен
+      const fallbackResponses = [
+        "Привет! Я НейроВалюша, цифровая вожатая проекта 'Реальный Лагерь'! 🌟",
+        "К сожалению, мой сервер временно недоступен, но я могу рассказать о системе значков!",
+        "В 'Реальном Лагере' есть 14 категорий значков для развития разных навыков!",
+        "Хочешь узнать о значках? Посмотри категории в главном меню!",
+        "Система значков помогает отслеживать прогресс и достижения участников лагеря!"
+      ];
+      
+      const randomResponse = fallbackResponses[Math.floor(Math.random() * fallbackResponses.length)];
+      
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: 'Ошибка соединения. Проверьте, что чат-бот запущен.',
+        text: randomResponse,
         isUser: false,
         timestamp: new Date()
       };
