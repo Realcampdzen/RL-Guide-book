@@ -60,7 +60,7 @@ export default async function handler(req, res) {
         }
 
         // Инициализируем Google AI
-        const genAI = new GoogleGenerativeAI(process.env.OPENAI_API_KEY);
+        const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
         const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
         // Создаем промпт с системным сообщением
