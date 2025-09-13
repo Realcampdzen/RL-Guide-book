@@ -12,6 +12,9 @@ export default async function handler(req, res) {
     return;
   }
 
+  // Добавляем timestamp для принудительного редеплоя
+  console.log('🔄 Debug API вызван:', new Date().toISOString());
+
   if (req.method === 'GET') {
     try {
       console.log('🔍 Диагностика данных...');
