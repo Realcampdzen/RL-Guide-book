@@ -1,5 +1,5 @@
 // API endpoint для чат-бота НейроВалюши
-import { dataLoader } from '../data_loader.js';
+import { dataLoaderAIData } from '../data_loader_ai_data.js';
 import { contextManager } from '../context_manager.js';
 import { responseGenerator } from '../response_generator.js';
 
