@@ -74,39 +74,39 @@ const ChatBot: React.FC<ChatBotProps> = ({
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/chat', {
+      // Прямой вызов OpenAI API
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.REACT_APP_OPENAI_API_KEY || 'YOUR_API_KEY_HERE'}`
         },
         body: JSON.stringify({
-          message: text,
-          user_id: 'web_user',
-          context: {
-            current_view: currentView || 'chat',
-            current_category: currentCategory ? {
-              id: currentCategory.id,
-              title: currentCategory.title,
-              emoji: currentCategory.emoji
-            } : null,
-            current_badge: currentBadge ? {
-              id: currentBadge.id,
-              title: currentBadge.title,
-              emoji: currentBadge.emoji,
-              category_id: currentBadge.categoryId
-            } : null,
-            current_level: currentLevel || null,
-            current_level_badge_title: currentLevelBadgeTitle || null
-          }
+          model: "gpt-3.5-turbo",
+          messages: [
+            {
+              role: "system",
+              content: `Ты НейроВалюша - цифровая вожатая проекта "Реальный Лагерь". Помогаешь участникам с системой значков и достижений. Отвечай дружелюбно и по-русски.`
+            },
+            {
+              role: "user", 
+              content: text
+            }
+          ],
+          max_tokens: 500,
+          temperature: 0.7
         }),
       });
 
       const data = await response.json();
+      
+      // Обрабатываем ответ OpenAI
+      const botResponse = data.choices?.[0]?.message?.content || 'Извините, не могу ответить сейчас.';
 
       if (response.ok) {
         const botMessage: Message = {
           id: (Date.now() + 1).toString(),
-          text: data.response || 'Извините, произошла ошибка',
+          text: botResponse,
           isUser: false,
           timestamp: new Date()
         };
