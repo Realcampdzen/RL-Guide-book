@@ -81,6 +81,8 @@ export class ResponseGenerator {
     const messageLower = message.toLowerCase();
     const currentView = context.session_data.current_view || '';
     const currentLevel = context.session_data.current_level || '';
+    
+    console.log(`🔍 analyzeRequestType: message="${message}", currentView="${currentView}", currentCategory="${context.current_category}"`);
 
     // Запросы вида "где я нахожусь?", "что за экран?"
     const whereTriggers = [
@@ -156,6 +158,7 @@ export class ResponseGenerator {
       return "general";
     }
 
+    console.log(`🔍 analyzeRequestType: возвращаем "general"`);
     return "general";
   }
 

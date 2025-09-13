@@ -40,6 +40,9 @@ const ChatBot: React.FC<ChatBotProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  // Генерируем уникальный user_id для каждого сеанса
+  const [userId] = useState(() => `web_user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
 
   // Автопрокрутка к последнему сообщению
   const scrollToBottom = () => {
@@ -82,7 +85,7 @@ const ChatBot: React.FC<ChatBotProps> = ({
         },
         body: JSON.stringify({
           message: text,
-          user_id: 'web_user',
+          user_id: userId,
           context: {
             current_view: currentView,
             current_category: currentCategory ? currentCategory : null,
