@@ -357,22 +357,39 @@ ${userContextStr ? `Контекст пользователя: ${userContextStr}
 
   // Генерирует информацию о категории
   async generateCategoryInfo(message, context) {
+    console.log(`🏷️ generateCategoryInfo: current_category = "${context.current_category}"`);
+    
     if (!context.current_category) {
       return "Выбери категорию на экране — и я кратко объясню её философию и содержание.";
     }
 
     const category = this.dataLoader.getCategory(context.current_category);
+    console.log(`🏷️ Найденная категория:`, category ? `${category.emoji} ${category.title}` : 'НЕ НАЙДЕНА');
+    
     if (!category) {
       return "Похоже, такая категория отсутствует. Выбери её из списка.";
     }
 
-    // Используем AI для генерации ответа о категории
+    // Формируем подробную информацию о категории для AI
     const badges = category.badges || [];
     const sample = badges.slice(0, 5);
     const items = sample.map(b => `- ${b.emoji} ${b.title}: ${b.description.substring(0, 140)}`).join('\n');
-    const catContext = `В категории ${category.title} всего значков: ${badges.length}. Примеры значков:\n${items}\n`;
+    
+    let categoryInfo = `Категория "${category.emoji} ${category.title}":\n`;
+    categoryInfo += `Описание: ${category.description || 'Развитие важных навыков'}\n`;
+    categoryInfo += `Всего значков: ${badges.length}\n`;
+    if (category.introduction) {
+      categoryInfo += `Введение: ${category.introduction}\n`;
+    }
+    categoryInfo += `Примеры значков:\n${items}`;
 
-    const prompt = `Объясни категорию '${category.emoji} ${category.title}': ${catContext}`;
+    const prompt = `Пользователь спрашивает про категорию "${category.emoji} ${category.title}". 
+    
+${categoryInfo}
+
+Дай краткий, но информативный ответ о философии и содержании этой категории. 
+Объясни, какие навыки развивают значки в этой категории и почему они важны.
+Используй дружелюбный тон НейроВалюши.`;
 
     const systemPrompt = getSystemPromptWithContext({
       currentView: context.session_data?.current_view,
@@ -384,7 +401,7 @@ ${userContextStr ? `Контекст пользователя: ${userContextStr}
       userInterests: context.interests
     });
 
-    return await this.callOpenAI(prompt, systemPrompt, 700, 0.65);
+    return await this.callOpenAI(prompt, systemPrompt, 600, 0.65);
   }
 
   // Генерирует объяснение философии

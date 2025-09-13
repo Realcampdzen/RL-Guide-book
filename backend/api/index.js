@@ -61,6 +61,7 @@ export default async function handler(req, res) {
 
         // Получаем историю сообщений пользователя
         const conversationHistory = contextManager.getConversationHistory(user_id);
+        console.log(`💬 История диалога (${conversationHistory.length} сообщений):`, JSON.stringify(conversationHistory.slice(-3), null, 2));
         
         // Получаем обновленный контекст для отладки
         const userContext = contextManager.getUserContext(user_id);
