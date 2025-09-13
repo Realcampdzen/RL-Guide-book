@@ -1,5 +1,8 @@
 {
   "name": "rl-guide-api",
   "version": "1.0.0",
-  "description": "API для Путеводителя Реального Лагеря"
+  "description": "API для Путеводителя Реального Лагеря",
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1"
+  }
 }
