@@ -9,17 +9,25 @@ let badgesCache = new Map();
 
 export class DataLoader {
   constructor() {
+    // В Vercel файлы находятся в корне проекта
     this.dataPath = path.join(process.cwd(), 'perfect_parsed_data.json');
+    console.log('📁 Путь к данным:', this.dataPath);
   }
 
   // Загружает все данные значков
   loadAllData() {
     if (badgeDataCache) {
+      console.log('📦 Используем кэшированные данные');
       return badgeDataCache;
     }
 
     try {
+      console.log('📂 Загружаем данные из файла:', this.dataPath);
       const data = JSON.parse(fs.readFileSync(this.dataPath, 'utf8'));
+      console.log('✅ Данные загружены:', {
+        categories: data.categories?.length || 0,
+        badges: data.badges?.length || 0
+      });
       
       // Загружаем категории
       const categories = data.categories.map(catInfo => {
@@ -98,8 +106,12 @@ export class DataLoader {
 
       return badgeDataCache;
     } catch (error) {
-      console.error('Ошибка загрузки данных:', error);
-      throw error;
+      console.error('❌ Ошибка загрузки данных:', error.message);
+      console.error('📁 Путь к файлу:', this.dataPath);
+      console.error('📂 Файл существует:', fs.existsSync(this.dataPath));
+      
+      // Возвращаем пустые данные вместо краша
+      return { categories: [], badges: [] };
     }
   }
 
