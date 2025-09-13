@@ -252,12 +252,13 @@ ${badgeInfo}
 Используй дружелюбный тон и эмодзи! 🎯`;
 
     const systemPrompt = getSystemPromptWithContext({
-      current_badge: badge.title,
-      user_level: context.level,
-      user_interests: context.interests,
-      current_view: context.session_data.current_view,
-      current_level: context.session_data.current_level,
-      current_level_badge_title: context.session_data.current_level_badge_title
+      currentView: context.session_data?.current_view,
+      currentCategory: context.current_category,
+      currentBadge: badge.title,
+      currentLevel: context.session_data?.current_level,
+      currentLevelBadgeTitle: context.session_data?.current_level_badge_title,
+      userLevel: context.level,
+      userInterests: context.interests
     });
 
     return await this.callOpenAI(prompt, systemPrompt, 800, 0.65);
@@ -295,12 +296,13 @@ ${userContextStr ? `Контекст пользователя: ${userContextStr}
 Формат: каждая идея с новой строки, начинается с эмодзи и краткого описания.`;
 
     const systemPrompt = getSystemPromptWithContext({
-      current_badge: badge.title,
-      user_level: context.level,
-      user_interests: context.interests,
-      current_view: context.session_data.current_view,
-      current_level: context.session_data.current_level,
-      current_level_badge_title: context.session_data.current_level_badge_title
+      currentView: context.session_data?.current_view,
+      currentCategory: context.current_category,
+      currentBadge: badge.title,
+      currentLevel: context.session_data?.current_level,
+      currentLevelBadgeTitle: context.session_data?.current_level_badge_title,
+      userLevel: context.level,
+      userInterests: context.interests
     });
 
     return await this.callOpenAI(prompt, systemPrompt, 700, 0.75);
@@ -313,11 +315,13 @@ ${userContextStr ? `Контекст пользователя: ${userContextStr}
 
     if (recommendations.length === 0) {
       const systemPrompt = getSystemPromptWithContext({
-        user_level: context.level,
-        user_interests: context.interests,
-        current_view: context.session_data.current_view,
-        current_level: context.session_data.current_level,
-        current_level_badge_title: context.session_data.current_level_badge_title
+        currentView: context.session_data?.current_view,
+        currentCategory: context.current_category,
+        currentBadge: context.current_badge,
+        currentLevel: context.session_data?.current_level,
+        currentLevelBadgeTitle: context.session_data?.current_level_badge_title,
+        userLevel: context.level,
+        userInterests: context.interests
       });
 
       return await this.callOpenAI("Пользователь просит рекомендации, но у нас нет данных для персонализации", systemPrompt, 500, 0.7);
@@ -339,11 +343,13 @@ ${userContextStr ? `Контекст пользователя: ${userContextStr}
     const prompt = `Дай персонализированные рекомендации значков на основе интересов пользователя:${recommendationsText}`;
 
     const systemPrompt = getSystemPromptWithContext({
-      user_level: context.level,
-      user_interests: context.interests,
-      current_view: context.session_data.current_view,
-      current_level: context.session_data.current_level,
-      current_level_badge_title: context.session_data.current_level_badge_title
+      currentView: context.session_data?.current_view,
+      currentCategory: context.current_category,
+      currentBadge: context.current_badge,
+      currentLevel: context.session_data?.current_level,
+      currentLevelBadgeTitle: context.session_data?.current_level_badge_title,
+      userLevel: context.level,
+      userInterests: context.interests
     });
 
     return await this.callOpenAI(prompt, systemPrompt, 600, 0.7);
@@ -369,12 +375,13 @@ ${userContextStr ? `Контекст пользователя: ${userContextStr}
     const prompt = `Объясни категорию '${category.emoji} ${category.title}': ${catContext}`;
 
     const systemPrompt = getSystemPromptWithContext({
-      current_category: category.id,
-      user_level: context.level,
-      user_interests: context.interests,
-      current_view: context.session_data.current_view,
-      current_level: context.session_data.current_level,
-      current_level_badge_title: context.session_data.current_level_badge_title
+      currentView: context.session_data?.current_view,
+      currentCategory: category.id,
+      currentBadge: context.current_badge,
+      currentLevel: context.session_data?.current_level,
+      currentLevelBadgeTitle: context.session_data?.current_level_badge_title,
+      userLevel: context.level,
+      userInterests: context.interests
     });
 
     return await this.callOpenAI(prompt, systemPrompt, 700, 0.65);
@@ -416,12 +423,13 @@ ${userContextStr ? `Контекст пользователя: ${userContextStr}
   async generateGeneralResponse(message, context, conversationHistory) {
     // Формируем системный промпт с контекстом
     const systemPrompt = getSystemPromptWithContext({
-      current_category: context.current_category || "",
-      current_badge: context.current_badge || "",
-      user_level: context.level,
-      user_interests: context.interests,
-      current_view: context.session_data.current_view,
-      current_level: context.session_data.current_level
+      currentView: context.session_data?.current_view,
+      currentCategory: context.current_category,
+      currentBadge: context.current_badge,
+      currentLevel: context.session_data?.current_level,
+      currentLevelBadgeTitle: context.session_data?.current_level_badge_title,
+      userLevel: context.level,
+      userInterests: context.interests
     });
 
     // Формируем сообщения для API
@@ -464,9 +472,13 @@ ${categoryId !== 'intro' ? `Информация о категории:\n${categ
 Используй дружелюбный тон и эмодзи для лучшего восприятия.`;
 
     const systemPrompt = getSystemPromptWithContext({
-      current_category: categoryId !== 'intro' ? categoryId : null,
-      user_level: context.level,
-      user_interests: context.interests
+      currentView: context.session_data?.current_view,
+      currentCategory: categoryId !== 'intro' ? categoryId : null,
+      currentBadge: context.current_badge,
+      currentLevel: context.session_data?.current_level,
+      currentLevelBadgeTitle: context.session_data?.current_level_badge_title,
+      userLevel: context.level,
+      userInterests: context.interests
     });
 
     return await this.callOpenAI(prompt, systemPrompt, 500, 0.6);
