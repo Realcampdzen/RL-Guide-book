@@ -42,11 +42,12 @@ class DataLoader:
             categories.append(category)
         
         # Создаем объект BadgeData
+        metadata = perfect_data.get("metadata", {})
         self._badge_data = BadgeData(
             project="Путеводитель",
             version="1.0",
-            totalCategories=perfect_data["metadata"]["total_categories"],
-            totalBadges=perfect_data["metadata"]["total_badges"],
+            totalCategories=metadata.get("total_categories", len(categories)),
+            totalBadges=metadata.get("total_badges", sum(len(cat.badges) for cat in categories)),
             categories=categories
         )
         

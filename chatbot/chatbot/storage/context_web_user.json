@@ -1,25 +1,20 @@
 {
   "user_id": "web_user",
   "current_category": "3",
-  "current_badge": "3.2",
+  "current_badge": null,
   "interests": [
     "технологии"
   ],
   "level": "beginner",
   "session_data": {
-    "current_view": "badge-level",
+    "current_view": "category",
     "web_category": {
       "id": "3",
       "title": "Медиа значки",
       "emoji": "📁"
     },
-    "web_badge": {
-      "id": "3.2.1",
-      "title": "Реальный Блогер",
-      "emoji": "✍️",
-      "category_id": "3"
-    },
-    "current_level": "Продвинутый уровень",
-    "current_level_badge_title": "Реальный Блогер"
+    "web_badge": null,
+    "current_level": null,
+    "current_level_badge_title": null
   }
 }

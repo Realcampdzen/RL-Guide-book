@@ -226,12 +226,13 @@ def health_check():
             with open(DATA_FILE, 'r', encoding='utf-8') as f:
                 data = json.load(f)
             
+            metadata = data.get("metadata", {})
             return jsonify({
                 "status": "healthy",
                 "data_file": DATA_FILE,
                 "total_categories": len(data.get("categories", [])),
                 "total_badges": len(data.get("badges", [])),
-                "last_parsed": data.get("metadata", {}).get("parsed_at", "unknown")
+                "last_parsed": metadata.get("parsed_at", "unknown")
             })
         else:
             return jsonify({
@@ -255,44 +256,107 @@ if __name__ == '__main__':
     else:
         print("⚠️ Файл данных не найден!")
     
+# Импорты для чат-бота
+import sys
+from pathlib import Path
+
+# Добавляем путь к модулям чат-бота
+CHATBOT_PATH = Path(__file__).parent.parent / "chatbot"
+sys.path.append(str(CHATBOT_PATH))
+
+# Глобальные переменные для компонентов чат-бота
+chatbot_components = {
+    'data_loader': None,
+    'openai_client': None,
+    'context_manager': None,
+    'response_generator': None
+}
+
+def initialize_chatbot():
+    """Инициализация компонентов чат-бота"""
+    global chatbot_components
+    
+    try:
+        from core.data_loader import DataLoader
+        from core.openai_client import OpenAIClient
+        from core.context_manager import ContextManager
+        from core.response_generator import ResponseGenerator
+        
+        print("Инициализация чат-бота...")
+        
+        # Инициализация компонентов
+        chatbot_components['data_loader'] = DataLoader()
+        chatbot_components['data_loader'].load_all_data()
+        
+        chatbot_components['openai_client'] = OpenAIClient()
+        chatbot_components['context_manager'] = ContextManager(chatbot_components['data_loader'])
+        chatbot_components['response_generator'] = ResponseGenerator(
+            chatbot_components['openai_client'], 
+            chatbot_components['data_loader'], 
+            chatbot_components['context_manager']
+        )
+        
+        print("Чат-бот инициализирован успешно!")
+        return True
+        
+    except Exception as e:
+        print(f"Ошибка инициализации чат-бота: {e}")
+        return False
+
 @app.route('/api/chat', methods=['POST'])
 def chat_with_bot():
-    """Прокси для чат-бота НейроВалюши"""
+    """Интегрированный чат-бот НейроВалюши"""
     try:
         data = request.get_json()
         
-        # Формируем правильный запрос для FastAPI
-        chat_request = {
-            "message": data.get("message", ""),
-            "user_id": data.get("user_id", "web_user")
-        }
+        # Проверяем, инициализирован ли чат-бот
+        if not chatbot_components['response_generator']:
+            # Пытаемся инициализировать
+            if not initialize_chatbot():
+                return jsonify({
+                    "error": "Чат-бот не может быть инициализирован",
+                    "message": "Проверьте настройки OpenAI API"
+                }), 503
         
-        # Добавляем context только если он не пустой
+        # Обрабатываем веб-контекст
         context = data.get("context", {})
         if context and isinstance(context, dict) and context:
-            chat_request["context"] = context
+            chatbot_components['response_generator'].context_manager.update_web_context(
+                user_id=data.get("user_id", "web_user"),
+                web_context=context
+            )
         
-        # Проксируем запрос к FastAPI чат-боту
-        chat_response = requests.post(
-            'http://127.0.0.1:8000/chat',
-            json=chat_request,
-            headers={'Content-Type': 'application/json'},
-            timeout=30
+        # Получаем историю сообщений пользователя
+        user_id = data.get("user_id", "web_user")
+        conversation_history = chatbot_components['response_generator'].context_manager.get_conversation_history(user_id)
+        
+        # Добавляем новое сообщение пользователя в историю
+        from models.conversation import Message
+        user_message = Message(role="user", content=data.get("message", ""), metadata={})
+        chatbot_components['response_generator'].context_manager.add_message_to_history(user_id, user_message)
+        
+        # Генерируем ответ
+        response = chatbot_components['response_generator'].generate_response(
+            user_message=data.get("message", ""),
+            user_id=user_id,
+            conversation_history=conversation_history
         )
         
-        if chat_response.status_code == 200:
-            return jsonify(chat_response.json())
-        else:
-            return jsonify({
-                "error": "Чат-бот временно недоступен",
-                "message": "Попробуйте позже или обратитесь к администратору"
-            }), 503
-            
-    except requests.exceptions.ConnectionError:
+        # Добавляем ответ бота в историю
+        bot_message = Message(role="assistant", content=response.response, metadata=response.metadata)
+        chatbot_components['response_generator'].context_manager.add_message_to_history(user_id, bot_message)
+        
         return jsonify({
-            "error": "Чат-бот не запущен",
-            "message": "НейроВалюша временно недоступна. Запустите чат-бот отдельно."
-        }), 503
+            "response": response.response,
+            "suggestions": response.suggestions or [
+                "Покажи все категории значков",
+                "Рекомендуй значки по моим интересам",
+                "Объясни философию системы значков"
+            ],
+            "context_updates": response.context_updates,
+            "metadata": response.metadata
+        })
+        
     except Exception as e:
         return jsonify({
             "error": "Ошибка при обращении к чат-боту",
