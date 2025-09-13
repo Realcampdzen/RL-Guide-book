@@ -23,7 +23,7 @@ export default defineConfig({
   },
   define: {
     // Определяем переменные окружения для продакшена
-    __API_BASE_URL__: JSON.stringify(process.env.NODE_ENV === 'production' ? '/api' : '/api')
+    __API_BASE_URL__: JSON.stringify(import.meta.env.MODE === 'production' ? '/api' : '/api')
   },
   publicDir: 'public',
   assetsInclude: ['**/*.md'],
