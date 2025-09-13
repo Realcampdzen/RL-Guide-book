@@ -85,9 +85,9 @@ const ChatBot: React.FC<ChatBotProps> = ({
           user_id: 'web_user',
           context: {
             current_view: currentView,
-            current_category: currentCategory ? { id: currentCategory } : null,
-            current_badge: currentBadge ? { id: currentBadge } : null,
-            current_level: currentLevelBadgeTitle ? 'current_level' : null,
+            current_category: currentCategory ? currentCategory : null,
+            current_badge: currentBadge ? currentBadge : null,
+            current_level: currentLevel,
             current_level_badge_title: currentLevelBadgeTitle
           }
         }),
