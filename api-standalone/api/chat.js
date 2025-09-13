@@ -1,4 +1,4 @@
-// API endpoint для чат-бота НейроВалюши - ВЕРСИЯ 3.0
+// API endpoint для чат-бота НейроВалюши
 import { dataLoaderAIData } from '../data_loader_ai_data.js';
 import { contextManager } from '../context_manager.js';
 import { responseGenerator } from '../response_generator.js';
