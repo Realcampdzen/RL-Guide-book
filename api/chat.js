@@ -1,7 +1,7 @@
 // API endpoint для чат-бота НейроВалюши
-import { dataLoader } from '../backend/data_loader.js';
-import { contextManager } from '../backend/context_manager.js';
-import { responseGenerator } from '../backend/response_generator.js';
+import { dataLoader } from './data_loader.js';
+import { contextManager } from './context_manager.js';
+import { responseGenerator } from './response_generator.js';
 
 export default async function handler(req, res) {
   // Включаем CORS
