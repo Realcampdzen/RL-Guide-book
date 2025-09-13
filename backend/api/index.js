@@ -127,7 +127,7 @@ export default async function handler(req, res) {
       "/api/chat"
     ],
     status: "ready",
-    ai: "OpenAI GPT-3.5-turbo",
+    ai: "OpenAI GPT-4o-mini",
     features: [
       "Полная база данных значков (119 значков, 14 категорий)",
       "Контекстный анализ запросов",

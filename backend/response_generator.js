@@ -550,7 +550,7 @@ ${categoryId !== 'intro' ? `Информация о категории:\n${categ
   async callOpenAI(prompt, systemPrompt, maxTokens = 1000, temperature = 0.7) {
     try {
       const completion = await this.openai.chat.completions.create({
-        model: "gpt-3.5-turbo",
+        model: "gpt-4o-mini",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: prompt }
@@ -570,7 +570,7 @@ ${categoryId !== 'intro' ? `Информация о категории:\n${categ
   async callOpenAIWithMessages(messages, maxTokens = 1000, temperature = 0.7) {
     try {
       const completion = await this.openai.chat.completions.create({
-        model: "gpt-3.5-turbo",
+        model: "gpt-4o-mini",
         messages: messages,
         max_tokens: maxTokens,
         temperature: temperature
