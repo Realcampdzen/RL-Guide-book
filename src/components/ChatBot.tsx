@@ -74,8 +74,8 @@ const ChatBot: React.FC<ChatBotProps> = ({
     setIsLoading(true);
 
     try {
-      // Используем наш backend API
-      const response = await fetch('/api/chat', {
+      // Используем наш backend API на Vercel
+      const response = await fetch('https://backend-g9fm44nsm-nomorningst-2550s-projects.vercel.app/api/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
