@@ -55,11 +55,16 @@ export default async function handler(req, res) {
 
         // Обновляем веб-контекст если есть
         if (context) {
+          console.log(`🌐 Получен веб-контекст:`, JSON.stringify(context, null, 2));
           contextManager.updateWebContext(user_id, context);
         }
 
         // Получаем историю сообщений пользователя
         const conversationHistory = contextManager.getConversationHistory(user_id);
+        
+        // Получаем обновленный контекст для отладки
+        const userContext = contextManager.getUserContext(user_id);
+        console.log(`👤 Контекст пользователя после обновления:`, JSON.stringify(userContext, null, 2));
         
         // Добавляем новое сообщение пользователя в историю
         contextManager.addMessageToHistory(user_id, {
