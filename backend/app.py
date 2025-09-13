@@ -363,6 +363,7 @@ def chat_with_bot():
             "message": str(e)
         }), 500
 
+# Для Vercel
 if __name__ == '__main__':
     print("🚀 Запуск Flask API для Путеводителя...")
     
@@ -379,3 +380,6 @@ if __name__ == '__main__':
     print("🤖 Чат-бот: http://localhost:5000/api/chat")
     
     app.run(debug=False, host='0.0.0.0', port=5000)
+
+# Для Vercel - экспортируем app
+# Vercel будет использовать это как WSGI приложение
