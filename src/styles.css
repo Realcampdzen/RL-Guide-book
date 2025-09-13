@@ -9,12 +9,21 @@ body {
   background: #000011;
   color: white;
   overflow: hidden;
+  /* Улучшения для мобильных устройств */
+  -webkit-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 #root {
   width: 100vw;
   height: 100vh;
 }
+
+/* Подключаем мобильную адаптацию */
+@import './styles/mobile-responsive.css';
 
 .loading {
   position: fixed;
