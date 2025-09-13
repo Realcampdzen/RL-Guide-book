@@ -406,7 +406,7 @@ const App: React.FC = () => {
 
   const loadCategoryIntroduction = async (categoryId: string) => {
     try {
-      const res = await fetch(`/ai-data/category-${categoryId}/introduction.md`);
+      const res = await fetch(`/RL-Guide-book/ai-data/category-${categoryId}/introduction.md`);
       if (!res.ok) return;
       const md = await res.text();
       const html = markdownToHtml(md);
@@ -423,14 +423,14 @@ const App: React.FC = () => {
     try {
       console.log('App: Loading AI data...');
       setLoading(true);
-      const masterRes = await fetch('/ai-data/MASTER_INDEX.json');
+      const masterRes = await fetch('/RL-Guide-book/ai-data/MASTER_INDEX.json');
       const master = await masterRes.json();
 
       const categoriesData: any[] = [];
       const badgesData: any[] = [];
 
       for (const aiCategory of master.categories) {
-        const idxRes = await fetch(`/ai-data/${aiCategory.path}index.json`);
+        const idxRes = await fetch(`/RL-Guide-book/ai-data/${aiCategory.path}index.json`);
         const catIndex = await idxRes.json();
 
         categoriesData.push({
@@ -445,7 +445,7 @@ const App: React.FC = () => {
 
 
         for (const badgeIndex of (catIndex.badgesData || [])) {
-          const badgeRes = await fetch(`/ai-data/${aiCategory.path}${badgeIndex.id}.json`);
+          const badgeRes = await fetch(`/RL-Guide-book/ai-data/${aiCategory.path}${badgeIndex.id}.json`);
           const aiBadge = await badgeRes.json();
 
           if (aiBadge.levels && aiBadge.levels.length) {
@@ -749,12 +749,12 @@ const App: React.FC = () => {
       const normalizedKey = alias(key);
 
       // Путь по текущей категории
-      const primaryPath = `/ai-data/category-${selectedCategory.id}/${type}/${normalizedKey}`;
+      const primaryPath = `/RL-Guide-book/ai-data/category-${selectedCategory.id}/${type}/${normalizedKey}`;
       let response = await fetch(primaryPath);
       
       // Если файл отсутствует в категории, пробуем стандартную папку категории 14
       if (!response.ok) {
-        const fallbackPath = `/ai-data/category-14/${type}/${normalizedKey}`;
+        const fallbackPath = `/RL-Guide-book/ai-data/category-14/${type}/${normalizedKey}`;
         console.warn('Primary material not found, trying fallback:', primaryPath, '->', fallbackPath);
         response = await fetch(fallbackPath);
         if (!response.ok) {
