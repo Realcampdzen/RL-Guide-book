@@ -14,5 +14,9 @@ from app import app
 # Vercel требует именно эту переменную
 application = app
 
+# Для Vercel также нужен handler
+def handler(request):
+    return app(request.environ, lambda *args: None)
+
 if __name__ == "__main__":
     app.run()

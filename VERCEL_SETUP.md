@@ -35,13 +35,16 @@ Vercel автоматически определит:
 
 После успешного деплоя проверьте:
 
-1. **Главная страница**: `https://your-app.vercel.app`
+1. **Тест API**: `https://your-app.vercel.app/api/test`
+   - Должен вернуть `{"message": "API is working!", "status": "success"}`
+
+2. **Главная страница**: `https://your-app.vercel.app`
    - Должна загрузиться космическая визуализация
 
-2. **API категорий**: `https://your-app.vercel.app/api/categories`
+3. **API категорий**: `https://your-app.vercel.app/api/categories`
    - Должен вернуть JSON с категориями значков
 
-3. **Чат-бот**: `https://your-app.vercel.app/api/chat`
+4. **Чат-бот**: `https://your-app.vercel.app/api/chat`
    - Нажмите на кнопку чата и напишите сообщение
    - НейроВалюша должна ответить
 
