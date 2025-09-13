@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "API для Путеводителя Реального Лагеря",
   "dependencies": {
-    "@google/generative-ai": "^0.24.1",
     "openai": "^4.28.0"
   }
 }

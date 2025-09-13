@@ -1,5 +1,5 @@
 // API для Путеводителя Реального Лагеря с настоящим AI
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import OpenAI from "openai";
 
 const SYSTEM_PROMPT = `Ты НейроВалюша - цифровая вожатая проекта "Реальный Лагерь". 
 
@@ -59,16 +59,29 @@ export default async function handler(req, res) {
           return;
         }
 
-        // Инициализируем Google AI
-        const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
-        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+        // Инициализируем OpenAI
+        const openai = new OpenAI({
+          apiKey: process.env.OPENAI_API_KEY,
+        });
 
-        // Создаем промпт с системным сообщением
-        const fullPrompt = `${SYSTEM_PROMPT}\n\nПользователь: ${message}`;
+        // Получаем ответ от OpenAI
+        const completion = await openai.chat.completions.create({
+          model: "gpt-3.5-turbo",
+          messages: [
+            {
+              role: "system",
+              content: SYSTEM_PROMPT
+            },
+            {
+              role: "user",
+              content: message
+            }
+          ],
+          max_tokens: 500,
+          temperature: 0.7,
+        });
 
-        // Получаем ответ от AI
-        const result = await model.generateContent(fullPrompt);
-        const response = await result.response.text();
+        const response = completion.choices[0].message.content;
 
         res.status(200).json({
           response: response.trim()
@@ -107,6 +120,6 @@ export default async function handler(req, res) {
       "/api/chat"
     ],
     status: "ready",
-    ai: "Google Gemini Pro"
+    ai: "OpenAI GPT-3.5-turbo"
   });
 }
