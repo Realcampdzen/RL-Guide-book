@@ -39,6 +39,64 @@ html {
   #root {
     overflow-x: hidden;
   }
+  
+  /* Улучшаем типографику для мобильных */
+  .intro-content h1 {
+    font-size: 1.8rem !important;
+    line-height: 1.2 !important;
+    margin-bottom: 1rem !important;
+  }
+  
+  .intro-content p {
+    font-size: 0.95rem !important;
+    line-height: 1.4 !important;
+    margin-bottom: 0.8rem !important;
+  }
+  
+  .philosophy-main {
+    font-size: 1.1rem !important;
+    margin-bottom: 1rem !important;
+  }
+  
+  .point {
+    padding: 0.8rem !important;
+    margin-bottom: 0.8rem !important;
+  }
+  
+  .point-icon {
+    font-size: 1.3rem !important;
+  }
+  
+  /* Улучшаем заголовки экранов */
+  .header h1 {
+    font-size: 1.6rem !important;
+    line-height: 1.2 !important;
+    text-align: center !important;
+  }
+  
+  .header p {
+    font-size: 0.8rem !important;
+    text-align: center !important;
+  }
+  
+  /* Улучшаем текст карточек */
+  .category-text h3 {
+    font-size: 0.8rem !important;
+    line-height: 1.2 !important;
+  }
+  
+  .category-text p {
+    font-size: 0.6rem !important;
+  }
+  
+  .badge-card__title {
+    font-size: 0.9rem !important;
+    line-height: 1.2 !important;
+  }
+  
+  .badge-card__level {
+    font-size: 0.7rem !important;
+  }
 }
 
 #root {
@@ -51,9 +109,39 @@ html {
   /* Исправляем обрезание контента */
   .intro-content {
     max-width: 95vw !important;
+    max-height: 90vh !important;
     padding: 0.8rem !important;
     margin: 0.5rem !important;
     overflow-x: hidden !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  
+  /* Адаптируем все основные экраны */
+  .intro-screen,
+  .categories-screen,
+  .category-screen,
+  .badge-screen,
+  .badge-level-screen,
+  .introduction-screen,
+  .additional-material-screen,
+  .about-camp-screen,
+  .registration-form-screen {
+    height: 100vh !important;
+    height: 100dvh !important; /* Динамическая высота viewport */
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  
+  /* Адаптируем контейнеры контента */
+  .introduction-content,
+  .additional-material-content,
+  .about-camp-content,
+  .registration-form-content {
+    max-width: 95vw !important;
+    margin: 0.5rem !important;
+    padding: 1rem !important;
   }
   
   /* Уменьшаем логотип */
@@ -92,6 +180,32 @@ html {
     grid-template-columns: 1fr !important;
     gap: 1rem !important;
     padding: 0.5rem !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow-y: visible !important;
+  }
+  
+  /* Адаптируем карточки категорий */
+  .category-card {
+    min-width: 60px !important;
+    min-height: 60px !important;
+    max-width: 80px !important;
+    max-height: 80px !important;
+  }
+  
+  /* Адаптируем карточки значков */
+  .badge-card {
+    min-width: 140px !important;
+    max-width: 160px !important;
+  }
+  
+  .badge-card__icon {
+    width: 60px !important;
+    height: 60px !important;
+  }
+  
+  .badge-emoji {
+    font-size: 2.5rem !important;
   }
   
   /* Кнопки навигации */
@@ -123,6 +237,36 @@ html {
     height: auto !important;
   }
   
+  /* Адаптируем фоновые изображения экранов */
+  .intro-screen {
+    background-size: cover !important;
+    background-position: center center !important;
+    background-attachment: scroll !important;
+  }
+  
+  .categories-screen {
+    background-size: cover !important;
+    background-position: center center !important;
+    background-attachment: scroll !important;
+  }
+  
+  .category-screen,
+  .badge-screen,
+  .badge-level-screen {
+    background-size: cover !important;
+    background-position: center top !important;
+    background-attachment: scroll !important;
+  }
+  
+  .introduction-screen,
+  .additional-material-screen,
+  .about-camp-screen,
+  .registration-form-screen {
+    background-size: cover !important;
+    background-position: center center !important;
+    background-attachment: scroll !important;
+  }
+  
   /* Иконки категорий */
   .category-1-icon,
   .category-2-icon,
@@ -150,14 +294,52 @@ html {
     height: 150px !important;
   }
   
-  .categories-grid,
+  .intro-content {
+    max-width: 90vw !important;
+    max-height: 85vh !important;
+    padding: 1rem !important;
+  }
+  
+  .categories-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 1.5rem !important;
+  }
+  
   .badges-grid {
     grid-template-columns: repeat(2, 1fr) !important;
+    gap: 1.5rem !important;
+  }
+  
+  .category-card {
+    min-width: 70px !important;
+    min-height: 70px !important;
+    max-width: 90px !important;
+    max-height: 90px !important;
+  }
+  
+  .badge-card {
+    min-width: 160px !important;
+    max-width: 180px !important;
+  }
+  
+  .badge-card__icon {
+    width: 70px !important;
+    height: 70px !important;
   }
   
   .chatbot-container {
     width: 90vw !important;
     max-width: 500px !important;
+  }
+  
+  /* Адаптируем контейнеры контента для планшетов */
+  .introduction-content,
+  .additional-material-content,
+  .about-camp-content,
+  .registration-form-content {
+    max-width: 90vw !important;
+    margin: 0.8rem !important;
+    padding: 1.5rem !important;
   }
 }
 

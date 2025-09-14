@@ -78,8 +78,8 @@ const ChatBot: React.FC<ChatBotProps> = ({
     setIsLoading(true);
 
     try {
-      // Используем наш backend API на Vercel
-        const response = await fetch('https://backend-fq5f9bm5c-nomorningst-2550s-projects.vercel.app/api/chat', {
+      // Используем локальный FastAPI сервер
+        const response = await fetch('http://localhost:8000/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -89,8 +89,8 @@ const ChatBot: React.FC<ChatBotProps> = ({
           user_id: userId,
           context: {
             current_view: currentView,
-            current_category: currentCategory ? currentCategory : null,
-            current_badge: currentBadge ? currentBadge : null,
+            current_category: currentCategory,
+            current_badge: currentBadge,
             current_level: currentLevel,
             current_level_badge_title: currentLevelBadgeTitle
           }

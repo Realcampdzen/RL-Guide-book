@@ -167,3 +167,18 @@ test_data.json
 # Keep only essential batch files
 !start_all_services.bat
 !start_servers.bat
+
+dev-debug.log
+# Editor directories and files
+.idea
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+# OS specific
+
+# Task files
+# tasks.json
+# tasks/ 

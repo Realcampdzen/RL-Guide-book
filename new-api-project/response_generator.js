@@ -228,24 +228,13 @@ export class ResponseGenerator {
 
   // Генерирует объяснение значка
   async generateBadgeExplanation(message, context) {
-    let badge = null;
-    
-    // Если есть текущий значок в контексте, используем его
-    if (context.current_badge) {
-      badge = this.dataLoader.getBadge(context.current_badge);
+    if (!context.current_badge) {
+      return "Сначала выбери конкретный значок на экране — и я кратко объясню его смысл и как его получить 😊";
     }
-    
-    // Если не нашли по ID или нет контекста, ищем по названию в сообщении
+
+    const badge = this.dataLoader.getBadge(context.current_badge);
     if (!badge) {
-      const searchResults = this.dataLoader.searchBadges(message);
-      if (searchResults.length > 0) {
-        badge = searchResults[0].badge;
-        console.log(`🔍 Найден значок по поиску: ${badge.title} (${badge.id})`);
-      }
-    }
-    
-    if (!badge) {
-      return "Не нашла такой значок. Попробуй выбрать его из списка значков на экране или уточни название 😊";
+      return "Не нашла такой значок. Попробуй выбрать его из списка значков на экране.";
     }
 
     // Формируем информацию о значке
@@ -280,24 +269,13 @@ ${badgeInfo}
 
   // Генерирует креативные идеи
   async generateCreativeIdeas(message, context) {
-    let badge = null;
-    
-    // Если есть текущий значок в контексте, используем его
-    if (context.current_badge) {
-      badge = this.dataLoader.getBadge(context.current_badge);
+    if (!context.current_badge) {
+      return "Чтобы предложить идеи, выбери конкретный значок — и я подкину 3–5 подходящих вариантов! 💡";
     }
-    
-    // Если не нашли по ID или нет контекста, ищем по названию в сообщении
+
+    const badge = this.dataLoader.getBadge(context.current_badge);
     if (!badge) {
-      const searchResults = this.dataLoader.searchBadges(message);
-      if (searchResults.length > 0) {
-        badge = searchResults[0].badge;
-        console.log(`🔍 Найден значок для идей по поиску: ${badge.title} (${badge.id})`);
-      }
-    }
-    
-    if (!badge) {
-      return "Чтобы предложить идеи, выбери конкретный значок или уточни его название — и я подкину 3–5 подходящих вариантов! 💡";
+      return "Не нашла такой значок. Выбери его из списка, и я подскажу идеи.";
     }
 
     // Формируем информацию о значке
@@ -384,26 +362,15 @@ ${userContextStr ? `Контекст пользователя: ${userContextStr}
   async generateCategoryInfo(message, context) {
     console.log(`🏷️ generateCategoryInfo: current_category = "${context.current_category}"`);
     
-    let category = null;
-    
-    // Если есть текущая категория в контексте, используем её
-    if (context.current_category) {
-      category = this.dataLoader.getCategory(context.current_category);
+    if (!context.current_category) {
+      return "Выбери категорию на экране — и я кратко объясню её философию и содержание.";
     }
-    
-    // Если не нашли по ID или нет контекста, ищем по названию в сообщении
-    if (!category) {
-      const searchResults = this.dataLoader.searchCategories(message);
-      if (searchResults.length > 0) {
-        category = searchResults[0].category;
-        console.log(`🔍 Найдена категория по поиску: ${category.title} (${category.id})`);
-      }
-    }
-    
+
+    const category = this.dataLoader.getCategory(context.current_category);
     console.log(`🏷️ Найденная категория:`, category ? `${category.emoji} ${category.title}` : 'НЕ НАЙДЕНА');
     
     if (!category) {
-      return "Похоже, такая категория отсутствует. Выбери её из списка или уточни название 😊";
+      return "Похоже, такая категория отсутствует. Выбери её из списка.";
     }
 
     // Формируем подробную информацию о категории для AI

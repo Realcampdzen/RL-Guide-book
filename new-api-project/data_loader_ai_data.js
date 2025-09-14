@@ -9,12 +9,12 @@ let badgesCache = new Map();
 
 export class DataLoaderAIData {
   constructor() {
-    // В Vercel используем тот же файл данных, что и FastAPI
-    this.dataPath = path.join(process.cwd(), 'perfect_parsed_data.json');
+    // В Vercel используем единый JSON файл с данными
+    this.dataPath = path.join(process.cwd(), 'ai_data_complete.json');
     console.log('📁 Путь к данным:', this.dataPath);
   }
 
-  // Загружает все данные значков из perfect_parsed_data.json
+  // Загружает все данные значков из ai_data_complete.json
   loadAllData() {
     if (badgeDataCache) {
       console.log('📦 Используем кэшированные данные');
@@ -22,7 +22,7 @@ export class DataLoaderAIData {
     }
 
     try {
-      console.log('📂 Загружаем данные из perfect_parsed_data.json...');
+      console.log('📂 Загружаем данные из ai_data_complete.json...');
       
       // Загружаем данные из единого JSON файла
       const data = JSON.parse(fs.readFileSync(this.dataPath, 'utf8'));
@@ -113,64 +113,6 @@ export class DataLoaderAIData {
       totalBadges: badgeDataCache.totalBadges,
       totalLevels: badgeDataCache.totalLevels
     };
-  }
-
-  // Простой поиск по названию и описанию (аналог RAG для Vercel)
-  searchBadges(query) {
-    if (!badgeDataCache) {
-      this.loadAllData();
-    }
-    
-    const queryLower = query.toLowerCase();
-    const results = [];
-    
-    // Поиск по названию значка
-    for (const badge of badgeDataCache.badges) {
-      if (badge.title.toLowerCase().includes(queryLower)) {
-        results.push({ badge, matchType: 'title', score: 1.0 });
-      }
-    }
-    
-    // Поиск по описанию
-    for (const badge of badgeDataCache.badges) {
-      if (badge.description && badge.description.toLowerCase().includes(queryLower)) {
-        // Проверяем, не добавили ли уже по названию
-        const existingMatch = results.find(r => r.badge.id === badge.id);
-        if (!existingMatch) {
-          results.push({ badge, matchType: 'description', score: 0.8 });
-        }
-      }
-    }
-    
-    // Сортировка по релевантности
-    results.sort((a, b) => b.score - a.score);
-    
-    return results.slice(0, 5); // Возвращаем топ-5 результатов
-  }
-
-  // Поиск категории по названию
-  searchCategories(query) {
-    if (!badgeDataCache) {
-      this.loadAllData();
-    }
-    
-    const queryLower = query.toLowerCase();
-    const results = [];
-    
-    for (const category of badgeDataCache.categories) {
-      if (category.title.toLowerCase().includes(queryLower)) {
-        results.push({ category, matchType: 'title', score: 1.0 });
-      }
-      if (category.description && category.description.toLowerCase().includes(queryLower)) {
-        const existingMatch = results.find(r => r.category.id === category.id);
-        if (!existingMatch) {
-          results.push({ category, matchType: 'description', score: 0.8 });
-        }
-      }
-    }
-    
-    results.sort((a, b) => b.score - a.score);
-    return results.slice(0, 3); // Возвращаем топ-3 результата
   }
 }
 

@@ -1,7 +1,7 @@
 {
   "user_id": "test_user",
   "current_category": "1",
-  "current_badge": null,
+  "current_badge": "1.1",
   "interests": [
     "творчество",
     "спорт"

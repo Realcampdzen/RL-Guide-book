@@ -1,0 +1,20 @@
+{
+  "user_id": "react_user",
+  "current_category": "1",
+  "current_badge": "1.1",
+  "interests": [],
+  "level": "beginner",
+  "session_data": {
+    "current_view": "badge",
+    "web_category": {
+      "id": "1",
+      "title": "За личные достижения"
+    },
+    "web_badge": {
+      "id": "1.1",
+      "title": "Валюша"
+    },
+    "current_level": null,
+    "current_level_badge_title": null
+  }
+}
