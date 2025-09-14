@@ -108,13 +108,14 @@ html {
 @media (max-width: 480px) {
   /* Исправляем обрезание контента */
   .intro-content {
-    max-width: 95vw !important;
+    max-width: calc(100vw - 2rem) !important;
     max-height: 90vh !important;
     padding: 0.8rem !important;
-    margin: 0.5rem !important;
+    margin: 0 1rem !important;
     overflow-x: hidden !important;
     overflow-y: auto !important;
     -webkit-overflow-scrolling: touch !important;
+    box-sizing: border-box !important;
   }
   
   /* Адаптируем все основные экраны */
@@ -153,6 +154,14 @@ html {
   .intro-logo {
     top: 10px !important;
     left: 10px !important;
+    position: absolute !important;
+    z-index: 100 !important;
+  }
+  
+  /* Добавляем отступ для контента, чтобы логотип не перекрывал текст */
+  .intro-content {
+    margin-top: 140px !important;
+    padding-top: 1rem !important;
   }
   
   /* Уменьшаем заголовок */
@@ -218,9 +227,10 @@ html {
   .chat-button {
     bottom: 16px !important;
     right: 16px !important;
-    left: 16px !important;
+    left: auto !important;
     min-width: auto !important;
     width: auto !important;
+    max-width: 200px !important;
   }
   
   /* ChatBot адаптация */
@@ -295,9 +305,24 @@ html {
   }
   
   .intro-content {
-    max-width: 90vw !important;
+    max-width: calc(100vw - 3rem) !important;
     max-height: 85vh !important;
     padding: 1rem !important;
+    margin: 0 1.5rem !important;
+    box-sizing: border-box !important;
+  }
+  
+  /* Добавляем отступ для логотипа на планшетах */
+  .intro-content {
+    margin-top: 160px !important;
+    padding-top: 1rem !important;
+  }
+  
+  /* ChatButton для планшетов */
+  .chat-button {
+    max-width: 250px !important;
+    right: 20px !important;
+    left: auto !important;
   }
   
   .categories-grid {
