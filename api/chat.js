@@ -1,5 +1,5 @@
 // API endpoint для чат-бота НейроВалюши - ВЕРСИЯ 4.0 - ПРИНУДИТЕЛЬНОЕ ОБНОВЛЕНИЕ
-import { dataLoaderAIData } from '../data_loader_ai_data.js';
+import { dataLoaderAIDataNew } from '../data_loader_ai_data_new.js';
 import { contextManager } from '../context_manager.js';
 import { responseGenerator } from '../response_generator.js';
 

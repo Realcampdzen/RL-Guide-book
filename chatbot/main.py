@@ -16,7 +16,7 @@ import uvicorn
 # Добавляем путь к модулям
 sys.path.append(str(Path(__file__).parent))
 
-from core.data_loader import DataLoader
+from core.data_loader_new import DataLoaderNew
 from core.openai_client import OpenAIClient
 from core.context_manager import ContextManager
 from core.response_generator import ResponseGenerator
@@ -45,7 +45,7 @@ STATIC_DIR = BASE_DIR / "static"
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
 # Глобальные переменные для компонентов
-data_loader: Optional[DataLoader] = None
+data_loader: Optional[DataLoaderNew] = None
 openai_client: Optional[OpenAIClient] = None
 context_manager: Optional[ContextManager] = None
 response_generator: Optional[ResponseGenerator] = None
@@ -62,8 +62,8 @@ async def startup_event():
         
         # Инициализация компонентов
         print("Zagruzka dannyh znachkov...")
-        data_loader = DataLoader()
-        data_loader.load_all_data()
+        data_loader = DataLoaderNew(use_ai_data=True)
+        data_loader.preload_popular_categories()  # Предзагружаем популярные категории
         
         print("Initsializacija OpenAI klienta...")
         openai_client = OpenAIClient()

@@ -1,6 +1,6 @@
 // Генератор персонализированных ответов для Vercel
 import OpenAI from 'openai';
-import { dataLoaderAIData } from './data_loader_ai_data.js';
+import { dataLoaderAIDataNew } from './data_loader_ai_data_new.js';
 import { contextManager } from './context_manager.js';
 import { getSystemPromptWithContext } from './system_prompt.js';
 
@@ -9,7 +9,7 @@ export class ResponseGenerator {
     this.openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY,
     });
-    this.dataLoader = dataLoaderAIData;
+    this.dataLoader = dataLoaderAIDataNew;
     this.contextManager = contextManager;
   }
 

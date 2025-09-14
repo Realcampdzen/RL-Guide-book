@@ -1,5 +1,5 @@
 // Система управления контекстом пользователя для Vercel
-import { dataLoaderAIData } from './data_loader_ai_data.js';
+import { dataLoaderAIDataNew } from './data_loader_ai_data_new.js';
 
 // В памяти храним контексты (в продакшене лучше использовать Redis)
 const userContexts = new Map();
@@ -7,7 +7,7 @@ const conversationHistories = new Map();
 
 export class ContextManager {
   constructor() {
-    this.dataLoader = dataLoaderAIData;
+    this.dataLoader = dataLoaderAIDataNew;
   }
 
   // Получает контекст пользователя
