@@ -2,6 +2,7 @@
   "name": "rl-guide-book",
   "version": "1.0.0",
   "description": "Космическая визуализация Путеводителя 'Реального Лагеря'",
+  "type": "module",
   "main": "index.js",
   "scripts": {
     "dev": "vite --host --port 3001",
@@ -15,7 +16,8 @@
     "@types/three": "^0.158.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "three": "^0.158.0"
+    "three": "^0.158.0",
+    "openai": "^4.0.0"
   },
   "devDependencies": {
     "@types/node": "^24.3.3",
