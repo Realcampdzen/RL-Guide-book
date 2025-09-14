@@ -14,7 +14,7 @@ from .ai_data_loader import AIDataLoader
 class DataLoaderNew:
     """Обновленный загрузчик данных с поддержкой ai-data структуры"""
     
-    def __init__(self, use_ai_data: bool = True, ai_data_path: str = "public/ai-data"):
+    def __init__(self, use_ai_data: bool = True, ai_data_path: str = None):
         """
         Инициализация загрузчика
         

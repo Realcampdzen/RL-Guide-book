@@ -1,6 +1,11 @@
 // Новый DataLoader для Vercel с поддержкой ai-data структуры
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
+
+// Получаем __dirname для ES модулей
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Кэш для данных
 let masterIndexCache = null;
@@ -17,8 +22,30 @@ let loadStats = {
 };
 
 export class DataLoaderAIDataNew {
-  constructor(basePath = 'public/ai-data') {
-    this.basePath = path.join(process.cwd(), basePath);
+  constructor(basePath = null) {
+    if (basePath === null) {
+      // Автоматически определяем путь к ai-data
+      const possiblePaths = [
+        path.join(process.cwd(), 'public/ai-data'),
+        path.join(process.cwd(), '../public/ai-data'),
+        path.join(__dirname, '../public/ai-data'),
+        path.join(__dirname, '../../public/ai-data'),
+      ];
+      
+      for (const possiblePath of possiblePaths) {
+        if (fs.existsSync(path.join(possiblePath, 'MASTER_INDEX.json'))) {
+          this.basePath = possiblePath;
+          break;
+        }
+      }
+      
+      if (!this.basePath) {
+        throw new Error('Не найдена папка ai-data с MASTER_INDEX.json');
+      }
+    } else {
+      this.basePath = path.join(process.cwd(), basePath);
+    }
+    
     console.log('📁 Путь к ai-data:', this.basePath);
   }
 

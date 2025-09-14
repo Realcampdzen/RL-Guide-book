@@ -14,14 +14,32 @@ from models.badge import Badge, BadgeLevel, Category, BadgeData
 class AIDataLoader:
     """Загрузчик данных значков из ai-data структуры"""
     
-    def __init__(self, base_path: str = "public/ai-data"):
+    def __init__(self, base_path: str = None):
         """
         Инициализация загрузчика
         
         Args:
             base_path: Путь к папке ai-data
         """
-        self.base_path = Path(base_path)
+        if base_path is None:
+            # Автоматически определяем путь к ai-data
+            current_dir = Path(__file__).parent
+            # Ищем папку ai-data в разных возможных местах
+            possible_paths = [
+                current_dir.parent.parent / "public" / "ai-data",  # Из chatbot/core/
+                current_dir.parent / "public" / "ai-data",         # Из chatbot/
+                Path("public/ai-data"),                            # Из корня проекта
+                Path("../public/ai-data"),                         # Относительно текущей папки
+            ]
+            
+            for path in possible_paths:
+                if path.exists():
+                    self.base_path = path
+                    break
+            else:
+                raise FileNotFoundError("Не найдена папка ai-data. Проверьте структуру проекта.")
+        else:
+            self.base_path = Path(base_path)
         self.logger = logging.getLogger(__name__)
         
         # Кэши для оптимизации
