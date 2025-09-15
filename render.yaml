@@ -1,0 +1,64 @@
+services:
+  # Frontend - React приложение
+  - type: web
+    name: putevoditel-frontend
+    env: static
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+
+  # Chatbot - Python FastAPI приложение
+  - type: web
+    name: putevoditel-chatbot
+    env: python
+    buildCommand: pip install -r chatbot/requirements.txt
+    startCommand: cd chatbot && python main.py
+    envVars:
+      - key: PORT
+        value: 8000
+      - key: OPENAI_API_KEY
+        fromService:
+          type: secret
+          name: openai-api-key
+      - key: RENDER_API_TOKEN
+        fromService:
+          type: secret
+          name: render-api-token
+
+  # API - Node.js API
+  - type: web
+    name: putevoditel-api
+    env: node
+    buildCommand: npm install
+    startCommand: npm run start:api
+    envVars:
+      - key: PORT
+        value: 3001
+      - key: OPENAI_API_KEY
+        fromService:
+          type: secret
+          name: openai-api-key
+
+  # Backend - Python Flask приложение (если нужно)
+  - type: web
+    name: putevoditel-backend
+    env: python
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: cd backend && python app.py
+    envVars:
+      - key: PORT
+        value: 5000
+      - key: OPENAI_API_KEY
+        fromService:
+          type: secret
+          name: openai-api-key
+
+# Секреты
+secrets:
+  - name: openai-api-key
+    description: OpenAI API ключ для ИИ бота
+  - name: render-api-token
+    description: Render API токен для деплоя

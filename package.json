@@ -8,7 +8,11 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "start": "vite --host 0.0.0.0 --port 3000",
-    "vercel-build": "npm run build"
+    "vercel-build": "npm run build",
+    "start:api": "node api/index.js",
+    "start:chatbot": "cd chatbot && python main.py",
+    "start:backend": "cd backend && python app.py",
+    "render-build": "npm run build"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
