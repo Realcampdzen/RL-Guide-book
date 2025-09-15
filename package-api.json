@@ -1,0 +1,13 @@
+{
+  "name": "rl-guide-api",
+  "version": "1.0.0",
+  "description": "API для чат-бота",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"API test\""
+  },
+  "dependencies": {},
+  "keywords": ["api", "chatbot"],
+  "author": "API Team",
+  "license": "MIT"
+}
