@@ -27,7 +27,8 @@ from models.badge import Badge, Category
 app = FastAPI(
     title="Чат-бот Путеводителя 'Реальный Лагерь'",
     description="Интеллектуальный чат-бот-вожатый по системе значков",
-    version="1.0.0"
+    version="1.0.0",
+    lifespan=lifespan
 )
 
 # Настройка CORS
@@ -51,8 +52,10 @@ context_manager: Optional[ContextManager] = None
 response_generator: Optional[ResponseGenerator] = None
 
 
-@app.on_event("startup")
-async def startup_event():
+from contextlib import asynccontextmanager
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
     """Инициализация компонентов при запуске"""
     global data_loader, openai_client, context_manager, response_generator
     
@@ -80,6 +83,11 @@ async def startup_event():
         # Без эмодзи, чтобы избежать ошибок кодировки в консоли
         print(f"Oshibka initsializacii: {e}")
         raise
+    
+    yield  # Приложение работает
+    
+    # Cleanup (если нужно)
+    print("Chat-bot zavershaet rabotu...")
 
 
 @app.get("/", response_class=HTMLResponse)
