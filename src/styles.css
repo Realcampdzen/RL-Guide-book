@@ -152,6 +152,14 @@ html {
     overflow-y: auto !important;
     -webkit-overflow-scrolling: touch !important;
   }
+
+  /* ГЕНИАЛЬНОЕ РЕШЕНИЕ: АДАПТИВНЫЙ СТЕК для экрана приветствия */
+  .intro-screen {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    padding: 1rem !important;
+  }
   
   /* Адаптируем контейнеры контента */
   .introduction-content,
@@ -170,20 +178,22 @@ html {
   }
   
   .intro-logo {
-    top: 10px !important;
-    left: 10px !important;
-    position: absolute !important;
-    z-index: 100 !important;
+    position: static !important; /* Убираем абсолютное позиционирование */
+    margin-bottom: 1rem !important; /* Отступ снизу */
+    transform: scale(0.9) !important; /* Немного уменьшаем */
+    order: 1 !important; /* Логотип сверху */
   }
   
-  /* Добавляем отступ для контента, чтобы логотип не перекрывал текст */
+  /* ГЕНИАЛЬНОЕ РЕШЕНИЕ: Контент использует всю ширину без перекрытий */
   .intro-content {
-    margin-top: 160px !important;
-    padding-top: 1.5rem !important;
-    padding-left: calc(120px + 1rem) !important; /* Отступ для логотипа + зазор */
-    margin-left: 1rem !important; /* Возвращаем стандартный отступ */
-    margin-right: 1rem !important;
-    max-width: calc(100vw - 2rem) !important; /* Восстанавливаем полную ширину */
+    flex: 1 !important; /* Занимает оставшееся пространство */
+    margin: 0 !important; /* Убираем все отступы */
+    padding: 1rem !important; /* Стандартный внутренний отступ */
+    max-width: 100% !important; /* Полная ширина */
+    max-height: calc(100vh - 200px) !important; /* Высота с учетом логотипа */
+    order: 2 !important; /* Контент снизу */
+    overflow-y: auto !important; /* Скролл если нужно */
+    -webkit-overflow-scrolling: touch !important;
   }
   
   /* Уменьшаем заголовок */
@@ -336,14 +346,30 @@ html {
     box-sizing: border-box !important;
   }
   
-  /* Добавляем отступ для логотипа на планшетах */
+  /* ГЕНИАЛЬНОЕ РЕШЕНИЕ для планшетов: АДАПТИВНЫЙ СТЕК */
+  .intro-screen {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    padding: 1.5rem !important;
+  }
+
+  .intro-logo {
+    position: static !important; /* Убираем абсолютное позиционирование */
+    margin-bottom: 1.5rem !important; /* Отступ снизу */
+    transform: scale(0.95) !important; /* Немного уменьшаем */
+    order: 1 !important; /* Логотип сверху */
+  }
+
   .intro-content {
-    margin-top: 180px !important;
-    padding-top: 1.5rem !important;
-    padding-left: calc(150px + 1.5rem) !important; /* Отступ для логотипа + зазор */
-    margin-left: 1.5rem !important; /* Возвращаем стандартный отступ */
-    margin-right: 1.5rem !important;
-    max-width: calc(100vw - 3rem) !important; /* Восстанавливаем полную ширину */
+    flex: 1 !important; /* Занимает оставшееся пространство */
+    margin: 0 !important; /* Убираем все отступы */
+    padding: 1.5rem !important; /* Стандартный внутренний отступ */
+    max-width: 100% !important; /* Полная ширина */
+    max-height: calc(100vh - 250px) !important; /* Высота с учетом логотипа */
+    order: 2 !important; /* Контент снизу */
+    overflow-y: auto !important; /* Скролл если нужно */
+    -webkit-overflow-scrolling: touch !important;
   }
   
   /* Улучшаем заголовки для планшетов */
