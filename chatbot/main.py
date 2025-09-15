@@ -22,37 +22,13 @@ from core.context_manager import ContextManager
 from core.response_generator import ResponseGenerator
 from models.conversation import ChatRequest, ChatResponse, Message, UserContext
 from models.badge import Badge, Category
-
-# Инициализация приложения
-app = FastAPI(
-    title="Чат-бот Путеводителя 'Реальный Лагерь'",
-    description="Интеллектуальный чат-бот-вожатый по системе значков",
-    version="1.0.0",
-    lifespan=lifespan
-)
-
-# Настройка CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# Монтирование статических файлов (независимо от текущей рабочей директории)
-BASE_DIR = Path(__file__).parent
-STATIC_DIR = BASE_DIR / "static"
-app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+from contextlib import asynccontextmanager
 
 # Глобальные переменные для компонентов
 data_loader: Optional[DataLoaderNew] = None
 openai_client: Optional[OpenAIClient] = None
 context_manager: Optional[ContextManager] = None
 response_generator: Optional[ResponseGenerator] = None
-
-
-from contextlib import asynccontextmanager
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -88,6 +64,28 @@ async def lifespan(app: FastAPI):
     
     # Cleanup (если нужно)
     print("Chat-bot zavershaet rabotu...")
+
+# Инициализация приложения
+app = FastAPI(
+    title="Чат-бот Путеводителя 'Реальный Лагерь'",
+    description="Интеллектуальный чат-бот-вожатый по системе значков",
+    version="1.0.0",
+    lifespan=lifespan
+)
+
+# Настройка CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Монтирование статических файлов (независимо от текущей рабочей директории)
+BASE_DIR = Path(__file__).parent
+STATIC_DIR = BASE_DIR / "static"
+app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
 
 @app.get("/", response_class=HTMLResponse)
