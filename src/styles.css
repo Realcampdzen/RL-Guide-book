@@ -92,7 +92,8 @@ html {
     flex-direction: column !important;
     justify-content: center !important;
     align-items: center !important;
-    background-size: 120% !important; /* Увеличиваем масштаб фонового паттерна */
+    background-size: 150% !important; /* Увеличиваем масштаб фонового паттерна */
+    margin: -1rem -2rem 1.5rem -2rem !important; /* Выводим за рамки экрана */
     background-position: center center !important;
   }
   
@@ -179,8 +180,10 @@ html {
   .intro-content {
     margin-top: 160px !important;
     padding-top: 1.5rem !important;
-    margin-left: 140px !important; /* Отступ слева для логотипа */
+    padding-left: calc(120px + 1rem) !important; /* Отступ для логотипа + зазор */
+    margin-left: 1rem !important; /* Возвращаем стандартный отступ */
     margin-right: 1rem !important;
+    max-width: calc(100vw - 2rem) !important; /* Восстанавливаем полную ширину */
   }
   
   /* Уменьшаем заголовок */
@@ -211,8 +214,8 @@ html {
     height: auto !important;
     max-height: none !important;
     overflow-y: visible !important;
-    justify-items: center !important; /* Центрируем элементы по горизонтали */
     align-items: center !important; /* Центрируем элементы по вертикали */
+    justify-content: center !important; /* Центрируем сетку по горизонтали */
   }
   
   /* Адаптируем карточки категорий */
@@ -337,8 +340,10 @@ html {
   .intro-content {
     margin-top: 180px !important;
     padding-top: 1.5rem !important;
-    margin-left: 160px !important; /* Отступ слева для логотипа */
+    padding-left: calc(150px + 1.5rem) !important; /* Отступ для логотипа + зазор */
+    margin-left: 1.5rem !important; /* Возвращаем стандартный отступ */
     margin-right: 1.5rem !important;
+    max-width: calc(100vw - 3rem) !important; /* Восстанавливаем полную ширину */
   }
   
   /* Улучшаем заголовки для планшетов */
@@ -346,14 +351,15 @@ html {
     padding: 2rem !important;
     margin-bottom: 2rem !important;
     min-height: 140px !important;
-    background-size: 130% !important;
+    background-size: 160% !important; /* Увеличиваем масштаб для планшетов */
+    margin: -1.5rem -3rem 2rem -3rem !important; /* Выводим за рамки экрана */
   }
   
   /* Центрируем элементы для планшетов */
   .categories-grid,
   .badges-grid {
-    justify-items: center !important;
     align-items: center !important;
+    justify-content: center !important;
   }
   
   /* ChatButton для планшетов */
