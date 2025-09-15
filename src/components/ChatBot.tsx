@@ -78,8 +78,11 @@ const ChatBot: React.FC<ChatBotProps> = ({
     setIsLoading(true);
 
     try {
-      // Используем локальный FastAPI сервер
-        const response = await fetch('http://localhost:8000/chat', {
+      // Используем чат-бот сервис (локально или на Render)
+        const chatbotUrl = process.env.NODE_ENV === 'production' 
+          ? 'https://putevoditel-chatbot.onrender.com/chat'
+          : 'http://localhost:8000/chat';
+        const response = await fetch(chatbotUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

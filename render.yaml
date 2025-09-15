@@ -6,16 +6,9 @@ services:
     buildCommand: npm install && npm run build
     staticPublishPath: ./dist
 
-  # Chatbot - Python FastAPI приложение
+  # Chatbot - Python FastAPI приложение (ИИ чат-бот)
   - type: web
     name: putevoditel-chatbot
     env: python
     buildCommand: pip install -r chatbot/requirements.txt
     startCommand: cd chatbot && python main.py
-
-  # API - Node.js API
-  - type: web
-    name: putevoditel-api
-    env: node
-    buildCommand: cd api && npm install
-    startCommand: cd api && npm start
