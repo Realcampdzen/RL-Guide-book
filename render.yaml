@@ -1,11 +1,4 @@
 services:
-  # Frontend - React приложение (статический сайт)
-  - type: web
-    name: putevoditel-frontend
-    env: static
-    buildCommand: npm install && npm run build
-    staticPublishPath: ./dist
-
   # Chatbot - Python FastAPI приложение (ИИ чат-бот)
   - type: web
     name: putevoditel-chatbot

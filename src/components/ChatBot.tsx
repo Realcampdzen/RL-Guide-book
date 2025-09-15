@@ -79,9 +79,9 @@ const ChatBot: React.FC<ChatBotProps> = ({
 
     try {
       // Используем чат-бот сервис (локально или на Render)
-        const chatbotUrl = process.env.NODE_ENV === 'production' 
-          ? 'https://putevoditel-chatbot.onrender.com/chat'
-          : 'http://localhost:8000/chat';
+        const chatbotUrl = window.location.hostname === 'localhost' 
+          ? 'http://localhost:8000/chat'
+          : 'https://putevoditel-chatbot.onrender.com/chat';
         const response = await fetch(chatbotUrl, {
         method: 'POST',
         headers: {
