@@ -26,6 +26,15 @@ interface ChatBotProps {
   currentLevelBadgeTitle?: string;
 }
 
+interface ViewportState {
+  width: number;
+  height: number;
+  innerWidth: number;
+  innerHeight: number;
+  offsetTop: number;
+  offsetLeft: number;
+}
+
 
 const ChatBot: React.FC<ChatBotProps> = ({ 
   isOpen, 
@@ -45,14 +54,66 @@ const ChatBot: React.FC<ChatBotProps> = ({
   // Генерируем уникальный user_id для каждого сеанса
   const [userId] = useState(() => `web_user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
 
-  // Автопрокрутка к последнему сообщению
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  const getViewportState = (): ViewportState => {
+    if (typeof window === 'undefined') {
+      return { width: 1024, height: 768, innerWidth: 1024, innerHeight: 768, offsetTop: 0, offsetLeft: 0 };
+    }
+    const { innerWidth, innerHeight } = window;
+    const visualViewport = window.visualViewport;
+    return {
+      width: innerWidth,
+      height: visualViewport?.height ?? innerHeight,
+      innerWidth,
+      innerHeight,
+      offsetTop: visualViewport?.offsetTop ?? 0,
+      offsetLeft: visualViewport?.offsetLeft ?? 0
+    };
+  };
+
+  const [viewport, setViewport] = useState<ViewportState>(() => getViewportState());
+  const isMobile = viewport.width <= 768;
+  const safeAreaBottom = Math.max(0, viewport.innerHeight - viewport.height - viewport.offsetTop);
+  const safeAreaLeft = Math.max(0, viewport.offsetLeft);
+  const safeAreaRight = Math.max(0, viewport.innerWidth - viewport.width - viewport.offsetLeft);
+
+  const scrollToBottom = (behavior: ScrollBehavior = isMobile ? 'auto' : 'smooth') => {
+    messagesEndRef.current?.scrollIntoView({ behavior });
   };
 
   useEffect(() => {
+    const handleResize = () => {
+      setViewport(getViewportState());
+    };
+
+    handleResize();
+
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('orientationchange', handleResize);
+    const visualViewport = window.visualViewport;
+    visualViewport?.addEventListener('resize', handleResize);
+    visualViewport?.addEventListener('scroll', handleResize);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('orientationchange', handleResize);
+      visualViewport?.removeEventListener('resize', handleResize);
+      visualViewport?.removeEventListener('scroll', handleResize);
+    };
+  }, []);
+
+  useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [messages, isMobile]);
+
+  useEffect(() => {
+    if (isOpen) {
+      scrollToBottom('auto');
+    }
+  }, [viewport.height, isOpen]);
 
   // Автофокус на поле ввода при открытии чата
   useEffect(() => {
@@ -154,45 +215,73 @@ const ChatBot: React.FC<ChatBotProps> = ({
   //   setMessages([]);
   // };
 
+  const overlayStyle: React.CSSProperties = {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    background: isMobile ? 'rgba(0, 0, 0, 0.45)' : 'transparent',
+    display: 'flex',
+    alignItems: isMobile ? 'flex-end' : 'flex-start',
+    justifyContent: isMobile ? 'center' : 'flex-end',
+    zIndex: 10000,
+    padding: isMobile
+      ? `0 ${Math.max(12, safeAreaRight)}px 0 ${Math.max(12, safeAreaLeft)}px`
+      : '20px',
+    animation: 'fadeIn 0.3s ease-out',
+    pointerEvents: 'none'
+  };
+
+  const containerStyle: React.CSSProperties = {
+    background: 'linear-gradient(135deg, rgba(12, 12, 12, 0.6) 0%, rgba(26, 26, 46, 0.6) 50%, rgba(22, 33, 62, 0.6) 100%)',
+    borderRadius: isMobile ? '24px 24px 0 0' : '24px',
+    boxShadow: '0 30px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(78, 205, 196, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
+    width: isMobile ? '100%' : '400px',
+    maxWidth: isMobile ? '480px' : '400px',
+    height: isMobile ? `${Math.round(viewport.height)}px` : '600px',
+    maxHeight: isMobile ? `${Math.round(viewport.height)}px` : '600px',
+    display: 'flex',
+    flexDirection: 'column',
+    fontFamily: 'system-ui, -apple-system, sans-serif',
+    border: '1px solid rgba(78, 205, 196, 0.5)',
+    animation: 'slideInFromRight 0.4s ease-out',
+    backdropFilter: 'blur(20px)',
+    marginTop: isMobile ? '0' : '20px',
+    pointerEvents: 'auto',
+    overflow: 'hidden'
+  };
+
+  const messagesContainerStyle: React.CSSProperties = {
+    flex: 1,
+    overflowY: 'auto',
+    padding: isMobile ? '16px 16px 12px' : '20px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: isMobile ? '16px' : '20px',
+    background: 'rgba(0, 0, 0, 0.05)',
+    borderRadius: '0 0 24px 24px'
+  };
+
+  const inputAreaStyle: React.CSSProperties = {
+    padding: isMobile ? '12px 16px 12px' : '16px',
+    paddingBottom: isMobile ? `${12 + safeAreaBottom}px` : '16px',
+    borderTop: '1px solid rgba(78, 205, 196, 0.3)',
+    background: 'rgba(78, 205, 196, 0.05)',
+    borderRadius: '0 0 24px 24px'
+  };
+
   if (!isOpen) return null;
 
   return (
-    <div style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      background: 'transparent',
-      display: 'flex',
-      alignItems: 'flex-start',
-      justifyContent: 'flex-end',
-      zIndex: 10000,
-      padding: '20px',
-      animation: 'fadeIn 0.3s ease-out',
-      pointerEvents: 'none' // Позволяет кликать сквозь фон
-    }}>
-              <div style={{
-          background: 'linear-gradient(135deg, rgba(12, 12, 12, 0.6) 0%, rgba(26, 26, 46, 0.6) 50%, rgba(22, 33, 62, 0.6) 100%)',
-          borderRadius: '24px',
-          boxShadow: '0 30px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(78, 205, 196, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
-          width: '400px',
-          height: '600px',
-          display: 'flex',
-          flexDirection: 'column',
-          fontFamily: 'system-ui, -apple-system, sans-serif',
-          border: '1px solid rgba(78, 205, 196, 0.5)',
-          animation: 'slideInFromRight 0.4s ease-out',
-          backdropFilter: 'blur(20px)',
-          marginTop: '20px',
-          pointerEvents: 'auto' // Восстанавливаем интерактивность для самого чата
-        }}>
+    <div style={overlayStyle}>
+              <div style={containerStyle}>
         {/* Заголовок */}
         <div style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          padding: '16px',
+          padding: isMobile ? '14px 16px' : '16px',
           borderBottom: '1px solid rgba(78, 205, 196, 0.3)',
           background: 'rgba(78, 205, 196, 0.08)',
           borderRadius: '24px 24px 0 0'
@@ -323,16 +412,7 @@ const ChatBot: React.FC<ChatBotProps> = ({
         )}
 
         {/* Сообщения */}
-        <div style={{
-          flex: 1,
-          overflowY: 'auto',
-          padding: '20px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '20px',
-          background: 'rgba(0, 0, 0, 0.05)',
-          borderRadius: '0 0 24px 24px'
-        }}>
+        <div style={messagesContainerStyle}>
           {messages.length === 0 && (
             <div style={{ textAlign: 'center', color: '#a0aec0', padding: '30px 0' }}>
               <div style={{ position: 'relative', display: 'inline-block', marginBottom: '20px' }}>
@@ -477,12 +557,7 @@ const ChatBot: React.FC<ChatBotProps> = ({
         {/* Подсказки отключены */}
 
         {/* Поле ввода */}
-        <div style={{
-          padding: '16px',
-          borderTop: '1px solid rgba(78, 205, 196, 0.3)',
-          background: 'rgba(78, 205, 196, 0.05)',
-          borderRadius: '0 0 24px 24px'
-        }}>
+        <div style={inputAreaStyle}>
           <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-end' }}>
             <input
               ref={inputRef}
@@ -494,20 +569,22 @@ const ChatBot: React.FC<ChatBotProps> = ({
               placeholder="Напишите сообщение..."
               style={{
                 flex: 1,
-                padding: '12px 16px',
+                padding: isMobile ? '12px 14px' : '12px 16px',
                 border: '1px solid rgba(78, 205, 196, 0.3)',
                 borderRadius: '16px',
-                fontSize: '14px',
+                fontSize: isMobile ? '16px' : '14px',
                 outline: 'none',
                 background: 'rgba(12, 12, 12, 0.6)',
                 color: '#e2e8f0',
                 backdropFilter: 'blur(10px)',
-                transition: 'all 0.3s ease'
+                transition: 'all 0.3s ease',
+                minHeight: isMobile ? '48px' : 'auto'
               }}
               disabled={isLoading}
               onFocus={(e) => {
                 e.target.style.borderColor = 'rgba(78, 205, 196, 0.6)';
                 e.target.style.boxShadow = '0 0 0 2px rgba(78, 205, 196, 0.2)';
+                scrollToBottom('auto');
               }}
               onBlur={(e) => {
                 e.target.style.borderColor = 'rgba(78, 205, 196, 0.3)';
@@ -518,18 +595,19 @@ const ChatBot: React.FC<ChatBotProps> = ({
               onClick={sendMessage}
               disabled={!inputText.trim() || isLoading}
               style={{
-                padding: '12px 16px',
+                padding: isMobile ? '12px 14px' : '12px 16px',
                 background: 'linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%)',
                 color: 'white',
                 border: 'none',
                 borderRadius: '16px',
-                fontSize: '14px',
+                fontSize: isMobile ? '16px' : '14px',
                 fontWeight: '600',
                 cursor: 'pointer',
                 opacity: (!inputText.trim() || isLoading) ? 0.5 : 1,
                 boxShadow: '0 6px 20px rgba(78, 205, 196, 0.3)',
                 transition: 'all 0.3s ease',
-                minWidth: '80px'
+                minWidth: isMobile ? '72px' : '80px',
+                minHeight: isMobile ? '48px' : 'auto'
               }}
               onMouseEnter={(e) => {
                 if (!e.currentTarget.disabled) {
