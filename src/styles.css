@@ -115,6 +115,108 @@ html {
   .badge-card__level {
     font-size: 0.7rem !important;
   }
+
+  .categories-grid {
+    justify-items: center !important;
+    align-items: center !important;
+    padding: 0.75rem 0.5rem 1.5rem !important;
+    margin: 0 auto !important;
+    width: 100% !important;
+    max-width: 420px !important;
+  }
+
+  .category-container {
+    align-items: center !important;
+    text-align: center !important;
+    width: 100% !important;
+    gap: 0.6rem !important;
+  }
+
+  .category-text {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
+    gap: 0.25rem !important;
+  }
+
+  .category-text h3,
+  .category-text p {
+    text-align: center !important;
+  }
+
+  .category-card {
+    padding: 0.35rem !important;
+  }
+
+  .category-card .category-icon {
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  .category-card .category-icon img,
+  .category-card img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain !important;
+  }
+
+  .badges-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 1rem !important;
+    padding: 0.75rem 0.5rem 1.75rem !important;
+    margin: 0 auto !important;
+    max-width: 420px !important;
+  }
+
+  .badge-card {
+    width: min(280px, 100%) !important;
+  }
+
+  .header {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    justify-content: flex-start !important;
+    gap: 0.75rem !important;
+    padding: 1.1rem 1rem 1.5rem !important;
+    min-height: auto !important;
+  }
+
+  .header .back-button {
+    position: static !important;
+    align-self: flex-start !important;
+    order: -1 !important;
+    margin: 0 !important;
+  }
+
+  .header-content {
+    width: 100% !important;
+    align-items: center !important;
+    text-align: center !important;
+    gap: 0.6rem !important;
+  }
+
+  .additional-materials-buttons {
+    width: 100% !important;
+    justify-content: center !important;
+    gap: 0.5rem !important;
+  }
+
+  .hint-button,
+  .material-button {
+    width: 100% !important;
+    max-width: 320px !important;
+    text-align: center !important;
+  }
+
+  .intro-logo .logo-hover-text {
+    opacity: 1 !important;
+    transform: translateX(-50%) !important;
+    bottom: -36px !important;
+  }
 }
 
 #root {
@@ -171,17 +273,23 @@ html {
     padding: 1rem !important;
   }
   
-  /* Уменьшаем логотип */
+  /* Логотип крупнее и заметнее */
   .intro-logo img {
-    width: 120px !important;
-    height: 120px !important;
+    width: 160px !important;
+    height: 160px !important;
   }
-  
+
   .intro-logo {
     position: static !important; /* Убираем абсолютное позиционирование */
-    margin-bottom: 1rem !important; /* Отступ снизу */
-    transform: scale(0.9) !important; /* Немного уменьшаем */
+    margin-bottom: 1.2rem !important; /* Отступ снизу */
+    transform: scale(1.05) !important; /* Немного увеличиваем */
     order: 1 !important; /* Логотип сверху */
+  }
+
+  .intro-logo .logo-hover-text {
+    font-size: 0.85rem !important;
+    letter-spacing: 0.12rem !important;
+    bottom: -30px !important;
   }
   
   /* ГЕНИАЛЬНОЕ РЕШЕНИЕ: Контент использует всю ширину без перекрытий */
@@ -190,7 +298,7 @@ html {
     margin: 0 !important; /* Убираем все отступы */
     padding: 1rem !important; /* Стандартный внутренний отступ */
     max-width: 100% !important; /* Полная ширина */
-    max-height: calc(100vh - 200px) !important; /* Высота с учетом логотипа */
+    max-height: calc(100vh - 230px) !important; /* Высота с учетом увеличенного логотипа */
     order: 2 !important; /* Контент снизу */
     overflow-y: auto !important; /* Скролл если нужно */
     -webkit-overflow-scrolling: touch !important;
@@ -326,21 +434,22 @@ html {
   .category-12-icon,
   .category-13-icon,
   .category-14-icon {
-    width: 40px !important;
-    height: 40px !important;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain !important;
   }
 }
 
 /* Планшеты */
 @media (min-width: 481px) and (max-width: 768px) {
   .intro-logo img {
-    width: 150px !important;
-    height: 150px !important;
+    width: 180px !important;
+    height: 180px !important;
   }
-  
+
   .intro-content {
     max-width: calc(100vw - 3rem) !important;
-    max-height: 85vh !important;
+    max-height: 82vh !important;
     padding: 1rem !important;
     margin: 0 1.5rem !important;
     box-sizing: border-box !important;
@@ -357,8 +466,14 @@ html {
   .intro-logo {
     position: static !important; /* Убираем абсолютное позиционирование */
     margin-bottom: 1.5rem !important; /* Отступ снизу */
-    transform: scale(0.95) !important; /* Немного уменьшаем */
+    transform: scale(1.05) !important; /* Немного увеличиваем */
     order: 1 !important; /* Логотип сверху */
+  }
+
+  .intro-logo .logo-hover-text {
+    font-size: 0.9rem !important;
+    letter-spacing: 0.14rem !important;
+    bottom: -34px !important;
   }
 
   .intro-content {
