@@ -474,7 +474,6 @@
 .header {
   margin-bottom: 0.4rem;
   background: 
-    linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.2) 100%),
     url('/RL-Guide-book/pattern_stickers.jpg') center center / 100% no-repeat;
   padding: 0.3rem;
   border-radius: 15px;
