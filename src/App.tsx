@@ -3265,12 +3265,7 @@ const App: React.FC = () => {
             z-index: -1;
           }
 
-          .category-screen .header {
-            background:
-              linear-gradient(145deg, rgba(6, 12, 36, 0.72) 0%, rgba(6, 12, 28, 0.78) 55%, rgba(4, 10, 24, 0.82) 100%),
-              url('/RL-Guide-book/badges_photo.jpg') center 68% / cover no-repeat !important;
-            position: relative;
-          }
+          /* Убираем оверлей на весь category-screen header */
 
           /* Убираем общий оверлей для category-screen header */
 
@@ -4186,12 +4181,9 @@ const App: React.FC = () => {
           align-items: flex-start;
           gap: 0.5rem;
           position: relative;
-          background: rgba(8, 18, 36, 0.45);
+          /* Убираем серый полупрозрачный оверлей */
           padding: 0.7rem 1rem;
           border-radius: 16px;
-          box-shadow: 0 14px 32px rgba(0, 0, 0, 0.35);
-          backdrop-filter: blur(12px);
-          border: 1px solid rgba(78, 205, 196, 0.25);
           overflow: hidden;
         }
         /* Убираем оверлей для header-content */
