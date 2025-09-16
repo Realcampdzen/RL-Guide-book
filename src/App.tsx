@@ -3215,7 +3215,7 @@ const App: React.FC = () => {
             flex-direction: column;
             align-items: flex-start;
             gap: 0.5rem;
-            /* Убираем все оверлеи - оставляем только специальный для заголовка */
+            /* Контейнер без оверлеев - только структура и позиционирование */
           }
 
           @keyframes neonPulse {
