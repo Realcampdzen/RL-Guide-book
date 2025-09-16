@@ -3337,7 +3337,7 @@ const App: React.FC = () => {
 
                                                                                                                                                                                .category-card {
                 background: rgba(0, 0, 0, 0.8);
-                border: 1px solid rgba(255, 255, 255, 0.2);
+                border: none;
                 border-radius: 50%;
                 padding: 0.5rem;
                 cursor: pointer;
@@ -3372,7 +3372,7 @@ const App: React.FC = () => {
 
                                                                                                                                                                                .category-card {
                 background: rgba(0, 0, 0, 0.8);
-                border: 1px solid rgba(255, 255, 255, 0.2);
+                border: none;
                 border-radius: 50%;
                 padding: 0.5rem;
                 cursor: pointer;
@@ -3416,7 +3416,7 @@ const App: React.FC = () => {
            left: 50%;
            width: 80%;
            height: 80%;
-           border: 1px solid rgba(78, 205, 196, 0.3);
+           border: none;
            border-radius: 50%;
            transform: translate(-50%, -50%);
            pointer-events: none;
@@ -3431,7 +3431,7 @@ const App: React.FC = () => {
            left: 50%;
            width: 60%;
            height: 60%;
-           border: 1px solid rgba(78, 205, 196, 0.1);
+           border: none;
            border-radius: 50%;
            transform: translate(-50%, -50%);
            pointer-events: none;
