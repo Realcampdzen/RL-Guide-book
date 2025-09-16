@@ -704,71 +704,13 @@
 }
 
 .category-icon img {
-  width: 118%;
-  height: 118%;
-  object-fit: cover;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
   object-position: center;
 }
 
-.category-2-icon {
-  width: 140% !important;
-  height: 140% !important;
-}
-
-.category-5-icon {
-  width: 138% !important;
-  height: 138% !important;
-}
-
-.category-8-icon {
-  width: 138% !important;
-  height: 138% !important;
-}
-
-.category-9-icon {
-  width: 145% !important;
-  height: 145% !important;
-}
-
-.category-14-icon {
-  width: 138% !important;
-  height: 138% !important;
-}
-
-.category-13-icon {
-  width: 138% !important;
-  height: 138% !important;
-}
-
-.category-11-icon {
-  width: 160% !important;
-  height: 160% !important;
-}
-
-.category-3-icon {
-  width: 200% !important;
-  height: 200% !important;
-}
-
-.category-4-icon {
-  width: 140% !important;
-  height: 140% !important;
-}
-
-.category-7-icon {
-  width: 140% !important;
-  height: 140% !important;
-}
-
-.category-6-icon {
-  width: 140% !important;
-  height: 140% !important;
-}
-
-.category-10-icon {
-  width: 160% !important;
-  height: 160% !important;
-}
+/* Убираем специфические размеры для категорий - теперь все изображения 100% × 100% */
 
 .category-text {
   display: flex;
