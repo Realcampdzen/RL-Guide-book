@@ -110,8 +110,9 @@ const ChatButton: React.FC<ChatButtonProps> = ({ onClick, isOpen = false, classN
   const safeAreaBottom = Math.max(0, viewport.innerHeight - viewport.height - viewport.offsetTop);
   const safeAreaRight = Math.max(0, viewport.innerWidth - viewport.width - viewport.offsetLeft);
   const baseBottom = (isMobile ? 18 : 24) + safeAreaBottom;
-  const mobileLift = Math.max(120, Math.min(180, viewport.height * 0.22));
-  const raisedOffset = isMobile ? mobileLift : 110;
+  // Увеличиваем подъем кнопки при открытии чата
+  const mobileLift = Math.max(180, Math.min(250, viewport.height * 0.3));
+  const raisedOffset = isMobile ? mobileLift : 150;
   const buttonBottom = isOpen ? baseBottom + raisedOffset : baseBottom;
   const buttonRight = (isMobile ? 16 : 24) + safeAreaRight;
   const buttonBackground = isOpen
@@ -144,7 +145,7 @@ const ChatButton: React.FC<ChatButtonProps> = ({ onClick, isOpen = false, classN
         borderRadius: '28px',
         boxShadow: buttonShadow,
         cursor: 'pointer',
-        transition: 'transform 0.25s ease, opacity 0.25s ease, bottom 0.35s ease, right 0.35s ease, background 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease',
+        transition: 'transform 0.25s ease, opacity 0.25s ease, bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1), right 0.4s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease',
         display: 'flex',
         alignItems: 'center',
         gap: '12px',
@@ -152,7 +153,8 @@ const ChatButton: React.FC<ChatButtonProps> = ({ onClick, isOpen = false, classN
         backdropFilter: 'blur(10px)',
         minWidth: isMobile ? 'auto' : '200px',
         opacity: buttonOpacity,
-        overflow: 'visible'
+        overflow: 'visible',
+        transform: isOpen ? 'translateY(-8px)' : 'translateY(0)'
       }}
       onMouseEnter={(e) => {
         if (isOpen) {
@@ -164,13 +166,13 @@ const ChatButton: React.FC<ChatButtonProps> = ({ onClick, isOpen = false, classN
           e.currentTarget.style.boxShadow = '0 24px 45px rgba(0, 0, 0, 0.5), 0 0 0 2px rgba(78, 205, 196, 0.75)';
           e.currentTarget.style.border = '2px solid rgba(78, 205, 196, 1)';
         }
-        e.currentTarget.style.transform = 'scale(1.05) translateY(-3px)';
+        e.currentTarget.style.transform = isOpen ? 'scale(1.05) translateY(-11px)' : 'scale(1.05) translateY(-3px)';
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.background = buttonBackground;
         e.currentTarget.style.boxShadow = buttonShadow;
         e.currentTarget.style.border = buttonBorder;
-        e.currentTarget.style.transform = 'scale(1) translateY(0)';
+        e.currentTarget.style.transform = isOpen ? 'translateY(-8px)' : 'translateY(0)';
       }}
     >
       <span
