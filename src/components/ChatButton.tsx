@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 interface ChatButtonProps {
   onClick: () => void;
@@ -7,6 +7,83 @@ interface ChatButtonProps {
 }
 
 const ChatButton: React.FC<ChatButtonProps> = ({ onClick, isOpen = false, className = '' }) => {
+  const [isMobile, setIsMobile] = useState<boolean>(() => {
+    if (typeof window === 'undefined') {
+      return false;
+    }
+    return window.innerWidth <= 768;
+  });
+  const [isScrolling, setIsScrolling] = useState(false);
+  const scrollTimeoutRef = useRef<number>();
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+
+    handleResize();
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const markScrolling = () => {
+      setIsScrolling(true);
+      if (scrollTimeoutRef.current) {
+        window.clearTimeout(scrollTimeoutRef.current);
+      }
+      scrollTimeoutRef.current = window.setTimeout(() => {
+        setIsScrolling(false);
+      }, 1400);
+    };
+
+    const handleScroll = () => markScrolling();
+    const handleWheel = () => markScrolling();
+    const handleTouchMove = () => markScrolling();
+
+    window.addEventListener('scroll', handleScroll, { passive: true } as EventListenerOptions);
+    window.addEventListener('wheel', handleWheel, { passive: true } as EventListenerOptions);
+    window.addEventListener('touchmove', handleTouchMove, { passive: true } as EventListenerOptions);
+    document.addEventListener('scroll', handleScroll as EventListener, { passive: true } as AddEventListenerOptions);
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll as EventListener);
+      window.removeEventListener('wheel', handleWheel as EventListener);
+      window.removeEventListener('touchmove', handleTouchMove as EventListener);
+      document.removeEventListener('scroll', handleScroll as EventListener);
+      if (scrollTimeoutRef.current) {
+        window.clearTimeout(scrollTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const baseBottom = isMobile ? 18 : 24;
+  const raisedOffset = isMobile ? 96 : 80;
+  const buttonBottom = isOpen ? baseBottom + raisedOffset : baseBottom;
+  const buttonBackground = isOpen
+    ? 'linear-gradient(135deg, rgba(255, 107, 107, 0.95) 0%, rgba(12, 12, 12, 0.95) 50%, rgba(46, 26, 26, 0.95) 100%)'
+    : 'linear-gradient(135deg, rgba(78, 205, 196, 0.95) 0%, rgba(12, 12, 12, 0.95) 50%, rgba(26, 26, 46, 0.95) 100%)';
+  const buttonShadow = isOpen
+    ? '0 18px 40px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 107, 107, 0.35)'
+    : '0 18px 40px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(78, 205, 196, 0.35)';
+  const buttonBorder = isOpen
+    ? '2px solid rgba(255, 107, 107, 0.6)'
+    : '2px solid rgba(78, 205, 196, 0.6)';
+  const buttonOpacity = isOpen ? 1 : (isScrolling ? 0.62 : 0.9);
+  const avatarSize = isMobile ? 48 : 52;
+  const statusDotSize = isMobile ? 14 : 16;
+
   return (
     <button
       onClick={onClick}
@@ -14,141 +91,140 @@ const ChatButton: React.FC<ChatButtonProps> = ({ onClick, isOpen = false, classN
       title={isOpen ? "Закрыть чат" : "Открыть чат"}
       style={{
         position: 'fixed',
-        bottom: '24px',
-        right: '24px',
+        bottom: `${buttonBottom}px`,
+        right: isMobile ? '16px' : '24px',
         zIndex: 10001,
-        background: isOpen 
-          ? 'linear-gradient(135deg, rgba(255, 107, 107, 0.95) 0%, rgba(12, 12, 12, 0.95) 50%, rgba(46, 26, 26, 0.95) 100%)'
-          : 'linear-gradient(135deg, rgba(78, 205, 196, 0.95) 0%, rgba(12, 12, 12, 0.95) 50%, rgba(26, 26, 46, 0.95) 100%)',
-        border: isOpen 
-          ? '2px solid rgba(255, 107, 107, 0.6)'
-          : '2px solid rgba(78, 205, 196, 0.6)',
+        background: buttonBackground,
+        border: buttonBorder,
         color: 'white',
-        padding: '16px 20px',
-        borderRadius: '25px',
-        boxShadow: isOpen 
-          ? '0 15px 35px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 107, 107, 0.3)'
-          : '0 15px 35px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(78, 205, 196, 0.3)',
+        padding: isMobile ? '12px 16px' : '16px 22px',
+        borderRadius: '28px',
+        boxShadow: buttonShadow,
         cursor: 'pointer',
-        transition: 'all 0.3s ease',
+        transition: 'transform 0.25s ease, opacity 0.25s ease, background 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease',
         display: 'flex',
         alignItems: 'center',
         gap: '12px',
         fontFamily: 'system-ui, -apple-system, sans-serif',
         backdropFilter: 'blur(10px)',
-        minWidth: '200px'
+        minWidth: isMobile ? 'auto' : '200px',
+        opacity: buttonOpacity,
+        overflow: 'visible'
       }}
-                onMouseEnter={(e) => {
-            if (isOpen) {
-              e.currentTarget.style.background = 'linear-gradient(135deg, rgba(255, 107, 107, 1) 0%, rgba(12, 12, 12, 1) 50%, rgba(46, 26, 26, 1) 100%)';
-              e.currentTarget.style.boxShadow = '0 20px 40px rgba(0, 0, 0, 0.5), 0 0 0 2px rgba(255, 107, 107, 0.8)';
-              e.currentTarget.style.borderColor = 'rgba(255, 107, 107, 1)';
-            } else {
-              e.currentTarget.style.background = 'linear-gradient(135deg, rgba(78, 205, 196, 1) 0%, rgba(12, 12, 12, 1) 50%, rgba(26, 26, 46, 1) 100%)';
-              e.currentTarget.style.boxShadow = '0 20px 40px rgba(0, 0, 0, 0.5), 0 0 0 2px rgba(78, 205, 196, 0.8)';
-              e.currentTarget.style.borderColor = 'rgba(78, 205, 196, 1)';
-            }
-            e.currentTarget.style.transform = 'scale(1.05) translateY(-2px)';
-          }}
-                onMouseLeave={(e) => {
-            if (isOpen) {
-              e.currentTarget.style.background = 'linear-gradient(135deg, rgba(255, 107, 107, 0.95) 0%, rgba(12, 12, 12, 0.95) 50%, rgba(46, 26, 26, 0.95) 100%)';
-              e.currentTarget.style.boxShadow = '0 15px 35px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 107, 107, 0.3)';
-              e.currentTarget.style.borderColor = 'rgba(255, 107, 107, 0.6)';
-            } else {
-              e.currentTarget.style.background = 'linear-gradient(135deg, rgba(78, 205, 196, 0.95) 0%, rgba(12, 12, 12, 0.95) 50%, rgba(26, 26, 46, 0.95) 100%)';
-              e.currentTarget.style.boxShadow = '0 15px 35px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(78, 205, 196, 0.3)';
-              e.currentTarget.style.borderColor = 'rgba(78, 205, 196, 0.6)';
-            }
-            e.currentTarget.style.transform = 'scale(1) translateY(0)';
-          }}
+      onMouseEnter={(e) => {
+        if (isOpen) {
+          e.currentTarget.style.background = 'linear-gradient(135deg, rgba(255, 107, 107, 1) 0%, rgba(12, 12, 12, 1) 50%, rgba(46, 26, 26, 1) 100%)';
+          e.currentTarget.style.boxShadow = '0 24px 45px rgba(0, 0, 0, 0.5), 0 0 0 2px rgba(255, 107, 107, 0.75)';
+          e.currentTarget.style.border = '2px solid rgba(255, 107, 107, 1)';
+        } else {
+          e.currentTarget.style.background = 'linear-gradient(135deg, rgba(78, 205, 196, 1) 0%, rgba(12, 12, 12, 1) 50%, rgba(26, 26, 46, 1) 100%)';
+          e.currentTarget.style.boxShadow = '0 24px 45px rgba(0, 0, 0, 0.5), 0 0 0 2px rgba(78, 205, 196, 0.75)';
+          e.currentTarget.style.border = '2px solid rgba(78, 205, 196, 1)';
+        }
+        e.currentTarget.style.transform = 'scale(1.05) translateY(-3px)';
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.background = buttonBackground;
+        e.currentTarget.style.boxShadow = buttonShadow;
+        e.currentTarget.style.border = buttonBorder;
+        e.currentTarget.style.transform = 'scale(1) translateY(0)';
+      }}
     >
-      <div style={{ position: 'relative' }}>
-        <img 
-          src="/RL-Guide-book/Валюша.jpg" 
-          alt="НейроВалюша" 
-          style={{ 
-            width: '40px', 
-            height: '40px', 
-            borderRadius: '50%',
-            objectFit: 'cover',
-            border: '3px solid rgba(78, 205, 196, 0.8)',
-            boxShadow: '0 0 15px rgba(78, 205, 196, 0.4)'
-          }} 
-        />
-                    <div style={{
+      <span
+        aria-hidden="true"
+        style={{
+          position: 'absolute',
+          inset: '-18px',
+          borderRadius: '999px',
+          background: isOpen
+            ? 'radial-gradient(circle, rgba(255, 107, 107, 0.45) 0%, rgba(255, 107, 107, 0) 70%)'
+            : 'radial-gradient(circle, rgba(78, 205, 196, 0.45) 0%, rgba(78, 205, 196, 0) 70%)',
+          opacity: isOpen ? 0.55 : 0.4,
+          filter: 'blur(14px)',
+          transition: 'all 0.3s ease',
+          pointerEvents: 'none'
+        }}
+      />
+      <div style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <div style={{ position: 'relative', flexShrink: 0 }}>
+          <div
+            style={{
+              position: 'absolute',
+              inset: `-${isMobile ? 6 : 8}px`,
+              borderRadius: '50%',
+              background: isOpen
+                ? 'radial-gradient(circle, rgba(255, 107, 107, 0.6) 0%, rgba(255, 107, 107, 0) 70%)'
+                : 'radial-gradient(circle, rgba(78, 205, 196, 0.6) 0%, rgba(78, 205, 196, 0) 70%)',
+              filter: 'blur(6px)',
+              opacity: 0.75,
+              transition: 'all 0.3s ease',
+              pointerEvents: 'none'
+            }}
+          />
+          <img
+            src="/RL-Guide-book/Валюша.jpg"
+            alt="НейроВалюша"
+            style={{
+              width: `${avatarSize}px`,
+              height: `${avatarSize}px`,
+              borderRadius: '50%',
+              objectFit: 'cover',
+              border: isOpen
+                ? '3px solid rgba(255, 107, 107, 0.7)'
+                : '3px solid rgba(78, 205, 196, 0.75)',
+              boxShadow: isOpen
+                ? '0 0 18px rgba(255, 107, 107, 0.45)'
+                : '0 0 18px rgba(78, 205, 196, 0.45)',
+              transition: 'all 0.3s ease'
+            }}
+          />
+          <div
+            style={{
               position: 'absolute',
               bottom: '-2px',
               right: '-2px',
-              width: '14px',
-              height: '14px',
+              width: `${statusDotSize}px`,
+              height: `${statusDotSize}px`,
               background: isOpen ? '#ff6b6b' : '#4ecdc4',
               borderRadius: '50%',
               border: '2px solid rgba(12, 12, 12, 0.95)',
-              boxShadow: isOpen 
-                ? '0 0 8px rgba(255, 107, 107, 0.6)'
-                : '0 0 8px rgba(78, 205, 196, 0.6)'
-            }}></div>
-      </div>
-      <div style={{ display: window.innerWidth >= 640 ? 'block' : 'none' }}>
-                    <div style={{
-              fontSize: '16px',
-              fontWeight: '700',
-              lineHeight: '1.2',
-              color: isOpen ? '#ff6b6b' : '#4ecdc4',
-              textShadow: isOpen 
-                ? '0 0 8px rgba(255, 107, 107, 0.3)'
-                : '0 0 8px rgba(78, 205, 196, 0.3)'
-            }}>
-              НейроВалюша
-            </div>
-        <div style={{ 
-          fontSize: '12px', 
-          opacity: 0.9, 
-          lineHeight: '1.2',
-          color: '#a0aec0',
-          fontWeight: '500'
-        }}>
-          Нейро вожатый
-        </div>
-      </div>
-      
-      {/* Пульсирующий индикатор */}
-                <div
-            style={{
-              position: 'absolute',
-              top: '-6px',
-              right: '-6px',
-              width: '16px',
-              height: '16px',
-              background: isOpen ? '#ff6b6b' : '#4ecdc4',
-              borderRadius: '50%',
-              border: '2px solid rgba(12, 12, 12, 0.95)',
-              boxShadow: isOpen 
-                ? '0 0 12px rgba(255, 107, 107, 0.6)'
-                : '0 0 12px rgba(78, 205, 196, 0.6)',
-              animation: 'pulse 2s infinite'
+              boxShadow: isOpen
+                ? '0 0 10px rgba(255, 107, 107, 0.6)'
+                : '0 0 10px rgba(78, 205, 196, 0.6)',
+              transition: 'all 0.3s ease'
             }}
           />
-      
-      <style dangerouslySetInnerHTML={{
-        __html: `
-          @keyframes pulse {
-            0% {
-              transform: scale(0.95);
-              box-shadow: 0 0 0 0 rgba(78, 205, 196, 0.7);
-            }
-            70% {
-              transform: scale(1);
-              box-shadow: 0 0 0 12px rgba(78, 205, 196, 0);
-            }
-            100% {
-              transform: scale(0.95);
-              box-shadow: 0 0 0 0 rgba(78, 205, 196, 0);
-            }
-          }
-        `
-      }} />
+        </div>
+        {!isMobile && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+            <div
+              style={{
+                fontSize: '16px',
+                fontWeight: 700,
+                lineHeight: 1.2,
+                color: isOpen ? '#ffb3b3' : '#4ecdc4',
+                textShadow: isOpen
+                  ? '0 0 12px rgba(255, 107, 107, 0.35)'
+                  : '0 0 12px rgba(78, 205, 196, 0.35)',
+                transition: 'color 0.3s ease, text-shadow 0.3s ease'
+              }}
+            >
+              НейроВалюша
+            </div>
+            <div
+              style={{
+                fontSize: '12px',
+                lineHeight: 1.2,
+                color: '#cbd5f5',
+                fontWeight: 500,
+                opacity: 0.9
+              }}
+            >
+              Нейро вожатый
+            </div>
+          </div>
+        )}
+      </div>
     </button>
   );
 };

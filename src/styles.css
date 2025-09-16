@@ -74,13 +74,24 @@ html {
     text-align: center !important;
     margin: 0.5rem 0 !important;
     padding: 0.5rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.04em !important;
+    color: #f1fbff !important;
+    text-shadow: 0 0 12px rgba(46, 134, 222, 0.45), 0 0 26px rgba(255, 99, 214, 0.3) !important;
   }
   
   .header p {
     font-size: 0.8rem !important;
     text-align: center !important;
     margin: 0.3rem 0 !important;
-    padding: 0.3rem !important;
+    padding: 0.35rem 0.75rem !important;
+    color: #d6e7ff !important;
+    background: rgba(8, 22, 42, 0.55) !important;
+    border-radius: 999px !important;
+    text-shadow: 0 0 8px rgba(0, 0, 0, 0.65) !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 0.25rem !important;
   }
   
   /* Нормализуем контейнер заголовка */
@@ -95,6 +106,27 @@ html {
     background-size: 150% !important; /* Увеличиваем масштаб фонового паттерна */
     margin: -1rem -2rem 1.5rem -2rem !important; /* Выводим за рамки экрана */
     background-position: center center !important;
+    position: relative !important;
+    overflow: hidden !important;
+    border-radius: 18px !important;
+    border: 1px solid rgba(32, 56, 94, 0.55) !important;
+    box-shadow: 0 18px 38px rgba(0, 0, 0, 0.45) !important;
+  }
+
+  .header::before {
+    content: '' !important;
+    position: absolute !important;
+    inset: 0 !important;
+    background:
+      linear-gradient(180deg, rgba(6, 12, 32, 0.9) 0%, rgba(6, 12, 28, 0.78) 45%, rgba(6, 10, 24, 0.82) 100%) !important;
+    pointer-events: none !important;
+    z-index: 1 !important;
+    opacity: 0.95 !important;
+  }
+
+  .header > * {
+    position: relative !important;
+    z-index: 2 !important;
   }
   
   /* Улучшаем текст карточек */
@@ -216,6 +248,11 @@ html {
     opacity: 1 !important;
     transform: translateX(-50%) !important;
     bottom: -36px !important;
+    color: #fff7c2 !important;
+    text-transform: uppercase !important;
+    text-shadow: 0 0 12px rgba(255, 215, 0, 0.75), 0 0 22px rgba(255, 195, 110, 0.55) !important;
+    filter: drop-shadow(0 0 18px rgba(255, 215, 0, 0.45)) !important;
+    animation: logoTaglinePulse 3.6s ease-in-out infinite !important;
   }
 }
 
@@ -585,6 +622,38 @@ html {
   100% { transform: rotate(360deg); }
 }
 
+@keyframes neonPulse {
+  0%, 100% {
+    text-shadow:
+      0 0 10px rgba(59, 173, 255, 0.45),
+      0 0 24px rgba(142, 68, 255, 0.4),
+      0 0 34px rgba(255, 99, 214, 0.28);
+  }
+  50% {
+    text-shadow:
+      0 0 18px rgba(59, 173, 255, 0.7),
+      0 0 32px rgba(142, 68, 255, 0.55),
+      0 0 46px rgba(255, 99, 214, 0.35);
+  }
+}
+
+@keyframes logoTaglinePulse {
+  0%, 100% {
+    text-shadow:
+      0 0 12px rgba(255, 215, 0, 0.75),
+      0 0 24px rgba(255, 190, 80, 0.55),
+      0 0 40px rgba(255, 248, 170, 0.35);
+    filter: drop-shadow(0 0 18px rgba(255, 215, 0, 0.45));
+  }
+  45% {
+    text-shadow:
+      0 0 18px rgba(255, 215, 0, 0.95),
+      0 0 34px rgba(255, 196, 104, 0.75),
+      0 0 52px rgba(255, 248, 190, 0.42);
+    filter: drop-shadow(0 0 24px rgba(255, 215, 0, 0.6));
+  }
+}
+
 /* CSP-safe utility classes */
 .interactive-link {
   color: #4ecdc4;
@@ -596,6 +665,32 @@ html {
   color: #FFD700;
   text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
   font-weight: bold;
+}
+
+.heading-neon {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  color: #e8f9ff;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-shadow:
+    0 0 14px rgba(59, 173, 255, 0.6),
+    0 0 26px rgba(142, 68, 255, 0.45),
+    0 0 40px rgba(255, 99, 214, 0.35);
+  animation: neonPulse 4s ease-in-out infinite;
+}
+
+.heading-neon::after {
+  content: '';
+  position: absolute;
+  inset: -6px -12px;
+  border-radius: 12px;
+  background: radial-gradient(circle, rgba(59, 173, 255, 0.22) 0%, rgba(255, 99, 214, 0.16) 55%, transparent 100%);
+  filter: blur(6px);
+  opacity: 0.6;
+  pointer-events: none;
+  z-index: -1;
 }
 
 .subtitle-orange {
