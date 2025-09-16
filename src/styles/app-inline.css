@@ -704,13 +704,34 @@
 }
 
 .category-icon img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  object-position: center;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+  object-position: center !important;
 }
 
 /* Убираем специфические размеры для категорий - теперь все изображения 100% × 100% */
+
+/* Специфичные стили для каждой категории с !important для гарантированного переопределения */
+.category-1-icon,
+.category-2-icon,
+.category-3-icon,
+.category-4-icon,
+.category-5-icon,
+.category-6-icon,
+.category-7-icon,
+.category-8-icon,
+.category-9-icon,
+.category-10-icon,
+.category-11-icon,
+.category-12-icon,
+.category-13-icon,
+.category-14-icon {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+  object-position: center !important;
+}
 
 .category-text {
   display: flex;

@@ -2630,13 +2630,24 @@ const App: React.FC = () => {
           transition: opacity 0.3s ease;
         }
 
+        .session-info--cta::after {
+          content: '';
+          position: absolute;
+          inset: 12px;
+          border-radius: 20px;
+          background: linear-gradient(180deg, rgba(6, 16, 36, 0.72) 0%, rgba(6, 16, 32, 0.85) 60%, rgba(3, 10, 24, 0.9) 100%);
+          pointer-events: none;
+          z-index: 0;
+          box-shadow: inset 0 0 0 1px rgba(78, 205, 196, 0.25);
+        }
+
         .session-info--cta:hover::before {
-          opacity: 0.8;
+          opacity: 0.7;
         }
 
         .session-info--cta > * {
           position: relative;
-          z-index: 1;
+          z-index: 2;
         }
 
         .session-info--cta h4 {
@@ -3039,7 +3050,7 @@ const App: React.FC = () => {
              border-radius: 20px;
              border: 1px solid rgba(255, 255, 255, 0.1);
              box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
-             margin: 1rem;
+             margin: clamp(3.6rem, 7vw, 5.1rem) 1rem 1.2rem;
              backdrop-filter: blur(4px);
            }
 
@@ -3194,18 +3205,22 @@ const App: React.FC = () => {
             padding: 1rem;
           }
 
-                                   .header {
-            margin-bottom: 0.4rem; /* Уменьшили отступ снизу */
-            background: 
-              linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.2) 100%),
-              url('/RL-Guide-book/pattern_stickers.jpg') center center / 100% no-repeat;
-            padding: 0.3rem; /* Уменьшили padding */
-            border-radius: 15px;
-            backdrop-filter: blur(5px);
+          .header {
+            position: relative;
+            margin-bottom: 0.6rem;
+            padding: 0.75rem 1rem;
+            border-radius: 18px;
+            overflow: hidden;
             display: flex;
             flex-direction: column;
             align-items: flex-start;
-            gap: 0.4rem;
+            gap: 0.5rem;
+            background:
+              linear-gradient(145deg, rgba(6, 12, 28, 0.65) 0%, rgba(10, 20, 38, 0.7) 55%, rgba(8, 14, 30, 0.78) 100%),
+              url('/RL-Guide-book/pattern_stickers.jpg') center / cover no-repeat;
+            border: 1px solid rgba(32, 56, 94, 0.55);
+            box-shadow: 0 18px 38px rgba(0, 0, 0, 0.45);
+            backdrop-filter: blur(10px);
           }
 
           @keyframes neonPulse {
@@ -3532,7 +3547,7 @@ const App: React.FC = () => {
           }
 
           .category-container:hover .category-icon img {
-            transform: scale(1.55);
+            transform: scale(1.15);
           }
 
                                                                                                                                                                                                                        .category-icon {
@@ -3547,73 +3562,14 @@ const App: React.FC = () => {
             }
             
             .category-icon img {
-              width: 140%;
-              height: 140%;
-              object-fit: cover;
-              object-position: center;
-              transform: scale(1.4);
+              width: 100% !important;
+              height: 100% !important;
+              object-fit: contain !important;
+              object-position: center !important;
+              transform: none;
               transition: transform 0.35s ease, filter 0.35s ease;
             }
 
-            .category-2-icon {
-              width: 140% !important;
-              height: 140% !important;
-            }
-
-            .category-5-icon {
-              width: 138% !important;
-              height: 138% !important;
-            }
-
-            .category-8-icon {
-              width: 138% !important;
-              height: 138% !important;
-            }
-
-            .category-9-icon {
-              width: 145% !important;
-              height: 145% !important;
-            }
-
-            .category-14-icon {
-              width: 138% !important;
-              height: 138% !important;
-            }
-
-                .category-13-icon {
-      width: 138% !important;
-      height: 138% !important;
-    }
-
-    .category-11-icon {
-      width: 160% !important;
-      height: 160% !important;
-    }
-
-    .category-3-icon {
-      width: 200% !important;
-      height: 200% !important;
-    }
-
-    .category-4-icon {
-      width: 140% !important;
-      height: 140% !important;
-    }
-
-    .category-7-icon {
-      width: 140% !important;
-      height: 140% !important;
-    }
-
-    .category-6-icon {
-      width: 140% !important;
-      height: 140% !important;
-    }
-
-    .category-10-icon {
-      width: 160% !important;
-      height: 160% !important;
-            }
 
                      .category-text {
              display: flex;
@@ -4186,6 +4142,28 @@ const App: React.FC = () => {
           flex-direction: column;
           align-items: flex-start;
           gap: 0.5rem;
+          position: relative;
+          background: rgba(8, 18, 36, 0.45);
+          padding: 0.7rem 1rem;
+          border-radius: 16px;
+          box-shadow: 0 14px 32px rgba(0, 0, 0, 0.35);
+          backdrop-filter: blur(12px);
+          border: 1px solid rgba(78, 205, 196, 0.25);
+          overflow: hidden;
+        }
+        .header-content::before {
+          content: '';
+          position: absolute;
+          inset: -0.4rem -0.8rem;
+          background:
+            linear-gradient(180deg, rgba(6, 12, 28, 0.82) 0%, rgba(9, 20, 38, 0.72) 70%, rgba(6, 14, 32, 0.78) 100%);
+          border-radius: 18px;
+          pointer-events: none;
+          z-index: 0;
+        }
+        .header-content > * {
+          position: relative;
+          z-index: 1;
         }
         /* Center header texts on screens 2 and 3 */
         .categories-screen .header-content,
