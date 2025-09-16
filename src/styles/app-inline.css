@@ -705,40 +705,141 @@
 
 /* Базовые стили для мобильных устройств */
 .category-icon img {
+  width: 118%;
+  height: 118%;
+  object-fit: cover;
+  object-position: center;
+}
+
+/* Индивидуальные размеры для каждой категории на мобильных */
+.category-2-icon {
   width: 140% !important;
   height: 140% !important;
-  object-fit: contain !important;
-  object-position: center !important;
+}
+
+.category-5-icon {
+  width: 138% !important;
+  height: 138% !important;
+}
+
+.category-8-icon {
+  width: 138% !important;
+  height: 138% !important;
+}
+
+.category-9-icon {
+  width: 145% !important;
+  height: 145% !important;
+}
+
+.category-14-icon {
+  width: 138% !important;
+  height: 138% !important;
+}
+
+.category-13-icon {
+  width: 138% !important;
+  height: 138% !important;
+}
+
+.category-11-icon {
+  width: 160% !important;
+  height: 160% !important;
+}
+
+.category-3-icon {
+  width: 200% !important;
+  height: 200% !important;
+}
+
+.category-4-icon {
+  width: 140% !important;
+  height: 140% !important;
+}
+
+.category-7-icon {
+  width: 140% !important;
+  height: 140% !important;
+}
+
+.category-6-icon {
+  width: 140% !important;
+  height: 140% !important;
+}
+
+.category-10-icon {
+  width: 160% !important;
+  height: 160% !important;
 }
 
 /* Стили только для десктопной версии */
 @media (min-width: 769px) {
   .category-icon img {
-    width: 120% !important;
-    height: 120% !important;
-    object-fit: contain !important;
-    object-position: center !important;
+    width: 118%;
+    height: 118%;
+    object-fit: cover;
+    object-position: center;
   }
 
-  /* Специфичные стили для каждой категории только на десктопе */
-  .category-1-icon,
-  .category-2-icon,
-  .category-3-icon,
-  .category-4-icon,
-  .category-5-icon,
-  .category-6-icon,
-  .category-7-icon,
-  .category-8-icon,
-  .category-9-icon,
-  .category-10-icon,
-  .category-11-icon,
-  .category-12-icon,
-  .category-13-icon,
+  /* Индивидуальные размеры для каждой категории на десктопе */
+  .category-2-icon {
+    width: 140% !important;
+    height: 140% !important;
+  }
+
+  .category-5-icon {
+    width: 138% !important;
+    height: 138% !important;
+  }
+
+  .category-8-icon {
+    width: 138% !important;
+    height: 138% !important;
+  }
+
+  .category-9-icon {
+    width: 145% !important;
+    height: 145% !important;
+  }
+
   .category-14-icon {
-    width: 120% !important;
-    height: 120% !important;
-    object-fit: contain !important;
-    object-position: center !important;
+    width: 138% !important;
+    height: 138% !important;
+  }
+
+  .category-13-icon {
+    width: 138% !important;
+    height: 138% !important;
+  }
+
+  .category-11-icon {
+    width: 160% !important;
+    height: 160% !important;
+  }
+
+  .category-3-icon {
+    width: 200% !important;
+    height: 200% !important;
+  }
+
+  .category-4-icon {
+    width: 140% !important;
+    height: 140% !important;
+  }
+
+  .category-7-icon {
+    width: 140% !important;
+    height: 140% !important;
+  }
+
+  .category-6-icon {
+    width: 140% !important;
+    height: 140% !important;
+  }
+
+  .category-10-icon {
+    width: 160% !important;
+    height: 160% !important;
   }
 }
 

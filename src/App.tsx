@@ -3562,22 +3562,73 @@ const App: React.FC = () => {
             }
             
             .category-icon img {
-              width: 140% !important;
-              height: 140% !important;
-              object-fit: contain !important;
-              object-position: center !important;
+              width: 118%;
+              height: 118%;
+              object-fit: cover;
+              object-position: center;
               transform: none;
               transition: transform 0.35s ease, filter 0.35s ease;
             }
 
-            /* Стили только для десктопной версии */
-            @media (min-width: 769px) {
-              .category-icon img {
-                width: 120% !important;
-                height: 120% !important;
-                object-fit: contain !important;
-                object-position: center !important;
-              }
+            /* Индивидуальные размеры для каждой категории */
+            .category-2-icon {
+              width: 140% !important;
+              height: 140% !important;
+            }
+
+            .category-5-icon {
+              width: 138% !important;
+              height: 138% !important;
+            }
+
+            .category-8-icon {
+              width: 138% !important;
+              height: 138% !important;
+            }
+
+            .category-9-icon {
+              width: 145% !important;
+              height: 145% !important;
+            }
+
+            .category-14-icon {
+              width: 138% !important;
+              height: 138% !important;
+            }
+
+            .category-13-icon {
+              width: 138% !important;
+              height: 138% !important;
+            }
+
+            .category-11-icon {
+              width: 160% !important;
+              height: 160% !important;
+            }
+
+            .category-3-icon {
+              width: 200% !important;
+              height: 200% !important;
+            }
+
+            .category-4-icon {
+              width: 140% !important;
+              height: 140% !important;
+            }
+
+            .category-7-icon {
+              width: 140% !important;
+              height: 140% !important;
+            }
+
+            .category-6-icon {
+              width: 140% !important;
+              height: 140% !important;
+            }
+
+            .category-10-icon {
+              width: 160% !important;
+              height: 160% !important;
             }
 
 
