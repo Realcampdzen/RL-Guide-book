@@ -237,6 +237,15 @@ html {
   
   /* Карточки - базовые стили удалены, так как в оригинале их не было */
   
+  /* Убираем квадратики вокруг пузырей только в category-screen */
+  .category-screen .category-card {
+    border: none !important;
+  }
+  .category-screen .category-card::before,
+  .category-screen .category-card::after {
+    border: none !important;
+  }
+  
   .badge-card {
     padding: var(--desktop-card-padding);
     border-radius: 12px;
