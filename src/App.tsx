@@ -3562,8 +3562,8 @@ const App: React.FC = () => {
             }
             
             .category-icon img {
-              width: 100% !important;
-              height: 100% !important;
+              width: 120% !important;
+              height: 120% !important;
               object-fit: contain !important;
               object-position: center !important;
               transform: none;
