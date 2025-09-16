@@ -703,34 +703,43 @@
   height: 100%;
 }
 
+/* Базовые стили для мобильных устройств */
 .category-icon img {
-  width: 120% !important;
-  height: 120% !important;
+  width: 100% !important;
+  height: 100% !important;
   object-fit: contain !important;
   object-position: center !important;
 }
 
-/* Убираем специфические размеры для категорий - теперь все изображения 120% × 120% */
+/* Стили только для десктопной версии */
+@media (min-width: 769px) {
+  .category-icon img {
+    width: 120% !important;
+    height: 120% !important;
+    object-fit: contain !important;
+    object-position: center !important;
+  }
 
-/* Специфичные стили для каждой категории с !important для гарантированного переопределения */
-.category-1-icon,
-.category-2-icon,
-.category-3-icon,
-.category-4-icon,
-.category-5-icon,
-.category-6-icon,
-.category-7-icon,
-.category-8-icon,
-.category-9-icon,
-.category-10-icon,
-.category-11-icon,
-.category-12-icon,
-.category-13-icon,
-.category-14-icon {
-  width: 120% !important;
-  height: 120% !important;
-  object-fit: contain !important;
-  object-position: center !important;
+  /* Специфичные стили для каждой категории только на десктопе */
+  .category-1-icon,
+  .category-2-icon,
+  .category-3-icon,
+  .category-4-icon,
+  .category-5-icon,
+  .category-6-icon,
+  .category-7-icon,
+  .category-8-icon,
+  .category-9-icon,
+  .category-10-icon,
+  .category-11-icon,
+  .category-12-icon,
+  .category-13-icon,
+  .category-14-icon {
+    width: 120% !important;
+    height: 120% !important;
+    object-fit: contain !important;
+    object-position: center !important;
+  }
 }
 
 .category-text {

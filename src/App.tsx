@@ -3562,12 +3562,22 @@ const App: React.FC = () => {
             }
             
             .category-icon img {
-              width: 120% !important;
-              height: 120% !important;
+              width: 100% !important;
+              height: 100% !important;
               object-fit: contain !important;
               object-position: center !important;
               transform: none;
               transition: transform 0.35s ease, filter 0.35s ease;
+            }
+
+            /* Стили только для десктопной версии */
+            @media (min-width: 769px) {
+              .category-icon img {
+                width: 120% !important;
+                height: 120% !important;
+                object-fit: contain !important;
+                object-position: center !important;
+              }
             }
 
 
