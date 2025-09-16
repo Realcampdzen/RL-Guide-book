@@ -3272,25 +3272,7 @@ const App: React.FC = () => {
             position: relative;
           }
 
-          .category-screen .header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background:
-              linear-gradient(180deg, rgba(2, 8, 20, 0.88) 0%, rgba(2, 8, 20, 0.76) 52%, rgba(2, 8, 18, 0.82) 100%),
-              radial-gradient(circle at 18% 30%, rgba(78, 205, 196, 0.22) 0%, transparent 50%),
-              radial-gradient(circle at 82% 28%, rgba(142, 68, 255, 0.2) 0%, transparent 55%);
-            pointer-events: none;
-            z-index: 1;
-          }
-
-          .category-screen .header > * {
-            position: relative;
-            z-index: 2;
-          }
+          /* Убираем общий оверлей для category-screen header */
 
                  .back-button {
            background: rgba(255, 255, 255, 0.1);
