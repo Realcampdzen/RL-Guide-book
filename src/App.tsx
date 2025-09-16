@@ -3215,7 +3215,12 @@ const App: React.FC = () => {
             flex-direction: column;
             align-items: flex-start;
             gap: 0.5rem;
-            /* Контейнер без оверлеев - только структура и позиционирование */
+            background:
+              linear-gradient(145deg, rgba(6, 12, 28, 0.65) 0%, rgba(10, 20, 38, 0.7) 55%, rgba(8, 14, 30, 0.78) 100%),
+              url('/RL-Guide-book/pattern_stickers.jpg') center / cover no-repeat;
+            border: 1px solid rgba(32, 56, 94, 0.55);
+            box-shadow: 0 18px 38px rgba(0, 0, 0, 0.45);
+            backdrop-filter: blur(10px);
           }
 
           @keyframes neonPulse {
