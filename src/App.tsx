@@ -4835,11 +4835,7 @@ const App: React.FC = () => {
           }
         }
         /* Override: banners */
-        .header { 
-          background: 
-            linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.2) 100%),
-            url('/RL-Guide-book/pattern_stickers.jpg') center top / cover no-repeat !important;
-        }
+        /* Убираем общий оверлей header - оставляем только специальный для заголовка */
         .category-screen .header { 
           background: 
             linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.2) 100%),

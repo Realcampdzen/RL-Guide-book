@@ -103,13 +103,10 @@ html {
     flex-direction: column !important;
     justify-content: center !important;
     align-items: center !important;
-    background-size: 150% !important; /* Увеличиваем масштаб фонового паттерна */
-    margin: -1rem -2rem 1.5rem -2rem !important; /* Выводим за рамки экрана */
-    background-position: center center !important;
+    /* Убираем общий оверлей - оставляем только специальный для заголовка */
     position: relative !important;
     overflow: hidden !important;
     border-radius: 18px !important;
-    border: 1px solid rgba(32, 56, 94, 0.55) !important;
     box-shadow: 0 18px 38px rgba(0, 0, 0, 0.45) !important;
   }
 
