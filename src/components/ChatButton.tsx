@@ -110,9 +110,10 @@ const ChatButton: React.FC<ChatButtonProps> = ({ onClick, isOpen = false, classN
   const safeAreaBottom = Math.max(0, viewport.innerHeight - viewport.height - viewport.offsetTop);
   const safeAreaRight = Math.max(0, viewport.innerWidth - viewport.width - viewport.offsetLeft);
   const baseBottom = (isMobile ? 18 : 24) + safeAreaBottom;
-  // Простой и надежный подъем кнопки
-  const liftAmount = isMobile ? 200 : 120;
-  const buttonBottom = isOpen ? baseBottom + liftAmount : baseBottom;
+  // Подъем кнопки ТОЛЬКО для мобильных устройств
+  const mobileLift = Math.max(180, Math.min(250, viewport.height * 0.3));
+  const raisedOffset = isMobile ? mobileLift : 0; // Десктоп остается без изменений
+  const buttonBottom = isOpen ? baseBottom + raisedOffset : baseBottom;
   const buttonRight = (isMobile ? 16 : 24) + safeAreaRight;
   
   const buttonBackground = isOpen
@@ -155,7 +156,8 @@ const ChatButton: React.FC<ChatButtonProps> = ({ onClick, isOpen = false, classN
         opacity: buttonOpacity,
         overflow: 'visible',
         transform: isOpen ? 'translateY(-8px)' : 'translateY(0)',
-        border: buttonBorder
+        // Временная отладочная индикация
+        border: isOpen ? '3px solid #ff0000' : '2px solid rgba(78, 205, 196, 0.6)'
       }}
       onMouseEnter={(e) => {
         if (isOpen) {
