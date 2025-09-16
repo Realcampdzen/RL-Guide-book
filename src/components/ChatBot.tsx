@@ -226,12 +226,15 @@ const ChatBot: React.FC<ChatBotProps> = ({
     alignItems: isMobile ? 'flex-end' : 'flex-start',
     justifyContent: isMobile ? 'center' : 'flex-end',
     zIndex: 10000,
-    padding: isMobile
-      ? `0 ${Math.max(12, safeAreaRight)}px 0 ${Math.max(12, safeAreaLeft)}px`
-      : '20px',
+    paddingTop: isMobile ? 0 : 20,
+    paddingLeft: isMobile ? Math.max(12, safeAreaLeft + 12) : 20,
+    paddingRight: isMobile ? Math.max(12, safeAreaRight + 12) : 20,
+    paddingBottom: isMobile ? Math.max(18, safeAreaBottom + 18) : 20,
     animation: 'fadeIn 0.3s ease-out',
     pointerEvents: 'none'
   };
+
+  const computedMobileHeight = Math.max(320, Math.round(viewport.height - safeAreaBottom));
 
   const containerStyle: React.CSSProperties = {
     background: 'linear-gradient(135deg, rgba(12, 12, 12, 0.6) 0%, rgba(26, 26, 46, 0.6) 50%, rgba(22, 33, 62, 0.6) 100%)',
@@ -239,8 +242,8 @@ const ChatBot: React.FC<ChatBotProps> = ({
     boxShadow: '0 30px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(78, 205, 196, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
     width: isMobile ? '100%' : '400px',
     maxWidth: isMobile ? '480px' : '400px',
-    height: isMobile ? `${Math.round(viewport.height)}px` : '600px',
-    maxHeight: isMobile ? `${Math.round(viewport.height)}px` : '600px',
+    height: isMobile ? `${computedMobileHeight}px` : '600px',
+    maxHeight: isMobile ? `${computedMobileHeight}px` : '600px',
     display: 'flex',
     flexDirection: 'column',
     fontFamily: 'system-ui, -apple-system, sans-serif',
@@ -248,6 +251,7 @@ const ChatBot: React.FC<ChatBotProps> = ({
     animation: 'slideInFromRight 0.4s ease-out',
     backdropFilter: 'blur(20px)',
     marginTop: isMobile ? '0' : '20px',
+    marginBottom: isMobile ? '0' : '20px',
     pointerEvents: 'auto',
     overflow: 'hidden'
   };
@@ -255,7 +259,9 @@ const ChatBot: React.FC<ChatBotProps> = ({
   const messagesContainerStyle: React.CSSProperties = {
     flex: 1,
     overflowY: 'auto',
-    padding: isMobile ? '16px 16px 12px' : '20px',
+    padding: isMobile
+      ? `16px 16px ${Math.max(18, safeAreaBottom / 2 + 12)}px`
+      : '20px',
     display: 'flex',
     flexDirection: 'column',
     gap: isMobile ? '16px' : '20px',
@@ -265,7 +271,7 @@ const ChatBot: React.FC<ChatBotProps> = ({
 
   const inputAreaStyle: React.CSSProperties = {
     padding: isMobile ? '12px 16px 12px' : '16px',
-    paddingBottom: isMobile ? `${12 + safeAreaBottom}px` : '16px',
+    paddingBottom: isMobile ? `${Math.max(14, safeAreaBottom + 14)}px` : '16px',
     borderTop: '1px solid rgba(78, 205, 196, 0.3)',
     background: 'rgba(78, 205, 196, 0.05)',
     borderRadius: '0 0 24px 24px'

@@ -114,14 +114,8 @@ html {
   }
 
   .header::before {
-    content: '' !important;
-    position: absolute !important;
-    inset: 0 !important;
-    background:
-      linear-gradient(180deg, rgba(6, 12, 32, 0.9) 0%, rgba(6, 12, 28, 0.78) 45%, rgba(6, 10, 24, 0.82) 100%) !important;
-    pointer-events: none !important;
-    z-index: 1 !important;
-    opacity: 0.95 !important;
+    content: none !important;
+    background: none !important;
   }
 
   .header > * {
@@ -229,6 +223,30 @@ html {
     align-items: center !important;
     text-align: center !important;
     gap: 0.6rem !important;
+    position: relative !important;
+    background: rgba(8, 18, 36, 0.45) !important;
+    padding: 0.75rem 1.05rem !important;
+    border-radius: 16px !important;
+    border: 1px solid rgba(78, 205, 196, 0.25) !important;
+    box-shadow: 0 14px 32px rgba(0, 0, 0, 0.35) !important;
+    backdrop-filter: blur(12px) !important;
+    overflow: hidden !important;
+  }
+
+  .header-content::before {
+    content: '' !important;
+    position: absolute !important;
+    inset: -0.45rem -0.85rem !important;
+    background:
+      linear-gradient(180deg, rgba(6, 12, 28, 0.82) 0%, rgba(9, 20, 38, 0.72) 70%, rgba(6, 14, 32, 0.78) 100%) !important;
+    border-radius: 18px !important;
+    pointer-events: none !important;
+    z-index: 1 !important;
+  }
+
+  .header-content > * {
+    position: relative !important;
+    z-index: 2 !important;
   }
 
   .additional-materials-buttons {
@@ -311,31 +329,37 @@ html {
   }
   
   /* Логотип крупнее и заметнее */
-  .intro-logo img {
-    width: 160px !important;
-    height: 160px !important;
-  }
+    .intro-logo img {
+      width: 180px !important;
+      height: 180px !important;
+    }
 
   .intro-logo {
     position: static !important; /* Убираем абсолютное позиционирование */
-    margin-bottom: 1.2rem !important; /* Отступ снизу */
-    transform: scale(1.05) !important; /* Немного увеличиваем */
+    margin-bottom: 2.75rem !important; /* Больше пространства под сияющую надпись */
+    transform: scale(1.08) !important; /* Немного увеличиваем */
     order: 1 !important; /* Логотип сверху */
   }
 
   .intro-logo .logo-hover-text {
-    font-size: 0.85rem !important;
-    letter-spacing: 0.12rem !important;
-    bottom: -30px !important;
+    font-size: 0.9rem !important;
+    letter-spacing: 0.14rem !important;
+    bottom: -32px !important;
+    color: #fff7c2 !important;
+    text-transform: uppercase !important;
+    text-shadow: 0 0 14px rgba(255, 215, 0, 0.8), 0 0 24px rgba(255, 195, 110, 0.6) !important;
+    filter: drop-shadow(0 0 18px rgba(255, 215, 0, 0.5)) !important;
+    animation: logoTaglinePulse 3.6s ease-in-out infinite !important;
+    opacity: 1 !important;
   }
   
   /* ГЕНИАЛЬНОЕ РЕШЕНИЕ: Контент использует всю ширину без перекрытий */
   .intro-content {
     flex: 1 !important; /* Занимает оставшееся пространство */
     margin: 0 !important; /* Убираем все отступы */
-    padding: 1rem !important; /* Стандартный внутренний отступ */
+    padding: 1.35rem 1rem 1rem !important; /* Дополнительный отступ сверху под лозунг */
     max-width: 100% !important; /* Полная ширина */
-    max-height: calc(100vh - 230px) !important; /* Высота с учетом увеличенного логотипа */
+    max-height: calc(100vh - 260px) !important; /* Высота с учетом увеличенного логотипа */
     order: 2 !important; /* Контент снизу */
     overflow-y: auto !important; /* Скролл если нужно */
     -webkit-overflow-scrolling: touch !important;
@@ -480,8 +504,8 @@ html {
 /* Планшеты */
 @media (min-width: 481px) and (max-width: 768px) {
   .intro-logo img {
-    width: 180px !important;
-    height: 180px !important;
+    width: 200px !important;
+    height: 200px !important;
   }
 
   .intro-content {
@@ -500,29 +524,35 @@ html {
     padding: 1.5rem !important;
   }
 
-  .intro-logo {
-    position: static !important; /* Убираем абсолютное позиционирование */
-    margin-bottom: 1.5rem !important; /* Отступ снизу */
-    transform: scale(1.05) !important; /* Немного увеличиваем */
-    order: 1 !important; /* Логотип сверху */
-  }
+    .intro-logo {
+      position: static !important; /* Убираем абсолютное позиционирование */
+      margin-bottom: 3rem !important; /* Больше пространства под сияющую надпись */
+      transform: scale(1.1) !important; /* Немного увеличиваем */
+      order: 1 !important; /* Логотип сверху */
+    }
 
-  .intro-logo .logo-hover-text {
-    font-size: 0.9rem !important;
-    letter-spacing: 0.14rem !important;
-    bottom: -34px !important;
-  }
+    .intro-logo .logo-hover-text {
+      font-size: 1rem !important;
+      letter-spacing: 0.16rem !important;
+      bottom: -36px !important;
+      color: #fff7c2 !important;
+      text-transform: uppercase !important;
+      text-shadow: 0 0 16px rgba(255, 215, 0, 0.8), 0 0 28px rgba(255, 195, 110, 0.6) !important;
+      filter: drop-shadow(0 0 22px rgba(255, 215, 0, 0.55)) !important;
+      animation: logoTaglinePulse 3.6s ease-in-out infinite !important;
+      opacity: 1 !important;
+    }
 
-  .intro-content {
-    flex: 1 !important; /* Занимает оставшееся пространство */
-    margin: 0 !important; /* Убираем все отступы */
-    padding: 1.5rem !important; /* Стандартный внутренний отступ */
-    max-width: 100% !important; /* Полная ширина */
-    max-height: calc(100vh - 250px) !important; /* Высота с учетом логотипа */
-    order: 2 !important; /* Контент снизу */
-    overflow-y: auto !important; /* Скролл если нужно */
-    -webkit-overflow-scrolling: touch !important;
-  }
+    .intro-content {
+      flex: 1 !important; /* Занимает оставшееся пространство */
+      margin: 0 !important; /* Убираем все отступы */
+      padding: 1.6rem 1.25rem 1.25rem !important; /* Дополнительный отступ сверху под лозунг */
+      max-width: 100% !important; /* Полная ширина */
+      max-height: calc(100vh - 300px) !important; /* Высота с учетом увеличенного логотипа */
+      order: 2 !important; /* Контент снизу */
+      overflow-y: auto !important; /* Скролл если нужно */
+      -webkit-overflow-scrolling: touch !important;
+    }
   
   /* Улучшаем заголовки для планшетов */
   .header {

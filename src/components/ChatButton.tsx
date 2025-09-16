@@ -107,9 +107,13 @@ const ChatButton: React.FC<ChatButtonProps> = ({ onClick, isOpen = false, classN
     };
   }, []);
 
-  const baseBottom = isMobile ? 18 : 24;
-  const raisedOffset = isMobile ? 96 : 80;
+  const safeAreaBottom = Math.max(0, viewport.innerHeight - viewport.height - viewport.offsetTop);
+  const safeAreaRight = Math.max(0, viewport.innerWidth - viewport.width - viewport.offsetLeft);
+  const baseBottom = (isMobile ? 18 : 24) + safeAreaBottom;
+  const mobileLift = Math.max(120, Math.min(180, viewport.height * 0.22));
+  const raisedOffset = isMobile ? mobileLift : 110;
   const buttonBottom = isOpen ? baseBottom + raisedOffset : baseBottom;
+  const buttonRight = (isMobile ? 16 : 24) + safeAreaRight;
   const buttonBackground = isOpen
     ? 'linear-gradient(135deg, rgba(255, 107, 107, 0.95) 0%, rgba(12, 12, 12, 0.95) 50%, rgba(46, 26, 26, 0.95) 100%)'
     : 'linear-gradient(135deg, rgba(78, 205, 196, 0.95) 0%, rgba(12, 12, 12, 0.95) 50%, rgba(26, 26, 46, 0.95) 100%)';
@@ -131,7 +135,7 @@ const ChatButton: React.FC<ChatButtonProps> = ({ onClick, isOpen = false, classN
       style={{
         position: 'fixed',
         bottom: `${buttonBottom}px`,
-        right: isMobile ? '16px' : '24px',
+        right: `${buttonRight}px`,
         zIndex: 10001,
         background: buttonBackground,
         border: buttonBorder,
@@ -140,7 +144,7 @@ const ChatButton: React.FC<ChatButtonProps> = ({ onClick, isOpen = false, classN
         borderRadius: '28px',
         boxShadow: buttonShadow,
         cursor: 'pointer',
-        transition: 'transform 0.25s ease, opacity 0.25s ease, background 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease',
+        transition: 'transform 0.25s ease, opacity 0.25s ease, bottom 0.35s ease, right 0.35s ease, background 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease',
         display: 'flex',
         alignItems: 'center',
         gap: '12px',
