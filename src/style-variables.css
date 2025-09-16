@@ -1,0 +1,155 @@
+/* ========================================
+   CSS ПЕРЕМЕННЫЕ ДЛЯ ЛЕГКОГО РЕДАКТИРОВАНИЯ СТИЛЕЙ
+   ======================================== */
+
+:root {
+  /* ========================================
+     ОСНОВНЫЕ ЦВЕТА
+     ======================================== */
+  
+  --primary-bg: #000011;
+  --primary-text: white;
+  --accent-color: #4ecdc4;
+  --gold-color: #FFD700;
+  --orange-color: #FFA500;
+  --neon-blue: #3badff;
+  --neon-purple: #8e44ff;
+  --neon-pink: #ff63d6;
+  
+  /* ========================================
+     МОБИЛЬНЫЕ РАЗМЕРЫ - РЕДАКТИРУЙТЕ ЗДЕСЬ
+     ======================================== */
+  
+  /* Размеры контейнеров */
+  --mobile-container-padding: 1rem;
+  --mobile-container-margin: 0.5rem;
+  --mobile-container-max-width: 420px;
+  
+  /* Размеры карточек категорий */
+  --mobile-category-card-size: 60px;
+  --mobile-category-card-max-size: 80px;
+  --mobile-category-card-padding: 0.35rem;
+  
+  /* Размеры карточек значков */
+  --mobile-badge-card-width: 280px;
+  --mobile-badge-card-max-width: 100%;
+  --mobile-badge-icon-size: 60px;
+  
+  /* Размеры кнопок */
+  --mobile-button-height: 44px;
+  --mobile-button-padding: 0.6rem 1rem;
+  --mobile-button-border-radius: 28px;
+  
+  /* Размеры заголовков */
+  --mobile-header-padding: 1.1rem 1rem 1.5rem;
+  --mobile-header-min-height: auto;
+  --mobile-h1-font-size: 1.6rem;
+  --mobile-h1-line-height: 1.2;
+  
+  /* Размеры текста */
+  --mobile-text-font-size: 0.9rem;
+  --mobile-text-line-height: 1.4;
+  --mobile-small-text-font-size: 0.8rem;
+  
+  /* Отступы и промежутки */
+  --mobile-grid-gap: 1rem;
+  --mobile-section-gap: 1.5rem;
+  
+  /* Логотип */
+  --mobile-logo-size: 180px;
+  --mobile-logo-margin-bottom: 2.75rem;
+  
+  /* ========================================
+     ДЕСКТОПНЫЕ РАЗМЕРЫ
+     ======================================== */
+  
+  /* Размеры для десктопа */
+  --desktop-container-padding: 2rem;
+  --desktop-container-max-width: 1200px;
+  --desktop-grid-gap: 2rem;
+  --desktop-card-padding: 1.5rem;
+  
+  /* Шрифты для десктопа */
+  --desktop-h1-font-size: 2.5rem;
+  --desktop-h2-font-size: 2rem;
+  --desktop-text-font-size: 1.1rem;
+  --desktop-small-text-font-size: 0.9rem;
+  
+  /* ========================================
+     ПЛАНШЕТНЫЕ РАЗМЕРЫ
+     ======================================== */
+  
+  --tablet-logo-size: 200px;
+  --tablet-logo-margin-bottom: 3rem;
+  --tablet-grid-columns: 2;
+  --tablet-category-card-size: 70px;
+  --tablet-category-card-max-size: 90px;
+  --tablet-badge-card-min-width: 160px;
+  --tablet-badge-card-max-width: 180px;
+  --tablet-badge-icon-size: 70px;
+  
+  /* ========================================
+     АНИМАЦИИ И ПЕРЕХОДЫ
+     ======================================== */
+  
+  --transition-fast: 0.2s ease;
+  --transition-normal: 0.3s ease;
+  --transition-slow: 0.5s ease;
+  
+  /* ========================================
+     ТЕНИ И ЭФФЕКТЫ
+     ======================================== */
+  
+  --shadow-light: 0 2px 8px rgba(0, 0, 0, 0.1);
+  --shadow-medium: 0 4px 16px rgba(0, 0, 0, 0.2);
+  --shadow-heavy: 0 8px 32px rgba(0, 0, 0, 0.3);
+  --shadow-neon: 0 0 20px rgba(78, 205, 196, 0.4);
+  
+  /* ========================================
+     РАДИУСЫ СКРУГЛЕНИЯ
+     ======================================== */
+  
+  --radius-small: 4px;
+  --radius-medium: 8px;
+  --radius-large: 12px;
+  --radius-xl: 16px;
+  --radius-full: 50%;
+  
+  /* ========================================
+     Z-INDEX СЛОИ
+     ======================================== */
+  
+  --z-dropdown: 1000;
+  --z-sticky: 1020;
+  --z-fixed: 1030;
+  --z-modal-backdrop: 1040;
+  --z-modal: 1050;
+  --z-popover: 1060;
+  --z-tooltip: 1070;
+  --z-toast: 1080;
+  --z-chat-button: 10001;
+  --z-chatbot: 10000;
+  --z-loading: 9999;
+}
+
+/* ========================================
+   ПРИМЕРЫ ИСПОЛЬЗОВАНИЯ ПЕРЕМЕННЫХ
+   ======================================== */
+
+/*
+Пример изменения размеров карточек категорий:
+--mobile-category-card-size: 80px; (было 60px)
+--mobile-category-card-max-size: 100px; (было 80px)
+
+Пример изменения размеров кнопок:
+--mobile-button-height: 50px; (было 44px)
+--mobile-button-padding: 0.8rem 1.2rem; (было 0.6rem 1rem)
+
+Пример изменения размеров текста:
+--mobile-h1-font-size: 1.8rem; (было 1.6rem)
+--mobile-text-font-size: 1rem; (было 0.9rem)
+
+Пример изменения отступов:
+--mobile-grid-gap: 1.5rem; (было 1rem)
+--mobile-section-gap: 2rem; (было 1.5rem)
+*/
