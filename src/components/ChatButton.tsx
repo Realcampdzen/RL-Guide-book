@@ -155,9 +155,7 @@ const ChatButton: React.FC<ChatButtonProps> = ({ onClick, isOpen = false, classN
         minWidth: isMobile ? 'auto' : '200px',
         opacity: buttonOpacity,
         overflow: 'visible',
-        transform: isOpen ? 'translateY(-8px)' : 'translateY(0)',
-        // Временная отладочная индикация
-        border: isOpen ? '3px solid #ff0000' : '2px solid rgba(78, 205, 196, 0.6)'
+        transform: isOpen ? 'translateY(-8px)' : 'translateY(0)'
       }}
       onMouseEnter={(e) => {
         if (isOpen) {
