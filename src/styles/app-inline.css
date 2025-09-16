@@ -478,12 +478,7 @@
   /* Убираем общий оверлей - оставляем только специальный для заголовка */
 }
 
-.category-screen .header {
-  background: 
-    linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.2) 100%),
-    url('/RL-Guide-book/badges_photo.jpg') center 71% / 100% no-repeat !important;
-  position: relative;
-}
+/* Убираем оверлей для category-screen header */
 
 /* Убираем общий оверлей для header */
 

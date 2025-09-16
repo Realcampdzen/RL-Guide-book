@@ -3215,12 +3215,7 @@ const App: React.FC = () => {
             flex-direction: column;
             align-items: flex-start;
             gap: 0.5rem;
-            background:
-              linear-gradient(145deg, rgba(6, 12, 28, 0.65) 0%, rgba(10, 20, 38, 0.7) 55%, rgba(8, 14, 30, 0.78) 100%),
-              url('/RL-Guide-book/pattern_stickers.jpg') center / cover no-repeat;
-            border: 1px solid rgba(32, 56, 94, 0.55);
-            box-shadow: 0 18px 38px rgba(0, 0, 0, 0.45);
-            backdrop-filter: blur(10px);
+            /* Убираем все оверлеи - оставляем только специальный для заголовка */
           }
 
           @keyframes neonPulse {
@@ -4828,11 +4823,7 @@ const App: React.FC = () => {
         }
         /* Override: banners */
         /* Убираем общий оверлей header - оставляем только специальный для заголовка */
-        .category-screen .header { 
-          background: 
-            linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.2) 100%),
-            url('/RL-Guide-book/badges_photo.jpg') center 40% / cover no-repeat !important;
-        }
+        /* Убираем оверлей для category-screen header */
         .badge-screen .header { 
           background: 
             linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.2) 100%),
