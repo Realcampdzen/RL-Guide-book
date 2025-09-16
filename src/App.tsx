@@ -4194,16 +4194,7 @@ const App: React.FC = () => {
           border: 1px solid rgba(78, 205, 196, 0.25);
           overflow: hidden;
         }
-        .header-content::before {
-          content: '';
-          position: absolute;
-          inset: -0.4rem -0.8rem;
-          background:
-            linear-gradient(180deg, rgba(6, 12, 28, 0.82) 0%, rgba(9, 20, 38, 0.72) 70%, rgba(6, 14, 32, 0.78) 100%);
-          border-radius: 18px;
-          pointer-events: none;
-          z-index: 0;
-        }
+        /* Убираем оверлей для header-content */
         .header-content > * {
           position: relative;
           z-index: 1;

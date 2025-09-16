@@ -233,17 +233,7 @@ html {
     overflow: hidden !important;
   }
 
-  .header-content::before {
-    content: '' !important;
-    position: absolute !important;
-    inset: -0.45rem -0.85rem !important;
-    background:
-      linear-gradient(180deg, rgba(6, 12, 28, 0.82) 0%, rgba(9, 20, 38, 0.72) 70%, rgba(6, 14, 32, 0.78) 100%) !important;
-    border-radius: 18px !important;
-    pointer-events: none !important;
-    z-index: 1 !important;
-  }
-
+  /* Убираем оверлей для header-content */
   .header-content > * {
     position: relative !important;
     z-index: 2 !important;
