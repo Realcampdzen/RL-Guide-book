@@ -6,30 +6,69 @@ interface ChatButtonProps {
   className?: string;
 }
 
+interface ViewportState {
+  width: number;
+  height: number;
+  innerWidth: number;
+  innerHeight: number;
+  offsetTop: number;
+  offsetLeft: number;
+}
+
+const getViewportState = (): ViewportState => {
+  if (typeof window === 'undefined') {
+    return {
+      width: 1024,
+      height: 768,
+      innerWidth: 1024,
+      innerHeight: 768,
+      offsetTop: 0,
+      offsetLeft: 0
+    };
+  }
+
+  const { innerWidth, innerHeight } = window;
+  const visualViewport = window.visualViewport;
+
+  return {
+    width: visualViewport?.width ?? innerWidth,
+    height: visualViewport?.height ?? innerHeight,
+    innerWidth,
+    innerHeight,
+    offsetTop: visualViewport?.offsetTop ?? 0,
+    offsetLeft: visualViewport?.offsetLeft ?? 0
+  };
+};
+
 const ChatButton: React.FC<ChatButtonProps> = ({ onClick, isOpen = false, className = '' }) => {
-  const [isMobile, setIsMobile] = useState<boolean>(() => {
-    if (typeof window === 'undefined') {
-      return false;
-    }
-    return window.innerWidth <= 768;
-  });
+  const [viewport, setViewport] = useState<ViewportState>(() => getViewportState());
+  const isMobile = viewport.width <= 768;
   const [isScrolling, setIsScrolling] = useState(false);
-  const scrollTimeoutRef = useRef<number>();
+  const scrollTimeoutRef = useRef<number | undefined>(undefined);
 
   useEffect(() => {
     if (typeof window === 'undefined') {
       return;
     }
 
-    const handleResize = () => {
-      setIsMobile(window.innerWidth <= 768);
+    const updateViewport = () => {
+      setViewport(getViewportState());
     };
 
-    handleResize();
-    window.addEventListener('resize', handleResize);
+    updateViewport();
+
+    window.addEventListener('resize', updateViewport);
+    window.addEventListener('orientationchange', updateViewport);
+
+    const visualViewport = window.visualViewport;
+    visualViewport?.addEventListener('resize', updateViewport);
+    visualViewport?.addEventListener('scroll', updateViewport);
 
     return () => {
-      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('resize', updateViewport);
+      window.removeEventListener('orientationchange', updateViewport);
+      visualViewport?.removeEventListener('resize', updateViewport);
+      visualViewport?.removeEventListener('scroll', updateViewport);
     };
   }, []);
 
