@@ -3687,7 +3687,7 @@ const App: React.FC = () => {
              place-items: center;
              flex: 0 0 auto;
              background: rgba(0, 0, 0, 0.4);
-             border: 1px solid rgba(255, 255, 255, 0.2);
+             border: none;
              transition: all 0.3s ease;
            }
 
