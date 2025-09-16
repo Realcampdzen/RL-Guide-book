@@ -115,6 +115,16 @@ const ChatButton: React.FC<ChatButtonProps> = ({ onClick, isOpen = false, classN
   const raisedOffset = isMobile ? mobileLift : 150;
   const buttonBottom = isOpen ? baseBottom + raisedOffset : baseBottom;
   const buttonRight = (isMobile ? 16 : 24) + safeAreaRight;
+  
+  // Отладочная информация
+  console.log('ChatButton Debug:', {
+    isOpen,
+    isMobile,
+    baseBottom,
+    raisedOffset,
+    buttonBottom,
+    viewport: viewport.height
+  });
   const buttonBackground = isOpen
     ? 'linear-gradient(135deg, rgba(255, 107, 107, 0.95) 0%, rgba(12, 12, 12, 0.95) 50%, rgba(46, 26, 26, 0.95) 100%)'
     : 'linear-gradient(135deg, rgba(78, 205, 196, 0.95) 0%, rgba(12, 12, 12, 0.95) 50%, rgba(26, 26, 46, 0.95) 100%)';
@@ -154,7 +164,9 @@ const ChatButton: React.FC<ChatButtonProps> = ({ onClick, isOpen = false, classN
         minWidth: isMobile ? 'auto' : '200px',
         opacity: buttonOpacity,
         overflow: 'visible',
-        transform: isOpen ? 'translateY(-8px)' : 'translateY(0)'
+        transform: isOpen ? 'translateY(-8px)' : 'translateY(0)',
+        // Временная отладочная индикация
+        border: isOpen ? '3px solid #ff0000' : '2px solid rgba(78, 205, 196, 0.6)'
       }}
       onMouseEnter={(e) => {
         if (isOpen) {
