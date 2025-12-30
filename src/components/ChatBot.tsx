@@ -139,10 +139,14 @@ const ChatBot: React.FC<ChatBotProps> = ({
     setIsLoading(true);
 
     try {
-      // Используем чат-бот сервис (локально или на Render)
-        const chatbotUrl = window.location.hostname === 'localhost' 
-          ? 'http://localhost:8000/chat'
-          : 'https://putevoditel-chatbot.onrender.com/chat';
+      // Используем чат-бот сервис:
+      // - в dev (Vite) — локальный Flask API через proxy (/api/chat)
+      // - в prod — Cloudflare endpoint
+      const hostname = window.location.hostname;
+      const useLocalApi = import.meta.env.DEV || hostname === 'localhost' || hostname === '127.0.0.1';
+      const chatbotUrl = useLocalApi
+        ? '/api/chat' // Vite proxy к Flask backend на порту 5000
+        : 'https://real-vibe-ai-studio.pages.dev/api/putevoditel/chat';
         const response = await fetch(chatbotUrl, {
         method: 'POST',
         headers: {
@@ -164,9 +168,10 @@ const ChatBot: React.FC<ChatBotProps> = ({
       const data = await response.json();
       
       if (response.ok) {
+        // Поддержка разных форматов ответа: Cloudflare возвращает 'reply', Flask возвращает 'response'
         const botMessage: Message = {
           id: (Date.now() + 1).toString(),
-          text: data.response || 'Извините, не могу ответить сейчас.',
+          text: data.reply || data.response || 'Извините, не могу ответить сейчас.',
           isUser: false,
           timestamp: new Date()
         };
@@ -654,4 +659,4 @@ const ChatBot: React.FC<ChatBotProps> = ({
   );
 };
 
-export default ChatBot;
+export default React.memo(ChatBot);

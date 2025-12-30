@@ -69,12 +69,16 @@ export default defineConfig({
   assetsInclude: ['**/*.md'],
   build: {
     outDir: 'dist',
-    sourcemap: true,
+    sourcemap: false,
     rollupOptions: {
       output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom'],
-          three: ['three']
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return;
+          if (id.includes('react')) return 'react-vendor';
+          if (id.includes('three')) return 'three';
+          if (id.includes('openai')) return 'openai';
+          if (id.includes('@google')) return 'google-ai';
+          return 'vendor';
         }
       }
     }

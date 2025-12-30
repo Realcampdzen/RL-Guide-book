@@ -11,12 +11,16 @@ import json
 import os
 import requests
 from pathlib import Path
+from dotenv import load_dotenv
+
+# Загружаем переменные окружения из .env файла (если есть)
+load_dotenv()
 
 app = Flask(__name__)
 CORS(app)  # Разрешаем CORS для фронтенда
 
-# Путь к файлу с данными
-DATA_FILE = "perfect_parsed_data.json"
+# Путь к файлу с данными (фиксируем относительно backend/, чтобы не зависеть от cwd)
+DATA_FILE = os.path.join(os.path.dirname(__file__), "perfect_parsed_data.json")
 
 @app.route('/')
 def index():
@@ -214,7 +218,7 @@ def get_stats():
 def serve_parsed_data():
     """Сервим файл с парсированными данными"""
     try:
-        return send_from_directory('.', 'perfect_parsed_data.json')
+        return send_from_directory(os.path.dirname(__file__), 'perfect_parsed_data.json')
     except Exception as e:
         return jsonify({"error": f"Файл не найден: {str(e)}"}), 404
 
@@ -246,15 +250,16 @@ def health_check():
         }), 503
 
 if __name__ == '__main__':
-    print("🚀 Запуск API сервера Путеводителя...")
-    print(f"📁 Файл данных: {DATA_FILE}")
+    # ВАЖНО (Windows): не используем эмодзи в stdout, иначе возможен UnicodeEncodeError (cp1251)
+    print("Запуск API сервера Путеводителя...")
+    print(f"Файл данных: {DATA_FILE}")
     
     if os.path.exists(DATA_FILE):
         with open(DATA_FILE, 'r', encoding='utf-8') as f:
             data = json.load(f)
-        print(f"✅ Загружено {len(data.get('categories', []))} категорий и {len(data.get('badges', []))} значков")
+        print(f"Загружено {len(data.get('categories', []))} категорий и {len(data.get('badges', []))} значков")
     else:
-        print("⚠️ Файл данных не найден!")
+        print("Файл данных не найден!")
     
 # Импорты для чат-бота
 import sys
@@ -277,7 +282,14 @@ def initialize_chatbot():
     global chatbot_components
     
     try:
-        from core.data_loader import DataLoader
+        import sys
+        from pathlib import Path
+        # Добавляем путь к модулям chatbot
+        chatbot_path = Path(__file__).parent.parent / 'chatbot'
+        if str(chatbot_path) not in sys.path:
+            sys.path.insert(0, str(chatbot_path))
+        
+        from core.data_loader_new import DataLoaderNew
         from core.openai_client import OpenAIClient
         from core.context_manager import ContextManager
         from core.response_generator import ResponseGenerator
@@ -285,8 +297,16 @@ def initialize_chatbot():
         print("Инициализация чат-бота...")
         
         # Инициализация компонентов
-        chatbot_components['data_loader'] = DataLoader()
-        chatbot_components['data_loader'].load_all_data()
+        # Каноничный источник данных для бота — public/ai-data (ai-data структура)
+        chatbot_components['data_loader'] = DataLoaderNew(use_ai_data=True)
+        # Лёгкий прогрев кэша (не грузим всё целиком при старте)
+        chatbot_components['data_loader'].preload_popular_categories()
+        
+        # Проверяем наличие API ключа перед инициализацией OpenAI клиента
+        api_key = os.getenv("OPENAI_API_KEY")
+        if not api_key:
+            print("OPENAI_API_KEY не найден. Чат-бот будет недоступен, но API для данных работает.")
+            return False
         
         chatbot_components['openai_client'] = OpenAIClient()
         chatbot_components['context_manager'] = ContextManager(chatbot_components['data_loader'])
@@ -301,6 +321,8 @@ def initialize_chatbot():
         
     except Exception as e:
         print(f"Ошибка инициализации чат-бота: {e}")
+        import traceback
+        traceback.print_exc()
         return False
 
 @app.route('/api/chat', methods=['POST'])
@@ -346,6 +368,14 @@ def chat_with_bot():
         bot_message = Message(role="assistant", content=response.response, metadata=response.metadata)
         chatbot_components['response_generator'].context_manager.add_message_to_history(user_id, bot_message)
         
+        # Flask jsonify не умеет сериализовать pydantic-модели напрямую
+        context_updates = response.context_updates
+        if context_updates is not None:
+            if hasattr(context_updates, "model_dump"):
+                context_updates = context_updates.model_dump()
+            elif hasattr(context_updates, "dict"):
+                context_updates = context_updates.dict()
+
         return jsonify({
             "response": response.response,
             "suggestions": response.suggestions or [
@@ -353,7 +383,7 @@ def chat_with_bot():
                 "Рекомендуй значки по моим интересам",
                 "Объясни философию системы значков"
             ],
-            "context_updates": response.context_updates,
+            "context_updates": context_updates,
             "metadata": response.metadata
         })
         
@@ -365,19 +395,20 @@ def chat_with_bot():
 
 # Для Vercel
 if __name__ == '__main__':
-    print("🚀 Запуск Flask API для Путеводителя...")
+    # ВАЖНО (Windows): не используем эмодзи в stdout, иначе возможен UnicodeEncodeError (cp1251)
+    print("Запуск Flask API для Путеводителя...")
     
     if os.path.exists(DATA_FILE):
         with open(DATA_FILE, 'r', encoding='utf-8') as f:
             data = json.load(f)
-        print(f"✅ Загружено {len(data.get('categories', []))} категорий и {len(data.get('badges', []))} значков")
+        print(f"Загружено {len(data.get('categories', []))} категорий и {len(data.get('badges', []))} значков")
     else:
-        print("⚠️ Файл данных не найден!")
+        print("Файл данных не найден!")
     
-    print("🌐 API доступен по адресу: http://localhost:5000")
-    print("📊 Статистика: http://localhost:5000/api/stats")
-    print("🔍 Поиск: http://localhost:5000/api/search?q=валюша")
-    print("🤖 Чат-бот: http://localhost:5000/api/chat")
+    print("API доступен по адресу: http://localhost:5000")
+    print("Статистика: http://localhost:5000/api/stats")
+    print("Поиск: http://localhost:5000/api/search?q=валюша")
+    print("Чат-бот: http://localhost:5000/api/chat")
     
     app.run(debug=False, host='0.0.0.0', port=5000)
 

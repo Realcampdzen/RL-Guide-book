@@ -48,6 +48,11 @@ pids
 *.seed
 *.pid.lock
 
+# Chatbot runtime storage (local dev artifacts)
+chatbot/storage/
+chatbot/chatbot/storage/
+backend/chatbot/storage/
+
 # Coverage directory used by tools like istanbul
 coverage/
 *.lcov

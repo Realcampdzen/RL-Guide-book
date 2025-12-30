@@ -275,4 +275,4 @@ const ChatButton: React.FC<ChatButtonProps> = ({ onClick, isOpen = false, classN
   );
 };
 
-export default ChatButton;
+export default React.memo(ChatButton);

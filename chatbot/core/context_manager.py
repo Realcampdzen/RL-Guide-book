@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 import json
 import os
 
-from models.conversation import UserContext, Conversation, Message
+from models.conversation import UserContext, Conversation, Message, WebContext
 from core.data_loader import DataLoader
 
 
@@ -405,6 +405,18 @@ class ContextManager:
             user_id: ID пользователя
             web_context: Контекст из веб-интерфейса (WebContext)
         """
+        if web_context is None:
+            return
+
+        # В Flask-интеграции web_context приходит как dict из request.get_json().
+        # Поддерживаем оба формата: dict и pydantic WebContext.
+        if isinstance(web_context, dict):
+            try:
+                web_context = WebContext(**web_context)
+            except Exception as e:
+                print(f"⚠️ Некорректный web_context для пользователя {user_id}: {e}")
+                return
+
         context = self.get_user_context(user_id)
         
         # Обновляем контекст на основе веб-интерфейса
@@ -421,8 +433,13 @@ class ContextManager:
                 norm_badge_id = raw_badge_id
             context.current_badge = norm_badge_id
             # Убеждаемся, что категория установлена
-            if web_context.current_badge.get('category_id'):
-                context.current_category = web_context.current_badge.get('category_id')
+            badge_category_id = (
+                web_context.current_badge.get('categoryId')
+                or web_context.current_badge.get('category_id')
+                or web_context.current_badge.get('category')
+            )
+            if badge_category_id:
+                context.current_category = badge_category_id
 
         # Если веб-контекст явно не задаёт категорию/значок — очищаем, чтобы не было "залипших" значений
         if web_context.current_badge is None:
@@ -440,9 +457,10 @@ class ContextManager:
         # Сохраняем обновленный контекст
         self._save_context(context)
         
-        print(f"🔄 Обновлен контекст для пользователя {user_id}:")
-        print(f"   📱 Экран: {web_context.current_view}")
-        print(f"   📁 Категория: {context.current_category}")
-        print(f"   🏆 Значок: {context.current_badge}")
+        # ВАЖНО (Windows): избегаем эмодзи в stdout (cp1251), иначе возможен UnicodeEncodeError
+        print(f"[web-context] user={user_id}")
+        print(f"  view: {web_context.current_view}")
+        print(f"  category: {context.current_category}")
+        print(f"  badge: {context.current_badge}")
         if web_context.current_level_badge_title:
-            print(f"   🎯 Название уровня: {web_context.current_level_badge_title}")
+            print(f"  level_title: {web_context.current_level_badge_title}")
