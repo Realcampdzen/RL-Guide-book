@@ -1110,6 +1110,18 @@
             .hero-bg {
                 z-index: -1 !important;
             }
+            
+            /* Портретная ориентация на мобильных - надпись больше и ниже */
+            @media (max-width: 768px) and (orientation: portrait) {
+                .hero-content {
+                    top: clamp(5.5rem, 13vh, 9rem) !important; /* Опускаем надпись ниже в портретной ориентации */
+                }
+                .hero .hero-content .hero-title,
+                section.hero .hero-content h1.hero-title,
+                .hero-title {
+                    font-size: clamp(3rem, 7.5vw + 1.5rem, 5.5rem) !important; /* Увеличиваем размер надписи в портретной ориентации */
+                }
+            }
             .manifesto { 
                 display: flex !important;
                 flex-direction: row !important;
