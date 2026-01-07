@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import '../styles/chatbot.css';
 
 interface Message {
   id: string;
@@ -72,6 +73,7 @@ const ChatBot: React.FC<ChatBotProps> = ({
 
   const [viewport, setViewport] = useState<ViewportState>(() => getViewportState());
   const isMobile = viewport.width <= 768;
+  const isTablet = viewport.width > 768 && viewport.width <= 1024;
   const safeAreaBottom = Math.max(0, viewport.innerHeight - viewport.height - viewport.offsetTop);
   const safeAreaLeft = Math.max(0, viewport.offsetLeft);
   const safeAreaRight = Math.max(0, viewport.innerWidth - viewport.width - viewport.offsetLeft);
@@ -226,79 +228,83 @@ const ChatBot: React.FC<ChatBotProps> = ({
     left: 0,
     right: 0,
     bottom: 0,
-    background: isMobile ? 'rgba(0, 0, 0, 0.45)' : 'transparent',
+    background: isMobile ? 'rgba(28, 10, 42, 0.6)' : 'transparent',
     display: 'flex',
-    alignItems: isMobile ? 'flex-end' : 'flex-start',
+    alignItems: 'flex-end',
     justifyContent: isMobile ? 'center' : 'flex-end',
-    zIndex: 10000,
-    paddingTop: isMobile ? 0 : 20,
+    zIndex: 20000,
+    paddingTop: 20,
     paddingLeft: isMobile ? Math.max(12, safeAreaLeft + 12) : 20,
     paddingRight: isMobile ? Math.max(12, safeAreaRight + 12) : 20,
-    paddingBottom: isMobile ? Math.max(18, safeAreaBottom + 18) : 20,
-    animation: 'fadeIn 0.3s ease-out',
+    paddingBottom: isMobile ? Math.max(18, safeAreaBottom + 18) : isTablet ? 5 : 20,
+    animation: 'chatFadeIn 0.3s ease-out',
     pointerEvents: 'none'
   };
 
   const computedMobileHeight = Math.max(320, Math.round(viewport.height - safeAreaBottom));
+  const desktopHeight = Math.min(520, Math.round((viewport.height || window.innerHeight) - 140));
 
   const containerStyle: React.CSSProperties = {
-    background: 'linear-gradient(135deg, rgba(12, 12, 12, 0.6) 0%, rgba(26, 26, 46, 0.6) 50%, rgba(22, 33, 62, 0.6) 100%)',
+    background: 'linear-gradient(135deg, rgba(12, 12, 12, 0.7) 0%, rgba(32, 12, 24, 0.72) 45%, rgba(52, 16, 76, 0.78) 100%)',
     borderRadius: isMobile ? '24px 24px 0 0' : '24px',
-    boxShadow: '0 30px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(78, 205, 196, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
-    width: isMobile ? '100%' : '400px',
-    maxWidth: isMobile ? '480px' : '400px',
-    height: isMobile ? `${computedMobileHeight}px` : '600px',
-    maxHeight: isMobile ? `${computedMobileHeight}px` : '600px',
+    boxShadow: '0 24px 50px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(225, 29, 72, 0.5), 0 0 28px rgba(124, 58, 237, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.08)',
+    width: isMobile ? '100%' : 'min(360px, 92vw)',
+    maxWidth: isMobile ? '480px' : '360px',
+    height: isMobile ? `${computedMobileHeight}px` : `${desktopHeight}px`,
+    maxHeight: isMobile ? `${computedMobileHeight}px` : '520px',
     display: 'flex',
     flexDirection: 'column',
     fontFamily: 'system-ui, -apple-system, sans-serif',
-    border: '1px solid rgba(78, 205, 196, 0.5)',
-    animation: 'slideInFromRight 0.4s ease-out',
+    border: '1px solid rgba(225, 29, 72, 0.5)',
+    animation: isMobile ? 'chatSlideInFromBottom 0.4s ease-out' : 'chatSlideInFromRight 0.4s ease-out',
     backdropFilter: 'blur(20px)',
-    marginTop: isMobile ? '0' : '20px',
-    marginBottom: isMobile ? '0' : '20px',
+    marginTop: 0,
+    marginBottom: isMobile ? '0' : isTablet ? '30px' : '16px',
+    marginRight: isMobile ? '0' : '16px',
     pointerEvents: 'auto',
-    overflow: 'hidden'
+    overflow: 'hidden',
+    position: 'relative',
+    isolation: 'isolate'
   };
 
   const messagesContainerStyle: React.CSSProperties = {
     flex: 1,
     overflowY: 'auto',
     padding: isMobile
-      ? `16px 16px ${Math.max(18, safeAreaBottom / 2 + 12)}px`
-      : '20px',
+      ? `16px 16px ${Math.max(12, safeAreaBottom + 12)}px`
+      : '16px',
     display: 'flex',
     flexDirection: 'column',
     gap: isMobile ? '16px' : '20px',
-    background: 'rgba(0, 0, 0, 0.05)',
-    borderRadius: '0 0 24px 24px'
+    background: 'transparent',
+    borderRadius: 0
   };
 
   const inputAreaStyle: React.CSSProperties = {
     padding: isMobile ? '12px 16px 12px' : '16px',
     paddingBottom: isMobile ? `${Math.max(14, safeAreaBottom + 14)}px` : '16px',
-    borderTop: '1px solid rgba(78, 205, 196, 0.3)',
-    background: 'rgba(78, 205, 196, 0.05)',
+    borderTop: 'none',
+    background: 'transparent',
     borderRadius: '0 0 24px 24px'
   };
 
   if (!isOpen) return null;
 
   return (
-    <div style={overlayStyle}>
-              <div style={containerStyle}>
+    <div className={`chatbot-overlay ${isOpen ? 'is-visible' : ''}`} style={overlayStyle}>
+      <div className="chatbot-container" style={containerStyle}>
         {/* Заголовок */}
         <div style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           padding: isMobile ? '14px 16px' : '16px',
-          borderBottom: '1px solid rgba(78, 205, 196, 0.3)',
-          background: 'rgba(78, 205, 196, 0.08)',
+          borderBottom: '1px solid rgba(225, 29, 72, 0.28)',
+          background: 'linear-gradient(135deg, rgba(225, 29, 72, 0.12) 0%, rgba(124, 58, 237, 0.18) 100%)',
           borderRadius: '24px 24px 0 0'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{ position: 'relative' }}>
+          <div className="chatbot-header-info" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div className="chatbot-avatar" style={{ position: 'relative' }}>
               <img 
                 src="/RL-Guide-book/Валюша.jpg" 
                 alt="НейроВалюша" 
@@ -307,8 +313,8 @@ const ChatBot: React.FC<ChatBotProps> = ({
                   height: '40px', 
                   borderRadius: '50%',
                   objectFit: 'cover',
-                  border: '2px solid rgba(78, 205, 196, 0.6)',
-                  boxShadow: '0 0 15px rgba(78, 205, 196, 0.3)'
+                  border: '2px solid rgba(225, 29, 72, 0.5)',
+                  boxShadow: '0 0 15px rgba(255, 79, 139, 0.35)'
                 }} 
               />
               <div style={{
@@ -317,19 +323,19 @@ const ChatBot: React.FC<ChatBotProps> = ({
                 right: '-1px',
                 width: '12px',
                 height: '12px',
-                background: '#4ecdc4',
+                background: '#ff4f8b',
                 borderRadius: '50%',
                 border: '2px solid rgba(12, 12, 12, 0.95)',
-                boxShadow: '0 0 8px rgba(78, 205, 196, 0.5)'
+                boxShadow: '0 0 8px rgba(255, 79, 139, 0.6)'
               }}></div>
             </div>
             <div>
               <h3 style={{ 
                 fontSize: '16px', 
                 fontWeight: '700', 
-                color: '#4ecdc4', 
+                color: '#ff4f8b', 
                 margin: 0,
-                textShadow: '0 0 8px rgba(78, 205, 196, 0.3)'
+                textShadow: '0 0 10px rgba(255, 79, 139, 0.45)'
               }}>
                 НейроВалюша
               </h3>
@@ -347,19 +353,19 @@ const ChatBot: React.FC<ChatBotProps> = ({
             onClick={onClose}
             style={{
               color: '#a0aec0',
-              background: 'rgba(78, 205, 196, 0.1)',
-              border: '1px solid rgba(78, 205, 196, 0.3)',
+              background: 'rgba(124, 58, 237, 0.18)',
+              border: '1px solid rgba(124, 58, 237, 0.45)',
               cursor: 'pointer',
               padding: '6px',
               borderRadius: '6px',
               transition: 'all 0.3s ease'
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'rgba(78, 205, 196, 0.2)';
-              e.currentTarget.style.color = '#4ecdc4';
+              e.currentTarget.style.background = 'rgba(124, 58, 237, 0.28)';
+              e.currentTarget.style.color = '#ff4f8b';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'rgba(78, 205, 196, 0.1)';
+              e.currentTarget.style.background = 'rgba(124, 58, 237, 0.18)';
               e.currentTarget.style.color = '#a0aec0';
             }}
           >
@@ -371,16 +377,16 @@ const ChatBot: React.FC<ChatBotProps> = ({
 
         {/* Контекстная информация */}
         {(currentView || currentCategory || currentBadge || currentLevel) && (
-          <div style={{
+          <div className="chatbot-context" style={{
             padding: '10px 16px',
-            background: 'rgba(78, 205, 196, 0.08)',
-            borderBottom: '1px solid rgba(78, 205, 196, 0.2)',
-            borderLeft: '3px solid #4ecdc4'
+            background: 'rgba(225, 29, 72, 0.15)',
+            borderBottom: '1px solid rgba(225, 29, 72, 0.28)',
+            borderLeft: '3px solid #ff4f8b'
           }}>
-            <div style={{ fontSize: '12px', color: '#4ecdc4', fontWeight: '500', display: 'flex', flexDirection: 'column', gap: '3px' }}>
+            <div className="chatbot-context-text" style={{ fontSize: '12px', color: '#ff4f8b', fontWeight: '500', display: 'flex', flexDirection: 'column', gap: '3px' }}>
               {currentView && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span style={{ fontSize: '14px' }}>🧭</span>
+                <div className="chatbot-context-item" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span className="chatbot-context-icon" style={{ fontSize: '14px' }}>🧭</span>
                   <span>
                     Экран: {
                       (
@@ -401,20 +407,20 @@ const ChatBot: React.FC<ChatBotProps> = ({
                 </div>
               )}
               {currentCategory && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span style={{ fontSize: '14px' }}>📁</span>
+                <div className="chatbot-context-item" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span className="chatbot-context-icon" style={{ fontSize: '14px' }}>📁</span>
                   <span>Категория: {currentCategory.emoji} {currentCategory.title}</span>
                 </div>
               )}
               {currentBadge && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: currentCategory ? '3px' : '0' }}>
-                  <span style={{ fontSize: '14px' }}>🏆</span>
+                <div className="chatbot-context-item chatbot-context-item-with-margin" style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: currentCategory ? '3px' : '0' }}>
+                  <span className="chatbot-context-icon" style={{ fontSize: '14px' }}>🏆</span>
                   <span>Значок: {currentBadge.emoji} {currentBadge.title}</span>
                 </div>
               )}
               {currentLevel && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span style={{ fontSize: '14px' }}>🎯</span>
+                <div className="chatbot-context-item" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span className="chatbot-context-icon" style={{ fontSize: '14px' }}>🎯</span>
                   <span>Уровень: {currentLevel}{currentLevelBadgeTitle ? ` — ${currentLevelBadgeTitle}` : ''}</span>
                 </div>
               )}
@@ -426,7 +432,7 @@ const ChatBot: React.FC<ChatBotProps> = ({
         <div style={messagesContainerStyle}>
           {messages.length === 0 && (
             <div style={{ textAlign: 'center', color: '#a0aec0', padding: '30px 0' }}>
-              <div style={{ position: 'relative', display: 'inline-block', marginBottom: '20px' }}>
+              <div className="chatbot-welcome-avatar" style={{ position: 'relative', display: 'inline-block', marginBottom: '20px' }}>
                 <img 
                   src="/RL-Guide-book/Валюша.jpg" 
                   alt="НейроВалюша" 
@@ -435,33 +441,33 @@ const ChatBot: React.FC<ChatBotProps> = ({
                     height: '80px', 
                     borderRadius: '50%',
                     objectFit: 'cover',
-                    border: '3px solid rgba(78, 205, 196, 0.7)',
-                    boxShadow: '0 0 25px rgba(78, 205, 196, 0.5)'
+                    border: '3px solid rgba(225, 29, 72, 0.7)',
+                    boxShadow: '0 0 25px rgba(255, 79, 139, 0.5)'
                   }} 
                 />
-                <div style={{
+                <div className="chatbot-welcome-indicator" style={{
                   position: 'absolute',
                   top: '-5px',
                   right: '-5px',
                   width: '20px',
                   height: '20px',
-                  background: '#4ecdc4',
+                  background: '#ff4f8b',
                   borderRadius: '50%',
                   border: '2px solid rgba(12, 12, 12, 0.95)',
-                  boxShadow: '0 0 12px rgba(78, 205, 196, 0.7)',
-                  animation: 'pulse 2s infinite'
+                  boxShadow: '0 0 12px rgba(255, 79, 139, 0.7)',
+                  animation: 'chatPulse 2s infinite'
                 }}></div>
               </div>
-              <h3 style={{ 
+              <h3 className="chatbot-welcome-title" style={{ 
                 fontSize: '20px', 
                 fontWeight: '700', 
-                color: '#4ecdc4', 
+                color: '#ff4f8b', 
                 margin: '0 0 12px 0',
-                textShadow: '0 0 10px rgba(78, 205, 196, 0.4)'
+                textShadow: '0 0 12px rgba(255, 79, 139, 0.45)'
               }}>
                 Привет! 😊
               </h3>
-              <p style={{ 
+              <p className="chatbot-welcome-text" style={{ 
                 fontSize: '14px', 
                 margin: '0 0 8px 0', 
                 fontWeight: '500',
@@ -470,7 +476,7 @@ const ChatBot: React.FC<ChatBotProps> = ({
               }}>
                 Я здесь чтобы помочь! 
               </p>
-              <p style={{ 
+              <p className="chatbot-welcome-subtext" style={{ 
                 fontSize: '12px', 
                 margin: '0', 
                 opacity: '0.9',
@@ -485,31 +491,30 @@ const ChatBot: React.FC<ChatBotProps> = ({
           {messages.map((message) => (
             <div
               key={message.id}
+              className={`chatbot-message ${message.isUser ? 'user' : 'bot'}`}
               style={{
                 display: 'flex',
                 justifyContent: message.isUser ? 'flex-end' : 'flex-start',
                 marginBottom: '8px'
               }}
             >
-              <div
-                style={{
-                  maxWidth: '85%',
-                  padding: '12px 16px',
-                  borderRadius: message.isUser ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
-                  background: message.isUser 
-                    ? 'linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%)'
-                    : 'rgba(78, 205, 196, 0.1)',
-                  color: message.isUser ? 'white' : '#e2e8f0',
-                  border: message.isUser 
-                    ? '1px solid rgba(78, 205, 196, 0.3)'
-                    : '1px solid rgba(78, 205, 196, 0.2)',
-                  boxShadow: message.isUser 
-                    ? '0 6px 20px rgba(78, 205, 196, 0.3)'
-                    : '0 3px 12px rgba(0, 0, 0, 0.1)',
-                  backdropFilter: 'blur(10px)'
-                }}
-              >
-                <p style={{ 
+              <div className="chatbot-message-content" style={{
+                maxWidth: '85%',
+                padding: '12px 16px',
+                borderRadius: message.isUser ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
+                background: message.isUser 
+                  ? 'linear-gradient(135deg, #ff4f8b 0%, #7c3aed 100%)'
+                  : 'rgba(225, 29, 72, 0.12)',
+                color: message.isUser ? 'white' : '#e2e8f0',
+                border: message.isUser 
+                  ? '1px solid rgba(225, 29, 72, 0.35)'
+                  : '1px solid rgba(225, 29, 72, 0.22)',
+                boxShadow: message.isUser 
+                  ? '0 6px 20px rgba(225, 29, 72, 0.35)'
+                  : '0 3px 12px rgba(0, 0, 0, 0.1)',
+                backdropFilter: 'blur(10px)'
+              }}>
+                <p className="chatbot-message-text" style={{ 
                   fontSize: '13px', 
                   margin: 0, 
                   whiteSpace: 'pre-wrap',
@@ -518,7 +523,7 @@ const ChatBot: React.FC<ChatBotProps> = ({
                 }}>
                   {message.text}
                 </p>
-                <p style={{
+                <p className="chatbot-message-time" style={{
                   fontSize: '10px',
                   marginTop: '6px',
                   color: message.isUser ? 'rgba(255, 255, 255, 0.7)' : 'rgba(160, 174, 192, 0.6)',
@@ -531,32 +536,11 @@ const ChatBot: React.FC<ChatBotProps> = ({
           ))}
           
           {isLoading && (
-            <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-              <div style={{
-                maxWidth: '85%',
-                padding: '12px 16px',
-                borderRadius: '16px 16px 16px 4px',
-                background: 'rgba(78, 205, 196, 0.1)',
-                border: '1px solid rgba(78, 205, 196, 0.2)',
-                boxShadow: '0 3px 12px rgba(0, 0, 0, 0.1)',
-                backdropFilter: 'blur(10px)'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <div style={{
-                    width: '16px',
-                    height: '16px',
-                    border: '2px solid rgba(78, 205, 196, 0.3)',
-                    borderTop: '2px solid #4ecdc4',
-                    borderRadius: '50%',
-                    animation: 'spin 1s linear infinite'
-                  }}></div>
-                  <span style={{ 
-                    fontSize: '13px', 
-                    color: '#a0aec0',
-                    fontWeight: '500'
-                  }}>
-                    НейроВалюша печатает...
-                  </span>
+            <div className="chatbot-loading">
+              <div className="chatbot-loading-content">
+                <div className="chatbot-loading-spinner">
+                  <div className="chatbot-spinner"></div>
+                  <span className="chatbot-loading-text">НейроВалюша печатает...</span>
                 </div>
               </div>
             </div>
@@ -569,7 +553,7 @@ const ChatBot: React.FC<ChatBotProps> = ({
 
         {/* Поле ввода */}
         <div style={inputAreaStyle}>
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-end' }}>
+          <div className="chatbot-input-wrapper" style={{ display: 'flex', gap: '8px', alignItems: 'flex-end' }}>
             <input
               ref={inputRef}
               autoFocus
@@ -578,10 +562,11 @@ const ChatBot: React.FC<ChatBotProps> = ({
               onChange={(e) => setInputText(e.target.value)}
               onKeyPress={handleKeyPress}
               placeholder="Напишите сообщение..."
+              className="chatbot-input"
               style={{
                 flex: 1,
                 padding: isMobile ? '12px 14px' : '12px 16px',
-                border: '1px solid rgba(78, 205, 196, 0.3)',
+                border: '1px solid rgba(124, 58, 237, 0.35)',
                 borderRadius: '16px',
                 fontSize: isMobile ? '16px' : '14px',
                 outline: 'none',
@@ -593,21 +578,22 @@ const ChatBot: React.FC<ChatBotProps> = ({
               }}
               disabled={isLoading}
               onFocus={(e) => {
-                e.target.style.borderColor = 'rgba(78, 205, 196, 0.6)';
-                e.target.style.boxShadow = '0 0 0 2px rgba(78, 205, 196, 0.2)';
+                e.target.style.borderColor = 'rgba(124, 58, 237, 0.7)';
+                e.target.style.boxShadow = '0 0 0 2px rgba(124, 58, 237, 0.25)';
                 scrollToBottom('auto');
               }}
               onBlur={(e) => {
-                e.target.style.borderColor = 'rgba(78, 205, 196, 0.3)';
+                e.target.style.borderColor = 'rgba(124, 58, 237, 0.35)';
                 e.target.style.boxShadow = 'none';
               }}
             />
             <button
               onClick={sendMessage}
               disabled={!inputText.trim() || isLoading}
+              className="chatbot-send-btn"
               style={{
                 padding: isMobile ? '12px 14px' : '12px 16px',
-                background: 'linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%)',
+                background: 'linear-gradient(135deg, #ff4f8b 0%, #7c3aed 100%)',
                 color: 'white',
                 border: 'none',
                 borderRadius: '16px',
@@ -615,7 +601,7 @@ const ChatBot: React.FC<ChatBotProps> = ({
                 fontWeight: '600',
                 cursor: 'pointer',
                 opacity: (!inputText.trim() || isLoading) ? 0.5 : 1,
-                boxShadow: '0 6px 20px rgba(78, 205, 196, 0.3)',
+                boxShadow: '0 6px 20px rgba(124, 58, 237, 0.35)',
                 transition: 'all 0.3s ease',
                 minWidth: isMobile ? '72px' : '80px',
                 minHeight: isMobile ? '48px' : 'auto'
@@ -623,12 +609,12 @@ const ChatBot: React.FC<ChatBotProps> = ({
               onMouseEnter={(e) => {
                 if (!e.currentTarget.disabled) {
                   e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.boxShadow = '0 8px 25px rgba(78, 205, 196, 0.4)';
+                  e.currentTarget.style.boxShadow = '0 8px 25px rgba(124, 58, 237, 0.45)';
                 }
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 6px 20px rgba(78, 205, 196, 0.3)';
+                e.currentTarget.style.boxShadow = '0 6px 20px rgba(124, 58, 237, 0.35)';
               }}
             >
               Отправить

@@ -405,12 +405,12 @@ if __name__ == '__main__':
     else:
         print("Файл данных не найден!")
     
-    print("API доступен по адресу: http://localhost:5000")
-    print("Статистика: http://localhost:5000/api/stats")
-    print("Поиск: http://localhost:5000/api/search?q=валюша")
-    print("Чат-бот: http://localhost:5000/api/chat")
+    print("API доступен по адресу: http://localhost:4000")
+    print("Статистика: http://localhost:4000/api/stats")
+    print("Поиск: http://localhost:4000/api/search?q=валюша")
+    print("Чат-бот: http://localhost:4000/api/chat")
     
-    app.run(debug=False, host='0.0.0.0', port=5000)
+    app.run(debug=False, host='0.0.0.0', port=4000)
 
 # Для Vercel - экспортируем app
 # Vercel будет использовать это как WSGI приложение

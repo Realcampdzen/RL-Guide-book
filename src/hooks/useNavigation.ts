@@ -82,11 +82,21 @@ export const useNavigation = ({ categories }: UseNavigationArgs) => {
   }, []);
 
   const handleBackToIntro = useCallback(() => {
-    setCurrentView('intro');
-    setSelectedCategory(null);
-    setSelectedBadge(null);
-    setSelectedLevel('');
-  }, []);
+    // Проверяем, пришли ли мы с HTML страницы
+    const referrer = document.referrer;
+    const isFromHTML = referrer.includes('bluenest.html') || referrer.includes('categories.html');
+    
+    if (isFromHTML) {
+      // Возвращаем на стартовую HTML страницу
+      window.location.href = 'bluenest.html';
+    } else {
+      // Внутренняя навигация React приложения
+      setCurrentView('intro');
+      setSelectedCategory(null);
+      setSelectedBadge(null);
+      setSelectedLevel('');
+    }
+  }, [setCurrentView]);
 
   const handleLogoClick = useCallback(() => {
     setCurrentView('about-camp');

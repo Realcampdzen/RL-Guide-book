@@ -9,12 +9,13 @@ body {
   font-family: 'Arial', sans-serif;
   background: #000011;
   color: white;
-  overflow: hidden;
+  /* overflow: hidden; - убрано, чтобы не конфликтовать с новыми компонентами */
 }
 
 #root {
   width: 100vw;
-  height: 100vh;
+  min-height: 100vh;
+  /* height: 100vh; - убрано, чтобы не конфликтовать с новыми компонентами */
 }
 
 .loading {

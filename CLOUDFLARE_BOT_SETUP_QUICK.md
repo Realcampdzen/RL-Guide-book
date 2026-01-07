@@ -8,6 +8,8 @@ OPENAI_MODEL=gpt-4o-mini                 # Модель (фиксированн�
 OPENAI_BASE_URL=https://api.openai.com/v1  # Или прокси: https://api.openai-proxy.com/v1
 ```
 
+**Для работы без VPN в РФ:** Установите `OPENAI_BASE_URL=https://api.openai-proxy.com/v1` в переменных окружения Cloudflare.
+
 ## 📁 Данные для загрузки
 
 **Папка:** `public/ai-data/` (вся папка целиком)

@@ -30,10 +30,14 @@ class OpenAIClient:
         if not self.api_key:
             raise ValueError("Не указан OPENAI_API_KEY")
         
-        # Инициализируем OpenAI клиент с прокси для обхода региональных ограничений
+        # Получаем base_url из переменных окружения или используем стандартный API
+        # Для работы без VPN в РФ можно установить OPENAI_BASE_URL=https://api.openai-proxy.com/v1
+        base_url = os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1")
+        
+        # Инициализируем OpenAI клиент
         self.client = OpenAI(
             api_key=self.api_key,
-            base_url="https://api.openai-proxy.com/v1"  # Публичный прокси
+            base_url=base_url
         )
         self.model = "gpt-4o-mini"  # Используем GPT-4o mini как указано в требованиях
     

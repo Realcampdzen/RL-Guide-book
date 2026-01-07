@@ -61,8 +61,18 @@ console.log(data.reply) // Ответ бота
 
 Убедитесь что в **Production** environment установлены:
 - ✅ `OPENAI_API_KEY` (обязательно)
-- ✅ `OPENAI_PROXY_BASE_URL` (если используется прокси)
-- ✅ `OPENAI_PROXY_TOKEN` (если используется прокси)
+- ✅ `OPENAI_BASE_URL` (опционально, для работы без VPN в РФ: `https://api.openai-proxy.com/v1`)
+
+### Настройка для работы без VPN в РФ
+
+1. Откройте Cloudflare Dashboard → Workers & Pages → `real-vibe-ai-studio`
+2. Перейдите в **Settings** → **Environment Variables**
+3. Добавьте переменную:
+   - **Name:** `OPENAI_BASE_URL`
+   - **Value:** `https://api.openai-proxy.com/v1`
+4. Сохраните изменения и перезапустите deployment
+
+**Важно:** Код автоматически использует `OPENAI_BASE_URL` из переменных окружения. Если переменная не установлена, используется стандартный `https://api.openai.com/v1`.
 
 ## 📝 Что дальше?
 
@@ -76,6 +86,7 @@ console.log(data.reply) // Ответ бота
 1. Проверьте что `OPENAI_API_KEY` установлен в Production
 2. Проверьте логи в Cloudflare Dashboard → Workers & Pages → Logs
 3. Используйте `?debug=1` в запросе для получения детальной информации об ошибках
+4. **Если бот не работает в РФ:** Убедитесь, что установлена переменная `OPENAI_BASE_URL=https://api.openai-proxy.com/v1`
 
 ---
 

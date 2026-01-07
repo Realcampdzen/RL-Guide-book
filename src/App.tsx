@@ -1,7 +1,10 @@
-import React, { Suspense, useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import AppStyles from './components/AppStyles';
+import BluenestGlobalStyles from './components/BluenestGlobalStyles';
 import { useDataLoader } from './hooks/useDataLoader';
 import { useNavigation } from './hooks/useNavigation';
+import BlueNestLanding from './components/BlueNestLanding';
+import CategoriesGrid from './components/CategoriesGrid';
 import { 
   pluralizeRu, 
   fixDescriptionFormatting, 
@@ -11,9 +14,6 @@ import {
 } from './utils/textFormatting';
 import { cleanHtmlContent, markdownToHtml } from './utils/markdown';
 import type { Badge } from './types/guide';
-
-const ChatBot = React.lazy(() => import('./components/ChatBot'));
-const ChatButton = React.lazy(() => import('./components/ChatButton'));
 
 // Split-safe badge id helpers
 const splitId = (id: string | undefined | null): string[] => String(id ?? '').split('.');
@@ -283,12 +283,111 @@ const App: React.FC = () => {
     handleBackToCategoryFromAdditional,
   } = useNavigation({ categories });
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const chatOpenRequestedRef = useRef(false);
+  const urlParamsProcessedRef = useRef(false);
   const toggleChat = useCallback(() => {
     setIsChatOpen((prev) => !prev);
   }, []);
   const closeChat = useCallback(() => {
     setIsChatOpen(false);
   }, []);
+
+  useEffect(() => {
+    if (loading) return; // Ждем завершения загрузки данных
+    if (urlParamsProcessedRef.current) return; // Уже обработали URL параметры
+    
+    const params = new URLSearchParams(window.location.search);
+    const view = params.get('view');
+    const categoryId = params.get('categoryId');
+    const badgeId = params.get('badgeId');
+    
+    console.log('App: Processing URL params:', { view, categoryId, badgeId, categoriesCount: categories.length, badgesCount: badges.length });
+    
+    if (view === 'category' && categoryId) {
+      const category = categories.find(c => c.id === categoryId);
+      if (category) {
+        console.log('App: Opening category from URL:', category.title, category.id);
+        handleCategoryClick(category);
+        urlParamsProcessedRef.current = true;
+      } else {
+        console.warn('App: Category not found for ID:', categoryId, 'Available categories:', categories.map(c => c.id));
+      }
+    } else if (view === 'about-camp') {
+      console.log('App: Opening about-camp from URL');
+      setCurrentView('about-camp');
+      urlParamsProcessedRef.current = true;
+    } else if (view === 'categories') {
+      console.log('App: Opening categories from URL');
+      setCurrentView('categories');
+      urlParamsProcessedRef.current = true;
+    } else if (view === 'badge' && badgeId) {
+      const badge = badges.find(b => b.id === badgeId);
+      if (badge) {
+        console.log('App: Opening badge from URL:', badge.title, badge.id);
+        handleBadgeClick(badge);
+        urlParamsProcessedRef.current = true;
+      } else {
+        console.warn('App: Badge not found for ID:', badgeId);
+      }
+    } else if (view) {
+      // Если есть view параметр, но не обработали его выше, помечаем как обработанный
+      urlParamsProcessedRef.current = true;
+    }
+  }, [loading, categories, badges, handleCategoryClick, handleBadgeClick, setCurrentView]);
+
+  // Открываем чат по URL параметру после полной загрузки данных и prefetch ChatBot
+  useEffect(() => {
+    if (loading) return;
+
+    const params = new URLSearchParams(window.location.search);
+    const chat = params.get('chat');
+    if (chat !== 'true') {
+      if (chat !== null) {
+        console.log('Chat param present but not true, skipping auto-open:', chat);
+      }
+      return;
+    }
+
+    if (isChatOpen) {
+      chatOpenRequestedRef.current = true;
+      console.log('Chat already open, marking URL request handled.');
+      return;
+    }
+
+    if (chatOpenRequestedRef.current) return;
+
+    console.log('Chat param detected, preloading ChatBot...');
+
+    let didCancel = false;
+    let timer: number | undefined;
+
+    const openChat = async () => {
+      try {
+        // ChatBot is lazy loaded, no need to preload
+        console.log('Scheduling chat open.');
+      } catch (error) {
+        console.warn('Chat open failed.', error);
+      }
+
+      if (didCancel) return;
+
+      timer = window.setTimeout(() => {
+        if (didCancel) return;
+        chatOpenRequestedRef.current = true;
+        console.log('Opening chat from URL after delay.');
+        setIsChatOpen(true);
+      }, 800);
+    };
+
+    void openChat();
+
+    return () => {
+      didCancel = true;
+      if (timer) {
+        window.clearTimeout(timer);
+      }
+    };
+  }, [loading, isChatOpen]);
 
   const sortedCategories = useMemo(
     () => categories.slice().sort((a, b) => Number(a.id) - Number(b.id)),
@@ -571,64 +670,10 @@ const App: React.FC = () => {
       return;
     }
   }, [handleAdditionalMaterialClick]);
-  // ЭКРАН 1: Приветствие
-  const renderIntro = () => (
-    <div className="intro-screen">
-      <div className="intro-logo" onClick={handleLogoClick}>
-        <img src="/RL-Guide-book/домик_AI.jpg" alt="Логотип" />
-        <div className="logo-hover-text">Весенняя смена 2026</div>
-      </div>
-      <div className="intro-content">
-        <h1>Путеводитель по Реальному Лагерю</h1>
-        <p>
-          Добро пожаловать в космическое путешествие по системе значков и достижений!
-          Здесь вы найдете 242 значка в 14 категориях.
-        </p>
-        <div className="philosophy-section">
-          <p className="philosophy-main">
-            <strong>Значки здесь — не награды, а маршруты развития.</strong>
-          </p>
-          <p>
-            В Реальном Лагере значки — не просто «ачивки» за выполнение заданий. 
-            Это путеводные звёзды, которые помогают выбрать твой собственный путь. 
-            Каждый значок — не медаль за прошлое, а маяк, освещающий направления твоего развития.
-          </p>
-          <div className="philosophy-points">
-            <div className="point">
-              <span className="point-icon">🎯</span>
-              <div>
-                <strong>Реальный Значок = Опыт.</strong><br/>
-                Здесь главная награда — не значок, а опыт и навыки, которые ты получаешь, выполняя задания. 
-                Новые друзья, настоящие проекты, полезные привычки и идеи — всё это остаётся с тобой.
-              </div>
-            </div>
-            <div className="point">
-              <span className="point-icon">🧭</span>
-              <div>
-                <strong>Реальный Значок — не награда, а компас.</strong><br/>
-                Только ты выбираешь, какие значки будут на твоём пути. Вожатые и Путеводитель предложат варианты, 
-                но выбор и движение всегда за тобой.
-              </div>
-            </div>
-          </div>
-          <p className="philosophy-ending">
-            <strong>🔥 Добро пожаловать в Реальный Лагерь.</strong><br/>
-            Выбирай звезду, двигайся вперёд, оставляй след.<br/>
-            Твой опыт — твой путь. Реальные Значки подскажут, куда идти.
-          </p>
-        </div>
-        <p className="start-instruction">
-          Нажмите кнопку, чтобы начать исследование созвездий значков.
-        </p>
-        <button onClick={handleIntroClick} className="start-button">
-          Начать путешествие
-        </button>
-      </div>
-    </div>
-  );
-
-     // ЭКРАН 2: 14 категорий
-   const renderCategories = () => {
+  // Legacy functions removed - они сохранены в ветке legacy
+  // ЭКРАН 2: 14 категорий (legacy - не используется, сохранено для совместимости)
+  // @ts-ignore - legacy function, kept for compatibility
+  const _renderCategories = () => {
     // const getConstellationPosition = (index: number, _total: number) => {
     //       // Простая сетка 4x4 с равномерными интервалами
     //       const marginX = 20; // Отступ от краев по X (%)
@@ -1476,17 +1521,39 @@ const App: React.FC = () => {
      );
    };
 
+  // Используем новые компоненты как основные (убрали режим v2)
   if (loading) {
     return (
-      <div className="loading-screen">
-        <div className="loading-content">
-          <div className="loading-spinner"></div>
-          <p>Загрузка космической карты значков...</p>
+      <>
+        <BluenestGlobalStyles />
+        <div className="app">
+          <BlueNestLanding
+            onStartClick={handleIntroClick}
+            onLogoClick={handleLogoClick}
+            onAboutCampClick={() => setCurrentView('about-camp')}
+            onChatToggle={toggleChat}
+            isChatOpen={isChatOpen}
+            onChatClose={closeChat}
+            currentView={currentView}
+            selectedCategory={selectedCategory ? {
+              id: selectedCategory.id,
+              title: selectedCategory.title,
+              emoji: selectedCategory.emoji
+            } : undefined}
+            selectedBadge={selectedBadge ? {
+              id: selectedBadge.id,
+              title: selectedBadge.title,
+              emoji: selectedBadge.emoji,
+              categoryId: selectedBadge.category_id
+            } : undefined}
+            selectedLevel={selectedLevel || undefined}
+            currentLevelBadgeTitle={currentLevelBadgeTitle}
+          />
         </div>
-      </div>
+      </>
     );
   }
-
+  
   // ЭКРАН: Introduction
   const renderIntroduction = () => {
     if (!selectedCategory?.introduction?.has_introduction) return null;
@@ -1907,46 +1974,75 @@ const App: React.FC = () => {
     );
   };
 
+  // Определяем, нужны ли старые стили (AppStyles) или новые (BluenestGlobalStyles)
+  const needsOldStyles = ['category', 'badge', 'badge-level', 'introduction', 'additional-material', 'about-camp', 'registration-form'].includes(currentView);
+  const needsNewStyles = ['intro', 'categories'].includes(currentView);
+  
   return (
-    <div className="app">
-      {currentView === 'intro' && renderIntro()}
-      {currentView === 'categories' && renderCategories()}
-      {currentView === 'category' && renderCategory()}
-      {currentView === 'badge' && renderBadge()}
-      {currentView === 'badge-level' && renderBadgeLevel()}
-      {currentView === 'introduction' && renderIntroduction()}
-      {currentView === 'additional-material' && renderAdditionalMaterial()}
-      {currentView === 'about-camp' && renderAboutCamp()}
-      {currentView === 'registration-form' && renderRegistrationForm()}
-      
-      {/* Чат-бот НейроВалюша */}
-      <Suspense fallback={null}>
-        <ChatButton 
-          onClick={toggleChat} 
-          isOpen={isChatOpen}
-        />
-        <ChatBot 
-          isOpen={isChatOpen}
-          onClose={closeChat}
-          currentView={currentView}
-          currentCategory={selectedCategory ? {
-            id: selectedCategory.id,
-            title: selectedCategory.title,
-            emoji: selectedCategory.emoji
-          } : undefined}
-          currentBadge={selectedBadge ? {
-            id: selectedBadge.id,
-            title: selectedBadge.title,
-            emoji: selectedBadge.emoji,
-            categoryId: selectedBadge.category_id
-          } : undefined}
-          currentLevel={selectedLevel || undefined}
-          currentLevelBadgeTitle={currentLevelBadgeTitle}
-        />
-      </Suspense>
-      
-      <AppStyles />
-    </div>
+    <>
+      {needsOldStyles && <AppStyles />}
+      {needsNewStyles && <BluenestGlobalStyles />}
+      <div className="app">
+        {currentView === 'intro' && (
+          <BlueNestLanding
+            onStartClick={handleIntroClick}
+            onLogoClick={handleLogoClick}
+            onAboutCampClick={() => setCurrentView('about-camp')}
+            onChatToggle={toggleChat}
+            isChatOpen={isChatOpen}
+            onChatClose={closeChat}
+            currentView={currentView}
+            selectedCategory={selectedCategory ? {
+              id: selectedCategory.id,
+              title: selectedCategory.title,
+              emoji: selectedCategory.emoji
+            } : undefined}
+            selectedBadge={selectedBadge ? {
+              id: selectedBadge.id,
+              title: selectedBadge.title,
+              emoji: selectedBadge.emoji,
+              categoryId: selectedBadge.category_id
+            } : undefined}
+            selectedLevel={selectedLevel || undefined}
+            currentLevelBadgeTitle={currentLevelBadgeTitle}
+          />
+        )}
+        {currentView === 'categories' && (
+          <CategoriesGrid
+            categories={sortedCategories}
+            onCategoryClick={handleCategoryClick}
+            onBackClick={() => setCurrentView('intro')}
+            onAboutCampClick={() => setCurrentView('about-camp')}
+            onChatToggle={toggleChat}
+            isChatOpen={isChatOpen}
+            onChatClose={closeChat}
+            currentView={currentView}
+            selectedCategory={selectedCategory ? {
+              id: selectedCategory.id,
+              title: selectedCategory.title,
+              emoji: selectedCategory.emoji
+            } : undefined}
+            selectedBadge={selectedBadge ? {
+              id: selectedBadge.id,
+              title: selectedBadge.title,
+              emoji: selectedBadge.emoji,
+              categoryId: selectedBadge.category_id
+            } : undefined}
+            selectedLevel={selectedLevel || undefined}
+            currentLevelBadgeTitle={currentLevelBadgeTitle}
+          />
+        )}
+        {currentView === 'category' && renderCategory()}
+        {currentView === 'badge' && renderBadge()}
+        {currentView === 'badge-level' && renderBadgeLevel()}
+        {currentView === 'introduction' && renderIntroduction()}
+        {currentView === 'additional-material' && renderAdditionalMaterial()}
+        {currentView === 'about-camp' && renderAboutCamp()}
+        {currentView === 'registration-form' && renderRegistrationForm()}
+        
+        {/* ChatBot and ChatAvatar are handled inside BlueNestLanding and CategoriesGrid */}
+      </div>
+    </>
   );
 };
 
