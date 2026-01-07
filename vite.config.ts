@@ -139,7 +139,7 @@ const copyRLGuideBookPlugin = () => ({
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react(), copyApiPlugin(), rlGuideBookDevPlugin(), copyRLGuideBookPlugin()],
-  base: '/',
+  base: '/RL-Guide-book/',
   server: {
     port: 3001,
     host: true,
