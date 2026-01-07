@@ -1116,14 +1116,15 @@
                 .hero-content {
                     top: clamp(6rem, 14vh, 10rem) !important; /* Опускаем надпись ниже в портретной ориентации */
                     padding-left: clamp(0.5rem, 2vw, 1rem) !important; /* Смещаем текст влево */
-                    margin-left: -1vw !important; /* Дополнительное смещение влево */
+                    margin-left: -2.5vw !important; /* Увеличиваем смещение влево для предотвращения выхода текста за край */
+                    padding-right: clamp(1rem, 3vw, 2rem) !important; /* Отступ справа */
                 }
                 .hero .hero-content .hero-title,
                 section.hero .hero-content h1.hero-title,
                 .hero-title {
                     font-size: clamp(3rem, 7.5vw + 1.5rem, 5.5rem) !important; /* Увеличиваем размер надписи в портретной ориентации */
-                    padding-right: clamp(1rem, 3vw, 2rem) !important; /* Увеличиваем отступ справа чтобы текст не выходил за край */
-                    max-width: calc(100vw - 2rem) !important; /* Ограничиваем ширину чтобы текст не выходил за край */
+                    padding-right: clamp(1.5rem, 4vw, 3rem) !important; /* Увеличиваем отступ справа чтобы текст не выходил за край */
+                    max-width: calc(100vw - 3rem) !important; /* Ограничиваем ширину чтобы текст не выходил за край */
                 }
             }
             .manifesto { 
