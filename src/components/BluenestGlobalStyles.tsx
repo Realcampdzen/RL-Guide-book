@@ -39,7 +39,7 @@ const BluenestGlobalStyles: React.FC = () => {
         overflow-y: auto !important;
         background: 
           linear-gradient(135deg, rgba(15, 10, 31, 0.6) 0%, rgba(26, 15, 46, 0.55) 50%, rgba(42, 26, 61, 0.5) 100%),
-          url('/экран 1 фон copy.png') center top / 120% calc(100vh + 5vh) no-repeat !important;
+          url('/RL-Guide-book/экран 1 фон copy.png') center top / 120% calc(100vh + 5vh) no-repeat !important;
         background-color: #0f0a1f !important;
         background-attachment: fixed !important;
         min-height: 100vh !important;

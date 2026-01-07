@@ -34,7 +34,7 @@ interface CategoriesGridProps {
 
 const getCategoryImagePath = (categoryId: string): string => {
   // Добавляем версию для предотвращения кэширования
-  return `/category_${categoryId}.png?v=2`;
+  return `${import.meta.env.BASE_URL}category_${categoryId}.png?v=2`;
 };
 
 const CategoriesGrid: React.FC<CategoriesGridProps> = ({
@@ -180,7 +180,7 @@ const CategoriesGrid: React.FC<CategoriesGridProps> = ({
         }}
       >
         <img
-          src="/Gemini_Generated_Image_ct40o9ct40o9ct40.png?v=2"
+          src={`${import.meta.env.BASE_URL}Gemini_Generated_Image_ct40o9ct40o9ct40.png?v=2`}
           alt="Домик"
           style={{
             height: 'auto',

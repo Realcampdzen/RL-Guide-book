@@ -123,7 +123,7 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
       {/* Left Navigation Link */}
       <div className="nav-image-container nav-home hover-target" onClick={onAboutCampClick}>
         <img
-          src="/Gemini_Generated_Image_ct40o9ct40o9ct40.png?v=2"
+          src={`${import.meta.env.BASE_URL}Gemini_Generated_Image_ct40o9ct40o9ct40.png?v=2`}
           alt="Домик"
         />
       </div>
@@ -177,7 +177,7 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
           </div>
           <div className="manifesto-visual reveal-on-scroll">
             <div className="manifesto-sticker">
-              <img src="/image.png" alt="Стикер" className="sticker-image" />
+              <img src={`${import.meta.env.BASE_URL}image.png`} alt="Стикер" className="sticker-image" />
             </div>
             <div className="orb orb-1"></div>
             <div className="orb orb-2"></div>
@@ -190,7 +190,7 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
             {/* Feature 2 */}
             <div className="feature-card tilt-card reveal-on-scroll" ref={featureCard1Ref} style={{ transitionDelay: '0.1s' }}>
               <img
-                src="/image (24).jpg"
+                src={`${import.meta.env.BASE_URL}image (24).jpg`}
                 alt="Реальный Значок = Опыт"
                 style={{
                   width: '100%',
@@ -209,7 +209,7 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
             {/* Feature 3 */}
             <div className="feature-card tilt-card reveal-on-scroll" ref={featureCard2Ref} style={{ transitionDelay: '0.2s' }}>
               <img
-                src="/image (1).png"
+                src={`${import.meta.env.BASE_URL}image (1).png`}
                 alt="Реальный Значок — компас"
                 style={{
                   width: '100%',
