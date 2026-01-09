@@ -4,6 +4,7 @@ import BluenestGlobalStyles from './components/BluenestGlobalStyles';
 import { useDataLoader } from './hooks/useDataLoader';
 import { useNavigation } from './hooks/useNavigation';
 import BlueNestLanding from './components/BlueNestLanding';
+import AboutCampView from './views/AboutCampView';
 import CategoriesGrid from './components/CategoriesGrid';
 import { 
   pluralizeRu, 
@@ -1578,281 +1579,6 @@ const App: React.FC = () => {
     );
   };
 
-  // ЭКРАН: О лагере
-  const renderAboutCamp = () => (
-    <div className="about-camp-screen">
-      <div className="header">
-        <button onClick={handleBackToIntro} className="back-button">
-          ← Назад к главной
-        </button>
-        <h1 className="heading-gold heading-neon">🌟 Реальный Лагерь</h1>
-      </div>
-      <div className="about-camp-content">
-        <div className="camp-description">
-          <h2>🚀 Реальный Лагерь — развиваем навыки будущего!</h2>
-          <p>
-            За смену подростки получают навыки и опыт, которые будут полезны далеко за пределами лагеря и школы: 
-            <strong>лидерство, креативность, коммуникативность, работа с ИИ и умение работать в команде.</strong>
-          </p>
-          <p>
-            <strong>7 событий в день</strong> — от создания музыки с нейросетями до организации собственных мероприятий и душевных вечеров с песнями под гитару и скрипку. 
-            Ваш ребёнок вернётся домой <strong>с новым взглядом на себя и мир.</strong>
-          </p>
-          
-          <h3>🎯 Что мы развиваем</h3>
-          <div className="benefits-grid">
-                            <div className="benefit-item clickable" style={{
-                  background: 
-                    'linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url("/RL-Guide-book/skills_4k.png") center/cover no-repeat',
-                  cursor: 'pointer'
-                }} onClick={() => {
-                  const category = categories.find(c => c.id === "13");
-                  if (category) {
-                    handleCategoryClick(category);
-                  }
-                }}>
-                  <h4 style={{
-                    color: '#FFD700',
-                    textShadow: '2px 2px 4px rgba(0, 0, 0, 0.8)',
-                    fontWeight: 'bold'
-                  }}>🧩 Навыки 4K</h4>
-                  <p style={{
-                    color: '#fff',
-                    fontWeight: '600',
-                    textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8)'
-                  }}>
-                    🎨 Креативность<br/>
-                    💬 Коммуникация<br/>
-                    🤝 Коллаборация<br/>
-                    🧠 Критическое мышление
-                  </p>
-                </div>
-            <div className="benefit-item clickable" style={{
-              background: 
-                'linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url("/RL-Guide-book/ai_camp.png") center/cover no-repeat',
-              cursor: 'pointer'
-            }} onClick={() => {
-              const category = categories.find(c => c.id === "12");
-              if (category) {
-                handleCategoryClick(category);
-              }
-            }}>
-              <h4 style={{
-                color: '#FFD700',
-                textShadow: '2px 2px 4px rgba(0, 0, 0, 0.8)',
-                fontWeight: 'bold'
-              }}>✨Нейролагерь – нейросети для детей</h4>
-              <p style={{
-                color: '#fff',
-                fontWeight: '600',
-                textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8)'
-              }}>Изучаем нейросети как инструмент для обучения, творчества, проектной деятельности, создания стратегий.</p>
-            </div>
-            <div className="benefit-item clickable" style={{
-              background: 
-                'linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url("/RL-Guide-book/co_management.png") center/cover no-repeat',
-              cursor: 'pointer'
-            }} onClick={() => {
-              const category = categories.find(c => c.id === "9");
-              if (category) {
-                handleCategoryClick(category);
-              }
-            }}>
-              <h4 style={{
-                color: '#FFD700',
-                textShadow: '2px 2px 4px rgba(0, 0, 0, 0.8)',
-                fontWeight: 'bold'
-              }}>🔥 Соуправление и лидерские качества</h4>
-              <p style={{
-                color: '#fff',
-                fontWeight: '600',
-                textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8)'
-              }}>Организация мероприятий, помощь другим, ответственность — качества настоящего лидера</p>
-            </div>
-          </div>
-
-
-
-          <h3>📸 Как это выглядит на практике</h3>
-          <div className="posts-section">
-            <a href="https://vk.com/wall-57701087_9100" target="_blank" rel="noopener noreferrer" className="post-link">
-              <div className="post-image">
-                <img src="/RL-Guide-book/pictures/Wr8s1lqBl95mo9__Pw4CSouLulbnCQRdCt31tWGcKWGlLmXRD60QviGdQG1ASrS3KkfW4t6wFumMhG4myCTZEaKT.jpg" alt="Пост 1" />
-              </div>
-              <div className="post-title">
-                <div className="post-main-title">🔥 Вожатские кейсы и педагогика</div>
-                <div className="post-subtitle">Разбор сложных ситуаций: от ночных посиделок до буллинга</div>
-                <div className="post-highlights">
-                  <span className="highlight">💡 Практические навыки</span>
-                  <span className="highlight">🎭 Ролевые игры</span>
-                  <span className="highlight">🚀 Значок "Реальный Фасилитатор"</span>
-                </div>
-              </div>
-            </a>
-            <a href="https://vk.com/wall-57701087_9080" target="_blank" rel="noopener noreferrer" className="post-link">
-              <div className="post-image">
-                <img src="/RL-Guide-book/pictures/HvRgNN4EUqGaVKKmQYwOnSESzm3zhN8NLN7psGe2xTbuscFg5h0oIIxbtlYIkCIO1zj2TUQYoFAKy9pYquEpfGrR.jpg" alt="Пост 2" />
-              </div>
-              <div className="post-title">
-                <div className="post-main-title">🚀 Дети сами организуют отрядные дела!</div>
-                <div className="post-subtitle">Игра "Бросвящение": от кинематографа до оригами</div>
-                <div className="post-highlights">
-                  <span className="highlight">🎬 Игра по станциям</span>
-                  <span className="highlight">🎨 Мастер-классы</span>
-                  <span className="highlight">🔥 Лидерство</span>
-                </div>
-              </div>
-            </a>
-            <a href="https://vk.com/wall-57701087_9072" target="_blank" rel="noopener noreferrer" className="post-link">
-              <div className="post-image">
-                <img src="/RL-Guide-book/pictures/wa1Ma_l5j4S2gV8sBeNLTw0cftt3WLplAEvXI9RW-qd5-uWJCslMqRRXGcFhKFEIr0Ck2teKZBiFzyRIeMfWLiLE.jpg" alt="Пост 3" />
-              </div>
-              <div className="post-title">
-                <div className="post-main-title">🎨 Нейродизайн и агентные системы</div>
-                <div className="post-subtitle">От идеи до реального значка: Genspark, FLUX, ChatGPT</div>
-                <div className="post-highlights">
-                  <span className="highlight">🤖 Итерационный подход</span>
-                  <span className="highlight">🎯 Реальные продукты</span>
-                  <span className="highlight">🧠 Метапромтинг</span>
-                </div>
-              </div>
-            </a>
-            <a href="https://vk.com/wall-57701087_9049" target="_blank" rel="noopener noreferrer" className="post-link">
-              <div className="post-image">
-                <img src="/RL-Guide-book/pictures/2025-09-11_05-28-13.png" alt="Пост 4" />
-              </div>
-              <div className="post-title">
-                <div className="post-main-title">🏴‍☠️ Пираты похитили Бурыча!</div>
-                <div className="post-subtitle">Форт Боярд в лагере: эстафеты, головоломки, спасение</div>
-                <div className="post-highlights">
-                  <span className="highlight">⚔️ Командные испытания</span>
-                  <span className="highlight">🧩 Головоломки</span>
-                  <span className="highlight">🎯 Форт Боярд</span>
-                </div>
-              </div>
-            </a>
-            <a href="https://vk.com/wall-57701087_9009" target="_blank" rel="noopener noreferrer" className="post-link">
-              <div className="post-image">
-                <img src="/RL-Guide-book/pictures/4pCDWvEw_uyf3q8yQbhfsPpfDSVOMYkkexIZCudbxTsmqN8iA3jIT8TwpNtXbGliD_YCpD2nZhQZXajz4-0KFg-1.jpg" alt="Пост 5" />
-              </div>
-              <div className="post-title">
-                <div className="post-main-title">🎶 Музыкальный продюсер с Suno AI</div>
-                <div className="post-subtitle">От текста до готового трека: творчество без границ</div>
-                <div className="post-highlights">
-                  <span className="highlight">🎹 Создание треков</span>
-                  <span className="highlight">🎤 Запись голоса</span>
-                  <span className="highlight">🎵 Значок "AI-Композитор"</span>
-                </div>
-              </div>
-            </a>
-            <a href="https://vk.com/wall-57701087_9006" target="_blank" rel="noopener noreferrer" className="post-link">
-              <div className="post-image">
-                <img src="/RL-Guide-book/pictures/w38A7umTNl1ECHO8HtrN9KRFmpwNLoCd19DGmO1qdPcLBENPbYsFQuzJOoDej_zxEcHDnRvDGUayZgs1mOMSkam3.jpg" alt="Пост 6" />
-              </div>
-              <div className="post-title">
-                <div className="post-main-title">🥊 Мастер-класс по самообороне</div>
-                <div className="post-subtitle">С Тимофеем: ценные уроки и невероятная атмосфера</div>
-                <div className="post-highlights">
-                  <span className="highlight">🥊 Самооборона</span>
-                  <span className="highlight">🌟 Мастерство</span>
-                  <span className="highlight">🙌 Ценные уроки</span>
-                </div>
-              </div>
-            </a>
-            <a href="https://vk.com/wall-57701087_8995" target="_blank" rel="noopener noreferrer" className="post-link">
-              <div className="post-image">
-                <img src="/RL-Guide-book/pictures/2025-09-11_05-25-15.png" alt="Пост 7" />
-              </div>
-              <div className="post-title">
-                <div className="post-main-title">🕯️ Огонёк откровений</div>
-                <div className="post-subtitle">Безопасное пространство для открытого общения</div>
-                <div className="post-highlights">
-                  <span className="highlight">🫂 Принятие</span>
-                  <span className="highlight">🎯 Доверие</span>
-                  <span className="highlight">🏡 Семейные отношения</span>
-                </div>
-              </div>
-            </a>
-            <a href="https://vk.com/wall-57701087_8994" target="_blank" rel="noopener noreferrer" className="post-link">
-              <div className="post-image">
-                <img src="/RL-Guide-book/pictures/vKjyH96aNgNYbg14n545f0j1tZqG12tBI3L83kyz-8ofHa9DnmG-p41grb0hrbwUoNGteh0fdssSerJNH2GXffZN.jpg" alt="Пост 8" />
-              </div>
-              <div className="post-title">
-                <div className="post-main-title">🚀 EggX: лётно-конструкторские испытания</div>
-                <div className="post-subtitle">Инженерный челлендж: яйцелёты с высоты 3 метров</div>
-                <div className="post-highlights">
-                  <span className="highlight">🧪 Конструкторские бюро</span>
-                  <span className="highlight">🔬 Техническая смекалка</span>
-                  <span className="highlight">👨‍🚀 Командная работа</span>
-                </div>
-              </div>
-            </a>
-            <a href="https://vk.com/wall-57701087_8927" target="_blank" rel="noopener noreferrer" className="post-link">
-              <div className="post-image">
-                <img src="/RL-Guide-book/pictures/2025-09-11_05-21-21.png" alt="Пост 9" />
-              </div>
-              <div className="post-title">
-                <div className="post-main-title">😎 Сигма-Бро в Реальном Лагере</div>
-                <div className="post-subtitle">Лето, Soft Skills, нейросети и добро круглый год</div>
-                <div className="post-highlights">
-                  <span className="highlight">☀️ Родительский час</span>
-                  <span className="highlight">💜 Атмосфера</span>
-                  <span className="highlight">🌟 Воспоминания</span>
-                </div>
-              </div>
-            </a>
-          </div>
-
-          <h3>💬 Отзывы родителей</h3>
-          <div className="reviews-section">
-            <div className="reviews-container">
-              <div className="reviews-image">
-                <div className="reviews-content">
-                  <h4>🌟 Что говорят родители о Реальном Лагере</h4>
-                  <p>Читайте реальные отзывы родителей, чьи дети уже побывали в нашем лагере и получили незабываемые впечатления!</p>
-                  <a href="https://vk.com/realcampspb?from=groups&ref=group_menu&w=app6326142_-57701087" target="_blank" rel="noopener noreferrer" className="reviews-button">
-                    📖 Читать отзывы
-                  </a>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <h3>🔗 Полезные ссылки</h3>
-          <div className="links-section">
-            <a href="https://realcampspb.ru" target="_blank" rel="noopener noreferrer" className="camp-link">
-              🌐 Официальный сайт: realcampspb.ru
-            </a>
-            <a href="https://vk.com/realcampspb" target="_blank" rel="noopener noreferrer" className="camp-link">
-              📱 ВКонтакте: vk.com/realcampspb - блог лагеря
-            </a>
-            <a href="https://zen.yandex.ru/realcamp" target="_blank" rel="noopener noreferrer" className="camp-link">
-              📝 Наш блог в Яндекс.Дзен: zen.yandex.ru/realcamp
-            </a>
-            <a href="https://www.coo-molod.ru/" target="_blank" rel="noopener noreferrer" className="camp-link">
-              🏛️ Сертификаты: coo-molod.ru
-            </a>
-          </div>
-
-          <h3>📅 ОСЕННЯЯ СМЕНА 2025</h3>
-          <div
-            className="session-info session-info--cta clickable cursor-pointer"
-            onClick={handleTelegramContact}
-          >
-            <h4>🎪 "Осенний 4К-вайб в Реальном Лагере: навыки будущего + нейросети для обучения и творчества"</h4>
-            <p><strong>Когда:</strong> с 25 октября по 2 ноября 2025 года</p>
-            <p><strong>Стоимость:</strong></p>
-            <ul>
-              <li>30 500 ₽ — со скидкой по сертификату СПб</li>
-              <li>35 500 ₽ — полная стоимость</li>
-            </ul>
-            <p><em>Читайте отзывы родителей в нашей группе ВКонтакте!</em></p>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
   // ЭКРАН: Additional Material
   const renderAdditionalMaterial = () => {
     if (!selectedAdditionalMaterial) return null;
@@ -1975,8 +1701,8 @@ const App: React.FC = () => {
   };
 
   // Определяем, нужны ли старые стили (AppStyles) или новые (BluenestGlobalStyles)
-  const needsOldStyles = ['category', 'badge', 'badge-level', 'introduction', 'additional-material', 'about-camp', 'registration-form'].includes(currentView);
-  const needsNewStyles = ['intro', 'categories'].includes(currentView);
+  const needsOldStyles = ['category', 'badge', 'badge-level', 'introduction', 'additional-material', 'registration-form'].includes(currentView);
+  const needsNewStyles = ['intro', 'categories', 'about-camp'].includes(currentView);
   
   return (
     <>
@@ -2037,7 +1763,14 @@ const App: React.FC = () => {
         {currentView === 'badge-level' && renderBadgeLevel()}
         {currentView === 'introduction' && renderIntroduction()}
         {currentView === 'additional-material' && renderAdditionalMaterial()}
-        {currentView === 'about-camp' && renderAboutCamp()}
+        {currentView === 'about-camp' && (
+          <AboutCampView 
+            onBack={handleBackToIntro}
+            categories={categories}
+            onOpenCategory={handleCategoryClick}
+            onTelegramContact={handleTelegramContact}
+          />
+        )}
         {currentView === 'registration-form' && renderRegistrationForm()}
         
         {/* ChatBot and ChatAvatar are handled inside BlueNestLanding and CategoriesGrid */}
