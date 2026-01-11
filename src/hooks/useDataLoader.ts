@@ -40,6 +40,7 @@ type AiBadge = {
   levels?: Array<{
     id: string;
     level?: string | number;
+    title?: string;
     emoji?: string;
     criteria?: string | string[];
     confirmation?: string | string[];
@@ -102,7 +103,9 @@ const chunk = <T,>(items: T[], size: number): T[][] => {
 };
 
 const fetchJson = async <T,>(url: string): Promise<T> => {
-  const res = await fetch(url);
+  // Append timestamp to prevent caching
+  const urlWithTs = `${url}${url.includes('?') ? '&' : '?'}t=${Date.now()}`;
+  const res = await fetch(urlWithTs);
   if (!res.ok) {
     throw new Error(`Failed to fetch ${url}: ${res.status}`);
   }
@@ -122,7 +125,7 @@ const buildBadgeEntries = (aiCategory: MasterCategory, aiBadge: AiBadge): Badge[
       const confirmationText = normalizeListField(level.confirmation);
       return {
         id: level.id,
-        title: aiBadge.title,
+        title: level.title || aiBadge.title, // Используем название уровня, если оно есть
         emoji: resolveEmoji(level.emoji ?? aiBadge.emoji, fallbackEmoji),
         category_id: aiCategory.id,
         level: canonicalizeLevel(level.level ?? level),
@@ -214,18 +217,25 @@ export const useDataLoader = () => {
         if (!entry) return;
         const { aiCategory, catIndex } = entry;
 
+        // Правильно считаем количество значков из badgesData или из поля badges
+        const badgeCount = (catIndex.badgesData || []).length || catIndex.badges || aiCategory.badges || 0;
+        
         categoriesData.push({
           id: aiCategory.id,
           title: aiCategory.title,
           emoji: aiCategory.emoji,
-          badge_count: catIndex.levels || catIndex.totalLevels || aiCategory.badges || 0,
-          expected_badges: catIndex.levels || catIndex.totalLevels || aiCategory.badges || 0,
+          badge_count: badgeCount,
+          expected_badges: badgeCount,
           introduction: { has_introduction: true, html: '', markdown: '' },
           additional_materials: catIndex.additional_materials,
         });
 
         (catIndex.badgesData || []).forEach((badgeIndex) => {
           badgeRequests.push({ aiCategory, badgeId: badgeIndex.id });
+          // Отладочное логирование для значка 1.15
+          if (badgeIndex.id === '1.15') {
+            console.log('useDataLoader: Added badge request for 1.15');
+          }
         });
       });
 
@@ -247,7 +257,12 @@ export const useDataLoader = () => {
 
         results.forEach((result) => {
           if (!result) return;
-          badgesData.push(...buildBadgeEntries(result.aiCategory, result.aiBadge));
+          const entries = buildBadgeEntries(result.aiCategory, result.aiBadge);
+          // Отладочное логирование для значка 1.15
+          if (result.aiBadge.id === '1.15') {
+            console.log('useDataLoader: Built badge entries for 1.15:', entries);
+          }
+          badgesData.push(...entries);
         });
       }
 

@@ -111,6 +111,14 @@ const BluenestGlobalStyles: React.FC = () => {
           position: relative !important;
         }
       }
+
+      /* Custom Cursor Hover State */
+      .cursor-hover {
+        transform: translate(-50%, -50%) scale(2.3) !important;
+        background: var(--c-warm) !important;
+        border: none !important;
+        mix-blend-mode: difference !important;
+      }
     `}</style>
   );
 };

@@ -48,16 +48,26 @@ const rlGuideBookDevPlugin = (): Plugin => ({
   configureServer(server) {
     server.middlewares.use((req, res, next) => {
       if (req.url?.startsWith('/RL-Guide-book/')) {
-        const filePath = req.url.replace('/RL-Guide-book/', '')
-        const publicPath = resolve(process.cwd(), 'public', filePath)
+        // Сначала декодируем URL, потом извлекаем путь
+        const encodedPath = req.url.replace('/RL-Guide-book/', '')
+        const decodedPath = decodeURIComponent(encodedPath)
+        const publicPath = resolve(process.cwd(), 'public', decodedPath)
         
-        // Декодируем URL для правильной обработки кириллицы
-        const decodedPath = decodeURIComponent(publicPath)
+        // Логирование для отладки (только для изображений значков)
+        if (decodedPath.includes('Новые значки')) {
+          console.log('Vite plugin: serving file', {
+            originalUrl: req.url,
+            encodedPath,
+            decodedPath,
+            publicPath,
+            exists: existsSync(publicPath)
+          })
+        }
         
-        if (existsSync(decodedPath) && statSync(decodedPath).isFile()) {
+        if (existsSync(publicPath) && statSync(publicPath).isFile()) {
           try {
-            const content = readFileSync(decodedPath)
-            const ext = decodedPath.split('.').pop()?.toLowerCase()
+            const content = readFileSync(publicPath)
+            const ext = publicPath.split('.').pop()?.toLowerCase()
             const mimeTypes: Record<string, string> = {
               'png': 'image/png',
               'jpg': 'image/jpeg',
@@ -77,8 +87,15 @@ const rlGuideBookDevPlugin = (): Plugin => ({
             res.end(content)
             return
           } catch (error) {
-            console.error('Error serving file:', decodedPath, error)
+            console.error('Error serving file:', publicPath, error)
           }
+        } else if (decodedPath.includes('Новые значки')) {
+          console.warn('Vite plugin: file not found', {
+            originalUrl: req.url,
+            decodedPath,
+            publicPath,
+            exists: existsSync(publicPath)
+          })
         }
       }
       next()

@@ -1356,8 +1356,9 @@ const appStyles = `
              display: grid;
              place-items: center;
              flex: 0 0 auto;
-             background: rgba(0, 0, 0, 0.4);
+             background: rgba(0, 0, 0, 0.05); /* Еще больше уменьшена непрозрачность для почти незаметной границы */
              border: none;
+             padding: 2px;
              transition: all 0.3s ease;
            }
 
@@ -1404,6 +1405,43 @@ const appStyles = `
               drop-shadow(0 0 25px rgba(78, 205, 196, 0.4))
               brightness(1.1);
             animation: emojiFloat 2s ease-in-out infinite;
+          }
+
+          /* Badge image styles */
+          .badge-image {
+            transition: all 0.3s ease;
+            display: block !important;
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: contain !important;
+          }
+
+          .badge-card__icon .badge-image {
+            position: relative !important;
+            z-index: 1 !important;
+          }
+
+          /* Делаем контейнер BadgeIcon круглым внутри badge-card__icon */
+          .badge-card__icon > div {
+            border-radius: 50% !important;
+            overflow: hidden !important;
+          }
+
+          .badge-card:hover .badge-image {
+            transform: scale(1.25) rotate(5deg);
+            filter: 
+              drop-shadow(0 0 15px rgba(78, 205, 196, 0.7))
+              drop-shadow(0 0 25px rgba(78, 205, 196, 0.4))
+              brightness(1.1);
+            animation: emojiFloat 2s ease-in-out infinite;
+          }
+
+          /* Special class to center the last badge in the grid */
+          .badge-centered-row {
+            grid-column: 1 / -1;
+            justify-self: center;
+            width: 100%;
+            max-width: 220px; /* Match max width of other badges from media queries */
           }
 
                                      @media (min-width: 576px) {
@@ -1466,6 +1504,14 @@ const appStyles = `
           font-size: 4rem; /* emoji size */
           line-height: 1;
           animation: selectedGlow 2.6s ease-in-out infinite;
+        }
+
+        /* Badge image in large container */
+        .badge-emoji-large .badge-image {
+          width: 80px;
+          height: 80px;
+          object-fit: contain;
+          border-radius: 50%;
         }
 
         /* Category screen: remove rectangular glow on hover; keep only circular bubble glow */
@@ -1708,7 +1754,7 @@ const appStyles = `
           background: transparent;
           filter: brightness(1.1);
         }
-        .level-card__icon { width: 100px; height: 100px; border-radius: 50%; display: grid; place-items: center; margin-bottom: 16px; background: rgba(0,0,0,0.45); border: 1px solid rgba(255,255,255,0.25); transition: all 0.3s ease; z-index: 9999; }
+        .level-card__icon { width: 160px; height: 160px; border-radius: 50%; display: grid; place-items: center; margin-bottom: 16px; background: rgba(0,0,0,0.45); border: 1px solid rgba(255,255,255,0.25); transition: all 0.3s ease; z-index: 9999; }
                  .level-card__title { text-align: center; font-size: 17px; line-height: 1.2; margin: 6px 0 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; word-break: break-word; hyphens: auto; color: #4ecdc4; white-space: pre-line !important; }
         .level-card__subtitle { opacity: .85; font-size: 14px; text-align: center; color: #ccc; }
         
@@ -1737,6 +1783,22 @@ const appStyles = `
          }
          
          .level-card-bottom:hover .level-bubble__emoji {
+           transform: scale(1.25) rotate(3deg);
+           filter: 
+             drop-shadow(0 0 15px rgba(78, 205, 196, 0.7))
+             drop-shadow(0 0 25px rgba(78, 205, 196, 0.4))
+             brightness(1.1);
+           animation: emojiFloat 2s ease-in-out infinite;
+         }
+
+         /* Level badge image styles */
+         .level-bubble__emoji .badge-image {
+           width: 48px;
+           height: 48px;
+           object-fit: contain;
+         }
+
+         .level-card-bottom:hover .level-bubble__emoji .badge-image {
            transform: scale(1.25) rotate(3deg);
            filter: 
              drop-shadow(0 0 15px rgba(78, 205, 196, 0.7))
@@ -1991,6 +2053,7 @@ const appStyles = `
         /* \u041d\u043e\u0440\u043c\u0430\u043b\u0438\u0437\u0430\u0446\u0438\u044f \u0442\u0435\u043a\u0441\u0442\u0430 - \u0443\u0431\u0438\u0440\u0430\u0435\u043c \u043b\u0438\u0448\u043d\u0438\u0435 \u043f\u0440\u043e\u0431\u0435\u043b\u044b \u0438 \u0440\u0430\u0437\u0440\u044b\u0432\u044b */
         .introduction-text *, .additional-material-text * {
           white-space: normal;
+          color: inherit;
         }
 
         .introduction-text p, .additional-material-text p {

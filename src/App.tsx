@@ -6,15 +6,18 @@ import { useNavigation } from './hooks/useNavigation';
 import BlueNestLanding from './components/BlueNestLanding';
 import AboutCampView from './views/AboutCampView';
 import CategoriesGrid from './components/CategoriesGrid';
+import CategoryView from './views/CategoryView';
+import BadgeView from './views/BadgeView';
+import BadgeLevelView from './views/BadgeLevelView';
 import { 
-  pluralizeRu, 
-  fixDescriptionFormatting, 
+  pluralizeRu,    fixDescriptionFormatting, 
   fixCriteriaFormatting, 
   extractEvidenceSection,
   shouldApplyFormatting
 } from './utils/textFormatting';
-import { cleanHtmlContent, markdownToHtml } from './utils/markdown';
+import { cleanHtmlContent, markdownToHtml, processIntroductionHtml } from './utils/markdown';
 import type { Badge } from './types/guide';
+import BadgeIcon from './components/BadgeIcon';
 
 // Split-safe badge id helpers
 const splitId = (id: string | undefined | null): string[] => String(id ?? '').split('.');
@@ -405,13 +408,78 @@ const App: React.FC = () => {
       if (!grouped[baseKey]) grouped[baseKey] = [];
       grouped[baseKey].push(b);
     });
-    return Object.values(grouped).map((list) => {
-      const base = list.find((x) => (x.level || '').toLowerCase().includes('баз')) || list[0];
+    
+    // Отладочное логирование для значка 1.15
+    if (selectedCategory.id === '1' && grouped['1.15']) {
+      console.log('App: Found badge group 1.15:', grouped['1.15']);
+    }
+    
+    const result = Object.values(grouped).map((list) => {
+      // Ищем базовый уровень или одноуровневый
+      const base = list.find((x) => {
+        const levelLower = (x.level || '').toLowerCase();
+        const isBase = levelLower.includes('баз');
+        const isSingle = levelLower.includes('одноуровнев');
+        // Отладочное логирование для значка 1.15
+        if (selectedCategory.id === '1' && (x.id || '').startsWith('1.15')) {
+          console.log('App: Checking badge 1.15 for base selection:', {
+            id: x.id,
+            level: x.level,
+            levelLower,
+            isBase,
+            isSingle,
+            matches: isBase || isSingle
+          });
+        }
+        return isBase || isSingle;
+      }) || list[0];
+      
+      // Отладочное логирование для значка 1.15
+      if (selectedCategory.id === '1' && base && (base.id || '').startsWith('1.15')) {
+        console.log('App: Selected base badge for 1.15:', base);
+      }
+      
       (base as any).allLevels = list.length > 1
         ? list.slice().sort((a, b) => (a.id || '').localeCompare(b.id || ''))
         : [];
       return base;
     });
+    
+    // Отладочное логирование для значка 1.15
+    if (selectedCategory.id === '1') {
+      const badge15 = result.find(b => b.id.startsWith('1.15'));
+      if (badge15) {
+        console.log('App: Badge 1.15 in categoryBadges:', badge15);
+      } else {
+        console.warn('App: Badge 1.15 NOT found in categoryBadges. Total badges:', result.length, 'Badge IDs:', result.map(b => b.id));
+      }
+    }
+    
+    // Специальная сортировка для категории 1: размещаем значок 1.15 в конце списка
+    // чтобы он отображался в 6-м ряду по центру (после всех остальных значков)
+    if (selectedCategory.id === '1') {
+      result.sort((a, b) => {
+        const aId = a.id.split('.')[1] || '';
+        const bId = b.id.split('.')[1] || '';
+        const aNum = parseInt(aId, 10);
+        const bNum = parseInt(bId, 10);
+        
+        // Значок 1.15 всегда идет в конец списка
+        if (aNum === 15 && bNum !== 15) return 1;
+        if (bNum === 15 && aNum !== 15) return -1;
+        
+        // Обычная сортировка по номеру для остальных
+        if (aNum !== bNum) {
+          return aNum - bNum;
+        }
+        return (a.id || '').localeCompare(b.id || '');
+      });
+    } else {
+      // Для других категорий - обычная сортировка
+      result.sort((a, b) => (a.id || '').localeCompare(b.id || ''));
+    }
+    
+    return result;
   }, [badges, selectedCategory]);
 
   const categoryTitleMap = useMemo(() => new Map(categories.map((c) => [c.id, c.title])), [categories]);
@@ -432,7 +500,7 @@ const App: React.FC = () => {
       return (b.id || '') === (selectedBadge.id || '');
     });
     const baseLevelBadge = isMultiLevel
-      ? badgeLevels.find((b) => (b.level || '').toLowerCase().includes('базовый')) || null
+      ? (badgeLevels.find((b) => (b.level || '').toLowerCase().includes('базовый')) || badgeLevels.find((b) => (b.level || '').toLowerCase().includes('одноуровнев')) || badgeLevels[0])
       : selectedBadge;
     const otherLevels = badgeLevels.filter((b) => {
       const isBase = baseLevelBadge && b.id === baseLevelBadge.id;
@@ -893,14 +961,43 @@ const App: React.FC = () => {
           {categoryBadges.map((badge, index) => (
             <article 
               key={badge.id} 
-              className="badge-card floating"
+              className={`badge-card floating ${(badge.id || '').startsWith('1.15') ? 'badge-centered-row' : ''}`}
               style={{
                 animationDelay: `${index * 0.1}s`
               }}
               onClick={() => handleBadgeClick(badge)}
             >
                              <div className="badge-card__icon">
-                 <div className="badge-emoji">{badge.emoji || (badge.id === '1.11' ? '♾️' : '')}</div>
+                 {(() => {
+                   const badgeIdStr = String(badge.id);
+                    // Проверяем, является ли это базовым значком 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 1.10, 1.11 или их частью
+                    const baseBadgeId = badgeIdStr.split('.').slice(0, 2).join('.');
+                    if (baseBadgeId === '1.1' || baseBadgeId === '1.2' || baseBadgeId === '1.3' || baseBadgeId === '1.4' || baseBadgeId === '1.5' || baseBadgeId === '1.6' || baseBadgeId === '1.7' || baseBadgeId === '1.8' || baseBadgeId === '1.9' || baseBadgeId === '1.10' || baseBadgeId === '1.11' || baseBadgeId === '1.12' || baseBadgeId === '1.13' || baseBadgeId === '1.14' || baseBadgeId === '1.15' || baseBadgeId === '1.16') {
+                     // Находим базовый уровень для значка (1.2.1 или 1.3.1)
+                     const baseLevelId = `${baseBadgeId}.1`;
+                     const baseLevel = badges.find(b => String(b.id) === baseLevelId);
+                     console.log(`App: Rendering BadgeIcon for badge ${baseBadgeId} in category`, { 
+                       badgeId: badge.id, 
+                       badgeTitle: badge.title,
+                       baseBadgeId,
+                       categoryId: badge.category_id || selectedCategory?.id,
+                       baseLevel: baseLevel ? { id: baseLevel.id, title: baseLevel.title } : null
+                     });
+                     return (
+                       <BadgeIcon
+                         badgeId={baseBadgeId}
+                         badgeTitle={badge.title}
+                         categoryId={badge.category_id || selectedCategory?.id || '1'}
+                         emoji={badge.emoji || ''}
+                         levelId={baseLevel ? String(baseLevel.id) : undefined}
+                         levelTitle={baseLevel ? baseLevel.title : undefined}
+                         className="badge-emoji"
+                         size="medium"
+                       />
+                     );
+                   }
+                   return <div className="badge-emoji">{badge.emoji || (badge.id === '1.11' ? '♾️' : '')}</div>;
+                 })()}
                </div>
               <h3 className="badge-card__title">{badge.title}</h3>
               <div className="badge-card__level">
@@ -1007,7 +1104,35 @@ const App: React.FC = () => {
             ← Назад к категории
           </button>
           <div className="badge-header">
-            <div className="badge-emoji-large">{selectedEmoji}</div>
+            {(() => {
+              // Определяем базовый ID значка (первые две части)
+              const baseBadgeId = String(selectedBadge.id).split('.').slice(0, 2).join('.');
+              const isBadgeWithImages = baseBadgeId === '1.2' || baseBadgeId === '1.3' || baseBadgeId === '1.4' || baseBadgeId === '1.5' || baseBadgeId === '1.6' || baseBadgeId === '1.7' || baseBadgeId === '1.8' || baseBadgeId === '1.9' || baseBadgeId === '1.10' || baseBadgeId === '1.11';
+              
+              if (isBadgeWithImages) {
+                // Используем baseLevelBadge из контекста, если есть, иначе ищем вручную
+                const baseLevelId = `${baseBadgeId}.1`;
+                const baseLevel = badgeContext?.baseLevelBadge || badges.find(b => String(b.id) === baseLevelId);
+                console.log(`App: Rendering BadgeIcon for badge ${baseBadgeId} on badge page`, {
+                  selectedBadgeId: selectedBadge.id,
+                  baseBadgeId,
+                  baseLevel: baseLevel ? { id: baseLevel.id, title: baseLevel.title } : null
+                });
+                return (
+                  <BadgeIcon
+                    badgeId={baseBadgeId}
+                    badgeTitle={selectedBadge.title}
+                    categoryId={selectedBadge.category_id || selectedCategory?.id || '1'}
+                    emoji={selectedEmoji}
+                    levelId={baseLevel ? String(baseLevel.id) : undefined}
+                    levelTitle={baseLevel ? baseLevel.title : undefined}
+                    className="badge-emoji-large"
+                    size="large"
+                  />
+                );
+              }
+              return <div className="badge-emoji-large">{selectedEmoji}</div>;
+            })()}
             <div>
               <h1 className="heading-gold">{selectedBadge.title}</h1>
               <p className="badge-category subtitle-orange">{selectedCategory?.title}</p>
@@ -1024,7 +1149,9 @@ const App: React.FC = () => {
                               <h3>Общая информация</h3>
                 <p className="badge-summary__text">
                   {(() => {
-                    const rawDescription = baseLevelBadge?.description || selectedBadge.description || 'Общая информация пока не найдена в данных. Содержание будет подгружено автоматически после обновления Путеводителя.';
+                    let rawDescription = baseLevelBadge?.description || selectedBadge.description || 'Общая информация пока не найдена в данных. Содержание будет подгружено автоматически после обновления Путеводителя.';
+                    // Убираем дублирующееся объяснение ценности если оно попало в описание
+                    rawDescription = rawDescription.replace(/Объяснение ценности значка:\s*$/, '').trim();
                     const shouldFormat = shouldApplyFormatting(selectedBadge.id);
                     const processedDescription = shouldFormat ? fixDescriptionFormatting(rawDescription) : rawDescription;
                     const { mainText, evidenceText: descEvidenceText } = extractEvidenceSection(processedDescription);
@@ -1045,7 +1172,7 @@ const App: React.FC = () => {
                 {/* New sections */}
                 {baseLevelBadge?.nameExplanation && (
                   <>
-                    <h4>Объяснение названия</h4>
+                    <h4>Объяснение названия и ценности</h4>
                     <p className="badge-summary__text">{baseLevelBadge.nameExplanation}</p>
                   </>
                 )}
@@ -1119,15 +1246,34 @@ const App: React.FC = () => {
 
               {otherLevels.length > 0 && (
                 <div className="levels-grid-bottom levels-dock">
-                  {otherLevels.map(level => (
-                    <article key={level.id} className="level-card-bottom" onClick={() => handleLevelClick(String(level.level))}>
-                      <div className="level-card__icon">
-                        <span className="level-bubble__emoji">{level.emoji || '🏆'}</span>
-                      </div>
-                      <h4 className="level-card__title">{level.title}</h4>
-                      <div className="level-card__subtitle">{String(level.level)}</div>
-                    </article>
-                  ))}
+                  {otherLevels.map(level => {
+                    // Определяем базовый ID значка (первые две части)
+                    const baseBadgeId = String(level.id).split('.').slice(0, 2).join('.');
+                    const isBadgeWithImages = baseBadgeId === '1.2' || baseBadgeId === '1.3' || baseBadgeId === '1.4' || baseBadgeId === '1.5' || baseBadgeId === '1.6' || baseBadgeId === '1.7' || baseBadgeId === '1.8' || baseBadgeId === '1.9' || baseBadgeId === '1.10' || baseBadgeId === '1.11';
+                    
+                    return (
+                      <article key={level.id} className="level-card-bottom" onClick={() => handleLevelClick(String(level.level))}>
+                        <div className="level-card__icon">
+                          {isBadgeWithImages ? (
+                            <BadgeIcon
+                              badgeId={baseBadgeId}
+                              badgeTitle={selectedBadge.title}
+                              categoryId={selectedBadge.category_id || selectedCategory?.id || '1'}
+                              emoji={level.emoji || '🏆'}
+                              levelId={String(level.id)}
+                              levelTitle={level.title}
+                              className="level-bubble__emoji"
+                              size="xlarge"
+                            />
+                          ) : (
+                            <span className="level-bubble__emoji">{level.emoji || '🏆'}</span>
+                          )}
+                        </div>
+                        <h4 className="level-card__title">{level.title}</h4>
+                        <div className="level-card__subtitle">{String(level.level)}</div>
+                      </article>
+                    );
+                  })}
                 </div>
               )}
 
@@ -1285,8 +1431,31 @@ const App: React.FC = () => {
            <button onClick={handleBackToBadge} className="back-button">
              ← Назад к значку
            </button>
-           <div className="level-header">
-             <div className="badge-emoji-large">{levelBadge.emoji || '🏆'}</div>
+            <div className="level-header">
+              {(() => {
+                if (!levelBadge.id || !selectedBadge) {
+                  return <div className="badge-emoji-large">{levelBadge.emoji || '🏆'}</div>;
+                }
+                // Определяем базовый ID значка (первые две части)
+                const baseBadgeId = String(levelBadge.id).split('.').slice(0, 2).join('.');
+                const isBadgeWithImages = baseBadgeId === '1.2' || baseBadgeId === '1.3' || baseBadgeId === '1.4' || baseBadgeId === '1.5' || baseBadgeId === '1.6' || baseBadgeId === '1.7' || baseBadgeId === '1.8' || baseBadgeId === '1.9' || baseBadgeId === '1.10' || baseBadgeId === '1.11';
+                
+                if (isBadgeWithImages) {
+                  return (
+                    <BadgeIcon
+                      badgeId={baseBadgeId}
+                      badgeTitle={selectedBadge.title}
+                      categoryId={selectedBadge.category_id || selectedCategory?.id || '1'}
+                      emoji={levelBadge.emoji || '🏆'}
+                      levelId={String(levelBadge.id)}
+                      levelTitle={levelBadge.title}
+                      className="badge-emoji-large"
+                      size="large"
+                    />
+                  );
+                }
+                return <div className="badge-emoji-large">{levelBadge.emoji || '🏆'}</div>;
+              })()}
              <div>
                <h1 className="heading-gold">{levelBadge.title}</h1>
                <p className="level-title subtitle-orange">{selectedLevel}</p>
@@ -1303,7 +1472,9 @@ const App: React.FC = () => {
                                <h3>Общая информация</h3>
                 <p className="badge-summary__text">
                   {(() => {
-                    const rawDescription = selectedBadge.description || levelBadge.description || 'Общая информация пока не найдена в данных. Содержание будет подгружено автоматически после обновления Путеводителя.';
+                    let rawDescription = selectedBadge.description || levelBadge.description || 'Общая информация пока не найдена в данных. Содержание будет подгружено автоматически после обновления Путеводителя.';
+                    // Убираем дублирующееся объяснение ценности если оно попало в описание
+                    rawDescription = rawDescription.replace(/Объяснение ценности значка:\s*$/, '').trim();
                     const shouldFormat = shouldApplyFormatting(levelBadge.id);
                     const processedDescription = shouldFormat ? fixDescriptionFormatting(rawDescription) : rawDescription;
                     const { mainText, evidenceText: descEvidenceText } = extractEvidenceSection(processedDescription);
@@ -1324,7 +1495,7 @@ const App: React.FC = () => {
                 {/* New sections for level badge */}
                 {levelBadge.nameExplanation && (
                   <>
-                    <h4>Объяснение названия</h4>
+                    <h4>Объяснение названия и ценности</h4>
                     <p className="badge-summary__text">{levelBadge.nameExplanation}</p>
                   </>
                 )}
@@ -1437,7 +1608,27 @@ const App: React.FC = () => {
                       onClick={() => handleLevelClick(String(level.level))}
                     >
                       <div className="level-card__icon">
-                        <span className="level-bubble__emoji">{level.emoji || '??'}</span>
+                        {(() => {
+                          // Определяем базовый ID значка (первые две части)
+                          const baseBadgeId = String(level.id).split('.').slice(0, 2).join('.');
+                          const isBadgeWithImages = baseBadgeId === '1.2' || baseBadgeId === '1.3' || baseBadgeId === '1.4' || baseBadgeId === '1.5' || baseBadgeId === '1.6' || baseBadgeId === '1.7' || baseBadgeId === '1.8' || baseBadgeId === '1.9' || baseBadgeId === '1.10' || baseBadgeId === '1.11';
+                          
+                          if (isBadgeWithImages) {
+                            return (
+                              <BadgeIcon
+                                badgeId={baseBadgeId}
+                                badgeTitle={selectedBadge.title}
+                                categoryId={selectedBadge.category_id || selectedCategory?.id || '1'}
+                                emoji={level.emoji || '🏆'}
+                                levelId={String(level.id)}
+                                levelTitle={level.title}
+                                className="level-bubble__emoji"
+                                size="xlarge"
+                              />
+                            );
+                          }
+                          return <span className="level-bubble__emoji">{level.emoji || '🏆'}</span>;
+                        })()}
                       </div>
                       <h4 className="level-card__title">{level.title}</h4>
                       <div className="level-card__subtitle">{String(level.level)}</div>
@@ -1559,7 +1750,8 @@ const App: React.FC = () => {
   const renderIntroduction = () => {
     if (!selectedCategory?.introduction?.has_introduction) return null;
     
-    const cleanedHtml = cleanHtmlContent(selectedCategory.introduction.html);
+    const processedHtml = processIntroductionHtml(selectedCategory.introduction.html);
+    const cleanedHtml = cleanHtmlContent(processedHtml);
     
     return (
       <div className="introduction-screen">
@@ -1701,8 +1893,8 @@ const App: React.FC = () => {
   };
 
   // Определяем, нужны ли старые стили (AppStyles) или новые (BluenestGlobalStyles)
-  const needsOldStyles = ['category', 'badge', 'badge-level', 'introduction', 'additional-material', 'registration-form'].includes(currentView);
-  const needsNewStyles = ['intro', 'categories', 'about-camp'].includes(currentView);
+  const needsOldStyles = ['introduction', 'additional-material', 'registration-form'].includes(currentView);
+  const needsNewStyles = ['intro', 'categories', 'about-camp', 'category', 'badge', 'badge-level'].includes(currentView);
   
   return (
     <>
@@ -1758,9 +1950,45 @@ const App: React.FC = () => {
             currentLevelBadgeTitle={currentLevelBadgeTitle}
           />
         )}
-        {currentView === 'category' && renderCategory()}
-        {currentView === 'badge' && renderBadge()}
-        {currentView === 'badge-level' && renderBadgeLevel()}
+        {currentView === 'category' && selectedCategory && (
+          <CategoryView 
+            category={selectedCategory}
+            badges={categoryBadges}
+            onBack={handleBackToCategories}
+            onBadgeClick={handleBadgeClick}
+            onIntroductionClick={handleIntroductionClick}
+            onAdditionalMaterialClick={handleAdditionalMaterialClick}
+            onChatToggle={toggleChat}
+            isChatOpen={isChatOpen}
+            onChatClose={closeChat}
+          />
+        )}
+        {currentView === 'badge' && selectedCategory && selectedBadge && (
+          <BadgeView 
+            category={selectedCategory}
+            badge={selectedBadge}
+            badges={badges}
+            onBack={handleBackToCategory}
+            onLevelSelect={handleLevelClick}
+            onBadgeClick={handleBadgeClick}
+            onChatToggle={toggleChat}
+            isChatOpen={isChatOpen}
+            onChatClose={closeChat}
+          />
+        )}
+        {currentView === 'badge-level' && selectedCategory && selectedBadge && selectedLevel && (
+          <BadgeLevelView 
+            category={selectedCategory}
+            badge={selectedBadge}
+            level={selectedLevel}
+            badges={badges}
+            onBack={handleBackToBadge}
+            onChangeLevel={handleLevelClick}
+            onChatToggle={toggleChat}
+            isChatOpen={isChatOpen}
+            onChatClose={closeChat}
+          />
+        )}
         {currentView === 'introduction' && renderIntroduction()}
         {currentView === 'additional-material' && renderAdditionalMaterial()}
         {currentView === 'about-camp' && (

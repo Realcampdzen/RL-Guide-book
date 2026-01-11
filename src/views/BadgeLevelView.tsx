@@ -1,21 +1,21 @@
-import React, { useMemo } from 'react';
-import { fixCriteriaFormatting, extractEvidenceSection, shouldApplyFormatting, fixDescriptionFormatting } from '../utils/textFormatting';
+import React, { useEffect, useMemo, Suspense } from 'react';
+import {
+  fixDescriptionFormatting,
+  fixCriteriaFormatting,
+  extractEvidenceSection,
+  shouldApplyFormatting
+} from '../utils/textFormatting';
+import { useCustomCursor } from '../hooks/useCustomCursor';
+import { useScrollReveal } from '../hooks/useScrollReveal';
+import BadgeIcon from '../components/BadgeIcon';
+import { getBadgeImagePath } from '../utils/badgeImages';
+import '../styles/badge-view.css';
+import type { Category, Badge } from '../types/guide';
 
-type Category = {
-  id: string;
-  title: string;
-};
-
-type Badge = {
-  id: string;
-  title: string;
-  emoji?: string;
-  description?: string;
-  criteria?: string;
-  confirmation?: string;
-  category_id: string;
-  level?: string;
-};
+const loadChatBot = () => import('../components/ChatBot');
+const loadChatAvatar = () => import('../components/ChatAvatar');
+const ChatBot = React.lazy(loadChatBot);
+const ChatAvatar = React.lazy(loadChatAvatar);
 
 interface BadgeLevelViewProps {
   category: Category;
@@ -23,103 +23,329 @@ interface BadgeLevelViewProps {
   level: string;
   badges: Badge[];
   onBack: () => void;
-  onChangeLevel: (level: string, levelId: string) => void;
+  onChangeLevel: (level: string) => void;
+  // Chat props
+  onChatToggle: () => void;
+  isChatOpen: boolean;
+  onChatClose: () => void;
 }
 
-const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({ category, badge, level, badges, onBack, onChangeLevel }) => {
-  const { levelBadge, allLevels } = useMemo(() => {
+const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
+  category,
+  badge,
+  level,
+  badges,
+  onBack,
+  onChangeLevel,
+  onChatToggle,
+  isChatOpen,
+  onChatClose,
+}) => {
+  const { cursorDotRef, cursorOutlineRef, cursorReactorRef } = useCustomCursor();
+  const { initReveal } = useScrollReveal();
+
+  useEffect(() => {
+    initReveal('.reveal-on-scroll');
+    window.scrollTo(0, 0);
+  }, [initReveal]);
+
+  // Context Logic
+  const { levelBadge, otherLevels } = useMemo(() => {
     const idSegments = (badge.id || '').split('.');
     const isMultiLevel = idSegments.length === 3;
-    const levels = badges
-      .filter((b) => {
-        if (b.category_id !== badge.category_id) return false;
-        if (isMultiLevel) {
-          const seg = (b.id || '').split('.');
-          return seg.length === 3 && seg[0] === idSegments[0] && seg[1] === idSegments[1];
-        }
-        return (b.id || '') === (badge.id || '');
-      })
-      .sort((a, b) => (a.id || '').localeCompare(b.id || ''));
-    const current = levels.find((b) => (b.level || '').toString() === (level || '').toString()) || badge;
-    return { levelBadge: current, allLevels: levels };
+    const baseKey = isMultiLevel ? idSegments.slice(0, 2).join('.') + '.' : badge.id;
+
+    // Helper for same base segments
+    const sameBaseTwoSegments = (a: string, b: string): boolean => {
+      const as = String(a ?? '').split('.');
+      const bs = String(b ?? '').split('.');
+      return as.length >= 2 && bs.length >= 2 && as[0] === bs[0] && as[1] === bs[1];
+    };
+
+    const levelBadge = badges.find((b) => {
+      if (b.category_id !== badge.category_id) return false;
+      if (isMultiLevel) {
+        return (b.id || '').startsWith(baseKey) && String(b.level) === String(level);
+      }
+      return b.id === badge.id && String(b.level) === String(level);
+    });
+
+    const siblingLevels = badges.filter((b) => {
+      if (b.category_id !== badge.category_id) return false;
+      if (isMultiLevel) {
+        return sameBaseTwoSegments(b.id, badge.id);
+      }
+      return (b.id || '') === (badge.id || '');
+    });
+
+    const toNum = (v: any) => {
+      if (typeof v?.level === 'number') return v.level;
+      if (typeof v?.level === 'string' && /^\d+$/.test(v.level)) return parseInt(v.level, 10);
+      return Number.POSITIVE_INFINITY;
+    };
+
+    const levelsAll = siblingLevels.slice().sort((a: any, b: any) => {
+      const an = toNum(a);
+      const bn = toNum(b);
+      if (an !== bn) return an - bn;
+      return (a.id || '').localeCompare(b.id || '');
+    });
+
+    const otherLevels = levelsAll.filter((l) => String(l.level) !== String(level));
+
+    return { levelBadge: levelBadge || badge, otherLevels };
   }, [badge, badges, level]);
 
-  const { criteriaList, evidenceText } = useMemo(() => {
+  // Content Logic
+  const { levelCriteria, levelEvidenceText, mainDescription } = useMemo(() => {
     let evidenceText: string | null = null;
-    let baseCriteria: string[] = [];
-    const source = levelBadge || badge;
-    if (source && (source.criteria || source.confirmation)) {
-      let raw = source.criteria || '';
-      const should = shouldApplyFormatting(source.id);
-      const processed = should ? fixCriteriaFormatting(raw) : raw;
-      if (source.confirmation) {
-        const { mainText, evidenceText: extracted } = extractEvidenceSection(processed);
-        evidenceText = extracted || source.confirmation;
-        raw = mainText;
-      }
-      baseCriteria = (raw || '')
-        .split(/[\u0007\n•\-]/)
-        .map((s) => s.trim())
-        .filter(Boolean);
+    let criteria: string[] = [];
+
+    // Fix: Remove duplicate text if present in description
+    let descriptionText = badge.description || levelBadge.description || '';
+    descriptionText = descriptionText.replace(/Объяснение ценности значка:\\s*$/, '').trim();
+
+    if (levelBadge.confirmation) {
+      evidenceText = typeof levelBadge.confirmation === 'string'
+        ? levelBadge.confirmation
+        : Array.isArray(levelBadge.confirmation) ? levelBadge.confirmation.join('\n') : null;
     }
-    return { criteriaList: baseCriteria, evidenceText };
+
+    if (levelBadge.criteria) {
+      const raw = typeof levelBadge.criteria === 'string'
+        ? levelBadge.criteria.replace(/^Как получить значок \«[^»]+\»: \s*/, '')
+        : Array.isArray(levelBadge.criteria) ? levelBadge.criteria.join('\n') : '';
+
+      const shouldFormat = shouldApplyFormatting(levelBadge.id);
+      const processedRaw = shouldFormat ? fixCriteriaFormatting(raw) : raw;
+
+      criteria = processedRaw.split('\u2705').filter(c => c.trim()).map(c => c.trim());
+    } else {
+      // Fallback
+      criteria = [
+        'Выполнить все базовые требования значка.',
+        'Показать более глубокое понимание и навыки.',
+        'Демонстрировать постоянное развитие и улучшение.'
+      ];
+    }
+
+    const shouldFormatDesc = shouldApplyFormatting(levelBadge.id);
+    const processedDesc = shouldFormatDesc ? fixDescriptionFormatting(descriptionText) : descriptionText;
+    const { mainText: descMain } = extractEvidenceSection(processedDesc);
+
+    return { levelCriteria: criteria, levelEvidenceText: evidenceText, mainDescription: descMain };
   }, [levelBadge, badge]);
 
-  const description = useMemo(() => fixDescriptionFormatting(levelBadge?.description || badge.description || ''), [levelBadge?.description, badge.description]);
+  // Determine background class
+  const bgType = useMemo(() => {
+    const l = String(level).toLowerCase();
+    if (l.includes('продвинутый')) return 'advanced';
+    if (l.includes('экспертный') || l.includes('вожатский')) return 'expert';
+    return 'base';
+  }, [level]);
+
+  // Helper for rendering emoji/icon
+  const renderIcon = (b: Badge, size: 'large' | 'xlarge', className: string) => {
+    const baseBadgeId = String(b.id).split('.').slice(0, 2).join('.');
+    const isImageBadge = ['1.1', '1.2', '1.3', '1.4', '1.5', '1.6', '1.7', '1.8', '1.9', '1.10', '1.11', '1.12', '1.13', '1.14', '1.15', '1.16'].includes(baseBadgeId);
+
+    if (isImageBadge) {
+      return (
+        <BadgeIcon
+          badgeId={baseBadgeId}
+          badgeTitle={badge.title}
+          categoryId={badge.category_id || category.id}
+          emoji={b.emoji || ''}
+          levelId={String(b.id)}
+          levelTitle={b.title}
+          className={className}
+          size={size}
+        />
+      );
+    }
+    return <div className={className} style={{fontSize: size === 'large' ? '4rem' : '3rem'}}>{b.emoji || '🏆'}</div>;
+  };
+
+  const levelHeroImageUrl = useMemo(() => {
+    const baseBadgeId = String(badge.id || '').split('.').slice(0, 2).join('.');
+    if (!baseBadgeId) return null;
+    const levelId = String(levelBadge?.id || '');
+    const levelSegments = levelId.split('.');
+    const isTieredLevel = levelSegments.length === 3;
+    return getBadgeImagePath(
+      baseBadgeId,
+      badge.title,
+      category.id,
+      isTieredLevel ? levelId : undefined,
+      isTieredLevel ? levelBadge.title : undefined,
+      'realism'
+    );
+  }, [badge.id, badge.title, category.id, levelBadge]);
 
   return (
-    <div className="badge-level-screen">
-      <div className="header">
-        <button onClick={onBack} className="back-button">← Назад к значку</button>
-        <div className="header-content">
-          <h1 className="app-title">{levelBadge?.title || badge.title}</h1>
-          <p className="badge-category">{category?.title}</p>
-        </div>
+    <div className="badge-view-container" data-level-bg={bgType}>
+      <div className="noise-overlay"></div>
+      <div className="cursor-reactor" ref={cursorReactorRef} data-cursor-reactor></div>
+      <div className="cursor-dot" ref={cursorDotRef} data-cursor></div>
+      <div className="cursor-outline" ref={cursorOutlineRef} data-cursor-outline></div>
+
+      <div className="sticky-back-nav">
+        <button onClick={onBack} className="nav-link-back hover-target">← Назад к значку</button>
       </div>
 
-      <div className="badge-content">
-        <div className="badge-info">
-          {description && (
-            <div className="badge-description pre-wrap">{description}</div>
-          )}
+      <main className="badge-main">
+        {/* Header */}
+        <section className="badge-hero reveal-on-scroll">
+          <div className="badge-hero-icon">
+            {renderIcon(levelBadge, 'large', 'hero-emoji')}
+          </div>
+          <div className="badge-hero-content">
+            <h1>{levelBadge.title}</h1>
+            <div className="badge-hero-category">{level}</div>
+          </div>
+        </section>
 
-          {criteriaList.length > 0 && (
-            <div className="badge-criteria">
-              <h3 className="level-title">Критерии</h3>
-              <ul>
-                {criteriaList.map((c, i) => (
-                  <li key={i}>{c}</li>
-                ))}
-              </ul>
+        {levelHeroImageUrl && (
+          <section className="badge-hero-media reveal-on-scroll">
+            <div className="badge-hero-media__frame">
+              <img
+                src={levelHeroImageUrl}
+                alt={levelBadge.title}
+                className="badge-hero-media__image"
+                loading="lazy"
+              />
             </div>
-          )}
+          </section>
+        )}
 
-          {evidenceText && (
-            <div className="badge-evidence">
-              <h3 className="level-title">Подтверждение</h3>
-              <div className="pre-wrap">{evidenceText}</div>
-            </div>
-          )}
+        {/* Content Grid */}
+        <div className="badge-content-grid">
+          {/* Left Column */}
+          <div className="badge-left-col reveal-on-scroll">
+            <div className="content-block">
+              <h3>Общая информация</h3>
+              <p className="content-text" dangerouslySetInnerHTML={{ __html: mainDescription.replace(/\n/g, '<br/>') }} />
 
-          {allLevels.length > 1 && (
-            <div className="badge-levels">
-              <h3 className="level-title">Уровни</h3>
-              <div className="levels-list">
-                {allLevels.map((lvl) => (
-                  <button
-                    key={lvl.id}
-                    className={`level-button ${(lvl.level || '').toString() === (level || '').toString() ? 'active' : ''}`}
-                    onClick={() => onChangeLevel(lvl.level || '', lvl.id)}
-                    title={lvl.title}
-                  >
-                    {lvl.level || ''}
-                  </button>
-                ))}
+              {levelBadge.nameExplanation && (
+                <>
+                  <h4>Объяснение названия и ценности</h4>
+                  <p className="content-text">{levelBadge.nameExplanation}</p>
+                </>
+              )}
+
+              {levelBadge.skillTips && (
+                <>
+                  <h4>Как прокачать навык</h4>
+                  <p className="content-text" dangerouslySetInnerHTML={{__html: levelBadge.skillTips.replace(/\n/g, '<br>')}}></p>
+                </>
+              )}
+
+              {levelBadge.examples && (
+                <>
+                  <h4>Примеры</h4>
+                  <p className="content-text" dangerouslySetInnerHTML={{__html: levelBadge.examples.replace(/\n/g, '<br>')}}></p>
+                </>
+              )}
+
+              {levelBadge.importance && (
+                <>
+                  <h4>Почему этот значок важен</h4>
+                  <p className="content-text">{levelBadge.importance}</p>
+                </>
+              )}
+
+              {levelBadge.philosophy && (
+                <>
+                  <h4>Философия значка</h4>
+                  <p className="content-text">{levelBadge.philosophy}</p>
+                </>
+              )}
+
+              {levelBadge.howToBecome && (
+                <>
+                  <h4>Как стать</h4>
+                  <p className="content-text" dangerouslySetInnerHTML={{__html: levelBadge.howToBecome.replace(/\n/g, '<br>')}}></p>
+                </>
+              )}
+
+              <div className="badge-meta">
+                <div className="meta-item">
+                  <span className="meta-label">Категория</span>
+                  <span className="meta-value">{category.title}</span>
+                </div>
+                <div className="meta-item">
+                  <span className="meta-label">Уровень</span>
+                  <span className="meta-value">{level}</span>
+                </div>
+                <div className="meta-item">
+                  <span className="meta-label">ID</span>
+                  <span className="meta-value">{levelBadge.id}</span>
+                </div>
               </div>
             </div>
-          )}
+          </div>
+
+          {/* Right Column */}
+          <div className="badge-right-col reveal-on-scroll" style={{ transitionDelay: '0.1s' }}>
+            <div className="content-block">
+              <h3>Как получить {level.toLowerCase()}</h3>
+
+              {levelCriteria.length > 0 ? (
+                <ul className="criteria-list">
+                  {levelCriteria.map((criterion, index) => {
+                    // Simple example parsing logic if needed
+                    return <li key={index} dangerouslySetInnerHTML={{ __html: criterion.replace(/\n/g, '<br>') }} />;
+                  })}
+                </ul>
+              ) : (
+                <p className="content-text">Критерии пока не определены.</p>
+              )}
+
+              {levelEvidenceText && (
+                <>
+                  <h4>Чем подтверждается</h4>
+                  <p className="content-text" style={{ color: 'var(--c-volt)', fontStyle: 'italic' }}>
+                    {levelEvidenceText}
+                  </p>
+                </>
+              )}
+            </div>
+
+            {/* Other Levels */}
+            {otherLevels.length > 0 && (
+              <div className="levels-dock">
+                {otherLevels.map(lvl => (
+                  <div
+                    key={lvl.id}
+                    className="level-bubble hover-target"
+                    onClick={() => onChangeLevel(String(lvl.level))}
+                  >
+                    <div className="level-bubble-icon">
+                      {renderIcon(lvl, 'xlarge', '')}
+                    </div>
+                    <div className="level-bubble-title">{lvl.title}</div>
+                    <div className="level-bubble-subtitle">{String(lvl.level)}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      </main>
+
+      {/* ChatBot and ChatAvatar */}
+      <Suspense fallback={null}>
+        <ChatAvatar onClick={onChatToggle} isOpen={isChatOpen} />
+        <ChatBot
+          isOpen={isChatOpen}
+          onClose={onChatClose}
+          currentView="badge-level"
+          currentCategory={category}
+          currentBadge={badge}
+          currentLevel={level}
+          currentLevelBadgeTitle={levelBadge.title}
+        />
+      </Suspense>
     </div>
   );
 };
