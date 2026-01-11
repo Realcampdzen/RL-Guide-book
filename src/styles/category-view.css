@@ -446,11 +446,34 @@
 }
 
 @media (max-width: 768px) {
-  .badges-grid {
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 1rem;
-    margin-top: -1.6rem;
+  .category-main {
+    padding: 180px 1rem 10vh;
   }
+  
+  .badges-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.2rem;
+    margin-top: -1.6rem;
+    padding: 0;
+    width: 100%;
+    justify-items: stretch !important;
+  }
+  
+  .badge-card {
+    width: 100% !important;
+    max-width: none !important;
+    min-height: 220px;
+    padding: 1.5rem;
+    box-sizing: border-box;
+  }
+  
+  .badge-centered-row {
+    grid-column: auto !important;
+    justify-self: stretch !important;
+    width: 100% !important;
+    max-width: none !important;
+  }
+  
   .category-title {
     font-size: clamp(2.4rem, 9vw, 3.8rem);
   }
@@ -466,10 +489,6 @@
   .category-label {
     right: 1rem;
     font-size: 1rem;
-  }
-  .badge-card {
-    min-height: 220px;
-    padding: 1.5rem;
   }
   .badge-card__icon {
     width: 80px;
