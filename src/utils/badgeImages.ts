@@ -64,11 +64,18 @@ export const getBadgeImagePath = (
   if (levelId && levelTitle) {
     const levelNumber = levelId.split('.').pop();
     if (levelNumber) {
-      let levelFileName = normalizeFolderName(levelTitle);
+      // Для уровней сохраняем оригинальные названия с заглавными буквами, 
+      // так как файлы имеют именно такие названия
+      // Но нормализуем только специальные символы и пробелы
+      let levelFileName = levelTitle
+        .replace(/ё/g, 'е')
+        .replace(/[^\w\sа-яА-Яе-]/gi, '')
+        .replace(/\s+/g, ' ')
+        .trim();
       fileName = `${levelNumber} ${levelFileName}.jpg`;
     }
   } else {
-    // Базовый уровень
+    // Базовый уровень - используем normalizeFolderName (нижний регистр)
     let baseLevelTitle = badgeTitle;
     if (baseLevelTitle.includes(' или ')) baseLevelTitle = baseLevelTitle.split(' или ')[0].trim();
     if (baseLevelTitle.includes('\n')) baseLevelTitle = baseLevelTitle.split('\n')[0].trim();
