@@ -106,20 +106,22 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
     descriptionText = descriptionText.replace(/Объяснение ценности значка:\\s*$/, '').trim();
 
     if (levelBadge.confirmation) {
-      evidenceText = typeof levelBadge.confirmation === 'string'
-        ? levelBadge.confirmation
-        : Array.isArray(levelBadge.confirmation) ? levelBadge.confirmation.join('\n') : null;
+      const conf: string | string[] = levelBadge.confirmation as string | string[];
+      evidenceText = typeof conf === 'string'
+        ? conf
+        : Array.isArray(conf) ? conf.join('\n') : null;
     }
 
     if (levelBadge.criteria) {
-      const raw = typeof levelBadge.criteria === 'string'
-        ? levelBadge.criteria.replace(/^Как получить значок \«[^»]+\»: \s*/, '')
-        : Array.isArray(levelBadge.criteria) ? levelBadge.criteria.join('\n') : '';
+      const crit: string | string[] = levelBadge.criteria as string | string[];
+      const raw = typeof crit === 'string'
+        ? crit.replace(/^Как получить значок \«[^»]+\»: \s*/, '')
+        : Array.isArray(crit) ? crit.join('\n') : '';
 
       const shouldFormat = shouldApplyFormatting(levelBadge.id);
       const processedRaw = shouldFormat ? fixCriteriaFormatting(raw) : raw;
 
-      criteria = processedRaw.split('\u2705').filter(c => c.trim()).map(c => c.trim());
+      criteria = processedRaw.split('\u2705').filter((c: string) => c.trim()).map((c: string) => c.trim());
     } else {
       // Fallback
       criteria = [
@@ -341,7 +343,12 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
           onClose={onChatClose}
           currentView="badge-level"
           currentCategory={category}
-          currentBadge={badge}
+          currentBadge={{
+            id: badge.id,
+            title: badge.title,
+            emoji: badge.emoji,
+            categoryId: badge.category_id
+          }}
           currentLevel={level}
           currentLevelBadgeTitle={levelBadge.title}
         />

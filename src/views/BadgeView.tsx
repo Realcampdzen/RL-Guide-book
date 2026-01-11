@@ -36,7 +36,7 @@ const BadgeView: React.FC<BadgeViewProps> = ({
   badges, 
   onBack, 
   onLevelSelect,
-  onBadgeClick,
+  onBadgeClick: _onBadgeClick,
   onChatToggle,
   isChatOpen,
   onChatClose,
@@ -320,7 +320,12 @@ const BadgeView: React.FC<BadgeViewProps> = ({
           onClose={onChatClose} 
           currentView="badge"
           currentCategory={category}
-          currentBadge={badge}
+          currentBadge={{
+            id: badge.id,
+            title: badge.title,
+            emoji: badge.emoji,
+            categoryId: badge.category_id
+          }}
         />
       </Suspense>
     </div>

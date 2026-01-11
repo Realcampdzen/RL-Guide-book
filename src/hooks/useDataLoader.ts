@@ -218,7 +218,7 @@ export const useDataLoader = () => {
         const { aiCategory, catIndex } = entry;
 
         // Правильно считаем количество значков из badgesData или из поля badges
-        const badgeCount = (catIndex.badgesData || []).length || catIndex.badges || aiCategory.badges || 0;
+        const badgeCount = (catIndex.badgesData || []).length || aiCategory.badges || 0;
         
         categoriesData.push({
           id: aiCategory.id,

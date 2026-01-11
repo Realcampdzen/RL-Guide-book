@@ -10,7 +10,7 @@ import CategoryView from './views/CategoryView';
 import BadgeView from './views/BadgeView';
 import BadgeLevelView from './views/BadgeLevelView';
 import { 
-  pluralizeRu,    fixDescriptionFormatting, 
+  fixDescriptionFormatting, 
   fixCriteriaFormatting, 
   extractEvidenceSection,
   shouldApplyFormatting
@@ -867,153 +867,9 @@ const App: React.FC = () => {
        );
    };
 
-  // ЭКРАН 3: Конкретная категория (только базовые/одноуровневые значки)
-  const renderCategory = () => {
-    console.log('renderCategory вызван, selectedCategory:', selectedCategory);
-    if (!selectedCategory) {
-      console.log('selectedCategory отсутствует, возвращаем null');
-      return null;
-    }
-
-    return (
-      <div className="category-screen">
-        <div className="header">
-          <button onClick={handleBackToCategories} className="back-button">
-            ← Назад к категориям
-          </button>
-          <div className="header-content">
-            <h1 className="heading-gold">{selectedCategory.title}</h1>
-            <p className="subtitle-orange">{categoryBadges.length} базовых значков</p>
-            {selectedCategory.introduction?.has_introduction && (
-              <button 
-                onClick={handleIntroductionClick} 
-                className="hint-button"
-                title="Показать подсказку по категории"
-              >
-                💡 Подсказка
-              </button>
-            )}
-            {selectedCategory.id === '14' && (
-              <div className="additional-materials-buttons">
-                  <>
-                    <button 
-                    onClick={() => handleAdditionalMaterialClick('checklists', 'general-checklist.md')}
-                      className="material-button"
-                      title="Общий чек-лист"
-                    >
-                      📋 Чек-лист
-                    </button>
-                    <button 
-                    onClick={() => handleAdditionalMaterialClick('checklists', 'challenges-checklist.md')}
-                      className="material-button"
-                      title="Чек-лист с челленджами"
-                    >
-                      🎯 Челленджи
-                    </button>
-                                   <button
-                    onClick={() => handleAdditionalMaterialClick('checklists', 'active-checklist.md')}
-                 className="material-button"
-                 title="Активная версия чек-листа"
-               >
-                 🚀 Активная версия
-               </button>
-                  <button 
-                    onClick={() => handleAdditionalMaterialClick('methodology', 'inspector-methodology.md')}
-                    className="material-button"
-                    title="Методика Инспектора Пользы"
-                  >
-                    📚 Методика
-                  </button>
-                  <button 
-                    onClick={() => handleAdditionalMaterialClick('methodology', 'inspector-codex.md')}
-                    className="material-button"
-                    title="Кодекс Инспектора Реального Лагеря"
-                  >
-                    📜 Кодекс
-                  </button>
-                  <button 
-                    onClick={() => handleAdditionalMaterialClick('methodology', 'friendship-guide.md')}
-                    className="material-button"
-                    title="Памятка как получить значки Инспектора Дружбы"
-                  >
-                    🤝 Памятка Дружбы
-                  </button>
-                  <button 
-                    onClick={() => handleAdditionalMaterialClick('methodology', 'i-messages-guide.md')}
-                    className="material-button"
-                    title="Памятка Я сообщений для Инспектора Дружбы"
-                  >
-                    💬 Я-сообщения
-                  </button>
-                  <button 
-                    onClick={() => handleAdditionalMaterialClick('methodology', 'friendship-rules.md')}
-                    className="material-button"
-                    title="Список правил Инспектора Дружбы"
-                  >
-                    📋 Правила Дружбы
-                  </button>
-                </>
-              </div>
-            )}
-          </div>
-        </div>
-        <div className="badges-grid">
-          {categoryBadges.map((badge, index) => (
-            <article 
-              key={badge.id} 
-              className={`badge-card floating ${(badge.id || '').startsWith('1.15') ? 'badge-centered-row' : ''}`}
-              style={{
-                animationDelay: `${index * 0.1}s`
-              }}
-              onClick={() => handleBadgeClick(badge)}
-            >
-                             <div className="badge-card__icon">
-                 {(() => {
-                   const badgeIdStr = String(badge.id);
-                    // Проверяем, является ли это базовым значком 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 1.10, 1.11 или их частью
-                    const baseBadgeId = badgeIdStr.split('.').slice(0, 2).join('.');
-                    if (baseBadgeId === '1.1' || baseBadgeId === '1.2' || baseBadgeId === '1.3' || baseBadgeId === '1.4' || baseBadgeId === '1.5' || baseBadgeId === '1.6' || baseBadgeId === '1.7' || baseBadgeId === '1.8' || baseBadgeId === '1.9' || baseBadgeId === '1.10' || baseBadgeId === '1.11' || baseBadgeId === '1.12' || baseBadgeId === '1.13' || baseBadgeId === '1.14' || baseBadgeId === '1.15' || baseBadgeId === '1.16') {
-                     // Находим базовый уровень для значка (1.2.1 или 1.3.1)
-                     const baseLevelId = `${baseBadgeId}.1`;
-                     const baseLevel = badges.find(b => String(b.id) === baseLevelId);
-                     console.log(`App: Rendering BadgeIcon for badge ${baseBadgeId} in category`, { 
-                       badgeId: badge.id, 
-                       badgeTitle: badge.title,
-                       baseBadgeId,
-                       categoryId: badge.category_id || selectedCategory?.id,
-                       baseLevel: baseLevel ? { id: baseLevel.id, title: baseLevel.title } : null
-                     });
-                     return (
-                       <BadgeIcon
-                         badgeId={baseBadgeId}
-                         badgeTitle={badge.title}
-                         categoryId={badge.category_id || selectedCategory?.id || '1'}
-                         emoji={badge.emoji || ''}
-                         levelId={baseLevel ? String(baseLevel.id) : undefined}
-                         levelTitle={baseLevel ? baseLevel.title : undefined}
-                         className="badge-emoji"
-                         size="medium"
-                       />
-                     );
-                   }
-                   return <div className="badge-emoji">{badge.emoji || (badge.id === '1.11' ? '♾️' : '')}</div>;
-                 })()}
-               </div>
-              <h3 className="badge-card__title">{badge.title}</h3>
-              <div className="badge-card__level">
-                {Array.isArray((badge as any).allLevels) && (badge as any).allLevels.length > 1
-                  ? `${(badge as any).allLevels.length} ${pluralizeRu((badge as any).allLevels.length, ['уровень', 'уровня', 'уровней'])}`
-                  : 'одноуровневый'}
-              </div>
-            </article>
-          ))}
-        </div>
-      </div>
-    );
-  };
-
-  // ЭКРАН 4: Конкретный значок с общей инфой и уровнями
-  const renderBadge = () => {
+  // ЭКРАН 4: Конкретный значок с общей инфой и уровнями - REMOVED: now using BadgeView component
+  // @ts-expect-error - Unused function kept for reference, using BadgeView component instead
+  const _renderBadge = () => {
     if (!selectedBadge || !badgeContext) return null;
     const { badgeLevels, baseLevelBadge, otherLevels, isMultiLevel } = badgeContext;
 
@@ -1356,8 +1212,9 @@ const App: React.FC = () => {
     );
   };
 
-     // ЭКРАН 5: Конкретный уровень значка
-     const renderBadgeLevel = () => {
+     // ЭКРАН 5: Конкретный уровень значка - REMOVED: now using BadgeLevelView component
+     // @ts-expect-error - Unused function kept for reference, using BadgeLevelView component instead
+     const _renderBadgeLevel = () => {
     if (!selectedBadge || !selectedLevel || !levelContext) return null;
     const { levelBadge, otherLevels } = levelContext;
 

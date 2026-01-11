@@ -52,7 +52,6 @@ export const useCustomCursor = () => {
     // Function to check collision between circle and element
     const checkCollision = (circleX: number, circleY: number, circleRadius: number, element: HTMLElement): boolean => {
       const rect = element.getBoundingClientRect();
-      const style = window.getComputedStyle(element);
       
       // Special case for hero title spans (keep precise text detection)
       const isInHeroTitle = element.closest('.hero-title') !== null;

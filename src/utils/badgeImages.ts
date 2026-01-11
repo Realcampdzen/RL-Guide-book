@@ -19,7 +19,7 @@ const normalizeFolderName = (name: string): string => {
     .trim();
 };
 
-const getBadgeFolderName = (badgeTitle: string, badgeId: string, levelTitle?: string): string => {
+const getBadgeFolderName = (badgeTitle: string, badgeId: string, _levelTitle?: string): string => {
   // Явные маппинги для всех значков категории 1, теперь всё в нижнем регистре для стабильности
   if (badgeId === '1.1') return 'валюша';
   if (badgeId === '1.2') return 'беспорядок дня';
