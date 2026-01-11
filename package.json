@@ -8,13 +8,15 @@
     "dev:staging": "vite --host --port 3001",
     "dev:html": "node server-html.js",
     "build": "tsc && vite build",
+    "build:verify": "npm run build && node scripts/verify-images-build.mjs",
     "preview": "vite preview --host --port 3001 --base /RL-Guide-book/",
     "preview:prod": "node server-preview.js",
     "vercel-build": "npm run build",
     "start:api": "node api/index.js",
     "start:chatbot": "cd chatbot && python main.py",
     "start:backend": "cd backend && python app.py",
-    "render-build": "npm run build"
+    "render-build": "npm run build",
+    "verify-images": "node scripts/verify-images-build.mjs"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

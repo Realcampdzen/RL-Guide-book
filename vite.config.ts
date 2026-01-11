@@ -110,6 +110,8 @@ const copyRLGuideBookPlugin = () => ({
     const fs = require('fs')
     const path = require('path')
     
+    console.log('📦 Начинаем копирование файлов из public в dist/RL-Guide-book...')
+    
     // Создаем папку RL-Guide-book в dist
     const rlGuideBookDir = 'dist/RL-Guide-book'
     if (!existsSync(rlGuideBookDir)) {
@@ -118,37 +120,70 @@ const copyRLGuideBookPlugin = () => ({
     
     // Копируем все файлы из public в dist/RL-Guide-book
     if (existsSync('public')) {
+      let copiedFiles = 0
+      let copiedDirs = 0
+      let skippedFiles = 0
+      
       function copyDir(src, dest) {
         if (!existsSync(dest)) {
           mkdirSync(dest, { recursive: true })
+          copiedDirs++
         }
         
-        const entries = fs.readdirSync(src, { withFileTypes: true })
-        for (const entry of entries) {
-          const srcPath = path.join(src, entry.name)
-          const destPath = path.join(dest, entry.name)
-          
-          if (entry.isDirectory()) {
-            // Пропускаем node_modules и другие служебные папки
-            if (entry.name !== 'node_modules' && !entry.name.startsWith('.')) {
-              copyDir(srcPath, destPath)
-            }
-          } else {
-            // Копируем только изображения и другие статические файлы
-            const ext = path.extname(entry.name).toLowerCase()
-            if (['.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp', '.json', '.css'].includes(ext)) {
-              fs.copyFileSync(srcPath, destPath)
+        try {
+          const entries = fs.readdirSync(src, { withFileTypes: true, encoding: 'utf8' })
+          for (const entry of entries) {
+            const srcPath = path.join(src, entry.name)
+            const destPath = path.join(dest, entry.name)
+            
+            if (entry.isDirectory()) {
+              // Пропускаем node_modules и другие служебные папки
+              if (entry.name !== 'node_modules' && !entry.name.startsWith('.')) {
+                copyDir(srcPath, destPath)
+              }
+            } else {
+              // Копируем все статические файлы (изображения, JSON, CSS, HTML, MD и т.д.)
+              const ext = path.extname(entry.name).toLowerCase()
+              const allowedExts = ['.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp', '.json', '.css', '.html', '.md', '.js', '.txt', '.ico']
+              
+              if (allowedExts.includes(ext) || !ext) {
+                try {
+                  fs.copyFileSync(srcPath, destPath)
+                  copiedFiles++
+                  
+                  // Логируем копирование изображений значков для отладки
+                  if (srcPath.includes('Новые значки') && ['.jpg', '.jpeg', '.png'].includes(ext)) {
+                    console.log(`  ✅ Скопировано: ${path.relative('public', srcPath)}`)
+                  }
+                } catch (error) {
+                  console.error(`  ❌ Ошибка копирования ${srcPath}:`, error.message)
+                }
+              } else {
+                skippedFiles++
+              }
             }
           }
+        } catch (error) {
+          console.error(`  ❌ Ошибка чтения директории ${src}:`, error.message)
         }
       }
       
       copyDir('public', rlGuideBookDir)
+      
+      console.log(`✅ Копирование завершено:`)
+      console.log(`   - Скопировано файлов: ${copiedFiles}`)
+      console.log(`   - Создано директорий: ${copiedDirs}`)
+      if (skippedFiles > 0) {
+        console.log(`   - Пропущено файлов: ${skippedFiles}`)
+      }
+    } else {
+      console.warn('⚠️  Папка public не найдена!')
     }
     
     // Копируем 404.html в dist для GitHub Pages SPA routing
     if (existsSync('404.html')) {
       copyFileSync('404.html', 'dist/404.html')
+      console.log('✅ Скопирован 404.html')
     }
   }
 })
