@@ -363,10 +363,11 @@ const AboutCampView: React.FC<AboutCampViewProps> = ({
 
               <div className="price-block" style={{ display: 'inline-block', textAlign: 'left', minWidth: '350px', padding: '2.5rem' }}>
                 <p style={{ marginBottom: '1rem', fontSize: '1.3rem', color: 'var(--c-stark)' }}>
-                  ✅ <strong style={{ color: '#FFD700' }}>30 500 ₽</strong> — с сертификатом
+                  ✅ <strong style={{ color: '#FFD700' }}>25 800</strong> — стоимость путевки с учетом сертификата от г. Санкт-Петербурга на 9 дней<br />
+                  <span style={{ fontSize: '1rem', color: 'rgba(244, 239, 228, 0.7)' }}>+ сертификат</span>
                 </p>
                 <p style={{ fontSize: '1.3rem', color: 'var(--c-stark)' }}>
-                  ✅ <strong>35 500 ₽</strong> — полная стоимость
+                  ✅ <strong>36 500,00 руб.</strong> — полная стоимость путевки на 9 дней без использования сертификата
                 </p>
               </div>
               

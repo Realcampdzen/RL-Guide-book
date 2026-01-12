@@ -884,10 +884,13 @@
             }
         }
         
-        /* Для планшетной версии опускаем изображение ниже, не меняя текст */
+        /* Для планшетной версии поднимаем изображение и текст выше */
         @media (min-width: 769px) and (max-width: 1024px) {
             .features-grid > .feature-card:nth-child(2) img {
-                margin-top: 60px !important;
+                margin-top: -40px !important;
+            }
+            .features-grid > .feature-card:nth-child(2) h3 {
+                margin-top: 30vh !important;
             }
         }
         
