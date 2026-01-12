@@ -16,7 +16,9 @@
     "start:chatbot": "cd chatbot && python main.py",
     "start:backend": "cd backend && python app.py",
     "render-build": "npm run build",
-    "verify-images": "node scripts/verify-images-build.mjs"
+    "verify-images": "node scripts/verify-images-build.mjs",
+    "verify-image-names": "node scripts/normalize-badge-images.mjs --check",
+    "normalize-images": "node scripts/normalize-badge-images.mjs --apply"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

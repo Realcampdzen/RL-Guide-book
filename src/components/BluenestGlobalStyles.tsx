@@ -111,6 +111,24 @@ const BluenestGlobalStyles: React.FC = () => {
           position: relative !important;
         }
       }
+      
+      /* В планшетной версии hero должен быть выше marquee */
+      @media (min-width: 769px) and (max-width: 1024px) {
+        .hero {
+          z-index: 10 !important;
+        }
+        .hero-content {
+          z-index: 10 !important;
+        }
+        .hero-bg {
+          z-index: -1 !important;
+        }
+        /* Marquee должна быть выше фона (hero-bg), но ниже hero-content */
+        .marquee {
+          z-index: 1 !important;
+          position: relative !important;
+        }
+      }
 
       /* Custom Cursor Hover State */
       .cursor-hover {

@@ -52,30 +52,36 @@ export const getBadgeImagePath = (
   levelTitle?: string,
   variant: 'default' | 'realism' = 'default'
 ): string | null => {
+  // #region agent log
+  const logData = { badgeId, badgeTitle, categoryId, levelId, levelTitle, variant, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run1', hypothesisId: 'A,B,C,D' };
+  fetch('http://127.0.0.1:7242/ingest/96284863-607a-4bc5-9cb2-27956a8c59cf',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'badgeImages.ts:47',message:'getBadgeImagePath entry',data:logData})}).catch(()=>{});
+  // #endregion
+  
   const baseUrl = import.meta.env.BASE_URL || '/';
   const categoryFolder = categoryFolderMap[categoryId];
+  
+  // #region agent log
+  fetch('http://127.0.0.1:7242/ingest/96284863-607a-4bc5-9cb2-27956a8c59cf',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'badgeImages.ts:55',message:'BASE_URL and categoryFolder',data:{baseUrl,categoryFolder,hasCategoryFolder:!!categoryFolder,badgeId,timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'}})}).catch(()=>{});
+  // #endregion
   
   if (!categoryFolder) return null;
 
   const badgeFolderName = getBadgeFolderName(badgeTitle, badgeId, levelTitle);
+  
+  // #region agent log
+  fetch('http://127.0.0.1:7242/ingest/96284863-607a-4bc5-9cb2-27956a8c59cf',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'badgeImages.ts:62',message:'badgeFolderName computed',data:{badgeFolderName,badgeTitle,badgeId,levelTitle,timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A,D'}})}).catch(()=>{});
+  // #endregion
   
   let fileName = '';
   
   if (levelId && levelTitle) {
     const levelNumber = levelId.split('.').pop();
     if (levelNumber) {
-      // Для уровней сохраняем оригинальные названия с заглавными буквами, 
-      // так как файлы имеют именно такие названия
-      // Но нормализуем только специальные символы и пробелы
-      let levelFileName = levelTitle
-        .replace(/ё/g, 'е')
-        .replace(/[^\w\sа-яА-Яе-]/gi, '')
-        .replace(/\s+/g, ' ')
-        .trim();
+      let levelFileName = normalizeFolderName(levelTitle);
       fileName = `${levelNumber} ${levelFileName}.jpg`;
     }
   } else {
-    // Базовый уровень - используем normalizeFolderName (нижний регистр)
+    // Базовый уровень
     let baseLevelTitle = badgeTitle;
     if (baseLevelTitle.includes(' или ')) baseLevelTitle = baseLevelTitle.split(' или ')[0].trim();
     if (baseLevelTitle.includes('\n')) baseLevelTitle = baseLevelTitle.split('\n')[0].trim();
@@ -84,14 +90,41 @@ export const getBadgeImagePath = (
     fileName = `1 ${baseLevelName}.jpg`;
   }
 
+  // #region agent log
+  fetch('http://127.0.0.1:7242/ingest/96284863-607a-4bc5-9cb2-27956a8c59cf',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'badgeImages.ts:78',message:'fileName computed',data:{fileName,levelId,levelTitle,badgeTitle,timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'}})}).catch(()=>{});
+  // #endregion
+
   if (!fileName) return null;
 
   // Формируем путь
+  // Важно: на GitHub Pages пути чувствительны к регистру и символам
+  // Используем encodeURIComponent для каждого сегмента пути отдельно
+  let finalPath: string;
   if (variant === 'realism') {
-    return `${baseUrl}${encodeURIComponent('Новые значки')}/${encodeURIComponent(categoryFolder)}/${encodeURIComponent(badgeFolderName)}/${encodeURIComponent('реализм')}/${encodeURIComponent(fileName)}`;
+    // Собираем путь из сегментов, кодируя каждый отдельно
+    const segments = [
+      'Новые значки',
+      categoryFolder,
+      badgeFolderName,
+      'реализм',
+      fileName
+    ];
+    finalPath = baseUrl + segments.map(seg => encodeURIComponent(seg)).join('/');
+  } else {
+    const segments = [
+      'Новые значки',
+      categoryFolder,
+      badgeFolderName,
+      fileName
+    ];
+    finalPath = baseUrl + segments.map(seg => encodeURIComponent(seg)).join('/');
   }
 
-  return `${baseUrl}${encodeURIComponent('Новые значки')}/${encodeURIComponent(categoryFolder)}/${encodeURIComponent(badgeFolderName)}/${encodeURIComponent(fileName)}`;
+  // #region agent log
+  fetch('http://127.0.0.1:7242/ingest/96284863-607a-4bc5-9cb2-27956a8c59cf',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'badgeImages.ts:88',message:'final path generated',data:{finalPath,baseUrl,variant,encodedSegments:{newBadges:encodeURIComponent('Новые значки'),category:encodeURIComponent(categoryFolder),badge:encodeURIComponent(badgeFolderName),realism:variant==='realism'?encodeURIComponent('реализм'):'N/A',fileName:encodeURIComponent(fileName)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B,C'}})}).catch(()=>{});
+  // #endregion
+
+  return finalPath;
 };
 
 export const hasBadgeImage = (

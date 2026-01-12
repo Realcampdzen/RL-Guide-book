@@ -50,9 +50,15 @@ const TiltBadgeCard: React.FC<{
     const levels = (badge as any).allLevels;
     const targetLevel = levels[levels.length - 1]; // Use the last level
     realismBgUrl = getBadgeImagePath(baseBadgeId, badge.title, category.id, targetLevel.id, targetLevel.title, 'realism');
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/96284863-607a-4bc5-9cb2-27956a8c59cf',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'CategoryView.tsx:52',message:'CategoryView realismBgUrl (multi-level)',data:{realismBgUrl,baseBadgeId,badgeTitle:badge.title,categoryId:category.id,levelId:targetLevel.id,levelTitle:targetLevel.title,timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A,B,C,D'}})}).catch(()=>{});
+    // #endregion
   } else {
     // Single level
     realismBgUrl = getBadgeImagePath(baseBadgeId, badge.title, category.id, undefined, undefined, 'realism');
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/96284863-607a-4bc5-9cb2-27956a8c59cf',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'CategoryView.tsx:56',message:'CategoryView realismBgUrl (single-level)',data:{realismBgUrl,baseBadgeId,badgeTitle:badge.title,categoryId:category.id,timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A,B,C,D'}})}).catch(()=>{});
+    // #endregion
   }
 
   return (
@@ -77,28 +83,12 @@ const TiltBadgeCard: React.FC<{
            const isImageBadge = ['1.1', '1.2', '1.3', '1.4', '1.5', '1.6', '1.7', '1.8', '1.9', '1.10', '1.11', '1.12', '1.13', '1.14', '1.15', '1.16'].includes(baseBadgeId);
 
            if (isImageBadge) {
-             // Find base level (Базовый уровень) from allLevels or use first level
-             let baseLevelId: string | undefined;
-             let baseLevelTitle: string | undefined;
-             
-             if (Array.isArray((badge as any).allLevels) && (badge as any).allLevels.length > 0) {
-               const baseLevel = (badge as any).allLevels.find((l: any) => 
-                 (l.level || '').toLowerCase().includes('базовый') || 
-                 (l.level || '').toLowerCase().includes('одноуровнев')
-               ) || (badge as any).allLevels[0];
-               
-               baseLevelId = baseLevel.id;
-               baseLevelTitle = baseLevel.title;
-             }
-             
                return (
                <BadgeIcon
                  badgeId={baseBadgeId}
                  badgeTitle={badge.title}
                  categoryId={badge.category_id || category.id}
                  emoji={badge.emoji || ''}
-                 levelId={baseLevelId}
-                 levelTitle={baseLevelTitle}
                  className="badge-emoji"
                  size="responsive"
                />

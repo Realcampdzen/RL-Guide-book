@@ -30,19 +30,31 @@ const BadgeIcon: React.FC<BadgeIconProps> = ({
 
   const imagePath = getBadgeImagePath(badgeId, badgeTitle, categoryId, levelId, levelTitle);
 
+  // #region agent log
+  useEffect(() => {
+    fetch('http://127.0.0.1:7242/ingest/96284863-607a-4bc5-9cb2-27956a8c59cf',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'BadgeIcon.tsx:31',message:'BadgeIcon imagePath computed',data:{imagePath,badgeId,badgeTitle,categoryId,levelId,levelTitle,hasPath:!!imagePath,timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A,B,C,D'}})}).catch(()=>{});
+  }, [imagePath, badgeId, badgeTitle, categoryId, levelId, levelTitle]);
+  // #endregion
+
   // Проверяем, загружено ли изображение сразу (для кэшированных изображений)
   useEffect(() => {
     if (imagePath && !imageError && !imageLoaded) {
       const img = new Image();
       img.onload = () => {
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/96284863-607a-4bc5-9cb2-27956a8c59cf',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'BadgeIcon.tsx:40',message:'Image preload success',data:{imagePath,badgeId,levelId,imgWidth:img.naturalWidth,imgHeight:img.naturalHeight,timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'}})}).catch(()=>{});
+        // #endregion
         setImageLoaded(true);
       };
       img.onerror = () => {
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/96284863-607a-4bc5-9cb2-27956a8c59cf',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'BadgeIcon.tsx:45',message:'Image preload error',data:{imagePath,badgeId,levelId,error:'preload failed',timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A,B,C,D,E'}})}).catch(()=>{});
+        // #endregion
         setImageError(true);
       };
       img.src = imagePath;
     }
-  }, [imagePath, imageError, imageLoaded]);
+  }, [imagePath, imageError, imageLoaded, badgeId, levelId]);
 
   // Отладочное логирование для значков 1.2 и 1.4
   if (badgeId === '1.2' || badgeId === '1.4') {
@@ -118,6 +130,9 @@ const BadgeIcon: React.FC<BadgeIconProps> = ({
           setImageLoaded(true);
         }}
         onError={(e) => {
+          // #region agent log
+          fetch('http://127.0.0.1:7242/ingest/96284863-607a-4bc5-9cb2-27956a8c59cf',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'BadgeIcon.tsx:120',message:'Image onError event',data:{imagePath,badgeId,levelId,error:'img onError',currentSrc:(e.target as HTMLImageElement)?.currentSrc,timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A,B,C,D,E'}})}).catch(()=>{});
+          // #endregion
           console.error('BadgeIcon: image load error', { imagePath, badgeId, levelId, error: e });
           setImageError(true);
           setImageLoaded(false);
