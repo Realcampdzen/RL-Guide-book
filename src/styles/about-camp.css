@@ -894,7 +894,7 @@
 /* Показываем навигацию на десктопе */
 @media (min-width: 769px) {
   .about-camp-container .mobile-glass-header {
-    display: flex;
+    display: flex !important;
   }
   
   .about-camp-container .mobile-menu-scrim,
@@ -904,6 +904,14 @@
   
   .about-camp-container .mobile-menu-scrim {
     display: block;
+  }
+  
+  .mobile-bottom-nav {
+    display: flex !important;
+  }
+  
+  .about-camp-container .sticky-nav {
+    display: none !important;
   }
   
   .about-camp-container main {

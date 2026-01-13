@@ -33,6 +33,8 @@
   position: relative;
   cursor: none; /* Custom cursor */
   background-attachment: fixed;
+  --cat-mobile-header-height: 58px;
+  --cat-mobile-nav-height: 68px;
 }
 
 /* Noise Overlay */
@@ -806,7 +808,12 @@
     display: block;
   }
   
+  .mobile-bottom-nav {
+    display: flex !important;
+  }
+  
   .category-main {
     padding-top: calc(var(--cat-mobile-header-height) + env(safe-area-inset-top) + 32px) !important;
+    padding-bottom: calc(var(--cat-mobile-nav-height) + env(safe-area-inset-bottom) + 32px) !important;
   }
 }

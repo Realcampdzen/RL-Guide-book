@@ -616,7 +616,12 @@
     display: block;
   }
   
+  .mobile-bottom-nav {
+    display: flex !important;
+  }
+  
   .badge-main {
     padding-top: calc(58px + env(safe-area-inset-top) + 32px) !important;
+    padding-bottom: calc(68px + env(safe-area-inset-bottom) + 32px) !important;
   }
 }

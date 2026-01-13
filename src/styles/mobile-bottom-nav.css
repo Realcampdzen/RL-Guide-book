@@ -11,7 +11,7 @@
   bottom: calc(10px + env(safe-area-inset-bottom));
   height: var(--mobile-nav-height);
   padding: 8px 10px;
-  display: none;
+  display: flex;
   align-items: center;
   justify-content: space-between;
   background: linear-gradient(140deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02)), var(--mobile-glass-bg);
@@ -101,12 +101,6 @@
 
 .mobile-nav-item.is-active .mobile-nav-icon {
   color: #e8d5ff;
-}
-
-@media (max-width: 768px) {
-  .mobile-bottom-nav {
-    display: flex;
-  }
 }
 
 @media (max-width: 360px) {

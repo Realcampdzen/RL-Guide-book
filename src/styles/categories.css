@@ -1698,3 +1698,15 @@
             opacity: 0.95;
             transform: translate(-50%, -50%) scale(1.18);
         }
+
+        /* Скрываем верхнюю мобильную навигацию на десктопе для страницы категорий */
+        @media (min-width: 769px) {
+            .mobile-glass-header {
+                display: none !important;
+            }
+            
+            .mobile-menu-scrim,
+            .mobile-menu-panel {
+                display: none !important;
+            }
+        }
