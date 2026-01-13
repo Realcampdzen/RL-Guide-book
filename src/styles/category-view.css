@@ -795,11 +795,18 @@
   }
 }
 
-/* Hide mobile navigation on desktop */
+/* Показываем навигацию на десктопе */
 @media (min-width: 769px) {
-  .mobile-glass-header,
+  .mobile-glass-header {
+    display: flex;
+  }
+  
   .mobile-menu-scrim,
   .mobile-menu-panel {
-    display: none !important;
+    display: block;
+  }
+  
+  .category-main {
+    padding-top: calc(var(--cat-mobile-header-height) + env(safe-area-inset-top) + 32px) !important;
   }
 }
