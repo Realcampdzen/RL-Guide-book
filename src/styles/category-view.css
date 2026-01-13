@@ -317,6 +317,7 @@
   transform: translateY(-10px) scale(1.02);
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 30px var(--c-volt-glow);
   background-color: rgba(255, 255, 255, 0.06);
+  will-change: transform;
 }
 
 .badge-card__icon {
@@ -335,6 +336,7 @@
   font-size: 2.5rem;
   transform: translate(0, 0) scale(1);
   z-index: 2;
+  will-change: transform;
 }
 
 .badge-card:hover .badge-card__icon {
@@ -349,6 +351,17 @@
 }
 
 @media (hover: none), (pointer: coarse) {
+  /* Отключаем hover эффекты на touch устройствах для производительности */
+  .badge-card:hover {
+    transform: none !important;
+    box-shadow: none !important;
+  }
+  
+  .badge-card:hover .badge-card__icon {
+    transform: none !important;
+    box-shadow: none !important;
+  }
+  
   .badge-card:active .badge-card__icon {
     border-color: var(--c-electric-blue);
     box-shadow: 0 0 25px rgba(139, 0, 255, 0.5);

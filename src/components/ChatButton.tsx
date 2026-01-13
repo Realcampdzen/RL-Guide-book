@@ -77,7 +77,15 @@ const ChatButton: React.FC<ChatButtonProps> = ({ onClick, isOpen = false, classN
       return;
     }
 
+    // Throttle для уменьшения частоты вызовов на мобильных
+    let lastScrollTime = 0;
+    const scrollThrottle = 100; // мс
+
     const markScrolling = () => {
+      const now = Date.now();
+      if (now - lastScrollTime < scrollThrottle) return;
+      lastScrollTime = now;
+      
       setIsScrolling(true);
       if (scrollTimeoutRef.current) {
         window.clearTimeout(scrollTimeoutRef.current);
@@ -89,17 +97,27 @@ const ChatButton: React.FC<ChatButtonProps> = ({ onClick, isOpen = false, classN
 
     const handleScroll = () => markScrolling();
     const handleWheel = () => markScrolling();
-    const handleTouchMove = () => markScrolling();
+    // На мобильных устройствах не отслеживаем touchmove для улучшения производительности свайпа
+    const handleTouchMove = isMobile ? undefined : () => {
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/96284863-607a-4bc5-9cb2-27956a8c59cf',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ChatButton.tsx:92',message:'touchmove event fired',data:{isMobile,timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'}})}).catch(()=>{});
+      // #endregion
+      markScrolling();
+    };
 
     window.addEventListener('scroll', handleScroll, { passive: true } as EventListenerOptions);
     window.addEventListener('wheel', handleWheel, { passive: true } as EventListenerOptions);
-    window.addEventListener('touchmove', handleTouchMove, { passive: true } as EventListenerOptions);
+    if (handleTouchMove) {
+      window.addEventListener('touchmove', handleTouchMove, { passive: true } as EventListenerOptions);
+    }
     document.addEventListener('scroll', handleScroll as EventListener, { passive: true } as AddEventListenerOptions);
 
     return () => {
       window.removeEventListener('scroll', handleScroll as EventListener);
       window.removeEventListener('wheel', handleWheel as EventListener);
-      window.removeEventListener('touchmove', handleTouchMove as EventListener);
+      if (handleTouchMove) {
+        window.removeEventListener('touchmove', handleTouchMove as EventListener);
+      }
       document.removeEventListener('scroll', handleScroll as EventListener);
       if (scrollTimeoutRef.current) {
         window.clearTimeout(scrollTimeoutRef.current);

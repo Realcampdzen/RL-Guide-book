@@ -149,8 +149,21 @@ const CategoriesGrid: React.FC<CategoriesGridProps> = ({
         key={category.id}
         className="card item-card"
         onClick={() => {
+          // #region agent log
+          fetch('http://127.0.0.1:7242/ingest/96284863-607a-4bc5-9cb2-27956a8c59cf',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'CategoriesGrid.tsx:152',message:'Category card click',data:{categoryId:category.id,categoryTitle:category.title,isMobile,timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A,C,F'}})}).catch(()=>{});
+          // #endregion
           console.log('Category clicked:', category.id, category.title);
           onCategoryClick(category);
+        }}
+        onTouchStart={(e) => {
+          // #region agent log
+          fetch('http://127.0.0.1:7242/ingest/96284863-607a-4bc5-9cb2-27956a8c59cf',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'CategoriesGrid.tsx:159',message:'Category card touchstart',data:{categoryId:category.id,touches:e.touches.length,timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A,C'}})}).catch(()=>{});
+          // #endregion
+        }}
+        onTouchMove={(e) => {
+          // #region agent log
+          fetch('http://127.0.0.1:7242/ingest/96284863-607a-4bc5-9cb2-27956a8c59cf',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'CategoriesGrid.tsx:165',message:'Category card touchmove',data:{categoryId:category.id,touches:e.touches.length,timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'}})}).catch(()=>{});
+          // #endregion
         }}
         style={{
           backgroundImage: showEmoji ? 'none' : `url('${imagePath}')`,

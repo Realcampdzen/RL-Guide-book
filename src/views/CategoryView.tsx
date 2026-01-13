@@ -35,6 +35,11 @@ const TiltBadgeCard: React.FC<{
   category: Category;
   onBadgeClick: (badge: Badge) => void;
 }> = ({ badge, index, category, onBadgeClick }) => {
+  // #region agent log
+  React.useEffect(() => {
+    fetch('http://127.0.0.1:7242/ingest/96284863-607a-4bc5-9cb2-27956a8c59cf',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'CategoryView.tsx:37',message:'TiltBadgeCard render',data:{badgeId:badge.id,index,timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'F'}})}).catch(()=>{});
+  });
+  // #endregion
   const cardRef = useRef<HTMLElement>(null);
   useTiltCard(cardRef);
 
@@ -73,7 +78,22 @@ const TiltBadgeCard: React.FC<{
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat'
       }}
-      onClick={() => onBadgeClick(badge)}
+      onClick={() => {
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/96284863-607a-4bc5-9cb2-27956a8c59cf',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'CategoryView.tsx:76',message:'Badge card click',data:{badgeId:badge.id,badgeTitle:badge.title,timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A,F'}})}).catch(()=>{});
+        // #endregion
+        onBadgeClick(badge);
+      }}
+      onTouchStart={(e) => {
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/96284863-607a-4bc5-9cb2-27956a8c59cf',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'CategoryView.tsx:83',message:'Badge card touchstart',data:{badgeId:badge.id,touches:e.touches.length,timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A,C'}})}).catch(()=>{});
+        // #endregion
+      }}
+      onMouseEnter={() => {
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/96284863-607a-4bc5-9cb2-27956a8c59cf',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'CategoryView.tsx:88',message:'Badge card hover (mouseenter)',data:{badgeId:badge.id,timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A,D'}})}).catch(()=>{});
+        // #endregion
+      }}
     >
       <div className="badge-card__icon">
         {(() => {

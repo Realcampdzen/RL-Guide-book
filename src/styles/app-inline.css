@@ -729,6 +729,7 @@
 
 .category-container.floating {
   animation: float 6s ease-in-out infinite;
+  will-change: transform;
 }
 
 @keyframes float {
@@ -752,6 +753,7 @@
   transform: translate(-50%, -50%);
   pointer-events: none;
   animation: pulse 3s ease-in-out infinite;
+  will-change: transform, opacity;
 }
 
 @keyframes pulse {
@@ -762,6 +764,29 @@
   50% { 
     transform: translate(-50%, -50%) scale(1.1);
     opacity: 0.6;
+  }
+}
+
+/* Отключаем анимации на мобильных для производительности */
+@media (max-width: 768px) {
+  .category-container.floating {
+    animation: none !important;
+  }
+  
+  .category-card::before {
+    animation: none !important;
+  }
+}
+
+/* Отключаем hover эффекты на touch устройствах */
+@media (hover: none) and (pointer: coarse) {
+  .category-card:hover {
+    transform: none !important;
+    box-shadow: none !important;
+  }
+  
+  .category-card:hover::before {
+    animation-duration: 3s !important;
   }
 }
 
@@ -1006,6 +1031,7 @@
   background: rgba(0, 0, 0, 0.4);
   border: none;
   transition: all 0.3s ease;
+  will-change: transform;
 }
 
 .badge-card:hover .badge-card__icon {
@@ -1013,6 +1039,24 @@
   border-color: #4ecdc4;
   box-shadow: 0 0 20px rgba(78, 205, 196, 0.3);
   transform: scale(1.1);
+}
+
+/* Отключаем hover эффекты на touch устройствах для производительности */
+@media (hover: none) and (pointer: coarse) {
+  .badge-card:hover {
+    transform: none !important;
+  }
+  
+  .badge-card:hover .badge-card__icon {
+    transform: none !important;
+    box-shadow: none !important;
+  }
+  
+  .badge-card:hover .badge-emoji {
+    transform: none !important;
+    filter: none !important;
+    animation: none !important;
+  }
 }
 
 .badge-card__title {
@@ -1039,6 +1083,7 @@
 .badge-emoji {
   font-size: 3.5rem;
   transition: all 0.3s ease;
+  will-change: transform;
 }
 
 .badge-card:hover .badge-emoji {

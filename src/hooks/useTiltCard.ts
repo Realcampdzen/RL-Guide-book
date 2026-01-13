@@ -3,10 +3,17 @@ import { useEffect, RefObject } from 'react';
 export const useTiltCard = (cardRef: RefObject<HTMLElement>) => {
   useEffect(() => {
     if (!cardRef.current) return;
+    
+    // Отключаем tilt эффект на touch устройствах для производительности
+    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    if (isTouchDevice) return;
 
     const card = cardRef.current;
 
     const handleMouseMove = (e: MouseEvent) => {
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/96284863-607a-4bc5-9cb2-27956a8c59cf',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'useTiltCard.ts:9',message:'mousemove event in tilt card',data:{clientX:e.clientX,clientY:e.clientY,timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A,D'}})}).catch(()=>{});
+      // #endregion
       const rect = card.getBoundingClientRect();
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
