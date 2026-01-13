@@ -313,7 +313,7 @@ const CategoryView: React.FC<CategoryViewProps> = ({
             type="button"
             className="mobile-menu-item is-active"
             aria-current="page"
-            onClick={() => handleMenuAction(() => window.scrollTo({ top: 0, behavior: 'smooth' }))}
+            onClick={() => handleMenuAction(onOpenCategories)}
           >
             <span className="mobile-menu-item-label">Категории</span>
             <span className="mobile-menu-item-icon">*</span>
