@@ -1,5 +1,11 @@
 /* App Inline Styles - Extracted from App.tsx */
 
+/* Отключение tap highlight для всех интерактивных элементов */
+a, button, .badge-card, .category-card, .clickable, .hover-target {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+
 /* Intro Screen */
 .intro-screen {
   position: absolute;
@@ -775,6 +781,13 @@
   
   .category-card::before {
     animation: none !important;
+  }
+
+  /* Кастомная анимация для тапов */
+  a:active, button:active, .badge-card:active, .category-card:active {
+    transform: scale(0.98);
+    opacity: 0.9;
+    transition: transform 0.1s ease, opacity 0.1s ease;
   }
 }
 

@@ -31,6 +31,12 @@
             padding: 0;
         }
 
+        /* Отключение стандартного синего выделения при тапах */
+        * {
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+        }
+
         /* Utility Classes */
         .noise-overlay {
             position: fixed;
@@ -1635,6 +1641,23 @@
                 left: 4rem;
                 top: 1rem;
                 font-size: clamp(0.9rem, 2.5vw, 1.1rem);
+            }
+
+            /* Кастомная анимация для тапов */
+            .badge-card:active,
+            .category-card:active,
+            button:active,
+            .hover-target:active,
+            .clickable:active {
+                transform: scale(0.98);
+                opacity: 0.9;
+                transition: transform 0.1s ease, opacity 0.1s ease;
+            }
+            
+            /* Для кнопок - более выраженная анимация */
+            button:active {
+                transform: scale(0.95);
+                box-shadow: 0 2px 8px rgba(139, 0, 255, 0.4);
             }
         }
 

@@ -152,7 +152,7 @@ const getEmojiSize = (size: 'small' | 'medium' | 'large' | 'xlarge' | 'responsiv
     case 'large':
       return '4rem';
     case 'xlarge':
-      return '4.5rem';
+      return '3.15rem';
     case 'responsive':
       return '1em';
     default:
@@ -175,7 +175,7 @@ const getImageSize = (size: 'small' | 'medium' | 'large' | 'xlarge' | 'responsiv
     case 'large':
       return '110px'; // Увеличено до 110px (контейнер 120px)
     case 'xlarge':
-      return '158px'; // Пузыри внизу справа - заполняет контейнер 160px почти полностью
+      return '110px'; // Пузыри внизу справа - уменьшено на ~30% для лучшей читаемости
     case 'responsive':
       return '100%';
     default:

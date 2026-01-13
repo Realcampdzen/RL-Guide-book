@@ -1,5 +1,10 @@
 /* Мобильная адаптация для Путеводителя "Реального Лагеря" */
 
+/* Отключение стандартного выделения */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
 /* Базовые настройки для мобильных устройств */
 html {
   /* Предотвращаем автоматическое масштабирование шрифтов на iOS */
@@ -325,6 +330,7 @@ html {
   .back-button:active {
     transform: scale(0.95) !important;
     transition: transform 0.1s ease !important;
+    opacity: 0.9;
   }
 }
 
