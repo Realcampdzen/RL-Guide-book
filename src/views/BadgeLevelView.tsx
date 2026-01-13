@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, Suspense } from 'react';
+import React, { useEffect, useMemo, useState, Suspense } from 'react';
 import {
   fixDescriptionFormatting,
   fixCriteriaFormatting,
@@ -69,7 +69,7 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
   }, [isMenuOpen]);
 
   const handleMenuToggle = () => {
-    setIsMenuOpen((prev) => !prev);
+    setIsMenuOpen((prev: boolean) => !prev);
   };
 
   const closeMenu = () => {
@@ -227,6 +227,81 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
       <div className="cursor-reactor" ref={cursorReactorRef} data-cursor-reactor></div>
       <div className="cursor-dot" ref={cursorDotRef} data-cursor></div>
       <div className="cursor-outline" ref={cursorOutlineRef} data-cursor-outline></div>
+
+      {/* Mobile Navigation Header */}
+      <header className={`mobile-glass-header${isChatOpen ? ' is-chat-open' : ''}`} aria-label="Навигация">
+        <button
+          type="button"
+          className={`mobile-header-logo${isChatOpen ? ' is-active' : ''}`}
+          onClick={handleChatToggle}
+          aria-label={isChatOpen ? 'Закрыть чат' : 'Открыть чат'}
+          aria-pressed={isChatOpen}
+        >
+          NEUROVALUSHA
+        </button>
+        <div className="mobile-header-actions">
+          <button
+            type="button"
+            className={`mobile-header-btn mobile-header-menu${isMenuOpen ? ' is-active' : ''}`}
+            onClick={handleMenuToggle}
+            aria-label="Меню"
+            aria-expanded={isMenuOpen}
+            aria-controls="badge-level-mobile-menu-panel"
+          >
+            <span className="menu-line"></span>
+            <span className="menu-line"></span>
+            <span className="menu-line"></span>
+          </button>
+          <button
+            type="button"
+            className={`mobile-header-avatar${isChatOpen ? ' is-active' : ''}`}
+            onClick={handleChatToggle}
+            aria-label={isChatOpen ? 'Закрыть чат' : 'Открыть чат'}
+            aria-pressed={isChatOpen}
+          >
+            <img src="/RL-Guide-book/Валюша.jpg" alt="НейроВалюша" />
+          </button>
+        </div>
+      </header>
+
+      <div
+        className={`mobile-menu-scrim${isMenuOpen ? ' is-open' : ''}`}
+        onClick={closeMenu}
+        aria-hidden="true"
+      ></div>
+      <div
+        id="badge-level-mobile-menu-panel"
+        className={`mobile-menu-panel${isMenuOpen ? ' is-open' : ''}`}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Меню"
+        aria-hidden={!isMenuOpen}
+      >
+        <div className="mobile-menu-head">
+          <span className="mobile-menu-title">Меню</span>
+          <button type="button" className="mobile-menu-close" onClick={closeMenu} aria-label="Закрыть меню">
+            X
+          </button>
+        </div>
+        <div className="mobile-menu-list">
+          <button type="button" className="mobile-menu-item" onClick={() => handleMenuAction(onBackToIntro)}>
+            <span className="mobile-menu-item-label">Главная</span>
+            <span className="mobile-menu-item-icon">&gt;</span>
+          </button>
+          <button type="button" className="mobile-menu-item" onClick={() => handleMenuAction(onOpenCategories)}>
+            <span className="mobile-menu-item-label">Категории</span>
+            <span className="mobile-menu-item-icon">&gt;</span>
+          </button>
+          <button type="button" className="mobile-menu-item" onClick={() => handleMenuAction(onBack)}>
+            <span className="mobile-menu-item-label">Назад</span>
+            <span className="mobile-menu-item-icon">&lt;</span>
+          </button>
+          <button type="button" className="mobile-menu-item mobile-menu-item-cta" onClick={() => handleMenuAction(onTelegramContact)}>
+            <span className="mobile-menu-item-label">Записаться через Telegram</span>
+            <span className="mobile-menu-item-icon">&gt;</span>
+          </button>
+        </div>
+      </div>
 
       <div className="sticky-back-nav">
         <button onClick={onBack} className="nav-link-back hover-target">← Назад к значку</button>
