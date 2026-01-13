@@ -81,10 +81,10 @@
 |------|--------|-----------|--------|
 | `backend/system_prompt.js` | 85 | **25 800 / 36 500 рублей** | JS |
 | `backend/system_prompt.js` | 206 | **25 800 / 36 500 рублей** | JS |
-| `backend/system_prompt.js` | 432 (пример) | **25 800 / 36 500 рублей** | JS |
+| `backend/system_prompt.js` | 433 (пример) | **25 800 / 36 500 рублей** | JS |
 | `chatbot/prompts/putevoditel_system_prompt_optimized.py` | 91 | **25 800 / 36 500 рублей** | Python |
 | `chatbot/prompts/putevoditel_system_prompt_optimized.py` | 212 | **25 800 / 36 500 рублей** | Python |
-| `chatbot/prompts/putevoditel_system_prompt_optimized.py` | 435 (пример) | **25 800 / 36 500 рублей** | Python |
+| `chatbot/prompts/putevoditel_system_prompt_optimized.py` | 436 (пример) | **25 800 / 36 500 рублей** | Python |
 
 **Вывод:** Несоответствие устранено, обе версии используют единые значения для весенней смены 2026.
 
