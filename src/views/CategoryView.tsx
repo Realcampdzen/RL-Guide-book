@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, Suspense } from 'react';
+import React, { useEffect, useRef, useState, Suspense } from 'react';
 import { pluralizeRu } from '../utils/textFormatting';
 import { useCustomCursor } from '../hooks/useCustomCursor';
 import { useScrollReveal } from '../hooks/useScrollReveal';
@@ -24,6 +24,10 @@ interface CategoryViewProps {
   onChatToggle: () => void;
   isChatOpen: boolean;
   onChatClose: () => void;
+  // Navigation props
+  onOpenCategories: () => void;
+  onTelegramContact: () => void;
+  onBackToIntro: () => void;
 }
 
 /**
@@ -41,7 +45,18 @@ const TiltBadgeCard: React.FC<{
   });
   // #endregion
   const cardRef = useRef<HTMLElement>(null);
+  const [isIconExpanded, setIsIconExpanded] = useState(false);
+  const expandTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   useTiltCard(cardRef);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (expandTimeoutRef.current) {
+        clearTimeout(expandTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Determine which image to use for the background (Realism variant)
   // If multiple levels, use the last one (highest level)
@@ -82,6 +97,20 @@ const TiltBadgeCard: React.FC<{
         // #region agent log
         fetch('http://127.0.0.1:7242/ingest/96284863-607a-4bc5-9cb2-27956a8c59cf',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'CategoryView.tsx:76',message:'Badge card click',data:{badgeId:badge.id,badgeTitle:badge.title,timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A,F'}})}).catch(()=>{});
         // #endregion
+        
+        // Увеличиваем значок при клике
+        setIsIconExpanded(true);
+        
+        // Очищаем предыдущий таймер, если он есть
+        if (expandTimeoutRef.current) {
+          clearTimeout(expandTimeoutRef.current);
+        }
+        
+        // Через 600ms возвращаем значок обратно
+        expandTimeoutRef.current = setTimeout(() => {
+          setIsIconExpanded(false);
+        }, 600);
+        
         onBadgeClick(badge);
       }}
       onTouchStart={(e) => {
@@ -95,7 +124,7 @@ const TiltBadgeCard: React.FC<{
         // #endregion
       }}
     >
-      <div className="badge-card__icon">
+      <div className={`badge-card__icon ${isIconExpanded ? 'is-expanded' : ''}`}>
         {(() => {
            const badgeIdStr = String(badge.id);
            const baseBadgeId = badgeIdStr.split('.').slice(0, 2).join('.');
@@ -139,14 +168,47 @@ const CategoryView: React.FC<CategoryViewProps> = ({
   onChatToggle,
   isChatOpen,
   onChatClose,
+  onOpenCategories,
+  onTelegramContact,
+  onBackToIntro,
 }) => {
   const { cursorDotRef, cursorOutlineRef, cursorReactorRef } = useCustomCursor();
   const { initReveal } = useScrollReveal();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   useEffect(() => {
     initReveal('.reveal-on-scroll');
     window.scrollTo(0, 0);
   }, [initReveal]);
+
+  useEffect(() => {
+    if (!isMenuOpen) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsMenuOpen(false);
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [isMenuOpen]);
+
+  const handleMenuToggle = () => {
+    setIsMenuOpen((prev) => !prev);
+  };
+
+  const closeMenu = () => {
+    setIsMenuOpen(false);
+  };
+
+  const handleChatToggle = () => {
+    setIsMenuOpen(false);
+    onChatToggle();
+  };
+
+  const handleMenuAction = (action: () => void) => {
+    setIsMenuOpen(false);
+    action();
+  };
 
   const titleWords = (category.title || '').trim().split(/\s+/);
   const titleLastWord = titleWords.pop() || '';
@@ -186,6 +248,82 @@ const CategoryView: React.FC<CategoryViewProps> = ({
       <div className="cursor-reactor" ref={cursorReactorRef} data-cursor-reactor></div>
       <div className="cursor-dot" ref={cursorDotRef} data-cursor></div>
       <div className="cursor-outline" ref={cursorOutlineRef} data-cursor-outline></div>
+
+      {/* Mobile Navigation Header */}
+      <header className={`mobile-glass-header${isChatOpen ? ' is-chat-open' : ''}`} aria-label="Навигация">
+        <button
+          type="button"
+          className={`mobile-header-logo${isChatOpen ? ' is-active' : ''}`}
+          onClick={handleChatToggle}
+          aria-label={isChatOpen ? 'Закрыть чат' : 'Открыть чат'}
+          aria-pressed={isChatOpen}
+        >
+          NEUROVALUSHA
+        </button>
+        <div className="mobile-header-actions">
+          <button
+            type="button"
+            className={`mobile-header-btn mobile-header-menu${isMenuOpen ? ' is-active' : ''}`}
+            onClick={handleMenuToggle}
+            aria-label="Меню"
+            aria-expanded={isMenuOpen}
+            aria-controls="category-mobile-menu-panel"
+          >
+            <span className="menu-line"></span>
+            <span className="menu-line"></span>
+            <span className="menu-line"></span>
+          </button>
+          <button
+            type="button"
+            className={`mobile-header-avatar${isChatOpen ? ' is-active' : ''}`}
+            onClick={handleChatToggle}
+            aria-label={isChatOpen ? 'Закрыть чат' : 'Открыть чат'}
+            aria-pressed={isChatOpen}
+          >
+            <img src="/RL-Guide-book/Валюша.jpg" alt="НейроВалюша" />
+          </button>
+        </div>
+      </header>
+
+      <div
+        className={`mobile-menu-scrim${isMenuOpen ? ' is-open' : ''}`}
+        onClick={closeMenu}
+        aria-hidden="true"
+      ></div>
+      <div
+        id="category-mobile-menu-panel"
+        className={`mobile-menu-panel${isMenuOpen ? ' is-open' : ''}`}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Меню"
+        aria-hidden={!isMenuOpen}
+      >
+        <div className="mobile-menu-head">
+          <span className="mobile-menu-title">Меню</span>
+          <button type="button" className="mobile-menu-close" onClick={closeMenu} aria-label="Закрыть меню">
+            X
+          </button>
+        </div>
+        <div className="mobile-menu-list">
+          <button type="button" className="mobile-menu-item" onClick={() => handleMenuAction(onBackToIntro)}>
+            <span className="mobile-menu-item-label">Главная</span>
+            <span className="mobile-menu-item-icon">&gt;</span>
+          </button>
+          <button
+            type="button"
+            className="mobile-menu-item is-active"
+            aria-current="page"
+            onClick={() => handleMenuAction(() => window.scrollTo({ top: 0, behavior: 'smooth' }))}
+          >
+            <span className="mobile-menu-item-label">Категории</span>
+            <span className="mobile-menu-item-icon">*</span>
+          </button>
+          <button type="button" className="mobile-menu-item mobile-menu-item-cta" onClick={() => handleMenuAction(onTelegramContact)}>
+            <span className="mobile-menu-item-label">Записаться через Telegram</span>
+            <span className="mobile-menu-item-icon">&gt;</span>
+          </button>
+        </div>
+      </div>
 
       {/* Header Bar */}
       <header 

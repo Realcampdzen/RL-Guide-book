@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, Suspense } from 'react';
+import React, { useEffect, useMemo, useState, Suspense } from 'react';
 import {
   fixDescriptionFormatting,
   fixCriteriaFormatting,
@@ -28,6 +28,10 @@ interface BadgeViewProps {
   onChatToggle: () => void;
   isChatOpen: boolean;
   onChatClose: () => void;
+  // Navigation props
+  onOpenCategories: () => void;
+  onTelegramContact: () => void;
+  onBackToIntro: () => void;
 }
 
 const BadgeView: React.FC<BadgeViewProps> = ({ 
@@ -40,14 +44,47 @@ const BadgeView: React.FC<BadgeViewProps> = ({
   onChatToggle,
   isChatOpen,
   onChatClose,
+  onOpenCategories,
+  onTelegramContact,
+  onBackToIntro,
 }) => {
   const { cursorDotRef, cursorOutlineRef, cursorReactorRef } = useCustomCursor();
   const { initReveal } = useScrollReveal();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   useEffect(() => {
     initReveal('.reveal-on-scroll');
     window.scrollTo(0, 0);
   }, [initReveal]);
+
+  useEffect(() => {
+    if (!isMenuOpen) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsMenuOpen(false);
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [isMenuOpen]);
+
+  const handleMenuToggle = () => {
+    setIsMenuOpen((prev) => !prev);
+  };
+
+  const closeMenu = () => {
+    setIsMenuOpen(false);
+  };
+
+  const handleChatToggle = () => {
+    setIsMenuOpen(false);
+    onChatToggle();
+  };
+
+  const handleMenuAction = (action: () => void) => {
+    setIsMenuOpen(false);
+    action();
+  };
 
   // Context Logic (ported from App.tsx)
   const { badgeLevels, baseLevelBadge, otherLevels, isMultiLevel } = useMemo(() => {

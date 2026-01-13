@@ -1823,6 +1823,9 @@ const App: React.FC = () => {
             onChatToggle={toggleChat}
             isChatOpen={isChatOpen}
             onChatClose={closeChat}
+            onOpenCategories={handleBackToCategories}
+            onTelegramContact={handleTelegramContact}
+            onBackToIntro={handleBackToIntro}
           />
         )}
         {currentView === 'badge' && selectedCategory && selectedBadge && (
@@ -1836,6 +1839,9 @@ const App: React.FC = () => {
             onChatToggle={toggleChat}
             isChatOpen={isChatOpen}
             onChatClose={closeChat}
+            onOpenCategories={handleBackToCategories}
+            onTelegramContact={handleTelegramContact}
+            onBackToIntro={handleBackToIntro}
           />
         )}
         {currentView === 'badge-level' && selectedCategory && selectedBadge && selectedLevel && (
@@ -1849,6 +1855,9 @@ const App: React.FC = () => {
             onChatToggle={toggleChat}
             isChatOpen={isChatOpen}
             onChatClose={closeChat}
+            onOpenCategories={handleBackToCategories}
+            onTelegramContact={handleTelegramContact}
+            onBackToIntro={handleBackToIntro}
           />
         )}
         {currentView === 'introduction' && renderIntroduction()}
