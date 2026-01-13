@@ -1,23 +1,35 @@
-import React, { useEffect, useRef } from 'react';
+import React, { Suspense, useEffect, useRef, useState } from 'react';
 import { useScrollReveal } from '../hooks/useScrollReveal';
 import { useTiltCard } from '../hooks/useTiltCard';
 import { useCustomCursor } from '../hooks/useCustomCursor';
 import '../styles/about-camp.css';
 
+const loadChatBot = () => import('../components/ChatBot');
+const ChatBot = React.lazy(loadChatBot);
+
 interface AboutCampViewProps {
   onBack: () => void;
   categories: any[];
   onOpenCategory: (category: any) => void;
+  onOpenCategories: () => void;
   onTelegramContact: () => void;
+  onChatToggle: () => void;
+  isChatOpen: boolean;
+  onChatClose: () => void;
 }
 
 const AboutCampView: React.FC<AboutCampViewProps> = ({ 
   onBack, 
   categories,
   onOpenCategory,
-  onTelegramContact 
+  onOpenCategories,
+  onTelegramContact,
+  onChatToggle,
+  isChatOpen,
+  onChatClose
 }) => {
   const { initReveal } = useScrollReveal();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   
   // Custom Cursor
   const { cursorDotRef, cursorOutlineRef, cursorReactorRef } = useCustomCursor();
@@ -44,6 +56,35 @@ const AboutCampView: React.FC<AboutCampViewProps> = ({
     window.scrollTo(0, 0);
     return () => clearTimeout(timer);
   }, [initReveal]);
+
+  useEffect(() => {
+    if (!isMenuOpen) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsMenuOpen(false);
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [isMenuOpen]);
+
+  const handleMenuToggle = () => {
+    setIsMenuOpen((prev) => !prev);
+  };
+
+  const closeMenu = () => {
+    setIsMenuOpen(false);
+  };
+
+  const handleChatToggle = () => {
+    setIsMenuOpen(false);
+    onChatToggle();
+  };
+
+  const handleMenuAction = (action: () => void) => {
+    setIsMenuOpen(false);
+    action();
+  };
 
   const handleCategoryLink = (id: string) => {
     const category = categories.find((c: any) => c.id === id);
@@ -131,6 +172,85 @@ const AboutCampView: React.FC<AboutCampViewProps> = ({
        <div className="cursor-reactor" ref={cursorReactorRef} data-cursor-reactor></div>
        <div className="cursor-dot" ref={cursorDotRef} data-cursor></div>
        <div className="cursor-outline" ref={cursorOutlineRef} data-cursor-outline></div>
+
+       <header className={`mobile-glass-header${isChatOpen ? ' is-chat-open' : ''}`} aria-label="Навигация">
+         <button
+           type="button"
+           className={`mobile-header-logo${isChatOpen ? ' is-active' : ''}`}
+           onClick={handleChatToggle}
+           aria-label={isChatOpen ? 'Закрыть чат' : 'Открыть чат'}
+           aria-pressed={isChatOpen}
+         >
+           NEUROVALUSHA
+         </button>
+         <div className="mobile-header-actions">
+           <button
+             type="button"
+             className={`mobile-header-btn mobile-header-menu${isMenuOpen ? ' is-active' : ''}`}
+             onClick={handleMenuToggle}
+             aria-label="Меню"
+             aria-expanded={isMenuOpen}
+             aria-controls="about-camp-mobile-menu-panel"
+           >
+             <span className="menu-line"></span>
+             <span className="menu-line"></span>
+             <span className="menu-line"></span>
+           </button>
+           <button
+             type="button"
+             className={`mobile-header-avatar${isChatOpen ? ' is-active' : ''}`}
+             onClick={handleChatToggle}
+             aria-label={isChatOpen ? 'Закрыть чат' : 'Открыть чат'}
+             aria-pressed={isChatOpen}
+           >
+             <img src="/RL-Guide-book/Валюша.jpg" alt="НейроВалюша" />
+           </button>
+         </div>
+       </header>
+
+       <div
+         className={`mobile-menu-scrim${isMenuOpen ? ' is-open' : ''}`}
+         onClick={closeMenu}
+         aria-hidden="true"
+       ></div>
+       <div
+         id="about-camp-mobile-menu-panel"
+         className={`mobile-menu-panel${isMenuOpen ? ' is-open' : ''}`}
+         role="dialog"
+         aria-modal="true"
+         aria-label="Меню"
+         aria-hidden={!isMenuOpen}
+       >
+         <div className="mobile-menu-head">
+           <span className="mobile-menu-title">Меню</span>
+           <button type="button" className="mobile-menu-close" onClick={closeMenu} aria-label="Закрыть меню">
+             X
+           </button>
+         </div>
+         <div className="mobile-menu-list">
+           <button type="button" className="mobile-menu-item" onClick={() => handleMenuAction(onBack)}>
+             <span className="mobile-menu-item-label">Главная</span>
+             <span className="mobile-menu-item-icon">&gt;</span>
+           </button>
+           <button type="button" className="mobile-menu-item" onClick={() => handleMenuAction(onOpenCategories)}>
+             <span className="mobile-menu-item-label">Категории</span>
+             <span className="mobile-menu-item-icon">&gt;</span>
+           </button>
+           <button
+             type="button"
+             className="mobile-menu-item is-active"
+             aria-current="page"
+             onClick={() => handleMenuAction(() => window.scrollTo({ top: 0, behavior: 'smooth' }))}
+           >
+             <span className="mobile-menu-item-label">О лагере</span>
+             <span className="mobile-menu-item-icon">*</span>
+           </button>
+           <button type="button" className="mobile-menu-item mobile-menu-item-cta" onClick={() => handleMenuAction(onTelegramContact)}>
+             <span className="mobile-menu-item-label">Записаться через Telegram</span>
+             <span className="mobile-menu-item-icon">&gt;</span>
+           </button>
+         </div>
+       </div>
        
        {/* Sticky Header Nav */}
        <div className="sticky-nav" style={{ top: '1.5rem', left: '2rem', right: 'auto', alignItems: 'flex-start' }}>
@@ -395,6 +515,10 @@ const AboutCampView: React.FC<AboutCampViewProps> = ({
         </div>
 
        </main>
+
+       <Suspense fallback={null}>
+         <ChatBot isOpen={isChatOpen} onClose={onChatClose} currentView="about-camp" />
+       </Suspense>
     </div>
   );
 };

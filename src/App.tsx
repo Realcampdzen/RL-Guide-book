@@ -4,6 +4,7 @@ import BluenestGlobalStyles from './components/BluenestGlobalStyles';
 import { useDataLoader } from './hooks/useDataLoader';
 import { useNavigation } from './hooks/useNavigation';
 import BlueNestLanding from './components/BlueNestLanding';
+import MobileBottomNav from './components/MobileBottomNav';
 import AboutCampView from './views/AboutCampView';
 import CategoriesGrid from './components/CategoriesGrid';
 import CategoryView from './views/CategoryView';
@@ -289,6 +290,9 @@ const App: React.FC = () => {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const chatOpenRequestedRef = useRef(false);
   const urlParamsProcessedRef = useRef(false);
+  const handleOpenVk = useCallback(() => {
+    window.open('https://vk.com/realcampspb', '_blank', 'noopener,noreferrer');
+  }, []);
   const toggleChat = useCallback(() => {
     setIsChatOpen((prev) => !prev);
   }, []);
@@ -1788,6 +1792,7 @@ const App: React.FC = () => {
             onCategoryClick={handleCategoryClick}
             onBackClick={() => setCurrentView('intro')}
             onAboutCampClick={() => setCurrentView('about-camp')}
+            onTelegramContact={handleTelegramContact}
             onChatToggle={toggleChat}
             isChatOpen={isChatOpen}
             onChatClose={closeChat}
@@ -1853,12 +1858,24 @@ const App: React.FC = () => {
             onBack={handleBackToIntro}
             categories={categories}
             onOpenCategory={handleCategoryClick}
+            onOpenCategories={handleBackToCategories}
             onTelegramContact={handleTelegramContact}
+            onChatToggle={toggleChat}
+            isChatOpen={isChatOpen}
+            onChatClose={closeChat}
           />
         )}
         {currentView === 'registration-form' && renderRegistrationForm()}
         
         {/* ChatBot and ChatAvatar are handled inside BlueNestLanding and CategoriesGrid */}
+        <MobileBottomNav
+          currentView={currentView}
+          onHome={handleBackToIntro}
+          onCategories={handleBackToCategories}
+          onAboutCamp={() => setCurrentView('about-camp')}
+          onTelegramContact={handleTelegramContact}
+          onOpenVk={handleOpenVk}
+        />
       </div>
     </>
   );

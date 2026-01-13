@@ -13,6 +13,7 @@ interface CategoriesGridProps {
   onCategoryClick: (category: Category) => void;
   onBackClick: () => void;
   onAboutCampClick: () => void;
+  onTelegramContact: () => void;
   onChatToggle: () => void;
   isChatOpen: boolean;
   onChatClose: () => void;
@@ -42,6 +43,7 @@ const CategoriesGrid: React.FC<CategoriesGridProps> = ({
   onCategoryClick,
   onBackClick,
   onAboutCampClick,
+  onTelegramContact,
   onChatToggle,
   isChatOpen,
   onChatClose,
@@ -55,6 +57,7 @@ const CategoriesGrid: React.FC<CategoriesGridProps> = ({
   const [imageErrors, setImageErrors] = useState<Set<string>>(new Set());
   const [, setImageLoaded] = useState<Set<string>>(new Set());
   const [isMobile, setIsMobile] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const limitedCategories = useMemo(() => categories.slice(0, 14), [categories]);
   // Первые 7 категорий идут в right-column (верхний ряд)
@@ -70,6 +73,39 @@ const CategoriesGrid: React.FC<CategoriesGridProps> = ({
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
+  useEffect(() => {
+    if (!isMenuOpen) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsMenuOpen(false);
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [isMenuOpen]);
+
+  const handleMenuToggle = () => {
+    setIsMenuOpen((prev) => !prev);
+  };
+
+  const closeMenu = () => {
+    setIsMenuOpen(false);
+  };
+
+  const handleChatToggle = () => {
+    setIsMenuOpen(false);
+    onChatToggle();
+  };
+
+  const handleMenuAction = (action: () => void) => {
+    setIsMenuOpen(false);
+    action();
+  };
+
+  const handleOpenVk = () => {
+    window.open('https://vk.com/realcampspb', '_blank', 'noopener,noreferrer');
+  };
 
   // Предзагрузка изображений категорий
   useEffect(() => {
@@ -168,6 +204,89 @@ const CategoriesGrid: React.FC<CategoriesGridProps> = ({
       <div className="cursor-reactor" ref={cursorReactorRef} data-cursor-reactor></div>
       <div className="cursor-dot" ref={cursorDotRef} data-cursor></div>
       <div className="cursor-outline" ref={cursorOutlineRef} data-cursor-outline></div>
+
+      <header className={`mobile-glass-header${isChatOpen ? ' is-chat-open' : ''}`} aria-label="Навигация">
+        <button
+          type="button"
+          className={`mobile-header-logo${isChatOpen ? ' is-active' : ''}`}
+          onClick={handleChatToggle}
+          aria-label={isChatOpen ? 'Закрыть чат' : 'Открыть чат'}
+          aria-pressed={isChatOpen}
+        >
+          NEUROVALUSHA
+        </button>
+        <div className="mobile-header-actions">
+          <button
+            type="button"
+            className={`mobile-header-btn mobile-header-menu${isMenuOpen ? ' is-active' : ''}`}
+            onClick={handleMenuToggle}
+            aria-label="Меню"
+            aria-expanded={isMenuOpen}
+            aria-controls="mobile-menu-panel"
+          >
+            <span className="menu-line"></span>
+            <span className="menu-line"></span>
+            <span className="menu-line"></span>
+          </button>
+          <button
+            type="button"
+            className={`mobile-header-avatar${isChatOpen ? ' is-active' : ''}`}
+            onClick={handleChatToggle}
+            aria-label={isChatOpen ? 'Закрыть чат' : 'Открыть чат'}
+            aria-pressed={isChatOpen}
+          >
+            <img src="/RL-Guide-book/Валюша.jpg" alt="НейроВалюша" />
+          </button>
+        </div>
+      </header>
+
+      <div
+        className={`mobile-menu-scrim${isMenuOpen ? ' is-open' : ''}`}
+        onClick={closeMenu}
+        aria-hidden="true"
+      ></div>
+      <div
+        id="mobile-menu-panel"
+        className={`mobile-menu-panel${isMenuOpen ? ' is-open' : ''}`}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Меню"
+        aria-hidden={!isMenuOpen}
+      >
+        <div className="mobile-menu-head">
+          <span className="mobile-menu-title">Меню</span>
+          <button type="button" className="mobile-menu-close" onClick={closeMenu} aria-label="Закрыть меню">
+            X
+          </button>
+        </div>
+        <div className="mobile-menu-list">
+          <button type="button" className="mobile-menu-item" onClick={() => handleMenuAction(onBackClick)}>
+            <span className="mobile-menu-item-label">Главная</span>
+            <span className="mobile-menu-item-icon">&gt;</span>
+          </button>
+          <button
+            type="button"
+            className="mobile-menu-item is-active"
+            aria-current="page"
+            onClick={() => handleMenuAction(() => window.scrollTo({ top: 0, behavior: 'smooth' }))}
+          >
+            <span className="mobile-menu-item-label">Категории</span>
+            <span className="mobile-menu-item-icon">*</span>
+          </button>
+          <button type="button" className="mobile-menu-item" onClick={() => handleMenuAction(onAboutCampClick)}>
+            <span className="mobile-menu-item-label">О лагере</span>
+            <span className="mobile-menu-item-icon">&gt;</span>
+          </button>
+          <button type="button" className="mobile-menu-item" onClick={() => handleMenuAction(handleOpenVk)}>
+            <span className="mobile-menu-item-label">ВКонтакте</span>
+            <span className="mobile-menu-item-icon">&gt;</span>
+          </button>
+          <button type="button" className="mobile-menu-item mobile-menu-item-cta" onClick={() => handleMenuAction(onTelegramContact)}>
+            <span className="mobile-menu-item-label">Записаться через Telegram</span>
+            <span className="mobile-menu-item-icon">&gt;</span>
+          </button>
+        </div>
+      </div>
 
       {/* Left Navigation Link */}
       <div

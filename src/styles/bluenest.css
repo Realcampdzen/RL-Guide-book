@@ -715,12 +715,18 @@
         .marquee {
             position: relative;
             padding: 2rem 0;
-            background: var(--c-volt);
-            color: var(--c-midnight);
+            background:
+                linear-gradient(135deg, rgba(10, 6, 18, 0.6) 0%, rgba(10, 6, 18, 0.5) 100%),
+                url('/RL-Guide-book/pattern_stickers.jpg') center / cover no-repeat;
+            color: var(--c-stark);
             overflow: hidden;
             transform: rotate(-2deg) scale(1.1); /* Slight jaunty angle */
             z-index: 2;
             margin-top: -15vh;
+            box-shadow:
+                0 0 8px rgba(255, 105, 0, 0.45),
+                0 0 16px rgba(139, 0, 255, 0.55),
+                0 0 28px rgba(139, 0, 255, 0.35);
         }
         .marquee-track {
             display: flex;
@@ -733,6 +739,7 @@
             font-weight: 800;
             text-transform: uppercase;
             padding: 0 4rem;
+            text-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
         }
 
         /* MANIFESTO SECTION (Stark Contrast) */
