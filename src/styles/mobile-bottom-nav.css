@@ -126,13 +126,15 @@
 
 @media (min-width: 1024px) {
   .mobile-bottom-nav {
-    left: 12px;
-    right: 12px;
-    transform: none;
-    width: auto;
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+    width: min(520px, calc(100% - 32px));
+    max-width: 520px;
     height: 56px;
     padding: 6px 12px;
     border-radius: 18px;
+    min-width: 340px;
   }
 
   .mobile-nav-item {

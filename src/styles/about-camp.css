@@ -233,6 +233,7 @@
 .about-camp-container .mobile-menu-scrim.is-open {
   opacity: 1;
   pointer-events: auto;
+  display: block !important;
 }
 
 .about-camp-container .mobile-menu-panel {
@@ -260,6 +261,7 @@
   opacity: 1;
   transform: translateY(0) scale(1);
   pointer-events: auto;
+  display: block !important;
 }
 
 .about-camp-container .mobile-menu-head {
@@ -406,6 +408,17 @@
   border-radius: 22px;
   box-shadow: 0 14px 32px rgba(9, 6, 20, 0.55);
   z-index: 1100;
+}
+
+@media (min-width: 1024px) {
+  .about-camp-container .mobile-bottom-nav {
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+    width: min(520px, calc(100% - 32px));
+    max-width: 520px;
+    min-width: 340px;
+  }
 }
 
 .about-camp-container .mobile-nav-item {

@@ -68,14 +68,8 @@ const AboutCampView: React.FC<AboutCampViewProps> = ({
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [isMenuOpen]);
 
-  const handleMenuToggle = (e?: React.MouseEvent) => {
-    e?.preventDefault();
-    e?.stopPropagation();
-    console.log('handleMenuToggle called, current state:', isMenuOpen);
-    setIsMenuOpen((prev) => {
-      console.log('Setting menu open to:', !prev);
-      return !prev;
-    });
+  const handleMenuToggle = () => {
+    setIsMenuOpen((prev) => !prev);
   };
 
   const closeMenu = () => {
