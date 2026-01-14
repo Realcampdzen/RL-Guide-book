@@ -166,6 +166,10 @@
   pointer-events: none;
 }
 
+.category-hero-content.category-hero-no-kicker {
+  top: 24px;
+}
+
 .category-title {
   font-family: var(--f-display);
   font-size: clamp(1.3rem, 2.2vw, 1.9rem);
@@ -342,6 +346,10 @@
   .category-title-kicker {
     letter-spacing: 0.25em;
     font-size: 0.55rem;
+  }
+
+  .category-hero-content.category-hero-no-kicker {
+    top: 18px;
   }
 }
 

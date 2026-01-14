@@ -29,7 +29,8 @@ export const useNavigation = ({ categories }: UseNavigationArgs) => {
     setSelectedLevel('');
   }, []);
 
-  const handleCategoryClick = useCallback((category: Category, origin: View = 'categories') => {
+  const handleCategoryClick = useCallback((category: Category, options?: { origin?: View }) => {
+    const origin = options?.origin || 'categories';
     console.log('Category clicked:', category.title);
     setSelectedCategory(category);
     setCurrentView('category');

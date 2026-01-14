@@ -362,7 +362,7 @@ const CategoryView: React.FC<CategoryViewProps> = ({
             )}
           </div>
         </div>
-        <div className="category-hero-content">
+          <div className={`category-hero-content${!titleKicker ? ' category-hero-no-kicker' : ''}`}>
           {titleKicker && <span className="category-title-kicker">{titleKicker}</span>}
           <h1 
             className={`category-title hover-target ${category.introduction?.has_introduction ? 'category-title-clickable' : ''}`}

@@ -49,12 +49,27 @@ const rlGuideBookDevPlugin = (): Plugin => ({
     server.middlewares.use((req, res, next) => {
       if (req.url?.startsWith('/RL-Guide-book/')) {
         // Сначала декодируем URL, потом извлекаем путь
-        const encodedPath = req.url.replace('/RL-Guide-book/', '')
-        const decodedPath = decodeURIComponent(encodedPath)
+        // Обрабатываем как полностью закодированный путь, так и частично закодированный
+        let encodedPath = req.url.replace('/RL-Guide-book/', '')
+        
+        // Пытаемся декодировать путь, обрабатывая возможное двойное кодирование
+        let decodedPath: string
+        try {
+          // Сначала пробуем декодировать полностью
+          decodedPath = decodeURIComponent(encodedPath)
+          // Если после декодирования все еще есть закодированные символы, декодируем еще раз
+          if (decodedPath.includes('%')) {
+            decodedPath = decodeURIComponent(decodedPath)
+          }
+        } catch (e) {
+          // Если декодирование не удалось, используем исходный путь
+          decodedPath = encodedPath
+        }
+        
         const publicPath = resolve(process.cwd(), 'public', decodedPath)
         
         // Логирование для отладки (только для изображений значков)
-        if (decodedPath.includes('Новые значки')) {
+        if (decodedPath.includes('Новые значки') || decodedPath.includes('%D0%9D%D0%BE%D0%B2%D1%8B%D0%B5')) {
           console.log('Vite plugin: serving file', {
             originalUrl: req.url,
             encodedPath,
@@ -89,12 +104,14 @@ const rlGuideBookDevPlugin = (): Plugin => ({
           } catch (error) {
             console.error('Error serving file:', publicPath, error)
           }
-        } else if (decodedPath.includes('Новые значки')) {
+        } else if (decodedPath.includes('Новые значки') || decodedPath.includes('%D0%9D%D0%BE%D0%B2%D1%8B%D0%B5')) {
           console.warn('Vite plugin: file not found', {
             originalUrl: req.url,
+            encodedPath,
             decodedPath,
             publicPath,
-            exists: existsSync(publicPath)
+            exists: existsSync(publicPath),
+            parentExists: existsSync(resolve(process.cwd(), 'public'))
           })
         }
       }

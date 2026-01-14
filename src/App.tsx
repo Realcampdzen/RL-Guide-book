@@ -1892,7 +1892,7 @@ const App: React.FC = () => {
           <AboutCampView 
             onBack={handleBackToIntro}
             categories={categories}
-            onOpenCategory={(category) => handleCategoryClick(category, 'about-camp')}
+            onOpenCategory={(category) => handleCategoryClick(category, { origin: 'about-camp' })}
             onOpenCategories={handleBackToCategories}
             onTelegramContact={handleTelegramContact}
             onChatToggle={toggleChat}

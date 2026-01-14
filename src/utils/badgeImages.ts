@@ -99,6 +99,9 @@ export const getBadgeImagePath = (
   // Формируем путь
   // Важно: на GitHub Pages пути чувствительны к регистру и символам
   // Используем encodeURIComponent для каждого сегмента пути отдельно
+  // Убеждаемся, что baseUrl заканчивается на /
+  const pathPrefix = baseUrl.endsWith('/') ? baseUrl : baseUrl + '/';
+  
   let finalPath: string;
   if (variant === 'realism') {
     // Собираем путь из сегментов, кодируя каждый отдельно
@@ -109,7 +112,7 @@ export const getBadgeImagePath = (
       'реализм',
       fileName
     ];
-    finalPath = baseUrl + segments.map(seg => encodeURIComponent(seg)).join('/');
+    finalPath = pathPrefix + segments.map(seg => encodeURIComponent(seg)).join('/');
   } else {
     const segments = [
       'Новые значки',
@@ -117,7 +120,7 @@ export const getBadgeImagePath = (
       badgeFolderName,
       fileName
     ];
-    finalPath = baseUrl + segments.map(seg => encodeURIComponent(seg)).join('/');
+    finalPath = pathPrefix + segments.map(seg => encodeURIComponent(seg)).join('/');
   }
 
   // #region agent log
