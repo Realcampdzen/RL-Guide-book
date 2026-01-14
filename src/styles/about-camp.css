@@ -13,6 +13,13 @@
   --cat-mobile-nav-height: 68px;
 }
 
+.about-camp-container .noise-overlay,
+.about-camp-container .cursor-dot,
+.about-camp-container .cursor-outline,
+.about-camp-container .cursor-reactor {
+  pointer-events: none;
+}
+
 /* NAVIGATION */
 .nav-link-back {
   font-family: var(--f-display-nav);
@@ -78,7 +85,8 @@
   border: 1px solid var(--cat-glass-border);
   border-radius: 18px;
   box-shadow: 0 14px 32px rgba(9, 6, 20, 0.55);
-  z-index: 1100;
+  z-index: 12000;
+  pointer-events: auto;
 }
 
 .about-camp-container .mobile-glass-header::before {
@@ -215,8 +223,8 @@
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.25s var(--easing);
-  z-index: 1085;
-  display: none;
+  z-index: 11950;
+  display: block;
 }
 
 .about-camp-container .mobile-menu-scrim.is-open {
@@ -227,8 +235,10 @@
 .about-camp-container .mobile-menu-panel {
   position: fixed;
   top: calc(8px + env(safe-area-inset-top) + var(--cat-mobile-header-height) + 12px);
-  left: 12px;
-  right: 12px;
+  left: auto;
+  right: calc(12px + 14px + 38px + 10px);
+  width: min(88vw, 320px);
+  max-width: calc(100vw - 12px - 14px - 38px - 10px - 12px);
   background: linear-gradient(140deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.03)), var(--cat-glass-bg);
   border: 1px solid var(--cat-glass-border);
   border-radius: 20px;
@@ -236,10 +246,11 @@
   box-shadow: 0 20px 45px rgba(8, 6, 20, 0.6);
   opacity: 0;
   transform: translateY(-10px) scale(0.98);
+  transform-origin: top right;
   pointer-events: none;
   transition: opacity 0.25s var(--easing), transform 0.25s var(--easing);
-  z-index: 1105;
-  display: none;
+  z-index: 12005;
+  display: block;
 }
 
 .about-camp-container .mobile-menu-panel.is-open {
@@ -271,7 +282,10 @@
   background: rgba(255, 255, 255, 0.08);
   color: rgba(255, 255, 255, 0.8);
   font-weight: 700;
-  font-size: 0.75rem;
+  font-size: 0.9rem;
+  line-height: 1;
+  display: grid;
+  place-items: center;
   cursor: pointer;
   transition: transform 0.2s var(--easing), box-shadow 0.2s var(--easing);
 }
@@ -318,7 +332,10 @@
 }
 
 .about-camp-container .mobile-menu-item.is-active .mobile-menu-item-icon {
-  opacity: 0.9;
+  background: rgba(168, 85, 247, 0.25);
+  border-color: rgba(192, 132, 252, 0.6);
+  color: rgba(255, 255, 255, 0.95);
+  opacity: 1;
 }
 
 .about-camp-container .mobile-menu-item-label {
@@ -339,8 +356,20 @@
 }
 
 .about-camp-container .mobile-menu-item-icon {
-  font-size: 0.8rem;
-  opacity: 0.6;
+  width: 24px;
+  height: 24px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.06);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.78);
+  opacity: 0.9;
 }
 
 .about-camp-container .mobile-menu-item-cta {
@@ -351,7 +380,10 @@
 }
 
 .about-camp-container .mobile-menu-item-cta .mobile-menu-item-icon {
-  opacity: 0.8;
+  background: rgba(255, 140, 66, 0.2);
+  border-color: rgba(255, 176, 112, 0.55);
+  color: rgba(255, 255, 255, 0.95);
+  opacity: 1;
 }
 
 .about-camp-container .mobile-bottom-nav {
@@ -581,6 +613,7 @@
   letter-spacing: 0.05em;
   background: rgba(255, 215, 0, 0.05);
   transition: all 0.3s ease;
+  cursor: pointer;
 }
 
 .skill-chip:hover {

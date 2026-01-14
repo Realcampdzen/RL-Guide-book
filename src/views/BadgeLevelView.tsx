@@ -280,25 +280,25 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
         <div className="mobile-menu-head">
           <span className="mobile-menu-title">Меню</span>
           <button type="button" className="mobile-menu-close" onClick={closeMenu} aria-label="Закрыть меню">
-            X
+            &times;
           </button>
         </div>
         <div className="mobile-menu-list">
           <button type="button" className="mobile-menu-item" onClick={() => handleMenuAction(onBackToIntro)}>
             <span className="mobile-menu-item-label">Главная</span>
-            <span className="mobile-menu-item-icon">&gt;</span>
+            <span className="mobile-menu-item-icon">&rsaquo;</span>
           </button>
           <button type="button" className="mobile-menu-item" onClick={() => handleMenuAction(onOpenCategories)}>
             <span className="mobile-menu-item-label">Категории</span>
-            <span className="mobile-menu-item-icon">&gt;</span>
+            <span className="mobile-menu-item-icon">&rsaquo;</span>
           </button>
           <button type="button" className="mobile-menu-item" onClick={() => handleMenuAction(onBack)}>
             <span className="mobile-menu-item-label">Назад</span>
-            <span className="mobile-menu-item-icon">&lt;</span>
+            <span className="mobile-menu-item-icon">&lsaquo;</span>
           </button>
           <button type="button" className="mobile-menu-item mobile-menu-item-cta" onClick={() => handleMenuAction(onTelegramContact)}>
             <span className="mobile-menu-item-label">Записаться через Telegram</span>
-            <span className="mobile-menu-item-icon">&gt;</span>
+            <span className="mobile-menu-item-icon">&rsaquo;</span>
           </button>
         </div>
       </div>

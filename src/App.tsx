@@ -286,7 +286,15 @@ const App: React.FC = () => {
     handleBackToCategory,
     handleBackToCategoryFromIntroduction,
     handleBackToCategoryFromAdditional,
+    categoryBackTarget,
   } = useNavigation({ categories });
+  const handleCategoryBack = useCallback(() => {
+    if (categoryBackTarget === 'about-camp') {
+      handleBackToAboutCamp();
+      return;
+    }
+    handleBackToCategories();
+  }, [categoryBackTarget, handleBackToAboutCamp, handleBackToCategories]);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const chatOpenRequestedRef = useRef(false);
   const urlParamsProcessedRef = useRef(false);
@@ -298,6 +306,24 @@ const App: React.FC = () => {
   }, []);
   const closeChat = useCallback(() => {
     setIsChatOpen(false);
+  }, []);
+  const [isDesktopViewport, setIsDesktopViewport] = useState(() =>
+    typeof window !== 'undefined' ? window.innerWidth >= 769 : false
+  );
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const mediaQuery = window.matchMedia('(min-width: 769px)');
+    const handleResize = () => {
+      setIsDesktopViewport(mediaQuery.matches);
+    };
+    handleResize();
+    if (typeof mediaQuery.addEventListener === 'function') {
+      mediaQuery.addEventListener('change', handleResize);
+      return () => mediaQuery.removeEventListener('change', handleResize);
+    }
+    mediaQuery.addListener(handleResize);
+    return () => mediaQuery.removeListener(handleResize);
   }, []);
 
   useEffect(() => {
@@ -1816,7 +1842,7 @@ const App: React.FC = () => {
           <CategoryView 
             category={selectedCategory}
             badges={categoryBadges}
-            onBack={handleBackToCategories}
+            onBack={handleCategoryBack}
             onBadgeClick={handleBadgeClick}
             onIntroductionClick={handleIntroductionClick}
             onAdditionalMaterialClick={handleAdditionalMaterialClick}
@@ -1866,7 +1892,7 @@ const App: React.FC = () => {
           <AboutCampView 
             onBack={handleBackToIntro}
             categories={categories}
-            onOpenCategory={handleCategoryClick}
+            onOpenCategory={(category) => handleCategoryClick(category, 'about-camp')}
             onOpenCategories={handleBackToCategories}
             onTelegramContact={handleTelegramContact}
             onChatToggle={toggleChat}
@@ -1877,14 +1903,16 @@ const App: React.FC = () => {
         {currentView === 'registration-form' && renderRegistrationForm()}
         
         {/* ChatBot and ChatAvatar are handled inside BlueNestLanding and CategoriesGrid */}
-        <MobileBottomNav
-          currentView={currentView}
-          onHome={handleBackToIntro}
-          onCategories={handleBackToCategories}
-          onAboutCamp={() => setCurrentView('about-camp')}
-          onTelegramContact={handleTelegramContact}
-          onOpenVk={handleOpenVk}
-        />
+        {!(currentView === 'categories' && isDesktopViewport) && (
+          <MobileBottomNav
+            currentView={currentView}
+            onHome={handleBackToIntro}
+            onCategories={handleBackToCategories}
+            onAboutCamp={() => setCurrentView('about-camp')}
+            onTelegramContact={handleTelegramContact}
+            onOpenVk={handleOpenVk}
+          />
+        )}
       </div>
     </>
   );

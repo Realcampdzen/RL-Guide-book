@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "vite --host --port 3001",
-    "dev:staging": "vite --host --port 3001",
+    "dev:staging": "vite --host --port 3002",
     "dev:html": "node server-html.js",
     "build": "tsc && vite build",
     "build:verify": "npm run build && node scripts/verify-images-build.mjs",

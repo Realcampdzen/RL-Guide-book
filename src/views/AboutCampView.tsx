@@ -93,6 +93,14 @@ const AboutCampView: React.FC<AboutCampViewProps> = ({
     }
   };
 
+  const skillLinks = [
+    { label: 'Лидерство', categoryId: '9' },
+    { label: 'Креативность', categoryId: '7' },
+    { label: 'Коммуникация', categoryId: '13' },
+    { label: 'Работа с ИИ', categoryId: '12' },
+    { label: 'Команда', categoryId: '8' },
+  ];
+
   const baseUrl = import.meta.env.BASE_URL;
 
   // Full list of posts
@@ -224,17 +232,17 @@ const AboutCampView: React.FC<AboutCampViewProps> = ({
          <div className="mobile-menu-head">
            <span className="mobile-menu-title">Меню</span>
            <button type="button" className="mobile-menu-close" onClick={closeMenu} aria-label="Закрыть меню">
-             X
+             &times;
            </button>
          </div>
          <div className="mobile-menu-list">
            <button type="button" className="mobile-menu-item" onClick={() => handleMenuAction(onBack)}>
              <span className="mobile-menu-item-label">Главная</span>
-             <span className="mobile-menu-item-icon">&gt;</span>
+             <span className="mobile-menu-item-icon">&rsaquo;</span>
            </button>
            <button type="button" className="mobile-menu-item" onClick={() => handleMenuAction(onOpenCategories)}>
              <span className="mobile-menu-item-label">Категории</span>
-             <span className="mobile-menu-item-icon">&gt;</span>
+             <span className="mobile-menu-item-icon">&rsaquo;</span>
            </button>
            <button
              type="button"
@@ -243,11 +251,11 @@ const AboutCampView: React.FC<AboutCampViewProps> = ({
              onClick={() => handleMenuAction(() => window.scrollTo({ top: 0, behavior: 'smooth' }))}
            >
              <span className="mobile-menu-item-label">О лагере</span>
-             <span className="mobile-menu-item-icon">*</span>
+             <span className="mobile-menu-item-icon">&bull;</span>
            </button>
            <button type="button" className="mobile-menu-item mobile-menu-item-cta" onClick={() => handleMenuAction(onTelegramContact)}>
              <span className="mobile-menu-item-label">Записаться через Telegram</span>
-             <span className="mobile-menu-item-icon">&gt;</span>
+             <span className="mobile-menu-item-icon">&rsaquo;</span>
            </button>
          </div>
        </div>
@@ -287,8 +295,15 @@ const AboutCampView: React.FC<AboutCampViewProps> = ({
                  За смену ребята получают опыт, который будет полезен далеко за пределами лагеря и школы:
                </h3>
                <div className="skills-cloud">
-                 {['Лидерство', 'Креативность', 'Коммуникация', 'Работа с ИИ', 'Команда'].map(skill => (
-                   <span key={skill} className="skill-chip">{skill}</span>
+                 {skillLinks.map((skill) => (
+                   <button
+                     key={skill.label}
+                     type="button"
+                     className="skill-chip"
+                     onClick={() => handleCategoryLink(skill.categoryId)}
+                   >
+                     {skill.label}
+                   </button>
                  ))}
                </div>
              </div>

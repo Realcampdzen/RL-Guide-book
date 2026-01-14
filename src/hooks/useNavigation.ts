@@ -19,6 +19,7 @@ export const useNavigation = ({ categories }: UseNavigationArgs) => {
     childAge: '',
     specialRequests: '',
   });
+  const [categoryBackTarget, setCategoryBackTarget] = useState<View>('categories');
 
   const handleIntroClick = useCallback(() => {
     console.log('App: Intro clicked - switching to categories view');
@@ -28,12 +29,13 @@ export const useNavigation = ({ categories }: UseNavigationArgs) => {
     setSelectedLevel('');
   }, []);
 
-  const handleCategoryClick = useCallback((category: Category) => {
+  const handleCategoryClick = useCallback((category: Category, origin: View = 'categories') => {
     console.log('Category clicked:', category.title);
     setSelectedCategory(category);
     setCurrentView('category');
     setSelectedBadge(null);
     setSelectedLevel('');
+    setCategoryBackTarget(origin);
     console.log('currentView set:', 'category');
   }, []);
 
@@ -65,6 +67,7 @@ export const useNavigation = ({ categories }: UseNavigationArgs) => {
 
   const handleBackToAboutCamp = useCallback(() => {
     setCurrentView('about-camp');
+    setCategoryBackTarget('categories');
   }, []);
 
   const handleBackToCategories = useCallback(() => {
@@ -73,6 +76,7 @@ export const useNavigation = ({ categories }: UseNavigationArgs) => {
     setSelectedCategory(null);
     setSelectedBadge(null);
     setSelectedLevel('');
+    setCategoryBackTarget('categories');
   }, []);
 
   const handleBackToBadge = useCallback(() => {
@@ -148,5 +152,6 @@ export const useNavigation = ({ categories }: UseNavigationArgs) => {
     handleBackToCategory,
     handleBackToCategoryFromIntroduction,
     handleBackToCategoryFromAdditional,
+    categoryBackTarget,
   };
 };

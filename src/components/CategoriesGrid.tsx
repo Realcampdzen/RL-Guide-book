@@ -1,5 +1,5 @@
 import React, { Suspense, useEffect, useMemo, useState } from 'react';
-import type { Category } from '../types/guide';
+import type { Category, View } from '../types/guide';
 import { useCustomCursor } from '../hooks/useCustomCursor';
 import '../styles/categories.css';
 
@@ -10,7 +10,7 @@ const ChatAvatar = React.lazy(loadChatAvatar);
 
 interface CategoriesGridProps {
   categories: Category[];
-  onCategoryClick: (category: Category) => void;
+  onCategoryClick: (category: Category, options?: { origin?: View }) => void;
   onBackClick: () => void;
   onAboutCampClick: () => void;
   onTelegramContact: () => void;
@@ -58,6 +58,7 @@ const CategoriesGrid: React.FC<CategoriesGridProps> = ({
   const [, setImageLoaded] = useState<Set<string>>(new Set());
   const [isMobile, setIsMobile] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [imageKey, setImageKey] = useState(0);
 
   const limitedCategories = useMemo(() => categories.slice(0, 14), [categories]);
   // Первые 7 категорий идут в right-column (верхний ряд)
@@ -84,6 +85,12 @@ const CategoriesGrid: React.FC<CategoriesGridProps> = ({
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [isMenuOpen]);
+
+  // Принудительная перезагрузка изображения домика при возврате на страницу
+  useEffect(() => {
+    // Обновляем ключ изображения при монтировании компонента
+    setImageKey((prev) => prev + 1);
+  }, []); // Пустой массив зависимостей - срабатывает только при монтировании
 
   const handleMenuToggle = () => {
     setIsMenuOpen((prev) => !prev);
@@ -210,7 +217,7 @@ const CategoriesGrid: React.FC<CategoriesGridProps> = ({
   };
 
   return (
-    <>
+    <div className="categories-page">
       <div className="noise-overlay"></div>
 
       {/* Custom Cursor Elements */}
@@ -269,13 +276,13 @@ const CategoriesGrid: React.FC<CategoriesGridProps> = ({
         <div className="mobile-menu-head">
           <span className="mobile-menu-title">Меню</span>
           <button type="button" className="mobile-menu-close" onClick={closeMenu} aria-label="Закрыть меню">
-            X
+            &times;
           </button>
         </div>
         <div className="mobile-menu-list">
           <button type="button" className="mobile-menu-item" onClick={() => handleMenuAction(onBackClick)}>
             <span className="mobile-menu-item-label">Главная</span>
-            <span className="mobile-menu-item-icon">&gt;</span>
+            <span className="mobile-menu-item-icon">&rsaquo;</span>
           </button>
           <button
             type="button"
@@ -284,19 +291,19 @@ const CategoriesGrid: React.FC<CategoriesGridProps> = ({
             onClick={() => handleMenuAction(() => window.scrollTo({ top: 0, behavior: 'smooth' }))}
           >
             <span className="mobile-menu-item-label">Категории</span>
-            <span className="mobile-menu-item-icon">*</span>
+            <span className="mobile-menu-item-icon">&bull;</span>
           </button>
           <button type="button" className="mobile-menu-item" onClick={() => handleMenuAction(onAboutCampClick)}>
             <span className="mobile-menu-item-label">О лагере</span>
-            <span className="mobile-menu-item-icon">&gt;</span>
+            <span className="mobile-menu-item-icon">&rsaquo;</span>
           </button>
           <button type="button" className="mobile-menu-item" onClick={() => handleMenuAction(handleOpenVk)}>
             <span className="mobile-menu-item-label">ВКонтакте</span>
-            <span className="mobile-menu-item-icon">&gt;</span>
+            <span className="mobile-menu-item-icon">&rsaquo;</span>
           </button>
           <button type="button" className="mobile-menu-item mobile-menu-item-cta" onClick={() => handleMenuAction(onTelegramContact)}>
             <span className="mobile-menu-item-label">Записаться через Telegram</span>
-            <span className="mobile-menu-item-icon">&gt;</span>
+            <span className="mobile-menu-item-icon">&rsaquo;</span>
           </button>
         </div>
       </div>
@@ -312,7 +319,8 @@ const CategoriesGrid: React.FC<CategoriesGridProps> = ({
         }}
       >
         <img
-          src={`${import.meta.env.BASE_URL}Gemini_Generated_Image_ct40o9ct40o9ct40.png?v=2`}
+          key={`house-image-${imageKey}`}
+          src={`${import.meta.env.BASE_URL}Gemini_Generated_Image_ct40o9ct40o9ct40.png?v=${imageKey}`}
           alt="Домик"
           style={{
             height: 'auto',
@@ -394,7 +402,7 @@ const CategoriesGrid: React.FC<CategoriesGridProps> = ({
           currentLevelBadgeTitle={currentLevelBadgeTitle}
         />
       </Suspense>
-    </>
+    </div>
   );
 };
 

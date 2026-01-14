@@ -123,3 +123,44 @@
     height: 16px;
   }
 }
+
+@media (min-width: 1024px) {
+  .mobile-bottom-nav {
+    left: 12px;
+    right: 12px;
+    transform: none;
+    width: auto;
+    height: 56px;
+    padding: 6px 12px;
+    border-radius: 18px;
+  }
+
+  .mobile-nav-item {
+    gap: 0;
+    font-size: 0;
+    position: relative;
+  }
+
+  .mobile-nav-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .mobile-nav-icon-wrap {
+    width: 30px;
+    height: 30px;
+    border-radius: 12px;
+  }
+
+  .mobile-nav-icon {
+    width: 16px;
+    height: 16px;
+  }
+}

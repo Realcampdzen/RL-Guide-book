@@ -211,8 +211,20 @@ const CategoryView: React.FC<CategoryViewProps> = ({
   };
 
   const titleWords = (category.title || '').trim().split(/\s+/);
+  const titleKicker = titleWords.length > 0 && titleWords[0].toLowerCase() === 'за'
+    ? titleWords.shift() || ''
+    : '';
   const titleLastWord = titleWords.pop() || '';
   const titleLead = titleWords.join(' ');
+  const breadcrumbLabel = titleKicker
+    ? [titleLead, titleLastWord].filter(Boolean).join(' ') || category.title
+    : category.title;
+  const badgeCount = badges.length;
+  const maxLevelCount = badges.reduce((max, badge) => {
+    const levels = Array.isArray((badge as any).allLevels) ? (badge as any).allLevels.length : 0;
+    return Math.max(max, levels || 1);
+  }, 1);
+  const showLevelCount = maxLevelCount > 1;
 
   // Mapping for category header images
   // IDs based on MASTER_INDEX.json order or inspection
@@ -301,13 +313,13 @@ const CategoryView: React.FC<CategoryViewProps> = ({
         <div className="mobile-menu-head">
           <span className="mobile-menu-title">Меню</span>
           <button type="button" className="mobile-menu-close" onClick={closeMenu} aria-label="Закрыть меню">
-            X
+            &times;
           </button>
         </div>
         <div className="mobile-menu-list">
           <button type="button" className="mobile-menu-item" onClick={() => handleMenuAction(onBackToIntro)}>
             <span className="mobile-menu-item-label">Главная</span>
-            <span className="mobile-menu-item-icon">&gt;</span>
+            <span className="mobile-menu-item-icon">&rsaquo;</span>
           </button>
           <button
             type="button"
@@ -316,11 +328,11 @@ const CategoryView: React.FC<CategoryViewProps> = ({
             onClick={() => handleMenuAction(onOpenCategories)}
           >
             <span className="mobile-menu-item-label">Категории</span>
-            <span className="mobile-menu-item-icon">*</span>
+            <span className="mobile-menu-item-icon">&bull;</span>
           </button>
           <button type="button" className="mobile-menu-item mobile-menu-item-cta" onClick={() => handleMenuAction(onTelegramContact)}>
             <span className="mobile-menu-item-label">Записаться через Telegram</span>
-            <span className="mobile-menu-item-icon">&gt;</span>
+            <span className="mobile-menu-item-icon">&rsaquo;</span>
           </button>
         </div>
       </div>
@@ -330,17 +342,28 @@ const CategoryView: React.FC<CategoryViewProps> = ({
         className="category-header-bar" 
         style={{ '--header-bg': `url('${bgUrl}')` } as React.CSSProperties}
       >
-        <div className="category-header-content">
+        <div className="category-topbar">
           <button onClick={onBack} className="nav-link-back hover-target">
             <span>← Назад</span>
           </button>
+          <div className="category-breadcrumbs">
+            <span className="breadcrumb-root">Категории</span>
+            <span className="breadcrumb-sep">→</span>
+            <span className="breadcrumb-current">{breadcrumbLabel}</span>
+          </div>
+          <div className="category-crumbs-meta">
+            <span>
+              {badgeCount} {pluralizeRu(badgeCount, ['значок', 'значка', 'значков'])}
+            </span>
+            {showLevelCount && (
+              <span>
+                • {maxLevelCount} {pluralizeRu(maxLevelCount, ['уровень', 'уровня', 'уровней'])}
+              </span>
+            )}
+          </div>
         </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="category-main">
-        {/* Hero Section */}
-        <section className="category-hero reveal-on-scroll">
+        <div className="category-hero-content">
+          {titleKicker && <span className="category-title-kicker">{titleKicker}</span>}
           <h1 
             className={`category-title hover-target ${category.introduction?.has_introduction ? 'category-title-clickable' : ''}`}
             onClick={category.introduction?.has_introduction ? onIntroductionClick : undefined}
@@ -352,11 +375,17 @@ const CategoryView: React.FC<CategoryViewProps> = ({
               </span>
             )}
           </h1>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="category-main">
+        {/* Hero Section */}
+        <section className="category-hero reveal-on-scroll">
           <p className="category-subtitle">
-            {badges.length} {pluralizeRu(badges.length, ['значок', 'значка', 'значков'])} в этой категории.
+            {badgeCount} {pluralizeRu(badgeCount, ['значок', 'значка', 'значков'])} в этой категории.
             Выберите значок, чтобы узнать подробности и критерии получения.
           </p>
-
           <div className="category-actions">
             {category.id === '14' && (
               <>

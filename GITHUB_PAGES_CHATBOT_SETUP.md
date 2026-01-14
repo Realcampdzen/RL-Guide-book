@@ -1,52 +1,30 @@
 # 🤖 Настройка чат-бота для GitHub Pages
 
-## ✅ Что сделано
+## ✅ Как работает на GitHub Pages
 
-1. **Изменен ChatBot.tsx** - теперь использует прямой вызов OpenAI API
-2. **Убран API ключ из кода** - используется переменная окружения
-3. **Готово к деплою** на GitHub Pages
+1. **Фронтенд** деплоится как статический сайт на GitHub Pages.
+2. **Чат-бот в продакшене** ходит в Cloudflare endpoint:
+   `https://real-vibe-ai-studio.pages.dev/api/putevoditel/chat`
+3. **Локально** используется `/api/chat` через Vite proxy к Flask backend (порт 4000).
 
-## 🔧 Настройка переменной окружения в GitHub
+## 🔧 Что нужно настроить
 
-### Шаг 1: Добавить секрет в GitHub
-1. Перейдите в ваш репозиторий: https://github.com/Realcampdzen/RL-Guide-book
-2. Нажмите **Settings** → **Secrets and variables** → **Actions**
-3. Нажмите **New repository secret**
-4. **Name**: `REACT_APP_OPENAI_API_KEY`
-5. **Value**: `ваш_openai_api_ключ_из_файла_.env`
-6. Нажмите **Add secret**
+### 1) Cloudflare endpoint
+- Проверьте, что endpoint доступен и отвечает.
+- В Cloudflare Secrets заданы `OPENAI_API_KEY` и `OPENAI_MODEL`.
+- CORS разрешает `https://realcampdzen.github.io` и кастомный домен (если есть).
 
-### Шаг 2: Обновить GitHub Actions workflow
-Нужно обновить `.github/workflows/deploy.yml` чтобы использовать секрет:
+### 2) Если меняется URL эндпоинта
+Обновите адрес в `src/components/ChatBot.tsx` (production URL).
 
-```yaml
-- name: Build frontend
-  run: npm run build
-  env:
-    REACT_APP_OPENAI_API_KEY: ${{ secrets.REACT_APP_OPENAI_API_KEY }}
-```
+## 🔐 GitHub Secrets
+Для GitHub Pages секреты не нужны — ключи хранятся на стороне Cloudflare.
 
-### Шаг 3: Деплой
-После настройки секрета:
-1. Сделайте любой коммит (например, обновите README)
-2. GitHub Actions автоматически пересоберет и задеплоит приложение
-3. Чат-бот будет работать на https://realcampdzen.github.io/RL-Guide-book/
+## 🚀 Деплой
+1. Пуш в `main` запускает `.github/workflows/deploy-simple.yml`.
+2. Проверяем сайт: `https://realcampdzen.github.io/RL-Guide-book/`.
+3. Проверяем чат: открыть виджет и отправить сообщение.
 
-## 🎯 Результат
-
-После настройки:
-- ✅ **Веб-приложение работает** на GitHub Pages
-- ✅ **Чат-бот НейроВалюша работает** через OpenAI API
-- ✅ **Никаких дополнительных серверов** не нужно
-- ✅ **Бесплатно** на GitHub Pages
-
-## 🧪 Проверка
-
-После деплоя проверьте:
-1. **Главная страница**: https://realcampdzen.github.io/RL-Guide-book/
-2. **Чат-бот**: Нажмите на кнопку чата и напишите сообщение
-3. **НейроВалюша должна ответить** на русском языке
-
----
-
-**🎉 Чат-бот будет работать на GitHub Pages без дополнительных серверов!**
+## 🧪 Быстрая проверка
+- Если чат молчит — проверьте консоль браузера (CORS/500).
+- Посмотрите логи Cloudflare Worker (Requests/Errors).

@@ -45,6 +45,7 @@ const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
   onOpenVk,
 }) => {
   const activeKey = useMemo(() => getActiveKey(currentView), [currentView]);
+  const isCategoriesView = currentView === 'categories';
 
   const handleHome = () => {
     if (activeKey === 'home') {
@@ -55,7 +56,7 @@ const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
   };
 
   const handleCategories = () => {
-    if (activeKey === 'categories') {
+    if (isCategoriesView) {
       scrollToTop();
       return;
     }
@@ -111,8 +112,8 @@ const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
       </button>
       <button
         type="button"
-        className={`mobile-nav-item${activeKey === 'categories' ? ' is-active' : ''}`}
-        aria-current={activeKey === 'categories' ? 'page' : undefined}
+        className={`mobile-nav-item${isCategoriesView ? ' is-active' : ''}`}
+        aria-current={isCategoriesView ? 'page' : undefined}
         onClick={handleCategories}
       >
         <span className="mobile-nav-icon-wrap">
