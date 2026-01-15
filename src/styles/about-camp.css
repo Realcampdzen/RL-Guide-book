@@ -978,6 +978,12 @@ html[data-perf="lite"] .about-camp-container .mobile-bottom-nav {
 
 /* Показываем навигацию на десктопе */
 @media (min-width: 769px) {
+  .about-camp-container {
+    /* Desktop header is centered with a fixed max width. Expose its side inset for aligning the menu panel. */
+    --about-header-width: min(760px, calc(100% - 24px));
+    --about-header-side: calc(50% - (var(--about-header-width) / 2));
+  }
+
   .about-camp-container .mobile-glass-header {
     display: flex !important;
   }
@@ -986,8 +992,14 @@ html[data-perf="lite"] .about-camp-container .mobile-bottom-nav {
   .about-camp-container .mobile-glass-header {
     left: 50%;
     right: auto;
-    width: min(760px, calc(100% - 24px));
+    width: var(--about-header-width);
     transform: translateX(-50%);
+  }
+
+  /* Desktop: align the menu panel to the centered header (so it doesn't open "too far right") */
+  .about-camp-container .mobile-menu-panel {
+    right: calc(var(--about-header-side) + 14px + 38px + 10px);
+    max-width: calc(100vw - var(--about-header-side) - 14px - 38px - 10px - 12px);
   }
   
   .about-camp-container .mobile-menu-scrim,
