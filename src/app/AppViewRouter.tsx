@@ -3,6 +3,7 @@ import type { AppController } from './useAppController';
 import AdditionalMaterialView from '../views/AdditionalMaterialView';
 import IntroductionView from '../views/IntroductionView';
 import RegistrationFormView from '../views/RegistrationFormView';
+import GlobalCursor from '../components/GlobalCursor';
 
 // Lazy load views for better performance
 const BlueNestLanding = React.lazy(() => import('../components/BlueNestLanding'));
@@ -65,6 +66,7 @@ export const AppViewRouter: React.FC<Props> = ({ controller, fallback }) => {
 
   return (
     <Suspense fallback={fallback}>
+      <GlobalCursor />
       {loading && (
         <BlueNestLanding
           onStartClick={handleIntroClick}

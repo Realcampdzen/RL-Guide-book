@@ -1,7 +1,6 @@
 import React, { Suspense, useEffect, useRef, useState } from 'react';
 import { useScrollReveal } from '../hooks/useScrollReveal';
 import { useTiltCard } from '../hooks/useTiltCard';
-import { useCustomCursor } from '../hooks/useCustomCursor';
 import '../styles/about-camp.css';
 
 const loadChatBot = () => import('../components/ChatBot');
@@ -30,9 +29,6 @@ const AboutCampView: React.FC<AboutCampViewProps> = ({
 }) => {
   const { initReveal } = useScrollReveal();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  
-  // Custom Cursor
-  const { cursorDotRef, cursorOutlineRef, cursorReactorRef } = useCustomCursor();
 
   // Refs for tilt cards
   const card1Ref = useRef<HTMLDivElement>(null);
@@ -53,7 +49,6 @@ const AboutCampView: React.FC<AboutCampViewProps> = ({
     const timer = setTimeout(() => {
       initReveal('.reveal-on-scroll');
     }, 100);
-    window.scrollTo(0, 0);
     return () => clearTimeout(timer);
   }, [initReveal]);
 
@@ -174,10 +169,7 @@ const AboutCampView: React.FC<AboutCampViewProps> = ({
     <div className="about-camp-container">
        <div className="noise-overlay"></div>
 
-       {/* Custom Cursor Elements */}
-       <div className="cursor-reactor" ref={cursorReactorRef} data-cursor-reactor></div>
-       <div className="cursor-dot" ref={cursorDotRef} data-cursor></div>
-       <div className="cursor-outline" ref={cursorOutlineRef} data-cursor-outline></div>
+       {/* GlobalCursor renders the custom cursor layer once at app root */}
 
        <header className={`mobile-glass-header${isChatOpen ? ' is-chat-open' : ''}`} aria-label="Навигация">
          <button

@@ -30,6 +30,9 @@ export const useCustomCursor = () => {
 
     if (!canUseFinePointer) return;
 
+    // Mark cursor as active for CSS (hide system cursor, show custom layers).
+    document.documentElement.dataset.cursor = 'on';
+
     // Initialize positions
     mouseXRef.current = window.innerWidth / 2;
     mouseYRef.current = window.innerHeight / 2;
@@ -386,6 +389,10 @@ export const useCustomCursor = () => {
       window.removeEventListener('mousemove', handleMouseMoveRaf as unknown as EventListener);
       if (animationFrameRef.current !== null) {
         cancelAnimationFrame(animationFrameRef.current);
+      }
+      // Unmark cursor active on cleanup.
+      if (document.documentElement.dataset.cursor === 'on') {
+        document.documentElement.removeAttribute('data-cursor');
       }
     };
   }, []);

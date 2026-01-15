@@ -1,0 +1,77 @@
+/* Global custom cursor styles.
+   Enabled only when html[data-cursor="on"] is present (set by useCustomCursor). */
+
+/* Hide custom cursor layers by default */
+.cursor-dot,
+.cursor-outline,
+.cursor-reactor {
+  display: none;
+}
+
+/* Hide system cursor only when the custom cursor is active (desktop fine pointer). */
+html[data-cursor="on"],
+html[data-cursor="on"] a,
+html[data-cursor="on"] button,
+html[data-cursor="on"] [role='button'] {
+  cursor: none !important;
+}
+
+html[data-cursor="on"] .cursor-dot,
+html[data-cursor="on"] .cursor-outline,
+html[data-cursor="on"] .cursor-reactor {
+  display: block;
+  position: fixed;
+  top: 0;
+  left: 0;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  pointer-events: none;
+  /* Must be above top/bottom nav overlays (which can reach ~12000). */
+  z-index: 20050;
+}
+
+html[data-cursor="on"] .cursor-dot {
+  width: 8px;
+  height: 8px;
+  background-color: var(--c-volt);
+}
+
+html[data-cursor="on"] .cursor-outline {
+  width: 40px;
+  height: 40px;
+  border: 1px solid rgba(139, 0, 255, 0.85);
+  transition: transform 0.2s var(--easing), border-color 0.2s var(--easing), background-color 0.2s var(--easing), opacity 0.2s var(--easing);
+  mix-blend-mode: difference;
+}
+
+html[data-cursor="on"] .cursor-hover {
+  transform: translate(-50%, -50%) scale(2.3);
+  background: var(--c-warm);
+  border: none;
+  mix-blend-mode: difference;
+}
+
+html[data-cursor="on"] .cursor-reactor {
+  width: 280px;
+  height: 280px;
+  background: radial-gradient(circle, var(--c-volt-glow) 0%, var(--c-aurora) 38%, rgba(15, 10, 31, 0) 70%);
+  filter: blur(10px);
+  opacity: 0.75;
+  mix-blend-mode: soft-light;
+  transition: opacity 0.25s var(--easing), transform 0.25s var(--easing);
+  z-index: 20049; /* slightly behind dot/outline */
+}
+
+html[data-cursor="on"] .cursor-reactor.cursor-reactor-active {
+  opacity: 0.95;
+  transform: translate(-50%, -50%) scale(1.18);
+}
+
+/* Perf-lite: reduce heavy blur/mesh effects on weak devices */
+html[data-perf="lite"][data-cursor="on"] .cursor-reactor {
+  width: 220px;
+  height: 220px;
+  filter: blur(6px);
+  opacity: 0.62;
+}
+

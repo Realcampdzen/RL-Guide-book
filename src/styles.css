@@ -11,6 +11,9 @@
 /* Импортируем мобильные стили */
 @import url('./mobile-styles.css');
 
+/* Global custom cursor (enabled only when html[data-cursor="on"]) */
+@import url('./styles/cursor.css');
+
 /* Skeletons / loading placeholders */
 @import url('./styles/skeleton.css');
 

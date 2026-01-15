@@ -53,6 +53,73 @@ export function useAppController() {
     handleBackToCategories();
   }, [categoryBackTarget, handleBackToAboutCamp, handleBackToCategories]);
 
+  // ----------------------------
+  // Scroll restoration
+  // Forward navigation -> scroll top
+  // Back navigation -> restore previous scroll position
+  // ----------------------------
+  const scrollPositionsRef = useRef<Record<string, number>>({});
+  const pendingScrollActionRef = useRef<'none' | 'top' | 'restore'>('none');
+
+  const getViewKey = useCallback(() => {
+    const catId = selectedCategory?.id || '';
+    const badgeId = selectedBadge?.id || '';
+    const levelId = selectedLevel || '';
+    return `${currentView}|c:${catId}|b:${badgeId}|l:${levelId}`;
+  }, [currentView, selectedBadge?.id, selectedCategory?.id, selectedLevel]);
+
+  const saveScrollForCurrentView = useCallback(() => {
+    if (typeof window === 'undefined') return;
+    const key = getViewKey();
+    scrollPositionsRef.current[key] = window.scrollY || 0;
+  }, [getViewKey]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      window.history.scrollRestoration = 'manual';
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const action = pendingScrollActionRef.current;
+    if (action === 'none') return;
+
+    const key = getViewKey();
+    const targetY = action === 'restore' ? (scrollPositionsRef.current[key] ?? 0) : 0;
+    pendingScrollActionRef.current = 'none';
+
+    // Defer until layout is ready
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: targetY, behavior: 'auto' as ScrollBehavior });
+    });
+  }, [getViewKey]);
+
+  const wrapForward = useCallback(
+    <T extends (...args: any[]) => any>(fn: T) => {
+      return ((...args: Parameters<T>) => {
+        saveScrollForCurrentView();
+        pendingScrollActionRef.current = 'top';
+        return fn(...args);
+      }) as T;
+    },
+    [saveScrollForCurrentView]
+  );
+
+  const wrapBack = useCallback(
+    <T extends (...args: any[]) => any>(fn: T) => {
+      return ((...args: Parameters<T>) => {
+        saveScrollForCurrentView();
+        pendingScrollActionRef.current = 'restore';
+        return fn(...args);
+      }) as T;
+    },
+    [saveScrollForCurrentView]
+  );
+
   const [isChatOpen, setIsChatOpen] = useState(false);
   const chatOpenRequestedRef = useRef(false);
   const urlParamsProcessedRef = useRef(false);
@@ -319,6 +386,8 @@ export function useAppController() {
         }
       }
     } finally {
+      // forward navigation
+      pendingScrollActionRef.current = 'top';
       setCurrentView('introduction');
     }
   }, [loadCategoryIntroduction, selectedCategory, setCurrentView, setSelectedCategory]);
@@ -384,6 +453,8 @@ export function useAppController() {
           title: titleMap[key] || key.replace('.md', '').replace(/-/g, ' '),
           content: htmlContent,
         });
+        // forward navigation
+        pendingScrollActionRef.current = 'top';
         setCurrentView('additional-material');
       } catch {
         // ignore
@@ -437,9 +508,10 @@ export function useAppController() {
     categoryBadgeLoadError,
     ensureCategoryBadgesLoaded,
 
-    // navigation
+    // navigation (wrapped with scroll behavior)
     ...navigation,
-    handleCategoryBack,
+    setCurrentView: wrapForward(navigation.setCurrentView),
+    handleCategoryBack: wrapBack(handleCategoryBack),
 
     // ui state
     isChatOpen,
@@ -459,18 +531,18 @@ export function useAppController() {
     handleIntroductionClick,
     handleFormSubmit,
     handleAdditionalMaterialClick,
-    handleTelegramContact,
+    handleTelegramContact: wrapForward(handleTelegramContact),
     handleFormInputChange,
-    handleBackToAboutCamp,
-    handleBackToCategories,
-    handleBackToBadge,
-    handleBackToIntro,
-    handleLogoClick,
-    handleBackToCategory,
-    handleLevelClick,
-    handleBadgeClick,
-    handleCategoryClick,
-    handleIntroClick,
+    handleBackToAboutCamp: wrapBack(handleBackToAboutCamp),
+    handleBackToCategories: wrapBack(handleBackToCategories),
+    handleBackToBadge: wrapBack(handleBackToBadge),
+    handleBackToIntro: wrapBack(handleBackToIntro),
+    handleLogoClick: wrapForward(handleLogoClick),
+    handleBackToCategory: wrapBack(handleBackToCategory),
+    handleLevelClick: wrapForward(handleLevelClick),
+    handleBadgeClick: wrapForward(handleBadgeClick),
+    handleCategoryClick: wrapForward(handleCategoryClick),
+    handleIntroClick: wrapForward(handleIntroClick),
   };
 }
 

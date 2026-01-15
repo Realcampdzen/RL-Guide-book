@@ -38,7 +38,6 @@
             /* Stable non-white fill to avoid flashes; image backgrounds are on ::before */
             background-color: #0f0a1f;
             color: var(--c-stark);
-            cursor: none;
             overflow-x: hidden;
             min-height: 100vh;
         }

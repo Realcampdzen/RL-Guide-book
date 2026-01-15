@@ -5,7 +5,6 @@ import {
   extractEvidenceSection,
   shouldApplyFormatting
 } from '../utils/textFormatting';
-import { useCustomCursor } from '../hooks/useCustomCursor';
 import { useScrollReveal } from '../hooks/useScrollReveal';
 import BadgeIcon from '../components/BadgeIcon';
 import { Skeleton } from '../components/Skeleton';
@@ -50,14 +49,12 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
   onTelegramContact,
   onBackToIntro,
 }) => {
-  const { cursorDotRef, cursorOutlineRef, cursorReactorRef } = useCustomCursor();
   const { initReveal } = useScrollReveal();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isHeroLoaded, setIsHeroLoaded] = useState(false);
 
   useEffect(() => {
     initReveal('.reveal-on-scroll');
-    window.scrollTo(0, 0);
   }, [initReveal]);
 
   useEffect(() => {
@@ -257,9 +254,7 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
   return (
     <div className="badge-view-container" data-level-bg={bgType}>
       <div className="noise-overlay"></div>
-      <div className="cursor-reactor" ref={cursorReactorRef} data-cursor-reactor></div>
-      <div className="cursor-dot" ref={cursorDotRef} data-cursor></div>
-      <div className="cursor-outline" ref={cursorOutlineRef} data-cursor-outline></div>
+      {/* GlobalCursor renders the custom cursor layer once at app root */}
 
       {/* Mobile Navigation Header */}
       <header className={`mobile-glass-header${isChatOpen ? ' is-chat-open' : ''}`} aria-label="Навигация">

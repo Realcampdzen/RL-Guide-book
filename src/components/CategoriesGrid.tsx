@@ -1,6 +1,5 @@
 import React, { Suspense, useEffect, useMemo, useState } from 'react';
 import type { Category, View } from '../types/guide';
-import { useCustomCursor } from '../hooks/useCustomCursor';
 import '../styles/categories.css';
 import { toSiblingImageUrl } from '../utils/imageSources';
 
@@ -56,7 +55,6 @@ const CategoriesGrid: React.FC<CategoriesGridProps> = ({
   selectedLevel,
   currentLevelBadgeTitle,
 }) => {
-  const { cursorDotRef, cursorOutlineRef, cursorReactorRef } = useCustomCursor();
   const [imageErrors, setImageErrors] = useState<Set<string>>(new Set());
   const [isMobile, setIsMobile] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -217,10 +215,7 @@ const CategoriesGrid: React.FC<CategoriesGridProps> = ({
     <div className="categories-page">
       <div className="noise-overlay"></div>
 
-      {/* Custom Cursor Elements */}
-      <div className="cursor-reactor" ref={cursorReactorRef} data-cursor-reactor></div>
-      <div className="cursor-dot" ref={cursorDotRef} data-cursor></div>
-      <div className="cursor-outline" ref={cursorOutlineRef} data-cursor-outline></div>
+      {/* GlobalCursor renders the custom cursor layer once at app root */}
 
       <header className={`mobile-glass-header${isChatOpen ? ' is-chat-open' : ''}`} aria-label="Навигация">
         <button

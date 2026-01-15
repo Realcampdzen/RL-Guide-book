@@ -1,5 +1,4 @@
 import React, { Suspense, useEffect, useRef, useState } from 'react';
-import { useCustomCursor } from '../hooks/useCustomCursor';
 import { useScrollReveal } from '../hooks/useScrollReveal';
 import { useTiltCard } from '../hooks/useTiltCard';
 import '../styles/bluenest.css';
@@ -44,7 +43,6 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
   selectedLevel,
   currentLevelBadgeTitle,
 }) => {
-  const { cursorDotRef, cursorOutlineRef, cursorReactorRef } = useCustomCursor();
   const { initReveal } = useScrollReveal();
   const [loaderHidden, setLoaderHidden] = useState(false);
   const featureCard1Ref = useRef<HTMLDivElement>(null);
@@ -66,10 +64,7 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
     <>
       <div className="noise-overlay"></div>
 
-      {/* Custom Cursor Elements */}
-      <div className="cursor-reactor" ref={cursorReactorRef} data-cursor-reactor></div>
-      <div className="cursor-dot" ref={cursorDotRef} data-cursor></div>
-      <div className="cursor-outline" ref={cursorOutlineRef} data-cursor-outline></div>
+      {/* GlobalCursor renders the custom cursor layer once at app root */}
 
       {/* Loading Screen */}
       <div className={`loader ${loaderHidden ? 'hidden' : ''}`}>

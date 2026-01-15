@@ -10,7 +10,6 @@
   font-family: var(--f-body);
   overflow-x: hidden;
   position: relative;
-  cursor: none; /* Custom cursor */
   --cat-topbar-height: 36px;
   --cat-hero-height: clamp(58px, 8vh, 82px);
   --cat-header-height: calc(var(--cat-topbar-height) + var(--cat-hero-height));

@@ -13,19 +13,10 @@
             scroll-behavior: smooth;
             background: linear-gradient(135deg, #0f0a1f 0%, #1a0f2e 50%, #2a1a3d 100%);
             color: var(--c-stark);
-            cursor: none; /* Hiding default cursor for custom one */
             overflow-x: hidden;
         }
         
-        /* Show default cursor on touch devices */
-        @media (hover: none) and (pointer: coarse) {
-            html, body, a {
-                cursor: auto !important;
-            }
-            .cursor-dot, .cursor-outline, .cursor-reactor {
-                display: none !important;
-            }
-        }
+        /* Custom cursor is handled globally (src/styles/cursor.css). */
 
         body {
             font-family: var(--f-body);
@@ -63,7 +54,7 @@
         }
 
         h1, h2, h3 { font-family: var(--f-display); font-weight: 800; text-transform: uppercase; letter-spacing: -0.04em; }
-        a { text-decoration: none; color: inherit; cursor: none; }
+        a { text-decoration: none; color: inherit; }
         ul { list-style: none; }
         
         /* Show default cursor on touch devices */
@@ -73,51 +64,7 @@
             }
         }
 
-        /* Custom Cursor */
-        .cursor-dot, .cursor-outline, .cursor-reactor {
-            position: fixed;
-            top: 0; left: 0;
-            transform: translate(-50%, -50%);
-            border-radius: 50%;
-            pointer-events: none;
-        }
-        .cursor-dot { width: 8px; height: 8px; background-color: var(--c-volt); z-index: 9999; }
-        .cursor-outline {
-            width: 40px;
-            height: 40px;
-            border: 1px solid rgba(139, 0, 255, 0.85);
-            transition: transform 0.2s var(--easing), border-color 0.2s var(--easing), background-color 0.2s var(--easing), opacity 0.2s var(--easing);
-            mix-blend-mode: difference;
-            z-index: 9999;
-        }
-        .cursor-hover {
-            transform: translate(-50%, -50%) scale(2.3);
-            background: var(--c-warm);
-            border: none;
-            mix-blend-mode: difference;
-        }
-        .cursor-reactor {
-            width: 280px;
-            height: 280px;
-            background: radial-gradient(circle, var(--c-volt-glow) 0%, var(--c-aurora) 38%, rgba(15, 10, 31, 0) 70%);
-            filter: blur(10px);
-            opacity: 0.75;
-            mix-blend-mode: soft-light;
-            transition: opacity 0.25s var(--easing), transform 0.25s var(--easing);
-            z-index: 9998;
-        }
-        .cursor-reactor.cursor-reactor-active {
-            opacity: 0.95;
-            transform: translate(-50%, -50%) scale(1.18);
-        }
-
-        /* Perf-lite: reduce heavy blur/mesh effects on weak devices (auto-enabled via html[data-perf="lite"]) */
-        html[data-perf="lite"] .cursor-reactor {
-            width: 220px;
-            height: 220px;
-            filter: blur(6px);
-            opacity: 0.62;
-        }
+        /* Custom cursor is handled globally (src/styles/cursor.css). */
 
         html[data-perf="lite"] .noise-overlay {
             opacity: 0.035;
