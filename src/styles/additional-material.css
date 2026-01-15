@@ -116,6 +116,14 @@
   padding: clamp(16px, 3vw, 28px);
   backdrop-filter: blur(18px) saturate(1.05);
   -webkit-backdrop-filter: blur(18px) saturate(1.05);
+  /* Typography base */
+  max-width: 860px;
+  margin: 0 auto;
+  font-size: clamp(0.98rem, 1.05vw, 1.06rem);
+  line-height: 1.7;
+  letter-spacing: 0.01em;
+  text-wrap: pretty;
+  hyphens: auto;
 }
 
 .additional-material-prose h1,
@@ -128,23 +136,38 @@
 }
 
 .additional-material-prose h1 { font-size: 1.2rem; }
-.additional-material-prose h2 { font-size: 1.05rem; }
-.additional-material-prose h3 { font-size: 0.95rem; }
+.additional-material-prose h2 {
+  font-size: 1.05rem;
+  margin-top: 22px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  text-shadow: 0 0 18px rgba(139, 0, 255, 0.28), 0 2px 10px rgba(0, 0, 0, 0.7);
+}
+.additional-material-prose h3 {
+  font-size: 0.95rem;
+  margin-top: 18px;
+  color: rgba(244, 239, 228, 0.98);
+  text-shadow: 0 0 14px rgba(139, 0, 255, 0.22), 0 2px 10px rgba(0, 0, 0, 0.7);
+}
 
 .additional-material-prose p {
-  margin: 10px 0;
-  line-height: 1.65;
+  margin: 12px 0;
   color: rgba(244, 239, 228, 0.92);
+}
+
+.additional-material-prose p + p {
+  margin-top: 14px;
 }
 
 .additional-material-prose ul,
 .additional-material-prose ol {
-  margin: 10px 0 10px 18px;
+  margin: 14px 0 14px 22px;
   color: rgba(244, 239, 228, 0.92);
 }
 
 .additional-material-prose li {
-  margin: 6px 0;
+  margin: 8px 0;
+  padding-left: 2px;
 }
 
 .additional-material-prose a {
@@ -174,9 +197,35 @@
   border-radius: 12px;
 }
 
+.additional-material-prose blockquote {
+  margin: 16px 0;
+  padding: 12px 14px;
+  border-left: 3px solid rgba(139, 0, 255, 0.6);
+  background: rgba(0, 0, 0, 0.22);
+  border-radius: 12px;
+  color: rgba(244, 239, 228, 0.92);
+}
+
+.additional-material-prose hr {
+  border: none;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.14);
+  margin: 18px 0;
+}
+
+.additional-material-prose strong {
+  color: rgba(255, 255, 255, 0.98);
+  text-shadow: 0 0 16px rgba(139, 0, 255, 0.22);
+}
+
 @media (max-width: 768px) {
   .additional-material-topbar-inner {
     width: 100%;
+  }
+
+  .additional-material-prose {
+    max-width: 100%;
+    font-size: 0.98rem;
   }
 }
 
