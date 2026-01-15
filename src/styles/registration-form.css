@@ -64,7 +64,8 @@
 }
 
 .registration-form-content {
-  padding: 18px 14px calc(env(safe-area-inset-bottom) + 18px);
+  /* Keep CTA button fully accessible above fixed bottom nav on all viewports */
+  padding: 18px 14px calc(env(safe-area-inset-bottom) + var(--mobile-nav-height) + 24px);
   max-width: 720px;
   margin: 0 auto;
 }
@@ -142,8 +143,6 @@
 }
 
 @media (max-width: 768px) {
-  .registration-form-content {
-    padding-bottom: calc(env(safe-area-inset-bottom) + 84px);
-  }
+  /* Bottom padding is already based on --mobile-nav-height; keep mobile rule empty intentionally */
 }
 
