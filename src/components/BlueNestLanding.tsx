@@ -91,7 +91,6 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
-            console.log('NEUROVALUSHA button clicked, calling onChatToggle', { onChatToggle, isChatOpen });
             if (onChatToggle) {
               onChatToggle();
             } else {
@@ -121,12 +120,17 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
       </div>
 
       {/* Left Navigation Link */}
-      <div className="nav-image-container nav-home hover-target" onClick={onAboutCampClick}>
+      <button
+        type="button"
+        className="nav-image-container nav-home hover-target"
+        onClick={onAboutCampClick}
+        aria-label="О лагере"
+      >
         <img
           src={`${import.meta.env.BASE_URL}Gemini_Generated_Image_ct40o9ct40o9ct40.png?v=2`}
           alt="Домик"
         />
-      </div>
+      </button>
       <button className="nav-link-left hover-target" onClick={onAboutCampClick}>
         О лагере
       </button>

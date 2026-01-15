@@ -172,8 +172,6 @@ const AboutCampView: React.FC<AboutCampViewProps> = ({
 
   return (
     <div className="about-camp-container">
-       <style dangerouslySetInnerHTML={{ __html: `@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Syne:wght@400;500;600;700;800&display=swap');` }} />
-       
        <div className="noise-overlay"></div>
 
        {/* Custom Cursor Elements */}

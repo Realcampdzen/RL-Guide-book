@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react'
 import { copyFileSync, mkdirSync, existsSync, readFileSync, statSync } from 'fs'
 import { join, resolve } from 'path'
 import type { Plugin } from 'vite'
+import { visualizer } from 'rollup-plugin-visualizer'
 
 // Плагин для копирования API файлов
 const copyApiPlugin = () => ({
@@ -206,48 +207,68 @@ const copyRLGuideBookPlugin = () => ({
 })
 
 // https://vitejs.dev/config/
-export default defineConfig({
-  plugins: [react(), copyApiPlugin(), rlGuideBookDevPlugin(), copyRLGuideBookPlugin()],
-  base: '/RL-Guide-book/',
-  server: {
-    port: 3001,
-    host: true,
-    proxy: {
-      '/api/chat': {
-        target: 'http://127.0.0.1:4000',
-        changeOrigin: true,
-        secure: false
-      },
-      '/api': {
-        target: 'http://127.0.0.1:4000',
-        changeOrigin: true,
-        secure: false
-      }
-    }
-  },
-  define: {
-    // Определяем переменные окружения для продакшена
-    __API_BASE_URL__: JSON.stringify('/api')
-  },
-  publicDir: 'public',
-  assetsInclude: ['**/*.md'],
-  build: {
-    outDir: 'dist',
-    sourcemap: false,
-    rollupOptions: {
-      output: {
-        manualChunks(id) {
-          if (!id.includes('node_modules')) return;
-          if (id.includes('react')) return 'react-vendor';
-          if (id.includes('three')) return 'three';
-          if (id.includes('openai')) return 'openai';
-          if (id.includes('@google')) return 'google-ai';
-          return 'vendor';
+export default defineConfig(({ mode }) => {
+  const isAnalyze = mode === 'analyze'
+
+  const plugins = [
+    react(),
+    copyApiPlugin(),
+    rlGuideBookDevPlugin(),
+    copyRLGuideBookPlugin(),
+    ...(isAnalyze
+      ? [
+          visualizer({
+            filename: 'dist/stats.html',
+            open: false,
+            gzipSize: true,
+            brotliSize: true
+          })
+        ]
+      : [])
+  ]
+
+  return {
+    plugins,
+    base: '/RL-Guide-book/',
+    server: {
+      port: 3001,
+      host: true,
+      proxy: {
+        '/api/chat': {
+          target: 'http://127.0.0.1:4000',
+          changeOrigin: true,
+          secure: false
+        },
+        '/api': {
+          target: 'http://127.0.0.1:4000',
+          changeOrigin: true,
+          secure: false
         }
       }
+    },
+    define: {
+      // Определяем переменные окружения для продакшена
+      __API_BASE_URL__: JSON.stringify('/api')
+    },
+    publicDir: 'public',
+    assetsInclude: ['**/*.md'],
+    build: {
+      outDir: 'dist',
+      sourcemap: false,
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (!id.includes('node_modules')) return
+            if (id.includes('react')) return 'react-vendor'
+            if (id.includes('openai')) return 'openai'
+            if (id.includes('@google')) return 'google-ai'
+            return 'vendor'
+          }
+        }
+      }
+    },
+    optimizeDeps: {
+      include: ['react', 'react-dom']
     }
-  },
-  optimizeDeps: {
-    include: ['react', 'react-dom', 'three']
   }
 })

@@ -8,7 +8,9 @@ import {
 import { useCustomCursor } from '../hooks/useCustomCursor';
 import { useScrollReveal } from '../hooks/useScrollReveal';
 import BadgeIcon from '../components/BadgeIcon';
+import { Skeleton } from '../components/Skeleton';
 import { getBadgeImagePath } from '../utils/badgeImages';
+import { toSiblingImageUrl } from '../utils/imageSources';
 import '../styles/badge-view.css';
 import type { Category, Badge } from '../types/guide';
 
@@ -51,11 +53,16 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
   const { cursorDotRef, cursorOutlineRef, cursorReactorRef } = useCustomCursor();
   const { initReveal } = useScrollReveal();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isHeroLoaded, setIsHeroLoaded] = useState(false);
 
   useEffect(() => {
     initReveal('.reveal-on-scroll');
     window.scrollTo(0, 0);
   }, [initReveal]);
+
+  useEffect(() => {
+    setIsHeroLoaded(false);
+  }, [badge.id, level]);
 
   useEffect(() => {
     if (!isMenuOpen) return;
@@ -88,32 +95,42 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
 
   // Context Logic
   const { levelBadge, otherLevels } = useMemo(() => {
-    const idSegments = (badge.id || '').split('.');
-    const isMultiLevel = idSegments.length === 3;
-    const baseKey = isMultiLevel ? idSegments.slice(0, 2).join('.') + '.' : badge.id;
+    const badgeId = String(badge.id || '');
+    const segments = badgeId.split('.').filter(Boolean);
+    const baseTwo = segments.length >= 2 ? `${segments[0]}.${segments[1]}` : badgeId;
 
-    // Helper for same base segments
-    const sameBaseTwoSegments = (a: string, b: string): boolean => {
-      const as = String(a ?? '').split('.');
-      const bs = String(b ?? '').split('.');
-      return as.length >= 2 && bs.length >= 2 && as[0] === bs[0] && as[1] === bs[1];
+    const sameBaseTwo = (a: string, base: string): boolean => {
+      const as = String(a || '').split('.').filter(Boolean);
+      if (as.length < 2) return false;
+      return `${as[0]}.${as[1]}` === base;
     };
 
-    const levelBadge = badges.find((b) => {
-      if (b.category_id !== badge.category_id) return false;
-      if (isMultiLevel) {
-        return (b.id || '').startsWith(baseKey) && String(b.level) === String(level);
-      }
-      return b.id === badge.id && String(b.level) === String(level);
-    });
+    const tiered = badges
+      .filter((b) => b.category_id === badge.category_id)
+      .filter((b) => sameBaseTwo(String(b.id || ''), baseTwo))
+      .filter((b) => String(b.id || '').split('.').filter(Boolean).length === 3);
 
-    const siblingLevels = badges.filter((b) => {
-      if (b.category_id !== badge.category_id) return false;
-      if (isMultiLevel) {
-        return sameBaseTwoSegments(b.id, badge.id);
+    const dedupeById = <T extends { id?: any }>(items: T[]): T[] => {
+      const seen = new Set<string>();
+      const out: T[] = [];
+      for (const it of items) {
+        const key = String(it.id || '');
+        if (!key) continue;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        out.push(it);
       }
-      return (b.id || '') === (badge.id || '');
-    });
+      return out;
+    };
+
+    const tieredUnique = dedupeById(tiered);
+    const isMultiLevel = tieredUnique.length > 0;
+
+    const siblingLevels = isMultiLevel
+      ? tieredUnique
+      : badges.filter((b) => (b.id || '') === (badge.id || ''));
+
+    const levelBadge = siblingLevels.find((b) => String(b.level) === String(level)) || null;
 
     const toNum = (v: any) => {
       if (typeof v?.level === 'number') return v.level;
@@ -130,7 +147,7 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
 
     const otherLevels = levelsAll.filter((l) => String(l.level) !== String(level));
 
-    return { levelBadge: levelBadge || badge, otherLevels };
+    return { levelBadge: (levelBadge || badge), otherLevels };
   }, [badge, badges, level]);
 
   // Content Logic
@@ -139,7 +156,7 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
     let criteria: string[] = [];
 
     // Fix: Remove duplicate text if present in description
-    let descriptionText = badge.description || levelBadge.description || '';
+    let descriptionText = levelBadge.description || badge.description || '';
     descriptionText = descriptionText.replace(/Объяснение ценности значка:\\s*$/, '').trim();
 
     if (levelBadge.confirmation) {
@@ -211,15 +228,31 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
     const levelId = String(levelBadge?.id || '');
     const levelSegments = levelId.split('.');
     const isTieredLevel = levelSegments.length === 3;
-    return getBadgeImagePath(
-      baseBadgeId,
-      badge.title,
-      category.id,
-      isTieredLevel ? levelId : undefined,
-      isTieredLevel ? levelBadge.title : undefined,
-      'realism'
-    );
+    return {
+      realism: getBadgeImagePath(
+        baseBadgeId,
+        badge.title,
+        category.id,
+        isTieredLevel ? levelId : undefined,
+        isTieredLevel ? levelBadge.title : undefined,
+        'realism'
+      ),
+      fallback: getBadgeImagePath(
+        baseBadgeId,
+        badge.title,
+        category.id,
+        isTieredLevel ? levelId : undefined,
+        isTieredLevel ? levelBadge.title : undefined,
+        'default'
+      ),
+    };
   }, [badge.id, badge.title, category.id, levelBadge]);
+
+  const [heroSrc, setHeroSrc] = useState<string | null>(null);
+  useEffect(() => {
+    setHeroSrc(levelHeroImageUrl?.realism || levelHeroImageUrl?.fallback || null);
+  }, [levelHeroImageUrl]);
+  const heroWebp = useMemo(() => (heroSrc ? toSiblingImageUrl(heroSrc, 'webp') : null), [heroSrc]);
 
   return (
     <div className="badge-view-container" data-level-bg={bgType}>
@@ -259,7 +292,10 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
             aria-label={isChatOpen ? 'Закрыть чат' : 'Открыть чат'}
             aria-pressed={isChatOpen}
           >
-            <img src="/RL-Guide-book/Валюша.jpg" alt="НейроВалюша" />
+            <picture>
+              <source type="image/webp" srcSet="/RL-Guide-book/Валюша.webp" />
+              <img src="/RL-Guide-book/Валюша.jpg" alt="НейроВалюша" decoding="async" fetchPriority="high" />
+            </picture>
           </button>
         </div>
       </header>
@@ -319,15 +355,25 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
           </div>
         </section>
 
-        {levelHeroImageUrl && (
+        {heroSrc && (
           <section className="badge-hero-media reveal-on-scroll">
-            <div className="badge-hero-media__frame">
-              <img
-                src={levelHeroImageUrl}
-                alt={levelBadge.title}
-                className="badge-hero-media__image"
-                loading="lazy"
-              />
+            <div className="badge-hero-media__frame badge-hero-media__frame--skeleton">
+              {!isHeroLoaded && <Skeleton className="skeleton--media badge-hero-media__skeleton" />}
+              <picture>
+                {heroWebp && <source type="image/webp" srcSet={heroWebp} />}
+                <img
+                  src={heroSrc}
+                  alt={levelBadge.title}
+                  className="badge-hero-media__image"
+                  loading="lazy"
+                  decoding="async"
+                  onLoad={() => setIsHeroLoaded(true)}
+                  onError={() => {
+                    const next = levelHeroImageUrl?.fallback || null;
+                    if (next && next !== heroSrc) setHeroSrc(next);
+                  }}
+                />
+              </picture>
             </div>
           </section>
         )}

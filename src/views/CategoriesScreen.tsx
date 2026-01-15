@@ -44,13 +44,15 @@ const CategoriesScreen: React.FC<CategoriesScreenProps> = ({ categories, onBack,
               className="category-container floating"
               style={{ animationDelay: `${index * 0.2}s` }}
             >
-              <div
+              <button
+                type="button"
                 className="category-card"
                 style={{ width: `${circleSize}px`, height: `${circleSize}px` }}
                 onClick={() => onSelectCategory(category)}
+                aria-label={`Открыть категорию: ${category.title}`}
               >
                 <div className="category-icon">{getCategoryIcon(category.id)}</div>
-              </div>
+              </button>
               <div className="category-text">
                 <h3>{category.title}</h3>
                 <p>{category.badge_count} значков</p>

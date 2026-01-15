@@ -4,6 +4,36 @@
 
 :root {
   /* ========================================
+     BLUENEST (единый источник правды)
+     ======================================== */
+
+  --c-midnight: #0f0a1f;
+  --c-deep-blue: #1a0f2e;
+  --c-electric-blue: #8b00ff;
+  --c-volt: #6a0dad;
+  --c-stark: #f4efe4;
+  --c-warm: #8b00ff;
+  --c-smoke: #f4efe41a;
+  --c-volt-glow: rgba(139, 0, 255, 0.35);
+  --c-aurora: rgba(139, 0, 255, 0.25);
+
+  --f-display: 'Syne', sans-serif;
+  --f-display-nav: 'Syne', 'Montserrat', sans-serif;
+  --f-body: 'Space Grotesk', sans-serif;
+
+  --easing: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Shared “glass” tokens */
+  --cat-glass-bg: rgba(17, 14, 32, 0.68);
+  --cat-glass-border: rgba(255, 255, 255, 0.12);
+  --cat-mobile-header-height: 58px;
+  --cat-mobile-nav-height: 68px;
+
+  --mobile-nav-height: 68px;
+  --mobile-glass-bg: rgba(17, 14, 32, 0.68);
+  --mobile-glass-border: rgba(255, 255, 255, 0.12);
+
+  /* ========================================
      ОСНОВНЫЕ ЦВЕТА
      ======================================== */
   

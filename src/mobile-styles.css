@@ -513,18 +513,23 @@
      CHAT BOT АДАПТАЦИЯ
      ======================================== */
   
-  .chatbot-container {
-    width: 100% !important;
-    max-width: 100vw !important;
-    height: 80vh !important;
-    border-radius: 20px 20px 0 0 !important;
-  }
+  /* ChatBot sizing is controlled by the React component (adaptive height). */
   
   /* ========================================
      ИЗОБРАЖЕНИЯ - АДАПТИВНЫЕ
      ======================================== */
   
-  img {
+  /*
+    IMPORTANT:
+    Do NOT apply global img sizing rules, it breaks UI icons (badge/category images)
+    where the component sets explicit sizes.
+  */
+  .intro-content img,
+  .badge-content img,
+  .level-content img,
+  .post-img-box img,
+  .post-image img,
+  .session-image img {
     max-width: 100% !important;
     height: auto !important;
   }
@@ -716,10 +721,7 @@
     height: 70px !important;
   }
   
-  .chatbot-container {
-    width: 90vw !important;
-    max-width: 500px !important;
-  }
+  /* ChatBot sizing is controlled by the React component (adaptive height/position). */
   
   /* ========================================
      КОНТЕЙНЕРЫ КОНТЕНТА ДЛЯ ПЛАНШЕТОВ

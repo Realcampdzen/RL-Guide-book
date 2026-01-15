@@ -7,10 +7,10 @@ interface IntroScreenProps {
 
 const IntroScreen: React.FC<IntroScreenProps> = ({ onLogoClick, onStartClick }) => (
   <div className="intro-screen">
-    <div className="intro-logo" onClick={onLogoClick}>
+    <button type="button" className="intro-logo" onClick={onLogoClick} aria-label="О лагере">
       <img src="/RL-Guide-book/домик_AI.jpg" alt="Логотип" />
       <div className="logo-hover-text">Звёздный Городок 2025</div>
-    </div>
+    </button>
     <div className="intro-content">
       <h1>Путеводитель по Реальному Лагерю</h1>
       <p>

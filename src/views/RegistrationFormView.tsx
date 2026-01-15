@@ -1,4 +1,5 @@
 import React from 'react';
+import '../styles/registration-form.css';
 
 interface RegistrationFormData {
   childName: string;
@@ -19,17 +20,23 @@ interface RegistrationFormViewProps {
 const RegistrationFormView: React.FC<RegistrationFormViewProps> = ({ formData, onBack, onChange, onSubmit }) => {
   const disabled = !formData.childName || !formData.parentName || !formData.phone || !formData.childAge;
   return (
-    <div className="registration-form-screen">
-      <div className="header">
-        <button onClick={onBack} className="back-button">← Назад к введению</button>
-        <h1 className="app-title">Запись в лагерь</h1>
-      </div>
-      <div className="registration-form-content">
-        <div className="form-container">
-          <h2>Заполните анкету</h2>
+    <div className="registration-form-view">
+      <header className="registration-form-topbar" aria-label="Навигация">
+        <div className="registration-form-topbar-inner">
+          <button type="button" onClick={onBack} className="registration-form-back">
+            <span aria-hidden="true">←</span>
+            <span>Назад</span>
+          </button>
+          <h1 className="registration-form-title">🎪 Запись в лагерь</h1>
+        </div>
+      </header>
+
+      <main className="registration-form-content">
+        <section className="registration-form-card">
+          <h2>📝 Заполните анкету</h2>
           <p>Мы свяжемся с вами в ближайшее время.</p>
 
-          <div className="form-group">
+          <div className="rf-group">
             <label>Имя ребёнка *</label>
             <input
               type="text"
@@ -40,7 +47,7 @@ const RegistrationFormView: React.FC<RegistrationFormViewProps> = ({ formData, o
             />
           </div>
 
-          <div className="form-group">
+          <div className="rf-group">
             <label>Имя и фамилия родителя *</label>
             <input
               type="text"
@@ -51,7 +58,7 @@ const RegistrationFormView: React.FC<RegistrationFormViewProps> = ({ formData, o
             />
           </div>
 
-          <div className="form-group">
+          <div className="rf-group">
             <label>Телефон *</label>
             <input
               type="tel"
@@ -62,7 +69,7 @@ const RegistrationFormView: React.FC<RegistrationFormViewProps> = ({ formData, o
             />
           </div>
 
-          <div className="form-group">
+          <div className="rf-group">
             <label>Email</label>
             <input
               type="email"
@@ -72,7 +79,7 @@ const RegistrationFormView: React.FC<RegistrationFormViewProps> = ({ formData, o
             />
           </div>
 
-          <div className="form-group">
+          <div className="rf-group">
             <label>Возраст ребёнка *</label>
             <input
               type="number"
@@ -84,7 +91,7 @@ const RegistrationFormView: React.FC<RegistrationFormViewProps> = ({ formData, o
             />
           </div>
 
-          <div className="form-group">
+          <div className="rf-group">
             <label>Пожелания</label>
             <textarea
               value={formData.specialRequests}
@@ -94,11 +101,11 @@ const RegistrationFormView: React.FC<RegistrationFormViewProps> = ({ formData, o
             />
           </div>
 
-          <button className="submit-button" onClick={onSubmit} disabled={disabled}>
-            Отправить в Telegram
+          <button type="button" className="rf-submit" onClick={onSubmit} disabled={disabled}>
+            🚀 Отправить в Telegram
           </button>
-        </div>
-      </div>
+        </section>
+      </main>
     </div>
   );
 };

@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { rafThrottle } from '../utils/rafThrottle';
 
 interface ChatButtonProps {
   onClick: () => void;
@@ -51,24 +52,24 @@ const ChatButton: React.FC<ChatButtonProps> = ({ onClick, isOpen = false, classN
       return;
     }
 
-    const updateViewport = () => {
+    const updateViewport = rafThrottle(() => {
       setViewport(getViewportState());
-    };
+    });
 
     updateViewport();
 
-    window.addEventListener('resize', updateViewport);
-    window.addEventListener('orientationchange', updateViewport);
+    window.addEventListener('resize', updateViewport, { passive: true } as AddEventListenerOptions);
+    window.addEventListener('orientationchange', updateViewport, { passive: true } as AddEventListenerOptions);
 
     const visualViewport = window.visualViewport;
-    visualViewport?.addEventListener('resize', updateViewport);
-    visualViewport?.addEventListener('scroll', updateViewport);
+    visualViewport?.addEventListener('resize', updateViewport, { passive: true } as AddEventListenerOptions);
+    visualViewport?.addEventListener('scroll', updateViewport, { passive: true } as AddEventListenerOptions);
 
     return () => {
-      window.removeEventListener('resize', updateViewport);
-      window.removeEventListener('orientationchange', updateViewport);
-      visualViewport?.removeEventListener('resize', updateViewport);
-      visualViewport?.removeEventListener('scroll', updateViewport);
+      window.removeEventListener('resize', updateViewport as unknown as EventListener);
+      window.removeEventListener('orientationchange', updateViewport as unknown as EventListener);
+      visualViewport?.removeEventListener('resize', updateViewport as unknown as EventListener);
+      visualViewport?.removeEventListener('scroll', updateViewport as unknown as EventListener);
     };
   }, []);
 
@@ -99,9 +100,6 @@ const ChatButton: React.FC<ChatButtonProps> = ({ onClick, isOpen = false, classN
     const handleWheel = () => markScrolling();
     // На мобильных устройствах не отслеживаем touchmove для улучшения производительности свайпа
     const handleTouchMove = isMobile ? undefined : () => {
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/96284863-607a-4bc5-9cb2-27956a8c59cf',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ChatButton.tsx:92',message:'touchmove event fired',data:{isMobile,timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'}})}).catch(()=>{});
-      // #endregion
       markScrolling();
     };
 

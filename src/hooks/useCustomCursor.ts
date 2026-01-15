@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { rafThrottle } from '../utils/rafThrottle';
 
 export const useCustomCursor = () => {
   const cursorDotRef = useRef<HTMLDivElement>(null);
@@ -369,11 +370,12 @@ export const useCustomCursor = () => {
       animationFrameRef.current = requestAnimationFrame(updateCursor);
     };
 
-    window.addEventListener('mousemove', handleMouseMove);
+    const handleMouseMoveRaf = rafThrottle(handleMouseMove);
+    window.addEventListener('mousemove', handleMouseMoveRaf, { passive: true } as AddEventListenerOptions);
     updateCursor();
 
     return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mousemove', handleMouseMoveRaf as unknown as EventListener);
       if (animationFrameRef.current !== null) {
         cancelAnimationFrame(animationFrameRef.current);
       }

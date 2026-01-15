@@ -1,4 +1,5 @@
 import React from 'react';
+import '../styles/additional-material.css';
 
 interface AdditionalMaterialViewProps {
   title: string;
@@ -7,14 +8,20 @@ interface AdditionalMaterialViewProps {
 }
 
 const AdditionalMaterialView: React.FC<AdditionalMaterialViewProps> = ({ title, contentHtml, onBack }) => (
-  <div className="additional-material-screen">
-    <div className="header">
-      <button onClick={onBack} className="back-button">← Назад к категории</button>
-      <h1 className="app-title">{title}</h1>
-    </div>
-    <div className="additional-material-content">
-      <div className="additional-material-text" dangerouslySetInnerHTML={{ __html: contentHtml }} />
-    </div>
+  <div className="additional-material-view">
+    <header className="additional-material-topbar" aria-label="Навигация">
+      <div className="additional-material-topbar-inner">
+        <button type="button" onClick={onBack} className="additional-material-back">
+          <span aria-hidden="true">←</span>
+          <span>Назад</span>
+        </button>
+        <h1 className="additional-material-title">{title}</h1>
+      </div>
+    </header>
+
+    <main className="additional-material-content">
+      <article className="additional-material-prose" dangerouslySetInnerHTML={{ __html: contentHtml }} />
+    </main>
   </div>
 );
 

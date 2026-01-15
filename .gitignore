@@ -1,6 +1,7 @@
 # Dependencies
 node_modules/
 __pycache__/
+.mypy_cache/
 *.pyc
 *.pyo
 *.pyd
@@ -98,6 +99,9 @@ dist
 # Gatsby files
 .cache/
 # public - commented out to allow images for GitHub Pages
+
+# Local backup copies
+public — копия/
 
 # Storybook build outputs
 .out

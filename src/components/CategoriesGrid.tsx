@@ -2,6 +2,7 @@ import React, { Suspense, useEffect, useMemo, useState } from 'react';
 import type { Category, View } from '../types/guide';
 import { useCustomCursor } from '../hooks/useCustomCursor';
 import '../styles/categories.css';
+import { toSiblingImageUrl } from '../utils/imageSources';
 
 const loadChatBot = () => import('./ChatBot');
 const loadChatAvatar = () => import('./ChatAvatar');
@@ -11,6 +12,7 @@ const ChatAvatar = React.lazy(loadChatAvatar);
 interface CategoriesGridProps {
   categories: Category[];
   onCategoryClick: (category: Category, options?: { origin?: View }) => void;
+  onCategoryPrefetch?: (categoryId: string) => void;
   onBackClick: () => void;
   onAboutCampClick: () => void;
   onTelegramContact: () => void;
@@ -41,6 +43,7 @@ const getCategoryImagePath = (categoryId: string): string => {
 const CategoriesGrid: React.FC<CategoriesGridProps> = ({
   categories,
   onCategoryClick,
+  onCategoryPrefetch,
   onBackClick,
   onAboutCampClick,
   onTelegramContact,
@@ -55,12 +58,16 @@ const CategoriesGrid: React.FC<CategoriesGridProps> = ({
 }) => {
   const { cursorDotRef, cursorOutlineRef, cursorReactorRef } = useCustomCursor();
   const [imageErrors, setImageErrors] = useState<Set<string>>(new Set());
-  const [, setImageLoaded] = useState<Set<string>>(new Set());
   const [isMobile, setIsMobile] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [imageKey, setImageKey] = useState(0);
 
   const limitedCategories = useMemo(() => categories.slice(0, 14), [categories]);
+  const categoryIndexById = useMemo(() => {
+    const m = new Map<string, number>();
+    limitedCategories.forEach((c, i) => m.set(c.id, i));
+    return m;
+  }, [limitedCategories]);
   // Первые 7 категорий идут в right-column (верхний ряд)
   const topRowCategories = useMemo(() => limitedCategories.slice(0, 7), [limitedCategories]);
   // Последние 7 категорий идут в bottom-row (нижний ряд)
@@ -114,32 +121,6 @@ const CategoriesGrid: React.FC<CategoriesGridProps> = ({
     window.open('https://vk.com/realcampspb', '_blank', 'noopener,noreferrer');
   };
 
-  // Предзагрузка изображений категорий
-  useEffect(() => {
-    if (!limitedCategories || limitedCategories.length === 0) return;
-    
-    const preloadImages = () => {
-      limitedCategories.forEach((category) => {
-        const imagePath = getCategoryImagePath(category.id);
-        const img = new Image();
-        img.onload = () => {
-          setImageLoaded((prev) => new Set(prev).add(category.id));
-          setImageErrors((prev) => {
-            const newSet = new Set(prev);
-            newSet.delete(category.id);
-            return newSet;
-          });
-        };
-        img.onerror = () => {
-          console.error('Failed to preload image for category:', category.id, imagePath);
-          setImageErrors((prev) => new Set(prev).add(category.id));
-        };
-        img.src = imagePath;
-      });
-    };
-    preloadImages();
-  }, [limitedCategories]);
-
   const handleImageError = (categoryId: string) => {
     console.error('Image error for category:', categoryId);
     setImageErrors((prev) => new Set(prev).add(categoryId));
@@ -147,63 +128,79 @@ const CategoriesGrid: React.FC<CategoriesGridProps> = ({
 
   const renderCategoryCard = (category: Category) => {
     const imagePath = getCategoryImagePath(category.id);
+    const imageWebp = toSiblingImageUrl(imagePath, 'webp');
     const hasImageError = imageErrors.has(category.id);
+    const cardIndex = categoryIndexById.get(category.id) ?? 999;
+    const isHighPriorityImage = cardIndex >= 0 && cardIndex < 4;
     // Показываем emoji только если есть ошибка загрузки, иначе показываем изображение
     const showEmoji = hasImageError;
 
     return (
-      <div
+      <button
+        type="button"
         key={category.id}
         className="card item-card"
         onClick={() => {
-          // #region agent log
-          fetch('http://127.0.0.1:7242/ingest/96284863-607a-4bc5-9cb2-27956a8c59cf',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'CategoriesGrid.tsx:152',message:'Category card click',data:{categoryId:category.id,categoryTitle:category.title,isMobile,timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A,C,F'}})}).catch(()=>{});
-          // #endregion
-          console.log('Category clicked:', category.id, category.title);
           onCategoryClick(category);
         }}
-        onTouchStart={(e) => {
-          // #region agent log
-          fetch('http://127.0.0.1:7242/ingest/96284863-607a-4bc5-9cb2-27956a8c59cf',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'CategoriesGrid.tsx:159',message:'Category card touchstart',data:{categoryId:category.id,touches:e.touches.length,timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A,C'}})}).catch(()=>{});
-          // #endregion
+        onMouseEnter={() => {
+          if (!isMobile) {
+            onCategoryPrefetch?.(category.id);
+          }
         }}
-        onTouchMove={(e) => {
-          // #region agent log
-          fetch('http://127.0.0.1:7242/ingest/96284863-607a-4bc5-9cb2-27956a8c59cf',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'CategoriesGrid.tsx:165',message:'Category card touchmove',data:{categoryId:category.id,touches:e.touches.length,timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'}})}).catch(()=>{});
-          // #endregion
+        onFocus={() => {
+          if (!isMobile) {
+            onCategoryPrefetch?.(category.id);
+          }
+        }}
+        onTouchStart={() => {
+          // Touch start handled
+        }}
+        onTouchMove={() => {
+          // Touch move handled
         }}
         style={{
-          backgroundImage: showEmoji ? 'none' : `url('${imagePath}')`,
           backgroundColor: showEmoji ? '#F8F7F2' : undefined,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
           cursor: 'pointer',
+          position: 'relative',
+          overflow: 'hidden',
+          border: 'none', // Reset button border
+          padding: 0,     // Reset button padding (handled by CSS class)
+          textAlign: 'left', // Ensure text alignment
+          fontFamily: 'inherit',
+          width: '100%' // Ensure full width
         }}
       >
         {showEmoji && (
-          <div className="icon-circle" style={{ display: 'flex' }}>
+          <div className="icon-circle" style={{ display: 'flex', zIndex: 2, position: 'relative' }}>
             {category.emoji || '📁'}
           </div>
         )}
-        <img
-          src={imagePath}
-          alt={category.title || 'Категория'}
-          className="category-image"
-          onError={() => {
-            console.error('Image load error for category:', category.id, imagePath);
-            handleImageError(category.id);
-          }}
-          onLoad={() => {
-            // Убеждаемся, что изображение загружено
-            setImageErrors((prev) => {
-              const newSet = new Set(prev);
-              newSet.delete(category.id);
-              return newSet;
-            });
-          }}
-          style={{ display: 'none' }}
-        />
+        {!showEmoji && (
+          <picture>
+            {imageWebp && <source type="image/webp" srcSet={imageWebp} />}
+            <img
+              src={imagePath}
+              alt={category.title || 'Категория'}
+              className="category-image"
+              loading={isHighPriorityImage ? 'eager' : 'lazy'}
+              decoding="async"
+              fetchPriority={isHighPriorityImage ? 'high' : 'auto'}
+              onError={() => {
+                console.error('Image load error for category:', category.id, imagePath);
+                handleImageError(category.id);
+              }}
+              onLoad={() => {
+                // Убеждаемся, что изображение загружено
+                setImageErrors((prev) => {
+                  const newSet = new Set(prev);
+                  newSet.delete(category.id);
+                  return newSet;
+                });
+              }}
+            />
+          </picture>
+        )}
         <div className="card-label">
           <h3
             dangerouslySetInnerHTML={{
@@ -212,7 +209,7 @@ const CategoriesGrid: React.FC<CategoriesGridProps> = ({
           />
           <p>{category.badge_count || 0} значков</p>
         </div>
-      </div>
+      </button>
     );
   };
 
@@ -255,7 +252,10 @@ const CategoriesGrid: React.FC<CategoriesGridProps> = ({
             aria-label={isChatOpen ? 'Закрыть чат' : 'Открыть чат'}
             aria-pressed={isChatOpen}
           >
-            <img src="/RL-Guide-book/Валюша.jpg" alt="НейроВалюша" />
+            <picture>
+              <source type="image/webp" srcSet="/RL-Guide-book/Валюша.webp" />
+              <img src="/RL-Guide-book/Валюша.jpg" alt="НейроВалюша" decoding="async" fetchPriority="high" />
+            </picture>
           </button>
         </div>
       </header>
@@ -322,6 +322,9 @@ const CategoriesGrid: React.FC<CategoriesGridProps> = ({
           key={`house-image-${imageKey}`}
           src={`${import.meta.env.BASE_URL}Gemini_Generated_Image_ct40o9ct40o9ct40.png?v=${imageKey}`}
           alt="Домик"
+          loading="eager"
+          decoding="async"
+          fetchPriority="high"
           style={{
             height: 'auto',
             filter: 'drop-shadow(0 0 15px rgba(255, 140, 66, 0.8)) drop-shadow(0 0 30px rgba(255, 140, 66, 0.6)) drop-shadow(0 0 45px rgba(255, 140, 66, 0.4))',

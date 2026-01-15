@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Badge, Category } from '../types/guide';
 import { readAiDataCache, writeAiDataCache } from '../utils/dataCache';
 import { cleanHtmlContent, markdownToHtml } from '../utils/markdown';
@@ -103,9 +103,7 @@ const chunk = <T,>(items: T[], size: number): T[][] => {
 };
 
 const fetchJson = async <T,>(url: string): Promise<T> => {
-  // Append timestamp to prevent caching
-  const urlWithTs = `${url}${url.includes('?') ? '&' : '?'}t=${Date.now()}`;
-  const res = await fetch(urlWithTs);
+  const res = await fetch(url);
   if (!res.ok) {
     throw new Error(`Failed to fetch ${url}: ${res.status}`);
   }
@@ -114,6 +112,12 @@ const fetchJson = async <T,>(url: string): Promise<T> => {
 
 const getDataVersion = (master: MasterIndex): string => {
   return master.version || master.lastUpdated || 'unknown';
+};
+
+const baseBadgeIdFrom = (id: string): string => {
+  const parts = String(id || '').split('.');
+  if (parts.length >= 2) return `${parts[0]}.${parts[1]}`;
+  return String(id || '');
 };
 
 const buildBadgeEntries = (aiCategory: MasterCategory, aiBadge: AiBadge): Badge[] => {
@@ -168,6 +172,24 @@ export const useDataLoader = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [badges, setBadges] = useState<Badge[]>([]);
   const [loading, setLoading] = useState(true);
+  const [categoryBadgeLoadState, setCategoryBadgeLoadState] = useState<
+    Record<string, 'idle' | 'loading' | 'loaded' | 'error'>
+  >({});
+  const [categoryBadgeLoadError, setCategoryBadgeLoadError] = useState<Record<string, string | undefined>>({});
+
+  const masterRef = useRef<MasterIndex | null>(null);
+  const versionRef = useRef<string>('unknown');
+  const inflightControllersRef = useRef<Map<string, AbortController>>(new Map());
+
+  // Master-derived map (categoryId -> path). We keep it in a ref-derived memo so it stays stable
+  // after master is loaded, without needing to load all category indexes on startup.
+  const categoryPathById = useMemo(() => {
+    const master = masterRef.current;
+    const map = new Map<string, string>();
+    if (!master) return map;
+    master.categories.forEach((c) => map.set(c.id, c.path));
+    return map;
+  }, [categories.length]);
 
   const loadCategoryIntroduction = useCallback(async (categoryId: string) => {
     try {
@@ -183,43 +205,158 @@ export const useDataLoader = () => {
     }
   }, []);
 
+  const mergeBadges = useCallback((incoming: Badge[]) => {
+    if (!incoming.length) return;
+    setBadges((prev) => {
+      const seen = new Set(prev.map((b) => b.id));
+      const merged = prev.slice();
+      for (const b of incoming) {
+        if (seen.has(b.id)) continue;
+        merged.push(b);
+        seen.add(b.id);
+      }
+      return merged;
+    });
+  }, []);
+
+  const ensureCategoryBadgesLoaded = useCallback(async (categoryId: string): Promise<void> => {
+    // Don't refetch if already loading/loaded
+    const cur = categoryBadgeLoadState[categoryId];
+    if (cur === 'loading' || cur === 'loaded') return;
+
+    setCategoryBadgeLoadState((prev) => ({ ...prev, [categoryId]: 'loading' }));
+
+    const master = masterRef.current;
+    const path = categoryPathById.get(categoryId);
+    if (!master || !path) {
+      setCategoryBadgeLoadState((prev) => ({ ...prev, [categoryId]: 'error' }));
+      return;
+    }
+
+    const requestKey = `cat:${categoryId}`;
+    if (inflightControllersRef.current.has(requestKey)) return;
+    const ctrl = new AbortController();
+    inflightControllersRef.current.set(requestKey, ctrl);
+
+    try {
+      const aiCategory = master.categories.find((c) => c.id === categoryId);
+      if (!aiCategory) throw new Error(`Unknown category ${categoryId}`);
+
+      const catIndex = await fetchJson<CategoryIndex>(CATEGORY_INDEX_URL(path));
+      const badgeIds = (catIndex.badgesData || []).map((b) => b.id).filter(Boolean);
+
+      // update category metadata (badge count + materials)
+      const badgeCount = badgeIds.length || aiCategory.badges || 0;
+      setCategories((prev) =>
+        prev.map((c) =>
+          c.id === categoryId
+            ? {
+                ...c,
+                badge_count: badgeCount,
+                expected_badges: badgeCount,
+                additional_materials: catIndex.additional_materials,
+              }
+            : c
+        )
+      );
+
+      const allEntries: Badge[] = [];
+      const batches = chunk(badgeIds, 20);
+      for (const batch of batches) {
+        const results = await Promise.all(
+          batch.map(async (badgeBaseId) => {
+            try {
+              const res = await fetch(BADGE_URL(path, badgeBaseId), { signal: ctrl.signal });
+              if (!res.ok) throw new Error(`Failed to fetch ${badgeBaseId}: ${res.status}`);
+              const aiBadge = (await res.json()) as AiBadge;
+              return buildBadgeEntries(aiCategory, aiBadge);
+            } catch (e) {
+              if ((e as any)?.name !== 'AbortError') {
+                console.error('App: failed to load badge data', path, badgeBaseId, e);
+              }
+              return null;
+            }
+          })
+        );
+        results.forEach((r) => {
+          if (!r) return;
+          allEntries.push(...r);
+        });
+      }
+
+      mergeBadges(allEntries);
+      writeAiDataCache(versionRef.current, { categories, badges: [...badges, ...allEntries] });
+
+      setCategoryBadgeLoadState((prev) => ({ ...prev, [categoryId]: 'loaded' }));
+      setCategoryBadgeLoadError((prev) => ({ ...prev, [categoryId]: undefined }));
+    } catch (e) {
+      if ((e as any)?.name !== 'AbortError') {
+        console.error('App: Error loading category badges', categoryId, e);
+      }
+      setCategoryBadgeLoadError((prev) => ({ ...prev, [categoryId]: (e as Error)?.message || String(e) }));
+      setCategoryBadgeLoadState((prev) => ({ ...prev, [categoryId]: 'error' }));
+    } finally {
+      inflightControllersRef.current.delete(requestKey);
+    }
+  }, [badges, categories, categoryBadgeLoadState, categoryPathById, mergeBadges]);
+
+  const ensureBadgeLoaded = useCallback(async (badgeId: string): Promise<Badge[] | null> => {
+    const master = masterRef.current;
+    if (!master) return null;
+    const categoryId = String(badgeId || '').split('.')[0];
+    const path = categoryPathById.get(categoryId);
+    if (!path) return null;
+
+    const baseId = baseBadgeIdFrom(badgeId);
+    const requestKey = `badge:${categoryId}:${baseId}`;
+    if (inflightControllersRef.current.has(requestKey)) return null;
+    const ctrl = new AbortController();
+    inflightControllersRef.current.set(requestKey, ctrl);
+
+    try {
+      const aiCategory = master.categories.find((c) => c.id === categoryId);
+      if (!aiCategory) return null;
+
+      const res = await fetch(BADGE_URL(path, baseId), { signal: ctrl.signal });
+      if (!res.ok) throw new Error(`Failed to fetch ${baseId}: ${res.status}`);
+      const aiBadge = (await res.json()) as AiBadge;
+      const entries = buildBadgeEntries(aiCategory, aiBadge);
+      mergeBadges(entries);
+      writeAiDataCache(versionRef.current, { categories, badges: [...badges, ...entries] });
+      return entries;
+    } catch (e) {
+      if ((e as any)?.name !== 'AbortError') {
+        console.error('App: failed to load badge data', path, baseId, e);
+      }
+      return null;
+    } finally {
+      inflightControllersRef.current.delete(requestKey);
+    }
+  }, [badges, categories, categoryPathById, mergeBadges]);
+
   const loadDataFromAi = useCallback(async () => {
     try {
-      console.log('App: Loading AI data...');
       setLoading(true);
 
       const master = await fetchJson<MasterIndex>(MASTER_URL);
       const version = getDataVersion(master);
+      masterRef.current = master;
+      versionRef.current = version;
       const cached = readAiDataCache(version);
       if (cached) {
         setCategories(cached.categories);
         setBadges(cached.badges);
-        console.log('App: Loaded AI data from cache', cached.categories.length, cached.badges.length);
+        if (cached.loadedCategoryIds?.length) {
+          const st: Record<string, 'loaded'> = {};
+          cached.loadedCategoryIds.forEach((id) => (st[id] = 'loaded'));
+          setCategoryBadgeLoadState(st);
+        }
         return;
       }
 
-      const categoryEntries = await Promise.all(
-        master.categories.map(async (aiCategory) => {
-          try {
-            const catIndex = await fetchJson<CategoryIndex>(CATEGORY_INDEX_URL(aiCategory.path));
-            return { aiCategory, catIndex };
-          } catch (error) {
-            console.error('App: failed to load category index', aiCategory.path, error);
-            return null;
-          }
-        })
-      );
-
       const categoriesData: Category[] = [];
-      const badgeRequests: Array<{ aiCategory: MasterCategory; badgeId: string }> = [];
-
-      categoryEntries.forEach((entry) => {
-        if (!entry) return;
-        const { aiCategory, catIndex } = entry;
-
-        // Правильно считаем количество значков из badgesData или из поля badges
-        const badgeCount = (catIndex.badgesData || []).length || aiCategory.badges || 0;
-        
+      master.categories.forEach((aiCategory) => {
+        const badgeCount = aiCategory.badges || 0;
         categoriesData.push({
           id: aiCategory.id,
           title: aiCategory.title,
@@ -227,49 +364,13 @@ export const useDataLoader = () => {
           badge_count: badgeCount,
           expected_badges: badgeCount,
           introduction: { has_introduction: true, html: '', markdown: '' },
-          additional_materials: catIndex.additional_materials,
-        });
-
-        (catIndex.badgesData || []).forEach((badgeIndex) => {
-          badgeRequests.push({ aiCategory, badgeId: badgeIndex.id });
-          // Отладочное логирование для значка 1.15
-          if (badgeIndex.id === '1.15') {
-            console.log('useDataLoader: Added badge request for 1.15');
-          }
+          additional_materials: undefined,
         });
       });
 
-      const badgesData: Badge[] = [];
-      const batches = chunk(badgeRequests, 20);
-
-      for (const batch of batches) {
-        const results = await Promise.all(
-          batch.map(async ({ aiCategory, badgeId }) => {
-            try {
-              const aiBadge = await fetchJson<AiBadge>(BADGE_URL(aiCategory.path, badgeId));
-              return { aiCategory, aiBadge };
-            } catch (error) {
-              console.error('App: failed to load badge data', aiCategory.path, badgeId, error);
-              return null;
-            }
-          })
-        );
-
-        results.forEach((result) => {
-          if (!result) return;
-          const entries = buildBadgeEntries(result.aiCategory, result.aiBadge);
-          // Отладочное логирование для значка 1.15
-          if (result.aiBadge.id === '1.15') {
-            console.log('useDataLoader: Built badge entries for 1.15:', entries);
-          }
-          badgesData.push(...entries);
-        });
-      }
-
       setCategories(categoriesData);
-      setBadges(badgesData);
-      writeAiDataCache(version, { categories: categoriesData, badges: badgesData });
-      console.log('App: AI data loaded:', categoriesData.length, 'categories,', badgesData.length, 'badges');
+      setBadges([]);
+      writeAiDataCache(version, { categories: categoriesData, badges: [] });
     } catch (e) {
       console.error('App: Error loading AI data', e);
     } finally {
@@ -287,5 +388,9 @@ export const useDataLoader = () => {
     loading,
     reload: loadDataFromAi,
     loadCategoryIntroduction,
+    ensureCategoryBadgesLoaded,
+    ensureBadgeLoaded,
+    categoryBadgeLoadState,
+    categoryBadgeLoadError,
   };
 };

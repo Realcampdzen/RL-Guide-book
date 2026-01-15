@@ -31,6 +31,10 @@ a, button, .badge-card, .category-card, .clickable, .hover-target {
   flex-direction: column;
   align-items: flex-start;
   transition: all 0.3s ease;
+  border: none;
+  padding: 0;
+  background: transparent;
+  font: inherit;
 }
 
 /* Адаптивное позиционирование логотипа */

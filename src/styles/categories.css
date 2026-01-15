@@ -4,25 +4,7 @@
         ========================================
         */
         :root {
-            --c-midnight: #0f0a1f;
-            --c-deep-blue: #1a0f2e;
-            --c-electric-blue: #8b00ff;
-            --c-volt: #6a0dad;
-            --c-stark: #f4efe4;
-            --c-warm: #8b00ff; /* Purple for cursor effects */
-            --c-smoke: #f4efe41a;
-            --c-volt-glow: rgba(139, 0, 255, 0.35);
-            --c-aurora: rgba(139, 0, 255, 0.25);
-
-            --f-display: 'Syne', sans-serif;
-            --f-display-nav: 'Syne', 'Montserrat', sans-serif;
-            --f-body: 'Space Grotesk', sans-serif;
-
-            --easing: cubic-bezier(0.16, 1, 0.3, 1);
-            --cat-glass-bg: rgba(17, 14, 32, 0.68);
-            --cat-glass-border: rgba(255, 255, 255, 0.12);
-            --cat-mobile-header-height: 58px;
-            --cat-mobile-nav-height: 68px;
+            /* Keep only screen-specific tokens here; core Bluenest variables live in src/style-variables.css */
         }
 
         *, *::before, *::after {
@@ -46,12 +28,19 @@
             z-index: 999;
         }
 
-        html {
+        /* IMPORTANT: do not style global html/body here (this file is loaded globally in the SPA).
+           Scope page-level background/scroll to the CategoriesGrid root container instead. */
+        .categories-page {
             scroll-behavior: smooth;
-            background: linear-gradient(135deg, #0f0a1f 0%, #1a0f2e 50%, #2a1a3d 100%);
+            /* Create a stacking context for the fixed background layer */
+            position: relative;
+            isolation: isolate;
+            /* Stable non-white fill to avoid flashes; image backgrounds are on ::before */
+            background-color: #0f0a1f;
             color: var(--c-stark);
             cursor: none;
             overflow-x: hidden;
+            min-height: 100vh;
         }
         
         /* Show default cursor on touch devices */
@@ -64,21 +53,48 @@
             }
         }
 
-        body {
+        @media (prefers-reduced-motion: reduce) {
+            .categories-page {
+                scroll-behavior: auto !important;
+            }
+
+            .reveal-active {
+                transition: none !important;
+            }
+        }
+
+        .categories-page {
             font-family: var(--f-body);
             line-height: 1.5;
             -webkit-font-smoothing: antialiased;
-            overflow: hidden;
-            background: 
+            overflow-x: hidden;
+            overflow-y: auto;
+            width: 100%;
+        }
+
+        /* Fixed background layer to prevent white flashes during fast scroll/compositing */
+        .categories-page::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: -1;
+            background:
                 linear-gradient(135deg, rgba(15, 10, 31, 0.6) 0%, rgba(26, 15, 46, 0.55) 50%, rgba(42, 26, 61, 0.5) 100%),
                 url('/RL-Guide-book/экран 2 фон.png') center top / 150% calc(100vh + 5vh) no-repeat;
             background-color: #0f0a1f;
-            height: 100vh;
-            width: 100vw;
-            position: fixed;
-            padding: 0;
-            margin: 0;
-            box-sizing: border-box;
+        }
+
+        @supports (background-image: image-set(url('/RL-Guide-book/экран 2 фон.webp') type('image/webp'))) {
+            .categories-page::before {
+                background:
+                    linear-gradient(135deg, rgba(15, 10, 31, 0.6) 0%, rgba(26, 15, 46, 0.55) 50%, rgba(42, 26, 61, 0.5) 100%),
+                    image-set(
+                        url('/RL-Guide-book/экран 2 фон.webp') type('image/webp'),
+                        url('/RL-Guide-book/экран 2 фон.png') type('image/png')
+                    ) center top / 150% calc(100vh + 5vh) no-repeat;
+                background-color: #0f0a1f;
+            }
         }
 
         /* Navigation Miniature */
@@ -126,6 +142,14 @@
             opacity: 0;
             visibility: hidden;
             display: none !important; /* Скрываем всплывающую надпись */
+        }
+
+        /* Fallback for browsers without -webkit-text-stroke (e.g., Firefox): avoid invisible text */
+        @supports not (-webkit-text-stroke: 1px black) {
+            .nav-link-left {
+                color: var(--c-stark);
+                -webkit-text-stroke: 0;
+            }
         }
 
         .nav-image-container:hover ~ .nav-link-left {
@@ -640,7 +664,7 @@
 
         /* Card Styles */
         .card {
-            background-color: #F8F7F2;
+            background-color: var(--c-midnight); /* Changed from #F8F7F2 to dark background to hide gaps if any */
             border-radius: 6px;
             padding: 3px;
             display: flex;
@@ -658,7 +682,7 @@
         }
 
         .card:hover {
-            transform: translateY(-5px);
+            transform: translateY(-4px);
             box-shadow: 0 8px 25px rgba(0,0,0,0.4);
         }
 
@@ -723,27 +747,18 @@
                 0 0 14px rgba(255, 105, 0, 0.45);
         }
 
-        /* Overlay for better text readability - only at bottom */
+        /* No separate dark overlay under labels (match prod) */
         .item-card::before {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 40%;
-            background: linear-gradient(
-                to top,
-                rgba(0, 0, 0, 0.75) 0%,
-                rgba(0, 0, 0, 0.5) 50%,
-                rgba(0, 0, 0, 0) 100%
-            );
-            z-index: 1;
-            pointer-events: none;
+            content: none;
+            display: none;
         }
 
         /* Text container at bottom */
         .item-card .card-label {
-            position: relative;
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
             z-index: 2;
             width: 100%;
             padding: 6px 8px 8px 8px;
@@ -751,10 +766,12 @@
             flex-direction: column;
             gap: 2px;
             align-items: flex-start;
+            background: transparent;
         }
 
-        /* Ensure text and content are above overlay */
-        .item-card > *:not(.card-label) {
+        /* Ensure text/content are above overlays, but DO NOT affect the cover image.
+           IMPORTANT: category image is wrapped in <picture>, so exclude it too. */
+        .item-card > *:not(.card-label):not(.category-image):not(picture) {
             position: relative;
             z-index: 2;
         }
@@ -976,6 +993,17 @@
                 0 0 24px rgba(139, 0, 255, 0.25);
         }
 
+        @supports (background-image: image-set(url('/RL-Guide-book/pattern_stickers.webp') type('image/webp'))) {
+            .hero-marquee-mini {
+                background:
+                    linear-gradient(135deg, rgba(10, 6, 18, 0.6) 0%, rgba(10, 6, 18, 0.5) 100%),
+                    image-set(
+                        url('/RL-Guide-book/pattern_stickers.webp') type('image/webp'),
+                        url('/RL-Guide-book/pattern_stickers.jpg') type('image/jpeg')
+                    ) center / cover no-repeat;
+            }
+        }
+
         .marquee-track-mini {
             display: flex;
             white-space: nowrap;
@@ -1084,14 +1112,7 @@
         }
         
         .right-column .item-card::before {
-            bottom: 0;
-            top: auto;
-            background: linear-gradient(
-                to top,
-                rgba(0, 0, 0, 0.75) 0%,
-                rgba(0, 0, 0, 0.5) 50%,
-                rgba(0, 0, 0, 0) 100%
-            );
+            display: none;
         }
 
         /* Bottom row container */
@@ -1131,14 +1152,7 @@
         }
         
         .bottom-row .item-card::before {
-            bottom: 0;
-            top: auto;
-            background: linear-gradient(
-                to top,
-                rgba(0, 0, 0, 0.75) 0%,
-                rgba(0, 0, 0, 0.5) 50%,
-                rgba(0, 0, 0, 0) 100%
-            );
+            display: none;
         }
 
         /* Remove bottom padding and adjust border-radius for bottom row cards */
@@ -1191,25 +1205,45 @@
         }
 
         .category-image {
-            display: none; /* Hide image element, using background instead */
+            display: block !important;
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover !important;
+            position: absolute;
+            top: 0;
+            left: 0;
+            border-radius: inherit;
+            z-index: 0;
+            transform: translateZ(0);
+            transition: transform 0.25s var(--easing);
+        }
+
+        /* When using <picture>, ensure it fills the card so the absolutely-positioned img has a real box */
+        .item-card picture {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            display: block;
+            z-index: 0;
         }
 
         .item-card:hover .icon-circle {
-            transform: scale(1.1);
+            transform: scale(1.06);
         }
 
         .item-card:hover .category-image {
-            transform: scale(1.05);
+            transform: scale(1.03);
         }
 
         /* Specific styles for right column images */
         .right-column .item-card .category-image {
-            max-height: 60%;
+            /* max-height removed to allow full cover */
         }
 
         /* Specific styles for bottom row images */
         .bottom-row .item-card .category-image {
-            max-height: 55%;
+            /* max-height removed to allow full cover */
         }
 
         /* Responsive Design */
@@ -1228,10 +1262,7 @@
         }
 
         @media (max-width: 768px) {
-            body {
-                padding: 0;
-                overflow-y: auto;
-            }
+            /* Do not touch global body in SPA; CategoriesGrid scroll is handled by .categories-page */
 
             .mobile-glass-header,
             .mobile-bottom-nav,
@@ -1427,10 +1458,7 @@
         }
 
         @media (max-width: 1024px) and (min-width: 769px) {
-            body {
-                padding: 0;
-                overflow: hidden;
-            }
+            /* Do not touch global body in SPA */
             
             .grid-container {
                 height: 100vh !important;
@@ -1744,4 +1772,25 @@
         max-width: 520px;
         min-width: 340px;
     }
+}
+
+/* Graceful degradation: if backdrop-filter is unsupported, use a more opaque glass background */
+@supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+    .categories-page .mobile-glass-header,
+    .categories-page .mobile-menu-panel,
+    .categories-page .mobile-bottom-nav {
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        background: rgba(17, 14, 32, 0.92) !important;
+        border-color: rgba(255, 255, 255, 0.14) !important;
+    }
+}
+
+/* Perf-lite: reduce blur/shadows for mobile glass UI on weak devices */
+html[data-perf="lite"] .categories-page .mobile-glass-header,
+html[data-perf="lite"] .categories-page .mobile-menu-panel,
+html[data-perf="lite"] .categories-page .mobile-bottom-nav {
+    backdrop-filter: blur(10px) saturate(1.05);
+    -webkit-backdrop-filter: blur(10px) saturate(1.05);
+    box-shadow: 0 10px 22px rgba(9, 6, 20, 0.48);
 }

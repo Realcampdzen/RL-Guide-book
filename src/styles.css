@@ -11,4 +11,7 @@
 /* Импортируем мобильные стили */
 @import url('./mobile-styles.css');
 
+/* Skeletons / loading placeholders */
+@import url('./styles/skeleton.css');
+
 

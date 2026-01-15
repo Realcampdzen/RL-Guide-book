@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { getBadgeImagePath } from '../utils/badgeImages';
 
 interface BadgeIconProps {
@@ -27,53 +27,29 @@ const BadgeIcon: React.FC<BadgeIconProps> = ({
 }) => {
   const [imageError, setImageError] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
+  const imgRef = useRef<HTMLImageElement | null>(null);
 
   const imagePath = getBadgeImagePath(badgeId, badgeTitle, categoryId, levelId, levelTitle);
 
-  // #region agent log
+  // Reset load/error state when the image source changes.
   useEffect(() => {
-    fetch('http://127.0.0.1:7242/ingest/96284863-607a-4bc5-9cb2-27956a8c59cf',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'BadgeIcon.tsx:31',message:'BadgeIcon imagePath computed',data:{imagePath,badgeId,badgeTitle,categoryId,levelId,levelTitle,hasPath:!!imagePath,timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A,B,C,D'}})}).catch(()=>{});
-  }, [imagePath, badgeId, badgeTitle, categoryId, levelId, levelTitle]);
-  // #endregion
+    setImageError(false);
+    setImageLoaded(false);
+  }, [imagePath]);
 
-  // Проверяем, загружено ли изображение сразу (для кэшированных изображений)
+  // If the image is already in cache, onLoad may not fire reliably in all browsers.
   useEffect(() => {
-    if (imagePath && !imageError && !imageLoaded) {
-      const img = new Image();
-      img.onload = () => {
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/96284863-607a-4bc5-9cb2-27956a8c59cf',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'BadgeIcon.tsx:40',message:'Image preload success',data:{imagePath,badgeId,levelId,imgWidth:img.naturalWidth,imgHeight:img.naturalHeight,timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'}})}).catch(()=>{});
-        // #endregion
-        setImageLoaded(true);
-      };
-      img.onerror = () => {
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/96284863-607a-4bc5-9cb2-27956a8c59cf',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'BadgeIcon.tsx:45',message:'Image preload error',data:{imagePath,badgeId,levelId,error:'preload failed',timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A,B,C,D,E'}})}).catch(()=>{});
-        // #endregion
-        setImageError(true);
-      };
-      img.src = imagePath;
+    const img = imgRef.current;
+    if (!img) return;
+    if (img.complete && img.naturalWidth > 0) {
+      setImageLoaded(true);
     }
-  }, [imagePath, imageError, imageLoaded, badgeId, levelId]);
+  }, [imagePath]);
 
-  // Отладочное логирование для значков 1.2 и 1.4
-  if (badgeId === '1.2' || badgeId === '1.4') {
-    console.log('BadgeIcon debug:', {
-      badgeId,
-      badgeTitle,
-      categoryId,
-      levelId,
-      levelTitle,
-      imagePath,
-      hasPath: !!imagePath
-    });
-  }
+  // Keep UI fast/quiet: no debug logs here.
 
   // Если изображение не найдено или произошла ошибка, показываем эмодзи
   if (!imagePath || imageError) {
-    if ((badgeId === '1.2' || badgeId === '1.4') && !imagePath) {
-      console.warn('BadgeIcon: imagePath is null', { badgeId, categoryId, badgeTitle, levelId, levelTitle });
-    }
     return (
       <div className={`badge-emoji ${className}`} style={{ fontSize: getEmojiSize(size) }}>
         {emoji}
@@ -103,9 +79,11 @@ const BadgeIcon: React.FC<BadgeIconProps> = ({
         </div>
       )}
       <img
+        ref={imgRef}
         src={imagePath}
         alt={levelTitle || badgeTitle}
         className="badge-image"
+        loading="lazy"
         style={{
           display: 'block',
           width: '100%',
@@ -119,20 +97,13 @@ const BadgeIcon: React.FC<BadgeIconProps> = ({
           transition: 'opacity 0.3s ease',
         }}
         onLoad={(e) => {
-          const img = e.currentTarget;
-          console.log('BadgeIcon: image loaded successfully (onLoad)', { 
-            imagePath, 
-            badgeId, 
-            levelId, 
-            imgWidth: img.naturalWidth,
-            imgHeight: img.naturalHeight,
-          });
+          // Guard: if src changes quickly, make sure we mark the current one as loaded.
+          if (e.currentTarget !== imgRef.current) {
+            imgRef.current = e.currentTarget;
+          }
           setImageLoaded(true);
         }}
         onError={(e) => {
-          // #region agent log
-          fetch('http://127.0.0.1:7242/ingest/96284863-607a-4bc5-9cb2-27956a8c59cf',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'BadgeIcon.tsx:120',message:'Image onError event',data:{imagePath,badgeId,levelId,error:'img onError',currentSrc:(e.target as HTMLImageElement)?.currentSrc,timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A,B,C,D,E'}})}).catch(()=>{});
-          // #endregion
           console.error('BadgeIcon: image load error', { imagePath, badgeId, levelId, error: e });
           setImageError(true);
           setImageLoaded(false);

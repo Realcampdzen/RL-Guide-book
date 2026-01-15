@@ -60,6 +60,15 @@
   line-height: 0.9;
 }
 
+/* Fallback for browsers without -webkit-text-stroke (e.g., Firefox): avoid invisible nav text */
+@supports not (-webkit-text-stroke: 1px black) {
+  .nav-link-back,
+  .nav-link {
+    color: var(--c-stark);
+    -webkit-text-stroke: 0;
+  }
+}
+
 .nav-active {
   text-shadow: 
       0 0 4px #ff8c42,
@@ -102,6 +111,33 @@
 .about-camp-container .mobile-glass-header > * {
   position: relative;
   z-index: 1;
+}
+
+/* Graceful degradation: if backdrop-filter is unsupported, use a more opaque glass background */
+@supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+  .about-camp-container .mobile-glass-header,
+  .about-camp-container .mobile-menu-panel,
+  .about-camp-container .mobile-menu-scrim,
+  .about-camp-container .mobile-bottom-nav {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: rgba(17, 14, 32, 0.92) !important;
+    border-color: rgba(255, 255, 255, 0.14) !important;
+  }
+
+  .about-camp-container .mobile-menu-scrim {
+    background: rgba(6, 4, 16, 0.6) !important;
+  }
+}
+
+/* Perf-lite: reduce blur/shadows for mobile glass UI on weak devices */
+html[data-perf="lite"] .about-camp-container .mobile-glass-header,
+html[data-perf="lite"] .about-camp-container .mobile-menu-panel,
+html[data-perf="lite"] .about-camp-container .mobile-menu-scrim,
+html[data-perf="lite"] .about-camp-container .mobile-bottom-nav {
+  backdrop-filter: blur(10px) saturate(1.05);
+  -webkit-backdrop-filter: blur(10px) saturate(1.05);
+  box-shadow: 0 10px 22px rgba(9, 6, 20, 0.48);
 }
 
 .about-camp-container .mobile-glass-header.is-chat-open {
@@ -944,6 +980,14 @@
 @media (min-width: 769px) {
   .about-camp-container .mobile-glass-header {
     display: flex !important;
+  }
+
+  /* Desktop: make the top navigation bar narrower and centered */
+  .about-camp-container .mobile-glass-header {
+    left: 50%;
+    right: auto;
+    width: min(760px, calc(100% - 24px));
+    transform: translateX(-50%);
   }
   
   .about-camp-container .mobile-menu-scrim,

@@ -22,7 +22,6 @@ export const useNavigation = ({ categories }: UseNavigationArgs) => {
   const [categoryBackTarget, setCategoryBackTarget] = useState<View>('categories');
 
   const handleIntroClick = useCallback(() => {
-    console.log('App: Intro clicked - switching to categories view');
     setCurrentView('categories');
     setSelectedCategory(null);
     setSelectedBadge(null);
@@ -31,17 +30,14 @@ export const useNavigation = ({ categories }: UseNavigationArgs) => {
 
   const handleCategoryClick = useCallback((category: Category, options?: { origin?: View }) => {
     const origin = options?.origin || 'categories';
-    console.log('Category clicked:', category.title);
     setSelectedCategory(category);
     setCurrentView('category');
     setSelectedBadge(null);
     setSelectedLevel('');
     setCategoryBackTarget(origin);
-    console.log('currentView set:', 'category');
   }, []);
 
   const handleBadgeClick = useCallback((badge: Badge) => {
-    console.log('App: Badge clicked:', badge.title);
     const cat = categories.find((c) => c.id === badge.category_id);
     if (cat) setSelectedCategory(cat);
     setSelectedBadge(badge);
@@ -50,7 +46,6 @@ export const useNavigation = ({ categories }: UseNavigationArgs) => {
   }, [categories]);
 
   const handleLevelClick = useCallback((level: string) => {
-    console.log('App: Level clicked:', level);
     setSelectedLevel(level);
     setCurrentView('badge-level');
   }, []);
@@ -72,7 +67,6 @@ export const useNavigation = ({ categories }: UseNavigationArgs) => {
   }, []);
 
   const handleBackToCategories = useCallback(() => {
-    console.log('App: Back to categories clicked');
     setCurrentView('categories');
     setSelectedCategory(null);
     setSelectedBadge(null);
@@ -81,7 +75,6 @@ export const useNavigation = ({ categories }: UseNavigationArgs) => {
   }, []);
 
   const handleBackToBadge = useCallback(() => {
-    console.log('App: Back to badge clicked');
     setCurrentView('badge');
     setSelectedLevel('');
   }, []);
@@ -108,7 +101,6 @@ export const useNavigation = ({ categories }: UseNavigationArgs) => {
   }, []);
 
   const handleBackToCategory = useCallback(() => {
-    console.log('App: Back to category clicked');
     setCurrentView('category');
     setSelectedBadge(null);
     setSelectedLevel('');
@@ -116,12 +108,10 @@ export const useNavigation = ({ categories }: UseNavigationArgs) => {
   }, []);
 
   const handleBackToCategoryFromIntroduction = useCallback(() => {
-    console.log('App: Back to category from introduction clicked');
     setCurrentView('category');
   }, []);
 
   const handleBackToCategoryFromAdditional = useCallback(() => {
-    console.log('App: Back to category from additional material clicked');
     setCurrentView('category');
     setSelectedAdditionalMaterial(null);
   }, []);

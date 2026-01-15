@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useCallback, useMemo, useState, useEffect, useRef } from 'react';
 import '../styles/chatbot.css';
+import { rafThrottle } from '../utils/rafThrottle';
 
 interface Message {
   id: string;
@@ -35,6 +36,11 @@ interface ViewportState {
   offsetTop: number;
   offsetLeft: number;
 }
+
+type ChatPosition = { x: number; y: number };
+
+const CHAT_POS_STORAGE_KEY = 'rl-chatbot-position-v1';
+const clamp = (v: number, min: number, max: number): number => Math.max(min, Math.min(max, v));
 
 
 const ChatBot: React.FC<ChatBotProps> = ({ 
@@ -78,14 +84,42 @@ const ChatBot: React.FC<ChatBotProps> = ({
   const safeAreaLeft = Math.max(0, viewport.offsetLeft);
   const safeAreaRight = Math.max(0, viewport.innerWidth - viewport.width - viewport.offsetLeft);
 
+  const [chatPos, setChatPos] = useState<ChatPosition | null>(null);
+  const dragStateRef = useRef<{
+    isDragging: boolean;
+    startX: number;
+    startY: number;
+    startPos: ChatPosition;
+  } | null>(null);
+
+  const persistChatPos = (pos: ChatPosition) => {
+    try {
+      localStorage.setItem(CHAT_POS_STORAGE_KEY, JSON.stringify(pos));
+    } catch {
+      // ignore
+    }
+  };
+
+  const readPersistedChatPos = (): ChatPosition | null => {
+    try {
+      const raw = localStorage.getItem(CHAT_POS_STORAGE_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw) as Partial<ChatPosition>;
+      if (typeof parsed.x !== 'number' || typeof parsed.y !== 'number') return null;
+      return { x: parsed.x, y: parsed.y };
+    } catch {
+      return null;
+    }
+  };
+
   const scrollToBottom = (behavior: ScrollBehavior = isMobile ? 'auto' : 'smooth') => {
     messagesEndRef.current?.scrollIntoView({ behavior });
   };
 
   useEffect(() => {
-    const handleResize = () => {
+    const handleResize = rafThrottle(() => {
       setViewport(getViewportState());
-    };
+    });
 
     handleResize();
 
@@ -93,17 +127,17 @@ const ChatBot: React.FC<ChatBotProps> = ({
       return;
     }
 
-    window.addEventListener('resize', handleResize);
-    window.addEventListener('orientationchange', handleResize);
+    window.addEventListener('resize', handleResize, { passive: true } as AddEventListenerOptions);
+    window.addEventListener('orientationchange', handleResize, { passive: true } as AddEventListenerOptions);
     const visualViewport = window.visualViewport;
-    visualViewport?.addEventListener('resize', handleResize);
-    visualViewport?.addEventListener('scroll', handleResize);
+    visualViewport?.addEventListener('resize', handleResize, { passive: true } as AddEventListenerOptions);
+    visualViewport?.addEventListener('scroll', handleResize, { passive: true } as AddEventListenerOptions);
 
     return () => {
-      window.removeEventListener('resize', handleResize);
-      window.removeEventListener('orientationchange', handleResize);
-      visualViewport?.removeEventListener('resize', handleResize);
-      visualViewport?.removeEventListener('scroll', handleResize);
+      window.removeEventListener('resize', handleResize as unknown as EventListener);
+      window.removeEventListener('orientationchange', handleResize as unknown as EventListener);
+      visualViewport?.removeEventListener('resize', handleResize as unknown as EventListener);
+      visualViewport?.removeEventListener('scroll', handleResize as unknown as EventListener);
     };
   }, []);
 
@@ -116,6 +150,13 @@ const ChatBot: React.FC<ChatBotProps> = ({
       scrollToBottom('auto');
     }
   }, [viewport.height, isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const saved = readPersistedChatPos();
+    setChatPos((prev) => saved || prev);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
 
   // Автофокус на поле ввода при открытии чата
   useEffect(() => {
@@ -149,11 +190,17 @@ const ChatBot: React.FC<ChatBotProps> = ({
       const chatbotUrl = useLocalApi
         ? '/api/chat' // Vite proxy к Flask backend на порту 5000
         : 'https://real-vibe-ai-studio.pages.dev/api/putevoditel/chat';
-        const response = await fetch(chatbotUrl, {
+
+      const controller = new AbortController();
+      const timeoutMs = 15000;
+      const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs);
+
+      const response = await fetch(chatbotUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
+        signal: controller.signal,
         body: JSON.stringify({
           message: text,
           user_id: userId,
@@ -166,6 +213,7 @@ const ChatBot: React.FC<ChatBotProps> = ({
           }
         }),
       });
+      window.clearTimeout(timeoutId);
 
       const data = await response.json();
       
@@ -190,9 +238,12 @@ const ChatBot: React.FC<ChatBotProps> = ({
     } catch (error) {
       console.error('Ошибка при отправке сообщения:', error);
       
+      const isAbort = (error as any)?.name === 'AbortError';
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: 'Извините, произошла ошибка соединения с сервером. Пожалуйста, попробуйте позже.',
+        text: isAbort
+          ? 'Чат сейчас не отвечает (таймаут). Попробуйте ещё раз через пару секунд.'
+          : 'Извините, чат временно недоступен. Пожалуйста, попробуйте позже.',
         isUser: false,
         timestamp: new Date()
       };
@@ -241,30 +292,63 @@ const ChatBot: React.FC<ChatBotProps> = ({
     pointerEvents: 'none'
   };
 
-  const computedMobileHeight = Math.max(320, Math.round(viewport.height - safeAreaBottom));
-  const desktopHeight = Math.min(520, Math.round((viewport.height || window.innerHeight) - 140));
+  const availableHeight = Math.max(320, Math.round(viewport.height - safeAreaBottom - 24));
+  const computedMobileHeight = clamp(Math.round(availableHeight), 360, Math.round(viewport.height - safeAreaBottom));
+  const desktopHeight = clamp(Math.round((viewport.height || window.innerHeight) - 80), 420, 760);
+
+  const containerWidthPx = isMobile
+    ? Math.min(480, Math.max(280, Math.round(viewport.width - 24)))
+    : 360;
+
+  const effectiveHeight = isMobile ? computedMobileHeight : desktopHeight;
+
+  const clampPosToViewport = useCallback(
+    (pos: ChatPosition, heightPx: number): ChatPosition => {
+      const leftMin = Math.max(0, safeAreaLeft + 8);
+      const rightMax = Math.max(leftMin, viewport.innerWidth - safeAreaRight - 8 - containerWidthPx);
+      const topMin = 8;
+      const bottomMax = Math.max(topMin, viewport.height - Math.max(0, safeAreaBottom) - 8 - heightPx);
+      return {
+        x: clamp(pos.x, leftMin, rightMax),
+        y: clamp(pos.y, topMin, bottomMax),
+      };
+    },
+    [containerWidthPx, safeAreaBottom, safeAreaLeft, safeAreaRight, viewport.height, viewport.innerWidth]
+  );
+
+  const defaultPos: ChatPosition = useMemo(() => {
+    const x = isMobile
+      ? Math.round((viewport.innerWidth - containerWidthPx) / 2)
+      : viewport.innerWidth - containerWidthPx - 24;
+    const y = isMobile ? viewport.height - effectiveHeight : viewport.height - effectiveHeight - 24;
+    return clampPosToViewport({ x, y }, effectiveHeight);
+  }, [clampPosToViewport, containerWidthPx, effectiveHeight, isMobile, viewport.height, viewport.innerWidth]);
+
+  const effectivePos = useMemo(() => {
+    return clampPosToViewport(chatPos || defaultPos, effectiveHeight);
+  }, [chatPos, clampPosToViewport, defaultPos, effectiveHeight]);
 
   const containerStyle: React.CSSProperties = {
     background: 'linear-gradient(135deg, rgba(12, 12, 12, 0.7) 0%, rgba(32, 12, 24, 0.72) 45%, rgba(52, 16, 76, 0.78) 100%)',
     borderRadius: isMobile ? '24px 24px 0 0' : '24px',
     boxShadow: '0 24px 50px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(225, 29, 72, 0.5), 0 0 28px rgba(124, 58, 237, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.08)',
-    width: isMobile ? '100%' : 'min(360px, 92vw)',
-    maxWidth: isMobile ? '480px' : '360px',
-    height: isMobile ? `${computedMobileHeight}px` : `${desktopHeight}px`,
-    maxHeight: isMobile ? `${computedMobileHeight}px` : '520px',
+    width: `${containerWidthPx}px`,
+    maxWidth: `${containerWidthPx}px`,
+    height: `${effectiveHeight}px`,
+    maxHeight: `${effectiveHeight}px`,
     display: 'flex',
     flexDirection: 'column',
     fontFamily: 'system-ui, -apple-system, sans-serif',
     border: '1px solid rgba(225, 29, 72, 0.5)',
     animation: isMobile ? 'chatSlideInFromBottom 0.4s ease-out' : 'chatSlideInFromRight 0.4s ease-out',
     backdropFilter: 'blur(20px)',
-    marginTop: 0,
-    marginBottom: isMobile ? '0' : isTablet ? '30px' : '16px',
-    marginRight: isMobile ? '0' : '16px',
+    position: 'fixed',
+    left: `${effectivePos.x}px`,
+    top: `${effectivePos.y}px`,
     pointerEvents: 'auto',
     overflow: 'hidden',
-    position: 'relative',
-    isolation: 'isolate'
+    isolation: 'isolate',
+    transform: 'translateZ(0)'
   };
 
   const messagesContainerStyle: React.CSSProperties = {
@@ -290,9 +374,53 @@ const ChatBot: React.FC<ChatBotProps> = ({
 
   if (!isOpen) return null;
 
+  const onDragPointerDown = (e: React.PointerEvent) => {
+    const startPos = effectivePos;
+    dragStateRef.current = {
+      isDragging: true,
+      startX: e.clientX,
+      startY: e.clientY,
+      startPos,
+    };
+    try {
+      (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    } catch {
+      // ignore
+    }
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const onDragPointerMove = (e: React.PointerEvent) => {
+    const st = dragStateRef.current;
+    if (!st?.isDragging) return;
+    const dx = e.clientX - st.startX;
+    const dy = e.clientY - st.startY;
+    const next = clampPosToViewport({ x: st.startPos.x + dx, y: st.startPos.y + dy }, effectiveHeight);
+    setChatPos(next);
+    e.preventDefault();
+  };
+
+  const onDragPointerUp = () => {
+    const st = dragStateRef.current;
+    if (!st?.isDragging) return;
+    dragStateRef.current = null;
+    const finalPos = clampPosToViewport(chatPos || effectivePos, effectiveHeight);
+    setChatPos(finalPos);
+    persistChatPos(finalPos);
+  };
+
   return (
     <div className={`chatbot-overlay ${isOpen ? 'is-visible' : ''}`} style={overlayStyle}>
       <div className="chatbot-container" style={containerStyle}>
+        <div
+          className="chatbot-drag-handle"
+          title="Перетащите, чтобы переместить чат"
+          onPointerDown={onDragPointerDown}
+          onPointerMove={onDragPointerMove}
+          onPointerUp={onDragPointerUp}
+          onPointerCancel={onDragPointerUp}
+        />
         {/* Заголовок */}
         <div style={{
           display: 'flex',

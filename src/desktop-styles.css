@@ -35,26 +35,41 @@
 }
 
 body {
-  font-family: 'Arial', sans-serif;
-  background: var(--primary-bg);
+  font-family: var(--f-body, 'Arial', sans-serif);
+  /* Ensure a non-white base during fast scroll/compositing */
+  background-color: var(--c-midnight, var(--primary-bg));
   color: var(--primary-text);
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   -webkit-text-size-adjust: 100%;
   -ms-text-size-adjust: 100%;
   text-size-adjust: 100%;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* Prevent overscroll backdrop flashes (helps on some browsers/trackpads) */
+  overscroll-behavior: none;
 }
 
 html {
   -webkit-text-size-adjust: 100%;
   -ms-text-size-adjust: 100%;
   text-size-adjust: 100%;
+  background-color: var(--c-midnight, var(--primary-bg));
+  overscroll-behavior: none;
 }
 
 #root {
   width: 100vw;
-  height: 100vh;
+  min-height: 100vh;
+  /* Keep transparent so body background images (cosmos) can show through */
+  background-color: transparent;
+}
+
+/* App wrapper should never be transparent to a white default backdrop */
+.app {
+  /* Keep transparent so screens that rely on body background images (hero, about-camp)
+     still show correctly. White flash protection is handled by html/body/#root backgrounds. */
+  background-color: transparent;
 }
 
 /* ========================================

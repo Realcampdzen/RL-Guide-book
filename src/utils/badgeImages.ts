@@ -52,25 +52,12 @@ export const getBadgeImagePath = (
   levelTitle?: string,
   variant: 'default' | 'realism' = 'default'
 ): string | null => {
-  // #region agent log
-  const logData = { badgeId, badgeTitle, categoryId, levelId, levelTitle, variant, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run1', hypothesisId: 'A,B,C,D' };
-  fetch('http://127.0.0.1:7242/ingest/96284863-607a-4bc5-9cb2-27956a8c59cf',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'badgeImages.ts:47',message:'getBadgeImagePath entry',data:logData})}).catch(()=>{});
-  // #endregion
-  
   const baseUrl = import.meta.env.BASE_URL || '/';
   const categoryFolder = categoryFolderMap[categoryId];
-  
-  // #region agent log
-  fetch('http://127.0.0.1:7242/ingest/96284863-607a-4bc5-9cb2-27956a8c59cf',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'badgeImages.ts:55',message:'BASE_URL and categoryFolder',data:{baseUrl,categoryFolder,hasCategoryFolder:!!categoryFolder,badgeId,timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'}})}).catch(()=>{});
-  // #endregion
   
   if (!categoryFolder) return null;
 
   const badgeFolderName = getBadgeFolderName(badgeTitle, badgeId, levelTitle);
-  
-  // #region agent log
-  fetch('http://127.0.0.1:7242/ingest/96284863-607a-4bc5-9cb2-27956a8c59cf',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'badgeImages.ts:62',message:'badgeFolderName computed',data:{badgeFolderName,badgeTitle,badgeId,levelTitle,timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A,D'}})}).catch(()=>{});
-  // #endregion
   
   let fileName = '';
   
@@ -89,10 +76,6 @@ export const getBadgeImagePath = (
     let baseLevelName = normalizeFolderName(baseLevelTitle);
     fileName = `1 ${baseLevelName}.jpg`;
   }
-
-  // #region agent log
-  fetch('http://127.0.0.1:7242/ingest/96284863-607a-4bc5-9cb2-27956a8c59cf',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'badgeImages.ts:78',message:'fileName computed',data:{fileName,levelId,levelTitle,badgeTitle,timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'}})}).catch(()=>{});
-  // #endregion
 
   if (!fileName) return null;
 
@@ -122,10 +105,6 @@ export const getBadgeImagePath = (
     ];
     finalPath = pathPrefix + segments.map(seg => encodeURIComponent(seg)).join('/');
   }
-
-  // #region agent log
-  fetch('http://127.0.0.1:7242/ingest/96284863-607a-4bc5-9cb2-27956a8c59cf',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'badgeImages.ts:88',message:'final path generated',data:{finalPath,baseUrl,variant,encodedSegments:{newBadges:encodeURIComponent('Новые значки'),category:encodeURIComponent(categoryFolder),badge:encodeURIComponent(badgeFolderName),realism:variant==='realism'?encodeURIComponent('реализм'):'N/A',fileName:encodeURIComponent(fileName)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B,C'}})}).catch(()=>{});
-  // #endregion
 
   return finalPath;
 };

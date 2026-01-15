@@ -1,22 +1,3 @@
-/* Core Bluenest Variables */
-:root {
-  --c-midnight: #0f0a1f;
-  --c-deep-blue: #1a0f2e;
-  --c-electric-blue: #8b00ff;
-  --c-volt: #6a0dad;
-  --c-stark: #f4efe4;
-  --c-warm: #8b00ff;
-  --c-smoke: #f4efe41a;
-  --c-volt-glow: rgba(139, 0, 255, 0.35);
-  --c-aurora: rgba(139, 0, 255, 0.25);
-
-  --f-display: 'Syne', sans-serif;
-  --f-display-nav: 'Syne', 'Montserrat', sans-serif;
-  --f-body: 'Space Grotesk', sans-serif;
-
-  --easing: cubic-bezier(0.16, 1, 0.3, 1);
-}
-
 /* Reset & Base */
 .badge-view-container {
   min-height: 100vh;
@@ -32,6 +13,17 @@
   background-attachment: fixed;
 }
 
+@supports (background-image: image-set(url('/RL-Guide-book/screen3_bg.webp') type('image/webp'))) {
+  .badge-view-container {
+    background:
+      linear-gradient(135deg, rgba(15, 10, 31, 0.85) 0%, rgba(26, 15, 46, 0.8) 50%, rgba(42, 26, 61, 0.8) 100%),
+      image-set(
+        url('/RL-Guide-book/screen3_bg.webp') type('image/webp'),
+        url('/RL-Guide-book/screen3_bg.png') type('image/png')
+      ) center top / 100% auto repeat-y;
+  }
+}
+
 /* Specific background for level view */
 .badge-view-container[data-level-bg="advanced"] {
   background: 
@@ -44,11 +36,41 @@
     url('/RL-Guide-book/screen6_bg.png') center center / cover no-repeat;
 }
 
+@supports (background-image: image-set(url('/RL-Guide-book/screen5_bg.webp') type('image/webp'))) {
+  .badge-view-container[data-level-bg="advanced"] {
+    background:
+      linear-gradient(135deg, rgba(15, 10, 31, 0.7) 0%, rgba(26, 15, 46, 0.7) 100%),
+      image-set(
+        url('/RL-Guide-book/screen5_bg.webp') type('image/webp'),
+        url('/RL-Guide-book/screen5_bg.png') type('image/png')
+      ) center center / cover no-repeat;
+  }
+}
+
+@supports (background-image: image-set(url('/RL-Guide-book/screen6_bg.webp') type('image/webp'))) {
+  .badge-view-container[data-level-bg="expert"] {
+    background:
+      linear-gradient(135deg, rgba(15, 10, 31, 0.7) 0%, rgba(26, 15, 46, 0.7) 100%),
+      image-set(
+        url('/RL-Guide-book/screen6_bg.webp') type('image/webp'),
+        url('/RL-Guide-book/screen6_bg.png') type('image/png')
+      ) center center / cover no-repeat;
+  }
+}
+
 /* Main Content Layout */
 .badge-main {
   padding: 120px 5vw 10vh;
   max-width: 1600px;
   margin: 0 auto;
+}
+
+@media (max-width: 768px) {
+  /* Prevent bottom-nav overlap on mobile */
+  .badge-main {
+    padding: calc(var(--cat-mobile-header-height) + env(safe-area-inset-top) + 32px) 14px
+      calc(var(--mobile-nav-height) + env(safe-area-inset-bottom) + 28px);
+  }
 }
 
 /* Navigation */
@@ -135,6 +157,13 @@
   background: linear-gradient(160deg, rgba(139, 0, 255, 0.18), rgba(139, 0, 255, 0.05));
   border: 1px solid rgba(139, 0, 255, 0.35);
   box-shadow: 0 20px 45px rgba(7, 4, 20, 0.6), 0 0 35px rgba(139, 0, 255, 0.3);
+  position: relative;
+}
+
+.badge-hero-media__skeleton {
+  position: absolute;
+  inset: 1.25rem;
+  z-index: 0;
 }
 
 .badge-hero-media__image {
@@ -145,6 +174,8 @@
   border-radius: 20px;
   object-fit: contain;
   background: rgba(0, 0, 0, 0.2);
+  position: relative;
+  z-index: 1;
 }
 
 /* Content Grid (Split Layout) */
@@ -530,6 +561,33 @@
     opacity: 1;
     transform: translateY(0) scale(1);
     pointer-events: auto;
+  }
+
+  /* Graceful degradation: if backdrop-filter is unsupported, use a more opaque glass background */
+  @supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+    .badge-view-container .mobile-glass-header,
+    .badge-view-container .mobile-menu-panel,
+    .badge-view-container .mobile-menu-scrim,
+    .badge-view-container .mobile-bottom-nav {
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+      background: rgba(17, 14, 32, 0.92) !important;
+      border-color: rgba(255, 255, 255, 0.14) !important;
+    }
+
+    .badge-view-container .mobile-menu-scrim {
+      background: rgba(6, 4, 16, 0.6) !important;
+    }
+  }
+
+  /* Perf-lite: reduce blur/shadows for mobile glass UI on weak devices */
+  html[data-perf="lite"] .badge-view-container .mobile-glass-header,
+  html[data-perf="lite"] .badge-view-container .mobile-menu-panel,
+  html[data-perf="lite"] .badge-view-container .mobile-menu-scrim,
+  html[data-perf="lite"] .badge-view-container .mobile-bottom-nav {
+    backdrop-filter: blur(10px) saturate(1.05);
+    -webkit-backdrop-filter: blur(10px) saturate(1.05);
+    box-shadow: 0 10px 22px rgba(9, 6, 20, 0.48);
   }
 
   .mobile-menu-head {

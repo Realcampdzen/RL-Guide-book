@@ -4,7 +4,10 @@ type AiDataCache = {
   version: string;
   cachedAt: string;
   categories: Category[];
+  // badges can be partial when we load data lazily (per category / per badge)
   badges: Badge[];
+  // optional metadata for lazy-load flows
+  loadedCategoryIds?: string[];
 };
 
 const STORAGE_KEY = 'rl-guide-ai-data-cache';
@@ -36,11 +39,15 @@ export const readAiDataCache = (version: string): AiDataCache | null => {
 export const writeAiDataCache = (version: string, payload: { categories: Category[]; badges: Badge[] }): void => {
   if (!isStorageAvailable()) return;
   try {
+    const loadedCategoryIds = Array.from(
+      new Set(payload.badges.map((b) => String(b.category_id || '')).filter(Boolean))
+    );
     const data: AiDataCache = {
       version,
       cachedAt: new Date().toISOString(),
       categories: payload.categories,
       badges: payload.badges,
+      loadedCategoryIds,
     };
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   } catch {

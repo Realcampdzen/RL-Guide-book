@@ -5,6 +5,8 @@ import { useScrollReveal } from '../hooks/useScrollReveal';
 import { useTiltCard } from '../hooks/useTiltCard';
 import BadgeIcon from '../components/BadgeIcon';
 import { getBadgeImagePath } from '../utils/badgeImages'; // Import getBadgeImagePath
+import DataErrorState from '../components/DataErrorState';
+import { Skeleton } from '../components/Skeleton';
 import '../styles/category-view.css';
 import type { Category, Badge } from '../types/guide';
 
@@ -16,6 +18,9 @@ const ChatAvatar = React.lazy(loadChatAvatar);
 interface CategoryViewProps {
   category: Category;
   badges: Badge[]; // Already grouped/processed badges
+  isLoadingBadges?: boolean;
+  errorState?: { message: string };
+  onRetryBadges?: () => void;
   onBack: () => void;
   onBadgeClick: (badge: Badge) => void;
   onIntroductionClick: () => void;
@@ -39,11 +44,6 @@ const TiltBadgeCard: React.FC<{
   category: Category;
   onBadgeClick: (badge: Badge) => void;
 }> = ({ badge, index, category, onBadgeClick }) => {
-  // #region agent log
-  React.useEffect(() => {
-    fetch('http://127.0.0.1:7242/ingest/96284863-607a-4bc5-9cb2-27956a8c59cf',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'CategoryView.tsx:37',message:'TiltBadgeCard render',data:{badgeId:badge.id,index,timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'F'}})}).catch(()=>{});
-  });
-  // #endregion
   const cardRef = useRef<HTMLElement>(null);
   const [isIconExpanded, setIsIconExpanded] = useState(false);
   const expandTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -61,6 +61,9 @@ const TiltBadgeCard: React.FC<{
   // Determine which image to use for the background (Realism variant)
   // If multiple levels, use the last one (highest level)
   let realismBgUrl: string | null = null;
+  let defaultBgUrl: string | null = null;
+  let realismBaseBgUrl: string | null = null;
+  let defaultBaseBgUrl: string | null = null;
   
   // Extract base badge ID (e.g., "1.4" from "1.4.1")
   const badgeIdStr = String(badge.id);
@@ -70,58 +73,65 @@ const TiltBadgeCard: React.FC<{
     const levels = (badge as any).allLevels;
     const targetLevel = levels[levels.length - 1]; // Use the last level
     realismBgUrl = getBadgeImagePath(baseBadgeId, badge.title, category.id, targetLevel.id, targetLevel.title, 'realism');
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/96284863-607a-4bc5-9cb2-27956a8c59cf',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'CategoryView.tsx:52',message:'CategoryView realismBgUrl (multi-level)',data:{realismBgUrl,baseBadgeId,badgeTitle:badge.title,categoryId:category.id,levelId:targetLevel.id,levelTitle:targetLevel.title,timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A,B,C,D'}})}).catch(()=>{});
-    // #endregion
+    defaultBgUrl = getBadgeImagePath(baseBadgeId, badge.title, category.id, targetLevel.id, targetLevel.title, 'default');
   } else {
     // Single level
     realismBgUrl = getBadgeImagePath(baseBadgeId, badge.title, category.id, undefined, undefined, 'realism');
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/96284863-607a-4bc5-9cb2-27956a8c59cf',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'CategoryView.tsx:56',message:'CategoryView realismBgUrl (single-level)',data:{realismBgUrl,baseBadgeId,badgeTitle:badge.title,categoryId:category.id,timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A,B,C,D'}})}).catch(()=>{});
-    // #endregion
+    defaultBgUrl = getBadgeImagePath(baseBadgeId, badge.title, category.id, undefined, undefined, 'default');
   }
+
+  // Base (level-agnostic) fallback. Some badges have only "1 ..." images even if they have multiple levels.
+  realismBaseBgUrl = getBadgeImagePath(baseBadgeId, badge.title, category.id, undefined, undefined, 'realism');
+  defaultBaseBgUrl = getBadgeImagePath(baseBadgeId, badge.title, category.id, undefined, undefined, 'default');
+
+  const bgLayers = [realismBgUrl, realismBaseBgUrl, defaultBgUrl, defaultBaseBgUrl].filter(Boolean) as string[];
+  const cardBg = bgLayers.length ? bgLayers.map((u) => `url('${u}')`).join(', ') : undefined;
+
+  const handleCardClick = () => {
+    // Увеличиваем значок при клике
+    setIsIconExpanded(true);
+    
+    // Очищаем предыдущий таймер, если он есть
+    if (expandTimeoutRef.current) {
+      clearTimeout(expandTimeoutRef.current);
+    }
+    
+    // Через 600ms возвращаем значок обратно
+    expandTimeoutRef.current = setTimeout(() => {
+      setIsIconExpanded(false);
+    }, 600);
+    
+    onBadgeClick(badge);
+  };
 
   return (
     <article 
       ref={cardRef}
       key={badge.id} 
       className={`badge-card tilt-card hover-target ${(badge.id || '').startsWith('1.15') ? 'badge-centered-row' : ''} reveal-on-scroll`}
+      role="button"
+      tabIndex={0}
+      aria-label={`Значок: ${badge.title}`}
       style={{ 
         animationDelay: `${index * 0.05}s`,
-        backgroundImage: realismBgUrl ? `url('${realismBgUrl}')` : undefined,
+        backgroundImage: cardBg,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat'
+        backgroundRepeat: 'no-repeat',
+        cursor: 'pointer'
       }}
-      onClick={() => {
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/96284863-607a-4bc5-9cb2-27956a8c59cf',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'CategoryView.tsx:76',message:'Badge card click',data:{badgeId:badge.id,badgeTitle:badge.title,timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A,F'}})}).catch(()=>{});
-        // #endregion
-        
-        // Увеличиваем значок при клике
-        setIsIconExpanded(true);
-        
-        // Очищаем предыдущий таймер, если он есть
-        if (expandTimeoutRef.current) {
-          clearTimeout(expandTimeoutRef.current);
+      onClick={handleCardClick}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          handleCardClick();
         }
-        
-        // Через 600ms возвращаем значок обратно
-        expandTimeoutRef.current = setTimeout(() => {
-          setIsIconExpanded(false);
-        }, 600);
-        
-        onBadgeClick(badge);
       }}
-      onTouchStart={(e) => {
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/96284863-607a-4bc5-9cb2-27956a8c59cf',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'CategoryView.tsx:83',message:'Badge card touchstart',data:{badgeId:badge.id,touches:e.touches.length,timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A,C'}})}).catch(()=>{});
-        // #endregion
+      onTouchStart={() => {
+        // Touch start logic if any, currently empty
       }}
       onMouseEnter={() => {
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/96284863-607a-4bc5-9cb2-27956a8c59cf',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'CategoryView.tsx:88',message:'Badge card hover (mouseenter)',data:{badgeId:badge.id,timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A,D'}})}).catch(()=>{});
-        // #endregion
+        // Mouse enter logic if any, currently empty
       }}
     >
       <div className={`badge-card__icon ${isIconExpanded ? 'is-expanded' : ''}`}>
@@ -161,6 +171,9 @@ const TiltBadgeCard: React.FC<{
 const CategoryView: React.FC<CategoryViewProps> = ({
   category,
   badges,
+  isLoadingBadges = false,
+  errorState,
+  onRetryBadges,
   onBack,
   onBadgeClick,
   onIntroductionClick,
@@ -175,6 +188,7 @@ const CategoryView: React.FC<CategoryViewProps> = ({
   const { cursorDotRef, cursorOutlineRef, cursorReactorRef } = useCustomCursor();
   const { initReveal } = useScrollReveal();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuButtonRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
     initReveal('.reveal-on-scroll');
@@ -199,6 +213,20 @@ const CategoryView: React.FC<CategoryViewProps> = ({
   const closeMenu = () => {
     setIsMenuOpen(false);
   };
+
+  useEffect(() => {
+    if (!isMenuOpen) return;
+    // Focus first actionable element in the panel for keyboard users
+    const panel = document.getElementById('category-mobile-menu-panel');
+    const firstFocusable = panel?.querySelector<HTMLButtonElement>('button, [href], [tabindex]:not([tabindex="-1"])');
+    firstFocusable?.focus();
+  }, [isMenuOpen]);
+
+  useEffect(() => {
+    if (isMenuOpen) return;
+    // Restore focus to the menu button after closing
+    menuButtonRef.current?.focus();
+  }, [isMenuOpen]);
 
   const handleChatToggle = () => {
     setIsMenuOpen(false);
@@ -262,16 +290,41 @@ const CategoryView: React.FC<CategoryViewProps> = ({
       <div className="cursor-outline" ref={cursorOutlineRef} data-cursor-outline></div>
 
       {/* Mobile Navigation Header */}
-      <header className={`mobile-glass-header${isChatOpen ? ' is-chat-open' : ''}`} aria-label="Навигация">
+      <header
+        className={`mobile-glass-header${isChatOpen ? ' is-chat-open' : ''}`}
+        aria-label="Навигация"
+        style={{ '--category-mobile-header-bg': `url('${bgUrl}')` } as React.CSSProperties}
+      >
+        <div className="mobile-header-left">
+          <button
+            type="button"
+            className="mobile-header-back"
+            onClick={onBack}
+            aria-label="Назад"
+          >
+            ←
+          </button>
+        </div>
+
         <button
           type="button"
-          className={`mobile-header-logo${isChatOpen ? ' is-active' : ''}`}
-          onClick={handleChatToggle}
-          aria-label={isChatOpen ? 'Закрыть чат' : 'Открыть чат'}
-          aria-pressed={isChatOpen}
+          className={`mobile-category-title${category.introduction?.has_introduction ? ' is-clickable' : ''}`}
+          onClick={category.introduction?.has_introduction ? onIntroductionClick : undefined}
+          aria-label={category.introduction?.has_introduction ? 'Открыть введение категории' : 'Категория'}
+          disabled={!category.introduction?.has_introduction}
         >
-          NEUROVALUSHA
+          {titleKicker && <span className="category-title-kicker">{titleKicker}</span>}
+          <span className="mobile-category-title-main">
+            {titleLead && <span className="category-title-lead">{titleLead}</span>}
+            {titleLastWord && (
+              <span className={titleLead ? 'category-title-highlight' : 'category-title-lead'}>
+                {titleLastWord}
+              </span>
+            )}
+            {!titleLead && !titleLastWord && <span className="category-title-lead">{category.title}</span>}
+          </span>
         </button>
+
         <div className="mobile-header-actions">
           <button
             type="button"
@@ -280,6 +333,7 @@ const CategoryView: React.FC<CategoryViewProps> = ({
             aria-label="Меню"
             aria-expanded={isMenuOpen}
             aria-controls="category-mobile-menu-panel"
+            ref={menuButtonRef}
           >
             <span className="menu-line"></span>
             <span className="menu-line"></span>
@@ -380,6 +434,25 @@ const CategoryView: React.FC<CategoryViewProps> = ({
 
       {/* Main Content */}
       <main className="category-main">
+        {isLoadingBadges && badges.length === 0 && !errorState && (
+          <>
+            <div style={{ padding: '10px 0', opacity: 0.85 }}>
+              Загрузка значков…
+            </div>
+            <div className="badges-grid" aria-label="Загрузка значков">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <Skeleton key={i} className="skeleton--card" />
+              ))}
+            </div>
+          </>
+        )}
+        {errorState && (
+          <DataErrorState
+            title="Не удалось загрузить значки"
+            details={errorState.message}
+            onRetry={onRetryBadges}
+          />
+        )}
         {/* Hero Section */}
         <section className="category-hero reveal-on-scroll">
           <p className="category-subtitle">
@@ -431,17 +504,19 @@ const CategoryView: React.FC<CategoryViewProps> = ({
         </section>
 
         {/* Badges Grid */}
-        <div className="badges-grid">
-          {badges.map((badge, index) => (
-            <TiltBadgeCard 
-              key={badge.id}
-              badge={badge}
-              index={index}
-              category={category}
-              onBadgeClick={onBadgeClick}
-            />
-          ))}
-        </div>
+        {!(isLoadingBadges && badges.length === 0) && (
+          <div className="badges-grid">
+            {badges.map((badge, index) => (
+              <TiltBadgeCard
+                key={badge.id}
+                badge={badge}
+                index={index}
+                category={category}
+                onBadgeClick={onBadgeClick}
+              />
+            ))}
+          </div>
+        )}
       </main>
 
       {/* ChatBot and ChatAvatar */}
