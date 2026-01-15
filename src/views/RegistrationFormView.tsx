@@ -37,7 +37,7 @@ const RegistrationFormView: React.FC<RegistrationFormViewProps> = ({ formData, o
           <p>Мы свяжемся с вами в ближайшее время.</p>
 
           <div className="rf-group">
-            <label>Имя ребёнка *</label>
+            <label>Имя ребёнка</label>
             <input
               type="text"
               value={formData.childName}
@@ -48,7 +48,7 @@ const RegistrationFormView: React.FC<RegistrationFormViewProps> = ({ formData, o
           </div>
 
           <div className="rf-group">
-            <label>Имя и фамилия родителя *</label>
+            <label>Имя и фамилия родителя</label>
             <input
               type="text"
               value={formData.parentName}
@@ -59,7 +59,7 @@ const RegistrationFormView: React.FC<RegistrationFormViewProps> = ({ formData, o
           </div>
 
           <div className="rf-group">
-            <label>Телефон *</label>
+            <label>Телефон</label>
             <input
               type="tel"
               value={formData.phone}
@@ -80,7 +80,7 @@ const RegistrationFormView: React.FC<RegistrationFormViewProps> = ({ formData, o
           </div>
 
           <div className="rf-group">
-            <label>Возраст ребёнка *</label>
+            <label>Возраст ребёнка</label>
             <input
               type="number"
               value={formData.childAge}
