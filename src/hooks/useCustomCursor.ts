@@ -17,10 +17,18 @@ export const useCustomCursor = () => {
   useEffect(() => {
     if (typeof window === 'undefined') return;
     
-    // Disable custom cursor on touch devices
-    if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
-      return;
-    }
+    // Enable custom cursor only when the device actually has a fine pointer (mouse/trackpad).
+    // IMPORTANT: Hybrid devices (touch + mouse) must still enable the cursor when a fine pointer exists.
+    const canUseFinePointer = (() => {
+      try {
+        return window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+      } catch {
+        // Safe fallback: assume fine pointer if matchMedia is unavailable.
+        return true;
+      }
+    })();
+
+    if (!canUseFinePointer) return;
 
     // Initialize positions
     mouseXRef.current = window.innerWidth / 2;

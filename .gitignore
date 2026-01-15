@@ -25,6 +25,7 @@ pip-delete-this-directory.txt
 *.swp
 *.swo
 *~
+.cursor/plans/
 
 # OS
 .DS_Store

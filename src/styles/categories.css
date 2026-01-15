@@ -45,10 +45,11 @@
         
         /* Show default cursor on touch devices */
         @media (hover: none) and (pointer: coarse) {
-            html, body, a, button {
+            /* Scope to categories screen only (this CSS is global in the SPA). */
+            .categories-page, .categories-page a, .categories-page button {
                 cursor: auto !important;
             }
-            .cursor-dot, .cursor-outline, .cursor-reactor {
+            .categories-page .cursor-dot, .categories-page .cursor-outline, .categories-page .cursor-reactor {
                 display: none !important;
             }
         }
@@ -476,7 +477,8 @@
             opacity: 1;
         }
 
-        .mobile-bottom-nav {
+        /* IMPORTANT: scope bottom nav styles to the categories screen only (this CSS file is global in the SPA). */
+        .categories-page .mobile-bottom-nav {
             position: fixed;
             left: 12px;
             right: 12px;
@@ -1264,18 +1266,19 @@
         @media (max-width: 768px) {
             /* Do not touch global body in SPA; CategoriesGrid scroll is handled by .categories-page */
 
-            .mobile-glass-header,
-            .mobile-bottom-nav,
-            .mobile-menu-scrim,
-            .mobile-menu-panel {
+            /* IMPORTANT: scope to categories screen only (this CSS file is global in the SPA). */
+            .categories-page .mobile-glass-header,
+            .categories-page .mobile-bottom-nav,
+            .categories-page .mobile-menu-scrim,
+            .categories-page .mobile-menu-panel {
                 display: flex;
             }
 
-            .mobile-menu-scrim {
+            .categories-page .mobile-menu-scrim {
                 display: block;
             }
 
-            .mobile-menu-panel {
+            .categories-page .mobile-menu-panel {
                 display: block;
             }
 
@@ -1713,16 +1716,16 @@
             }
         }
 
-        /* Custom Cursor */
-        .cursor-dot, .cursor-outline, .cursor-reactor {
+        /* Custom Cursor (scoped to categories screen to avoid leaking across views) */
+        .categories-page .cursor-dot, .categories-page .cursor-outline, .categories-page .cursor-reactor {
             position: fixed;
             top: 0; left: 0;
             transform: translate(-50%, -50%);
             border-radius: 50%;
             pointer-events: none;
         }
-        .cursor-dot { width: 8px; height: 8px; background-color: var(--c-volt); z-index: 9999; }
-        .cursor-outline {
+        .categories-page .cursor-dot { width: 8px; height: 8px; background-color: var(--c-volt); z-index: 9999; }
+        .categories-page .cursor-outline {
             width: 40px;
             height: 40px;
             border: 1px solid rgba(139, 0, 255, 0.85);
@@ -1730,13 +1733,13 @@
             mix-blend-mode: difference;
             z-index: 9999;
         }
-        .cursor-hover {
+        .categories-page .cursor-hover {
             transform: translate(-50%, -50%) scale(2.3);
             background: var(--c-warm);
             border: none;
             mix-blend-mode: difference;
         }
-        .cursor-reactor {
+        .categories-page .cursor-reactor {
             width: 280px;
             height: 280px;
             background: radial-gradient(circle, var(--c-volt-glow) 0%, var(--c-aurora) 38%, rgba(15, 10, 31, 0) 70%);
@@ -1746,7 +1749,7 @@
             transition: opacity 0.25s var(--easing), transform 0.25s var(--easing);
             z-index: 9998;
         }
-        .cursor-reactor.cursor-reactor-active {
+        .categories-page .cursor-reactor.cursor-reactor-active {
             opacity: 0.95;
             transform: translate(-50%, -50%) scale(1.18);
         }
