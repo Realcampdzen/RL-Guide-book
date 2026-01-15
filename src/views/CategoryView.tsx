@@ -15,6 +15,52 @@ const loadChatAvatar = () => import('../components/ChatAvatar');
 const ChatBot = React.lazy(loadChatBot);
 const ChatAvatar = React.lazy(loadChatAvatar);
 
+const PREFETCH_BADGE_BG_COUNT = 12;
+
+function shouldPrefetchBadgeBackgrounds(): boolean {
+  if (typeof window === 'undefined') return false;
+  // Respect our perf-lite mode and user's data-saver hints.
+  if (document.documentElement?.dataset?.perf === 'lite') return false;
+  const connection = (navigator as any).connection;
+  if (connection?.saveData === true) return false;
+  if (connection?.effectiveType && ['2g', 'slow-2g'].includes(connection.effectiveType)) return false;
+  return true;
+}
+
+function computeBadgeBackgroundLayerUrls(badge: Badge, category: Category): string[] {
+  let realismBgUrl: string | null = null;
+  let defaultBgUrl: string | null = null;
+  let realismBaseBgUrl: string | null = null;
+  let defaultBaseBgUrl: string | null = null;
+
+  const badgeIdStr = String(badge.id);
+  const baseBadgeId = badgeIdStr.split('.').slice(0, 2).join('.');
+
+  if (Array.isArray((badge as any).allLevels) && (badge as any).allLevels.length > 0) {
+    const levels = (badge as any).allLevels;
+    const targetLevel = levels[levels.length - 1];
+    realismBgUrl = getBadgeImagePath(baseBadgeId, badge.title, category.id, targetLevel.id, targetLevel.title, 'realism');
+    defaultBgUrl = getBadgeImagePath(baseBadgeId, badge.title, category.id, targetLevel.id, targetLevel.title, 'default');
+  } else {
+    realismBgUrl = getBadgeImagePath(baseBadgeId, badge.title, category.id, undefined, undefined, 'realism');
+    defaultBgUrl = getBadgeImagePath(baseBadgeId, badge.title, category.id, undefined, undefined, 'default');
+  }
+
+  // Base (level-agnostic) fallback. Some badges have only "1 ..." images even if they have multiple levels.
+  realismBaseBgUrl = getBadgeImagePath(baseBadgeId, badge.title, category.id, undefined, undefined, 'realism');
+  defaultBaseBgUrl = getBadgeImagePath(baseBadgeId, badge.title, category.id, undefined, undefined, 'default');
+
+  return [realismBgUrl, realismBaseBgUrl, defaultBgUrl, defaultBaseBgUrl].filter(Boolean) as string[];
+}
+
+function warmImageCache(url: string) {
+  if (!url || typeof window === 'undefined') return;
+  const img = new Image();
+  img.decoding = 'async';
+  img.loading = 'eager';
+  img.src = url;
+}
+
 interface CategoryViewProps {
   category: Category;
   badges: Badge[]; // Already grouped/processed badges
@@ -189,11 +235,40 @@ const CategoryView: React.FC<CategoryViewProps> = ({
   const { initReveal } = useScrollReveal();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuButtonRef = useRef<HTMLButtonElement | null>(null);
+  const prefetchedCategoryIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     initReveal('.reveal-on-scroll');
     window.scrollTo(0, 0);
   }, [initReveal]);
+
+  useEffect(() => {
+    if (isLoadingBadges) return;
+    if (!badges || badges.length === 0) return;
+    if (!shouldPrefetchBadgeBackgrounds()) return;
+    if (prefetchedCategoryIdRef.current === category.id) return;
+    prefetchedCategoryIdRef.current = category.id;
+
+    const topBadges = badges.slice(0, PREFETCH_BADGE_BG_COUNT);
+    const urls = new Set<string>();
+    for (const badge of topBadges) {
+      const layers = computeBadgeBackgroundLayerUrls(badge, category);
+      // Prefetch only the topmost layer that will be shown (usually Realism). This avoids downloading all fallbacks.
+      if (layers[0]) urls.add(layers[0]);
+    }
+
+    const run = () => {
+      for (const url of urls) warmImageCache(url);
+    };
+
+    // Prefer idle time so we don't compete with critical rendering; fall back to a small delay.
+    const ric = (window as any).requestIdleCallback as undefined | ((cb: () => void, opts?: { timeout: number }) => number);
+    if (typeof ric === 'function') {
+      ric(run, { timeout: 1200 });
+    } else {
+      window.setTimeout(run, 80);
+    }
+  }, [category.id, isLoadingBadges, badges]);
 
   useEffect(() => {
     if (!isMenuOpen) return;
