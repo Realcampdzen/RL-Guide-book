@@ -7,21 +7,47 @@
   font-family: var(--f-body);
   position: relative;
   overflow-x: hidden;
+  isolation: isolate;
+  background-color: var(--c-midnight);
+  --tips-topbar-height: 60px;
+  --tips-topbar-offset: calc(env(safe-area-inset-top) + var(--tips-topbar-height) + 22px);
+}
+
+/* Fixed background layer to prevent white flashes during fast scroll/compositing */
+.additional-material-view::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
   background:
-    linear-gradient(135deg, rgba(15, 10, 31, 0.85) 0%, rgba(26, 15, 46, 0.82) 50%, rgba(42, 26, 61, 0.8) 100%),
+    linear-gradient(135deg, rgba(15, 10, 31, 0.85) 0%, rgba(26, 15, 46, 0.8) 50%, rgba(42, 26, 61, 0.8) 100%),
     url('/RL-Guide-book/screen3_bg.png') center top / 100% auto repeat-y;
+  background-color: var(--c-midnight);
+}
+
+@supports (background-image: image-set(url('/RL-Guide-book/screen3_bg.webp') type('image/webp'))) {
+  .additional-material-view::before {
+    background:
+      linear-gradient(135deg, rgba(15, 10, 31, 0.85) 0%, rgba(26, 15, 46, 0.8) 50%, rgba(42, 26, 61, 0.8) 100%),
+      image-set(
+        url('/RL-Guide-book/screen3_bg.webp') type('image/webp'),
+        url('/RL-Guide-book/screen3_bg.png') type('image/png')
+      ) center top / 100% auto repeat-y;
+    background-color: var(--c-midnight);
+  }
 }
 
 .additional-material-topbar {
-  position: sticky;
-  top: 0;
-  z-index: 20;
-  padding: calc(env(safe-area-inset-top) + 10px) 14px 12px;
-  background:
-    linear-gradient(180deg, rgba(10, 8, 18, 0.92), rgba(10, 8, 18, 0.72));
-  backdrop-filter: blur(14px) saturate(1.1);
-  -webkit-backdrop-filter: blur(14px) saturate(1.1);
+  position: fixed;
+  inset: 0 0 auto 0;
+  z-index: 12010;
+  padding: calc(env(safe-area-inset-top) + 10px) 12px 12px;
+  background: linear-gradient(180deg, rgba(10, 8, 18, 0.92), rgba(10, 8, 18, 0.72));
+  backdrop-filter: blur(18px) saturate(1.1);
+  -webkit-backdrop-filter: blur(18px) saturate(1.1);
   border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 14px 30px rgba(9, 6, 20, 0.55);
 }
 
 .additional-material-topbar-inner {
@@ -29,6 +55,8 @@
   grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
   gap: 12px;
+  width: min(980px, calc(100% - 24px));
+  margin: 0 auto;
 }
 
 .additional-material-back {
@@ -47,6 +75,17 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
   font-size: 0.72rem;
+  transition: transform 0.18s var(--easing), box-shadow 0.18s var(--easing), background 0.18s var(--easing);
+}
+
+.additional-material-back:hover {
+  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.11);
+  box-shadow: 0 10px 22px rgba(9, 6, 20, 0.4);
+}
+
+.additional-material-back:active {
+  transform: translateY(0);
 }
 
 .additional-material-title {
@@ -64,17 +103,19 @@
 }
 
 .additional-material-content {
-  padding: 18px 14px calc(env(safe-area-inset-bottom) + 18px);
-  max-width: 920px;
+  padding: var(--tips-topbar-offset) 12px calc(env(safe-area-inset-bottom) + var(--mobile-nav-height) + 24px);
+  width: min(980px, calc(100% - 24px));
   margin: 0 auto;
 }
 
 .additional-material-prose {
-  background: rgba(17, 14, 32, 0.62);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: linear-gradient(140deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.03)), var(--cat-glass-bg);
+  border: 1px solid var(--cat-glass-border);
   border-radius: 18px;
   box-shadow: 0 18px 38px rgba(0, 0, 0, 0.45);
-  padding: 16px 16px 18px;
+  padding: clamp(16px, 3vw, 28px);
+  backdrop-filter: blur(18px) saturate(1.05);
+  -webkit-backdrop-filter: blur(18px) saturate(1.05);
 }
 
 .additional-material-prose h1,
@@ -92,7 +133,7 @@
 
 .additional-material-prose p {
   margin: 10px 0;
-  line-height: 1.55;
+  line-height: 1.65;
   color: rgba(244, 239, 228, 0.92);
 }
 
@@ -112,6 +153,11 @@
   text-underline-offset: 3px;
 }
 
+.additional-material-prose a:hover {
+  color: rgba(255, 255, 255, 0.98);
+  text-shadow: 0 0 16px rgba(168, 85, 247, 0.35);
+}
+
 .additional-material-prose code {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   background: rgba(0, 0, 0, 0.35);
@@ -129,8 +175,27 @@
 }
 
 @media (max-width: 768px) {
-  .additional-material-content {
-    padding-bottom: calc(env(safe-area-inset-bottom) + 84px);
+  .additional-material-topbar-inner {
+    width: 100%;
   }
+}
+
+/* Graceful degradation: if backdrop-filter is unsupported, use a more opaque background */
+@supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+  .additional-material-topbar,
+  .additional-material-prose {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: rgba(17, 14, 32, 0.92) !important;
+    border-color: rgba(255, 255, 255, 0.14) !important;
+  }
+}
+
+/* Perf-lite: reduce blur/shadows on weak devices */
+html[data-perf="lite"] .additional-material-topbar,
+html[data-perf="lite"] .additional-material-prose {
+  backdrop-filter: blur(10px) saturate(1.05);
+  -webkit-backdrop-filter: blur(10px) saturate(1.05);
+  box-shadow: 0 12px 26px rgba(9, 6, 20, 0.48);
 }
 
