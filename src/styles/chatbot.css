@@ -42,6 +42,27 @@
   -webkit-backdrop-filter: blur(12px) saturate(1.02);
 }
 
+/* While scrolling messages on mobile, reduce expensive effects (helps weak devices) */
+.chatbot-overlay.is-scrolling .chatbot-container {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.42), 0 0 0 1px rgba(225, 29, 72, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
+}
+
+.chatbot-overlay.is-keyboard-open .chatbot-container::before,
+.chatbot-overlay.is-scrolling .chatbot-container::before {
+  animation: none !important;
+  filter: none !important;
+  opacity: 0.25 !important;
+}
+
+.chatbot-overlay.is-keyboard-open .chatbot-welcome-indicator,
+.chatbot-overlay.is-scrolling .chatbot-welcome-indicator,
+.chatbot-overlay.is-keyboard-open .chatbot-spinner,
+.chatbot-overlay.is-scrolling .chatbot-spinner {
+  animation: none !important;
+}
+
 .chatbot-container {
   position: relative;
   isolation: isolate;

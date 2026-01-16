@@ -30,7 +30,7 @@ const ChatAvatar: React.FC<ChatAvatarProps> = ({ onClick, isOpen = false }) => {
             alt="НейроВалюша"
             className="chat-avatar-img"
             decoding="async"
-            fetchPriority="high"
+            fetchpriority="high"
           />
         </picture>
         <div className="chat-avatar-status" />

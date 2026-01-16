@@ -58,6 +58,7 @@ const ChatBot: React.FC<ChatBotProps> = ({
   const inputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const mobileNavHeightRef = useRef<number>(68);
+  const scrollTimeoutRef = useRef<number | undefined>(undefined);
   
   // Генерируем уникальный user_id для каждого сеанса
   const [userId] = useState(() => `web_user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
@@ -94,6 +95,7 @@ const ChatBot: React.FC<ChatBotProps> = ({
   }, []);
 
   const [mobileNavHeightPx, setMobileNavHeightPx] = useState<number>(() => 68);
+  const [isMessagesScrolling, setIsMessagesScrolling] = useState(false);
 
   const [chatPos, setChatPos] = useState<ChatPosition | null>(null);
   const dragStateRef = useRef<{
@@ -211,6 +213,25 @@ const ChatBot: React.FC<ChatBotProps> = ({
       window.removeEventListener('orientationchange', update as unknown as EventListener);
     };
   }, [isMobile, readMobileNavHeight]);
+
+  const markMessagesScrolling = useCallback(() => {
+    if (!isMobile) return;
+    setIsMessagesScrolling(true);
+    if (scrollTimeoutRef.current) {
+      window.clearTimeout(scrollTimeoutRef.current);
+    }
+    scrollTimeoutRef.current = window.setTimeout(() => {
+      setIsMessagesScrolling(false);
+    }, 140);
+  }, [isMobile]);
+
+  useEffect(() => {
+    return () => {
+      if (scrollTimeoutRef.current) {
+        window.clearTimeout(scrollTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Универсальная отправка текста (используется инпутом и кликом по подсказке)
   const sendText = async (text: string) => {
@@ -394,10 +415,15 @@ const ChatBot: React.FC<ChatBotProps> = ({
     return clampPosToViewport(chatPos || defaultPos, effectiveHeight);
   }, [chatPos, clampPosToViewport, defaultPos, effectiveHeight]);
 
+  const reduceEffects = isKeyboardOpen || (isMobile && isMessagesScrolling);
+  const containerShadow = reduceEffects
+    ? '0 14px 28px rgba(0, 0, 0, 0.42), 0 0 0 1px rgba(225, 29, 72, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.06)'
+    : '0 24px 50px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(225, 29, 72, 0.5), 0 0 28px rgba(124, 58, 237, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.08)';
+
   const containerStyle: React.CSSProperties = {
     background: 'linear-gradient(135deg, rgba(12, 12, 12, 0.7) 0%, rgba(32, 12, 24, 0.72) 45%, rgba(52, 16, 76, 0.78) 100%)',
     borderRadius: isMobile ? '24px 24px 0 0' : '24px',
-    boxShadow: '0 24px 50px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(225, 29, 72, 0.5), 0 0 28px rgba(124, 58, 237, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.08)',
+    boxShadow: containerShadow,
     width: `${containerWidthPx}px`,
     maxWidth: `${containerWidthPx}px`,
     height: `${effectiveHeight}px`,
@@ -407,7 +433,7 @@ const ChatBot: React.FC<ChatBotProps> = ({
     fontFamily: 'system-ui, -apple-system, sans-serif',
     border: '1px solid rgba(225, 29, 72, 0.5)',
     animation: isMobile ? 'chatSlideInFromBottom 0.4s ease-out' : 'chatSlideInFromRight 0.4s ease-out',
-    backdropFilter: isKeyboardOpen ? 'blur(12px)' : 'blur(20px)',
+    backdropFilter: reduceEffects ? 'none' : 'blur(20px)',
     position: 'fixed',
     left: `${effectivePos.x}px`,
     ...(isMobile
@@ -419,7 +445,8 @@ const ChatBot: React.FC<ChatBotProps> = ({
     pointerEvents: 'auto',
     overflow: 'hidden',
     isolation: 'isolate',
-    transform: 'translateZ(0)'
+    transform: 'translateZ(0)',
+    willChange: reduceEffects ? 'auto' : 'transform'
   };
 
   const messagesContainerStyle: React.CSSProperties = {
@@ -483,7 +510,9 @@ const ChatBot: React.FC<ChatBotProps> = ({
 
   return (
     <div
-      className={`chatbot-overlay ${isOpen ? 'is-visible' : ''}${isKeyboardOpen ? ' is-keyboard-open' : ''}`}
+      className={`chatbot-overlay ${isOpen ? 'is-visible' : ''}${isKeyboardOpen ? ' is-keyboard-open' : ''}${
+        isMessagesScrolling ? ' is-scrolling' : ''
+      }`}
       style={overlayStyle}
     >
       <div className="chatbot-container" style={containerStyle}>
@@ -633,7 +662,7 @@ const ChatBot: React.FC<ChatBotProps> = ({
         )}
 
         {/* Сообщения */}
-        <div style={messagesContainerStyle}>
+        <div className="chatbot-messages" style={messagesContainerStyle} onScroll={markMessagesScrolling}>
           {messages.length === 0 && (
             <div style={{ textAlign: 'center', color: '#a0aec0', padding: '30px 0' }}>
               <div className="chatbot-welcome-avatar" style={{ position: 'relative', display: 'inline-block', marginBottom: '20px' }}>

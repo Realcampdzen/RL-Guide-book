@@ -266,7 +266,7 @@ const BadgeView: React.FC<BadgeViewProps> = ({
           >
             <picture>
               <source type="image/webp" srcSet="/RL-Guide-book/Валюша.webp" />
-              <img src="/RL-Guide-book/Валюша.jpg" alt="НейроВалюша" decoding="async" fetchPriority="high" />
+              <img src="/RL-Guide-book/Валюша.jpg" alt="НейроВалюша" decoding="async" fetchpriority="high" />
             </picture>
           </button>
         </div>
