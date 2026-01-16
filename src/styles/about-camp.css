@@ -5,12 +5,40 @@
   color: var(--c-stark);
   position: relative;
   overflow-x: hidden;
-  background: transparent;
+  /* Keep a non-white base. Actual art background is rendered via ::before (fixed) */
+  background-color: var(--c-midnight);
+  /* Create a local stacking context so ::before can sit behind content reliably */
+  isolation: isolate;
   font-family: var(--f-body); 
   --cat-glass-bg: rgba(17, 14, 32, 0.68);
   --cat-glass-border: rgba(255, 255, 255, 0.12);
   --cat-mobile-header-height: 58px;
   --cat-mobile-nav-height: 68px;
+}
+
+.about-camp-container::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  /* Match the global "cosmos" background from bluenest.css, but scoped to this screen
+     to avoid fast-scroll/compositing white flashes. */
+  background:
+    linear-gradient(135deg, rgba(15, 10, 31, 0.6) 0%, rgba(26, 15, 46, 0.55) 50%, rgba(42, 26, 61, 0.5) 100%),
+    url('/RL-Guide-book/экран 1 фон copy.png') center top / 120% calc(100vh + 5vh) no-repeat;
+  background-color: #0f0a1f;
+}
+
+@supports (background-image: image-set(url('/RL-Guide-book/экран 1 фон copy.webp') type('image/webp'))) {
+  .about-camp-container::before {
+    background:
+      linear-gradient(135deg, rgba(15, 10, 31, 0.6) 0%, rgba(26, 15, 46, 0.55) 50%, rgba(42, 26, 61, 0.5) 100%),
+      image-set(
+        url('/RL-Guide-book/экран 1 фон copy.webp') type('image/webp'),
+        url('/RL-Guide-book/экран 1 фон copy.png') type('image/png')
+      ) center top / 120% calc(100vh + 5vh) no-repeat;
+  }
 }
 
 .about-camp-container .noise-overlay,

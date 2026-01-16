@@ -124,7 +124,7 @@ const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
             <rect x="13" y="13" width="7" height="7" rx="2" fill="none" stroke="currentColor" strokeWidth="1.7" />
           </svg>
         </span>
-        <span className="mobile-nav-label">Категории</span>
+        <span className="mobile-nav-label">Значки</span>
       </button>
       <button
         type="button"

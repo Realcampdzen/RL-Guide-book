@@ -258,15 +258,14 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
 
       {/* Mobile Navigation Header */}
       <header className={`mobile-glass-header${isChatOpen ? ' is-chat-open' : ''}`} aria-label="Навигация">
-        <button
-          type="button"
-          className={`mobile-header-logo${isChatOpen ? ' is-active' : ''}`}
-          onClick={handleChatToggle}
-          aria-label={isChatOpen ? 'Закрыть чат' : 'Открыть чат'}
-          aria-pressed={isChatOpen}
-        >
-          NEUROVALUSHA
-        </button>
+        <div className="mobile-header-left">
+          <button type="button" className="mobile-header-back" onClick={onBack} aria-label="Назад">
+            ←
+          </button>
+        </div>
+        <div className="mobile-badge-title" aria-label="Значок">
+          <span className="mobile-badge-title-main">{levelBadge.title}</span>
+        </div>
         <div className="mobile-header-actions">
           <button
             type="button"
