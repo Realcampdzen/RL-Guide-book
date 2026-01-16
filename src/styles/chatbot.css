@@ -32,6 +32,16 @@
   display: flex;
 }
 
+/* During mobile keyboard open/close, keep a stable dark backdrop and reduce heavy effects */
+.chatbot-overlay.is-keyboard-open {
+  background: rgba(15, 10, 31, 0.92);
+}
+
+.chatbot-overlay.is-keyboard-open .chatbot-container {
+  backdrop-filter: blur(12px) saturate(1.02);
+  -webkit-backdrop-filter: blur(12px) saturate(1.02);
+}
+
 .chatbot-container {
   position: relative;
   isolation: isolate;

@@ -57,6 +57,7 @@ const ChatBot: React.FC<ChatBotProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const mobileNavHeightRef = useRef<number>(68);
   
   // Генерируем уникальный user_id для каждого сеанса
   const [userId] = useState(() => `web_user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
@@ -83,6 +84,16 @@ const ChatBot: React.FC<ChatBotProps> = ({
   const safeAreaBottom = Math.max(0, viewport.innerHeight - viewport.height - viewport.offsetTop);
   const safeAreaLeft = Math.max(0, viewport.offsetLeft);
   const safeAreaRight = Math.max(0, viewport.innerWidth - viewport.width - viewport.offsetLeft);
+  const isKeyboardOpen = isMobile && safeAreaBottom > 60;
+
+  const readMobileNavHeight = useCallback(() => {
+    if (typeof window === 'undefined') return 68;
+    const raw = getComputedStyle(document.documentElement).getPropertyValue('--mobile-nav-height').trim();
+    const parsed = Number.parseFloat(raw);
+    return Number.isFinite(parsed) ? parsed : 68;
+  }, []);
+
+  const [mobileNavHeightPx, setMobileNavHeightPx] = useState<number>(() => 68);
 
   const [chatPos, setChatPos] = useState<ChatPosition | null>(null);
   const dragStateRef = useRef<{
@@ -91,6 +102,20 @@ const ChatBot: React.FC<ChatBotProps> = ({
     startY: number;
     startPos: ChatPosition;
   } | null>(null);
+
+  // Lock page scroll while chat is open on mobile to avoid viewport/layout thrash during keyboard toggles.
+  useEffect(() => {
+    if (!isOpen || !isMobile) return;
+    const body = document.body;
+    const prevOverflow = body.style.overflow;
+    const prevOverscroll = (body.style as any).overscrollBehavior;
+    body.style.overflow = 'hidden';
+    (body.style as any).overscrollBehavior = 'none';
+    return () => {
+      body.style.overflow = prevOverflow;
+      (body.style as any).overscrollBehavior = prevOverscroll;
+    };
+  }, [isMobile, isOpen]);
 
   const persistChatPos = (pos: ChatPosition) => {
     try {
@@ -145,14 +170,16 @@ const ChatBot: React.FC<ChatBotProps> = ({
     scrollToBottom();
   }, [messages, isMobile]);
 
+  // Don't scroll-to-bottom on every visualViewport resize on mobile (keyboard open/close causes jank).
   useEffect(() => {
-    if (isOpen) {
-      scrollToBottom('auto');
-    }
-  }, [viewport.height, isOpen]);
+    if (!isOpen) return;
+    if (isMobile) return;
+    scrollToBottom('auto');
+  }, [isMobile, isOpen, viewport.height]);
 
   useEffect(() => {
     if (!isOpen) return;
+    if (isMobile) return;
     const saved = readPersistedChatPos();
     setChatPos((prev) => saved || prev);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -161,10 +188,29 @@ const ChatBot: React.FC<ChatBotProps> = ({
   // Автофокус на поле ввода при открытии чата
   useEffect(() => {
     if (isOpen) {
-      // Даем React дорендерить DOM и ставим фокус
-      setTimeout(() => inputRef.current?.focus(), 0);
+      // Desktop/tablet only: mobile autofocus triggers keyboard/viewport resize loops.
+      if (!isMobile) {
+        setTimeout(() => inputRef.current?.focus(), 0);
+      }
     }
-  }, [isOpen]);
+  }, [isMobile, isOpen]);
+
+  useEffect(() => {
+    if (!isMobile) return;
+    if (typeof window === 'undefined') return;
+    const update = rafThrottle(() => {
+      const h = readMobileNavHeight();
+      mobileNavHeightRef.current = h;
+      setMobileNavHeightPx(h);
+    });
+    update();
+    window.addEventListener('resize', update, { passive: true } as AddEventListenerOptions);
+    window.addEventListener('orientationchange', update, { passive: true } as AddEventListenerOptions);
+    return () => {
+      window.removeEventListener('resize', update as unknown as EventListener);
+      window.removeEventListener('orientationchange', update as unknown as EventListener);
+    };
+  }, [isMobile, readMobileNavHeight]);
 
   // Универсальная отправка текста (используется инпутом и кликом по подсказке)
   const sendText = async (text: string) => {
@@ -250,8 +296,10 @@ const ChatBot: React.FC<ChatBotProps> = ({
       setMessages(prev => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
-      // Возвращаем фокус в поле ввода после ответа бота/ошибки
-      setTimeout(() => inputRef.current?.focus(), 0);
+      // Desktop only: on mobile this can re-open keyboard and cause viewport jank.
+      if (!isMobile) {
+        setTimeout(() => inputRef.current?.focus(), 0);
+      }
     }
   };
 
@@ -279,7 +327,7 @@ const ChatBot: React.FC<ChatBotProps> = ({
     left: 0,
     right: 0,
     bottom: 0,
-    background: isMobile ? 'rgba(28, 10, 42, 0.6)' : 'transparent',
+    background: isMobile ? 'rgba(15, 10, 31, 0.82)' : 'transparent',
     display: 'flex',
     alignItems: 'flex-end',
     justifyContent: isMobile ? 'center' : 'flex-end',
@@ -287,13 +335,23 @@ const ChatBot: React.FC<ChatBotProps> = ({
     paddingTop: 20,
     paddingLeft: isMobile ? Math.max(12, safeAreaLeft + 12) : 20,
     paddingRight: isMobile ? Math.max(12, safeAreaRight + 12) : 20,
-    paddingBottom: isMobile ? Math.max(18, safeAreaBottom + 18) : isTablet ? 5 : 20,
+    paddingBottom: isMobile ? Math.max(18, safeAreaBottom + mobileNavHeightPx + 18) : isTablet ? 5 : 20,
     animation: 'chatFadeIn 0.3s ease-out',
-    pointerEvents: 'none'
+    pointerEvents: 'none',
+    // Provide CSS vars for potential CSS-only fallback/layout tuning.
+    ['--chat-vh' as any]: `${viewport.height}px`,
+    ['--chat-mobile-nav' as any]: `${mobileNavHeightPx}px`,
   };
 
-  const availableHeight = Math.max(320, Math.round(viewport.height - safeAreaBottom - 24));
-  const computedMobileHeight = clamp(Math.round(availableHeight), 360, Math.round(viewport.height - safeAreaBottom));
+  const availableHeight = Math.max(
+    320,
+    Math.round(viewport.height - safeAreaBottom - mobileNavHeightPx - 24)
+  );
+  const computedMobileHeight = clamp(
+    Math.round(availableHeight),
+    360,
+    Math.round(viewport.height - safeAreaBottom - mobileNavHeightPx - 12)
+  );
   const desktopHeight = clamp(Math.round((viewport.height || window.innerHeight) - 80), 420, 760);
 
   const containerWidthPx = isMobile
@@ -307,13 +365,16 @@ const ChatBot: React.FC<ChatBotProps> = ({
       const leftMin = Math.max(0, safeAreaLeft + 8);
       const rightMax = Math.max(leftMin, viewport.innerWidth - safeAreaRight - 8 - containerWidthPx);
       const topMin = 8;
-      const bottomMax = Math.max(topMin, viewport.height - Math.max(0, safeAreaBottom) - 8 - heightPx);
+      const bottomMax = Math.max(
+        topMin,
+        viewport.height - Math.max(0, safeAreaBottom) - mobileNavHeightPx - 8 - heightPx
+      );
       return {
         x: clamp(pos.x, leftMin, rightMax),
         y: clamp(pos.y, topMin, bottomMax),
       };
     },
-    [containerWidthPx, safeAreaBottom, safeAreaLeft, safeAreaRight, viewport.height, viewport.innerWidth]
+    [containerWidthPx, mobileNavHeightPx, safeAreaBottom, safeAreaLeft, safeAreaRight, viewport.height, viewport.innerWidth]
   );
 
   const defaultPos: ChatPosition = useMemo(() => {
@@ -325,6 +386,11 @@ const ChatBot: React.FC<ChatBotProps> = ({
   }, [clampPosToViewport, containerWidthPx, effectiveHeight, isMobile, viewport.height, viewport.innerWidth]);
 
   const effectivePos = useMemo(() => {
+    if (isMobile) {
+      // Mobile: keep horizontally centered; y is handled by bottom inset.
+      const x = clampPosToViewport(defaultPos, effectiveHeight).x;
+      return { x, y: 0 };
+    }
     return clampPosToViewport(chatPos || defaultPos, effectiveHeight);
   }, [chatPos, clampPosToViewport, defaultPos, effectiveHeight]);
 
@@ -341,10 +407,15 @@ const ChatBot: React.FC<ChatBotProps> = ({
     fontFamily: 'system-ui, -apple-system, sans-serif',
     border: '1px solid rgba(225, 29, 72, 0.5)',
     animation: isMobile ? 'chatSlideInFromBottom 0.4s ease-out' : 'chatSlideInFromRight 0.4s ease-out',
-    backdropFilter: 'blur(20px)',
+    backdropFilter: isKeyboardOpen ? 'blur(12px)' : 'blur(20px)',
     position: 'fixed',
     left: `${effectivePos.x}px`,
-    top: `${effectivePos.y}px`,
+    ...(isMobile
+      ? {
+          top: 'auto',
+          bottom: `${Math.max(18, safeAreaBottom + mobileNavHeightPx + 18)}px`,
+        }
+      : { top: `${effectivePos.y}px` }),
     pointerEvents: 'auto',
     overflow: 'hidden',
     isolation: 'isolate',
@@ -411,16 +482,21 @@ const ChatBot: React.FC<ChatBotProps> = ({
   };
 
   return (
-    <div className={`chatbot-overlay ${isOpen ? 'is-visible' : ''}`} style={overlayStyle}>
+    <div
+      className={`chatbot-overlay ${isOpen ? 'is-visible' : ''}${isKeyboardOpen ? ' is-keyboard-open' : ''}`}
+      style={overlayStyle}
+    >
       <div className="chatbot-container" style={containerStyle}>
-        <div
-          className="chatbot-drag-handle"
-          title="Перетащите, чтобы переместить чат"
-          onPointerDown={onDragPointerDown}
-          onPointerMove={onDragPointerMove}
-          onPointerUp={onDragPointerUp}
-          onPointerCancel={onDragPointerUp}
-        />
+        {!isMobile && (
+          <div
+            className="chatbot-drag-handle"
+            title="Перетащите, чтобы переместить чат"
+            onPointerDown={onDragPointerDown}
+            onPointerMove={onDragPointerMove}
+            onPointerUp={onDragPointerUp}
+            onPointerCancel={onDragPointerUp}
+          />
+        )}
         {/* Заголовок */}
         <div style={{
           display: 'flex',
@@ -684,7 +760,7 @@ const ChatBot: React.FC<ChatBotProps> = ({
           <div className="chatbot-input-wrapper" style={{ display: 'flex', gap: '8px', alignItems: 'flex-end' }}>
             <input
               ref={inputRef}
-              autoFocus
+              autoFocus={!isMobile}
               type="text"
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
