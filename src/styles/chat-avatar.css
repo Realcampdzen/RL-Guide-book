@@ -8,6 +8,10 @@
   border: none;
   padding: 0;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
   transition: transform 0.25s ease;
   display: flex;
   align-items: center;
@@ -94,6 +98,9 @@
   position: relative;
   z-index: 1;
   display: block;
+  -webkit-touch-callout: none;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 /* Статус (точка) */

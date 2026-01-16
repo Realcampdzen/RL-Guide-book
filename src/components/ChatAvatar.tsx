@@ -31,6 +31,8 @@ const ChatAvatar: React.FC<ChatAvatarProps> = ({ onClick, isOpen = false }) => {
             className="chat-avatar-img"
             decoding="async"
             fetchpriority="high"
+            draggable={false}
+            onContextMenu={(e) => e.preventDefault()}
           />
         </picture>
         <div className="chat-avatar-status" />

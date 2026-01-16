@@ -1,4 +1,5 @@
 import React, { useCallback, useMemo, useState, useEffect, useRef } from 'react';
+import * as Dialog from '@radix-ui/react-dialog';
 import '../styles/chatbot.css';
 import { rafThrottle } from '../utils/rafThrottle';
 
@@ -56,9 +57,12 @@ const ChatBot: React.FC<ChatBotProps> = ({
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const messagesListRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const mobileNavHeightRef = useRef<number>(68);
   const scrollTimeoutRef = useRef<number | undefined>(undefined);
+  const isNearBottomRef = useRef(true);
+  const [showJumpToBottom, setShowJumpToBottom] = useState(false);
   
   // Генерируем уникальный user_id для каждого сеанса
   const [userId] = useState(() => `web_user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
@@ -147,6 +151,20 @@ const ChatBot: React.FC<ChatBotProps> = ({
     messagesEndRef.current?.scrollIntoView({ behavior });
   };
 
+  const updateNearBottom = useMemo(
+    () =>
+      rafThrottle(() => {
+        const el = messagesListRef.current;
+        if (!el) return;
+        const thresholdPx = 80;
+        const distanceToBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+        const isNearBottom = distanceToBottom <= thresholdPx;
+        isNearBottomRef.current = isNearBottom;
+        setShowJumpToBottom(!isNearBottom);
+      }),
+    [],
+  );
+
   useEffect(() => {
     const handleResize = rafThrottle(() => {
       setViewport(getViewportState());
@@ -173,14 +191,24 @@ const ChatBot: React.FC<ChatBotProps> = ({
   }, []);
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages, isMobile]);
+    if (!isOpen) return;
+    // Auto-scroll only if the user is already near the bottom.
+    if (isNearBottomRef.current) {
+      scrollToBottom();
+    }
+  }, [isOpen, isMobile, messages]);
 
   // Scroll-to-bottom only when opening the chat or adding new messages.
   useEffect(() => {
     if (!isOpen) return;
     scrollToBottom('auto');
   }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    // Make sure the initial near-bottom state is correct once the dialog is mounted.
+    window.setTimeout(() => updateNearBottom(), 0);
+  }, [isOpen, updateNearBottom]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -227,6 +255,11 @@ const ChatBot: React.FC<ChatBotProps> = ({
       setIsMessagesScrolling(false);
     }, 140);
   }, [isMobile]);
+
+  const onMessagesScroll = useCallback(() => {
+    markMessagesScrolling();
+    updateNearBottom();
+  }, [markMessagesScrolling, updateNearBottom]);
 
   useEffect(() => {
     return () => {
@@ -464,7 +497,8 @@ const ChatBot: React.FC<ChatBotProps> = ({
     flexDirection: 'column',
     gap: isMobile ? '16px' : '20px',
     background: 'transparent',
-    borderRadius: 0
+    borderRadius: 0,
+    scrollBehavior: 'smooth',
   };
 
   const inputAreaStyle: React.CSSProperties = {
@@ -513,358 +547,490 @@ const ChatBot: React.FC<ChatBotProps> = ({
     persistChatPos(finalPos);
   };
 
+  const overlayWrapperStyle: React.CSSProperties = {
+    ...overlayStyle,
+    background: 'transparent',
+  };
+
   return (
-    <div
-      className={`chatbot-overlay ${isOpen ? 'is-visible' : ''}${isKeyboardOpen ? ' is-keyboard-open' : ''}${
-        isMessagesScrolling ? ' is-scrolling' : ''
-      }`}
-      style={overlayStyle}
+    <Dialog.Root
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (!open) onClose();
+      }}
     >
-      <div className="chatbot-container" style={containerStyle}>
-        {!isMobile && (
-          <div
-            className="chatbot-drag-handle"
-            title="Перетащите, чтобы переместить чат"
-            onPointerDown={onDragPointerDown}
-            onPointerMove={onDragPointerMove}
-            onPointerUp={onDragPointerUp}
-            onPointerCancel={onDragPointerUp}
-          />
-        )}
-        {/* Заголовок */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: isMobile ? '14px 16px' : '16px',
-          borderBottom: '1px solid rgba(225, 29, 72, 0.28)',
-          background: 'linear-gradient(135deg, rgba(225, 29, 72, 0.12) 0%, rgba(124, 58, 237, 0.18) 100%)',
-          borderRadius: '24px 24px 0 0'
-        }}>
-          <div className="chatbot-header-info" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div className="chatbot-avatar" style={{ position: 'relative' }}>
-              <img 
-                src="/RL-Guide-book/Валюша.jpg" 
-                alt="НейроВалюша" 
-                style={{ 
-                  width: '40px', 
-                  height: '40px', 
-                  borderRadius: '50%',
-                  objectFit: 'cover',
-                  border: '2px solid rgba(225, 29, 72, 0.5)',
-                  boxShadow: '0 0 15px rgba(255, 79, 139, 0.35)'
-                }} 
-              />
-              <div style={{
-                position: 'absolute',
-                bottom: '-1px',
-                right: '-1px',
-                width: '12px',
-                height: '12px',
-                background: '#ff4f8b',
-                borderRadius: '50%',
-                border: '2px solid rgba(12, 12, 12, 0.95)',
-                boxShadow: '0 0 8px rgba(255, 79, 139, 0.6)'
-              }}></div>
-            </div>
-            <div>
-              <h3 style={{ 
-                fontSize: '16px', 
-                fontWeight: '700', 
-                color: '#ff4f8b', 
-                margin: 0,
-                textShadow: '0 0 10px rgba(255, 79, 139, 0.45)'
-              }}>
-                НейроВалюша
-              </h3>
-              <p style={{ 
-                fontSize: '12px', 
-                color: '#a0aec0', 
-                margin: 0,
-                fontWeight: '500'
-              }}>
-                ✨ Нейро вожатый
-              </p>
-            </div>
-          </div>
-          <button
-            onClick={onClose}
+      <Dialog.Portal>
+        <div
+          className={`chatbot-overlay ${isOpen ? 'is-visible' : ''}${isKeyboardOpen ? ' is-keyboard-open' : ''}${
+            isMessagesScrolling ? ' is-scrolling' : ''
+          }`}
+          style={overlayWrapperStyle}
+        >
+          <Dialog.Overlay
             style={{
-              color: '#a0aec0',
-              background: 'rgba(124, 58, 237, 0.18)',
-              border: '1px solid rgba(124, 58, 237, 0.45)',
-              cursor: 'pointer',
-              padding: '6px',
-              borderRadius: '6px',
-              transition: 'all 0.3s ease'
+              position: 'fixed',
+              inset: 0,
+              background: mobileOverlayBackground,
+              pointerEvents: 'auto',
             }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'rgba(124, 58, 237, 0.28)';
-              e.currentTarget.style.color = '#ff4f8b';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'rgba(124, 58, 237, 0.18)';
-              e.currentTarget.style.color = '#a0aec0';
-            }}
-          >
-            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
+          />
 
-        {/* Контекстная информация */}
-        {(currentView || currentCategory || currentBadge || currentLevel) && (
-          <div className="chatbot-context" style={{
-            padding: '10px 16px',
-            background: 'rgba(225, 29, 72, 0.15)',
-            borderBottom: '1px solid rgba(225, 29, 72, 0.28)',
-            borderLeft: '3px solid #ff4f8b'
-          }}>
-            <div className="chatbot-context-text" style={{ fontSize: '12px', color: '#ff4f8b', fontWeight: '500', display: 'flex', flexDirection: 'column', gap: '3px' }}>
-              {currentView && (
-                <div className="chatbot-context-item" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span className="chatbot-context-icon" style={{ fontSize: '14px' }}>🧭</span>
-                  <span>
-                    Экран: {
-                      (
-                        {
-                          'intro': 'Главная',
-                          'categories': 'Список категорий',
-                          'category': 'Категория',
-                          'badge': 'Страница значка',
-                          'badge-level': 'Уровень значка',
-                          'introduction': 'Введение',
-                          'additional-material': 'Доп. материалы',
-                          'about-camp': 'Информация о лагере',
-                          'registration-form': 'Форма регистрации'
-                        } as Record<string, string>
-                      )[currentView] || currentView
-                    }
-                  </span>
-                </div>
-              )}
-              {currentCategory && (
-                <div className="chatbot-context-item" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span className="chatbot-context-icon" style={{ fontSize: '14px' }}>📁</span>
-                  <span>Категория: {currentCategory.emoji} {currentCategory.title}</span>
-                </div>
-              )}
-              {currentBadge && (
-                <div className="chatbot-context-item chatbot-context-item-with-margin" style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: currentCategory ? '3px' : '0' }}>
-                  <span className="chatbot-context-icon" style={{ fontSize: '14px' }}>🏆</span>
-                  <span>Значок: {currentBadge.emoji} {currentBadge.title}</span>
-                </div>
-              )}
-              {currentLevel && (
-                <div className="chatbot-context-item" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span className="chatbot-context-icon" style={{ fontSize: '14px' }}>🎯</span>
-                  <span>Уровень: {currentLevel}{currentLevelBadgeTitle ? ` — ${currentLevelBadgeTitle}` : ''}</span>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Сообщения */}
-        <div className="chatbot-messages" style={messagesContainerStyle} onScroll={markMessagesScrolling}>
-          {messages.length === 0 && (
-            <div style={{ textAlign: 'center', color: '#a0aec0', padding: '30px 0' }}>
-              <div className="chatbot-welcome-avatar" style={{ position: 'relative', display: 'inline-block', marginBottom: '20px' }}>
-                <img 
-                  src="/RL-Guide-book/Валюша.jpg" 
-                  alt="НейроВалюша" 
-                  style={{ 
-                    width: '80px', 
-                    height: '80px', 
-                    borderRadius: '50%',
-                    objectFit: 'cover',
-                    border: '3px solid rgba(225, 29, 72, 0.7)',
-                    boxShadow: '0 0 25px rgba(255, 79, 139, 0.5)'
-                  }} 
-                />
-                <div className="chatbot-welcome-indicator" style={{
-                  position: 'absolute',
-                  top: '-5px',
-                  right: '-5px',
-                  width: '20px',
-                  height: '20px',
-                  background: '#ff4f8b',
-                  borderRadius: '50%',
-                  border: '2px solid rgba(12, 12, 12, 0.95)',
-                  boxShadow: '0 0 12px rgba(255, 79, 139, 0.7)',
-                  animation: 'chatPulse 2s infinite'
-                }}></div>
-              </div>
-              <h3 className="chatbot-welcome-title" style={{ 
-                fontSize: '20px', 
-                fontWeight: '700', 
-                color: '#ff4f8b', 
-                margin: '0 0 12px 0',
-                textShadow: '0 0 12px rgba(255, 79, 139, 0.45)'
-              }}>
-                Привет! 😊
-              </h3>
-              <p className="chatbot-welcome-text" style={{ 
-                fontSize: '14px', 
-                margin: '0 0 8px 0', 
-                fontWeight: '500',
-                color: '#e2e8f0',
-                lineHeight: '1.4'
-              }}>
-                Я здесь чтобы помочь! 
-              </p>
-              <p className="chatbot-welcome-subtext" style={{ 
-                fontSize: '12px', 
-                margin: '0', 
-                opacity: '0.9',
-                color: '#a0aec0',
-                lineHeight: '1.4'
-              }}>
-                Если что-то не понятно — спрашивай! 💫
-              </p>
-            </div>
-          )}
-          
-          {messages.map((message) => (
+          <Dialog.Content className="chatbot-container" style={containerStyle}>
+            {!isMobile && (
+              <div
+                className="chatbot-drag-handle"
+                title="Перетащите, чтобы переместить чат"
+                onPointerDown={onDragPointerDown}
+                onPointerMove={onDragPointerMove}
+                onPointerUp={onDragPointerUp}
+                onPointerCancel={onDragPointerUp}
+              />
+            )}
+            {/* Заголовок */}
             <div
-              key={message.id}
-              className={`chatbot-message ${message.isUser ? 'user' : 'bot'}`}
               style={{
                 display: 'flex',
-                justifyContent: message.isUser ? 'flex-end' : 'flex-start',
-                marginBottom: '8px'
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: isMobile ? '14px 16px' : '16px',
+                borderBottom: '1px solid rgba(225, 29, 72, 0.28)',
+                background:
+                  'linear-gradient(135deg, rgba(225, 29, 72, 0.12) 0%, rgba(124, 58, 237, 0.18) 100%)',
+                borderRadius: '24px 24px 0 0',
               }}
             >
-              <div className="chatbot-message-content" style={{
-                maxWidth: '85%',
-                padding: '12px 16px',
-                borderRadius: message.isUser ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
-                background: message.isUser 
-                  ? 'linear-gradient(135deg, #ff4f8b 0%, #7c3aed 100%)'
-                  : 'rgba(225, 29, 72, 0.12)',
-                color: message.isUser ? 'white' : '#e2e8f0',
-                border: message.isUser 
-                  ? '1px solid rgba(225, 29, 72, 0.35)'
-                  : '1px solid rgba(225, 29, 72, 0.22)',
-                boxShadow: message.isUser 
-                  ? '0 6px 20px rgba(225, 29, 72, 0.35)'
-                  : '0 3px 12px rgba(0, 0, 0, 0.1)',
-                backdropFilter: 'blur(10px)'
-              }}>
-                <p className="chatbot-message-text" style={{ 
-                  fontSize: '13px', 
-                  margin: 0, 
-                  whiteSpace: 'pre-wrap',
-                  lineHeight: '1.4',
-                  fontWeight: '500'
-                }}>
-                  {message.text}
-                </p>
-                <p className="chatbot-message-time" style={{
-                  fontSize: '10px',
-                  marginTop: '6px',
-                  color: message.isUser ? 'rgba(255, 255, 255, 0.7)' : 'rgba(160, 174, 192, 0.6)',
-                  fontWeight: '400'
-                }}>
-                  {message.timestamp.toLocaleTimeString()}
-                </p>
-              </div>
-            </div>
-          ))}
-          
-          {isLoading && (
-            <div className="chatbot-loading">
-              <div className="chatbot-loading-content">
-                <div className="chatbot-loading-spinner">
-                  <div className="chatbot-spinner"></div>
-                  <span className="chatbot-loading-text">НейроВалюша печатает...</span>
+              <div className="chatbot-header-info" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div className="chatbot-avatar" style={{ position: 'relative' }}>
+                  <img
+                    src="/RL-Guide-book/Валюша.jpg"
+                    alt="НейроВалюша"
+                    draggable={false}
+                    onContextMenu={(e) => e.preventDefault()}
+                    style={{
+                      width: '40px',
+                      height: '40px',
+                      borderRadius: '50%',
+                      objectFit: 'cover',
+                      border: '2px solid rgba(225, 29, 72, 0.5)',
+                      boxShadow: '0 0 15px rgba(255, 79, 139, 0.35)',
+                    }}
+                  />
+                  <div
+                    style={{
+                      position: 'absolute',
+                      bottom: '-1px',
+                      right: '-1px',
+                      width: '12px',
+                      height: '12px',
+                      background: '#ff4f8b',
+                      borderRadius: '50%',
+                      border: '2px solid rgba(12, 12, 12, 0.95)',
+                      boxShadow: '0 0 8px rgba(255, 79, 139, 0.6)',
+                    }}
+                  ></div>
+                </div>
+                <div>
+                  <Dialog.Title asChild>
+                    <h3
+                      style={{
+                        fontSize: '16px',
+                        fontWeight: '700',
+                        color: '#ff4f8b',
+                        margin: 0,
+                        textShadow: '0 0 10px rgba(255, 79, 139, 0.45)',
+                      }}
+                    >
+                      НейроВалюша
+                    </h3>
+                  </Dialog.Title>
+                  <Dialog.Description asChild>
+                    <p
+                      style={{
+                        fontSize: '12px',
+                        color: '#a0aec0',
+                        margin: 0,
+                        fontWeight: '500',
+                      }}
+                    >
+                      ✨ Нейро вожатый
+                    </p>
+                  </Dialog.Description>
                 </div>
               </div>
+              <Dialog.Close asChild>
+                <button
+                  onClick={onClose}
+                  style={{
+                    color: '#a0aec0',
+                    background: 'rgba(124, 58, 237, 0.18)',
+                    border: '1px solid rgba(124, 58, 237, 0.45)',
+                    cursor: 'pointer',
+                    padding: '6px',
+                    borderRadius: '6px',
+                    transition: 'all 0.3s ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = 'rgba(124, 58, 237, 0.28)';
+                    e.currentTarget.style.color = '#ff4f8b';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'rgba(124, 58, 237, 0.18)';
+                    e.currentTarget.style.color = '#a0aec0';
+                  }}
+                >
+                  <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </Dialog.Close>
             </div>
-          )}
-          
-          <div ref={messagesEndRef} />
-        </div>
 
-        {/* Подсказки отключены */}
+            {/* Контекстная информация */}
+            {(currentView || currentCategory || currentBadge || currentLevel) && (
+              <div
+                className="chatbot-context"
+                style={{
+                  padding: '10px 16px',
+                  background: 'rgba(225, 29, 72, 0.15)',
+                  borderBottom: '1px solid rgba(225, 29, 72, 0.28)',
+                  borderLeft: '3px solid #ff4f8b',
+                }}
+              >
+                <div
+                  className="chatbot-context-text"
+                  style={{
+                    fontSize: '12px',
+                    color: '#ff4f8b',
+                    fontWeight: '500',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '3px',
+                  }}
+                >
+                  {currentView && (
+                    <div className="chatbot-context-item" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span className="chatbot-context-icon" style={{ fontSize: '14px' }}>
+                        🧭
+                      </span>
+                      <span>
+                        Экран:{' '}
+                        {
+                          (
+                            {
+                              intro: 'Главная',
+                              categories: 'Список категорий',
+                              category: 'Категория',
+                              badge: 'Страница значка',
+                              'badge-level': 'Уровень значка',
+                              introduction: 'Введение',
+                              'additional-material': 'Доп. материалы',
+                              'about-camp': 'Информация о лагере',
+                              'registration-form': 'Форма регистрации',
+                            } as Record<string, string>
+                          )[currentView] || currentView
+                        }
+                      </span>
+                    </div>
+                  )}
+                  {currentCategory && (
+                    <div className="chatbot-context-item" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span className="chatbot-context-icon" style={{ fontSize: '14px' }}>
+                        📁
+                      </span>
+                      <span>
+                        Категория: {currentCategory.emoji} {currentCategory.title}
+                      </span>
+                    </div>
+                  )}
+                  {currentBadge && (
+                    <div
+                      className="chatbot-context-item chatbot-context-item-with-margin"
+                      style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: currentCategory ? '3px' : '0' }}
+                    >
+                      <span className="chatbot-context-icon" style={{ fontSize: '14px' }}>
+                        🏆
+                      </span>
+                      <span>
+                        Значок: {currentBadge.emoji} {currentBadge.title}
+                      </span>
+                    </div>
+                  )}
+                  {currentLevel && (
+                    <div className="chatbot-context-item" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span className="chatbot-context-icon" style={{ fontSize: '14px' }}>
+                        🎯
+                      </span>
+                      <span>
+                        Уровень: {currentLevel}
+                        {currentLevelBadgeTitle ? ` — ${currentLevelBadgeTitle}` : ''}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
-        {/* Поле ввода */}
-        <div style={inputAreaStyle}>
-          <div className="chatbot-input-wrapper" style={{ display: 'flex', gap: '8px', alignItems: 'flex-end' }}>
-            <input
-              ref={inputRef}
-              autoFocus={!isMobile}
-              type="text"
-              value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="Напишите сообщение..."
-              className="chatbot-input"
-              style={{
-                flex: 1,
-                padding: isMobile ? '12px 14px' : '12px 16px',
-                border: '1px solid rgba(124, 58, 237, 0.35)',
-                borderRadius: '16px',
-                fontSize: isMobile ? '16px' : '14px',
-                outline: 'none',
-                background: 'rgba(12, 12, 12, 0.6)',
-                color: '#e2e8f0',
-                backdropFilter: 'blur(10px)',
-                transition: 'all 0.3s ease',
-                minHeight: isMobile ? '48px' : 'auto'
-              }}
-              disabled={isLoading}
-              onFocus={(e) => {
-                e.target.style.borderColor = 'rgba(124, 58, 237, 0.7)';
-                e.target.style.boxShadow = '0 0 0 2px rgba(124, 58, 237, 0.25)';
-                if (!isMobile) {
-                  scrollToBottom('auto');
-                }
-              }}
-              onBlur={(e) => {
-                e.target.style.borderColor = 'rgba(124, 58, 237, 0.35)';
-                e.target.style.boxShadow = 'none';
-              }}
-            />
-            <button
-              onClick={sendMessage}
-              disabled={!inputText.trim() || isLoading}
-              className="chatbot-send-btn"
-              style={{
-                padding: isMobile ? '12px 14px' : '12px 16px',
-                background: 'linear-gradient(135deg, #ff4f8b 0%, #7c3aed 100%)',
-                color: 'white',
-                border: 'none',
-                borderRadius: '16px',
-                fontSize: isMobile ? '16px' : '14px',
-                fontWeight: '600',
-                cursor: 'pointer',
-                opacity: (!inputText.trim() || isLoading) ? 0.5 : 1,
-                boxShadow: '0 6px 20px rgba(124, 58, 237, 0.35)',
-                transition: 'all 0.3s ease',
-                minWidth: isMobile ? '72px' : '80px',
-                minHeight: isMobile ? '48px' : 'auto'
-              }}
-              onMouseEnter={(e) => {
-                if (!e.currentTarget.disabled) {
-                  e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.boxShadow = '0 8px 25px rgba(124, 58, 237, 0.45)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 6px 20px rgba(124, 58, 237, 0.35)';
-              }}
+            {/* Сообщения */}
+            <div
+              ref={messagesListRef}
+              className="chatbot-messages"
+              style={messagesContainerStyle}
+              onScroll={onMessagesScroll}
             >
-              Отправить
-            </button>
-          </div>
-        </div>
-      </div>
-      
-      <style dangerouslySetInnerHTML={{
-        __html: `
+              {messages.length === 0 && (
+                <div style={{ textAlign: 'center', color: '#a0aec0', padding: '30px 0' }}>
+                  <div className="chatbot-welcome-avatar" style={{ position: 'relative', display: 'inline-block', marginBottom: '20px' }}>
+                    <img
+                      src="/RL-Guide-book/Валюша.jpg"
+                      alt="НейроВалюша"
+                      draggable={false}
+                      onContextMenu={(e) => e.preventDefault()}
+                      style={{
+                        width: '80px',
+                        height: '80px',
+                        borderRadius: '50%',
+                        objectFit: 'cover',
+                        border: '3px solid rgba(225, 29, 72, 0.7)',
+                        boxShadow: '0 0 25px rgba(255, 79, 139, 0.5)',
+                      }}
+                    />
+                    <div
+                      className="chatbot-welcome-indicator"
+                      style={{
+                        position: 'absolute',
+                        top: '-5px',
+                        right: '-5px',
+                        width: '20px',
+                        height: '20px',
+                        background: '#ff4f8b',
+                        borderRadius: '50%',
+                        border: '2px solid rgba(12, 12, 12, 0.95)',
+                        boxShadow: '0 0 12px rgba(255, 79, 139, 0.7)',
+                        animation: 'chatPulse 2s infinite',
+                      }}
+                    ></div>
+                  </div>
+                  <h3
+                    className="chatbot-welcome-title"
+                    style={{
+                      fontSize: '20px',
+                      fontWeight: '700',
+                      color: '#ff4f8b',
+                      margin: '0 0 12px 0',
+                      textShadow: '0 0 12px rgba(255, 79, 139, 0.45)',
+                    }}
+                  >
+                    Привет! 😊
+                  </h3>
+                  <p
+                    className="chatbot-welcome-text"
+                    style={{
+                      fontSize: '14px',
+                      margin: '0 0 8px 0',
+                      fontWeight: '500',
+                      color: '#e2e8f0',
+                      lineHeight: '1.4',
+                    }}
+                  >
+                    Я здесь чтобы помочь!
+                  </p>
+                  <p
+                    className="chatbot-welcome-subtext"
+                    style={{
+                      fontSize: '12px',
+                      margin: '0',
+                      opacity: '0.9',
+                      color: '#a0aec0',
+                      lineHeight: '1.4',
+                    }}
+                  >
+                    Если что-то не понятно — спрашивай! 💫
+                  </p>
+                </div>
+              )}
+
+              {messages.map((message) => (
+                <div
+                  key={message.id}
+                  className={`chatbot-message ${message.isUser ? 'user' : 'bot'}`}
+                  style={{
+                    display: 'flex',
+                    justifyContent: message.isUser ? 'flex-end' : 'flex-start',
+                    marginBottom: '8px',
+                  }}
+                >
+                  <div
+                    className="chatbot-message-content"
+                    style={{
+                      maxWidth: '85%',
+                      padding: '12px 16px',
+                      borderRadius: message.isUser ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
+                      background: message.isUser
+                        ? 'linear-gradient(135deg, #ff4f8b 0%, #7c3aed 100%)'
+                        : 'rgba(225, 29, 72, 0.12)',
+                      color: message.isUser ? 'white' : '#e2e8f0',
+                      border: message.isUser ? '1px solid rgba(225, 29, 72, 0.35)' : '1px solid rgba(225, 29, 72, 0.22)',
+                      boxShadow: message.isUser ? '0 6px 20px rgba(225, 29, 72, 0.35)' : '0 3px 12px rgba(0, 0, 0, 0.1)',
+                      backdropFilter: 'blur(10px)',
+                    }}
+                  >
+                    <p
+                      className="chatbot-message-text"
+                      style={{
+                        fontSize: '13px',
+                        margin: 0,
+                        whiteSpace: 'pre-wrap',
+                        lineHeight: '1.4',
+                        fontWeight: '500',
+                      }}
+                    >
+                      {message.text}
+                    </p>
+                    <p
+                      className="chatbot-message-time"
+                      style={{
+                        fontSize: '10px',
+                        marginTop: '6px',
+                        color: message.isUser ? 'rgba(255, 255, 255, 0.7)' : 'rgba(160, 174, 192, 0.6)',
+                        fontWeight: '400',
+                      }}
+                    >
+                      {message.timestamp.toLocaleTimeString()}
+                    </p>
+                  </div>
+                </div>
+              ))}
+
+              {isLoading && (
+                <div className="chatbot-loading">
+                  <div className="chatbot-loading-content">
+                    <div className="chatbot-loading-spinner">
+                      <div className="chatbot-spinner"></div>
+                      <span className="chatbot-loading-text">НейроВалюша печатает...</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {showJumpToBottom && messages.length > 0 && (
+                <div
+                  style={{
+                    position: 'sticky',
+                    bottom: '12px',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    pointerEvents: 'none',
+                    marginTop: '-6px',
+                  }}
+                >
+                  <button
+                    type="button"
+                    onClick={() => {
+                      isNearBottomRef.current = true;
+                      setShowJumpToBottom(false);
+                      scrollToBottom('smooth');
+                    }}
+                    style={{
+                      pointerEvents: 'auto',
+                      border: '1px solid rgba(225, 29, 72, 0.35)',
+                      background: 'rgba(12, 12, 12, 0.72)',
+                      color: '#e2e8f0',
+                      borderRadius: '999px',
+                      padding: '8px 12px',
+                      fontSize: '12px',
+                      fontWeight: 600,
+                      boxShadow: '0 10px 20px rgba(0,0,0,0.35)',
+                      backdropFilter: 'blur(10px)',
+                    }}
+                    aria-label="Прокрутить к последнему сообщению"
+                  >
+                    ↓ к последнему
+                  </button>
+                </div>
+              )}
+
+              <div ref={messagesEndRef} />
+            </div>
+
+            {/* Подсказки отключены */}
+
+            {/* Поле ввода */}
+            <div style={inputAreaStyle}>
+              <div className="chatbot-input-wrapper" style={{ display: 'flex', gap: '8px', alignItems: 'flex-end' }}>
+                <input
+                  ref={inputRef}
+                  autoFocus={!isMobile}
+                  type="text"
+                  value={inputText}
+                  onChange={(e) => setInputText(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder="Напишите сообщение..."
+                  className="chatbot-input"
+                  style={{
+                    flex: 1,
+                    padding: isMobile ? '12px 14px' : '12px 16px',
+                    border: '1px solid rgba(124, 58, 237, 0.35)',
+                    borderRadius: '16px',
+                    fontSize: isMobile ? '16px' : '14px',
+                    outline: 'none',
+                    background: 'rgba(12, 12, 12, 0.6)',
+                    color: '#e2e8f0',
+                    backdropFilter: 'blur(10px)',
+                    transition: 'all 0.3s ease',
+                    minHeight: isMobile ? '48px' : 'auto',
+                  }}
+                  disabled={isLoading}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = 'rgba(124, 58, 237, 0.7)';
+                    e.target.style.boxShadow = '0 0 0 2px rgba(124, 58, 237, 0.25)';
+                    if (!isMobile) {
+                      scrollToBottom('auto');
+                    }
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = 'rgba(124, 58, 237, 0.35)';
+                    e.target.style.boxShadow = 'none';
+                  }}
+                />
+                <button
+                  onClick={sendMessage}
+                  disabled={!inputText.trim() || isLoading}
+                  className="chatbot-send-btn"
+                  style={{
+                    padding: isMobile ? '12px 14px' : '12px 16px',
+                    background: 'linear-gradient(135deg, #ff4f8b 0%, #7c3aed 100%)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '16px',
+                    fontSize: isMobile ? '16px' : '14px',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    opacity: !inputText.trim() || isLoading ? 0.5 : 1,
+                    boxShadow: '0 6px 20px rgba(124, 58, 237, 0.35)',
+                    transition: 'all 0.3s ease',
+                    minWidth: isMobile ? '72px' : '80px',
+                    minHeight: isMobile ? '48px' : 'auto',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!e.currentTarget.disabled) {
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                      e.currentTarget.style.boxShadow = '0 8px 25px rgba(124, 58, 237, 0.45)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = '0 6px 20px rgba(124, 58, 237, 0.35)';
+                  }}
+                >
+                  Отправить
+                </button>
+              </div>
+            </div>
+          </Dialog.Content>
+
+          <style
+            dangerouslySetInnerHTML={{
+              __html: `
           @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
@@ -879,9 +1045,12 @@ const ChatBot: React.FC<ChatBotProps> = ({
               opacity: 1;
             }
           }
-        `
-      }} />
-    </div>
+        `,
+            }}
+          />
+        </div>
+      </Dialog.Portal>
+    </Dialog.Root>
   );
 };
 

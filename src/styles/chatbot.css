@@ -150,6 +150,17 @@ html[data-perf="lite"] .chatbot-container {
   z-index: 1;
 }
 
+.chatbot-container img {
+  -webkit-touch-callout: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.chatbot-container button {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
 .chatbot-header {
   display: flex;
   align-items: center;
