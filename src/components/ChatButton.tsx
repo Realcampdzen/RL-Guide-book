@@ -41,9 +41,17 @@ const getViewportState = (): ViewportState => {
   };
 };
 
+const readMobileNavHeight = (): number => {
+  if (typeof window === 'undefined') return 68;
+  const raw = getComputedStyle(document.documentElement).getPropertyValue('--mobile-nav-height').trim();
+  const parsed = Number.parseFloat(raw);
+  return Number.isFinite(parsed) ? parsed : 68;
+};
+
 const ChatButton: React.FC<ChatButtonProps> = ({ onClick, isOpen = false, className = '' }) => {
   const [viewport, setViewport] = useState<ViewportState>(() => getViewportState());
   const isMobile = viewport.width <= 768;
+  const [mobileNavHeightPx, setMobileNavHeightPx] = useState<number>(() => 68);
   const [isScrolling, setIsScrolling] = useState(false);
   const scrollTimeoutRef = useRef<number | undefined>(undefined);
 
@@ -72,6 +80,21 @@ const ChatButton: React.FC<ChatButtonProps> = ({ onClick, isOpen = false, classN
       visualViewport?.removeEventListener('scroll', updateViewport as unknown as EventListener);
     };
   }, []);
+
+  useEffect(() => {
+    if (!isMobile) return;
+    if (typeof window === 'undefined') return;
+    const update = rafThrottle(() => {
+      setMobileNavHeightPx(readMobileNavHeight());
+    });
+    update();
+    window.addEventListener('resize', update, { passive: true } as AddEventListenerOptions);
+    window.addEventListener('orientationchange', update, { passive: true } as AddEventListenerOptions);
+    return () => {
+      window.removeEventListener('resize', update as unknown as EventListener);
+      window.removeEventListener('orientationchange', update as unknown as EventListener);
+    };
+  }, [isMobile]);
 
   useEffect(() => {
     if (typeof window === 'undefined') {
@@ -125,7 +148,7 @@ const ChatButton: React.FC<ChatButtonProps> = ({ onClick, isOpen = false, classN
 
   const safeAreaBottom = Math.max(0, viewport.innerHeight - viewport.height - viewport.offsetTop);
   const safeAreaRight = Math.max(0, viewport.innerWidth - viewport.width - viewport.offsetLeft);
-  const baseBottom = (isMobile ? 18 : 24) + safeAreaBottom;
+  const baseBottom = (isMobile ? 18 + mobileNavHeightPx : 24) + safeAreaBottom;
   // Подъем кнопки ТОЛЬКО для мобильных устройств
   const mobileLift = Math.max(180, Math.min(250, viewport.height * 0.3));
   const raisedOffset = isMobile ? mobileLift : 0; // Десктоп остается без изменений

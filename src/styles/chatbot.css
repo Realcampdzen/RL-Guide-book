@@ -25,16 +25,12 @@
   z-index: 20000;
   pointer-events: none;
   background: transparent;
+  transition: background 0.2s ease;
   animation: chatFadeIn 0.3s ease-out;
 }
 
 .chatbot-overlay.is-visible {
   display: flex;
-}
-
-/* During mobile keyboard open/close, keep a stable dark backdrop and reduce heavy effects */
-.chatbot-overlay.is-keyboard-open {
-  background: rgba(15, 10, 31, 0.92);
 }
 
 .chatbot-overlay.is-keyboard-open .chatbot-container {
@@ -71,9 +67,6 @@
   box-shadow: 0 24px 50px rgba(0, 0, 0, 0.55), 0 0 0 1px var(--chat-accent-border), 0 0 28px rgba(124, 58, 237, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.08);
   width: min(360px, 92vw);
   max-width: 360px;
-  /* Allow taller panel; actual size/position is controlled inline by ChatBot.tsx */
-  height: min(720px, calc(var(--chat-vh, 100vh) - 80px));
-  max-height: none;
   display: flex;
   flex-direction: column;
   font-family: system-ui, -apple-system, sans-serif;
@@ -521,9 +514,7 @@ html[data-perf="lite"] .chatbot-container {
   .chatbot-container {
     width: 100%;
     max-width: 480px;
-    height: calc(var(--chat-vh, 100vh) - env(safe-area-inset-bottom));
-    max-height: calc(var(--chat-vh, 100vh) - env(safe-area-inset-bottom));
-    border-radius: 24px 24px 0 0;
+    border-radius: 24px;
     margin: 0;
   }
   

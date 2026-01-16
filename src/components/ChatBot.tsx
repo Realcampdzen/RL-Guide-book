@@ -82,10 +82,10 @@ const ChatBot: React.FC<ChatBotProps> = ({
   const [viewport, setViewport] = useState<ViewportState>(() => getViewportState());
   const isMobile = viewport.width <= 768;
   const isTablet = viewport.width > 768 && viewport.width <= 1024;
-  const safeAreaBottom = Math.max(0, viewport.innerHeight - viewport.height - viewport.offsetTop);
+  const keyboardInset = Math.max(0, viewport.innerHeight - viewport.height - viewport.offsetTop);
   const safeAreaLeft = Math.max(0, viewport.offsetLeft);
   const safeAreaRight = Math.max(0, viewport.innerWidth - viewport.width - viewport.offsetLeft);
-  const isKeyboardOpen = isMobile && safeAreaBottom > 60;
+  const isKeyboardOpen = isMobile && keyboardInset > 60;
 
   const readMobileNavHeight = useCallback(() => {
     if (typeof window === 'undefined') return 68;
@@ -96,6 +96,10 @@ const ChatBot: React.FC<ChatBotProps> = ({
 
   const [mobileNavHeightPx, setMobileNavHeightPx] = useState<number>(() => 68);
   const [isMessagesScrolling, setIsMessagesScrolling] = useState(false);
+  const mobileBottomInset = isMobile ? Math.max(12, keyboardInset + mobileNavHeightPx + 16) : 0;
+  const mobileOverlayBackground = isMobile
+    ? (isKeyboardOpen ? 'rgba(15, 10, 31, 0.94)' : 'rgba(15, 10, 31, 0.88)')
+    : 'transparent';
 
   const [chatPos, setChatPos] = useState<ChatPosition | null>(null);
   const dragStateRef = useRef<{
@@ -172,12 +176,11 @@ const ChatBot: React.FC<ChatBotProps> = ({
     scrollToBottom();
   }, [messages, isMobile]);
 
-  // Don't scroll-to-bottom on every visualViewport resize on mobile (keyboard open/close causes jank).
+  // Scroll-to-bottom only when opening the chat or adding new messages.
   useEffect(() => {
     if (!isOpen) return;
-    if (isMobile) return;
     scrollToBottom('auto');
-  }, [isMobile, isOpen, viewport.height]);
+  }, [isOpen]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -236,6 +239,8 @@ const ChatBot: React.FC<ChatBotProps> = ({
   // Универсальная отправка текста (используется инпутом и кликом по подсказке)
   const sendText = async (text: string) => {
     if (!text.trim() || isLoading) return;
+    const shouldRestoreFocus =
+      !isMobile && typeof document !== 'undefined' && document.activeElement === inputRef.current;
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -318,7 +323,7 @@ const ChatBot: React.FC<ChatBotProps> = ({
     } finally {
       setIsLoading(false);
       // Desktop only: on mobile this can re-open keyboard and cause viewport jank.
-      if (!isMobile) {
+      if (shouldRestoreFocus) {
         setTimeout(() => inputRef.current?.focus(), 0);
       }
     }
@@ -348,7 +353,7 @@ const ChatBot: React.FC<ChatBotProps> = ({
     left: 0,
     right: 0,
     bottom: 0,
-    background: isMobile ? 'rgba(15, 10, 31, 0.82)' : 'transparent',
+    background: mobileOverlayBackground,
     display: 'flex',
     alignItems: 'flex-end',
     justifyContent: isMobile ? 'center' : 'flex-end',
@@ -356,7 +361,7 @@ const ChatBot: React.FC<ChatBotProps> = ({
     paddingTop: 20,
     paddingLeft: isMobile ? Math.max(12, safeAreaLeft + 12) : 20,
     paddingRight: isMobile ? Math.max(12, safeAreaRight + 12) : 20,
-    paddingBottom: isMobile ? Math.max(18, safeAreaBottom + mobileNavHeightPx + 18) : isTablet ? 5 : 20,
+    paddingBottom: isMobile ? mobileBottomInset : isTablet ? 5 : 20,
     animation: 'chatFadeIn 0.3s ease-out',
     pointerEvents: 'none',
     // Provide CSS vars for potential CSS-only fallback/layout tuning.
@@ -366,12 +371,12 @@ const ChatBot: React.FC<ChatBotProps> = ({
 
   const availableHeight = Math.max(
     320,
-    Math.round(viewport.height - safeAreaBottom - mobileNavHeightPx - 24)
+    Math.round(viewport.height - mobileNavHeightPx - 24)
   );
   const computedMobileHeight = clamp(
     Math.round(availableHeight),
     360,
-    Math.round(viewport.height - safeAreaBottom - mobileNavHeightPx - 12)
+    Math.round(viewport.height - mobileNavHeightPx - 12)
   );
   const desktopHeight = clamp(Math.round((viewport.height || window.innerHeight) - 80), 420, 760);
 
@@ -388,14 +393,14 @@ const ChatBot: React.FC<ChatBotProps> = ({
       const topMin = 8;
       const bottomMax = Math.max(
         topMin,
-        viewport.height - Math.max(0, safeAreaBottom) - mobileNavHeightPx - 8 - heightPx
+        viewport.height - Math.max(0, keyboardInset) - mobileNavHeightPx - 8 - heightPx
       );
       return {
         x: clamp(pos.x, leftMin, rightMax),
         y: clamp(pos.y, topMin, bottomMax),
       };
     },
-    [containerWidthPx, mobileNavHeightPx, safeAreaBottom, safeAreaLeft, safeAreaRight, viewport.height, viewport.innerWidth]
+    [containerWidthPx, keyboardInset, mobileNavHeightPx, safeAreaLeft, safeAreaRight, viewport.height, viewport.innerWidth]
   );
 
   const defaultPos: ChatPosition = useMemo(() => {
@@ -422,7 +427,7 @@ const ChatBot: React.FC<ChatBotProps> = ({
 
   const containerStyle: React.CSSProperties = {
     background: 'linear-gradient(135deg, rgba(12, 12, 12, 0.7) 0%, rgba(32, 12, 24, 0.72) 45%, rgba(52, 16, 76, 0.78) 100%)',
-    borderRadius: isMobile ? '24px 24px 0 0' : '24px',
+    borderRadius: '24px',
     boxShadow: containerShadow,
     width: `${containerWidthPx}px`,
     maxWidth: `${containerWidthPx}px`,
@@ -439,7 +444,7 @@ const ChatBot: React.FC<ChatBotProps> = ({
     ...(isMobile
       ? {
           top: 'auto',
-          bottom: `${Math.max(18, safeAreaBottom + mobileNavHeightPx + 18)}px`,
+          bottom: `${mobileBottomInset}px`,
         }
       : { top: `${effectivePos.y}px` }),
     pointerEvents: 'auto',
@@ -453,7 +458,7 @@ const ChatBot: React.FC<ChatBotProps> = ({
     flex: 1,
     overflowY: 'auto',
     padding: isMobile
-      ? `16px 16px ${Math.max(12, safeAreaBottom + 12)}px`
+      ? '16px 16px calc(12px + env(safe-area-inset-bottom))'
       : '16px',
     display: 'flex',
     flexDirection: 'column',
@@ -464,7 +469,7 @@ const ChatBot: React.FC<ChatBotProps> = ({
 
   const inputAreaStyle: React.CSSProperties = {
     padding: isMobile ? '12px 16px 12px' : '16px',
-    paddingBottom: isMobile ? `${Math.max(14, safeAreaBottom + 14)}px` : '16px',
+    paddingBottom: isMobile ? 'calc(14px + env(safe-area-inset-bottom))' : '16px',
     borderTop: 'none',
     background: 'transparent',
     borderRadius: '0 0 24px 24px'
@@ -813,7 +818,9 @@ const ChatBot: React.FC<ChatBotProps> = ({
               onFocus={(e) => {
                 e.target.style.borderColor = 'rgba(124, 58, 237, 0.7)';
                 e.target.style.boxShadow = '0 0 0 2px rgba(124, 58, 237, 0.25)';
-                scrollToBottom('auto');
+                if (!isMobile) {
+                  scrollToBottom('auto');
+                }
               }}
               onBlur={(e) => {
                 e.target.style.borderColor = 'rgba(124, 58, 237, 0.35)';
