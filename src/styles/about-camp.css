@@ -806,7 +806,7 @@ html[data-perf="lite"] .about-camp-container .mobile-bottom-nav {
 }
 
 /* CARDS & GRID */
-.features-grid {
+.about-camp-container .features-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 2rem;
@@ -999,7 +999,7 @@ html[data-perf="lite"] .about-camp-container .mobile-bottom-nav {
 
 /* RESPONSIVE */
 @media (max-width: 1024px) {
-  .features-grid {
+  .about-camp-container .features-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 }
@@ -1091,7 +1091,7 @@ html[data-perf="lite"] .about-camp-container .mobile-bottom-nav {
     grid-template-columns: 1fr;
     gap: 1.5rem;
   }
-  .features-grid {
+  .about-camp-container .features-grid {
     grid-template-columns: 1fr;
   }
   .posts-layout {

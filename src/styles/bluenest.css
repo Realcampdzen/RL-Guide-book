@@ -841,20 +841,20 @@
 
 
         /* FEATURES (Frosted Glass Cards) */
-        .features {
+        .bluenest-landing .features {
             padding: 10vh 10vw 10vh 10vw;
             background: #0d0819; /* Slightly darker */
         }
         .features-header { text-align: center; margin-bottom: 8rem; }
         .features-header h2 { font-size: clamp(2.5rem, 4vw, 5rem); }
 
-        .features-grid {
+        .bluenest-landing .features-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
             gap: 4vw;
         }
 
-        .feature-card {
+        .bluenest-landing .feature-card {
             background: rgba(255, 255, 255, 0.03);
             backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
             border: 1px solid var(--c-smoke);
@@ -868,14 +868,14 @@
             filter: blur(28px);
         }
 
-        html[data-perf="lite"] .feature-card {
+        html[data-perf="lite"] .bluenest-landing .feature-card {
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
         }
 
         /* Make first and second feature card containers invisible, but keep content visible */
-        .features-grid > .feature-card:first-child,
-        .features-grid > .feature-card:nth-child(2) {
+        .bluenest-landing .features-grid > .feature-card:first-child,
+        .bluenest-landing .features-grid > .feature-card:nth-child(2) {
             background: transparent;
             backdrop-filter: none;
             -webkit-backdrop-filter: none;
@@ -885,49 +885,19 @@
         }
         
         
-        .feature-card:hover { border-color: var(--c-volt); }
+        .bluenest-landing .feature-card:hover { border-color: var(--c-volt); }
         
-        .features-grid > .feature-card:first-child:hover,
-        .features-grid > .feature-card:nth-child(2):hover {
+        .bluenest-landing .features-grid > .feature-card:first-child:hover,
+        .bluenest-landing .features-grid > .feature-card:nth-child(2):hover {
             border-color: transparent;
         }
 
-        /* Add margin-top to text in second feature card to account for scaled image */
-        .features-grid > .feature-card:nth-child(2) h3 {
-            margin-top: 25vh;
-            color: var(--c-stark) !important; /* Ensure same color as other cards */
+        /* Keep second card text above image glow, but avoid layout hacks (vh offsets).
+           Image sizing is handled in markup to keep layout stable across SPA navigation. */
+        .bluenest-landing .features-grid > .feature-card:nth-child(2) h3,
+        .bluenest-landing .features-grid > .feature-card:nth-child(2) p {
             position: relative;
-            z-index: 10; /* Place text above image glow */
-        }
-        
-        .features-grid > .feature-card:nth-child(2) p {
-            margin-top: 0;
-            color: rgba(244, 239, 228, 0.7) !important; /* Ensure same color as other cards */
-            position: relative;
-            z-index: 10; /* Place text above image glow */
-        }
-        
-        /* Increase margin-top for mobile/tablet versions */
-        @media (max-width: 1024px) {
-            .features-grid > .feature-card:nth-child(2) h3 {
-                margin-top: 40vh;
-            }
-        }
-        
-        /* Для планшетной версии поднимаем изображение и текст выше */
-        @media (min-width: 769px) and (max-width: 1024px) {
-            .features-grid > .feature-card:nth-child(2) img {
-                margin-top: -40px !important;
-            }
-            .features-grid > .feature-card:nth-child(2) h3 {
-                margin-top: 30vh !important;
-            }
-        }
-        
-        @media (max-width: 768px) {
-            .features-grid > .feature-card:nth-child(2) h3 {
-                margin-top: 50vh;
-            }
+            z-index: 10;
         }
 
         .feature-num {
@@ -944,8 +914,8 @@
                 -webkit-text-stroke: 1px var(--c-smoke);
             }
         }
-        .feature-card h3 { font-size: 2rem; margin-bottom: 1rem; color: var(--c-stark); }
-        .feature-card p { color: rgba(244, 239, 228, 0.7); font-size: 1.1rem; }
+        .bluenest-landing .feature-card h3 { font-size: 2rem; margin-bottom: 1rem; color: var(--c-stark); }
+        .bluenest-landing .feature-card p { color: rgba(244, 239, 228, 0.7); font-size: 1.1rem; }
 
 
         /* FOOTER (Minimalist High Impact) */
@@ -1105,9 +1075,7 @@
             .subtitle-section {
                 margin-top: -3vh !important;
             }
-            .feature-card:nth-child(2) img {
-                margin-top: -40px !important;
-            }
+            /* Image spacing is handled without vh/offset hacks now */
         }
         
         @media (max-width: 768px) {
@@ -1246,11 +1214,11 @@
             .features {
                 padding: 8vh 5vw;
             }
-            .features-grid {
+            .bluenest-landing .features-grid {
                 grid-template-columns: 1fr;
                 gap: 3rem;
             }
-            .feature-card {
+            .bluenest-landing .feature-card {
                 padding: 2.5rem 1.5rem;
             }
             .footer {

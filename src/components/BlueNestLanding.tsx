@@ -61,7 +61,7 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
   }, []); // Запускаем только один раз при монтировании
 
   return (
-    <>
+    <div className="bluenest-landing">
       <div className="noise-overlay"></div>
 
       {/* GlobalCursor renders the custom cursor layer once at app root */}
@@ -191,6 +191,8 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
               <img
                 src={`${import.meta.env.BASE_URL}image (24).jpg`}
                 alt="Реальный Значок = Опыт"
+                width={4096}
+                height={3560}
                 style={{
                   width: '100%',
                   height: 'auto',
@@ -210,15 +212,19 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
               <img
                 src={`${import.meta.env.BASE_URL}image (1).png`}
                 alt="Реальный Значок — компас"
+                width={1024}
+                height={572}
                 style={{
-                  width: '100%',
+                  // Use layout-affecting sizing (not CSS transform scale) to avoid
+                  // unstable spacing on SPA navigation / scroll restoration.
+                  width: '140%',
                   height: 'auto',
                   marginBottom: '1.5rem',
                   background: 'transparent',
                   display: 'block',
+                  maxWidth: 'none',
+                  marginLeft: '-20%',
                   filter: 'drop-shadow(0 30px 80px rgba(139, 0, 255, 0.6)) drop-shadow(0 15px 50px rgba(139, 92, 246, 0.5))',
-                  transform: 'scale(1.5)',
-                  transformOrigin: 'center top',
                 }}
               />
               <h3>Реальный Значок — компас</h3>
@@ -264,7 +270,7 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
           currentLevelBadgeTitle={currentLevelBadgeTitle}
         />
       </Suspense>
-    </>
+    </div>
   );
 };
 
