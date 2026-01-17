@@ -259,9 +259,15 @@ export default defineConfig(({ mode }) => {
         output: {
           manualChunks(id) {
             if (!id.includes('node_modules')) return
-            if (id.includes('react')) return 'react-vendor'
-            if (id.includes('openai')) return 'openai'
-            if (id.includes('@google')) return 'google-ai'
+            const normalizedId = id.replace(/\\/g, '/')
+            const isReactCore =
+              normalizedId.includes('/node_modules/react/') ||
+              normalizedId.includes('/node_modules/react-dom/') ||
+              normalizedId.includes('/node_modules/scheduler/') ||
+              normalizedId.includes('/node_modules/react-is/')
+            if (isReactCore) return 'react-vendor'
+            if (normalizedId.includes('/node_modules/openai/')) return 'openai'
+            if (normalizedId.includes('/node_modules/@google/')) return 'google-ai'
             return 'vendor'
           }
         }
