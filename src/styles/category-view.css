@@ -653,13 +653,25 @@ html[data-perf="lite"] .category-view-container .mobile-bottom-nav {
     padding: calc(env(safe-area-inset-top) + 8px + var(--cat-mobile-header-height) + 12px) 1rem 10vh;
   }
 
-  /* Mobile header: use category image as background (match old header vibe) */
+  /* Mobile: use category image as the overall background instead of the cosmos */
+  .category-view-container::before {
+    background:
+      linear-gradient(180deg, rgba(15, 10, 31, 0.72) 0%, rgba(15, 10, 31, 0.92) 70%),
+      var(--category-mobile-header-bg, none);
+    background-size: cover;
+    background-position: center top;
+    background-repeat: no-repeat;
+    background-color: var(--c-midnight);
+  }
+
+  /* Mobile header: glass-only (image moved to page background) */
   .category-view-container .mobile-glass-header {
     position: fixed;
     overflow: hidden;
+    background-color: rgba(17, 14, 32, 0.42);
     background-image:
-      linear-gradient(180deg, rgba(15, 10, 31, 0.65), rgba(15, 10, 31, 0.86)),
-      var(--category-mobile-header-bg);
+      linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02)),
+      linear-gradient(180deg, rgba(15, 10, 31, 0.24), rgba(15, 10, 31, 0.55));
     background-size: cover;
     background-position: center center;
     background-repeat: no-repeat;
@@ -670,8 +682,8 @@ html[data-perf="lite"] .category-view-container .mobile-bottom-nav {
     position: absolute;
     inset: 0;
     background:
-      radial-gradient(circle at 30% 30%, rgba(139, 0, 255, 0.22), rgba(0, 0, 0, 0) 60%),
-      linear-gradient(90deg, rgba(0, 0, 0, 0.22), rgba(0, 0, 0, 0));
+      radial-gradient(circle at 30% 30%, rgba(139, 0, 255, 0.14), rgba(0, 0, 0, 0) 60%),
+      linear-gradient(90deg, rgba(0, 0, 0, 0.14), rgba(0, 0, 0, 0));
     pointer-events: none;
     z-index: 0;
   }

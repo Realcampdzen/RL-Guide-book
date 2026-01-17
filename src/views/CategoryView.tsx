@@ -352,7 +352,10 @@ const CategoryView: React.FC<CategoryViewProps> = ({
     : `${import.meta.env.BASE_URL}category_${category.id}.png?v=2`; // Fallback to old icon if not found
 
   return (
-    <div className="category-view-container">
+    <div
+      className="category-view-container"
+      style={{ '--category-mobile-header-bg': `url('${bgUrl}')` } as React.CSSProperties}
+    >
       {/* Noise Overlay */}
       <div className="noise-overlay"></div>
 
@@ -363,7 +366,6 @@ const CategoryView: React.FC<CategoryViewProps> = ({
       <header
         className={`mobile-glass-header${isChatOpen ? ' is-chat-open' : ''}`}
         aria-label="Навигация"
-        style={{ '--category-mobile-header-bg': `url('${bgUrl}')` } as React.CSSProperties}
       >
         <div className="mobile-header-left">
           <button
