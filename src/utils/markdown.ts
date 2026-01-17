@@ -57,31 +57,47 @@ export const cleanHtmlContent = (html: string): string => {
 export const processIntroductionHtml = (html: string): string => {
   let processed = html;
 
-  // Remove only the "Философия категории" heading (h2 with 🎯 emoji), but keep its content
-  processed = processed.replace(/<h2>.*?🎯.*?Философия категории.*?<\/h2>/gis, '');
+  const removeH2HeadingByPhrase = (source: string, phrase: string): string => {
+    const lower = source.toLowerCase();
+    const phraseIndex = lower.indexOf(phrase.toLowerCase());
+    if (phraseIndex === -1) return source;
+    const start = lower.lastIndexOf('<h2', phraseIndex);
+    if (start === -1) return source;
+    const endClose = lower.indexOf('</h2>', phraseIndex);
+    if (endClose === -1) return source;
+    const end = endClose + '</h2>'.length;
+    return source.slice(0, start) + source.slice(end);
+  };
 
-  // Remove "Ключевые принципы" heading (h2 with 🌟 emoji)
-  const keyPrinciplesIndex = processed.search(/<h2>.*?🌟.*?Ключевые принципы.*?<\/h2>/gis);
-  if (keyPrinciplesIndex !== -1) {
-    // Find the start of the next h2 section after "Ключевые принципы"
-    const afterKeyPrinciples = processed.substring(keyPrinciplesIndex);
-    const nextH2Index = afterKeyPrinciples.search(/<h2>/i);
-    
-    if (nextH2Index !== -1) {
-      // Remove from "Ключевые принципы" heading to the start of the next h2
-      processed = processed.substring(0, keyPrinciplesIndex) + processed.substring(keyPrinciplesIndex + nextH2Index);
-    } else {
-      // If no next h2, remove everything from "Ключевые принципы" heading onwards
-      processed = processed.substring(0, keyPrinciplesIndex);
-    }
-  }
+  // Remove only the "Философия категории" heading (h2), but keep its content.
+  processed = removeH2HeadingByPhrase(processed, 'Философия категории');
+
+  // Remove "Ключевые принципы" section (heading + its subsections) until the next H2 (or end).
+  // We find the <h2> that actually contains the phrase, instead of using a cross-tag regex.
+  (() => {
+    const lower = processed.toLowerCase();
+    const phrase = 'ключевые принципы';
+    const phraseIndex = lower.indexOf(phrase);
+    if (phraseIndex === -1) return;
+    const h2Start = lower.lastIndexOf('<h2', phraseIndex);
+    if (h2Start === -1) return;
+    const h2EndClose = lower.indexOf('</h2>', phraseIndex);
+    if (h2EndClose === -1) return;
+    const h2End = h2EndClose + '</h2>'.length;
+
+    const nextH2 = lower.indexOf('<h2', h2End);
+    const sectionEnd = nextH2 === -1 ? processed.length : nextH2;
+    processed = processed.slice(0, h2Start) + processed.slice(sectionEnd);
+  })();
 
   // Remove horizontal rule at the bottom
   processed = processed.replace(/<hr[^>]*>/gi, '');
 
-  // Remove the footer text (italic text about "Этот файл содержит...")
-  processed = processed.replace(/<p>.*?<em>.*?Этот файл содержит.*?<\/em>.*?<\/p>/gis, '');
-  processed = processed.replace(/<em>.*?Этот файл содержит.*?<\/em>/gis, '');
+  // Remove the footer text (italic text about "Этот файл содержит...").
+  // IMPORTANT: keep the regex within a single <em>...</em> to avoid deleting content
+  // from other <em> blocks (e.g. the quote).
+  processed = processed.replace(/<p>\s*<em>[^<]*Этот файл содержит[^<]*<\/em>\s*<\/p>/gi, '');
+  processed = processed.replace(/<em>[^<]*Этот файл содержит[^<]*<\/em>/gi, '');
 
   // Clean up extra whitespace
   processed = cleanHtmlContent(processed);
