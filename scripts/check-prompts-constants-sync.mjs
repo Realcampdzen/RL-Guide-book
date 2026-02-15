@@ -18,7 +18,9 @@ if (!pyStat || !tsStat) {
   process.exit(0);
 }
 
-if (pyStat.mtimeMs > tsStat.mtimeMs) {
+// Допуск 5 с: в CI после checkout mtime может отличаться на доли секунды; падаем только если промпт явно новее.
+const TOLERANCE_MS = 5000;
+if (pyStat.mtimeMs > tsStat.mtimeMs + TOLERANCE_MS) {
   console.error(
     'Промпт Python новее constants.ts. Проверьте ручное обновление CAMP_STATIC_INFO и NEUROVALYUSHA_SOCIAL_SYSTEM (см. docs/DATA_SYNC.md).'
   );
