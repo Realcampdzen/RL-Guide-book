@@ -1,7 +1,9 @@
 import React, { Suspense, useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import type { Category, View } from '../types/guide';
 import type { MasterIndexMeta } from '../hooks/useDataLoader';
 import '../styles/categories.css';
+import '../styles/categories-tablet.css';
 import { toSiblingImageUrl, NAV_HOME_IMAGE } from '../utils/imageSources';
 import { useUserProgress } from '../hooks/useUserProgress';
 
@@ -82,6 +84,8 @@ const CategoriesGrid: React.FC<CategoriesGridProps> = ({
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [imageKey, setImageKey] = useState(0);
   const [squadIdeasCarouselSteps, setSquadIdeasCarouselSteps] = useState(0);
+  /** Подсказка над заблокированной карточкой (Бро/Движки): не влияет на сетку, рендер в портале */
+  const [lockTooltip, setLockTooltip] = useState<{ categoryId: string; rect: DOMRect } | null>(null);
 
   const squadIdeas = useMemo(() => (Array.isArray(communityBadges) ? communityBadges : []).slice(0, 10), [communityBadges]);
 
@@ -160,7 +164,7 @@ const CategoriesGrid: React.FC<CategoriesGridProps> = ({
     setImageErrors((prev) => new Set(prev).add(categoryId));
   };
 
-  const renderCategoryCard = (category: Category) => {
+  const renderCategoryCard = (category: Category, extraClass?: string) => {
     const imagePath = getCategoryImagePath(category.id);
     const imageWebp = toSiblingImageUrl(imagePath, 'webp');
     const hasImageError = imageErrors.has(category.id);
@@ -184,37 +188,30 @@ const CategoriesGrid: React.FC<CategoriesGridProps> = ({
       <button
         type="button"
         key={category.id}
-        className={`card item-card ${isLocked ? 'is-locked' : ''}`}
+        data-categories-card
+        className={`card item-card ${isLocked ? 'is-locked' : ''} ${extraClass ?? ''}`.trim()}
         onClick={() => {
-          if (isBroLocked) {
-            alert('🔒 Доступ закрыт!\n\nЧтобы открыть категорию Бро-Движения, нужно пройти Бросвящение в Личном Кабинете.');
-            return;
-          }
-          if (isTeamLocked) {
-            alert('🔒 Нужно запустить Движок!\n\nДоступ к этой категории откроется, когда ты создашь свой Движок или вступишь в команду в Личном Кабинете.');
-            return;
-          }
           onCategoryClick(category);
         }}
-        onMouseEnter={() => {
-          if (!isMobile && !isLocked) {
-            onCategoryPrefetch?.(category.id);
-          }
+        onMouseEnter={(e) => {
+          if (!isMobile) onCategoryPrefetch?.(category.id);
+          if (isLocked) setLockTooltip({ categoryId: category.id, rect: e.currentTarget.getBoundingClientRect() });
         }}
-        onFocus={() => {
-          if (!isMobile && !isLocked) {
-            onCategoryPrefetch?.(category.id);
-          }
+        onMouseLeave={() => {
+          if (isLocked) setLockTooltip(null);
         }}
-        onTouchStart={() => {
-          // Touch start handled
+        onFocus={(e) => {
+          if (!isMobile) onCategoryPrefetch?.(category.id);
+          if (isLocked) setLockTooltip({ categoryId: category.id, rect: e.currentTarget.getBoundingClientRect() });
         }}
-        onTouchMove={() => {
-          // Touch move handled
+        onBlur={() => {
+          if (isLocked) setLockTooltip(null);
         }}
+        onTouchStart={() => {}}
+        onTouchMove={() => {}}
         style={{
           backgroundColor: showEmoji ? '#F8F7F2' : undefined,
-          cursor: isLocked ? 'not-allowed' : 'pointer',
+          cursor: 'pointer',
           position: 'relative',
           overflow: 'hidden',
           border: 'none', // Reset button border
@@ -222,8 +219,7 @@ const CategoriesGrid: React.FC<CategoriesGridProps> = ({
           textAlign: 'left', // Ensure text alignment
           fontFamily: 'inherit',
           width: '100%', // Ensure full width
-          filter: isLocked ? 'grayscale(0.8)' : 'none',
-          opacity: isLocked ? 0.8 : 1
+          filter: isLocked ? 'grayscale(0.8) brightness(0.9)' : 'none'
         }}
       >
         {isLocked && (
@@ -287,9 +283,49 @@ const CategoriesGrid: React.FC<CategoriesGridProps> = ({
     );
   };
 
+  const lockTooltipTitle = 'Категория пока закрыта';
+  const lockTooltipBody =
+    lockTooltip?.categoryId === '9'
+      ? 'Чтобы разблокировать: пройди Бросвящение в Личном кабинете (раздел БРО → Бропаспорт).'
+      : lockTooltip?.categoryId === '8'
+        ? 'Чтобы разблокировать: создай свой Движок или вступи в команду в Личном кабинете (раздел Движки).'
+        : '';
+
+  const tooltipHalfWidth = 160;
+  const viewportMargin = 12;
+  const tooltipLeft =
+    lockTooltip
+      ? Math.max(
+          tooltipHalfWidth + viewportMargin,
+          Math.min(
+            typeof window !== 'undefined' ? window.innerWidth - tooltipHalfWidth - viewportMargin : lockTooltip.rect.left + lockTooltip.rect.width / 2,
+            lockTooltip.rect.left + lockTooltip.rect.width / 2
+          )
+        )
+      : 0;
+
   return (
     <div className="categories-page">
       <div className="noise-overlay"></div>
+
+      {lockTooltip &&
+        createPortal(
+          <div
+            className="category-lock-tooltip category-lock-tooltip--portal"
+            role="tooltip"
+            style={{
+              position: 'fixed',
+              left: tooltipLeft,
+              top: lockTooltip.rect.top - 10,
+              transform: 'translate(-50%, -100%)',
+            }}
+          >
+            <div className="category-lock-tooltip__icon">🔒</div>
+            <div className="category-lock-tooltip__title">{lockTooltipTitle}</div>
+            <div className="category-lock-tooltip__body">{lockTooltipBody}</div>
+          </div>,
+          document.body
+        )}
 
       {/* GlobalCursor renders the custom cursor layer once at app root */}
 
@@ -501,9 +537,6 @@ const CategoriesGrid: React.FC<CategoriesGridProps> = ({
                   <button className="hero-nav-btn hero-nav-bot-btn" onClick={onChatToggle}>
                     NEUROVALUSHA
                   </button>
-                  <button className="hero-nav-btn" onClick={handleOpenShareCenter}>
-                    Поделиться
-                  </button>
                   <button className="hero-nav-btn" onClick={onAboutCampClick}>
                     О лагере
                   </button>
@@ -530,16 +563,13 @@ const CategoriesGrid: React.FC<CategoriesGridProps> = ({
             </div>
           </div>
 
-          {/* Top Row Categories (right-column) - первые 7 категорий */}
-          {!isMobile && (
-            <div className="right-column">
-              {topRowCategories.map((category) => renderCategoryCard(category))}
-            </div>
-          )}
+          {/* Top Row Categories — без обёртки, карточки прямо в сетке на главном фоне */}
+          {!isMobile &&
+            topRowCategories.map((category) => renderCategoryCard(category, 'top-row-card'))}
 
           {/* Bottom Row Categories - последние 7 категорий */}
           {!isMobile ? (
-            <div className="bottom-row">
+            <div className="bottom-row" data-categories-bottom-row>
               {bottomRowCategories.map((category) => renderCategoryCard(category))}
             </div>
           ) : (

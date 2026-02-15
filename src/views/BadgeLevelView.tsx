@@ -14,6 +14,7 @@ import { getBadgeImagePath, hasBadgeImage } from '../utils/badgeImages';
 import { toSiblingImageUrl } from '../utils/imageSources';
 import { useUserProgress } from '../hooks/useUserProgress';
 import { useAuth } from '../context/AuthContext';
+import { useTeam } from '../context/TeamContext';
 import { canRequestBadgeApproval } from '../types/authRole';
 import { createBadgeRequest } from '../utils/badgeApprovalApi';
 import { getRank } from '../types/userProgress';
@@ -67,6 +68,7 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
   const { initReveal } = useScrollReveal();
   const { getLevelProgress, getBadgeProgress, updateLevelStatus, toggleFavorite, startRoute, removeRoute, userData, addFlagBadgeRequest } = useUserProgress();
   const { role, accessToken, deviceId } = useAuth();
+  const { myTeam } = useTeam();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isHeroLoaded, setIsHeroLoaded] = useState(false);
   const [useHeroWebp, setUseHeroWebp] = useState(true);
@@ -95,7 +97,25 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
   const [routeResetNotice, setRouteResetNotice] = useState<string | null>(null);
 
   const broLocked = category.id === '9' && !Boolean(userData?.broProgress?.isBro);
+  const hasTeam = Boolean(
+    myTeam ??
+    (typeof localStorage !== 'undefined' &&
+      (localStorage.getItem('rl_my_team_id') ||
+        (() => {
+          try {
+            const v = localStorage.getItem('rl_my_team_v1');
+            return v ? !!JSON.parse(v)?.id : false;
+          } catch {
+            return false;
+          }
+        })()))
+  );
+  const teamLocked = category.id === '8' && !hasTeam;
+  const mechanicLocked = broLocked || teamLocked;
   const broGateReason = 'Прогресс по Бро‑значкам доступен после подтверждения Бросвящения у вожатого.';
+  const teamGateReason = 'Прогресс по значкам Движка доступен после создания или вступления в Движок в ЛК.';
+  const mechanicGateReason = broLocked ? broGateReason : teamLocked ? teamGateReason : '';
+  const mechanicGateCtaLabel = broLocked ? 'Запросить подтверждение' : teamLocked ? 'Открыть ЛК → Движки' : '';
 
   const requestBroConfirmation = () => {
     const nickname = userData?.profile?.nickname || 'Искатель';
@@ -107,6 +127,18 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
       window.location.href = href;
     }
   };
+
+  const openTeamDashboard = () => {
+    const openProfilePanel = (window as any)?.openProfilePanel;
+    if (typeof openProfilePanel === 'function') {
+      openProfilePanel('engines');
+      return;
+    }
+    const openProfile = (window as any)?.openProfile;
+    if (typeof openProfile === 'function') openProfile();
+  };
+
+  const mechanicGateOnCta = broLocked ? requestBroConfirmation : teamLocked ? openTeamDashboard : undefined;
 
   // Derive current level ID safely
   // Assuming levelBadge is correctly derived below, we use its ID.
@@ -430,8 +462,8 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
   };
 
   const handleToggleComplete = () => {
-    if (broLocked) {
-      setBadgeRequestStatus(broGateReason);
+    if (mechanicLocked) {
+      setBadgeRequestStatus(mechanicGateReason);
       return;
     }
     if (isCompleted) {
@@ -475,8 +507,8 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
   };
 
   const handleSendBadgeRequest = async () => {
-    if (broLocked) {
-      setBadgeRequestStatus(broGateReason);
+    if (mechanicLocked) {
+      setBadgeRequestStatus(mechanicGateReason);
       return;
     }
     if (!canSendBadgeRequest) return;
@@ -505,8 +537,8 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
   };
 
   const handleStartRoute = () => {
-    if (broLocked) {
-      setBadgeRequestStatus(broGateReason);
+    if (mechanicLocked) {
+      setBadgeRequestStatus(mechanicGateReason);
       return;
     }
     if (!startLevelId) return;
@@ -885,18 +917,20 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
             <h1>{levelBadge.title}</h1>
             <div className="badge-hero-category">{level}</div>
             {isAdvancedOrExpert && favoriteTargetId && (
-              <div className="badge-hero-actions">
-                <button
-                  type="button"
-                  className={`badge-favorite-btn${isFavorite ? ' is-active' : ''}`}
-                  onClick={handleToggleFavorite}
-                  aria-label={isFavorite ? 'Убрать из избранного' : 'Добавить в избранное'}
-                  aria-pressed={isFavorite}
-                >
-                  <span className="badge-favorite-icon">{isFavorite ? '★' : '☆'}</span>
-                  <span className="badge-favorite-label">{isFavorite ? 'В избранном' : 'В избранное'}</span>
-                </button>
-              </div>
+              <FeatureGate allowed={!mechanicLocked} reason={mechanicGateReason} ctaLabel={mechanicGateCtaLabel} onCta={mechanicGateOnCta}>
+                <div className="badge-hero-actions">
+                  <button
+                    type="button"
+                    className={`badge-favorite-btn${isFavorite ? ' is-active' : ''}`}
+                    onClick={handleToggleFavorite}
+                    aria-label={isFavorite ? 'Убрать из избранного' : 'Добавить в избранное'}
+                    aria-pressed={isFavorite}
+                  >
+                    <span className="badge-favorite-icon">{isFavorite ? '★' : '☆'}</span>
+                    <span className="badge-favorite-label">{isFavorite ? 'В избранном' : 'В избранное'}</span>
+                  </button>
+                </div>
+              </FeatureGate>
             )}
 
             <BadgeSkinPanel
@@ -912,37 +946,49 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
             />
 
             {startLevelId && (
-              <div className="badge-cta-row">
-                <button
-                  type="button"
-                  onClick={handleToggleFavorite}
-                  className={`badge-like-btn${isFavorite ? ' is-liked' : ''}`}
-                  aria-label={isFavorite ? 'Убрать из избранного' : 'Добавить в избранное'}
-                  aria-pressed={isFavorite}
+              mechanicLocked ? (
+                <FeatureGate
+                  allowed={false}
+                  reason={mechanicGateReason}
+                  ctaLabel={mechanicGateCtaLabel}
+                  onCta={mechanicGateOnCta}
+                  mode="replace"
                 >
-                  <span aria-hidden="true">{isFavorite ? '❤️' : '🤍'}</span>
-                </button>
-
-                {isBadgeComplete ? (
-                  <button type="button" className="badge-cta is-complete" disabled>
-                    Маршрут завершён
-                  </button>
-                ) : hasProgress ? (
+                  <span />
+                </FeatureGate>
+              ) : (
+                <div className="badge-cta-row">
                   <button
                     type="button"
-                    onClick={handleAttemptRouteReset}
-                    className={`badge-cta${canResetRouteFromInProgress ? '' : ' is-disabled'}`}
-                    aria-disabled={!canResetRouteFromInProgress}
-                    title={routeResetBlockedReason || 'Нажми, чтобы сбросить маршрут'}
+                    onClick={handleToggleFavorite}
+                    className={`badge-like-btn${isFavorite ? ' is-liked' : ''}`}
+                    aria-label={isFavorite ? 'Убрать из избранного' : 'Добавить в избранное'}
+                    aria-pressed={isFavorite}
                   >
-                    Уже в пути
+                    <span aria-hidden="true">{isFavorite ? '❤️' : '🤍'}</span>
                   </button>
-                ) : (
-                  <button type="button" className="badge-cta" onClick={handleStartRoute}>
-                    В мой путь
-                  </button>
-                )}
-              </div>
+
+                  {isBadgeComplete ? (
+                    <button type="button" className="badge-cta is-complete" disabled>
+                      Маршрут завершён
+                    </button>
+                  ) : hasProgress ? (
+                    <button
+                      type="button"
+                      onClick={handleAttemptRouteReset}
+                      className={`badge-cta${canResetRouteFromInProgress ? '' : ' is-disabled'}`}
+                      aria-disabled={!canResetRouteFromInProgress}
+                      title={routeResetBlockedReason || 'Нажми, чтобы сбросить маршрут'}
+                    >
+                      Уже в пути
+                    </button>
+                  ) : (
+                    <button type="button" className="badge-cta" onClick={handleStartRoute}>
+                      В мой путь
+                    </button>
+                  )}
+                </div>
+              )
             )}
           </div>
         </section>
@@ -1044,7 +1090,7 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
           {/* Right Column */}
           <div className="badge-right-col reveal-on-scroll" style={{ transitionDelay: '0.1s' }}>
             {/* Completion Widget */}
-            <FeatureGate allowed={!broLocked} reason={broGateReason} ctaLabel="Запросить подтверждение" onCta={requestBroConfirmation}>
+            <FeatureGate allowed={!mechanicLocked} reason={mechanicGateReason} ctaLabel={mechanicGateCtaLabel} onCta={mechanicGateOnCta}>
               <div className="content-block" style={{ borderLeft: isCompleted ? '4px solid #4caf50' : '4px solid transparent' }}>
                 <div style={{ display: 'flex', alignItems: 'center', marginBottom: '15px' }}>
                   <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', fontSize: '18px', fontWeight: 'bold' }}>
@@ -1052,7 +1098,7 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
                       type="checkbox" 
                       checked={isCompleted} 
                       onChange={handleToggleComplete}
-                      disabled={broLocked}
+                      disabled={mechanicLocked}
                       style={{ width: '24px', height: '24px', marginRight: '10px', accentColor: '#4caf50' }}
                     />
                     {isCompleted ? 'Уровень выполнен! 🎉' : 'Отметить выполнение'}
@@ -1067,7 +1113,7 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
                   <textarea
                     value={reflection}
                     onChange={(e) => setReflection(e.target.value)}
-                    disabled={broLocked}
+                    disabled={mechanicLocked}
                     placeholder="Кратко опиши свой опыт..."
                     style={{
                       width: '100%',
@@ -1082,16 +1128,16 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
                   />
                   <button
                     onClick={handleToggleComplete}
-                    disabled={broLocked || reflection.length < 5}
+                    disabled={mechanicLocked || reflection.length < 5}
                     style={{
                       marginTop: '10px',
                       padding: '8px 16px',
-                      background: !broLocked && reflection.length >= 5 ? '#4caf50' : 'rgba(255,255,255,0.1)',
+                      background: !mechanicLocked && reflection.length >= 5 ? '#4caf50' : 'rgba(255,255,255,0.1)',
                       color: 'white',
                       border: 'none',
                       borderRadius: '20px',
-                      cursor: !broLocked && reflection.length >= 5 ? 'pointer' : 'not-allowed',
-                      opacity: !broLocked && reflection.length >= 5 ? 1 : 0.5,
+                      cursor: !mechanicLocked && reflection.length >= 5 ? 'pointer' : 'not-allowed',
+                      opacity: !mechanicLocked && reflection.length >= 5 ? 1 : 0.5,
                       fontWeight: 'bold'
                     }}
                   >
@@ -1101,7 +1147,7 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
                     <button
                       type="button"
                       onClick={() => void handleSendBadgeRequest()}
-                      disabled={broLocked || badgeRequestBusy}
+                      disabled={mechanicLocked || badgeRequestBusy}
                       style={{
                         marginTop: '10px',
                         marginLeft: '10px',

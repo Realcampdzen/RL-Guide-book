@@ -9,6 +9,7 @@ import { Skeleton } from '../components/Skeleton';
 import '../styles/category-view.css';
 import { useUserProgress } from '../hooks/useUserProgress';
 import { useAuth } from '../context/AuthContext';
+import { useTeam } from '../context/TeamContext';
 import type { Category, Badge } from '../types/guide';
 
 const loadChatBot = () => import('../components/ChatBot');
@@ -256,6 +257,7 @@ const CategoryView: React.FC<CategoryViewProps> = ({
   const { initReveal } = useScrollReveal();
   const { getBadgeProgress, userData } = useUserProgress();
   const { deviceId } = useAuth();
+  const { myTeam } = useTeam();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   type BadgeFilter = 'all' | 'mine' | 'in_progress';
   const [badgeFilter, setBadgeFilter] = useState<BadgeFilter>('all');
@@ -265,6 +267,22 @@ const CategoryView: React.FC<CategoryViewProps> = ({
 
   const isBroCategory = category.id === '9';
   const isBroUnlocked = Boolean(userData?.broProgress?.isBro);
+
+  const isTeamCategory = category.id === '8';
+  const hasTeam = Boolean(
+    myTeam ??
+    (typeof localStorage !== 'undefined' &&
+      (localStorage.getItem('rl_my_team_id') ||
+        (() => {
+          try {
+            const v = localStorage.getItem('rl_my_team_v1');
+            return v ? !!JSON.parse(v)?.id : false;
+          } catch {
+            return false;
+          }
+        })()))
+  );
+  const isTeamUnlocked = hasTeam;
 
   const openBroTelegramRequest = () => {
     const nickname = userData?.profile?.nickname || 'Искатель';
@@ -281,6 +299,16 @@ const CategoryView: React.FC<CategoryViewProps> = ({
     const openProfilePanel = (window as any)?.openProfilePanel;
     if (typeof openProfilePanel === 'function') {
       openProfilePanel('bro');
+      return;
+    }
+    const openProfile = (window as any)?.openProfile;
+    if (typeof openProfile === 'function') openProfile();
+  };
+
+  const openTeamDashboard = () => {
+    const openProfilePanel = (window as any)?.openProfilePanel;
+    if (typeof openProfilePanel === 'function') {
+      openProfilePanel('engines');
       return;
     }
     const openProfile = (window as any)?.openProfile;
@@ -660,6 +688,36 @@ const CategoryView: React.FC<CategoryViewProps> = ({
         </section>
 
         {/* Badge filters */}
+        {isTeamCategory && (
+          <div className="bro-gate-card reveal-on-scroll" role="region" aria-label="Движок — доступ к действиям">
+            <div className="bro-gate-head">
+              <div>
+                <div className="bro-gate-kicker">Значки Движков</div>
+                <div className="bro-gate-title">Движок</div>
+                <div className="bro-gate-subtitle">
+                  Просмотр открыт всем. Добавлять значки в путь и пользоваться действиями можно после создания или вступления в Движок в Личном кабинете.
+                </div>
+              </div>
+              <div className={`bro-gate-status${isTeamUnlocked ? ' is-unlocked' : ''}`}>
+                {isTeamUnlocked ? 'Открыто' : 'Закрыто'}
+              </div>
+            </div>
+
+            {!isTeamUnlocked ? (
+              <div className="bro-gate-actions">
+                <button type="button" className="action-btn hover-target" onClick={openTeamDashboard}>
+                  🚀 Открыть ЛК → Движки
+                </button>
+                <div className="bro-gate-note">Создай свой Движок или вступи в команду по коду в разделе «Движки» личного кабинета.</div>
+              </div>
+            ) : (
+              <div className="bro-gate-note">
+                Движок активен. Значки категории можно добавлять в путь и выполнять.
+              </div>
+            )}
+          </div>
+        )}
+
         {isBroCategory && (
           <div ref={broGateRef} className="bro-gate-card reveal-on-scroll" role="region" aria-label="Бросвящение — вход в Бро‑движение">
             <div className="bro-gate-head">

@@ -11,6 +11,8 @@ import { Skeleton } from '../components/Skeleton';
 import { getBadgeImagePath, hasBadgeImage } from '../utils/badgeImages';
 import { toSiblingImageUrl } from '../utils/imageSources';
 import { useUserProgress } from '../hooks/useUserProgress';
+import { useTeam } from '../context/TeamContext';
+import FeatureGate from '../components/FeatureGate';
 import { copyTextToClipboard, generateSocialCard, getBadgeShareUrl, shareOrDownloadSocialCard } from '../utils/socialGenerator';
 import { fetchAiSlogan, fetchVibeCheck } from '../utils/aiService';
 import { getBadge4kSkills, getSkillLabel } from '../utils/profile4k';
@@ -54,6 +56,7 @@ const BadgeView: React.FC<BadgeViewProps> = ({
   onBackToIntro,
 }) => {
   const { userData, getBadgeProgress, startRoute, removeRoute, toggleFavorite, addFlagBadgeRequest } = useUserProgress();
+  const { myTeam } = useTeam();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isHeroLoaded, setIsHeroLoaded] = useState(false);
   const [useHeroWebp, setUseHeroWebp] = useState(true);
@@ -75,6 +78,35 @@ const BadgeView: React.FC<BadgeViewProps> = ({
 
   const handleToggleFavorite = () => {
     toggleFavorite(baseBadgeId, { onAdded: () => {}, onLimit: () => {} });
+  };
+
+  const hasTeam = Boolean(
+    myTeam ??
+    (typeof localStorage !== 'undefined' &&
+      (localStorage.getItem('rl_my_team_id') ||
+        (() => {
+          try {
+            const v = localStorage.getItem('rl_my_team_v1');
+            return v ? !!JSON.parse(v)?.id : false;
+          } catch {
+            return false;
+          }
+        })()))
+  );
+  const broLocked = category.id === '9' && !Boolean(userData?.broProgress?.isBro);
+  const teamLocked = category.id === '8' && !hasTeam;
+  const mechanicLocked = broLocked || teamLocked;
+  const mechanicGateReason = broLocked
+    ? 'Добавлять в путь и в избранное можно после прохождения Бросвящения в ЛК.'
+    : 'Добавлять в путь и в избранное можно после создания или вступления в Движок в ЛК.';
+  const openMechanicCta = () => {
+    const openProfilePanel = (window as any)?.openProfilePanel;
+    if (typeof openProfilePanel === 'function') {
+      openProfilePanel(broLocked ? 'bro' : 'engines');
+      return;
+    }
+    const openProfile = (window as any)?.openProfile;
+    if (typeof openProfile === 'function') openProfile();
   };
 
   useEffect(() => {
@@ -653,37 +685,49 @@ const BadgeView: React.FC<BadgeViewProps> = ({
             />
 
             {startLevelId && (
-              <div className="badge-cta-row">
-                <button
-                  type="button"
-                  onClick={handleToggleFavorite}
-                  className={`badge-like-btn${isFavorite ? ' is-liked' : ''}`}
-                  aria-label={isFavorite ? 'Убрать из избранного' : 'Добавить в избранное'}
-                  aria-pressed={isFavorite}
+              mechanicLocked ? (
+                <FeatureGate
+                  allowed={false}
+                  reason={mechanicGateReason}
+                  ctaLabel={broLocked ? 'Бросвящение в ЛК' : 'Открыть ЛК → Движки'}
+                  onCta={openMechanicCta}
+                  mode="replace"
                 >
-                  <span aria-hidden="true">{isFavorite ? '❤️' : '🤍'}</span>
-                </button>
-
-                {isComplete ? (
-                  <button type="button" className="badge-cta is-complete" disabled>
-                    Маршрут завершён
-                  </button>
-                ) : hasProgress ? (
+                  <span />
+                </FeatureGate>
+              ) : (
+                <div className="badge-cta-row">
                   <button
                     type="button"
-                    onClick={handleAttemptRouteReset}
-                    className={`badge-cta${canResetRouteFromInProgress ? '' : ' is-disabled'}`}
-                    aria-disabled={!canResetRouteFromInProgress}
-                    title={routeResetBlockedReason || 'Нажми, чтобы сбросить маршрут'}
+                    onClick={handleToggleFavorite}
+                    className={`badge-like-btn${isFavorite ? ' is-liked' : ''}`}
+                    aria-label={isFavorite ? 'Убрать из избранного' : 'Добавить в избранное'}
+                    aria-pressed={isFavorite}
                   >
-                    Уже в пути
+                    <span aria-hidden="true">{isFavorite ? '❤️' : '🤍'}</span>
                   </button>
-                ) : (
-                  <button type="button" className="badge-cta" onClick={handleStartRoute}>
-                    В мой путь
-                  </button>
-                )}
-              </div>
+
+                  {isComplete ? (
+                    <button type="button" className="badge-cta is-complete" disabled>
+                      Маршрут завершён
+                    </button>
+                  ) : hasProgress ? (
+                    <button
+                      type="button"
+                      onClick={handleAttemptRouteReset}
+                      className={`badge-cta${canResetRouteFromInProgress ? '' : ' is-disabled'}`}
+                      aria-disabled={!canResetRouteFromInProgress}
+                      title={routeResetBlockedReason || 'Нажми, чтобы сбросить маршрут'}
+                    >
+                      Уже в пути
+                    </button>
+                  ) : (
+                    <button type="button" className="badge-cta" onClick={handleStartRoute}>
+                      В мой путь
+                    </button>
+                  )}
+                </div>
+              )
             )}
           </div>
         </section>
@@ -780,12 +824,20 @@ const BadgeView: React.FC<BadgeViewProps> = ({
                 </div>
               </div>
 
-              <div className="badge-workshop-cta" style={{ marginTop: '20px', padding: '16px', background: 'rgba(255,215,0,0.06)', borderRadius: '16px', border: '1px solid rgba(255,215,0,0.15)', textAlign: 'center' }}>
-                <p style={{ margin: '0 0 12px', fontSize: '14px', opacity: 0.9 }}>Этого мало? Предложи свой вариант</p>
-                <button type="button" onClick={handleOpenWorkshopForCategory} className="badge-cta" style={{ width: '100%', padding: '12px 16px', fontSize: '13px' }}>
-                  Открыть Мастерскую в эту категорию
-                </button>
-              </div>
+              <FeatureGate
+                allowed={!mechanicLocked}
+                reason={mechanicGateReason}
+                ctaLabel={broLocked ? 'Бросвящение в ЛК' : 'Открыть ЛК → Движки'}
+                onCta={openMechanicCta}
+                mode="replace"
+              >
+                <div className="badge-workshop-cta" style={{ marginTop: '20px', padding: '16px', background: 'rgba(255,215,0,0.06)', borderRadius: '16px', border: '1px solid rgba(255,215,0,0.15)', textAlign: 'center' }}>
+                  <p style={{ margin: '0 0 12px', fontSize: '14px', opacity: 0.9 }}>Этого мало? Предложи свой вариант</p>
+                  <button type="button" onClick={handleOpenWorkshopForCategory} className="badge-cta" style={{ width: '100%', padding: '12px 16px', fontSize: '13px' }}>
+                    Открыть Мастерскую в эту категорию
+                  </button>
+                </div>
+              </FeatureGate>
             </div>
           </div>
 

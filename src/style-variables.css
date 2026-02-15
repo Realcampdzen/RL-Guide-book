@@ -107,6 +107,10 @@
   /* Логотип */
   --mobile-logo-size: 180px;
   --mobile-logo-margin-bottom: 2.75rem;
+
+  /* Breakpoints (reference for media queries; use same values in categories-tablet.css) */
+  --breakpoint-tablet-min: 769px;
+  --breakpoint-tablet-max: 1024px;
   
   /* ========================================
      ДЕСКТОПНЫЕ РАЗМЕРЫ

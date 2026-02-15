@@ -114,6 +114,50 @@ html[data-perf="lite"] .mobile-bottom-nav {
   color: #e8d5ff;
 }
 
+/* Планшет (769–1024px): узкая панель на всех страницах */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .mobile-bottom-nav {
+    left: 0 !important;
+    right: 0 !important;
+    margin: 0 auto !important;
+    width: min(360px, calc(100% - 48px)) !important;
+    max-width: 360px !important;
+    min-width: 280px !important;
+    height: 48px !important;
+    padding: 6px 12px !important;
+    border-radius: 16px !important;
+  }
+
+  .mobile-bottom-nav .mobile-nav-item {
+    gap: 0 !important;
+    font-size: 0 !important;
+    position: relative !important;
+  }
+
+  .mobile-bottom-nav .mobile-nav-label {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0 0 0 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+  }
+
+  .mobile-bottom-nav .mobile-nav-icon-wrap {
+    width: 28px !important;
+    height: 28px !important;
+    border-radius: 10px !important;
+  }
+
+  .mobile-bottom-nav .mobile-nav-icon {
+    width: 15px !important;
+    height: 15px !important;
+  }
+}
+
 @media (max-width: 360px) {
   .mobile-nav-item {
     font-size: 0.46rem;

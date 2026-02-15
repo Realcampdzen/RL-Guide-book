@@ -2067,29 +2067,44 @@
 
 @media (min-width: 1181px) {
   .profile-spaceship-root .profile-view-cabin-top-inspector-page--desktop-only {
-    display: block;
-    flex-shrink: 0;
-    padding: 10px 18px 10px;
-    margin: 0 auto;
-    max-width: min(660px, 96%);
-    width: 100%;
+    display: block !important;
+    position: fixed !important;
+    left: var(--desktop-layer-left, 376px) !important;
+    right: var(--desktop-layer-right, 168px) !important;
+    top: clamp(10px, 1.6vh, 18px) !important;
+    bottom: auto !important;
+    z-index: 10145 !important;
+    padding: 6px 18px 8px;
+    margin: 0;
+    max-width: none;
+    width: auto;
     box-sizing: border-box;
-    min-height: 86px;
-    max-height: 86px;
+    min-height: 60px;
+    max-height: 70px;
     overflow: hidden;
+    pointer-events: none;
   }
   .profile-spaceship-root .profile-view-cabin-top-inspector-page--desktop-only .profile-view-cabin-top-inspector {
+    pointer-events: auto;
     width: 100%;
-    margin: 0;
-    padding: 8px 14px;
-    gap: 6px;
-    min-height: 66px;
-    max-height: 66px;
+    max-width: min(660px, 96%);
+    margin-inline: auto;
+    padding: 7px 14px 8px;
+    gap: 5px;
+    min-height: 54px;
+    max-height: 58px;
     overflow: hidden;
+    border-radius: 16px;
+    border-bottom-left-radius: 20px;
+    border-bottom-right-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
   }
   .profile-spaceship-root .profile-view-cabin-top-inspector-page--desktop-only .profile-view-cabin-top-inspector__title {
-    font-size: clamp(13px, 0.95vw, 16px);
+    font-size: clamp(13px, 0.95vw, 15px);
     line-height: 1.2;
+    flex-shrink: 0;
   }
   .profile-spaceship-root .profile-view-cabin-top-inspector-page--desktop-only .profile-view-cabin-top-inspector__subtitle {
     font-size: 11px;
@@ -2097,9 +2112,24 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    flex-shrink: 0;
   }
   .profile-spaceship-root .profile-view-cabin-top-inspector-page--desktop-only .profile-view-cabin-top-inspector__progress {
-    height: 6px;
+    height: 5px;
+    flex-shrink: 0;
+  }
+  .profile-spaceship-root .profile-view-cabin-top-inspector-page--desktop-only::before,
+  .profile-spaceship-root .profile-view-cabin-top-inspector-page--desktop-only::after,
+  .profile-spaceship-root .profile-view-cabin-top-inspector-page--desktop-only .profile-view-cabin-top-inspector::before,
+  .profile-spaceship-root .profile-view-cabin-top-inspector-page--desktop-only .profile-view-cabin-top-inspector::after,
+  .profile-spaceship-root .profile-view-cabin-top-inspector-page--desktop-only .profile-view-cabin-top-inspector__progress-bar::before,
+  .profile-spaceship-root .profile-view-cabin-top-inspector-page--desktop-only .profile-view-cabin-top-inspector__progress-bar::after {
+    display: none !important;
+    content: none !important;
+    visibility: hidden !important;
+  }
+  .profile-spaceship-root .profile-view-cabin-top-inspector-page--desktop-only .profile-view-cabin-top-inspector {
+    box-shadow: 0 0 0 1px rgba(var(--cabin-neon-cyan-rgb), 0.2);
   }
   .profile-spaceship-root .profile-view-cabin-right .profile-view-cabin-nav-item--inspector {
     display: none !important;
@@ -7774,10 +7804,26 @@
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35) !important;
   }
 
-  /* mobile-bottom-nav: at the very bottom */
-  .profile-spaceship-root .mobile-bottom-nav {
+  /* mobile-bottom-nav: at the very bottom — only in cabinet (profile), not on categories/about/etc. */
+  .profile-spaceship-root .mobile-bottom-nav[data-current-view="profile"] {
     bottom: calc(8px + env(safe-area-inset-bottom)) !important;
     transform: none !important;
+  }
+
+  /* Tablet (769–1024px) in cabinet: raise nav, put console at bottom — cabin-nav-toggle unchanged */
+  @media (min-width: 769px) and (max-width: 1024px) {
+    .profile-spaceship-root .mobile-bottom-nav[data-current-view="profile"] {
+      bottom: calc(8px + 106px + 10px + env(safe-area-inset-bottom)) !important; /* above console */
+    }
+    .profile-spaceship-root .profile-view-console {
+      bottom: calc(8px + env(safe-area-inset-bottom)) !important; /* at bottom, where nav was */
+    }
+    .profile-spaceship-root .profile-view-cabin-layout {
+      padding-bottom: calc(124px + 106px + 24px + env(safe-area-inset-bottom) + 12px) !important;
+    }
+    .profile-spaceship-root #profile-chat-trigger .chat-avatar-button {
+      bottom: calc(8px + 106px + 10px + 48px + 24px + env(safe-area-inset-bottom)) !important; /* above nav */
+    }
   }
 
   /* Кнопка вызова бота — выше на 170px в мобильной кабине */
@@ -8032,7 +8078,10 @@
     font-size: 11px !important;
   }
 
-  /* 6. cabin-center - segmented tabs: docked tabs in flow at top, reserve space for right rail */
+  /* 6. cabin-center - segmented tabs: docked tabs in flow at top, full width */
+  .profile-spaceship-root .profile-view-cabin-center {
+    align-items: stretch !important;
+  }
   .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--hub .profile-view-cabin-tabs-docked,
   .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--squad-corner .profile-view-cabin-tabs-docked,
   .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--real-diary .profile-view-cabin-tabs-docked,
@@ -8050,11 +8099,23 @@
     top: auto !important;
     transform: none !important;
     width: 100% !important;
+    min-width: 0 !important;
     pointer-events: auto !important;
     flex-shrink: 0 !important;
     padding-left: 14px !important;
     padding-right: 14px !important;
     margin-bottom: 10px !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: stretch !important;
+    justify-content: stretch !important;
+  }
+  /* Nav (single child) must fill tabs-docked width */
+  .profile-spaceship-root .profile-view-cabin-center .profile-view-cabin-tabs-docked > .profile-tabs-nav {
+    flex: 1 1 0% !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
   }
 
   .profile-spaceship-root .profile-view-cabin-center {
@@ -8070,9 +8131,9 @@
   .profile-spaceship-root .profile-view-cabin-center .profile-tabs-nav,
   .profile-spaceship-root .profile-view-cabin-center .profile-tabs-nav--docked {
     width: 100% !important;
-    display: grid !important;
-    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)) !important;
-    grid-auto-rows: 60px !important;
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
     gap: 4px !important;
     padding: 4px !important;
     background: rgba(0, 0, 0, 0.25) !important;
@@ -8081,10 +8142,11 @@
 
   .profile-spaceship-root .profile-view-cabin-center .profile-tabs-nav button,
   .profile-spaceship-root .profile-view-cabin-center .profile-tabs-nav--docked button {
-    width: 100% !important;
-    height: 100% !important;
-    min-width: 0 !important;
-    min-height: 0 !important;
+    flex: 1 1 0% !important;
+    min-width: 80px !important;
+    min-height: 60px !important;
+    width: auto !important;
+    height: auto !important;
     font-size: 14px !important;
     padding: 10px 14px !important;
     border-radius: 10px !important;
@@ -8152,6 +8214,71 @@
   .profile-spaceship-root .profile-view-cabin-top::before,
   .profile-spaceship-root .profile-view-cabin-top-inspector::before {
     display: none !important;
+  }
+}
+
+/* Tablet only (768-1180px): cabin center tabs in one row, equal width (override mobile grid above) */
+@media (min-width: 768px) and (max-width: 1180px) {
+  /* Wrapper: flex so nav can grow to full width */
+  .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--hub .profile-view-cabin-tabs-docked,
+  .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--squad-corner .profile-view-cabin-tabs-docked,
+  .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--real-diary .profile-view-cabin-tabs-docked,
+  .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--profile4k .profile-view-cabin-tabs-docked,
+  .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--team .profile-view-cabin-tabs-docked,
+  .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--council .profile-view-cabin-tabs-docked,
+  .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--bro .profile-view-cabin-tabs-docked,
+  .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--vozhatifikator .profile-view-cabin-tabs-docked,
+  .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--counselor-squad .profile-view-cabin-tabs-docked,
+  .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--share .profile-view-cabin-tabs-docked,
+  .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--workshop .profile-view-cabin-tabs-docked,
+  .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--inspector .profile-view-cabin-tabs-docked {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: stretch !important;
+    align-items: stretch !important;
+  }
+
+  /* Nav: fill wrapper, flex row, equal children */
+  .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--hub .profile-tabs-nav--docked,
+  .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--squad-corner .profile-tabs-nav--squad-corner,
+  .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--real-diary .profile-tabs-nav--real-diary,
+  .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--profile4k .profile-tabs-nav--profile4k,
+  .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--team .profile-tabs-nav--team,
+  .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--council .profile-tabs-nav--council,
+  .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--bro .profile-tabs-nav--bro,
+  .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--vozhatifikator .profile-tabs-nav--vozhatifikator,
+  .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--counselor-squad .profile-tabs-nav--counselor-squad,
+  .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--share .profile-tabs-nav--share,
+  .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--workshop .profile-tabs-nav--workshop,
+  .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--inspector .profile-tabs-nav--inspector {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    flex: 1 1 0% !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    grid-template-columns: unset !important;
+    grid-auto-rows: unset !important;
+    gap: 4px !important;
+  }
+
+  /* Buttons: equal flex share */
+  .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--hub .profile-tabs-nav--docked button,
+  .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--squad-corner .profile-tabs-nav--squad-corner button,
+  .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--real-diary .profile-tabs-nav--real-diary button,
+  .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--profile4k .profile-tabs-nav--profile4k button,
+  .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--team .profile-tabs-nav--team button,
+  .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--council .profile-tabs-nav--council button,
+  .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--bro .profile-tabs-nav--bro button,
+  .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--vozhatifikator .profile-tabs-nav--vozhatifikator button,
+  .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--counselor-squad .profile-tabs-nav--counselor-squad button,
+  .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--share .profile-tabs-nav--share button,
+  .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--workshop .profile-tabs-nav--workshop button,
+  .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--inspector .profile-tabs-nav--inspector button {
+    flex: 1 1 0% !important;
+    min-width: 0 !important;
+    width: auto !important;
+    max-width: none !important;
   }
 }
 

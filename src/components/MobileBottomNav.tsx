@@ -100,7 +100,7 @@ const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
   };
 
   return (
-    <nav className="mobile-bottom-nav" aria-label="Основная навигация">
+    <nav className="mobile-bottom-nav" data-current-view={currentView} aria-label="Основная навигация">
       <button
         type="button"
         className={`mobile-nav-item${activeKey === 'home' ? ' is-active' : ''}`}
