@@ -4,7 +4,7 @@ import { NEUROVALYUSHA_FULL_CHAT_PROMPT } from './generated_chat_prompt'
 export const NEUROVALYUSHA_MODEL = 'gpt-4o'
 export { NEUROVALYUSHA_FULL_CHAT_PROMPT }
 
-// Источник: блоки из chatbot/prompts/putevoditel_system_prompt_optimized.py. При изменении там — обновлять вручную. См. docs/DATA_SYNC.md.
+// Источник: блоки из chatbot/prompts/putevoditel_system_prompt_optimized.py. При изменении там — обновлять вручную. См. docs/DATA_SYNC.md. (sync 2026-02)
 export const CAMP_STATIC_INFO = `## 📋 Медицинские документы
 📌 Необходимые документы:
 - Медицинская справка (форма № 079/У)
