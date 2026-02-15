@@ -1,5 +1,16 @@
 # 🚀 Деплой Путеводителя Реального Лагеря
 
+Подробная инструкция по GitHub Pages: [docs/DEPLOY_GITHUB_PAGES.md](docs/DEPLOY_GITHUB_PAGES.md).
+
+## Pre-deploy чеклист
+
+Перед push в `main` (если меняли `ai-data/` или изображения):
+
+1. `npm run sync:ai-data` — синхронизация ai-data в public
+2. `npm run verify:webp` — проверка WebP (при новых картинках: `npm run images:webp`)
+3. `npm run self-check` — проверка целостности (опционально при запущенном бэкенде: `BACKEND_URL=http://localhost:4000 npm run self-check` для проверки GET /api/health)
+4. `npm run build` — сборка
+
 ## Автоматический деплой через GitHub Actions
 
 ### Настройка GitHub Pages
@@ -52,7 +63,7 @@ npm run preview
    - Следите за статусом workflow'ов
 
 2. **GitHub Pages**:
-   - После успешного деплоя сайт будет доступен по адресу:
+   - После успешного деплоя сайт будет доступен по адресу (base path `/RL-Guide-book/`):
    - `https://realcampdzen.github.io/RL-Guide-book/`
    - Или по кастомному домену (если настроен)
 

@@ -1,0 +1,15 @@
+---
+description: Project context for Путеводитель — ai-data, badges, images, sync to public/ai-data and WebP verification.
+globs: ai-data/**/*, public/ai-data/**/*, src/utils/badgeImages.ts, scripts/verify-webp-siblings.mjs, scripts/generate-webp.mjs, src/App.tsx, src/views/*.tsx
+alwaysApply: false
+---
+
+# Путеводитель — доменный контекст
+
+- **Данные для рантайма:** источник истины — [public/ai-data](mdc:public/ai-data). Индексы пересчитываются в [ai-data/](mdc:ai-data) скриптом `update_indexes.py`. После любых правок в `ai-data/` обязательно синхронизировать в `public/ai-data/` (robocopy/rsync).
+
+- **Значки:** структура — категория (id 1–14) → значки N.X → уровни N.X.Y. Отображение картинок: [src/utils/badgeImages.ts](mdc:src/utils/badgeImages.ts) — `categoryFolderMap`, `normalizeFolderName`, `getBadgeFolderName`, `getBadgeImagePath`. Папки на диске: `public/Новые значки/<категория>/<значок>/` (файлы вида `1 название уровня.jpg`, опционально подпапка `реализм/`).
+
+- **WebP:** у каждого .jpg/.png (кроме `*.orig.*`) должен быть соседний .webp. Генерация: [scripts/generate-webp.mjs](mdc:scripts/generate-webp.mjs) (`npm run images:webp`). Проверка: [scripts/verify-webp-siblings.mjs](mdc:scripts/verify-webp-siblings.mjs) (`npm run verify:webp`); новые категории добавлять в `targetDirs`.
+
+- **Подробности и грабли:** [agent.md](mdc:agent.md) в корне, [AGENT_REPO_GUIDE.md](mdc:AGENT_REPO_GUIDE.md).

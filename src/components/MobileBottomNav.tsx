@@ -13,7 +13,7 @@ type MobileNavView =
   | 'registration-form'
   | string;
 
-type ActiveKey = 'home' | 'categories' | 'about' | 'signup';
+type ActiveKey = 'home' | 'categories' | 'about' | 'signup' | 'profile';
 
 interface MobileBottomNavProps {
   currentView: MobileNavView;
@@ -21,6 +21,7 @@ interface MobileBottomNavProps {
   onCategories: () => void;
   onAboutCamp: () => void;
   onTelegramContact: () => void;
+  onProfile: () => void;
   onOpenVk?: () => void;
 }
 
@@ -28,6 +29,7 @@ const getActiveKey = (view: MobileNavView): ActiveKey => {
   if (view === 'intro') return 'home';
   if (view === 'about-camp') return 'about';
   if (view === 'registration-form') return 'signup';
+  if (view === 'profile') return 'profile';
   return 'categories';
 };
 
@@ -42,6 +44,7 @@ const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
   onCategories,
   onAboutCamp,
   onTelegramContact,
+  onProfile,
   onOpenVk,
 }) => {
   const activeKey = useMemo(() => getActiveKey(currentView), [currentView]);
@@ -61,6 +64,14 @@ const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
       return;
     }
     onCategories();
+  };
+
+  const handleProfile = () => {
+    if (activeKey === 'profile') {
+      scrollToTop();
+      return;
+    }
+    onProfile();
   };
 
   const handleAbout = () => {
@@ -125,6 +136,26 @@ const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
           </svg>
         </span>
         <span className="mobile-nav-label">Значки</span>
+      </button>
+      <button
+        type="button"
+        className={`mobile-nav-item${activeKey === 'profile' ? ' is-active' : ''}`}
+        aria-current={activeKey === 'profile' ? 'page' : undefined}
+        onClick={handleProfile}
+      >
+        <span className="mobile-nav-icon-wrap">
+          <svg className="mobile-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path
+              d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.7"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </span>
+        <span className="mobile-nav-label">Мой путь</span>
       </button>
       <button
         type="button"

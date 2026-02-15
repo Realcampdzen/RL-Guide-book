@@ -1,0 +1,5 @@
+[33m27a5309[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m Исправление: заменен process.env на import.meta.env для Vite, добавлены @types/node
+[33m7556f2a[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m Trigger rebuild with new API key
+[33m346054d[m Исправление: убран API ключ из кода, добавлена поддержка переменных окружения
+[33m9da60a9[m Исправление конфигурации Vercel - добавлен тестовый API endpoint
+[33m0096e17[m Настройка для деплоя на Vercel

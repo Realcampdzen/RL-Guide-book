@@ -36,18 +36,22 @@ export const readAiDataCache = (version: string): AiDataCache | null => {
   }
 };
 
-export const writeAiDataCache = (version: string, payload: { categories: Category[]; badges: Badge[] }): void => {
+export const writeAiDataCache = (
+  version: string,
+  payload: { categories: Category[]; badges: Badge[] },
+  loadedCategoryIds?: string[]
+): void => {
   if (!isStorageAvailable()) return;
   try {
-    const loadedCategoryIds = Array.from(
-      new Set(payload.badges.map((b) => String(b.category_id || '')).filter(Boolean))
-    );
+    const resolvedLoadedCategoryIds = Array.isArray(loadedCategoryIds)
+      ? loadedCategoryIds
+      : undefined;
     const data: AiDataCache = {
       version,
       cachedAt: new Date().toISOString(),
       categories: payload.categories,
       badges: payload.badges,
-      loadedCategoryIds,
+      loadedCategoryIds: resolvedLoadedCategoryIds,
     };
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   } catch {

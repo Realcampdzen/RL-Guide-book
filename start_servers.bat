@@ -11,6 +11,6 @@ echo Запуск Frontend сервера...
 start "Frontend Server" cmd /k "npm run dev"
 
 echo Оба сервера запущены!
-echo Backend: http://localhost:5000
+echo Backend: http://localhost:4000
 echo Frontend: http://localhost:3001
 pause

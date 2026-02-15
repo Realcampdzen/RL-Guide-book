@@ -69,4 +69,7 @@ alwaysApply: true
   - Update references to external docs
   - Maintain links between related rules
   - Document breaking changes
+
+- **Project-specific example:** If the ai-data structure or badge-image workflow changes (e.g. new category layout, new scripts), consider updating [putevoditel_domain.mdc](mdc:.cursor/rules/putevoditel_domain.mdc) so the domain rule stays accurate.
+
 Follow [cursor_rules.mdc](mdc:.cursor/rules/cursor_rules.mdc) for proper rule formatting and structure.

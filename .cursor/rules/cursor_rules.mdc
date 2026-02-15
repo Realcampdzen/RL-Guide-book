@@ -50,4 +50,32 @@ alwaysApply: true
   - Keep descriptions concise
   - Include both DO and DON'T examples
   - Reference actual code over theoretical examples
-  - Use consistent formatting across rules 
+  - Use consistent formatting across rules
+
+- **Agent entry (this repo):** When starting a session or working with data/deploy, read [agent.md](mdc:agent.md) in the project root.
+
+  
+
+- **Memory Bank Usage:**
+
+  - Always check `.memory-bank/active_context.md` for current goals.
+
+  - Keep `.memory-bank/progress.md` updated after major milestones.
+
+  - Reference `.memory-bank/tech_context.md` for data sync rules and API contracts.
+
+- **Multi-Agent Orchestration:**
+
+  - Before taking a task, open [.cursor/agent orchestration/AGENT_ORCHESTRATION.md](mdc:.cursor/agent%20orchestration/AGENT_ORCHESTRATION.md): check Claim Board (task not claimed), then record Agent (A/B/C/D/E), task, date, logical next step.
+
+  - After completing: update Claim Board status to Done, create report in `.cursor/agent orchestration/` (see AGENT_B_SESSION_REPORT.md).
+
+- **Plan Mode / Build:**
+
+  - Before executing any plan (Build, Plan implementation), check [docs/ROADMAP_2026.md](mdc:docs/ROADMAP_2026.md). If the task is marked **Done** — do not execute, do not overwrite working code. Ignore stale plans (proof_questionnaire_restoration, onboarding_hints, etc.).
+
+- **Verification Workflow:**
+
+  - Code -> Lint -> Test -> Update Memory Bank.
+
+  - Never trust the model to generate working code without verification scripts (e.g., `npm run self-check`).

@@ -199,7 +199,8 @@ class OpenAIClient:
             sys_prompt = get_system_prompt_with_context(
                 current_category=(category_id if category_id and category_id != 'intro' else None),
                 user_level=(user_context.level if user_context else None),
-                user_interests=(user_context.interests if user_context else None)
+                user_interests=(user_context.interests if user_context else None),
+                user_role=(user_context.session_data.get('user_role') if user_context and getattr(user_context, 'session_data', None) else None)
             )
 
             response = self.client.chat.completions.create(

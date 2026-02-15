@@ -5,11 +5,15 @@ import {
   extractEvidenceSection,
   shouldApplyFormatting
 } from '../utils/textFormatting';
-import { useScrollReveal } from '../hooks/useScrollReveal';
 import BadgeIcon from '../components/BadgeIcon';
+import BadgeSkinPanel from '../components/BadgeSkinPanel';
 import { Skeleton } from '../components/Skeleton';
-import { getBadgeImagePath } from '../utils/badgeImages';
+import { getBadgeImagePath, hasBadgeImage } from '../utils/badgeImages';
 import { toSiblingImageUrl } from '../utils/imageSources';
+import { useUserProgress } from '../hooks/useUserProgress';
+import { copyTextToClipboard, generateSocialCard, getBadgeShareUrl, shareOrDownloadSocialCard } from '../utils/socialGenerator';
+import { fetchAiSlogan, fetchVibeCheck } from '../utils/aiService';
+import { getBadge4kSkills, getSkillLabel } from '../utils/profile4k';
 import '../styles/badge-view.css';
 import type { Category, Badge } from '../types/guide';
 
@@ -49,17 +53,29 @@ const BadgeView: React.FC<BadgeViewProps> = ({
   onTelegramContact,
   onBackToIntro,
 }) => {
-  const { initReveal } = useScrollReveal();
+  const { userData, getBadgeProgress, startRoute, removeRoute, toggleFavorite, addFlagBadgeRequest } = useUserProgress();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isHeroLoaded, setIsHeroLoaded] = useState(false);
+  const [useHeroWebp, setUseHeroWebp] = useState(true);
+  const [startShareOpen, setStartShareOpen] = useState(false);
+  const [startShareBusy, setStartShareBusy] = useState(false);
+  const [startShareStatus, setStartShareStatus] = useState<string | null>(null);
+  const [routeResetConfirmOpen, setRouteResetConfirmOpen] = useState(false);
+  const [routeResetNotice, setRouteResetNotice] = useState<string | null>(null);
 
-  useEffect(() => {
-    initReveal('.reveal-on-scroll');
-  }, [initReveal]);
-
-  useEffect(() => {
-    setIsHeroLoaded(false);
+  const baseBadgeId = useMemo(() => {
+    return String(badge.id || '').split('.').slice(0, 2).join('.');
   }, [badge.id]);
+
+  const isFavorite = useMemo(() => {
+    return (userData.favorites || []).some(
+      (id) => String(id).split('.').slice(0, 2).join('.') === baseBadgeId
+    );
+  }, [userData.favorites, baseBadgeId]);
+
+  const handleToggleFavorite = () => {
+    toggleFavorite(baseBadgeId, { onAdded: () => {}, onLimit: () => {} });
+  };
 
   useEffect(() => {
     if (!isMenuOpen) return;
@@ -103,7 +119,8 @@ const BadgeView: React.FC<BadgeViewProps> = ({
     };
 
     // For multi-level badges we ONLY want tiered entries (3 segments), not a possible 2-segment summary entry.
-    const tiered = badges
+    const badgeList = Array.isArray(badges) ? badges : [];
+    const tiered = badgeList
       .filter((b) => b.category_id === badge.category_id)
       .filter((b) => sameBaseTwo(String(b.id || ''), baseTwo))
       .filter((b) => String(b.id || '').split('.').filter(Boolean).length === 3);
@@ -124,7 +141,7 @@ const BadgeView: React.FC<BadgeViewProps> = ({
     const tieredUnique = dedupeById(tiered);
     const isMulti = tieredUnique.length > 0;
 
-    const effectiveLevels = isMulti ? tieredUnique : badges.filter((b) => (b.id || '') === (badge.id || ''));
+    const effectiveLevels = isMulti ? tieredUnique : badgeList.filter((b) => (b.id || '') === (badge.id || ''));
 
     const base = isMulti
       ? (effectiveLevels.find((b) => String(b.level || '').toLowerCase().includes('баз')) ||
@@ -172,6 +189,14 @@ const BadgeView: React.FC<BadgeViewProps> = ({
           evidenceText = extracted;
           baseCriteria = mainText.split('✅').filter(c => c.trim()).map(c => c.trim());
         }
+        // If criteria came as bullet-list (e.g. from array in JSON), split by newlines
+        if (baseCriteria.length === 1 && (baseCriteria[0].includes('\n') || baseCriteria[0].includes('•') || baseCriteria[0].includes('\u2022'))) {
+          baseCriteria = baseCriteria[0]
+            .split('\n')
+            .map((line: string) => line.replace(/^[\s\u2022•]+/, '').trim())
+            .filter(Boolean);
+        }
+        baseCriteria = baseCriteria.filter((line) => !/^как получить/i.test(line.trim()));
       }
     }
 
@@ -187,10 +212,23 @@ const BadgeView: React.FC<BadgeViewProps> = ({
     return { baseCriteria, evidenceText, mainDescription: descMain };
   }, [baseLevelBadge, badge]);
 
+  const showHowToBecome = Boolean(baseLevelBadge?.howToBecome) && baseCriteria.length === 0;
+  const howToBecomeText = showHowToBecome
+    ? baseLevelBadge!.howToBecome!.replace(/^Как получить[^\n]*\n?/i, '').trim()
+    : '';
+
   // Helper for rendering emoji/icon
   const renderIcon = (b: Badge, size: 'large' | 'xlarge', className: string) => {
-    const baseBadgeId = String(b.id).split('.').slice(0, 2).join('.');
-    const isImageBadge = ['1.1', '1.2', '1.3', '1.4', '1.5', '1.6', '1.7', '1.8', '1.9', '1.10', '1.11', '1.12', '1.13', '1.14', '1.15', '1.16'].includes(baseBadgeId);
+    const idSegments = String(b.id).split('.').filter(Boolean);
+    const baseBadgeId = idSegments.slice(0, 2).join('.');
+    const isTieredLevel = idSegments.length === 3;
+    const isImageBadge = hasBadgeImage(
+      baseBadgeId,
+      badge.title,
+      badge.category_id || category.id,
+      isTieredLevel ? String(b.id) : undefined,
+      isTieredLevel ? b.title : undefined
+    );
     
     if (isImageBadge) {
       // Используем ту же логику, что и в BadgeLevelView.tsx
@@ -201,38 +239,317 @@ const BadgeView: React.FC<BadgeViewProps> = ({
           badgeTitle={badge.title}
           categoryId={badge.category_id || category.id}
           emoji={b.emoji || ''}
-          levelId={String(b.id)}
-          levelTitle={b.title}
+          levelId={isTieredLevel ? String(b.id) : undefined}
+          levelTitle={isTieredLevel ? b.title : undefined}
           className={className}
           size={size}
         />
       );
     }
-    return <div className={className} style={{fontSize: size === 'large' ? '4rem' : '3rem'}}>{b.emoji || '🏆'}</div>;
+    return <div className={className} style={{fontSize: size === 'xlarge' ? '5rem' : '4rem'}}>{b.emoji || '🏆'}</div>;
   };
 
   const badgeHeroImageUrl = useMemo(() => {
     const sourceBadge = baseLevelBadge || badge;
-    const baseBadgeId = String(sourceBadge?.id || badge.id || '').split('.').slice(0, 2).join('.');
-    if (!baseBadgeId) return null;
+    const heroBaseId = String(sourceBadge?.id || badge.id || '').split('.').slice(0, 2).join('.');
+    if (!heroBaseId) return null;
     const sourceTitle = sourceBadge?.title || badge.title;
     if (!sourceTitle) return null;
     return {
-      realism: getBadgeImagePath(baseBadgeId, sourceTitle, category.id, undefined, undefined, 'realism'),
-      fallback: getBadgeImagePath(baseBadgeId, sourceTitle, category.id, undefined, undefined, 'default'),
+      realism: getBadgeImagePath(heroBaseId, sourceTitle, category.id, undefined, undefined, 'realism'),
+      fallback: getBadgeImagePath(heroBaseId, sourceTitle, category.id, undefined, undefined, 'default'),
     };
   }, [baseLevelBadge, badge, category.id]);
 
+  const effectiveHeroSrc = useMemo(() => {
+    return badgeHeroImageUrl?.realism || badgeHeroImageUrl?.fallback || null;
+  }, [badgeHeroImageUrl]);
+
   const [heroSrc, setHeroSrc] = useState<string | null>(null);
   useEffect(() => {
-    setHeroSrc(badgeHeroImageUrl?.realism || badgeHeroImageUrl?.fallback || null);
-  }, [badgeHeroImageUrl]);
-  const heroWebp = useMemo(() => (heroSrc ? toSiblingImageUrl(heroSrc, 'webp') : null), [heroSrc]);
+    setHeroSrc(effectiveHeroSrc);
+  }, [effectiveHeroSrc]);
+  useEffect(() => {
+    setUseHeroWebp(true);
+  }, [heroSrc]);
+  const heroWebp = useMemo(
+    () => (heroSrc && useHeroWebp ? toSiblingImageUrl(heroSrc, 'webp') : null),
+    [heroSrc, useHeroWebp]
+  );
+
+  const progress = getBadgeProgress(baseBadgeId);
+  const totalLevels = badgeLevels.length || 1; // Override total with actual levels count
+  const startLevelId = String(baseLevelBadge?.id || badgeLevels[0]?.id || badge.id || '');
+  const hasStarted = progress.started > 0;
+  const hasProgress = hasStarted || progress.achieved > 0;
+  const isComplete = totalLevels > 0 && progress.achieved >= totalLevels;
+  const hasApprovedPlanForRoute = useMemo(() => {
+    const plans = userData.badgePlans || {};
+    const sectionPrefix = `${baseBadgeId}.`;
+    return Object.values(plans).some((plan) => {
+      if (!plan) return false;
+      const planBadgeId = String(plan.badgeId || '');
+      if (!planBadgeId) return false;
+      const isSameSection = planBadgeId === baseBadgeId || planBadgeId.startsWith(sectionPrefix);
+      if (!isSameSection) return false;
+      return plan.status === 'approved';
+    });
+  }, [userData.badgePlans, baseBadgeId]);
+  const canResetRouteFromInProgress = hasProgress && !isComplete && progress.achieved === 0 && !hasApprovedPlanForRoute;
+  const routeResetBlockedReason = useMemo(() => {
+    if (!hasProgress || isComplete) return null;
+    if (progress.achieved > 0) {
+      return 'Сброс недоступен: уже получен минимум один значок в этом разделе.';
+    }
+    if (hasApprovedPlanForRoute) {
+      return 'Сброс недоступен: план получения значка уже утверждён.';
+    }
+    return null;
+  }, [hasProgress, isComplete, progress.achieved, hasApprovedPlanForRoute]);
+  const collectionCount = progress.achieved;
+  const collectionHint = isComplete
+    ? 'Все уровни в коллекции'
+    : progress.achieved > 0
+      ? `В коллекции ${progress.achieved} из ${totalLevels} уровней`
+      : 'Пока ни одного уровня в коллекции';
+
+  useEffect(() => {
+    if (!canResetRouteFromInProgress && routeResetConfirmOpen) {
+      setRouteResetConfirmOpen(false);
+    }
+  }, [canResetRouteFromInProgress, routeResetConfirmOpen]);
+
+  useEffect(() => {
+    if (!routeResetNotice) return;
+    const timeoutId = window.setTimeout(() => setRouteResetNotice(null), 4200);
+    return () => window.clearTimeout(timeoutId);
+  }, [routeResetNotice]);
+
+  useEffect(() => {
+    if (!startShareOpen) return;
+    if (startShareBusy) return;
+    const id = window.setTimeout(() => setStartShareOpen(false), 9500);
+    return () => window.clearTimeout(id);
+  }, [startShareOpen, startShareBusy]);
+
+  const handleStartRoute = () => {
+    if (!startLevelId) return;
+    if (hasProgress || isComplete) return;
+    startRoute(startLevelId, {
+      onAdded: () => {
+        if (['10.1', '10.2', '10.3'].includes(baseBadgeId)) {
+          addFlagBadgeRequest(baseBadgeId);
+        }
+        setStartShareStatus(null);
+        setStartShareOpen(true);
+      },
+      onLimit: () => {},
+    });
+  };
+
+  const handleShareStart = async () => {
+    if (startShareBusy) return;
+    if (!baseBadgeId || !startLevelId) return;
+
+    setStartShareBusy(true);
+    setStartShareStatus('Генерируем манифест маршрута…');
+    try {
+      const skills = getBadge4kSkills(startLevelId);
+      const manifestSkill = skills.length ? getSkillLabel(skills[0]) : (category?.title || 'навыки');
+
+      const challengeRaw = await fetchAiSlogan({
+        kind: 'route_manifest_challenge',
+        badgeTitle: badge.title,
+      });
+      const challengeLine = (challengeRaw != null && typeof challengeRaw === 'string')
+        ? challengeRaw.trim()
+        : (typeof challengeRaw === 'object' && challengeRaw && 'slogan' in challengeRaw && challengeRaw.slogan)
+          ? String(challengeRaw.slogan).trim()
+          : 'сделать первый шаг по значку и записать результат.';
+      const manifestCaption = `Мой вызов на сегодня — ${challengeLine}`;
+
+      const vibeRaw = await fetchVibeCheck({ variant: 'badge', badgeTitle: badge.title, categoryTitle: category.title, description: badge.description || badge.criteria });
+      const vibeCheck = vibeRaw ? { memeHeader: vibeRaw.meme_header, memeText: vibeRaw.meme_text, statBuff: vibeRaw.stat_buff } : undefined;
+
+      const createdAt = new Date().toISOString();
+      const story = await generateSocialCard({
+        kind: 'start_route',
+        format: 'story',
+        hideNickname: true,
+        profile: {
+          nickname: userData.profile.nickname,
+          rank: '',
+          avatar: '',
+          totalLevelsAchieved: userData.profile.stats.totalLevelsAchieved,
+          totalBadgesStarted: userData.profile.stats.totalBadgesStarted,
+        },
+        badge: {
+          id: startLevelId,
+          baseId: baseBadgeId,
+          title: badge.title,
+          emoji: badge.emoji || baseLevelBadge?.emoji || '🏆',
+          categoryId: String(badge.category_id || category.id || ''),
+          levelLabel: String(baseLevelBadge?.level || badge.level || ''),
+        },
+        createdAt,
+        manifestSkill,
+        customCaption: manifestCaption,
+        vibeCheck,
+      });
+
+      const outcome = await shareOrDownloadSocialCard(story);
+      if (outcome === 'canceled') {
+        setStartShareStatus('Отмена.');
+        return;
+      }
+      if (outcome === 'shared') {
+        setStartShareStatus('Отправлено через системное меню шеринга.');
+        window.setTimeout(() => setStartShareOpen(false), 1600);
+        return;
+      }
+
+      const copied = await copyTextToClipboard(story.text);
+      setStartShareStatus(copied ? 'PNG скачан, подпись скопирована.' : 'PNG скачан. Подпись можно скопировать в профиле.');
+      window.setTimeout(() => setStartShareOpen(false), 2600);
+    } catch (e) {
+      console.error(e);
+      setStartShareStatus('Не удалось сделать карточку. Попробуй ещё раз.');
+    } finally {
+      setStartShareBusy(false);
+    }
+  };
+
+  const handleOpenShareCenter = () => {
+    try {
+      window.location.hash = '#share';
+    } catch {
+      // ignore
+    }
+
+    const openProfile = (window as any)?.openProfile;
+    if (typeof openProfile === 'function') {
+      openProfile();
+      return;
+    }
+
+    setStartShareStatus('Открой профиль: Share Center уже готов.');
+  };
+
+  const handleCopyBadgeLink = async () => {
+    const url = getBadgeShareUrl(baseBadgeId);
+    if (!url) return;
+    const ok = await copyTextToClipboard(url);
+    setStartShareStatus(ok ? 'Ссылка на значок скопирована.' : 'Не удалось скопировать ссылку.');
+  };
+
+  const handleOpenWorkshopForCategory = () => {
+    const categoryId = String(category?.id ?? badge?.category_id ?? '8');
+    try {
+      window.location.hash = `#workshop?categoryId=${encodeURIComponent(categoryId)}`;
+      sessionStorage.setItem('rl_open_workshop', categoryId);
+    } catch {
+      // ignore
+    }
+    const openProfile = (window as any)?.openProfile;
+    if (typeof openProfile === 'function') {
+      openProfile();
+    }
+  };
+
+  const handleConfirmRouteReset = () => {
+    if (!baseBadgeId || !canResetRouteFromInProgress) return;
+    removeRoute(baseBadgeId);
+    setRouteResetNotice(null);
+    setRouteResetConfirmOpen(false);
+  };
+
+  const handleAttemptRouteReset = () => {
+    if (!hasProgress || isComplete) return;
+    if (!canResetRouteFromInProgress) {
+      if (routeResetBlockedReason) {
+        setRouteResetNotice(routeResetBlockedReason);
+      }
+      return;
+    }
+    setRouteResetNotice(null);
+    setRouteResetConfirmOpen(true);
+  };
 
   return (
     <div className="badge-view-container">
       <div className="noise-overlay"></div>
       {/* GlobalCursor renders the custom cursor layer once at app root */}
+
+      {startShareOpen && (
+        <div className="badge-share-toast" role="status" aria-live="polite">
+          <div className="badge-share-toast__text">
+            {startShareStatus || 'Маршрут добавлен в путь. Сделать сторис старта?'}
+          </div>
+          <div className="badge-share-toast__actions">
+            <button
+              type="button"
+              className="badge-share-toast__btn"
+              onClick={handleShareStart}
+              disabled={startShareBusy}
+            >
+              {startShareBusy ? 'Генерируем…' : 'Поделиться'}
+            </button>
+            <button
+              type="button"
+              className="badge-share-toast__btn"
+              onClick={handleOpenShareCenter}
+              disabled={startShareBusy}
+            >
+              Share Center
+            </button>
+            <button
+              type="button"
+              className="badge-share-toast__btn"
+              onClick={handleCopyBadgeLink}
+              disabled={startShareBusy}
+            >
+              Ссылка на значок
+            </button>
+            <button
+              type="button"
+              className="badge-share-toast__btn badge-share-toast__btn--ghost"
+              onClick={() => setStartShareOpen(false)}
+              disabled={startShareBusy}
+            >
+              Не сейчас
+            </button>
+          </div>
+        </div>
+      )}
+
+      {routeResetConfirmOpen && (
+        <div className="route-confirm-overlay" onClick={() => setRouteResetConfirmOpen(false)}>
+          <div
+            className="route-confirm-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="route-reset-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <h3 id="route-reset-title" className="route-confirm-modal__title">Сбросить маршрут?</h3>
+            <p className="route-confirm-modal__text">Если продолжить, маршрут будет сброшен.</p>
+            <div className="route-confirm-modal__actions">
+              <button type="button" className="route-confirm-btn" onClick={() => setRouteResetConfirmOpen(false)}>
+                Отмена
+              </button>
+              <button type="button" className="route-confirm-btn route-confirm-btn--danger" onClick={handleConfirmRouteReset}>
+                Сбросить
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {routeResetNotice && (
+        <div className="badge-route-toast" role="status" aria-live="polite">
+          {routeResetNotice}
+        </div>
+      )}
 
       {/* Mobile Navigation Header */}
       <header className={`mobile-glass-header${isChatOpen ? ' is-chat-open' : ''}`} aria-label="Навигация">
@@ -282,11 +599,11 @@ const BadgeView: React.FC<BadgeViewProps> = ({
         className={`mobile-menu-panel${isMenuOpen ? ' is-open' : ''}`}
         role="dialog"
         aria-modal="true"
-        aria-label="Меню"
+        aria-labelledby="badge-menu-title"
         aria-hidden={!isMenuOpen}
       >
         <div className="mobile-menu-head">
-          <span className="mobile-menu-title">Меню</span>
+          <span id="badge-menu-title" className="mobile-menu-title">Меню</span>
           <button type="button" className="mobile-menu-close" onClick={closeMenu} aria-label="Закрыть меню">
             &times;
           </button>
@@ -319,11 +636,55 @@ const BadgeView: React.FC<BadgeViewProps> = ({
         {/* Header */}
         <section className="badge-hero reveal-on-scroll">
           <div className="badge-hero-icon">
-            {renderIcon(badge, 'large', 'hero-emoji')}
+            {renderIcon(badge, 'xlarge', 'hero-emoji')}
           </div>
           <div className="badge-hero-content">
             <h1>{badge.title}</h1>
             <div className="badge-hero-category">{category.title}</div>
+
+            <BadgeSkinPanel
+              badgeTitle={badge.title}
+              badgeBaseId={baseBadgeId}
+              categoryId={category.id}
+              categoryTitle={category.title}
+              inProgressCount={collectionCount}
+              inProgressMax={totalLevels}
+              inProgressHint={collectionHint}
+            />
+
+            {startLevelId && (
+              <div className="badge-cta-row">
+                <button
+                  type="button"
+                  onClick={handleToggleFavorite}
+                  className={`badge-like-btn${isFavorite ? ' is-liked' : ''}`}
+                  aria-label={isFavorite ? 'Убрать из избранного' : 'Добавить в избранное'}
+                  aria-pressed={isFavorite}
+                >
+                  <span aria-hidden="true">{isFavorite ? '❤️' : '🤍'}</span>
+                </button>
+
+                {isComplete ? (
+                  <button type="button" className="badge-cta is-complete" disabled>
+                    Маршрут завершён
+                  </button>
+                ) : hasProgress ? (
+                  <button
+                    type="button"
+                    onClick={handleAttemptRouteReset}
+                    className={`badge-cta${canResetRouteFromInProgress ? '' : ' is-disabled'}`}
+                    aria-disabled={!canResetRouteFromInProgress}
+                    title={routeResetBlockedReason || 'Нажми, чтобы сбросить маршрут'}
+                  >
+                    Уже в пути
+                  </button>
+                ) : (
+                  <button type="button" className="badge-cta" onClick={handleStartRoute}>
+                    В мой путь
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         </section>
 
@@ -341,6 +702,10 @@ const BadgeView: React.FC<BadgeViewProps> = ({
                   decoding="async"
                   onLoad={() => setIsHeroLoaded(true)}
                   onError={() => {
+                    if (useHeroWebp) {
+                      setUseHeroWebp(false);
+                      return;
+                    }
                     const next = badgeHeroImageUrl?.fallback || null;
                     if (next && next !== heroSrc) setHeroSrc(next);
                   }}
@@ -372,17 +737,17 @@ const BadgeView: React.FC<BadgeViewProps> = ({
                 </>
               )}
 
-              {baseLevelBadge?.examples && (
-                <>
-                  <h4>Примеры</h4>
-                  <p className="content-text" dangerouslySetInnerHTML={{__html: baseLevelBadge.examples.replace(/\n/g, '<br>')}}></p>
-                </>
-              )}
-
               {baseLevelBadge?.importance && (
                 <>
                   <h4>Почему этот значок важен</h4>
                   <p className="content-text">{baseLevelBadge.importance}</p>
+                </>
+              )}
+
+              {baseLevelBadge?.examples && (
+                <>
+                  <h4>Примеры</h4>
+                  <p className="content-text" dangerouslySetInnerHTML={{__html: baseLevelBadge.examples.replace(/\n/g, '<br>')}}></p>
                 </>
               )}
 
@@ -393,10 +758,10 @@ const BadgeView: React.FC<BadgeViewProps> = ({
                 </>
               )}
 
-              {baseLevelBadge?.howToBecome && (
+              {showHowToBecome && (
                 <>
-                  <h4>Как стать</h4>
-                  <p className="content-text" dangerouslySetInnerHTML={{__html: baseLevelBadge.howToBecome.replace(/\n/g, '<br>')}}></p>
+                  <h4>Как получить</h4>
+                  <p className="content-text" dangerouslySetInnerHTML={{__html: howToBecomeText.replace(/\n/g, '<br>')}}></p>
                 </>
               )}
 
@@ -413,6 +778,13 @@ const BadgeView: React.FC<BadgeViewProps> = ({
                   <span className="meta-label">ID</span>
                   <span className="meta-value">{badge.id}</span>
                 </div>
+              </div>
+
+              <div className="badge-workshop-cta" style={{ marginTop: '20px', padding: '16px', background: 'rgba(255,215,0,0.06)', borderRadius: '16px', border: '1px solid rgba(255,215,0,0.15)', textAlign: 'center' }}>
+                <p style={{ margin: '0 0 12px', fontSize: '14px', opacity: 0.9 }}>Этого мало? Предложи свой вариант</p>
+                <button type="button" onClick={handleOpenWorkshopForCategory} className="badge-cta" style={{ width: '100%', padding: '12px 16px', fontSize: '13px' }}>
+                  Открыть Мастерскую в эту категорию
+                </button>
               </div>
             </div>
           </div>

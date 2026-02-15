@@ -2,6 +2,7 @@ import React, { useCallback, useMemo, useState, useEffect, useRef } from 'react'
 import * as Dialog from '@radix-ui/react-dialog';
 import '../styles/chatbot.css';
 import { rafThrottle } from '../utils/rafThrottle';
+import { useAuth } from '../context/AuthContext';
 
 interface Message {
   id: string;
@@ -13,6 +14,8 @@ interface Message {
 interface ChatBotProps {
   isOpen: boolean;
   onClose: () => void;
+  /** Called when traveler clicks "Разблокировать через код" — parent can scroll to unlock block */
+  onUnlockRequest?: () => void;
   currentView?: string;
   currentCategory?: {
     id: string;
@@ -46,7 +49,8 @@ const clamp = (v: number, min: number, max: number): number => Math.max(min, Mat
 
 const ChatBot: React.FC<ChatBotProps> = ({ 
   isOpen, 
-  onClose, 
+  onClose,
+  onUnlockRequest,
   currentView,
   currentCategory, 
   currentBadge,
@@ -63,7 +67,27 @@ const ChatBot: React.FC<ChatBotProps> = ({
   const scrollTimeoutRef = useRef<number | undefined>(undefined);
   const isNearBottomRef = useRef(true);
   const [showJumpToBottom, setShowJumpToBottom] = useState(false);
-  
+  const [messagesPerDay, setMessagesPerDay] = useState<number | null>(null);
+  const { canUseChat, accessToken, clearAuth } = useAuth();
+
+  // Лимит сообщений в день с бэкенда (GET /api/chat/limits)
+  useEffect(() => {
+    if (!canUseChat || !isOpen) return;
+    const hostname = typeof window !== 'undefined' ? window.location.hostname : '';
+    const useLocalApi = import.meta.env.DEV || hostname === 'localhost' || hostname === '127.0.0.1';
+    const limitsUrl = useLocalApi ? '/api/chat/limits' : 'https://real-vibe-ai-studio.pages.dev/api/putevoditel/chat/limits';
+    const controller = new AbortController();
+    fetch(limitsUrl, { signal: controller.signal })
+      .then((res) => (res.ok ? res.json() : Promise.reject(new Error('limits fetch failed'))))
+      .then((data: { messagesPerDay?: number }) => {
+        if (typeof data?.messagesPerDay === 'number' && data.messagesPerDay >= 0) {
+          setMessagesPerDay(data.messagesPerDay);
+        }
+      })
+      .catch(() => setMessagesPerDay(null));
+    return () => controller.abort();
+  }, [canUseChat, isOpen]);
+
   // Генерируем уникальный user_id для каждого сеанса
   const [userId] = useState(() => `web_user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
 
@@ -167,7 +191,20 @@ const ChatBot: React.FC<ChatBotProps> = ({
 
   useEffect(() => {
     const handleResize = rafThrottle(() => {
-      setViewport(getViewportState());
+      setViewport((prev) => {
+        const next = getViewportState();
+        if (
+          prev.width === next.width &&
+          prev.height === next.height &&
+          prev.innerWidth === next.innerWidth &&
+          prev.innerHeight === next.innerHeight &&
+          prev.offsetTop === next.offsetTop &&
+          prev.offsetLeft === next.offsetLeft
+        ) {
+          return prev;
+        }
+        return next;
+      });
     });
 
     handleResize();
@@ -293,18 +330,20 @@ const ChatBot: React.FC<ChatBotProps> = ({
       const hostname = window.location.hostname;
       const useLocalApi = import.meta.env.DEV || hostname === 'localhost' || hostname === '127.0.0.1';
       const chatbotUrl = useLocalApi
-        ? '/api/chat' // Vite proxy к Flask backend на порту 5000
+        ? '/api/chat' // Vite proxy к Flask backend на порту 4000
         : 'https://real-vibe-ai-studio.pages.dev/api/putevoditel/chat';
 
       const controller = new AbortController();
       const timeoutMs = 15000;
       const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs);
 
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (accessToken) {
+        headers['Authorization'] = `Bearer ${accessToken}`;
+      }
       const response = await fetch(chatbotUrl, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
         signal: controller.signal,
         body: JSON.stringify({
           message: text,
@@ -320,9 +359,14 @@ const ChatBot: React.FC<ChatBotProps> = ({
       });
       window.clearTimeout(timeoutId);
 
-      const data = await response.json();
-      
+      const responseText = await response.text();
       if (response.ok) {
+        let data: { reply?: string; response?: string };
+        try {
+          data = responseText ? JSON.parse(responseText) : {};
+        } catch {
+          data = {};
+        }
         // Поддержка разных форматов ответа: Cloudflare возвращает 'reply', Flask возвращает 'response'
         const botMessage: Message = {
           id: (Date.now() + 1).toString(),
@@ -332,9 +376,58 @@ const ChatBot: React.FC<ChatBotProps> = ({
         };
         setMessages(prev => [...prev, botMessage]);
       } else {
+        if (response.status === 401) {
+          clearAuth();
+          const errorMessage: Message = {
+            id: (Date.now() + 1).toString(),
+            text: 'Войдите как участник смены для доступа к чату.',
+            isUser: false,
+            timestamp: new Date()
+          };
+          setMessages(prev => [...prev, errorMessage]);
+          return;
+        }
+        if (response.status === 403) {
+          const errorMessage: Message = {
+            id: (Date.now() + 1).toString(),
+            text: 'Доступ к чату недоступен для вашей роли.',
+            isUser: false,
+            timestamp: new Date()
+          };
+          setMessages(prev => [...prev, errorMessage]);
+          return;
+        }
+        if (response.status === 429) {
+          let limitText = 'Лимит сообщений на сегодня исчерпан.';
+          if (responseText) {
+            try {
+              const errData = JSON.parse(responseText) as { error?: string };
+              if (errData.error) limitText = errData.error;
+            } catch {
+              // оставляем дефолтный текст
+            }
+          }
+          const errorMessage: Message = {
+            id: (Date.now() + 1).toString(),
+            text: limitText,
+            isUser: false,
+            timestamp: new Date()
+          };
+          setMessages(prev => [...prev, errorMessage]);
+          return;
+        }
+        let errText = 'Чат временно недоступен. Пожалуйста, попробуйте позже.';
+        if (responseText) {
+          try {
+            const errData = JSON.parse(responseText) as { message?: string; error?: string };
+            errText = errData.message || errData.error || errText;
+          } catch {
+            // не-JSON тело — оставляем общее сообщение
+          }
+        }
         const errorMessage: Message = {
           id: (Date.now() + 1).toString(),
-          text: data.message || 'Ошибка соединения. Проверьте, что чат-бот запущен.',
+          text: errText,
           isUser: false,
           timestamp: new Date()
         };
@@ -342,13 +435,17 @@ const ChatBot: React.FC<ChatBotProps> = ({
       }
     } catch (error) {
       console.error('Ошибка при отправке сообщения:', error);
-      
+
       const isAbort = (error as any)?.name === 'AbortError';
+      const isJsonError = error instanceof SyntaxError;
+      const fallbackText = isAbort
+        ? 'Чат сейчас не отвечает (таймаут). Попробуйте ещё раз через пару секунд.'
+        : isJsonError
+          ? 'Не удалось разобрать ответ сервера. Чат временно недоступен.'
+          : 'Извините, чат временно недоступен. Пожалуйста, попробуйте позже.';
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: isAbort
-          ? 'Чат сейчас не отвечает (таймаут). Попробуйте ещё раз через пару секунд.'
-          : 'Извините, чат временно недоступен. Пожалуйста, попробуйте позже.',
+        text: fallbackText,
         isUser: false,
         timestamp: new Date()
       };
@@ -575,7 +672,7 @@ const ChatBot: React.FC<ChatBotProps> = ({
             }}
           />
 
-          <Dialog.Content className="chatbot-container" style={containerStyle}>
+          <Dialog.Content className="chatbot-container" style={containerStyle} aria-labelledby="chatbot-dialog-title">
             {!isMobile && (
               <div
                 className="chatbot-drag-handle"
@@ -632,6 +729,7 @@ const ChatBot: React.FC<ChatBotProps> = ({
                 <div>
                   <Dialog.Title asChild>
                     <h3
+                      id="chatbot-dialog-title"
                       style={{
                         fontSize: '16px',
                         fontWeight: '700',
@@ -722,6 +820,7 @@ const ChatBot: React.FC<ChatBotProps> = ({
                               category: 'Категория',
                               badge: 'Страница значка',
                               'badge-level': 'Уровень значка',
+                              profile: 'Личный кабинет',
                               introduction: 'Введение',
                               'additional-material': 'Доп. материалы',
                               'about-camp': 'Информация о лагере',
@@ -770,7 +869,40 @@ const ChatBot: React.FC<ChatBotProps> = ({
               </div>
             )}
 
-            {/* Сообщения */}
+            {/* Traveler: превью и CTA вместо чата */}
+            {!canUseChat && (
+              <div
+                className="chatbot-messages chatbot-locked"
+                style={{ ...messagesContainerStyle, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 }}
+              >
+                <div style={{ textAlign: 'center', color: '#a0aec0', padding: '20px' }}>
+                  <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#ff4f8b', margin: '0 0 12px 0' }}>
+                    Что умеет Валюша
+                  </h3>
+                  <p style={{ fontSize: '14px', lineHeight: 1.5, margin: '0 0 16px 0' }}>
+                    НейроВалюша — ИИ-вожатый Путеводителя. Отвечает на вопросы о значках, помогает составить план, подсказывает по методике и лагерю.
+                  </p>
+                  <button
+                    onClick={() => { onClose(); onUnlockRequest?.(); }}
+                    style={{
+                      padding: '12px 24px',
+                      fontSize: '14px',
+                      fontWeight: 600,
+                      color: '#fff',
+                      background: 'linear-gradient(135deg, #ff4f8b, #7c3aed)',
+                      border: 'none',
+                      borderRadius: 12,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Разблокировать через код
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Сообщения (только если canUseChat) */}
+            {canUseChat && (
             <div
               ref={messagesListRef}
               className="chatbot-messages"
@@ -951,10 +1083,12 @@ const ChatBot: React.FC<ChatBotProps> = ({
 
               <div ref={messagesEndRef} />
             </div>
+            )}
 
             {/* Подсказки отключены */}
 
-            {/* Поле ввода */}
+            {/* Поле ввода (только если canUseChat) */}
+            {canUseChat && (
             <div style={inputAreaStyle}>
               <div className="chatbot-input-wrapper" style={{ display: 'flex', gap: '8px', alignItems: 'flex-end' }}>
                 <input
@@ -1025,7 +1159,11 @@ const ChatBot: React.FC<ChatBotProps> = ({
                   Отправить
                 </button>
               </div>
+              <div className="chatbot-limit-hint" style={{ fontSize: 11, opacity: 0.7, marginTop: 6 }}>
+                Сообщений в день: {messagesPerDay !== null ? messagesPerDay : '—'}
+              </div>
             </div>
+            )}
           </Dialog.Content>
 
           <style

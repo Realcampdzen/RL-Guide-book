@@ -9,7 +9,7 @@ What it checks:
 
 Usage:
   python scripts/chatbot_smoke.py
-  python scripts/chatbot_smoke.py --base-url http://localhost:5000
+  python scripts/chatbot_smoke.py --base-url http://localhost:4000
 """
 
 from __future__ import annotations
@@ -85,7 +85,7 @@ def check_backend(base_url: str) -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--base-url", default="http://localhost:5000", help="Local backend base URL")
+    parser.add_argument("--base-url", default="http://localhost:4000", help="Local backend base URL")
     args = parser.parse_args()
 
     try:

@@ -1,6 +1,7 @@
 import React, { Suspense, useEffect, useRef, useState } from 'react';
 import { useScrollReveal } from '../hooks/useScrollReveal';
 import { useTiltCard } from '../hooks/useTiltCard';
+import { aboutCampSession } from '../data/aboutCampSession';
 import '../styles/about-camp.css';
 
 const loadChatBot = () => import('../components/ChatBot');
@@ -9,6 +10,8 @@ const ChatBot = React.lazy(loadChatBot);
 interface AboutCampViewProps {
   onBack: () => void;
   categories: any[];
+  /** Год из MASTER_INDEX.lastUpdated (например "2026") для текстов "смен 2026", "2026" */
+  contentYear?: string;
   onOpenCategory: (category: any) => void;
   onOpenCategories: () => void;
   onTelegramContact: () => void;
@@ -20,6 +23,7 @@ interface AboutCampViewProps {
 const AboutCampView: React.FC<AboutCampViewProps> = ({ 
   onBack, 
   categories,
+  contentYear = '2026',
   onOpenCategory,
   onOpenCategories,
   onTelegramContact,
@@ -94,75 +98,23 @@ const AboutCampView: React.FC<AboutCampViewProps> = ({
     { label: 'Коммуникация', categoryId: '13' },
     { label: 'Работа с ИИ', categoryId: '12' },
     { label: 'Команда', categoryId: '8' },
+    { label: 'Коллаборация', categoryId: '5' },
+    { label: 'Критическое мышление', categoryId: '11' },
   ];
 
   const baseUrl = import.meta.env.BASE_URL;
 
-  // Full list of posts
+  // Full list of posts. imgPath: '' = public root, 'pictures/' = default
   const posts = [
-    { 
-      id: '9100', 
-      title: '🔥 Вожатские кейсы и педагогика', 
-      subtitle: 'Разбор сложных ситуаций: от ночных посиделок до буллинга', 
-      img: 'Wr8s1lqBl95mo9__Pw4CSouLulbnCQRdCt31tWGcKWGlLmXRD60QviGdQG1ASrS3KkfW4t6wFumMhG4myCTZEaKT.jpg',
-      tags: ['💡 Практические навыки', '🎭 Ролевые игры', '🚀 Значок "Реальный Фасилитатор"']
-    },
-    { 
-      id: '9080', 
-      title: '🚀 Дети сами организуют отрядные дела!', 
-      subtitle: 'Игра "Бросвящение": от кинематографа до оригами', 
-      img: 'HvRgNN4EUqGaVKKmQYwOnSESzm3zhN8NLN7psGe2xTbuscFg5h0oIIxbtlYIkCIO1zj2TUQYoFAKy9pYquEpfGrR.jpg',
-      tags: ['🎬 Игра по станциям', '🎨 Мастер-классы', '🔥 Лидерство']
-    },
-    { 
-      id: '9072', 
-      title: '🎨 Нейродизайн и агентные системы', 
-      subtitle: 'От идеи до реального значка: Genspark, FLUX, ChatGPT', 
-      img: 'wa1Ma_l5j4S2gV8sBeNLTw0cftt3WLplAEvXI9RW-qd5-uWJCslMqRRXGcFhKFEIr0Ck2teKZBiFzyRIeMfWLiLE.jpg',
-      tags: ['🤖 Итерационный подход', '🎯 Реальные продукты', '🧠 Метапромтинг']
-    },
-    { 
-      id: '9049', 
-      title: '🏴‍☠️ Пираты похитили Бурыча!', 
-      subtitle: 'Форт Боярд в лагере: эстафеты, головоломки, спасение', 
-      img: '2025-09-11_05-28-13.png',
-      tags: ['⚔️ Командные испытания', '🧩 Головоломки', '🎯 Форт Боярд']
-    },
-    { 
-      id: '9009', 
-      title: '🎶 Музыкальный продюсер с Suno AI', 
-      subtitle: 'От текста до готового трека: творчество без границ', 
-      img: '4pCDWvEw_uyf3q8yQbhfsPpfDSVOMYkkexIZCudbxTsmqN8iA3jIT8TwpNtXbGliD_YCpD2nZhQZXajz4-0KFg-1.jpg',
-      tags: ['🎹 Создание треков', '🎤 Запись голоса', '🎵 Значок "AI-Композитор"']
-    },
-    { 
-      id: '9006', 
-      title: '🥊 Мастер-класс по самообороне', 
-      subtitle: 'С Тимофеем: ценные уроки и невероятная атмосфера', 
-      img: 'w38A7umTNl1ECHO8HtrN9KRFmpwNLoCd19DGmO1qdPcLBENPbYsFQuzJOoDej_zxEcHDnRvDGUayZgs1mOMSkam3.jpg',
-      tags: ['🥊 Самооборона', '🌟 Мастерство', '🙌 Ценные уроки']
-    },
-    { 
-      id: '8995', 
-      title: '🕯️ Огонёк откровений', 
-      subtitle: 'Безопасное пространство для открытого общения', 
-      img: '2025-09-11_05-25-15.png',
-      tags: ['🫂 Принятие', '🎯 Доверие', '🏡 Семейные отношения']
-    },
-    { 
-      id: '8994', 
-      title: '🚀 EggX: лётно-конструкторские испытания', 
-      subtitle: 'Инженерный челлендж: яйцелёты с высоты 3 метров', 
-      img: 'vKjyH96aNgNYbg14n545f0j1tZqG12tBI3L83kyz-8ofHa9DnmG-p41grb0hrbwUoNGteh0fdssSerJNH2GXffZN.jpg',
-      tags: ['🧪 Конструкторские бюро', '🔬 Техническая смекалка', '👨‍🚀 Командная работа']
-    },
-    { 
-      id: '8927', 
-      title: '😎 Сигма-Бро в Реальном Лагере', 
-      subtitle: 'Лето, Soft Skills, нейросети и добро круглый год', 
-      img: '2025-09-11_05-21-21.png',
-      tags: ['☀️ Родительский час', '💜 Атмосфера', '🌟 Воспоминания']
-    }
+    { id: '9100', title: '🔥 Вожатские кейсы и педагогика', subtitle: 'Разбор сложных ситуаций: от ночных посиделок до буллинга', img: 'Wr8s1lqBl95mo9__Pw4CSouLulbnCQRdCt31tWGcKWGlLmXRD60QviGdQG1ASrS3KkfW4t6wFumMhG4myCTZEaKT.jpg', imgPath: '' as const, tags: ['💡 Практические навыки', '🎭 Ролевые игры', '🚀 Значок "Реальный Фасилитатор"'] },
+    { id: '9080', title: '🚀 Дети сами организуют отрядные дела!', subtitle: 'Игра "Бросвящение": от кинематографа до оригами', img: 'HvRgNN4EUqGaVKKmQYwOnSESzm3zhN8NLN7psGe2xTbuscFg5h0oIIxbtlYIkCIO1zj2TUQYoFAKy9pYquEpfGrR.jpg', imgPath: 'pictures/' as const, tags: ['🎬 Игра по станциям', '🎨 Мастер-классы', '🔥 Лидерство'] },
+    { id: '9072', title: '🎨 Нейродизайн и агентные системы', subtitle: 'От идеи до реального значка: Genspark, FLUX, ChatGPT', img: 'wa1Ma_l5j4S2gV8sBeNLTw0cftt3WLplAEvXI9RW-qd5-uWJCslMqRRXGcFhKFEIr0Ck2teKZBiFzyRIeMfWLiLE.jpg', imgPath: '' as const, tags: ['🤖 Итерационный подход', '🎯 Реальные продукты', '🧠 Метапромтинг'] },
+    { id: '9049', title: '🏴‍☠️ Пираты похитили Бурыча!', subtitle: 'Форт Боярд в лагере: эстафеты, головоломки, спасение', img: '2025-09-11_05-28-13.png', imgPath: 'pictures/' as const, tags: ['⚔️ Командные испытания', '🧩 Головоломки', '🎯 Форт Боярд'] },
+    { id: '9009', title: '🎶 Музыкальный продюсер с Suno AI', subtitle: 'От текста до готового трека: творчество без границ', img: '4pCDWvEw_uyf3q8yQbhfsPpfDSVOMYkkexIZCudbxTsmqN8iA3jIT8TwpNtXbGliD_YCpD2nZhQZXajz4-0KFg-1.jpg', imgPath: 'pictures/' as const, tags: ['🎹 Создание треков', '🎤 Запись голоса', '🎵 Значок "AI-Композитор"'] },
+    { id: '9006', title: '🥊 Мастер-класс по самообороне', subtitle: 'С Тимофеем: ценные уроки и невероятная атмосфера', img: 'w38A7umTNl1ECHO8HtrN9KRFmpwNLoCd19DGmO1qdPcLBENPbYsFQuzJOoDej_zxEcHDnRvDGUayZgs1mOMSkam3.jpg', imgPath: '' as const, tags: ['🥊 Самооборона', '🌟 Мастерство', '🙌 Ценные уроки'] },
+    { id: '8995', title: '🕯️ Огонёк откровений', subtitle: 'Безопасное пространство для открытого общения', img: '2025-09-11_05-25-15.png', imgPath: 'pictures/' as const, tags: ['🫂 Принятие', '🎯 Доверие', '🏡 Семейные отношения'] },
+    { id: '8994', title: '🚀 EggX: лётно-конструкторские испытания', subtitle: 'Инженерный челлендж: яйцелёты с высоты 3 метров', img: 'vKjyH96aNgNYbg14n545f0j1tZqG12tBI3L83kyz-8ofHa9DnmG-p41grb0hrbwUoNGteh0fdssSerJNH2GXffZN.jpg', imgPath: '' as const, tags: ['🧪 Конструкторские бюро', '🔬 Техническая смекалка', '👨‍🚀 Командная работа'] },
+    { id: '8927', title: '😎 Сигма-Бро в Реальном Лагере', subtitle: 'Лето, Soft Skills, нейросети и добро круглый год', img: '2025-09-11_05-21-21.png', imgPath: 'pictures/' as const, tags: ['☀️ Родительский час', '💜 Атмосфера', '🌟 Воспоминания'] }
   ];
 
   return (
@@ -201,7 +153,7 @@ const AboutCampView: React.FC<AboutCampViewProps> = ({
              aria-label={isChatOpen ? 'Закрыть чат' : 'Открыть чат'}
              aria-pressed={isChatOpen}
            >
-             <img src="/RL-Guide-book/Валюша.jpg" alt="НейроВалюша" />
+             <img src={`${baseUrl}Валюша.jpg`} alt="НейроВалюша" />
            </button>
          </div>
        </header>
@@ -216,11 +168,11 @@ const AboutCampView: React.FC<AboutCampViewProps> = ({
          className={`mobile-menu-panel${isMenuOpen ? ' is-open' : ''}`}
          role="dialog"
          aria-modal="true"
-         aria-label="Меню"
+         aria-labelledby="about-camp-menu-title"
          aria-hidden={!isMenuOpen}
        >
          <div className="mobile-menu-head">
-           <span className="mobile-menu-title">Меню</span>
+           <span id="about-camp-menu-title" className="mobile-menu-title">Меню</span>
            <button type="button" className="mobile-menu-close" onClick={closeMenu} aria-label="Закрыть меню">
              &times;
            </button>
@@ -319,7 +271,7 @@ const AboutCampView: React.FC<AboutCampViewProps> = ({
          {/* 2. What We Develop (Benefits Grid) */}
          <section className="reveal-on-scroll" style={{ marginBottom: '10rem' }}>
                        <h2 className="section-headline hover-target">
-                         🎯 Программы <span className="outline">смен 2026</span>
+                         🎯 Программы <span className="outline">смен {contentYear}</span>
                        </h2>            <div className="features-grid">
               
               {/* Card 1: 4K */}
@@ -405,7 +357,7 @@ const AboutCampView: React.FC<AboutCampViewProps> = ({
                  >
                     <div className="post-img-box">
                       <img 
-                        src={`${baseUrl}pictures/${post.img}`} 
+                        src={`${baseUrl}${post.imgPath || 'pictures/'}${post.img}`} 
                         alt={post.title} 
                       />
                     </div>
@@ -440,7 +392,7 @@ const AboutCampView: React.FC<AboutCampViewProps> = ({
                    💬 Отзывы <span className="outline">родителей</span>
                  </h2>
                  <p className="card-text" style={{ fontSize: '1.3rem' }}>
-                   Узнайте, что говорят мамы и папы о переменах, которые они замечают в детях после смены. Реальные истории и эмоции в нашей группе ВКонтакте.
+                   Узнайте, что говорят мамы и папы о переменах, которые они замечают в детях после смены. Реальные истории и эмоции в нашей группе ВКонтакте — присоединяйтесь к обсуждению!
                  </p>
                </div>
                <a href="https://vk.com/realcampspb?from=groups&ref=group_menu&w=app6326142_-57701087" target="_blank" rel="noopener noreferrer" className="btn-agency hover-target" style={{ padding: '1.8rem 4rem', fontSize: '1.1rem' }}>
@@ -475,25 +427,24 @@ const AboutCampView: React.FC<AboutCampViewProps> = ({
              onClick={onTelegramContact}
            >
               <h2 className="section-headline hover-target" style={{ textAlign: 'center', marginBottom: '1rem' }}>
-                Весенняя <span className="outline">смена</span>
+                {aboutCampSession.sessionTitle.split(' ')[0]} <span className="outline">{aboutCampSession.sessionTitle.split(' ')[1] || ''}</span>
               </h2>
               <h2 className="session-headline" style={{ marginBottom: '2rem' }}>
-                <span className="outline">2026</span>
+                <span className="outline">{contentYear}</span>
               </h2>
               <div style={{ marginBottom: '3rem' }}>
                 <span className="tag-pill" style={{ fontSize: '1.2rem', padding: '0.8rem 2rem', background: 'rgba(139, 0, 255, 0.2)' }}>
-                  с 28 марта по 5 апреля
+                  {aboutCampSession.dates}
                 </span>
               </div>
 
               <div className="price-block" style={{ display: 'inline-block', textAlign: 'left', minWidth: '350px', padding: '2.5rem' }}>
-                <p style={{ marginBottom: '1rem', fontSize: '1.3rem', color: 'var(--c-stark)' }}>
-                  ✅ <strong style={{ color: '#FFD700' }}>25 800</strong> — стоимость путевки с учетом сертификата от г. Санкт-Петербурга на 9 дней<br />
-                  <span style={{ fontSize: '1rem', color: 'rgba(244, 239, 228, 0.7)' }}>+ сертификат</span>
-                </p>
-                <p style={{ fontSize: '1.3rem', color: 'var(--c-stark)' }}>
-                  ✅ <strong>36 500,00 руб.</strong> — полная стоимость путевки на 9 дней без использования сертификата
-                </p>
+                {aboutCampSession.prices.map((price, idx) => (
+                  <p key={idx} style={{ marginBottom: idx < aboutCampSession.prices.length - 1 ? '1rem' : 0, fontSize: '1.3rem', color: 'var(--c-stark)' }}>
+                    ✅ <strong style={idx === 0 ? { color: '#FFD700' } : undefined}>{price.amount}</strong> — {price.label}
+                    {price.note && <><br /><span style={{ fontSize: '1rem', color: 'rgba(244, 239, 228, 0.7)' }}>{price.note}</span></>}
+                  </p>
+                ))}
               </div>
               
               <div style={{ marginTop: '3.5rem' }}>

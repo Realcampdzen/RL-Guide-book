@@ -1,0 +1,28 @@
+# Локальные переменные окружения для `wrangler pages dev`
+# Скопируйте в `.dev.vars` и подставьте значения.
+
+# OpenAI (опционально; если не задан — будет fallback)
+OPENAI_API_KEY=your_openai_api_key_here
+
+# Auth: JWT verification for /api/putevoditel/chat (same secret as backend AUTH_JWT_SECRET)
+# AUTH_JWT_SECRET=your_jwt_secret_here
+
+# VK (Callback API)
+VK_GROUP_ID=123456
+VK_SECRET=your_vk_callback_secret
+VK_CONFIRMATION_CODE=your_vk_confirmation_code
+VK_ACCESS_TOKEN=your_vk_community_access_token
+
+# Telegram
+TELEGRAM_BOT_TOKEN=123456:ABCDEF_your_bot_token
+TELEGRAM_WEBHOOK_SECRET=your_webhook_secret_token
+# Опционально: ограничить ответы только для конкретного канала (по id или по @username)
+# TELEGRAM_CHANNEL_ID=-1001234567890
+# TELEGRAM_CHANNEL_ID_USERNAME=@realcampspb
+
+# Опционально: ограничить ответы только в конкретной группе-обсуждении (chat_id, обычно -100...)
+# TELEGRAM_DISCUSSION_GROUP_ID=-1002516417808
+# (алиас для старых env)
+# DISCUSSION_GROUP_ID=-1002516417808
+
+

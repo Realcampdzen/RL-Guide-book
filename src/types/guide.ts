@@ -7,7 +7,8 @@ export type View =
   | 'introduction'
   | 'additional-material'
   | 'about-camp'
-  | 'registration-form';
+  | 'registration-form'
+  | 'profile';
 
 export interface Category {
   id: string;

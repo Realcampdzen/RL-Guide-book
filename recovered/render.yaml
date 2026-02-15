@@ -1,0 +1,7 @@
+services:
+  # Chatbot - Python FastAPI приложение (ИИ чат-бот)
+  - type: web
+    name: putevoditel-chatbot
+    env: python
+    buildCommand: pip install -r chatbot/requirements.txt
+    startCommand: cd chatbot && python main.py

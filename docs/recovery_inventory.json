@@ -1,0 +1,2730 @@
+{
+  "generatedAt": "2026-02-05T21:16:51.151Z",
+  "source": "recovery_profile.js",
+  "russianStrings": [
+    "),i.push(`Пользователь: ${b.nickname||",
+    "),o=xe.byId.get(i),r=xe.byBaseId.get(l),a=o||r,Ne=(a==null?void 0:a.title)||`Значок ${l}`,ce=(o==null?void 0:o.level)||(a==null?void 0:a.level)||",
+    ", чтобы выбрать свой уникальный аватар-эмодзи!",
+    ",`Автор: ${b.nickname} (ID: ${b.id})`,X?",
+    ",s.criteriaLevel3?`3. Экспертный: ${s.criteriaLevel3}`:",
+    ". По умолчанию — без персональных данных (ник скрыт, фото-аватар не добавляется).",
+    ". Попробуй связать навык",
+    "1 УРОВЕНЬ: БАЗОВЫЙ (Попробовать)",
+    "1. Сбор: Атмосфера таинственности.",
+    "2 УРОВЕНЬ: ПРОДВИНУТЫЙ (Действовать)",
+    "2. Ритуал:",
+    "3 УРОВЕНЬ: ЭКСПЕРТНЫЙ (Вдохновлять)",
+    "3. Испытание:",
+    "4. Финал:",
+    ":`Выбрать аватар ${i}`,children:i},i,!1,{fileName:",
+    ":`Удалить ${i.label}`,children:",
+    "D:/Development/Путеводитель web_new/src/components/BroBonfire.tsx",
+    "D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx",
+    "D:/Development/Путеводитель web_new/src/components/InspectorDashboard.tsx",
+    "D:/Development/Путеводитель web_new/src/components/SquadArchitect.tsx",
+    "D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx",
+    "D:/Development/Путеводитель web_new/src/components/WingDashboard.tsx",
+    "D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",
+    "PNG скачан, подпись скопирована.",
+    "PNG скачан. Подпись можно скопировать ниже.",
+    "https://... (например, пост в VK/Telegram/Instagram)",
+    "}`),i.push(`ID пользователя: ${b.id||",
+    "}`),i.push(`Аватар: ${o}`),i.push(`Статистика: ${b.stats.totalLevelsAchieved} уровней, ${b.stats.totalBadgesStarted} в пути`),i.push(",
+    "АКТИВИРОВАТЬ В ПУТЕВОДИТЕЛЕ",
+    "Аватар",
+    "Аватар (эмодзи)",
+    "Анна К.",
+    "БРО-КОСТЕР",
+    "БРО-НАСТАВНИК",
+    "БРОСВЯЩЕНИЕ",
+    "Базовый",
+    "Бро — это не просто статус. Это ответственность за младших, за лагерь и за самих себя. Помни традиции, храни огонь.",
+    "Бропаспорт:",
+    "В процессе",
+    "В пути",
+    "В случае конфликта сказать «Мне не нравится, когда…», а не обвинять",
+    "В течение дня не использовать резкие слова и критику",
+    "ВСТУПИТЬ",
+    "ВЫБЕРИТЕ НАСТАВНИКА ИЗ ОПЫТНЫХ БРО:",
+    "ВЫЙТИ",
+    "Ваш ник",
+    "Вежливый Инспектор",
+    "Ветка: Инспектор Пользы",
+    "Во вкладке",
+    "Восстановить из файла",
+    "Время финала. Самый теплый момент Бросвящения. Собираемся в круг...",
+    "Выберите файл изображения",
+    "Выбрать маршрут",
+    "Выйти",
+    "Выйти из команды?",
+    "ГЕНЕРИРУЕМ...",
+    "ГОТОВИТЬ БРОТЕРБРОДЫ",
+    "Генерируем…",
+    "Главная цель Движка",
+    "Голос отряда — это его энергия!",
+    "Готов начать путь вожатого? Получи свой цифровой Бропаспорт и начни выполнять Бродела!",
+    "Готово! Значок добавлен в твой Путеводитель.",
+    "ДАЛЕЕ",
+    "Движение в ритме Бро-Движения.",
+    "Движок Прогресса",
+    "Двухцветный галстук Наставника",
+    "Девиз",
+    "Действие и Артефакт",
+    "День",
+    "Для запуска Движка нужно имя и описание первого проекта!",
+    "Добавить в избранное",
+    "Документ",
+    "Доступ к Категории 9 открыт",
+    "Если запутаешься — нажми на аватар Валюши. Она твой персональный ИИ-гид: подскажет требования к значкам и поможет сориентироваться в лагере.",
+    "Если увидишь спор – попробуй помочь мирно уладить ситуацию",
+    "Журнал",
+    "ЗАКОНЧИТЬ",
+    "ЗАКРЫТЬ АРХИТЕКТОР",
+    "ЗАПУСТИТЬ ДВИЖОК",
+    "Загляни в категории!",
+    "Закрыть",
+    "Замечать и исправлять мелкие беспорядки",
+    "Замечать, если кто-то остаётся один, и вовлекать его в общие дела.",
+    "Запрашиваем слоган у НейроВалюши…",
+    "Запрос на подтверждение получения значка.",
+    "Запустить Движок!",
+    "Знать и громко кричать отрядные кричалки",
+    "Знать и понимать отрядный мем",
+    "Знать и танцевать отрядные танцы",
+    "Знать отрядные традиции",
+    "Идея и Влияние",
+    "Избранное",
+    "Инспектор Дружбы",
+    "Инспектор Чистоты и Уюта",
+    "Искатель",
+    "Исследователь",
+    "История и ритуалы, которые нас объединяют.",
+    "История пуста.",
+    "КРЫЛО (КАНДИДАТ)",
+    "Как закрепить результат? (Напр: Провести мероприятие для отряда)",
+    "Как передать опыт другим? (Напр: Обучить ребят из другого отряда)",
+    "Как это повлияло на мой коллектив и лагерь",
+    "Как это повлияло на мой коллектив и лагерь:",
+    "Какая была польза для команды, отряда, лагеря.",
+    "Какой навык, опыт или открытие я получил(а).",
+    "Карточки готовы: 9:16 и 16:9.",
+    "Код Движка (напр: T-XJ29)",
+    "Код Движка:",
+    "Код Традиций (Выберите 3)",
+    "Код не найден. Проверь символы!",
+    "Код скопирован! Отправь его друзьям.",
+    "Коллаборация",
+    "Коллекция",
+    "Коллекция трофеев",
+    "Командный Дух",
+    "Комментарий:",
+    "Коммуникация",
+    "Концепт успешно выкован! Отправить заявку вожатым в Telegram и создать карточку Созидателя?",
+    "Кооператив",
+    "Кооператив: Найдите вместе с напарником 3 вещи для улучшения лагеря",
+    "Кооператив: Спроси другого Инспектора, как ему далась миссия",
+    "Кооператив: Эстафета благодарности – передай спасибо по цепочке",
+    "Коротко и громко!",
+    "Коротко опишите выполненные шаги, результат, что получилось.",
+    "Космодром",
+    "Креативность",
+    "Критическое мышление",
+    "Культура и Дух",
+    "Куём новый смысл…",
+    "Легенда",
+    "Максим В.",
+    "Мастер",
+    "Мастерская",
+    "Мастерская открыта!",
+    "Масштабирование",
+    "Медиа",
+    "Миссия Вежливости",
+    "Миссия Дружбы",
+    "Миссия Уюта",
+    "Миссия выполнена!",
+    "Мой Движок",
+    "НАСТАВНИК",
+    "НОВЫЙ СМЫСЛ",
+    "Нажми «Сгенерировать», чтобы увидеть предпросмотр.",
+    "Назад",
+    "Название",
+    "Название Движка",
+    "Название Отряда (Стартапа)",
+    "Название вашего Крыла",
+    "Название команды",
+    "Напомнить товарищам о чистоте и показать пример",
+    "Напр:",
+    "Напр: В лагере появится новая традиция вечерних костров или уютная зона отдыха...",
+    "Напр: Хранители Времени",
+    "Напр: Хранитель Традиций",
+    "Например: 🧑‍🚀",
+    "Настройки данных ▼",
+    "Начни с малого — например, организуй мастер-класс для своего отряда. Хороший Движок растет от дела к делу!",
+    "Наши цели",
+    "Не удалось загрузить изображение",
+    "Не удалось поделиться/скачать. Попробуй ещё раз.",
+    "Не удалось сгенерировать карточки. Попробуй ещё раз.",
+    "Не удалось скопировать подпись.",
+    "Не удалось создать рапорт.",
+    "Ник",
+    "Никнейм — опционально; в карточке нет ФИО/телефона/почты.",
+    "Новые Горизонты",
+    "Новый значок",
+    "ОСОБЫЙ РЕЦЕПТ",
+    "ОТПРАВИТЬ РАПОРТ 9:16",
+    "Обновить",
+    "Объединитесь и выберите своего Наставника",
+    "Опиши хотя бы первый шаг (Базовый уровень)!",
+    "Организация",
+    "Организовать сюрприз для младших",
+    "Основной 4К Навык",
+    "Основы общения с детьми и принципы Бро-Движения.",
+    "Открывает доступ к Мастерской",
+    "Отмена",
+    "Отмена.",
+    "Отмечайте интересные маршруты звёздочкой.",
+    "Отправить в Telegram",
+    "Отправить подтверждение",
+    "Отправлено через системное меню шеринга.",
+    "Оформить физический Бропаспорт",
+    "ПОЛУЧИТЬ БРОПАСПОРТ",
+    "ПРИНИМАЕМ В БРО-СЕМЬЮ...",
+    "ПРОЙТИ ИНИЦИАЦИЮ",
+    "ПРОХОЖДЕНИЕ",
+    "ПУТЬ ДВИЖКА (КАТЕГОРИЯ 8):",
+    "Первый проект (что сделаете в лагере?)",
+    "Перейти",
+    "Перейти к значку",
+    "Поблагодарить 3-х человек за их поступки",
+    "Поделиться / скачать",
+    "Поделиться прогрессом",
+    "Подойди к новенькому и предложи вместе поиграть или что-то обсудить",
+    "Подпись",
+    "Подпись скопирована.",
+    "Подтверждение значка",
+    "Пожалуйста, выберите изображение.",
+    "Поздравляем! Твой опыт позволил открыть «Мастерскую Создателя». Теперь ты можешь предлагать свои значки и менять реальность лагеря.",
+    "Пока нет завершённых значков.",
+    "Пока нет избранных значков.",
+    "Показать подсказки",
+    "Получить подписи вожатых и админа",
+    "Помочь вожатому с документами",
+    "Помочь навести порядок в комнате или игровом пространстве",
+    "Помощь НейроВалюши",
+    "После открытия Telegram прикрепите выбранные файлы вручную, если нужно. Текст и ссылка будут подставлены автоматически.",
+    "Пост 16:9",
+    "Похвали 3-х человек за что-то хорошее",
+    "Практика лидерства и организации.",
+    "Предпросмотр",
+    "Предпросмотр аватара",
+    "Придумай название для своего значка!",
+    "Придумайте название команды!",
+    "Провести",
+    "Провести собственное отрядное дело",
+    "Прогресс успешно восстановлен!",
+    "Продвинутый",
+    "Прослушать лекцию по лагерной педагогике",
+    "Профиль",
+    "РЕДАКТИРОВАТЬ",
+    "Разбор реальных ситуаций из жизни отряда.",
+    "Расскажи, как этот значок изменит жизнь в лагере? Это важно для одобрения!",
+    "Реальный Движок",
+    "Реальный вклад (Что изменится в лагере?)",
+    "Редактировать",
+    "СГЕНЕРИРОВАТЬ ПОСВЯЩЕНИЕ",
+    "СЛЕД. ДЕНЬ",
+    "СЛОВА СТАРШИХ",
+    "СЛУШАТЬ НАПУТСТВИЯ",
+    "СОЗДАТЬ",
+    "СТАТУС",
+    "СФОРМИРОВАТЬ КРЫЛО",
+    "Сбросить изменения",
+    "Сбросить изменения?",
+    "Свой Движок",
+    "Сгенерировать",
+    "Сделаем 2 PNG: сторис",
+    "Сделать отрядное место комфортным и приятным.",
+    "Сегодня ты —",
+    "Сейчас самое время выбрать новый маршрут.",
+    "Селфи",
+    "Синхронизация Движка...",
+    "Скопировать подпись",
+    "Скрыть настройки ▲",
+    "Скрыть ник",
+    "Следить за тоном общения и использовать",
+    "Сначала дай Крылу имя!",
+    "Совет Валюши:",
+    "Создайте команду, выберите общие цели и пригласите друзей по QR-коду!",
+    "Создание Движка",
+    "Создать команду",
+    "Создать красивый артефакт с твердой обложкой.",
+    "Сохранить",
+    "Сохранить резервную копию",
+    "Спорт",
+    "Ссылка (посты в соцсетях лагеря, отряда, вашей страницы и т.д.)",
+    "Статус: Создатель Пути",
+    "Степан И.",
+    "Сторис 9:16",
+    "Ступени Мастерства",
+    "Сценарий Посвящения готов",
+    "Сценарий сохранен в Крыле!",
+    "ТВОЁ КРЫЛО",
+    "ТВОЕ КРЫЛО (ШТАБ)",
+    "ТЫ — БРО",
+    "Твои маршруты",
+    "Твой радар чист",
+    "Творчество",
+    "Теория и Основы",
+    "Тестовый режим",
+    "Технологии",
+    "Традиция 1",
+    "Традиция 2",
+    "Традиция 3",
+    "Тут хранятся все твои завершенные значки. Собери их все, чтобы стать Легендой Реального Лагеря!",
+    "УДАЛИТЬ",
+    "УПРАВЛЕНИЕ:",
+    "УТВЕРДИТЬ МЕТОДИКУ",
+    "Убрать из избранного",
+    "Убрать маршрут",
+    "Убрать этот маршрут из пути?",
+    "Уровень",
+    "Участие в обсуждении вожатских кейсов",
+    "Файл",
+    "Файл больше 2 МБ. Может не сохраниться в браузере. Продолжить?",
+    "Файлы и медиа",
+    "Файлы:",
+    "Финальный апрув твоего пути в Бро-Движение.",
+    "Фото",
+    "Хороший значок в Путеводителе всегда отвечает на вопрос:",
+    "Хранитель легендарных традиций с 2013 года",
+    "Центр управления",
+    "Челлендж",
+    "Челлендж: 30 секунд разглядывай предмет, замечая детали",
+    "Челлендж: Заведи разговор с человеком, с которым мало общаешься",
+    "Челлендж: Отражай эмоции людей словами (Зеркало эмоций)",
+    "Чему я научился(лась)",
+    "Чему я научился(лась):",
+    "Что именно сделано",
+    "Что нужно сделать в первый раз? (Напр: Собрать команду из 3 человек)",
+    "ЭКИПАЖ (",
+    "Экология",
+    "Экспертный",
+    "Эмблема (эмодзи)",
+    "Это твой паспорт Реального Лагеря. Здесь растет твой Ранг и сохраняются главные достижения. Нажми",
+    "Юмор — важная часть нашей идентичности.",
+    "баз",
+    "в отряде",
+    "и вручение символики.",
+    "и пост",
+    "изображение (в ЛК)",
+    "находятся значки, которые ты выбрал сейчас. Здесь можно отправить подтверждение вожатым через Telegram, чтобы получить значок официально.",
+    "не указан",
+    "одноуровнев",
+    "с конкретным делом.",
+    "✅ Подтверждение значка",
+    "✨ Используется эмодзи.",
+    "🌿 Экология и Природа",
+    "🎁 Тайный друг",
+    "🎤 Уникальная кричалка",
+    "🎨 Творчество и Арт",
+    "🎯 Цель:",
+    "🏆 Спорт и ЗОЖ",
+    "🏗️ Архитектор Отряда",
+    "🏗️ СОЗДАТЬ ПОСВЯЩЕНИЕ ОТРЯДА",
+    "🏳️ Поднятие флага",
+    "👑 Степан И.",
+    "💃 Отрядный танец",
+    "💡 Креативность (Творчество)",
+    "💬 Коммуникация (Общение)",
+    "📁 Загрузить фото",
+    "📄 Документ",
+    "📋 КРИТЕРИИ:",
+    "📎 Файл",
+    "📢 Организация событий",
+    "📱 Медиа и Контент",
+    "📷 Сделать селфи",
+    "📷 Фото",
+    "🔗 Пригласить друзей",
+    "🔥 Свечка (Огонек)",
+    "🔹 Жарь на костре как шашлычок до хруста",
+    "🔹 Нарежь хлеб аккуратными кусочками",
+    "🔹 Посыпь крупной солью с любовью",
+    "🔹 Сбрызни подсолнечным маслом",
+    "🗑️ Сброс прогресса",
+    "🚀 Твой Движок",
+    "🛠️ ЗАЯВКА НА КАНОН (НОВЫЙ ЗНАЧОК)",
+    "🛠️ КОНСТРУКТОР СМЫСЛОВ",
+    "🤐 Ритуал тишины",
+    "🤖 Совет Валюши:",
+    "🤖 Технологии и ИИ",
+    "🤝 Коллаборация (Работа в команде)",
+    "🤳 Селфи",
+    "🦅 Небесные Стражи",
+    "🧠 Критическое мышление"
+  ],
+  "fileLineReferences": [
+    {
+      "file": "src/components/BroBonfire.tsx",
+      "lineNumber": 10
+    },
+    {
+      "file": "src/components/BroBonfire.tsx",
+      "lineNumber": 15
+    },
+    {
+      "file": "src/components/BroBonfire.tsx",
+      "lineNumber": 18
+    },
+    {
+      "file": "src/components/BroBonfire.tsx",
+      "lineNumber": 19
+    },
+    {
+      "file": "src/components/BroBonfire.tsx",
+      "lineNumber": 20
+    },
+    {
+      "file": "src/components/BroBonfire.tsx",
+      "lineNumber": 21
+    },
+    {
+      "file": "src/components/BroBonfire.tsx",
+      "lineNumber": 24
+    },
+    {
+      "file": "src/components/BroBonfire.tsx",
+      "lineNumber": 34
+    },
+    {
+      "file": "src/components/BroBonfire.tsx",
+      "lineNumber": 35
+    },
+    {
+      "file": "src/components/BroBonfire.tsx",
+      "lineNumber": 36
+    },
+    {
+      "file": "src/components/BroBonfire.tsx",
+      "lineNumber": 37
+    },
+    {
+      "file": "src/components/BroBonfire.tsx",
+      "lineNumber": 38
+    },
+    {
+      "file": "src/components/BroBonfire.tsx",
+      "lineNumber": 39
+    },
+    {
+      "file": "src/components/BroBonfire.tsx",
+      "lineNumber": 40
+    },
+    {
+      "file": "src/components/BroBonfire.tsx",
+      "lineNumber": 41
+    },
+    {
+      "file": "src/components/BroBonfire.tsx",
+      "lineNumber": 43
+    },
+    {
+      "file": "src/components/BroBonfire.tsx",
+      "lineNumber": 44
+    },
+    {
+      "file": "src/components/BroBonfire.tsx",
+      "lineNumber": 55
+    },
+    {
+      "file": "src/components/BroBonfire.tsx",
+      "lineNumber": 56
+    },
+    {
+      "file": "src/components/BroBonfire.tsx",
+      "lineNumber": 57
+    },
+    {
+      "file": "src/components/BroBonfire.tsx",
+      "lineNumber": 58
+    },
+    {
+      "file": "src/components/BroBonfire.tsx",
+      "lineNumber": 61
+    },
+    {
+      "file": "src/components/BroBonfire.tsx",
+      "lineNumber": 71
+    },
+    {
+      "file": "src/components/BroBonfire.tsx",
+      "lineNumber": 72
+    },
+    {
+      "file": "src/components/BroBonfire.tsx",
+      "lineNumber": 73
+    },
+    {
+      "file": "src/components/BroBonfire.tsx",
+      "lineNumber": 74
+    },
+    {
+      "file": "src/components/BroBonfire.tsx",
+      "lineNumber": 76
+    },
+    {
+      "file": "src/components/BroBonfire.tsx",
+      "lineNumber": 83
+    },
+    {
+      "file": "src/components/BroBonfire.tsx",
+      "lineNumber": 84
+    },
+    {
+      "file": "src/components/BroBonfire.tsx",
+      "lineNumber": 86
+    },
+    {
+      "file": "src/components/BroBonfire.tsx",
+      "lineNumber": 102
+    },
+    {
+      "file": "src/components/BroInitiation.tsx",
+      "lineNumber": 50
+    },
+    {
+      "file": "src/components/BroInitiation.tsx",
+      "lineNumber": 55
+    },
+    {
+      "file": "src/components/BroInitiation.tsx",
+      "lineNumber": 66
+    },
+    {
+      "file": "src/components/BroInitiation.tsx",
+      "lineNumber": 67
+    },
+    {
+      "file": "src/components/BroInitiation.tsx",
+      "lineNumber": 68
+    },
+    {
+      "file": "src/components/BroInitiation.tsx",
+      "lineNumber": 69
+    },
+    {
+      "file": "src/components/BroInitiation.tsx",
+      "lineNumber": 75
+    },
+    {
+      "file": "src/components/BroInitiation.tsx",
+      "lineNumber": 84
+    },
+    {
+      "file": "src/components/BroInitiation.tsx",
+      "lineNumber": 92
+    },
+    {
+      "file": "src/components/BroInitiation.tsx",
+      "lineNumber": 93
+    },
+    {
+      "file": "src/components/BroInitiation.tsx",
+      "lineNumber": 94
+    },
+    {
+      "file": "src/components/BroInitiation.tsx",
+      "lineNumber": 97
+    },
+    {
+      "file": "src/components/BroInitiation.tsx",
+      "lineNumber": 121
+    },
+    {
+      "file": "src/components/BroInitiation.tsx",
+      "lineNumber": 131
+    },
+    {
+      "file": "src/components/BroInitiation.tsx",
+      "lineNumber": 132
+    },
+    {
+      "file": "src/components/BroInitiation.tsx",
+      "lineNumber": 133
+    },
+    {
+      "file": "src/components/BroInitiation.tsx",
+      "lineNumber": 134
+    },
+    {
+      "file": "src/components/BroInitiation.tsx",
+      "lineNumber": 136
+    },
+    {
+      "file": "src/components/BroInitiation.tsx",
+      "lineNumber": 144
+    },
+    {
+      "file": "src/components/BroInitiation.tsx",
+      "lineNumber": 148
+    },
+    {
+      "file": "src/components/BroInitiation.tsx",
+      "lineNumber": 150
+    },
+    {
+      "file": "src/components/BroInitiation.tsx",
+      "lineNumber": 167
+    },
+    {
+      "file": "src/components/BroInitiation.tsx",
+      "lineNumber": 171
+    },
+    {
+      "file": "src/components/BroInitiation.tsx",
+      "lineNumber": 187
+    },
+    {
+      "file": "src/components/BroInitiation.tsx",
+      "lineNumber": 196
+    },
+    {
+      "file": "src/components/BroInitiation.tsx",
+      "lineNumber": 198
+    },
+    {
+      "file": "src/components/BroInitiation.tsx",
+      "lineNumber": 199
+    },
+    {
+      "file": "src/components/BroInitiation.tsx",
+      "lineNumber": 215
+    },
+    {
+      "file": "src/components/BroInitiation.tsx",
+      "lineNumber": 234
+    },
+    {
+      "file": "src/components/BroInitiation.tsx",
+      "lineNumber": 235
+    },
+    {
+      "file": "src/components/BroInitiation.tsx",
+      "lineNumber": 238
+    },
+    {
+      "file": "src/components/BroInitiation.tsx",
+      "lineNumber": 248
+    },
+    {
+      "file": "src/components/BroInitiation.tsx",
+      "lineNumber": 249
+    },
+    {
+      "file": "src/components/BroInitiation.tsx",
+      "lineNumber": 250
+    },
+    {
+      "file": "src/components/BroInitiation.tsx",
+      "lineNumber": 258
+    },
+    {
+      "file": "src/components/BroInitiation.tsx",
+      "lineNumber": 262
+    },
+    {
+      "file": "src/components/BroInitiation.tsx",
+      "lineNumber": 286
+    },
+    {
+      "file": "src/components/BroInitiation.tsx",
+      "lineNumber": 291
+    },
+    {
+      "file": "src/components/BroInitiation.tsx",
+      "lineNumber": 292
+    },
+    {
+      "file": "src/components/BroInitiation.tsx",
+      "lineNumber": 293
+    },
+    {
+      "file": "src/components/BroInitiation.tsx",
+      "lineNumber": 299
+    },
+    {
+      "file": "src/components/InspectorDashboard.tsx",
+      "lineNumber": 48
+    },
+    {
+      "file": "src/components/InspectorDashboard.tsx",
+      "lineNumber": 59
+    },
+    {
+      "file": "src/components/InspectorDashboard.tsx",
+      "lineNumber": 71
+    },
+    {
+      "file": "src/components/InspectorDashboard.tsx",
+      "lineNumber": 72
+    },
+    {
+      "file": "src/components/InspectorDashboard.tsx",
+      "lineNumber": 73
+    },
+    {
+      "file": "src/components/InspectorDashboard.tsx",
+      "lineNumber": 76
+    },
+    {
+      "file": "src/components/InspectorDashboard.tsx",
+      "lineNumber": 80
+    },
+    {
+      "file": "src/components/InspectorDashboard.tsx",
+      "lineNumber": 81
+    },
+    {
+      "file": "src/components/InspectorDashboard.tsx",
+      "lineNumber": 82
+    },
+    {
+      "file": "src/components/InspectorDashboard.tsx",
+      "lineNumber": 89
+    },
+    {
+      "file": "src/components/InspectorDashboard.tsx",
+      "lineNumber": 94
+    },
+    {
+      "file": "src/components/InspectorDashboard.tsx",
+      "lineNumber": 95
+    },
+    {
+      "file": "src/components/InspectorDashboard.tsx",
+      "lineNumber": 112
+    },
+    {
+      "file": "src/components/InspectorDashboard.tsx",
+      "lineNumber": 131
+    },
+    {
+      "file": "src/components/InspectorDashboard.tsx",
+      "lineNumber": 132
+    },
+    {
+      "file": "src/components/InspectorDashboard.tsx",
+      "lineNumber": 139
+    },
+    {
+      "file": "src/components/InspectorDashboard.tsx",
+      "lineNumber": 154
+    },
+    {
+      "file": "src/components/InspectorDashboard.tsx",
+      "lineNumber": 167
+    },
+    {
+      "file": "src/components/InspectorDashboard.tsx",
+      "lineNumber": 175
+    },
+    {
+      "file": "src/components/InspectorDashboard.tsx",
+      "lineNumber": 176
+    },
+    {
+      "file": "src/components/InspectorDashboard.tsx",
+      "lineNumber": 182
+    },
+    {
+      "file": "src/components/InspectorDashboard.tsx",
+      "lineNumber": 190
+    },
+    {
+      "file": "src/components/InspectorDashboard.tsx",
+      "lineNumber": 191
+    },
+    {
+      "file": "src/components/InspectorDashboard.tsx",
+      "lineNumber": 194
+    },
+    {
+      "file": "src/components/InspectorDashboard.tsx",
+      "lineNumber": 195
+    },
+    {
+      "file": "src/components/InspectorDashboard.tsx",
+      "lineNumber": 197
+    },
+    {
+      "file": "src/components/SquadArchitect.tsx",
+      "lineNumber": 18
+    },
+    {
+      "file": "src/components/SquadArchitect.tsx",
+      "lineNumber": 21
+    },
+    {
+      "file": "src/components/SquadArchitect.tsx",
+      "lineNumber": 26
+    },
+    {
+      "file": "src/components/SquadArchitect.tsx",
+      "lineNumber": 27
+    },
+    {
+      "file": "src/components/SquadArchitect.tsx",
+      "lineNumber": 28
+    },
+    {
+      "file": "src/components/SquadArchitect.tsx",
+      "lineNumber": 34
+    },
+    {
+      "file": "src/components/SquadArchitect.tsx",
+      "lineNumber": 41
+    },
+    {
+      "file": "src/components/SquadArchitect.tsx",
+      "lineNumber": 42
+    },
+    {
+      "file": "src/components/SquadArchitect.tsx",
+      "lineNumber": 43
+    },
+    {
+      "file": "src/components/SquadArchitect.tsx",
+      "lineNumber": 45
+    },
+    {
+      "file": "src/components/SquadArchitect.tsx",
+      "lineNumber": 62
+    },
+    {
+      "file": "src/components/SquadArchitect.tsx",
+      "lineNumber": 69
+    },
+    {
+      "file": "src/components/SquadArchitect.tsx",
+      "lineNumber": 70
+    },
+    {
+      "file": "src/components/SquadArchitect.tsx",
+      "lineNumber": 71
+    },
+    {
+      "file": "src/components/SquadArchitect.tsx",
+      "lineNumber": 72
+    },
+    {
+      "file": "src/components/SquadArchitect.tsx",
+      "lineNumber": 73
+    },
+    {
+      "file": "src/components/SquadArchitect.tsx",
+      "lineNumber": 74
+    },
+    {
+      "file": "src/components/SquadArchitect.tsx",
+      "lineNumber": 75
+    },
+    {
+      "file": "src/components/SquadArchitect.tsx",
+      "lineNumber": 76
+    },
+    {
+      "file": "src/components/SquadArchitect.tsx",
+      "lineNumber": 79
+    },
+    {
+      "file": "src/components/TeamDashboard.tsx",
+      "lineNumber": 48
+    },
+    {
+      "file": "src/components/TeamDashboard.tsx",
+      "lineNumber": 51
+    },
+    {
+      "file": "src/components/TeamDashboard.tsx",
+      "lineNumber": 61
+    },
+    {
+      "file": "src/components/TeamDashboard.tsx",
+      "lineNumber": 62
+    },
+    {
+      "file": "src/components/TeamDashboard.tsx",
+      "lineNumber": 63
+    },
+    {
+      "file": "src/components/TeamDashboard.tsx",
+      "lineNumber": 64
+    },
+    {
+      "file": "src/components/TeamDashboard.tsx",
+      "lineNumber": 65
+    },
+    {
+      "file": "src/components/TeamDashboard.tsx",
+      "lineNumber": 71
+    },
+    {
+      "file": "src/components/TeamDashboard.tsx",
+      "lineNumber": 81
+    },
+    {
+      "file": "src/components/TeamDashboard.tsx",
+      "lineNumber": 82
+    },
+    {
+      "file": "src/components/TeamDashboard.tsx",
+      "lineNumber": 83
+    },
+    {
+      "file": "src/components/TeamDashboard.tsx",
+      "lineNumber": 89
+    },
+    {
+      "file": "src/components/TeamDashboard.tsx",
+      "lineNumber": 97
+    },
+    {
+      "file": "src/components/TeamDashboard.tsx",
+      "lineNumber": 102
+    },
+    {
+      "file": "src/components/TeamDashboard.tsx",
+      "lineNumber": 103
+    },
+    {
+      "file": "src/components/TeamDashboard.tsx",
+      "lineNumber": 104
+    },
+    {
+      "file": "src/components/TeamDashboard.tsx",
+      "lineNumber": 105
+    },
+    {
+      "file": "src/components/TeamDashboard.tsx",
+      "lineNumber": 106
+    },
+    {
+      "file": "src/components/TeamDashboard.tsx",
+      "lineNumber": 107
+    },
+    {
+      "file": "src/components/TeamDashboard.tsx",
+      "lineNumber": 110
+    },
+    {
+      "file": "src/components/TeamDashboard.tsx",
+      "lineNumber": 118
+    },
+    {
+      "file": "src/components/TeamDashboard.tsx",
+      "lineNumber": 125
+    },
+    {
+      "file": "src/components/TeamDashboard.tsx",
+      "lineNumber": 126
+    },
+    {
+      "file": "src/components/TeamDashboard.tsx",
+      "lineNumber": 129
+    },
+    {
+      "file": "src/components/TeamDashboard.tsx",
+      "lineNumber": 136
+    },
+    {
+      "file": "src/components/TeamDashboard.tsx",
+      "lineNumber": 137
+    },
+    {
+      "file": "src/components/TeamDashboard.tsx",
+      "lineNumber": 143
+    },
+    {
+      "file": "src/components/TeamDashboard.tsx",
+      "lineNumber": 150
+    },
+    {
+      "file": "src/components/TeamDashboard.tsx",
+      "lineNumber": 151
+    },
+    {
+      "file": "src/components/TeamDashboard.tsx",
+      "lineNumber": 152
+    },
+    {
+      "file": "src/components/TeamDashboard.tsx",
+      "lineNumber": 155
+    },
+    {
+      "file": "src/components/TeamDashboard.tsx",
+      "lineNumber": 156
+    },
+    {
+      "file": "src/components/TeamDashboard.tsx",
+      "lineNumber": 157
+    },
+    {
+      "file": "src/components/TeamDashboard.tsx",
+      "lineNumber": 158
+    },
+    {
+      "file": "src/components/TeamDashboard.tsx",
+      "lineNumber": 160
+    },
+    {
+      "file": "src/components/TeamDashboard.tsx",
+      "lineNumber": 161
+    },
+    {
+      "file": "src/components/TeamDashboard.tsx",
+      "lineNumber": 165
+    },
+    {
+      "file": "src/components/TeamDashboard.tsx",
+      "lineNumber": 172
+    },
+    {
+      "file": "src/components/TeamDashboard.tsx",
+      "lineNumber": 173
+    },
+    {
+      "file": "src/components/TeamDashboard.tsx",
+      "lineNumber": 174
+    },
+    {
+      "file": "src/components/TeamDashboard.tsx",
+      "lineNumber": 176
+    },
+    {
+      "file": "src/components/TeamDashboard.tsx",
+      "lineNumber": 189
+    },
+    {
+      "file": "src/components/TeamDashboard.tsx",
+      "lineNumber": 192
+    },
+    {
+      "file": "src/components/TeamDashboard.tsx",
+      "lineNumber": 208
+    },
+    {
+      "file": "src/components/TeamDashboard.tsx",
+      "lineNumber": 209
+    },
+    {
+      "file": "src/components/TeamDashboard.tsx",
+      "lineNumber": 210
+    },
+    {
+      "file": "src/components/TeamDashboard.tsx",
+      "lineNumber": 219
+    },
+    {
+      "file": "src/components/TeamDashboard.tsx",
+      "lineNumber": 227
+    },
+    {
+      "file": "src/components/TeamDashboard.tsx",
+      "lineNumber": 228
+    },
+    {
+      "file": "src/components/TeamDashboard.tsx",
+      "lineNumber": 236
+    },
+    {
+      "file": "src/components/WingDashboard.tsx",
+      "lineNumber": 15
+    },
+    {
+      "file": "src/components/WingDashboard.tsx",
+      "lineNumber": 24
+    },
+    {
+      "file": "src/components/WingDashboard.tsx",
+      "lineNumber": 30
+    },
+    {
+      "file": "src/components/WingDashboard.tsx",
+      "lineNumber": 31
+    },
+    {
+      "file": "src/components/WingDashboard.tsx",
+      "lineNumber": 32
+    },
+    {
+      "file": "src/components/WingDashboard.tsx",
+      "lineNumber": 35
+    },
+    {
+      "file": "src/components/WingDashboard.tsx",
+      "lineNumber": 39
+    },
+    {
+      "file": "src/components/WingDashboard.tsx",
+      "lineNumber": 47
+    },
+    {
+      "file": "src/components/WingDashboard.tsx",
+      "lineNumber": 48
+    },
+    {
+      "file": "src/components/WingDashboard.tsx",
+      "lineNumber": 49
+    },
+    {
+      "file": "src/components/WingDashboard.tsx",
+      "lineNumber": 50
+    },
+    {
+      "file": "src/components/WingDashboard.tsx",
+      "lineNumber": 51
+    },
+    {
+      "file": "src/components/WingDashboard.tsx",
+      "lineNumber": 54
+    },
+    {
+      "file": "src/components/WingDashboard.tsx",
+      "lineNumber": 55
+    },
+    {
+      "file": "src/components/WingDashboard.tsx",
+      "lineNumber": 56
+    },
+    {
+      "file": "src/components/WingDashboard.tsx",
+      "lineNumber": 63
+    },
+    {
+      "file": "src/components/WingDashboard.tsx",
+      "lineNumber": 64
+    },
+    {
+      "file": "src/components/WingDashboard.tsx",
+      "lineNumber": 65
+    },
+    {
+      "file": "src/components/WingDashboard.tsx",
+      "lineNumber": 72
+    },
+    {
+      "file": "src/components/WingDashboard.tsx",
+      "lineNumber": 75
+    },
+    {
+      "file": "src/components/WingDashboard.tsx",
+      "lineNumber": 77
+    },
+    {
+      "file": "src/components/WingDashboard.tsx",
+      "lineNumber": 78
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 100
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 101
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 102
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 103
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 104
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 105
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 106
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 763
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 772
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 774
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 782
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 783
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 804
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 806
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 807
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 831
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 852
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 859
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 870
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 883
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 884
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 885
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 899
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 908
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 927
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 928
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 943
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 961
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 971
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 972
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 973
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 975
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 976
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 977
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 982
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 983
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 984
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 992
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 999
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1008
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1011
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1012
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1026
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1027
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1041
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1042
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1058
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1074
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1081
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1091
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1092
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1104
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1106
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1109
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1114
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1116
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1135
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1136
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1151
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1170
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1179
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1180
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1181
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1182
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1185
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1201
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1202
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1203
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1206
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1207
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1208
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1209
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1211
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1224
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1225
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1226
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1228
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1229
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1236
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1237
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1277
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1289
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1290
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1291
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1294
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1295
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1302
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1303
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1310
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1311
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1312
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1313
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1315
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1333
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1348
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1381
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1384
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1387
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1390
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1399
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1430
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1434
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1436
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1443
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1449
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1450
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1451
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1453
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1473
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1477
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1502
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1507
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1517
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1518
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1520
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1530
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1534
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1535
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1536
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1537
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1549
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1550
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1577
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1579
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1613
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1615
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1642
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1645
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1647
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1674
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1683
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1684
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1688
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1699
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1707
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1708
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1713
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1717
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1739
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1744
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1753
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1754
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1756
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1764
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1768
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1769
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1771
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1775
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1776
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1803
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1806
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1833
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1847
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1848
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1856
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1874
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1883
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1896
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1898
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1908
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1916
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1917
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1927
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1928
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1935
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1936
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1939
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1945
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1946
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1947
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1948
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1951
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1952
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1953
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1954
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1962
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1963
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1964
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1969
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1970
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1971
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1972
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1977
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1978
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1979
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1989
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1998
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 1999
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2006
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2007
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2008
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2009
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2012
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2013
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2014
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2015
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2023
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2024
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2025
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2033
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2034
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2035
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2047
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2048
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2049
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2067
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2069
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2079
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2103
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2112
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2113
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2114
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2120
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2126
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2131
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2263
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2265
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2266
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2274
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2277
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2288
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2298
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2299
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2302
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2306
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2311
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2333
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2344
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2345
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2346
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2347
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2348
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2352
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2373
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2374
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2375
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2382
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2388
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2393
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2394
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2395
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2396
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2410
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2412
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2417
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2418
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2438
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2439
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2440
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2454
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2456
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2461
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2462
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2484
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2485
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2486
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2503
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2504
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2527
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2528
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2545
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2546
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2556
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2557
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2558
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2560
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2568
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2577
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2579
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2588
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2589
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2591
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2602
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2611
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2617
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2618
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2619
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2620
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2621
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2626
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2643
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2644
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2645
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2646
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2655
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2656
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2657
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2666
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2667
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2668
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2677
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2678
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2681
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2690
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2691
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2692
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2693
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2696
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2699
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2702
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2706
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2713
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2721
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2728
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2736
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2740
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2753
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2754
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2757
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2778
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2785
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2786
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2803
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2826
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2827
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2828
+    },
+    {
+      "file": "src/views/ProfileView.tsx",
+      "lineNumber": 2831
+    }
+  ],
+  "profileViewLineNumbers": [
+    2,
+    100,
+    101,
+    102,
+    103,
+    104,
+    105,
+    106,
+    763,
+    772,
+    774,
+    782,
+    783,
+    804,
+    806,
+    807,
+    831,
+    852,
+    859,
+    870,
+    883,
+    884,
+    885,
+    899,
+    908,
+    927,
+    928,
+    943,
+    961,
+    971,
+    972,
+    973,
+    975,
+    976,
+    977,
+    982,
+    983,
+    984,
+    992,
+    999,
+    1008,
+    1011,
+    1012,
+    1026,
+    1027,
+    1041,
+    1042,
+    1058,
+    1074,
+    1081,
+    1091,
+    1092,
+    1104,
+    1106,
+    1109,
+    1114,
+    1116,
+    1135,
+    1136,
+    1151,
+    1170,
+    1179,
+    1180,
+    1181,
+    1182,
+    1185,
+    1201,
+    1202,
+    1203,
+    1206,
+    1207,
+    1208,
+    1209,
+    1211,
+    1224,
+    1225,
+    1226,
+    1228,
+    1229,
+    1236,
+    1237,
+    1277,
+    1289,
+    1290,
+    1291,
+    1294,
+    1295,
+    1302,
+    1303,
+    1310,
+    1311,
+    1312,
+    1313,
+    1315,
+    1333,
+    1348,
+    1381,
+    1384,
+    1387,
+    1390,
+    1399,
+    1430,
+    1434,
+    1436,
+    1443,
+    1449,
+    1450,
+    1451,
+    1453,
+    1473,
+    1477,
+    1502,
+    1507,
+    1517,
+    1518,
+    1520,
+    1530,
+    1534,
+    1535,
+    1536,
+    1537,
+    1549,
+    1550,
+    1577,
+    1579,
+    1613,
+    1615,
+    1642,
+    1645,
+    1647,
+    1674,
+    1683,
+    1684,
+    1688,
+    1699,
+    1707,
+    1708,
+    1713,
+    1717,
+    1739,
+    1744,
+    1753,
+    1754,
+    1756,
+    1764,
+    1768,
+    1769,
+    1771,
+    1775,
+    1776,
+    1803,
+    1806,
+    1833,
+    1847,
+    1848,
+    1856,
+    1874,
+    1883,
+    1896,
+    1898,
+    1908,
+    1916,
+    1917,
+    1927,
+    1928,
+    1935,
+    1936,
+    1939,
+    1945,
+    1946,
+    1947,
+    1948,
+    1951,
+    1952,
+    1953,
+    1954,
+    1962,
+    1963,
+    1964,
+    1969,
+    1970,
+    1971,
+    1972,
+    1977,
+    1978,
+    1979,
+    1989,
+    1998,
+    1999,
+    2006,
+    2007,
+    2008,
+    2009,
+    2012,
+    2013,
+    2014,
+    2015,
+    2023,
+    2024,
+    2025,
+    2033,
+    2034,
+    2035,
+    2047,
+    2048,
+    2049,
+    2067,
+    2069,
+    2079,
+    2103,
+    2112,
+    2113,
+    2114,
+    2120,
+    2126,
+    2131,
+    2263,
+    2265,
+    2266,
+    2274,
+    2277,
+    2288,
+    2298,
+    2299,
+    2302,
+    2306,
+    2311,
+    2333,
+    2344,
+    2345,
+    2346,
+    2347,
+    2348,
+    2352,
+    2373,
+    2374,
+    2375,
+    2382,
+    2388,
+    2393,
+    2394,
+    2395,
+    2396,
+    2410,
+    2412,
+    2417,
+    2418,
+    2438,
+    2439,
+    2440,
+    2454,
+    2456,
+    2461,
+    2462,
+    2484,
+    2485,
+    2486,
+    2503,
+    2504,
+    2527,
+    2528,
+    2545,
+    2546,
+    2556,
+    2557,
+    2558,
+    2560,
+    2568,
+    2577,
+    2579,
+    2588,
+    2589,
+    2591,
+    2602,
+    2611,
+    2617,
+    2618,
+    2619,
+    2620,
+    2621,
+    2626,
+    2643,
+    2644,
+    2645,
+    2646,
+    2655,
+    2656,
+    2657,
+    2666,
+    2667,
+    2668,
+    2677,
+    2678,
+    2681,
+    2690,
+    2691,
+    2692,
+    2693,
+    2696,
+    2699,
+    2702,
+    2706,
+    2713,
+    2721,
+    2728,
+    2736,
+    2740,
+    2753,
+    2754,
+    2757,
+    2778,
+    2785,
+    2786,
+    2803,
+    2826,
+    2827,
+    2828,
+    2831
+  ],
+  "componentsAndPropsFromBuild": [
+    "hideNickname (state)",
+    "ye() x2 = generateSocialCard story + wide",
+    "shareOrDownloadSocialCard flow",
+    "exportData / import handler (zi), alert(\"Прогресс успешно восстановлен!\")",
+    "fetchAiSlogan (qi) for progress_summary caption",
+    "Two preview URLs (story + wide), message \"Карточки готовы: 9:16 и 16:9.\"",
+    "\"Пригласить друзей\" button, copy invite link",
+    "Workshop: confirm \"Концепт успешно выкован!...\", Telegram, kind start_route card, setActiveTab(active)",
+    "Button \"АКТИВИРОВАТЬ В ПУТЕВОДИТЕЛЕ\""
+  ]
+}

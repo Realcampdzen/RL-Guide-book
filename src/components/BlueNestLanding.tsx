@@ -1,6 +1,11 @@
-import React, { Suspense, useEffect, useRef, useState } from 'react';
+import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useScrollReveal } from '../hooks/useScrollReveal';
 import { useTiltCard } from '../hooks/useTiltCard';
+import type { Category } from '../types/guide';
+import type { MasterIndexMeta } from '../hooks/useDataLoader';
+import { toSiblingImageUrl, NAV_HOME_IMAGE } from '../utils/imageSources';
+import { getBadgeImagePath } from '../utils/badgeImages';
 import '../styles/bluenest.css';
 
 const loadChatBot = () => import('./ChatBot');
@@ -12,9 +17,13 @@ interface BlueNestLandingProps {
   onStartClick: () => void;
   onLogoClick: () => void;
   onAboutCampClick: () => void;
+  onCategoryClick: (category: Category) => void;
+  onOpenBadgeById?: (badgeId: string) => void;
+  onOpenProfile?: () => void;
   onChatToggle: () => void;
   isChatOpen: boolean;
   onChatClose: () => void;
+  categories: Category[];
   currentView?: string;
   selectedCategory?: {
     id: string;
@@ -29,24 +38,153 @@ interface BlueNestLandingProps {
   };
   selectedLevel?: string;
   currentLevelBadgeTitle?: string;
+  masterIndex?: MasterIndexMeta;
 }
 
 const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
   onStartClick,
   onAboutCampClick,
+  onCategoryClick,
+  onOpenBadgeById,
+  onOpenProfile,
   onChatToggle,
   isChatOpen,
   onChatClose,
+  categories,
   currentView = 'intro',
   selectedCategory,
   selectedBadge,
   selectedLevel,
   currentLevelBadgeTitle,
+  masterIndex,
 }) => {
   const { initReveal } = useScrollReveal();
   const [loaderHidden, setLoaderHidden] = useState(false);
+  const [isConceptOpen, setIsConceptOpen] = useState(false);
   const featureCard1Ref = useRef<HTMLDivElement>(null);
   const featureCard2Ref = useRef<HTMLDivElement>(null);
+  const conceptWrapRef = useRef<HTMLSpanElement>(null);
+  const conceptButtonRef = useRef<HTMLButtonElement>(null);
+  const conceptPopoverRef = useRef<HTMLSpanElement>(null);
+  const hoverCapableRef = useRef(false);
+  const [isHoverCapable, setIsHoverCapable] = useState(false);
+  const [portalRoot, setPortalRoot] = useState<HTMLElement | null>(null);
+  type ConceptAnchor = { top: number; left: number; placement: 'above' | 'below' };
+  const [conceptPopoverAnchor, setConceptPopoverAnchor] = useState<ConceptAnchor | null>(null);
+  const conceptPopoverAnchorRef = useRef<ConceptAnchor | null>(null);
+  const conceptHoverSuppressedRef = useRef(false);
+  const carouselInitRef = useRef(false);
+  const [carouselIndex, setCarouselIndex] = useState(0);
+
+  const computeConceptPopoverAnchor = useCallback((): ConceptAnchor | null => {
+    const btn = conceptButtonRef.current;
+    if (!btn) return null;
+    const rect = btn.getBoundingClientRect();
+    const vw = typeof window !== 'undefined' ? window.innerWidth : 800;
+    const vh = typeof window !== 'undefined' ? window.innerHeight : 600;
+    const gap = 8;
+    const cardMaxW = Math.min(720, vw - 32);
+    const centerX = rect.left + rect.width / 2;
+    const left = Math.max(cardMaxW / 2, Math.min(vw - cardMaxW / 2, centerX));
+    let top = rect.bottom + gap;
+    let placement: 'above' | 'below' = 'below';
+    if (top + 400 > vh - 16) {
+      const spaceAbove = rect.top - 16 - gap;
+      const cardHeight = Math.min(520, Math.max(0, spaceAbove));
+      top = Math.max(16, rect.top - gap - cardHeight);
+      placement = 'above';
+    }
+    return { top, left, placement };
+  }, []);
+
+  const updateConceptPopoverPosition = useCallback(() => {
+    const anchor = computeConceptPopoverAnchor();
+    if (anchor) setConceptPopoverAnchor(anchor);
+  }, [computeConceptPopoverAnchor]);
+
+  // CTA handlers for Popover
+  const handleShareProgress = () => {
+    if (onOpenProfile) {
+      // Small delay to allow popover to close cleanly if needed, though we navigate away
+      onOpenProfile();
+      // Force scroll to share center logic is handled in ProfileView via hash
+      window.location.hash = 'share-center';
+    } else {
+      console.warn('onOpenProfile not defined');
+    }
+  };
+
+  const handleCreateTeam = () => {
+    if (onOpenProfile) {
+      onOpenProfile();
+      // We'll use a session storage flag to trigger the team editor on profile load
+      sessionStorage.setItem('rl_trigger_team_editor', 'true');
+    } else {
+      console.warn('onOpenProfile not defined');
+    }
+  };
+
+  const carouselCategories = useMemo(() => {
+    const sorted = (categories || []).slice().sort((a, b) => Number(a.id) - Number(b.id));
+    return sorted;
+  }, [categories]);
+
+  const defaultCarouselIndex = useMemo(() => {
+    if (!carouselCategories.length) return 0;
+    const categoryOneIndex = carouselCategories.findIndex((category) => category.id === '1');
+    return categoryOneIndex >= 0 ? categoryOneIndex : 0;
+  }, [carouselCategories]);
+
+  useEffect(() => {
+    if (!carouselCategories.length) return;
+    if (carouselInitRef.current) return;
+    setCarouselIndex(defaultCarouselIndex);
+    carouselInitRef.current = true;
+  }, [carouselCategories, defaultCarouselIndex]);
+
+  const activeCategory = carouselCategories[carouselIndex];
+  const activeCategoryImage = activeCategory
+    ? `${import.meta.env.BASE_URL}category_${activeCategory.id}.png?v=2`
+    : '';
+  const activeCategoryImageWebp = activeCategoryImage
+    ? toSiblingImageUrl(activeCategoryImage, 'webp')
+    : null;
+
+  const handleCarouselStep = (direction: number) => {
+    if (!carouselCategories.length) return;
+    setCarouselIndex((prev) => {
+      const count = carouselCategories.length;
+      return (prev + direction + count) % count;
+    });
+  };
+
+  const handleOpenCategory = () => {
+    if (!activeCategory) return;
+    onCategoryClick(activeCategory);
+  };
+
+  const formatCategoryTitle = (title: string) => {
+    return (title || '').replace(/(ОСОЗНАННОСТЬ)\s+И(\s|$)/gi, '$1&nbsp;И$2');
+  };
+
+  const badgeImageVersion = '4';
+  const experienceBadgeImage = getBadgeImagePath('1.16', 'Путеводитель', '1', undefined, undefined, 'realism');
+  const experienceBadgeImageVersioned = experienceBadgeImage ? `${experienceBadgeImage}?v=${badgeImageVersion}` : null;
+  const experienceBadgeWebp = experienceBadgeImageVersioned ? toSiblingImageUrl(experienceBadgeImageVersioned, 'webp') : null;
+  const compassBadgeImage = getBadgeImagePath(
+    '1.16',
+    'Путеводитель',
+    '1',
+    '1.16.2',
+    'Создатель Новой Категории',
+    'realism'
+  );
+  const compassBadgeImageVersioned = compassBadgeImage ? `${compassBadgeImage}?v=${badgeImageVersion}` : null;
+  const compassBadgeWebp = compassBadgeImageVersioned ? toSiblingImageUrl(compassBadgeImageVersioned, 'webp') : null;
+  const handleBadgeOpen = (badgeId: string) => {
+    if (!badgeId) return;
+    onOpenBadgeById?.(badgeId);
+  };
 
   useTiltCard(featureCard1Ref);
   useTiltCard(featureCard2Ref);
@@ -59,6 +197,117 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Запускаем только один раз при монтировании
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const media = window.matchMedia('(hover: hover) and (pointer: fine)');
+    const update = () => {
+      hoverCapableRef.current = media.matches;
+      setIsHoverCapable(media.matches);
+    };
+    update();
+    if (typeof media.addEventListener === 'function') {
+      media.addEventListener('change', update);
+      return () => media.removeEventListener('change', update);
+    }
+    media.addListener(update);
+    return () => media.removeListener(update);
+  }, []);
+
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    setPortalRoot(document.body || document.documentElement);
+  }, []);
+
+  useEffect(() => {
+    if (isConceptOpen) {
+      updateConceptPopoverPosition();
+    } else {
+      setConceptPopoverAnchor(null);
+      conceptPopoverAnchorRef.current = null;
+    }
+  }, [isConceptOpen, updateConceptPopoverPosition]);
+
+  useEffect(() => {
+    if (!isConceptOpen) return;
+    const onResize = () => updateConceptPopoverPosition();
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, [isConceptOpen, updateConceptPopoverPosition]);
+
+  useEffect(() => {
+    if (!isConceptOpen) return;
+    if (hoverCapableRef.current) return;
+    const handlePointerDown = (event: PointerEvent) => {
+      const target = event.target as Node | null;
+      if (!target || !conceptWrapRef.current) return;
+      const inTrigger = conceptWrapRef.current.contains(target);
+      const inPopover = conceptPopoverRef.current?.contains(target);
+      if (!inTrigger && !inPopover) {
+        setIsConceptOpen(false);
+      }
+    };
+    document.addEventListener('pointerdown', handlePointerDown);
+    return () => document.removeEventListener('pointerdown', handlePointerDown);
+  }, [isConceptOpen]);
+
+  useEffect(() => {
+    if (!isConceptOpen) return;
+    const handleAutoClose = () => {
+      if (hoverCapableRef.current) return;
+      setIsConceptOpen(false);
+    };
+    const wheelOptions: AddEventListenerOptions = { passive: true, capture: true };
+    window.addEventListener('wheel', handleAutoClose, wheelOptions);
+    window.addEventListener('scroll', handleAutoClose, true);
+    return () => {
+      window.removeEventListener('wheel', handleAutoClose, wheelOptions);
+      window.removeEventListener('scroll', handleAutoClose, true);
+    };
+  }, [isConceptOpen]);
+
+  const handleConceptClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    const nextOpen = !isConceptOpen;
+    if (nextOpen) {
+      const anchor = computeConceptPopoverAnchor();
+      if (anchor) {
+        conceptPopoverAnchorRef.current = anchor;
+        setConceptPopoverAnchor(anchor);
+      }
+      setIsConceptOpen(true);
+    } else {
+      setIsConceptOpen(false);
+    }
+  };
+
+  const handleConceptPointerEnter = (event: React.PointerEvent) => {
+    if (event.pointerType === 'mouse') {
+      if (conceptHoverSuppressedRef.current) return;
+      const anchor = computeConceptPopoverAnchor();
+      if (anchor) {
+        conceptPopoverAnchorRef.current = anchor;
+        setConceptPopoverAnchor(anchor);
+      }
+      setIsConceptOpen(true);
+    }
+  };
+
+  const handleTriggerPointerLeave = (event: React.PointerEvent) => {
+    if (event.pointerType === 'mouse') {
+      conceptHoverSuppressedRef.current = false;
+      setIsConceptOpen(false);
+    }
+  };
+
+  const handlePopoverPointerLeave = (event: React.PointerEvent) => {
+    if (event.pointerType === 'mouse') {
+      setIsConceptOpen(false);
+    }
+  };
+
+  const effectiveAnchor = conceptPopoverAnchor ?? conceptPopoverAnchorRef.current;
 
   return (
     <div className="bluenest-landing">
@@ -122,7 +371,7 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
         aria-label="О лагере"
       >
         <img
-          src={`${import.meta.env.BASE_URL}Gemini_Generated_Image_ct40o9ct40o9ct40.png?v=2`}
+          src={`${import.meta.env.BASE_URL}${NAV_HOME_IMAGE}?v=2`}
           alt="Домик"
         />
       </button>
@@ -160,9 +409,25 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
         <section className="subtitle-section">
           <p className="subtitle-text reveal-on-scroll">
             Добро пожаловать в космическое путешествие по системе значков и достижений!{' '}
-            <button className="subtitle-highlight hover-target" onClick={onStartClick}>
-              Здесь вы найдете 242 значка в 14 категориях.
-            </button>
+            <span
+              className="subtitle-popover-wrap"
+              ref={conceptWrapRef}
+              onPointerEnter={handleConceptPointerEnter}
+              onPointerLeave={handleTriggerPointerLeave}
+            >
+              <button
+                type="button"
+                className="subtitle-highlight hover-target"
+                onClick={handleConceptClick}
+                onPointerEnter={handleConceptPointerEnter}
+                onPointerLeave={handleTriggerPointerLeave}
+                aria-haspopup="dialog"
+                aria-expanded={isConceptOpen}
+                ref={conceptButtonRef}
+              >
+                Здесь вы найдете {masterIndex?.totalBadges ?? 242} значков в {masterIndex?.totalCategories ?? 14} категориях.
+              </button>
+            </span>
           </p>
         </section>
 
@@ -174,12 +439,59 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
               В Реальном Лагере значки — не просто «ачивки» за выполнение заданий. Это путеводные звёзды, которые помогают выбрать твой собственный путь. Каждый значок — не медаль за прошлое, а маяк, освещающий направления твоего развития.
             </p>
           </div>
-          <div className="manifesto-visual reveal-on-scroll">
-            <div className="manifesto-sticker">
-              <img src={`${import.meta.env.BASE_URL}image.png`} alt="Стикер" className="sticker-image" />
-            </div>
-            <div className="orb orb-1"></div>
-            <div className="orb orb-2"></div>
+          <div className="manifesto-visual manifesto-carousel reveal-on-scroll">
+            <button
+              type="button"
+              className="manifesto-carousel-btn manifesto-carousel-btn-left hover-target"
+              onClick={() => handleCarouselStep(-1)}
+              aria-label="Предыдущая категория"
+              disabled={carouselCategories.length < 2}
+            >
+              <span aria-hidden="true">&lsaquo;</span>
+            </button>
+            <button
+              type="button"
+              className="manifesto-carousel-btn manifesto-carousel-btn-right hover-target"
+              onClick={() => handleCarouselStep(1)}
+              aria-label="Следующая категория"
+              disabled={carouselCategories.length < 2}
+            >
+              <span aria-hidden="true">&rsaquo;</span>
+            </button>
+            <button
+              type="button"
+              className="manifesto-carousel-card hover-target"
+              onClick={handleOpenCategory}
+              aria-label={
+                activeCategory
+                  ? `Открыть значки категории ${activeCategory.title || activeCategory.id}`
+                  : 'Категория'
+              }
+              disabled={!activeCategory}
+            >
+              {activeCategory ? (
+                <picture>
+                  {activeCategoryImageWebp && <source type="image/webp" srcSet={activeCategoryImageWebp} />}
+                  <img src={activeCategoryImage} alt={activeCategory.title || 'Категория'} />
+                </picture>
+              ) : (
+                <div className="manifesto-carousel-placeholder">Категория</div>
+              )}
+              <div className="manifesto-carousel-overlay" aria-hidden="true"></div>
+              <div className="manifesto-carousel-meta" aria-live="polite">
+                {activeCategory ? (
+                  <>
+                    <h3
+                      className="manifesto-carousel-title"
+                      dangerouslySetInnerHTML={{ __html: formatCategoryTitle(activeCategory.title || '') }}
+                    />
+                    <p className="manifesto-carousel-count">{activeCategory.badge_count || 0} значков</p>
+                  </>
+                ) : (
+                  <p className="manifesto-carousel-count">Категория</p>
+                )}
+              </div>
+            </button>
           </div>
         </section>
 
@@ -188,20 +500,21 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
           <div className="features-grid">
             {/* Feature 2 */}
             <div className="feature-card tilt-card reveal-on-scroll" ref={featureCard1Ref} style={{ transitionDelay: '0.1s' }}>
-              <img
-                src={`${import.meta.env.BASE_URL}image (24).jpg`}
-                alt="Реальный Значок = Опыт"
-                width={4096}
-                height={3560}
-                style={{
-                  width: '100%',
-                  height: 'auto',
-                  borderRadius: '16px',
-                  marginBottom: '1.5rem',
-                  objectFit: 'cover',
-                  boxShadow: '0 20px 60px rgba(139, 0, 255, 0.4), 0 10px 30px rgba(139, 0, 255, 0.3)',
-                }}
-              />
+              <button
+                type="button"
+                className="feature-badge-link hover-target"
+                onClick={() => handleBadgeOpen('1.16.1')}
+                aria-label="Открыть значок Путеводитель"
+              >
+                {experienceBadgeImageVersioned ? (
+                  <picture>
+                    {experienceBadgeWebp && <source type="image/webp" srcSet={experienceBadgeWebp} />}
+                    <img src={experienceBadgeImageVersioned} alt="Значок Путеводитель" width={1920} height={1080} loading="lazy" decoding="async" />
+                  </picture>
+                ) : (
+                  <div className="feature-badge-placeholder">Путеводитель</div>
+                )}
+              </button>
               <h3>Реальный Значок = Опыт</h3>
               <p>
                 Здесь главная награда — не значок, а опыт и навыки, которые ты получаешь, выполняя задания. Новые друзья, настоящие проекты, полезные привычки и идеи — всё это остаётся с тобой.
@@ -209,33 +522,48 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
             </div>
             {/* Feature 3 */}
             <div className="feature-card tilt-card reveal-on-scroll" ref={featureCard2Ref} style={{ transitionDelay: '0.2s' }}>
-              <img
-                src={`${import.meta.env.BASE_URL}image (1).png`}
-                alt="Реальный Значок — компас"
-                width={1024}
-                height={572}
-                style={{
-                  // Use layout-affecting sizing (not CSS transform scale) to avoid
-                  // unstable spacing on SPA navigation / scroll restoration.
-                  width: '140%',
-                  height: 'auto',
-                  marginBottom: '1.5rem',
-                  background: 'transparent',
-                  display: 'block',
-                  maxWidth: 'none',
-                  marginLeft: '-20%',
-                  filter: 'drop-shadow(0 30px 80px rgba(139, 0, 255, 0.6)) drop-shadow(0 15px 50px rgba(139, 92, 246, 0.5))',
-                }}
-              />
+              <button
+                type="button"
+                className="feature-badge-link hover-target"
+                onClick={() => handleBadgeOpen('1.16.2')}
+                aria-label="Открыть значок Создатель Новой Категории"
+              >
+                {compassBadgeImageVersioned ? (
+                  <picture>
+                    {compassBadgeWebp && <source type="image/webp" srcSet={compassBadgeWebp} />}
+                    <img src={compassBadgeImageVersioned} alt="Значок Создатель Новой Категории" width={1920} height={1080} loading="lazy" decoding="async" />
+                  </picture>
+                ) : (
+                  <div className="feature-badge-placeholder">Создатель Новой Категории</div>
+                )}
+              </button>
               <h3>Реальный Значок — компас</h3>
-              <p>Только ты выбираешь, какие значки будут на твоём пути. Вожатые и Путеводитель предложат варианты, но выбор и движение всегда за тобой.</p>
+              <p>
+                Только ты выбираешь, какие значки будут на твоём пути. Вожатые и Путеводитель предложат варианты, но выбор и движение всегда за тобой.
+                <span className="feature-welcome">
+                  Добро пожаловать в Реальный Лагерь.
+                  <br />
+                  Выбирай звезду, двигайся вперёд, оставляй след.
+                  <br />
+                  Реальные Значки подскажут, куда идти.
+                </span>
+              </p>
             </div>
+          </div>
+          <div className="features-welcome-center reveal-on-scroll">
+            <p>
+              Добро пожаловать в Реальный Лагерь.
+              <br />
+              Выбирай звезду, двигайся вперёд, оставляй след.
+              <br />
+              Реальные Значки подскажут, куда идти.
+            </p>
           </div>
         </section>
 
         {/* Final Footer CTA */}
         <footer className="footer">
-          <h2 className="reveal-on-scroll">Готов начать?</h2>
+          <h2 className="reveal-on-scroll">Поехали?</h2>
           <button className="btn-agency hover-target reveal-on-scroll" onClick={onStartClick} id="footer-start-btn">
             <span>Начать путешествие</span>
           </button>
@@ -270,6 +598,126 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
           currentLevelBadgeTitle={currentLevelBadgeTitle}
         />
       </Suspense>
+      {isConceptOpen && portalRoot &&
+        createPortal(
+          <>
+            <div
+              className={`subtitle-hint-backdrop${isHoverCapable ? ' is-hover' : ''}`}
+              aria-hidden="true"
+            ></div>
+            <span
+              className="subtitle-hint"
+              role="dialog"
+              aria-modal="true"
+              aria-label="О концепции игры"
+              data-placement={effectiveAnchor ? 'anchor' : 'center'}
+              data-anchor-side={effectiveAnchor?.placement}
+              ref={conceptPopoverRef}
+              onPointerEnter={handleConceptPointerEnter}
+              onPointerLeave={handlePopoverPointerLeave}
+              onClick={(e) => {
+                const target = e.target as Node | undefined;
+                if (target && typeof (target as Element).closest === 'function' && (target as Element).closest('button, a')) {
+                  return;
+                }
+                setIsConceptOpen(false);
+                conceptHoverSuppressedRef.current = true;
+              }}
+              style={
+                effectiveAnchor
+                  ? {
+                      position: 'fixed',
+                      top: effectiveAnchor.top,
+                      left: effectiveAnchor.left,
+                      transform: 'translate(-50%, 0)',
+                      maxWidth: 'min(720px, calc(100vw - 32px))',
+                      maxHeight: `calc(100vh - ${effectiveAnchor.top + 16}px)`,
+                      overflowY: 'auto',
+                    }
+                  : {
+                      position: 'fixed',
+                      top: '50%',
+                      left: '50%',
+                      transform: 'translate(-50%, -50%)',
+                    }
+              }
+            >
+              <span className="subtitle-hint-title">Игра, которая развивает участников и Лагерь</span>
+              <div className="subtitle-hint-body">
+                <p>
+                  В Реальном Лагере ребята становятся организаторами и развивают 4К навыки на практике. Запускают проекты,
+                  проводят мастер-классы и целые тематические дни. Объединяются в Движки, изучают вожатское мастерство и
+                  наполняют программу лагеря живыми традициями.
+                </p>
+                <p>
+                  Система «Реальных значков» — это open-source. Её реально адаптировать под любой лагерь и коллективы
+                  разной направленности. Создавайте свои значки, категории и локальные мемы.
+                </p>
+                <p>
+                  Фиксируйте достижения. Делитесь ими в соцсетях. Создавайте команды. Общайтесь с другими игроками.
+                  Прокачивайте навыки коллаборации и организации отрядных дел.
+                </p>
+                
+                <div style={{ display: 'flex', gap: '10px', marginTop: '16px', flexWrap: 'wrap' }}>
+                  <button
+                    onClick={handleShareProgress}
+                    style={{
+                      padding: '8px 12px',
+                      borderRadius: '8px',
+                      background: 'rgba(255, 255, 255, 0.15)',
+                      border: '1px solid rgba(255, 255, 255, 0.25)',
+                      color: 'white',
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      textTransform: 'uppercase',
+                      cursor: 'pointer',
+                      flex: '1 1 auto',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '6px'
+                    }}
+                  >
+                    <span>📤</span> Поделиться прогрессом
+                  </button>
+                  <button
+                    onClick={handleCreateTeam}
+                    style={{
+                      padding: '8px 12px',
+                      borderRadius: '8px',
+                      background: 'rgba(255, 215, 0, 0.15)',
+                      border: '1px solid rgba(255, 215, 0, 0.4)',
+                      color: '#ffd700',
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      textTransform: 'uppercase',
+                      cursor: 'pointer',
+                      flex: '1 1 auto',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '6px'
+                    }}
+                  >
+                    <span>🚀</span> Создать Движок
+                  </button>
+                </div>
+
+                <p>
+                  Это живая система: она растёт вместе с участниками и меняет реальность лагеря и смены. Игровые механики
+                  здесь — инструменты педагогики общей заботы и соуправления.
+                </p>
+                <p>
+                  Значки здесь — не жетоны и не валюта: нет обмена на призы, критерии компетентностные, обязательны пруф (вожатый, сверстники, артефакт) и рефлексия опыта.
+                </p>
+              </div>
+              <span className="subtitle-hint-note">
+                С наилучшими пожеланиями всем настоящим и будущим Реальным Вожатым, Степан Иванов
+              </span>
+            </span>
+          </>,
+          portalRoot
+        )}
     </div>
   );
 };

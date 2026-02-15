@@ -1,1 +1,7 @@
 .vercel
+
+# Runtime storage (local dev)
+data/*.json
+!data/badge_requests.json
+!data/memberships.json
+!data/.gitkeep

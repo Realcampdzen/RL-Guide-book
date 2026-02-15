@@ -20,7 +20,7 @@ def update_category_indexes():
         index_file = category_dir / "index.json"
         
         if not index_file.exists():
-            print(f"⚠️  {category_dir.name}: index.json не найден")
+            print(f"WARN: {category_dir.name}: index.json не найден")
             continue
         
         # Загружаем текущий индекс
@@ -74,7 +74,7 @@ def update_category_indexes():
             'files': index_data['files']
         })
         
-        print(f"✅ {category_dir.name}: {len(badge_ids)} значков, {total_levels} уровней")
+        print(f"OK {category_dir.name}: {len(badge_ids)} значков, {total_levels} уровней")
     
     return updated_categories
 
@@ -83,7 +83,7 @@ def update_master_index(categories):
     master_index_file = Path("ai-data/MASTER_INDEX.json")
     
     if not master_index_file.exists():
-        print("❌ MASTER_INDEX.json не найден!")
+        print("ERROR: MASTER_INDEX.json не найден!")
         return
     
     # Загружаем текущий индекс
@@ -110,19 +110,19 @@ def update_master_index(categories):
     with open(master_index_file, 'w', encoding='utf-8') as f:
         json.dump(master_data, f, ensure_ascii=False, indent=2)
     
-    print(f"\n📊 Обновлен MASTER_INDEX.json:")
-    print(f"   📁 Категорий: {len(categories)}")
-    print(f"   🎯 Значков: {total_badges}")
-    print(f"   📈 Уровней: {total_levels}")
+    print("\nОбновлен MASTER_INDEX.json:")
+    print(f"   Категорий: {len(categories)}")
+    print(f"   Значков: {total_badges}")
+    print(f"   Уровней: {total_levels}")
 
 def main():
     """Основная функция"""
-    print("🔄 Обновление индексов после очистки ai-data...")
+    print("Обновление индексов после очистки ai-data...")
     
     categories = update_category_indexes()
     update_master_index(categories)
     
-    print(f"\n🎉 Обновление завершено!")
+    print("\nОбновление завершено!")
 
 if __name__ == "__main__":
     main()

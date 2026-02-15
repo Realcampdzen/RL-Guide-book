@@ -2,9 +2,9 @@ name: CI - Code Quality
 
 on:
   push:
-    branches: [ master, develop ]
+    branches: [ main, master, develop ]
   pull_request:
-    branches: [ master ]
+    branches: [ main, master ]
 
 jobs:
   lint-and-test:
@@ -23,6 +23,12 @@ jobs:
     - name: Install dependencies
       run: npm ci
       
+    - name: Run self-check
+      run: npm run self-check
+
+    - name: Check prompts vs constants
+      run: npm run check:prompts-constants
+      
     - name: Type check
       run: npx tsc --noEmit
       
@@ -36,3 +42,43 @@ jobs:
           exit 1
         fi
         echo "Build successful - dist directory created"
+
+  backend-health:
+    name: Backend health check
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install npm dependencies
+      run: npm ci
+
+    - name: Install Python dependencies
+      run: pip install -r backend/requirements.txt
+
+    - name: Start backend, wait for health, run self-check
+      run: |
+        python backend/app.py &
+        for i in $(seq 1 30); do
+          if curl -s -o /dev/null -w "%{http_code}" http://localhost:4000/api/health | grep -q 200; then
+            echo "Backend is up"
+            break
+          fi
+          sleep 1
+        done
+        if ! curl -s -o /dev/null -w "%{http_code}" http://localhost:4000/api/health | grep -q 200; then
+          echo "Backend did not become ready in time"
+          exit 1
+        fi
+        BACKEND_URL=http://localhost:4000 npm run self-check

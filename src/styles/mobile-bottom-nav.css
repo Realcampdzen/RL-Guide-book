@@ -2,7 +2,7 @@
   position: fixed;
   left: 12px;
   right: 12px;
-  bottom: calc(10px + env(safe-area-inset-bottom));
+  bottom: calc(20px + env(safe-area-inset-bottom));
   height: var(--mobile-nav-height);
   padding: 8px 10px;
   display: flex;
@@ -152,6 +152,7 @@ html[data-perf="lite"] .mobile-bottom-nav {
     padding: 6px 12px;
     border-radius: 18px;
     min-width: 340px;
+    bottom: calc(56px + env(safe-area-inset-bottom));
   }
 
   .mobile-nav-item {

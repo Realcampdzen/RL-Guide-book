@@ -124,11 +124,16 @@ export class ResponseGenerator {
       }
     } else if (currentView === 'intro') {
       // На главной странице - философия значков
-      if (["где я", "что это", "философия", "принципы", "зачем", "почему", "смысл", 
+      if (["где я", "что это", "философия", "принципы", "зачем", "почему", "смысл",
            "награды", "награда", "нарады", "медали", "медаль", "ачивки", "ачивка"].some(word => messageLower.includes(word))) {
         return "philosophy";
       } else if (["категории", "значки", "сколько", "список"].some(word => messageLower.includes(word))) {
         return "category_info";
+      }
+    } else if (currentView === 'profile') {
+      // На экране Личный кабинет — вопросы про прогресс, рефлексию, подтверждение уровней
+      if (["мой путь", "достижения", "рефлексия", "подтвердить уровень", "как отметить", "что здесь", "что могу"].some(word => messageLower.includes(word))) {
+        return "general";
       }
     }
 
@@ -170,6 +175,7 @@ export class ResponseGenerator {
       'category': 'Категория значков',
       'badge': 'Страница значка',
       'badge-level': 'Уровень значка',
+      'profile': 'Личный кабинет',
       'introduction': 'Введение в путеводитель',
       'additional-material': 'Дополнительные материалы',
       'about-camp': 'Информация о лагере',

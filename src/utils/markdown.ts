@@ -1,3 +1,84 @@
+/**
+ * Generates a URL-safe slug from heading text. Keeps Cyrillic and Latin, collapses spaces to dash.
+ * Caller should ensure uniqueness (e.g. append -2, -3 for duplicates).
+ */
+function slugFromHeading(text: string): string {
+  const t = text.trim().replace(/\s+/g, '-');
+  return t
+    .replace(/[^a-zA-Z0-9\u0400-\u04FF_-]/g, '')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '') || 'section';
+}
+
+/**
+ * Parses Markdown for headings (# and ##) and returns TOC entries with unique ids.
+ */
+export function parseMarkdownToc(md: string): Array<{ id: string; title: string }> {
+  if (!md) return [];
+  const seen = new Set<string>();
+  const result: Array<{ id: string; title: string }> = [];
+  const re = /^(#{1,2})\s+(.+)$/gm;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(md)) !== null) {
+    const title = m[2].trim();
+    let id = slugFromHeading(title);
+    let counter = 1;
+    while (seen.has(id)) {
+      id = `${slugFromHeading(title)}-${counter}`;
+      counter += 1;
+    }
+    seen.add(id);
+    result.push({ id, title });
+  }
+  return result;
+}
+
+/**
+ * Same as markdownToHtml but adds id attributes to h1–h6 using the provided TOC (same order).
+ * If toc is not provided, ids are generated from heading text (may collide).
+ */
+export function markdownToHtmlWithHeadingIds(
+  md: string,
+  toc?: Array<{ id: string; title: string }>
+): string {
+  if (!md) return '';
+  let html = md.replace(/\r\n?/g, '\n');
+  let headingIndex = 0;
+  html = html.replace(/^(#{1,6})\s+(.+)$/gm, (_m, hashes: string, text: string) => {
+    const level = Math.min(6, Math.max(1, hashes.length));
+    const id = toc && toc[headingIndex] ? toc[headingIndex].id : slugFromHeading(text);
+    headingIndex += 1;
+    return `<h${level} id="${id}">${text}<\/h${level}>`;
+  });
+  html = html
+    .replace(/^\*\s+(.*)$/gim, '<li>$1<\/li>')
+    .replace(/^\-\s+(.*)$/gim, '<li>$1<\/li>')
+    .replace(/^\d+\.\s+(.*)$/gim, '<li>$1<\/li>')
+    .replace(/^\s*---\s*$/gm, '<hr>')
+    .replace(/^>\s+(.*)$/gm, '<blockquote>$1<\/blockquote>');
+
+  html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1<\/strong>');
+  html = html.replace(/(^|[^*])\*(?!\s)([^*]+?)\*(?!\*)/g, '$1<em>$2<\/em>');
+
+  html = html
+    .split('\n')
+    .map((line) =>
+      /<\/?(h\d|li|ul|ol|p|blockquote|pre|code|strong|em|hr)>/i.test(line) || /<\/li>/.test(line)
+        ? line
+        : line.trim()
+          ? `<p>${line}<\/p>`
+          : ''
+    )
+    .join('\n');
+
+  html = html
+    .replace(/(<p><li>)/g, '<ul><li>')
+    .replace(/<\/li><\/p>(\n?<p><li>)/g, '<\/li>$1')
+    .replace(/<\/li><\/p>/g, '<\/li><\/ul>');
+
+  return html;
+}
+
 export const markdownToHtml = (md: string): string => {
   if (!md) return '';
 

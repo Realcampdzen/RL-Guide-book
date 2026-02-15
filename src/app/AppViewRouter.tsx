@@ -13,6 +13,7 @@ const CategoriesGrid = React.lazy(() => import('../components/CategoriesGrid'));
 const CategoryView = React.lazy(() => import('../views/CategoryView'));
 const BadgeView = React.lazy(() => import('../views/BadgeView'));
 const BadgeLevelView = React.lazy(() => import('../views/BadgeLevelView'));
+const ProfileView = React.lazy(() => import('../views/ProfileView').then(module => ({ default: module.ProfileView })));
 
 type Props = {
   controller: AppController;
@@ -35,9 +36,25 @@ export const AppViewRouter: React.FC<Props> = ({ controller, fallback }) => {
     currentLevelBadgeTitle,
     categoryBadgeLoadState,
     categoryBadgeLoadError,
+    masterIndex,
     introductionHtml,
     additionalMaterialHtml,
     ensureCategoryBadgesLoaded,
+    ensureBadgeLoaded,
+    addCustomBadge,
+    restoreCustomBadges,
+    removeCustomBadge,
+    customBadges,
+    communityBadges,
+    communityPendingCount,
+    communitySyncing,
+    communityLikedIds,
+    toggleCommunityLike,
+    publishBadgeToCommunity,
+    updateBadgeSkin,
+    setCustomBadgeImage,
+    dynamicBroMissions,
+    updateBroMissionsOnServer,
     handleCategoryClick,
     handleBadgeClick,
     handleIntroClick,
@@ -61,8 +78,22 @@ export const AppViewRouter: React.FC<Props> = ({ controller, fallback }) => {
     isChatOpen,
     toggleChat,
     closeChat,
-    isDesktopViewport,
   } = controller;
+
+  const openBadgeById = React.useCallback(
+    async (badgeId: string) => {
+      if (!badgeId) return;
+      const existing = badges.find((b) => b.id === badgeId);
+      let target = existing;
+      if (!target) {
+        const entries = await ensureBadgeLoaded(badgeId);
+        target = entries?.find((b) => b.id === badgeId) ?? entries?.[0];
+      }
+      if (!target) return;
+      handleBadgeClick(target);
+    },
+    [badges, ensureBadgeLoaded, handleBadgeClick]
+  );
 
   return (
     <Suspense fallback={fallback}>
@@ -72,9 +103,13 @@ export const AppViewRouter: React.FC<Props> = ({ controller, fallback }) => {
           onStartClick={handleIntroClick}
           onLogoClick={handleLogoClick}
           onAboutCampClick={() => setCurrentView('about-camp')}
+          onCategoryClick={handleCategoryClick}
+          onOpenBadgeById={openBadgeById}
+          onOpenProfile={() => setCurrentView('profile')}
           onChatToggle={toggleChat}
           isChatOpen={isChatOpen}
           onChatClose={closeChat}
+          categories={sortedCategories}
           currentView={currentView}
           selectedCategory={
             selectedCategory
@@ -93,6 +128,7 @@ export const AppViewRouter: React.FC<Props> = ({ controller, fallback }) => {
           }
           selectedLevel={selectedLevel || undefined}
           currentLevelBadgeTitle={currentLevelBadgeTitle}
+          masterIndex={masterIndex ?? undefined}
         />
       )}
 
@@ -101,9 +137,13 @@ export const AppViewRouter: React.FC<Props> = ({ controller, fallback }) => {
           onStartClick={handleIntroClick}
           onLogoClick={handleLogoClick}
           onAboutCampClick={() => setCurrentView('about-camp')}
+          onCategoryClick={handleCategoryClick}
+          onOpenBadgeById={openBadgeById}
+          onOpenProfile={() => setCurrentView('profile')}
           onChatToggle={toggleChat}
           isChatOpen={isChatOpen}
           onChatClose={closeChat}
+          categories={sortedCategories}
           currentView={currentView}
           selectedCategory={
             selectedCategory ? { id: selectedCategory.id, title: selectedCategory.title, emoji: selectedCategory.emoji } : undefined
@@ -120,12 +160,17 @@ export const AppViewRouter: React.FC<Props> = ({ controller, fallback }) => {
           }
           selectedLevel={selectedLevel || undefined}
           currentLevelBadgeTitle={currentLevelBadgeTitle}
+          masterIndex={masterIndex ?? undefined}
         />
       )}
 
       {!loading && currentView === 'categories' && (
         <CategoriesGrid
           categories={sortedCategories}
+          masterIndex={masterIndex ?? undefined}
+          communityBadges={communityBadges}
+          communityLikedIds={communityLikedIds}
+          toggleCommunityLike={toggleCommunityLike}
           onCategoryClick={handleCategoryClick}
           onCategoryPrefetch={(categoryId) => {
             void ensureCategoryBadgesLoaded(categoryId);
@@ -133,6 +178,7 @@ export const AppViewRouter: React.FC<Props> = ({ controller, fallback }) => {
           onBackClick={() => setCurrentView('intro')}
           onAboutCampClick={() => setCurrentView('about-camp')}
           onTelegramContact={handleTelegramContact}
+          onOpenProfile={() => setCurrentView('profile')}
           onChatToggle={toggleChat}
           isChatOpen={isChatOpen}
           onChatClose={closeChat}
@@ -212,6 +258,7 @@ export const AppViewRouter: React.FC<Props> = ({ controller, fallback }) => {
         <AboutCampView
           onBack={handleBackToIntro}
           categories={categories}
+          contentYear={masterIndex ? (masterIndex.lastUpdated || '').slice(0, 4) : undefined}
           onOpenCategory={(category) => handleCategoryClick(category, { origin: 'about-camp' })}
           onOpenCategories={handleBackToCategories}
           onTelegramContact={handleTelegramContact}
@@ -222,11 +269,12 @@ export const AppViewRouter: React.FC<Props> = ({ controller, fallback }) => {
       )}
 
       {/* ChatBot and ChatAvatar are handled inside BlueNestLanding and CategoriesGrid */}
-      {!loading && !(currentView === 'categories' && isDesktopViewport) && (
+      {!loading && (
         <MobileBottomNav
           currentView={currentView}
           onHome={handleBackToIntro}
           onCategories={handleBackToCategories}
+          onProfile={() => setCurrentView('profile')}
           onAboutCamp={() => setCurrentView('about-camp')}
           onTelegramContact={handleTelegramContact}
           onOpenVk={handleOpenVk}
@@ -247,6 +295,40 @@ export const AppViewRouter: React.FC<Props> = ({ controller, fallback }) => {
 
       {!loading && currentView === 'registration-form' && (
         <RegistrationFormView formData={formData} onBack={handleBackToAboutCamp} onChange={handleFormInputChange} onSubmit={handleFormSubmit} />
+      )}
+
+      {!loading && currentView === 'profile' && (
+        <ProfileView 
+          onBack={handleBackToCategories} 
+          badges={badges}
+          categories={categories}
+          lastUpdated={masterIndex?.lastUpdated}
+          ensureBadgeLoaded={ensureBadgeLoaded}
+          addCustomBadge={addCustomBadge}
+          restoreCustomBadges={restoreCustomBadges}
+          removeCustomBadge={removeCustomBadge}
+          customBadges={customBadges}
+          communityBadges={communityBadges}
+          communityPendingCount={communityPendingCount}
+          communitySyncing={communitySyncing}
+          communityLikedIds={communityLikedIds}
+          toggleCommunityLike={toggleCommunityLike}
+          publishBadgeToCommunity={publishBadgeToCommunity}
+          updateBadgeSkin={updateBadgeSkin}
+          setCustomBadgeImage={setCustomBadgeImage}
+          dynamicBroMissions={dynamicBroMissions}
+          updateBroMissionsOnServer={updateBroMissionsOnServer}
+          onChatToggle={toggleChat}
+          onChatClose={closeChat}
+          isChatOpen={isChatOpen}
+          onNavigateToRegistrationForm={() => setCurrentView('registration-form')}
+          onNavigateToBadge={(badgeId: string) => {
+            const openBadge = (window as any).openBadgeById;
+            if (typeof openBadge === 'function') {
+              openBadge(badgeId, { origin: 'profile' });
+            }
+          }} 
+        />
       )}
     </Suspense>
   );

@@ -28,6 +28,7 @@ const includeDirs = args.includes('--include-dirs');
 const checkOnly = args.includes('--check') || args.includes('--dry-run') || !wantsApply;
 
 const imageExts = new Set(['.jpg', '.jpeg', '.png', '.webp', '.gif']);
+const isOrigBackup = (fileName) => /\.orig\.(jpg|jpeg|png|webp|gif)$/i.test(fileName);
 
 const normalizeName = (name, preserveYo = false) => {
   let out = name.toLowerCase();
@@ -127,6 +128,7 @@ const processDir = (dir, depth) => {
     if (!entry.isFile()) continue;
     const ext = extname(entry.name).toLowerCase();
     if (!imageExts.has(ext)) continue;
+    if (isOrigBackup(entry.name)) continue;
 
     const normalizedFile = normalizeFileName(entry.name);
     if (normalizedFile) {

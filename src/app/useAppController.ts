@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { Badge } from '../types/guide';
+import type { Badge, View } from '../types/guide';
 import { useDataLoader } from '../hooks/useDataLoader';
 import { useNavigation } from '../hooks/useNavigation';
+import { useUserProgress } from '../hooks/useUserProgress';
 import { cleanHtmlContent, markdownToHtml, processIntroductionHtml } from '../utils/markdown';
 
 export type AppController = ReturnType<typeof useAppController>;
@@ -10,13 +11,33 @@ export function useAppController() {
   const {
     categories,
     badges,
+    customBadges,
+    communityBadges,
+    communityPendingCount,
+    communitySyncing,
+    communityLikedIds,
+    toggleCommunityLike,
     loading,
     loadCategoryIntroduction,
     ensureCategoryBadgesLoaded,
     ensureBadgeLoaded,
+    addCustomBadge,
+    restoreCustomBadges,
+    removeCustomBadge,
+    publishBadgeToCommunity,
+    dynamicBroMissions,
+    updateBroMissionsOnServer,
     categoryBadgeLoadState,
     categoryBadgeLoadError,
+    masterIndex,
   } = useDataLoader();
+
+  const {
+    userData,
+    completeTutorial,
+    updateBadgeSkin,
+    setCustomBadgeImage,
+  } = useUserProgress();
 
   const navigation = useNavigation({ categories });
 
@@ -469,7 +490,26 @@ export function useAppController() {
       void handleAdditionalMaterialClick(type as 'checklists' | 'methodology', filename);
     };
 
-    (window as any).openBadgeById = (rawId: string) => {
+    (window as any).openProfile = () => {
+      try {
+        pendingScrollActionRef.current = 'top';
+      } catch {
+        // ignore
+      }
+      setCurrentView('profile');
+    };
+
+    (window as any).openProfilePanel = (panelId: string) => {
+      try {
+        (window as any).__OPEN_PROFILE_PANEL__ = panelId;
+        pendingScrollActionRef.current = 'top';
+      } catch {
+        // ignore
+      }
+      setCurrentView('profile');
+    };
+
+    (window as any).openBadgeById = (rawId: string, options?: { origin?: View }) => {
       try {
         const parts = (rawId || '').split('.');
         const baseKey = parts.length >= 2 ? `${parts[0]}.${parts[1]}` : rawId;
@@ -481,7 +521,7 @@ export function useAppController() {
           setSelectedCategory(cat);
           setCurrentView('category');
         }
-        handleBadgeClick(base);
+        handleBadgeClick(base, options?.origin ? { origin: options.origin } : undefined);
       } catch {
         // ignore
       }
@@ -503,10 +543,30 @@ export function useAppController() {
     // data
     categories,
     badges,
+    customBadges,
+    communityBadges,
+    communityPendingCount,
+    communitySyncing,
+    communityLikedIds,
+    toggleCommunityLike,
     loading,
     categoryBadgeLoadState,
     categoryBadgeLoadError,
+    masterIndex,
     ensureCategoryBadgesLoaded,
+    ensureBadgeLoaded,
+    addCustomBadge,
+    restoreCustomBadges,
+    removeCustomBadge,
+    publishBadgeToCommunity,
+    dynamicBroMissions,
+    updateBroMissionsOnServer,
+
+    // progress
+    userData,
+    completeTutorial,
+    updateBadgeSkin,
+    setCustomBadgeImage,
 
     // navigation (wrapped with scroll behavior)
     ...navigation,

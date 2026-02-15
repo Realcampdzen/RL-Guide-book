@@ -1,12 +1,14 @@
-import React, { useEffect, useRef, useState, Suspense } from 'react';
+import React, { useEffect, useMemo, useRef, useState, Suspense } from 'react';
 import { pluralizeRu } from '../utils/textFormatting';
 import { useScrollReveal } from '../hooks/useScrollReveal';
 import { useTiltCard } from '../hooks/useTiltCard';
 import BadgeIcon from '../components/BadgeIcon';
-import { getBadgeImagePath } from '../utils/badgeImages'; // Import getBadgeImagePath
+import { getBadgeImagePath, hasBadgeImage } from '../utils/badgeImages'; // Import getBadgeImagePath
 import DataErrorState from '../components/DataErrorState';
 import { Skeleton } from '../components/Skeleton';
 import '../styles/category-view.css';
+import { useUserProgress } from '../hooks/useUserProgress';
+import { useAuth } from '../context/AuthContext';
 import type { Category, Badge } from '../types/guide';
 
 const loadChatBot = () => import('../components/ChatBot');
@@ -87,8 +89,9 @@ const TiltBadgeCard: React.FC<{
   badge: Badge;
   index: number;
   category: Category;
+  progress?: { total: number; achieved: number; started: number };
   onBadgeClick: (badge: Badge) => void;
-}> = ({ badge, index, category, onBadgeClick }) => {
+}> = ({ badge, index, category, progress, onBadgeClick }) => {
   const cardRef = useRef<HTMLElement>(null);
   const [isIconExpanded, setIsIconExpanded] = useState(false);
   const expandTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -179,19 +182,39 @@ const TiltBadgeCard: React.FC<{
         // Mouse enter logic if any, currently empty
       }}
     >
+      {/* Progress Chip */}
+      {progress && (progress.achieved > 0 || progress.started > 0) && (
+        <div style={{
+          position: 'absolute',
+          top: '10px',
+          right: '10px',
+          background: progress.achieved === progress.total && progress.total > 0 ? '#4caf50' : 'rgba(0,0,0,0.6)',
+          backdropFilter: 'blur(4px)',
+          color: 'white',
+          padding: '2px 8px',
+          borderRadius: '12px',
+          fontSize: '11px',
+          fontWeight: 'bold',
+          border: '1px solid rgba(255,255,255,0.2)',
+          zIndex: 5
+        }}>
+          {progress.achieved === progress.total && progress.total > 0 ? '✓ Готово' : `${progress.achieved}/${progress.total}`}
+        </div>
+      )}
+
       <div className={`badge-card__icon ${isIconExpanded ? 'is-expanded' : ''}`}>
         {(() => {
            const badgeIdStr = String(badge.id);
            const baseBadgeId = badgeIdStr.split('.').slice(0, 2).join('.');
-           
-           const isImageBadge = ['1.1', '1.2', '1.3', '1.4', '1.5', '1.6', '1.7', '1.8', '1.9', '1.10', '1.11', '1.12', '1.13', '1.14', '1.15', '1.16'].includes(baseBadgeId);
+           const categoryId = badge.category_id || category.id;
+           const isImageBadge = hasBadgeImage(baseBadgeId, badge.title, categoryId);
 
            if (isImageBadge) {
                return (
                <BadgeIcon
                  badgeId={baseBadgeId}
                  badgeTitle={badge.title}
-                 categoryId={badge.category_id || category.id}
+                 categoryId={categoryId}
                  emoji={badge.emoji || ''}
                  className="badge-emoji"
                  size="responsive"
@@ -231,9 +254,50 @@ const CategoryView: React.FC<CategoryViewProps> = ({
   onBackToIntro,
 }) => {
   const { initReveal } = useScrollReveal();
+  const { getBadgeProgress, userData } = useUserProgress();
+  const { deviceId } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  type BadgeFilter = 'all' | 'mine' | 'in_progress';
+  const [badgeFilter, setBadgeFilter] = useState<BadgeFilter>('all');
   const menuButtonRef = useRef<HTMLButtonElement | null>(null);
   const prefetchedCategoryIdRef = useRef<string | null>(null);
+  const broGateRef = useRef<HTMLDivElement | null>(null);
+
+  const isBroCategory = category.id === '9';
+  const isBroUnlocked = Boolean(userData?.broProgress?.isBro);
+
+  const openBroTelegramRequest = () => {
+    const nickname = userData?.profile?.nickname || 'Искатель';
+    const text = `Запрос подтверждения Бросвящения (Бро‑движение). Устройство: ${deviceId || '—'}. Псевдоним: ${nickname}.`;
+    const href = `https://t.me/Stivanovv?text=${encodeURIComponent(text)}`;
+    try {
+      window.open(href, '_blank', 'noopener,noreferrer');
+    } catch {
+      window.location.href = href;
+    }
+  };
+
+  const openBroPassport = () => {
+    const openProfilePanel = (window as any)?.openProfilePanel;
+    if (typeof openProfilePanel === 'function') {
+      openProfilePanel('bro');
+      return;
+    }
+    const openProfile = (window as any)?.openProfile;
+    if (typeof openProfile === 'function') openProfile();
+  };
+
+  const filteredBadges = useMemo(() => {
+    if (!badges || badges.length === 0) return [];
+    if (badgeFilter === 'all') return badges;
+    return badges.filter((badge) => {
+      const baseId = String(badge.id).split('.').slice(0, 2).join('.');
+      const p = getBadgeProgress(baseId);
+      if (badgeFilter === 'mine') return p.achieved > 0;
+      if (badgeFilter === 'in_progress') return p.started > 0;
+      return true;
+    });
+  }, [badges, badgeFilter, getBadgeProgress]);
 
   useEffect(() => {
     initReveal('.reveal-on-scroll');
@@ -319,8 +383,8 @@ const CategoryView: React.FC<CategoryViewProps> = ({
   const breadcrumbLabel = titleKicker
     ? [titleLead, titleLastWord].filter(Boolean).join(' ') || category.title
     : category.title;
-  const badgeCount = badges.length;
-  const maxLevelCount = badges.reduce((max, badge) => {
+  const badgeCount = filteredBadges.length;
+  const maxLevelCount = filteredBadges.reduce((max, badge) => {
     const levels = Array.isArray((badge as any).allLevels) ? (badge as any).allLevels.length : 0;
     return Math.max(max, levels || 1);
   }, 1);
@@ -433,11 +497,11 @@ const CategoryView: React.FC<CategoryViewProps> = ({
         className={`mobile-menu-panel${isMenuOpen ? ' is-open' : ''}`}
         role="dialog"
         aria-modal="true"
-        aria-label="Меню"
+        aria-labelledby="category-menu-title"
         aria-hidden={!isMenuOpen}
       >
         <div className="mobile-menu-head">
-          <span className="mobile-menu-title">Меню</span>
+          <span id="category-menu-title" className="mobile-menu-title">Меню</span>
           <button type="button" className="mobile-menu-close" onClick={closeMenu} aria-label="Закрыть меню">
             &times;
           </button>
@@ -532,6 +596,26 @@ const CategoryView: React.FC<CategoryViewProps> = ({
             Выберите значок, чтобы узнать подробности и критерии получения.
           </p>
           <div className="category-actions">
+            <button
+              type="button"
+              onClick={() => {
+                const categoryId = String(category?.id ?? '8');
+                try {
+                  window.location.hash = `#workshop?categoryId=${encodeURIComponent(categoryId)}`;
+                  sessionStorage.setItem('rl_open_workshop', categoryId);
+                } catch {
+                  // ignore
+                }
+                const openProfile = (window as any)?.openProfile;
+                if (typeof openProfile === 'function') openProfile();
+              }}
+              className="action-btn action-btn--round hover-target"
+              title="Предложи значок в эту категорию"
+              aria-label="Предложи значок в эту категорию"
+              style={{ marginBottom: category.id === '14' ? 0 : undefined }}
+            >
+              ⚒️
+            </button>
             {category.id === '14' && (
               <>
                 <button 
@@ -575,19 +659,99 @@ const CategoryView: React.FC<CategoryViewProps> = ({
           </div>
         </section>
 
-        {/* Badges Grid */}
-        {!(isLoadingBadges && badges.length === 0) && (
-          <div className="badges-grid">
-            {badges.map((badge, index) => (
-              <TiltBadgeCard
-                key={badge.id}
-                badge={badge}
-                index={index}
-                category={category}
-                onBadgeClick={onBadgeClick}
-              />
+        {/* Badge filters */}
+        {isBroCategory && (
+          <div ref={broGateRef} className="bro-gate-card reveal-on-scroll" role="region" aria-label="Бросвящение — вход в Бро‑движение">
+            <div className="bro-gate-head">
+              <div>
+                <div className="bro-gate-kicker">Вход в Бро‑тему</div>
+                <div className="bro-gate-title">Бросвящение</div>
+                <div className="bro-gate-subtitle">
+                  Просмотр значков открыт всем. Прогресс и Бро‑фичи — только после подтверждения Бросвящения.
+                </div>
+              </div>
+              <div className={`bro-gate-status${isBroUnlocked ? ' is-unlocked' : ''}`}>
+                {isBroUnlocked ? 'Открыто' : 'Закрыто'}
+              </div>
+            </div>
+
+            {!isBroUnlocked ? (
+              <div className="bro-gate-actions">
+                <button type="button" className="action-btn hover-target" onClick={openBroPassport}>
+                  📘 Открыть Бропаспорт (ЛК → БРО)
+                </button>
+                <button type="button" className="action-btn hover-target" onClick={openBroTelegramRequest}>
+                  ✉️ Запросить подтверждение в Telegram
+                </button>
+                <div className="bro-gate-note">Точка входа в Бросвящение — в личном кабинете: БРО → Бропаспорт.</div>
+              </div>
+            ) : (
+              <div className="bro-gate-note">
+                Бро‑доступ активен на этом устройстве. Значки категории 9 можно выполнять и отправлять на подтверждение.
+              </div>
+            )}
+          </div>
+        )}
+
+        {!(isLoadingBadges && badges.length === 0) && badges.length > 0 && (
+          <div className="category-badge-filters" role="tablist" aria-label="Фильтр значков">
+            {[
+              { key: 'all' as const, label: 'Все' },
+              { key: 'mine' as const, label: 'Мои' },
+              { key: 'in_progress' as const, label: 'В процессе' },
+            ].map(({ key, label }) => (
+              <button
+                key={key}
+                type="button"
+                role="tab"
+                aria-selected={badgeFilter === key}
+                className={`category-filter-btn hover-target${badgeFilter === key ? ' is-active' : ''}`}
+                onClick={() => setBadgeFilter(key)}
+              >
+                {label}
+              </button>
             ))}
           </div>
+        )}
+
+        {/* Badges Grid */}
+        {!(isLoadingBadges && badges.length === 0) && (
+          <>
+            {filteredBadges.length === 0 ? (
+              <p className="category-filter-empty" style={{ padding: '2rem 1rem', color: 'rgba(255,255,255,0.7)', fontSize: '1rem' }}>
+                {badgeFilter === 'all' ? 'В этой категории пока нет значков.' : 'Нет значков по выбранному фильтру. Выбери «Все» или добавь значки в путь.'}
+              </p>
+            ) : (
+          <div className="badges-grid">
+            {filteredBadges.map((badge, index) => {
+              const baseId = String(badge.id).split('.').slice(0, 2).join('.');
+              // For single level badges without levels array, treat as 1 total.
+              // If we have allLevels array, total is length.
+              // getBadgeProgress returns what's stored. We might need to adjust 'total' here based on actual badge data.
+              
+              const storedProgress = getBadgeProgress(baseId);
+              let totalLevels = 1;
+              if (Array.isArray((badge as any).allLevels) && (badge as any).allLevels.length > 0) {
+                totalLevels = (badge as any).allLevels.length;
+              }
+              
+              // Override stored total with actual data total to be safe
+              const progress = { ...storedProgress, total: totalLevels };
+
+              return (
+                <TiltBadgeCard
+                  key={badge.id}
+                  badge={badge}
+                  index={index}
+                  category={category}
+                  progress={progress}
+                  onBadgeClick={onBadgeClick}
+                />
+              );
+            })}
+          </div>
+            )}
+          </>
         )}
       </main>
 

@@ -1,12 +1,12 @@
 {
   "project": "НейроВалюша - AI-данные значков",
-  "version": "1.0.4",
+  "version": "1.0.20",
   "description": "Полная база данных всех значков проекта 'Реальный Лагерь' для интеграции с AI-системами НейроВалюши",
   "totalCategories": 14,
   "totalBadges": 118,
   "totalLevels": 241,
   "totalDataSize": "~1MB+",
-  "lastUpdated": "2026-02-03",
+  "lastUpdated": "2026-02-09",
   "status": "COMPLETED",
   "progress": {
     "completed": 118,

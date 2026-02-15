@@ -41,6 +41,7 @@ class WebContext(BaseModel):
     current_badge: Optional[Dict[str, Any]] = Field(None, description="Текущий значок")
     current_level: Optional[str] = Field(None, description="Текущий уровень значка")
     current_level_badge_title: Optional[str] = Field(None, description="Название конкретного уровня значка")
+    user_role: Optional[str] = Field(None, description="Роль пользователя из JWT (participant, parent, counselor, shift_leader, organizer, developer)")
 
 
 class ChatRequest(BaseModel):

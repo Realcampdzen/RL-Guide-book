@@ -1,7 +1,9 @@
 import React, { Suspense, useEffect, useMemo, useState } from 'react';
 import type { Category, View } from '../types/guide';
+import type { MasterIndexMeta } from '../hooks/useDataLoader';
 import '../styles/categories.css';
-import { toSiblingImageUrl } from '../utils/imageSources';
+import { toSiblingImageUrl, NAV_HOME_IMAGE } from '../utils/imageSources';
+import { useUserProgress } from '../hooks/useUserProgress';
 
 const loadChatBot = () => import('./ChatBot');
 const loadChatAvatar = () => import('./ChatAvatar');
@@ -15,6 +17,7 @@ interface CategoriesGridProps {
   onBackClick: () => void;
   onAboutCampClick: () => void;
   onTelegramContact: () => void;
+  onOpenProfile: () => void;
   onChatToggle: () => void;
   isChatOpen: boolean;
   onChatClose: () => void;
@@ -32,7 +35,15 @@ interface CategoriesGridProps {
   };
   selectedLevel?: string;
   currentLevelBadgeTitle?: string;
+  /** Для подсказки «N из M уровней» (опционально) */
+  masterIndex?: MasterIndexMeta | null;
+  /** Идеи отряда (лента с API) */
+  communityBadges?: Array<{ id: string; title: string; emoji?: string; category_id?: string }>;
+  communityLikedIds?: Set<string>;
+  toggleCommunityLike?: (badgeId: string) => void;
 }
+
+const SQUAD_IDEAS_STATIC_MAX = 3;
 
 const getCategoryImagePath = (categoryId: string): string => {
   // Добавляем версию для предотвращения кэширования
@@ -46,6 +57,7 @@ const CategoriesGrid: React.FC<CategoriesGridProps> = ({
   onBackClick,
   onAboutCampClick,
   onTelegramContact,
+  onOpenProfile,
   onChatToggle,
   isChatOpen,
   onChatClose,
@@ -54,13 +66,30 @@ const CategoriesGrid: React.FC<CategoriesGridProps> = ({
   selectedBadge,
   selectedLevel,
   currentLevelBadgeTitle,
+  masterIndex,
+  communityBadges = [],
 }) => {
+  const { userData } = useUserProgress();
+  const totalAchieved = userData?.profile?.stats?.totalLevelsAchieved ?? 0;
+  const totalLevels = masterIndex?.totalLevels;
+  const progressHintText = totalLevels != null && totalLevels > 0
+    ? `${totalAchieved} из ${totalLevels} уровней закрыто`
+    : totalAchieved > 0
+      ? `Закрыто уровней: ${totalAchieved}`
+      : null;
   const [imageErrors, setImageErrors] = useState<Set<string>>(new Set());
   const [isMobile, setIsMobile] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [imageKey, setImageKey] = useState(0);
+  const [squadIdeasCarouselSteps, setSquadIdeasCarouselSteps] = useState(0);
 
-  const limitedCategories = useMemo(() => categories.slice(0, 14), [categories]);
+  const squadIdeas = useMemo(() => (Array.isArray(communityBadges) ? communityBadges : []).slice(0, 10), [communityBadges]);
+
+  useEffect(() => {
+    if (squadIdeas.length === 0) setSquadIdeasCarouselSteps(0);
+  }, [squadIdeas.length]);
+
+  const limitedCategories = useMemo(() => categories, [categories]);
   const categoryIndexById = useMemo(() => {
     const m = new Map<string, number>();
     limitedCategories.forEach((c, i) => m.set(c.id, i));
@@ -68,8 +97,8 @@ const CategoriesGrid: React.FC<CategoriesGridProps> = ({
   }, [limitedCategories]);
   // Первые 7 категорий идут в right-column (верхний ряд)
   const topRowCategories = useMemo(() => limitedCategories.slice(0, 7), [limitedCategories]);
-  // Последние 7 категорий идут в bottom-row (нижний ряд)
-  const bottomRowCategories = useMemo(() => limitedCategories.slice(7, 14), [limitedCategories]);
+  // Остальные категории идут в bottom-row (нижний ряд)
+  const bottomRowCategories = useMemo(() => limitedCategories.slice(7), [limitedCategories]);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -115,6 +144,13 @@ const CategoriesGrid: React.FC<CategoriesGridProps> = ({
     action();
   };
 
+  const handleOpenShareCenter = () => {
+    if (typeof window !== 'undefined') {
+      window.location.hash = '#share';
+    }
+    onOpenProfile();
+  };
+
   const handleOpenVk = () => {
     window.open('https://vk.com/realcampspb', '_blank', 'noopener,noreferrer');
   };
@@ -133,21 +169,40 @@ const CategoriesGrid: React.FC<CategoriesGridProps> = ({
     // Показываем emoji только если есть ошибка загрузки, иначе показываем изображение
     const showEmoji = hasImageError;
 
+    // Bro-Lock Logic
+    const isBroCategory = category.id === '9';
+    const isBroLocked = isBroCategory && !userData.broProgress?.isBro;
+
+    // Team-Lock Logic (Category 8)
+    const isTeamCategory = category.id === '8';
+    const hasTeam = localStorage.getItem('rl_my_team_id');
+    const isTeamLocked = isTeamCategory && !hasTeam;
+
+    const isLocked = isBroLocked || isTeamLocked;
+
     return (
       <button
         type="button"
         key={category.id}
-        className="card item-card"
+        className={`card item-card ${isLocked ? 'is-locked' : ''}`}
         onClick={() => {
+          if (isBroLocked) {
+            alert('🔒 Доступ закрыт!\n\nЧтобы открыть категорию Бро-Движения, нужно пройти Бросвящение в Личном Кабинете.');
+            return;
+          }
+          if (isTeamLocked) {
+            alert('🔒 Нужно запустить Движок!\n\nДоступ к этой категории откроется, когда ты создашь свой Движок или вступишь в команду в Личном Кабинете.');
+            return;
+          }
           onCategoryClick(category);
         }}
         onMouseEnter={() => {
-          if (!isMobile) {
+          if (!isMobile && !isLocked) {
             onCategoryPrefetch?.(category.id);
           }
         }}
         onFocus={() => {
-          if (!isMobile) {
+          if (!isMobile && !isLocked) {
             onCategoryPrefetch?.(category.id);
           }
         }}
@@ -159,16 +214,37 @@ const CategoriesGrid: React.FC<CategoriesGridProps> = ({
         }}
         style={{
           backgroundColor: showEmoji ? '#F8F7F2' : undefined,
-          cursor: 'pointer',
+          cursor: isLocked ? 'not-allowed' : 'pointer',
           position: 'relative',
           overflow: 'hidden',
           border: 'none', // Reset button border
           padding: 0,     // Reset button padding (handled by CSS class)
           textAlign: 'left', // Ensure text alignment
           fontFamily: 'inherit',
-          width: '100%' // Ensure full width
+          width: '100%', // Ensure full width
+          filter: isLocked ? 'grayscale(0.8)' : 'none',
+          opacity: isLocked ? 0.8 : 1
         }}
       >
+        {isLocked && (
+          <div style={{
+            position: 'absolute',
+            top: '10px',
+            right: '10px',
+            fontSize: '24px',
+            zIndex: 10,
+            background: 'rgba(0,0,0,0.5)',
+            borderRadius: '50%',
+            width: '40px',
+            height: '40px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 4px 10px rgba(0,0,0,0.3)'
+          }}>
+            🔒
+          </div>
+        )}
         {showEmoji && (
           <div className="icon-circle" style={{ display: 'flex', zIndex: 2, position: 'relative' }}>
             {category.emoji || '📁'}
@@ -265,11 +341,11 @@ const CategoriesGrid: React.FC<CategoriesGridProps> = ({
         className={`mobile-menu-panel${isMenuOpen ? ' is-open' : ''}`}
         role="dialog"
         aria-modal="true"
-        aria-label="Меню"
+        aria-labelledby="categories-grid-menu-title"
         aria-hidden={!isMenuOpen}
       >
         <div className="mobile-menu-head">
-          <span className="mobile-menu-title">Меню</span>
+          <span id="categories-grid-menu-title" className="mobile-menu-title">Меню</span>
           <button type="button" className="mobile-menu-close" onClick={closeMenu} aria-label="Закрыть меню">
             &times;
           </button>
@@ -287,6 +363,10 @@ const CategoriesGrid: React.FC<CategoriesGridProps> = ({
           >
             <span className="mobile-menu-item-label">Категории</span>
             <span className="mobile-menu-item-icon">&bull;</span>
+          </button>
+          <button type="button" className="mobile-menu-item" onClick={() => handleMenuAction(handleOpenShareCenter)}>
+            <span className="mobile-menu-item-label">Поделиться прогрессом</span>
+            <span className="mobile-menu-item-icon">&rsaquo;</span>
           </button>
           <button type="button" className="mobile-menu-item" onClick={() => handleMenuAction(onAboutCampClick)}>
             <span className="mobile-menu-item-label">О лагере</span>
@@ -315,7 +395,7 @@ const CategoriesGrid: React.FC<CategoriesGridProps> = ({
       >
         <img
           key={`house-image-${imageKey}`}
-          src={`${import.meta.env.BASE_URL}Gemini_Generated_Image_ct40o9ct40o9ct40.png?v=${imageKey}`}
+          src={`${import.meta.env.BASE_URL}${NAV_HOME_IMAGE}?v=${imageKey}`}
           alt="Домик"
           loading="eager"
           decoding="async"
@@ -332,6 +412,81 @@ const CategoriesGrid: React.FC<CategoriesGridProps> = ({
       </button>
 
       <main>
+        {/* Подсказка прогресса для мобильной: под навигацией, скрыта на десктопе */}
+        {progressHintText != null && (
+          <div className="categories-mobile-progress-row">
+            <p className="categories-progress-hint" aria-live="polite">
+              {progressHintText}
+            </p>
+          </div>
+        )}
+        {/* Идеи отряда - фиксированный оверлей, карусель (идеи от сообщества или плейсхолдеры) */}
+        <div className="community-stars-overlay community-stars-overlay--squad-ideas">
+          <div className="card community-stars-card">
+            <div style={{ fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', color: '#ff3b30', letterSpacing: '0.1em', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }} title="Здесь появятся идеи, предложенные отрядом, когда они будут. Предложи первый значок в Кузнице Смыслов (в Мастерской).">
+              Идеи отряда
+            </div>
+            <div className={`community-stars-carousel${squadIdeas.length > 0 && squadIdeas.length <= SQUAD_IDEAS_STATIC_MAX ? ' community-stars-carousel--static' : ''}`}>
+              {squadIdeas.length > SQUAD_IDEAS_STATIC_MAX && (
+                <button
+                  type="button"
+                  className="community-stars-carousel__btn community-stars-carousel__btn--prev"
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (squadIdeas.length <= 1) return; setSquadIdeasCarouselSteps((s) => s - 1); }}
+                  disabled={squadIdeas.length <= 1}
+                  aria-label="Вращать влево"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                </button>
+              )}
+              <div className="community-stars-carousel__viewport">
+                {squadIdeas.length === 0 ? (
+                  <div className="squad-ideas-placeholders">
+                    <div className="squad-ideas-placeholders__circle" aria-hidden>?</div>
+                  </div>
+                ) : squadIdeas.length <= SQUAD_IDEAS_STATIC_MAX ? (
+                  <div className="community-stars-carousel__static-track">
+                    {squadIdeas.map((idea) => (
+                      <div key={idea.id} className="community-stars-carousel__item community-stars-carousel__item--static">
+                        <div style={{ width: 64, height: 64, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28 }} title={idea.title}>{idea.emoji || '✨'}</div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div
+                    className="community-stars-carousel__track"
+                    style={{
+                      ['--carousel-rotation-steps' as string]: squadIdeasCarouselSteps,
+                      ['--step-deg' as string]: `${360 / squadIdeas.length}deg`,
+                      ['--radius' as string]: `${(64 + 16) / (2 * Math.sin(Math.PI / squadIdeas.length))}px`,
+                    }}
+                  >
+                    {squadIdeas.map((idea, slotIndex) => (
+                      <div
+                        key={`squad-idea-${slotIndex}-${idea.id}`}
+                        className="community-stars-carousel__item"
+                        style={{ ['--slot-offset' as string]: slotIndex }}
+                      >
+                        <div style={{ width: 64, height: 64, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28 }} title={idea.title}>{idea.emoji || '✨'}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              {squadIdeas.length > SQUAD_IDEAS_STATIC_MAX && (
+                <button
+                  type="button"
+                  className="community-stars-carousel__btn community-stars-carousel__btn--next"
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (squadIdeas.length <= 1) return; setSquadIdeasCarouselSteps((s) => s + 1); }}
+                  disabled={squadIdeas.length <= 1}
+                  aria-label="Вращать вправо"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+
         <div className="grid-container" id="gridContainer">
           {/* Hero Card */}
           <div className="card hero-card">
@@ -345,6 +500,9 @@ const CategoriesGrid: React.FC<CategoriesGridProps> = ({
                 <div className="hero-buttons">
                   <button className="hero-nav-btn hero-nav-bot-btn" onClick={onChatToggle}>
                     NEUROVALUSHA
+                  </button>
+                  <button className="hero-nav-btn" onClick={handleOpenShareCenter}>
+                    Поделиться
                   </button>
                   <button className="hero-nav-btn" onClick={onAboutCampClick}>
                     О лагере
@@ -364,6 +522,11 @@ const CategoriesGrid: React.FC<CategoriesGridProps> = ({
                   </div>
                 </div>
               </div>
+              {progressHintText != null && (
+                <p className="categories-progress-hint" aria-live="polite">
+                  {progressHintText}
+                </p>
+              )}
             </div>
           </div>
 
@@ -380,7 +543,7 @@ const CategoriesGrid: React.FC<CategoriesGridProps> = ({
               {bottomRowCategories.map((category) => renderCategoryCard(category))}
             </div>
           ) : (
-            <div className="right-column" style={{ gridColumn: '1', gridRow: '1', width: '100%', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
+            <div className="right-column" style={{ gridColumn: '1', gridRow: '1', width: '100%', display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px' }}>
               {limitedCategories.map((category) => renderCategoryCard(category))}
             </div>
           )}
@@ -405,4 +568,3 @@ const CategoriesGrid: React.FC<CategoriesGridProps> = ({
 };
 
 export default CategoriesGrid;
-

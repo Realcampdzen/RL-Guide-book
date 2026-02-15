@@ -67,7 +67,9 @@ class ResponseGenerator:
         request_type = self._analyze_request_type(user_message, user_context)
         
         # Генерируем ответ в зависимости от типа запроса
-        if request_type == "badge_explanation":
+        if request_type == "badge_plan":
+            response = self._generate_badge_plan(user_message)
+        elif request_type == "badge_explanation":
             response = self._generate_badge_explanation(user_message, user_context)
         elif request_type == "badge_level_explanation":
             response = self._generate_badge_level_explanation(user_message, user_context)
@@ -106,6 +108,10 @@ class ResponseGenerator:
     
     def _analyze_request_type(self, message: str, context: UserContext) -> str:
         """Анализирует тип запроса пользователя с учетом контекста экрана"""
+        # Запрос на генерацию плана получения значка (из модалки «Составить план») — полный промпт уже в message
+        if (("Задача: составить персонализированный план" in message or "составить персонализированный план получения значка" in message.lower() or "персонализированный план получения значка" in message.lower()) and "ЗНАЧОК:" in message and "ФОРМАТ ОТВЕТА" in message):
+            return "badge_plan"
+
         message_lower = message.lower()
         current_view = context.session_data.get('current_view', '')
         current_level = context.session_data.get('current_level', '')
@@ -164,6 +170,11 @@ class ResponseGenerator:
             if any(word in message_lower for word in ["подробнее", "больше", "расскажи"]):
                 return "category_info"
         
+        elif current_view == 'profile':
+            # На экране Личный кабинет — вопросы про прогресс, рефлексию, подтверждение уровней
+            if any(word in message_lower for word in ["мой путь", "достижения", "рефлексия", "подтвердить уровень", "как отметить", "что здесь", "что могу"]):
+                return "general"
+        
         # Общие ключевые слова для всех экранов
         if any(word in message_lower for word in [
             "что это за значок", "что за значок", "объясни", "расскажи", "что такое", "как получить", "что это"
@@ -196,6 +207,7 @@ class ResponseGenerator:
             'category': 'Категория значков',
             'badge': 'Страница значка',
             'badge-level': 'Уровень значка',
+            'profile': 'Личный кабинет',
             'introduction': 'Введение в путеводитель',
             'additional-material': 'Дополнительные материалы',
             'about-camp': 'Информация о лагере',
@@ -234,6 +246,8 @@ class ResponseGenerator:
             tips.append("Могу объяснить значок, уровни или предложить идеи, как его получить.")
         if current_view == 'registration-form':
             tips.append("Могу помочь заполнить важные поля анкеты.")
+        if current_view == 'profile':
+            tips.append("Могу подсказать про прогресс, Мой путь, рефлексию и подтверждение уровней.")
 
         if tips:
             parts.append("Подсказка: " + " ".join(tips))
@@ -273,7 +287,8 @@ class ResponseGenerator:
             user_interests=context.interests,
             current_view=context.session_data.get('current_view'),
             current_level=context.session_data.get('current_level'),
-            current_level_badge_title=context.session_data.get('current_level_badge_title')
+            current_level_badge_title=context.session_data.get('current_level_badge_title'),
+            user_role=context.session_data.get('user_role')
         )
         return self.openai_client.generate_response(
             messages=[Message(role="user", content=prompt, metadata={})],
@@ -316,7 +331,8 @@ class ResponseGenerator:
             user_interests=context.interests,
             current_view=context.session_data.get('current_view'),
             current_level=context.session_data.get('current_level'),
-            current_level_badge_title=context.session_data.get('current_level_badge_title')
+            current_level_badge_title=context.session_data.get('current_level_badge_title'),
+            user_role=context.session_data.get('user_role')
         )
         return self.openai_client.generate_response(
             messages=[Message(role="user", content=prompt, metadata={})],
@@ -324,6 +340,21 @@ class ResponseGenerator:
             user_context=context,
             max_tokens=700,
             temperature=0.75
+        )
+
+    def _generate_badge_plan(self, message: str) -> str:
+        """Генерация плана получения значка: message уже содержит полный промпт с контекстом значка и форматом ответа."""
+        system = (
+            "Ты — НейроВалюша, ИИ-проводник Реального Лагеря. "
+            "Твоя задача — строго следовать инструкции в сообщении пользователя и вернуть ответ в указанном формате (описание + список шагов). "
+            "Не отвечай заглушками и не проси выбрать значок — вся информация о значке уже в сообщении."
+        )
+        return self.openai_client.generate_response(
+            messages=[Message(role="user", content=message, metadata={})],
+            system_prompt=system,
+            user_context=UserContext(user_id="badge_plan", session_data={}),
+            max_tokens=2400,
+            temperature=0.6
         )
     
     def _generate_badge_level_explanation(self, message: str, context: UserContext) -> str:
@@ -369,7 +400,8 @@ class ResponseGenerator:
             user_interests=context.interests,
             current_view=context.session_data.get('current_view') or '',
             current_level=context.session_data.get('current_level'),
-            current_level_badge_title=context.session_data.get('current_level_badge_title') or ''
+            current_level_badge_title=context.session_data.get('current_level_badge_title') or '',
+            user_role=context.session_data.get('user_role')
         )
         return self.openai_client.generate_response(
             messages=[Message(role="user", content=prompt, metadata={})],
@@ -425,7 +457,8 @@ class ResponseGenerator:
             user_interests=context.interests,
             current_view=context.session_data.get('current_view') or '',
             current_level=context.session_data.get('current_level'),
-            current_level_badge_title=context.session_data.get('current_level_badge_title') or ''
+            current_level_badge_title=context.session_data.get('current_level_badge_title') or '',
+            user_role=context.session_data.get('user_role')
         )
         return self.openai_client.generate_response(
             messages=[Message(role="user", content=prompt, metadata={})],
@@ -448,7 +481,8 @@ class ResponseGenerator:
                     user_interests=context.interests,
                     current_view=context.session_data.get('current_view', ''),
                     current_level=context.session_data.get('current_level', ''),
-                current_level_badge_title=context.session_data.get('current_level_badge_title', '')
+                    current_level_badge_title=context.session_data.get('current_level_badge_title', ''),
+                    user_role=context.session_data.get('user_role')
                 )
             )
         
@@ -476,7 +510,8 @@ class ResponseGenerator:
                 user_interests=context.interests,
                 current_view=context.session_data.get('current_view') or '',
                 current_level=context.session_data.get('current_level'),
-                current_level_badge_title=context.session_data.get('current_level_badge_title') or ''
+                current_level_badge_title=context.session_data.get('current_level_badge_title') or '',
+                user_role=context.session_data.get('user_role')
             )
         )
     
@@ -508,7 +543,8 @@ class ResponseGenerator:
             user_interests=context.interests,
             current_view=context.session_data.get('current_view') or '',
             current_level=context.session_data.get('current_level'),
-            current_level_badge_title=context.session_data.get('current_level_badge_title') or ''
+            current_level_badge_title=context.session_data.get('current_level_badge_title') or '',
+            user_role=context.session_data.get('user_role')
         )
         return self.openai_client.generate_response(
             messages=[Message(role="user", content=prompt, metadata={})],
@@ -572,7 +608,8 @@ class ResponseGenerator:
             user_level=context.level,
             user_interests=context.interests,
             current_view=context.session_data.get('current_view'),
-            current_level=context.session_data.get('current_level')
+            current_level=context.session_data.get('current_level'),
+            user_role=context.session_data.get('user_role')
         )
         
         # Дополнительные указания по стилю даются в системном промпте; без жёстких ограничений длины здесь

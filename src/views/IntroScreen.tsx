@@ -3,13 +3,15 @@ import React from 'react';
 interface IntroScreenProps {
   onLogoClick: () => void;
   onStartClick: () => void;
+  /** Год из MASTER_INDEX.lastUpdated (например "2025") */
+  year?: string;
 }
 
-const IntroScreen: React.FC<IntroScreenProps> = ({ onLogoClick, onStartClick }) => (
+const IntroScreen: React.FC<IntroScreenProps> = ({ onLogoClick, onStartClick, year = '2025' }) => (
   <div className="intro-screen">
     <button type="button" className="intro-logo" onClick={onLogoClick} aria-label="О лагере">
       <img src="/RL-Guide-book/домик_AI.jpg" alt="Логотип" />
-      <div className="logo-hover-text">Звёздный Городок 2025</div>
+      <div className="logo-hover-text">Звёздный Городок {year}</div>
     </button>
     <div className="intro-content">
       <h1>Путеводитель по Реальному Лагерю</h1>

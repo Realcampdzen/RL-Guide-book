@@ -1,0 +1,13 @@
+  };
+
+  // Функция для обработки интерактивных ссылок в тексте
+  const processInteractiveLinks = (text: string): string => {
+    // Заменяем ссылки формата [текст](checklist:filename.md) или [текст](methodology:filename.md)
+    return text.replace(/\[([^\]]+)\]\((checklist|methodology|checklists):([^)]+)\)/g, (_, linkText, type, filename) => {
+      const actualType = type === 'checklist' ? 'checklists' : type;
+      return `<a href="#" onclick="window.handleMaterialClick('${actualType}', '${filename}'); return false;" style="color: #4ecdc4; text-decoration: underline; cursor: pointer;">${linkText}</a>`;
+    });
+  };
+
+  // Глобальная функция для обработки кликов по ссылкам
+  (window as any).handleMaterialClick = (type: string, filename: string) => {

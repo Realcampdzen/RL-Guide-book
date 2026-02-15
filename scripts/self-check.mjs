@@ -29,6 +29,8 @@ console.log((devPort === vitePort && vitePort === batPort) ? 'OK: ports are cons
 
 // Assets
 section('Assets');
+const masterIndex = resolve(root, 'public/ai-data/MASTER_INDEX.json');
+console.log(`public/ai-data/MASTER_INDEX.json: ${existsSync(masterIndex) ? 'present' : 'MISSING (run: npm run sync:ai-data)'}`);
 const assets = [
   'public/badges_photo.jpg',
   'public/pattern_stickers.jpg',
@@ -60,5 +62,32 @@ if (env) {
   console.log('.env not present');
 }
 
-console.log('\nSelf-check completed.');
+// Backend health (optional: set BACKEND_URL e.g. http://localhost:4000 to check GET /api/health)
+(async () => {
+  section('Backend health');
+  const base = (process.env.BACKEND_URL || '').trim().replace(/\/$/, '');
+  if (!base) {
+    console.log('BACKEND_URL not set — skipped');
+    console.log('\nSelf-check completed.');
+    return;
+  }
+  const url = base.startsWith('http') ? `${base}/api/health` : `http://${base}/api/health`;
+  try {
+    const res = await fetch(url);
+    let body = null;
+    try {
+      body = await res.json();
+    } catch {
+      // ignore non-JSON body
+    }
+    if (res.ok && res.status === 200 && body && body.status === 'ok') {
+      console.log('OK: GET /api/health returned 200 and {"status":"ok"}');
+    } else {
+      console.log('WARN: GET /api/health did not return 200 or {"status":"ok"}');
+    }
+  } catch (e) {
+    console.log('WARN: backend health check failed:', e.message);
+  }
+  console.log('\nSelf-check completed.');
+})();
 

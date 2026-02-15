@@ -1,0 +1,84 @@
+{
+  "version": "1.0",
+  "lastUpdated": "2026-02-09",
+  "description": "Конфиг разделов ЛК и слотов изображений для фичи «ИИ-изображения во всех кабинетах». Источник истины для UI (Agent B) и API (D/E). ROADMAP: ИИ-изображения во всех кабинетах (Not started).",
+  "sections": [
+    {
+      "sectionId": "squad-corner",
+      "sectionTitle": "Отрядный уголок",
+      "slots": [
+        { "slotId": "photoCorner", "imageType": "photo_corner", "aspectRatio": "free", "allowedModes": ["upload", "generate", "process"], "promptPresetId": "process_rl_identity" },
+        { "slotId": "photoFlag", "imageType": "photo_flag", "aspectRatio": "free", "allowedModes": ["upload", "generate", "process"], "promptPresetId": "process_rl_identity" },
+        { "slotId": "photoSquad", "imageType": "photo_squad", "aspectRatio": "free", "allowedModes": ["upload", "generate", "process"], "promptPresetId": "process_rl_identity" },
+        { "slotId": "photoWithCounselors", "imageType": "photo_squad_with_counselors", "aspectRatio": "free", "allowedModes": ["upload", "generate", "process"], "promptPresetId": "process_rl_identity" }
+      ]
+    },
+    {
+      "sectionId": "wing",
+      "sectionTitle": "Крыло",
+      "slots": [
+        { "slotId": "wingAvatar", "imageType": "avatar", "aspectRatio": "1:1", "allowedModes": ["upload", "generate", "process"], "promptPresetId": "process_rl_identity" }
+      ]
+    },
+    {
+      "sectionId": "passport",
+      "sectionTitle": "Паспорт",
+      "slots": [
+        { "slotId": "avatar", "imageType": "avatar", "aspectRatio": "1:1", "allowedModes": ["upload", "generate", "process"], "promptPresetId": "process_rl_identity" }
+      ]
+    },
+    {
+      "sectionId": "team",
+      "sectionTitle": "Движок",
+      "slots": [
+        { "slotId": "flagImage", "imageType": "flag", "aspectRatio": "free", "allowedModes": ["upload", "generate", "process"], "promptPresetId": "process_rl_identity" },
+        { "slotId": "gerbImage", "imageType": "gerb", "aspectRatio": "9:16", "allowedModes": ["upload", "generate", "process"], "promptPresetId": "gerb_team", "constraints": "POST /api/images/generate context=gerb (teamId, style для generate)" }
+      ]
+    },
+    {
+      "sectionId": "workshop",
+      "sectionTitle": "Мастерская",
+      "slots": [
+        { "slotId": "customBadgeImage", "imageType": "badge_skin", "aspectRatio": "1:1", "allowedModes": ["upload", "generate", "process"], "promptPresetId": "process_rl_identity", "constraints": "По одному слоту на badge (customBadgeImages[badgeBaseId])" },
+        { "slotId": "creatorCard", "imageType": "cover", "aspectRatio": "9:16", "allowedModes": ["generate"], "promptPresetId": "creator_card", "constraints": "Артефакт при создании значка, отправка в Telegram; не хранится как слот в ЛК" }
+      ]
+    },
+    {
+      "sectionId": "counselor-squad",
+      "sectionTitle": "Отряд вожатых",
+      "slots": [
+        { "slotId": "squadAvatar", "imageType": "avatar", "aspectRatio": "1:1", "allowedModes": ["upload", "generate", "process"], "promptPresetId": "process_rl_identity", "reserved": true, "constraints": "Слот зарезервирован; UI/модель данных пока не в коде" }
+      ]
+    },
+    {
+      "sectionId": "bro",
+      "sectionTitle": "БРО",
+      "slots": [
+        { "slotId": "broPassportCover", "imageType": "cover", "aspectRatio": "free", "allowedModes": ["upload", "generate", "process"], "promptPresetId": "process_rl_identity", "reserved": true, "constraints": "Обложка/аватар Бропаспорта; слот зарезервирован, UI пока не в коде" }
+      ]
+    }
+  ],
+  "promptPresets": [
+    {
+      "id": "process_rl_identity",
+      "name": "Обработка с айдентикой РЛ",
+      "forMode": "process",
+      "description": "Сохранить особенности загруженного изображения и дополнить айдентикой Реального Лагеря: галстуки, БРО, космос.",
+      "promptHint": "Для людей: фотореалистичные котики с пионерскими фиолетовыми галстуками и БРО-символикой — опциональный пресет."
+    },
+    {
+      "id": "gerb_team",
+      "name": "Герб Движка",
+      "forMode": "generate",
+      "description": "Визуал команды по названию и нику лидера; стили cosmos / cyberpunk / realism.",
+      "promptHint": "Используется в POST /api/teams/gerb-generate (teamId, style, prompt?)."
+    },
+    {
+      "id": "creator_card",
+      "name": "Карточка Созидателя",
+      "forMode": "generate",
+      "description": "Карточка 9:16 «Я предлагаю новый смысл: Значок [Название]. Кто за?» для отправки модераторам.",
+      "promptHint": "Генерация при создании значка в Мастерской; вид creator_proposal в socialGenerator."
+    }
+  ]
+}

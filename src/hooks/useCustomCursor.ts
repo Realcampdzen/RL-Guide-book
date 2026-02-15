@@ -61,6 +61,25 @@ export const useCustomCursor = () => {
     const reactorEase = 0.12;
     const cursorOutlineRadius = 20;
 
+    let autoscrollActive = false;
+    const setCursorActive = (active: boolean) => {
+      if (active) {
+        document.documentElement.dataset.cursor = 'on';
+      } else if (document.documentElement.dataset.cursor === 'on') {
+        document.documentElement.removeAttribute('data-cursor');
+      }
+    };
+    const setAutoscrollActive = (active: boolean) => {
+      autoscrollActive = active;
+      if (active) {
+        document.documentElement.dataset.autoscroll = 'on';
+        setCursorActive(false);
+      } else {
+        document.documentElement.removeAttribute('data-autoscroll');
+        setCursorActive(true);
+      }
+    };
+
     // Function to check collision between circle and element
     const checkCollision = (circleX: number, circleY: number, circleRadius: number, element: HTMLElement): boolean => {
       const rect = element.getBoundingClientRect();
@@ -381,15 +400,43 @@ export const useCustomCursor = () => {
       animationFrameRef.current = requestAnimationFrame(updateCursor);
     };
 
+    const handleMouseDown = (event: MouseEvent) => {
+      if (event.button === 1) {
+        setAutoscrollActive(!autoscrollActive);
+        return;
+      }
+      if (autoscrollActive) {
+        setAutoscrollActive(false);
+      }
+    };
+
+    const handleWindowBlur = () => {
+      if (autoscrollActive) {
+        setAutoscrollActive(false);
+      }
+    };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && autoscrollActive) {
+        setAutoscrollActive(false);
+      }
+    };
+
     const handleMouseMoveRaf = rafThrottle(handleMouseMove);
     window.addEventListener('mousemove', handleMouseMoveRaf, { passive: true } as AddEventListenerOptions);
+    window.addEventListener('mousedown', handleMouseDown, true);
+    window.addEventListener('blur', handleWindowBlur);
+    window.addEventListener('keydown', handleKeyDown);
     updateCursor();
 
     return () => {
       window.removeEventListener('mousemove', handleMouseMoveRaf as unknown as EventListener);
+      window.removeEventListener('mousedown', handleMouseDown, true);
+      window.removeEventListener('blur', handleWindowBlur);
+      window.removeEventListener('keydown', handleKeyDown);
       if (animationFrameRef.current !== null) {
         cancelAnimationFrame(animationFrameRef.current);
       }
+      document.documentElement.removeAttribute('data-autoscroll');
       // Unmark cursor active on cleanup.
       if (document.documentElement.dataset.cursor === 'on') {
         document.documentElement.removeAttribute('data-cursor');

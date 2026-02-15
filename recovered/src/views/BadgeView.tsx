@@ -1,0 +1,487 @@
+import React, { useEffect, useMemo, useState, Suspense } from 'react';
+import {
+  fixDescriptionFormatting,
+  fixCriteriaFormatting,
+  extractEvidenceSection,
+  shouldApplyFormatting
+} from '../utils/textFormatting';
+import { useScrollReveal } from '../hooks/useScrollReveal';
+import BadgeIcon from '../components/BadgeIcon';
+import { Skeleton } from '../components/Skeleton';
+import { getBadgeImagePath } from '../utils/badgeImages';
+import { toSiblingImageUrl } from '../utils/imageSources';
+import '../styles/badge-view.css';
+import type { Category, Badge } from '../types/guide';
+
+const loadChatBot = () => import('../components/ChatBot');
+const loadChatAvatar = () => import('../components/ChatAvatar');
+const ChatBot = React.lazy(loadChatBot);
+const ChatAvatar = React.lazy(loadChatAvatar);
+
+interface BadgeViewProps {
+  category: Category;
+  badge: Badge;
+  badges: Badge[];
+  onBack: () => void;
+  onLevelSelect: (level: string) => void;
+  onBadgeClick: (badge: Badge) => void;
+  // Chat props
+  onChatToggle: () => void;
+  isChatOpen: boolean;
+  onChatClose: () => void;
+  // Navigation props
+  onOpenCategories: () => void;
+  onTelegramContact: () => void;
+  onBackToIntro: () => void;
+}
+
+const BadgeView: React.FC<BadgeViewProps> = ({ 
+  category, 
+  badge, 
+  badges, 
+  onBack, 
+  onLevelSelect,
+  onBadgeClick: _onBadgeClick,
+  onChatToggle,
+  isChatOpen,
+  onChatClose,
+  onOpenCategories,
+  onTelegramContact,
+  onBackToIntro,
+}) => {
+  const { initReveal } = useScrollReveal();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isHeroLoaded, setIsHeroLoaded] = useState(false);
+
+  useEffect(() => {
+    initReveal('.reveal-on-scroll');
+  }, [initReveal]);
+
+  useEffect(() => {
+    setIsHeroLoaded(false);
+  }, [badge.id]);
+
+  useEffect(() => {
+    if (!isMenuOpen) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsMenuOpen(false);
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [isMenuOpen]);
+
+  const handleMenuToggle = () => {
+    setIsMenuOpen((prev) => !prev);
+  };
+
+  const closeMenu = () => {
+    setIsMenuOpen(false);
+  };
+
+  const handleChatToggle = () => {
+    setIsMenuOpen(false);
+    onChatToggle();
+  };
+
+  const handleMenuAction = (action: () => void) => {
+    setIsMenuOpen(false);
+    action();
+  };
+
+  // Context Logic (ported from App.tsx)
+  const { badgeLevels, baseLevelBadge, otherLevels, isMultiLevel } = useMemo(() => {
+    const badgeId = String(badge.id || '');
+    const segments = badgeId.split('.').filter(Boolean);
+    const baseTwo = segments.length >= 2 ? `${segments[0]}.${segments[1]}` : badgeId;
+
+    const sameBaseTwo = (a: string, base: string): boolean => {
+      const as = String(a || '').split('.').filter(Boolean);
+      if (as.length < 2) return false;
+      return `${as[0]}.${as[1]}` === base;
+    };
+
+    // For multi-level badges we ONLY want tiered entries (3 segments), not a possible 2-segment summary entry.
+    const tiered = badges
+      .filter((b) => b.category_id === badge.category_id)
+      .filter((b) => sameBaseTwo(String(b.id || ''), baseTwo))
+      .filter((b) => String(b.id || '').split('.').filter(Boolean).length === 3);
+
+    const dedupeById = <T extends { id?: any }>(items: T[]): T[] => {
+      const seen = new Set<string>();
+      const out: T[] = [];
+      for (const it of items) {
+        const key = String(it.id || '');
+        if (!key) continue;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        out.push(it);
+      }
+      return out;
+    };
+
+    const tieredUnique = dedupeById(tiered);
+    const isMulti = tieredUnique.length > 0;
+
+    const effectiveLevels = isMulti ? tieredUnique : badges.filter((b) => (b.id || '') === (badge.id || ''));
+
+    const base = isMulti
+      ? (effectiveLevels.find((b) => String(b.level || '').toLowerCase().includes('баз')) ||
+         effectiveLevels.find((b) => String(b.level || '').toLowerCase().includes('одноуровнев')) ||
+         effectiveLevels[0] ||
+         badge)
+      : badge;
+
+    const others = (isMulti ? effectiveLevels : effectiveLevels).filter((b) => {
+      const isBase = base && b.id === base.id;
+      const isSingle = String(b.level || '').toLowerCase().includes('одноуровнев');
+      return !isBase && !isSingle;
+    });
+
+    return { badgeLevels: effectiveLevels, baseLevelBadge: base, otherLevels: others, isMultiLevel: isMulti };
+  }, [badge, badges]);
+
+  // Content Logic
+  const { baseCriteria, evidenceText, mainDescription } = useMemo(() => {
+    let evidenceText: string | null = null;
+    let baseCriteria: string[] = [];
+    
+    const sourceBadge = baseLevelBadge || badge;
+    
+    let descriptionText = sourceBadge.description || '';
+    // Fix: Remove duplicate text if present
+    descriptionText = descriptionText.replace(/Объяснение ценности значка:\s*$/, '').trim();
+
+    if (sourceBadge) {
+      if (sourceBadge.confirmation) {
+        evidenceText = sourceBadge.confirmation;
+      }
+      
+      if (sourceBadge.criteria) {
+        const raw = sourceBadge.criteria.replace(/^Как получить значок «[^»]+»:\s*/, '');
+        const shouldFormat = shouldApplyFormatting(sourceBadge.id);
+        const processedRaw = shouldFormat ? fixCriteriaFormatting(raw) : raw;
+        
+        if (sourceBadge.confirmation) {
+          const { mainText, evidenceText: extracted } = extractEvidenceSection(processedRaw);
+          evidenceText = extracted || sourceBadge.confirmation;
+          baseCriteria = mainText.split('✅').filter(c => c.trim()).map(c => c.trim());
+        } else {
+          const { mainText, evidenceText: extracted } = extractEvidenceSection(processedRaw);
+          evidenceText = extracted;
+          baseCriteria = mainText.split('✅').filter(c => c.trim()).map(c => c.trim());
+        }
+      }
+    }
+
+    const shouldFormatDesc = shouldApplyFormatting(sourceBadge.id);
+    const processedDesc = shouldFormatDesc ? fixDescriptionFormatting(descriptionText) : descriptionText;
+    const { mainText: descMain, evidenceText: descEvidence } = extractEvidenceSection(processedDesc);
+    
+    // If evidence wasn't found in criteria, maybe it's in description
+    if (!evidenceText && descEvidence) {
+      evidenceText = descEvidence;
+    }
+
+    return { baseCriteria, evidenceText, mainDescription: descMain };
+  }, [baseLevelBadge, badge]);
+
+  // Helper for rendering emoji/icon
+  const renderIcon = (b: Badge, size: 'large' | 'xlarge', className: string) => {
+    const baseBadgeId = String(b.id).split('.').slice(0, 2).join('.');
+    const isImageBadge = ['1.1', '1.2', '1.3', '1.4', '1.5', '1.6', '1.7', '1.8', '1.9', '1.10', '1.11', '1.12', '1.13', '1.14', '1.15', '1.16'].includes(baseBadgeId);
+    
+    if (isImageBadge) {
+      // Используем ту же логику, что и в BadgeLevelView.tsx
+      // Для каждого уровня передаем его собственный id и title
+      return (
+        <BadgeIcon
+          badgeId={baseBadgeId}
+          badgeTitle={badge.title}
+          categoryId={badge.category_id || category.id}
+          emoji={b.emoji || ''}
+          levelId={String(b.id)}
+          levelTitle={b.title}
+          className={className}
+          size={size}
+        />
+      );
+    }
+    return <div className={className} style={{fontSize: size === 'large' ? '4rem' : '3rem'}}>{b.emoji || '🏆'}</div>;
+  };
+
+  const badgeHeroImageUrl = useMemo(() => {
+    const sourceBadge = baseLevelBadge || badge;
+    const baseBadgeId = String(sourceBadge?.id || badge.id || '').split('.').slice(0, 2).join('.');
+    if (!baseBadgeId) return null;
+    const sourceTitle = sourceBadge?.title || badge.title;
+    if (!sourceTitle) return null;
+    return {
+      realism: getBadgeImagePath(baseBadgeId, sourceTitle, category.id, undefined, undefined, 'realism'),
+      fallback: getBadgeImagePath(baseBadgeId, sourceTitle, category.id, undefined, undefined, 'default'),
+    };
+  }, [baseLevelBadge, badge, category.id]);
+
+  const [heroSrc, setHeroSrc] = useState<string | null>(null);
+  useEffect(() => {
+    setHeroSrc(badgeHeroImageUrl?.realism || badgeHeroImageUrl?.fallback || null);
+  }, [badgeHeroImageUrl]);
+  const heroWebp = useMemo(() => (heroSrc ? toSiblingImageUrl(heroSrc, 'webp') : null), [heroSrc]);
+
+  return (
+    <div className="badge-view-container">
+      <div className="noise-overlay"></div>
+      {/* GlobalCursor renders the custom cursor layer once at app root */}
+
+      {/* Mobile Navigation Header */}
+      <header className={`mobile-glass-header${isChatOpen ? ' is-chat-open' : ''}`} aria-label="Навигация">
+        <div className="mobile-header-left">
+          <button type="button" className="mobile-header-back" onClick={onBack} aria-label="Назад">
+            ←
+          </button>
+        </div>
+        <div className="mobile-badge-title" aria-label="Значок">
+          <span className="mobile-badge-title-main">{badge.title}</span>
+        </div>
+        <div className="mobile-header-actions">
+          <button
+            type="button"
+            className={`mobile-header-btn mobile-header-menu${isMenuOpen ? ' is-active' : ''}`}
+            onClick={handleMenuToggle}
+            aria-label="Меню"
+            aria-expanded={isMenuOpen}
+            aria-controls="badge-mobile-menu-panel"
+          >
+            <span className="menu-line"></span>
+            <span className="menu-line"></span>
+            <span className="menu-line"></span>
+          </button>
+          <button
+            type="button"
+            className={`mobile-header-avatar${isChatOpen ? ' is-active' : ''}`}
+            onClick={handleChatToggle}
+            aria-label={isChatOpen ? 'Закрыть чат' : 'Открыть чат'}
+            aria-pressed={isChatOpen}
+          >
+            <picture>
+              <source type="image/webp" srcSet="/RL-Guide-book/Валюша.webp" />
+              <img src="/RL-Guide-book/Валюша.jpg" alt="НейроВалюша" decoding="async" fetchpriority="high" />
+            </picture>
+          </button>
+        </div>
+      </header>
+
+      <div
+        className={`mobile-menu-scrim${isMenuOpen ? ' is-open' : ''}`}
+        onClick={closeMenu}
+        aria-hidden="true"
+      ></div>
+      <div
+        id="badge-mobile-menu-panel"
+        className={`mobile-menu-panel${isMenuOpen ? ' is-open' : ''}`}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Меню"
+        aria-hidden={!isMenuOpen}
+      >
+        <div className="mobile-menu-head">
+          <span className="mobile-menu-title">Меню</span>
+          <button type="button" className="mobile-menu-close" onClick={closeMenu} aria-label="Закрыть меню">
+            &times;
+          </button>
+        </div>
+        <div className="mobile-menu-list">
+          <button type="button" className="mobile-menu-item" onClick={() => handleMenuAction(onBackToIntro)}>
+            <span className="mobile-menu-item-label">Главная</span>
+            <span className="mobile-menu-item-icon">&rsaquo;</span>
+          </button>
+          <button type="button" className="mobile-menu-item" onClick={() => handleMenuAction(onOpenCategories)}>
+            <span className="mobile-menu-item-label">Категории</span>
+            <span className="mobile-menu-item-icon">&rsaquo;</span>
+          </button>
+          <button type="button" className="mobile-menu-item" onClick={() => handleMenuAction(onBack)}>
+            <span className="mobile-menu-item-label">Назад</span>
+            <span className="mobile-menu-item-icon">&lsaquo;</span>
+          </button>
+          <button type="button" className="mobile-menu-item mobile-menu-item-cta" onClick={() => handleMenuAction(onTelegramContact)}>
+            <span className="mobile-menu-item-label">Записаться через Telegram</span>
+            <span className="mobile-menu-item-icon">&rsaquo;</span>
+          </button>
+        </div>
+      </div>
+
+      <div className="sticky-back-nav">
+        <button onClick={onBack} className="nav-link-back hover-target">← Назад к категории</button>
+      </div>
+
+      <main className="badge-main">
+        {/* Header */}
+        <section className="badge-hero reveal-on-scroll">
+          <div className="badge-hero-icon">
+            {renderIcon(badge, 'large', 'hero-emoji')}
+          </div>
+          <div className="badge-hero-content">
+            <h1>{badge.title}</h1>
+            <div className="badge-hero-category">{category.title}</div>
+          </div>
+        </section>
+
+        {heroSrc && (
+          <section className="badge-hero-media reveal-on-scroll">
+            <div className="badge-hero-media__frame badge-hero-media__frame--skeleton">
+              {!isHeroLoaded && <Skeleton className="skeleton--media badge-hero-media__skeleton" />}
+              <picture>
+                {heroWebp && <source type="image/webp" srcSet={heroWebp} />}
+                <img
+                  src={heroSrc}
+                  alt={baseLevelBadge?.title || badge.title}
+                  className="badge-hero-media__image"
+                  loading="lazy"
+                  decoding="async"
+                  onLoad={() => setIsHeroLoaded(true)}
+                  onError={() => {
+                    const next = badgeHeroImageUrl?.fallback || null;
+                    if (next && next !== heroSrc) setHeroSrc(next);
+                  }}
+                />
+              </picture>
+            </div>
+          </section>
+        )}
+
+        {/* Content Grid */}
+        <div className="badge-content-grid">
+          {/* Left Column */}
+          <div className="badge-left-col reveal-on-scroll">
+            <div className="content-block">
+              <h3>Общая информация</h3>
+              <p className="content-text" dangerouslySetInnerHTML={{ __html: mainDescription.replace(/\n/g, '<br/>') }} />
+
+              {baseLevelBadge?.nameExplanation && (
+                <>
+                  <h4>Объяснение названия и ценности</h4>
+                  <p className="content-text">{baseLevelBadge.nameExplanation}</p>
+                </>
+              )}
+
+              {baseLevelBadge?.skillTips && (
+                <>
+                  <h4>Как прокачать навык</h4>
+                  <p className="content-text" dangerouslySetInnerHTML={{__html: baseLevelBadge.skillTips.replace(/\n/g, '<br>')}}></p>
+                </>
+              )}
+
+              {baseLevelBadge?.examples && (
+                <>
+                  <h4>Примеры</h4>
+                  <p className="content-text" dangerouslySetInnerHTML={{__html: baseLevelBadge.examples.replace(/\n/g, '<br>')}}></p>
+                </>
+              )}
+
+              {baseLevelBadge?.importance && (
+                <>
+                  <h4>Почему этот значок важен</h4>
+                  <p className="content-text">{baseLevelBadge.importance}</p>
+                </>
+              )}
+
+              {baseLevelBadge?.philosophy && (
+                <>
+                  <h4>Философия значка</h4>
+                  <p className="content-text">{baseLevelBadge.philosophy}</p>
+                </>
+              )}
+
+              {baseLevelBadge?.howToBecome && (
+                <>
+                  <h4>Как стать</h4>
+                  <p className="content-text" dangerouslySetInnerHTML={{__html: baseLevelBadge.howToBecome.replace(/\n/g, '<br>')}}></p>
+                </>
+              )}
+
+              <div className="badge-meta">
+                <div className="meta-item">
+                  <span className="meta-label">Категория</span>
+                  <span className="meta-value">{category.title}</span>
+                </div>
+                <div className="meta-item">
+                  <span className="meta-label">Уровней</span>
+                  <span className="meta-value">{badgeLevels.length}</span>
+                </div>
+                <div className="meta-item">
+                  <span className="meta-label">ID</span>
+                  <span className="meta-value">{badge.id}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column */}
+          <div className="badge-right-col reveal-on-scroll" style={{ transitionDelay: '0.1s' }}>
+            <div className="content-block">
+              <h3>{isMultiLevel ? 'Как получить базовый уровень' : 'Как получить значок'}</h3>
+              
+              {baseCriteria.length > 0 ? (
+                <ul className="criteria-list">
+                  {baseCriteria.map((criterion, index) => (
+                    <li key={index} dangerouslySetInnerHTML={{ __html: criterion.replace(/\n/g, '<br>') }} />
+                  ))}
+                </ul>
+              ) : (
+                <p className="content-text">Критерии пока не определены.</p>
+              )}
+
+              {evidenceText && (
+                <>
+                  <h4>Чем подтверждается</h4>
+                  <p className="content-text" style={{ color: 'var(--c-volt)', fontStyle: 'italic' }}>
+                    {evidenceText}
+                  </p>
+                </>
+              )}
+            </div>
+
+            {/* Other Levels */}
+            {otherLevels.length > 0 && (
+              <div className="levels-dock">
+                {otherLevels.map(level => (
+                  <div 
+                    key={level.id} 
+                    className="level-bubble hover-target"
+                    onClick={() => onLevelSelect(String(level.level))}
+                  >
+                    <div className="level-bubble-icon">
+                      {renderIcon(level, 'xlarge', '')}
+                    </div>
+                    <div className="level-bubble-title">{level.title}</div>
+                    <div className="level-bubble-subtitle">{String(level.level)}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </main>
+
+      {/* ChatBot and ChatAvatar */}
+      <Suspense fallback={null}>
+        <ChatAvatar onClick={onChatToggle} isOpen={isChatOpen} />
+        <ChatBot 
+          isOpen={isChatOpen} 
+          onClose={onChatClose} 
+          currentView="badge"
+          currentCategory={category}
+          currentBadge={{
+            id: badge.id,
+            title: badge.title,
+            emoji: badge.emoji,
+            categoryId: badge.category_id
+          }}
+        />
+      </Suspense>
+    </div>
+  );
+};
+
+export default BadgeView;

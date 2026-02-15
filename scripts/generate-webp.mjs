@@ -31,6 +31,7 @@ const force = args.has('--force');
 const includePictures = args.has('--include-pictures');
 
 const imageExts = new Set(['.jpg', '.jpeg', '.png']);
+const isOrigBackup = (fileName) => /\.orig\.(jpg|jpeg|png)$/i.test(fileName);
 
 const publicDir = resolve(root, 'public');
 if (!existsSync(publicDir)) {
@@ -60,6 +61,7 @@ const walk = (dir, out) => {
     if (!entry.isFile()) continue;
     const ext = extname(entry.name).toLowerCase();
     if (!imageExts.has(ext)) continue;
+    if (isOrigBackup(entry.name)) continue;
     out.push(fullPath);
   }
 };
@@ -94,6 +96,11 @@ const collectTargets = () => {
     console.warn('⚠️  public/шапки внутри категорий не найден — пропускаю.');
   }
 
+  const guideBookDir = resolve(publicDir, 'RL-Guide-book');
+  if (isDir(guideBookDir)) {
+    walk(guideBookDir, targets);
+  }
+
   // 2) Selected top-level public assets
   const topEntries = readdirSync(publicDir, { withFileTypes: true });
   for (const entry of topEntries) {
@@ -118,7 +125,17 @@ const formatBytes = (bytes) => {
 const convertOne = async (inputPath) => {
   const outPath = toWebpPath(inputPath);
   if (!force && existsSync(outPath)) {
-    return { status: 'skipped', inputPath, outPath };
+    // If the original was replaced/updated, refresh the sibling .webp
+    try {
+      const inStat = statSync(inputPath);
+      const outStat = statSync(outPath);
+      if (inStat.mtimeMs <= outStat.mtimeMs) {
+        return { status: 'skipped', inputPath, outPath };
+      }
+      // fallthrough: regenerate
+    } catch {
+      return { status: 'skipped', inputPath, outPath };
+    }
   }
 
   const baseName = inputPath.split(/[\\/]/).pop() || '';

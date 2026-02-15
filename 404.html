@@ -5,12 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Путеводитель "Реального Лагеря"</title>
     <script>
-      // GitHub Pages SPA fallback
-      // Redirect all 404s to index.html for client-side routing
+      // GitHub Pages SPA fallback (base path: /RL-Guide-book/)
       var path = window.location.pathname;
       var search = window.location.search;
       var hash = window.location.hash;
-      window.location.replace('/index.html' + (path !== '/' ? '?path=' + encodeURIComponent(path) : '') + search + hash);
+      var base = '/RL-Guide-book';
+      var indexUrl = base + '/index.html';
+      var pathParam = (path !== base && path !== base + '/') ? '?path=' + encodeURIComponent(path) : '';
+      window.location.replace(indexUrl + pathParam + search + hash);
     </script>
   </head>
   <body>

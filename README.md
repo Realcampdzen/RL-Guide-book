@@ -10,7 +10,11 @@ npm run self-check
 npm run lint
 ```
 
+При проверке с запущенным бэкендом: `BACKEND_URL=http://localhost:4000 npm run self-check` (опционально).
+
 > **Интеллектуальная платформа для системы значков и достижений проекта "Реальный Лагерь" с AI-помощником НейроВалюшей**
+
+**Вход в проект (агенты и разработчики):** карта контекста, «где мы сейчас» и правило «не трогать готовое» — [docs/ONBOARDING.md](docs/ONBOARDING.md). Точка входа агента — [agent.md](agent.md).
 
 [![Статус проекта](https://img.shields.io/badge/Статус-Активная%20разработка-green.svg)](https://github.com/Realcampdzen/RL-Guide-book)
 [![AI-данные](https://img.shields.io/badge/AI--данные-100%25%20готовы-brightgreen.svg)](./ai-data/)
@@ -88,8 +92,14 @@ OPENAI_API_KEY=your_openai_api_key_here
 # Настройки приложения
 NODE_ENV=development
 PORT=3001
-API_PORT=5000
+API_PORT=4000
 CHATBOT_PORT=8000
+
+# Telegram (опционально): отправка в канал и приём заявок по webhook
+# TELEGRAM_BOT_TOKEN=...
+# TELEGRAM_CHANNEL_ID=...
+# TELEGRAM_WEBHOOK_SECRET=...   # для приёма обновлений от бота
+# Настройка webhook: см. docs/EVENTS_AND_WEBHOOKS.md
 ```
 
 ### 4. Запуск компонентов
@@ -112,9 +122,9 @@ python main.py
 
 ### 5. Доступ к приложению
 - **Веб-приложение**: http://localhost:3001
-- **API документация**: http://localhost:5000/docs
+- **Flask API**: http://localhost:4000 (health: `/health`, чат: `/api/chat`)
 - **Чат-бот НейроВалюша**: http://localhost:8000
-- **Чат-интерфейс**: http://localhost:8000
+- **Чат-интерфейс**: http://localhost:3001 (в веб-приложении)
 
 ## 📁 **СТРУКТУРА ПРОЕКТА**
 
@@ -244,8 +254,12 @@ putevoditel-web/
 4. Push в ветку (`git push origin feature/amazing-feature`)
 5. Создайте Pull Request
 
+**Тестовый режим:** только для разработки. Прогресс по умолчанию хранится на устройстве пользователя; тестовый режим (`localStorage['rl_guide_test_mode'] = 'true'`) подставляет демо-достижения для проверки UI. Подробнее — [.memory-bank/tech_context.md](.memory-bank/tech_context.md).
+
 ## 📚 **ДОКУМЕНТАЦИЯ**
 
+- [🗺 Карта входа в проект](docs/ONBOARDING.md) — для агентов и разработчиков: ключевые документы, «где мы сейчас», правило «не трогать готовое», чек-лист перед работой
+- [📋 Roadmap 2026](docs/ROADMAP_2026.md) — единая точка истины по статусам задач (Done/Not started), Evidence, «Где мы сейчас»
 - [📋 Roadmap](./agent-os/product/roadmap.md) - план развития проекта
 - [🤖 Чат-бот НейроВалюша](./chatbot/README.md) - документация бота
 - [📊 Отчет о завершении](./PROJECT_COMPLETION_REPORT.md) - детальный отчет

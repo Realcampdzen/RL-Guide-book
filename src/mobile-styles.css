@@ -49,6 +49,34 @@
    ======================================== */
 
 @media (max-width: 768px) {
+  /* Изоляция legacy mobile-правил: профиль использует собственный namespace и не должен
+     наследовать глобальные "header/content" переопределения ниже. */
+  .profile-view--mobile-scope .header {
+    position: static !important;
+    top: auto !important;
+    z-index: auto !important;
+    background: transparent !important;
+    backdrop-filter: none !important;
+  }
+
+  .profile-view--mobile-scope .header h1,
+  .profile-view--mobile-scope .header p,
+  .profile-view--mobile-scope .app-subtitle {
+    margin: 0 !important;
+    text-align: left !important;
+  }
+
+  .profile-view--mobile-scope .back-button {
+    margin-bottom: 0 !important;
+  }
+
+  .profile-view--mobile-scope .badge-content,
+  .profile-view--mobile-scope .level-content,
+  .profile-view--mobile-scope .category-content {
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
   /* Базовые улучшения для мобильных */
   body {
     font-size: 16px; /* Минимальный размер для предотвращения зума на iOS */

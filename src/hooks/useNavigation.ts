@@ -5,12 +5,19 @@ type UseNavigationArgs = {
   categories: Category[];
 };
 
+const getInitialView = (): View => {
+  if (typeof window === 'undefined') return 'intro';
+  const v = (window as unknown as { __INITIAL_VIEW__?: View }).__INITIAL_VIEW__;
+  return v === 'profile' ? 'profile' : 'intro';
+};
+
 export const useNavigation = ({ categories }: UseNavigationArgs) => {
-  const [currentView, setCurrentView] = useState<View>('intro');
+  const [currentView, setCurrentView] = useState<View>(getInitialView);
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   const [selectedBadge, setSelectedBadge] = useState<Badge | null>(null);
   const [selectedLevel, setSelectedLevel] = useState<string>('');
   const [selectedAdditionalMaterial, setSelectedAdditionalMaterial] = useState<AdditionalMaterial | null>(null);
+  const [badgeBackTarget, setBadgeBackTarget] = useState<View>('category');
   const [formData, setFormData] = useState<RegistrationFormData>({
     childName: '',
     parentName: '',
@@ -22,7 +29,7 @@ export const useNavigation = ({ categories }: UseNavigationArgs) => {
   const [categoryBackTarget, setCategoryBackTarget] = useState<View>('categories');
 
   const handleIntroClick = useCallback(() => {
-    setCurrentView('categories');
+    setCurrentView('profile');
     setSelectedCategory(null);
     setSelectedBadge(null);
     setSelectedLevel('');
@@ -37,7 +44,8 @@ export const useNavigation = ({ categories }: UseNavigationArgs) => {
     setCategoryBackTarget(origin);
   }, []);
 
-  const handleBadgeClick = useCallback((badge: Badge) => {
+  const handleBadgeClick = useCallback((badge: Badge, options?: { origin?: View }) => {
+    setBadgeBackTarget(options?.origin === 'profile' ? 'profile' : 'category');
     const cat = categories.find((c) => c.id === badge.category_id);
     if (cat) setSelectedCategory(cat);
     setSelectedBadge(badge);
@@ -101,11 +109,19 @@ export const useNavigation = ({ categories }: UseNavigationArgs) => {
   }, []);
 
   const handleBackToCategory = useCallback(() => {
+    if (badgeBackTarget === 'profile') {
+      setCurrentView('profile');
+      setSelectedBadge(null);
+      setSelectedLevel('');
+      setSelectedAdditionalMaterial(null);
+      setBadgeBackTarget('category');
+      return;
+    }
     setCurrentView('category');
     setSelectedBadge(null);
     setSelectedLevel('');
     setSelectedAdditionalMaterial(null);
-  }, []);
+  }, [badgeBackTarget]);
 
   const handleBackToCategoryFromIntroduction = useCallback(() => {
     setCurrentView('category');

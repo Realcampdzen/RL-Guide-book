@@ -32,6 +32,16 @@
   --mobile-nav-height: 68px;
   --mobile-glass-bg: rgba(17, 14, 32, 0.68);
   --mobile-glass-border: rgba(255, 255, 255, 0.12);
+  --profile-mobile-content-pad-x: 12px;
+  --profile-mobile-content-pad-top: 8px;
+  --profile-mobile-content-pad-bottom: 24px;
+  --profile-mobile-nav-clearance: calc(var(--mobile-nav-height) + env(safe-area-inset-bottom) + 84px);
+  --profile-mobile-modal-max-h: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 24px);
+  --profile-mobile-z-base: 1;
+  --profile-mobile-z-content: 20;
+  --profile-mobile-z-nav: 1100;
+  --profile-mobile-z-modal: 1200;
+  --profile-mobile-z-chat: 1250;
 
   /* ========================================
      ОСНОВНЫЕ ЦВЕТА
@@ -45,6 +55,15 @@
   --neon-blue: #3badff;
   --neon-purple: #8e44ff;
   --neon-pink: #ff63d6;
+
+  /* Легенда: тёмно-фиолетовый и бордовый, подсветка 0.33 */
+  --legendary-dark-purple: #4a2060;
+  --legendary-dark-purple-rgb: 74, 32, 96;
+  --legendary-maroon: #7a3045;
+  --legendary-maroon-rgb: 122, 48, 69;
+  --legendary-accent: #b088c8;
+  --legendary-glow: rgba(var(--legendary-dark-purple-rgb), 0.33);
+  --legendary-glow-maroon: rgba(var(--legendary-maroon-rgb), 0.33);
   
   /* ========================================
      МОБИЛЬНЫЕ РАЗМЕРЫ - РЕДАКТИРУЙТЕ ЗДЕСЬ

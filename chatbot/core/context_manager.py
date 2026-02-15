@@ -453,6 +453,7 @@ class ContextManager:
         context.session_data['web_badge'] = web_context.current_badge
         context.session_data['current_level'] = web_context.current_level
         context.session_data['current_level_badge_title'] = web_context.current_level_badge_title
+        context.session_data['user_role'] = getattr(web_context, 'user_role', None)
         
         # Сохраняем обновленный контекст
         self._save_context(context)

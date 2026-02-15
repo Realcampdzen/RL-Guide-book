@@ -1,0 +1,239 @@
+.bro-bonfire-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 20000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: calc(env(safe-area-inset-top) + 24px) 24px calc(env(safe-area-inset-bottom) + 24px);
+  overflow-y: auto;
+  background: #0b061a;
+  text-align: center;
+}
+
+.bro-bonfire-glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle, rgba(255, 105, 0, 0.24) 0%, transparent 72%);
+  animation: bro-bonfire-pulse 2s infinite alternate;
+}
+
+.bro-bonfire-shell {
+  position: relative;
+  width: min(760px, 100%);
+  z-index: 1;
+}
+
+.bro-bonfire-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 12px;
+}
+
+.bro-bonfire-card {
+  display: grid;
+  gap: 16px;
+  justify-items: center;
+  padding: clamp(18px, 3vw, 28px);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: linear-gradient(170deg, rgba(18, 8, 38, 0.9), rgba(9, 5, 24, 0.9));
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.45);
+}
+
+.bro-bonfire-fade-in {
+  animation: bro-bonfire-fade-in 0.8s ease;
+}
+
+.bro-bonfire-emoji {
+  font-size: clamp(44px, 7vw, 64px);
+  line-height: 1;
+}
+
+.bro-bonfire-emoji--intro {
+  font-size: clamp(60px, 9vw, 84px);
+}
+
+.bro-bonfire-title {
+  margin: 0;
+  font-size: clamp(24px, 4vw, 32px);
+  color: #ffd700;
+}
+
+.bro-bonfire-title--orange {
+  color: #ff8c42;
+}
+
+.bro-bonfire-title--lavender {
+  color: #c9b8ff;
+}
+
+.bro-bonfire-text {
+  margin: 0;
+  max-width: 560px;
+  font-size: clamp(15px, 2.2vw, 18px);
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.86);
+}
+
+.bro-bonfire-text--small {
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+.bro-bonfire-text--quote {
+  font-size: 16px;
+  font-style: italic;
+}
+
+.bro-bonfire-list {
+  margin: 0;
+  padding-left: 18px;
+  text-align: left;
+  display: inline-grid;
+  gap: 8px;
+  font-size: 16px;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.bro-bonfire-btn {
+  border: none;
+  border-radius: 999px;
+  padding: 12px 22px;
+  color: #fff;
+  font-weight: 900;
+  cursor: pointer;
+  transition: transform 0.15s ease, filter 0.15s ease, box-shadow 0.15s ease;
+}
+
+.bro-bonfire-btn:hover,
+.bro-bonfire-btn:focus-visible {
+  transform: translateY(-1px);
+  filter: brightness(1.08);
+  outline: none;
+}
+
+.bro-bonfire-btn:focus-visible {
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.45);
+}
+
+.bro-bonfire-btn--ghost {
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.96);
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: 12px;
+}
+
+.bro-bonfire-btn--orange {
+  margin-top: 4px;
+  background: #ff8c42;
+}
+
+.bro-bonfire-btn--purple {
+  background: #8b00ff;
+}
+
+.bro-bonfire-btn--gold {
+  background: #ffd700;
+  color: #1a1a2e;
+}
+
+.bro-bonfire-btn--mentor {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 12px;
+  padding: 10px 16px;
+  font-weight: 700;
+}
+
+.bro-bonfire-input {
+  width: min(360px, 100%);
+  border-radius: 14px;
+  border: 1px solid rgba(255, 215, 0, 0.8);
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  padding: 12px 14px;
+}
+
+.bro-bonfire-input:focus-visible {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.35);
+}
+
+.bro-bonfire-caption {
+  margin-top: 4px;
+  font-size: 12px;
+  opacity: 0.64;
+}
+
+.bro-bonfire-mentor-grid {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.bro-bonfire-error {
+  font-size: 12px;
+  color: #ffd1d1;
+  background: rgba(139, 0, 0, 0.35);
+  border: 1px solid rgba(255, 120, 120, 0.5);
+  border-radius: 10px;
+  padding: 6px 10px;
+}
+
+@keyframes bro-bonfire-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes bro-bonfire-pulse {
+  from {
+    opacity: 0.8;
+    transform: scale(1);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1.04);
+  }
+}
+
+@media (max-width: 900px) {
+  .bro-bonfire-overlay {
+    padding: calc(env(safe-area-inset-top) + 18px) 16px calc(env(safe-area-inset-bottom) + 18px);
+  }
+
+  .bro-bonfire-actions {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 640px) {
+  .bro-bonfire-card {
+    border-radius: 16px;
+    gap: 14px;
+  }
+
+  .bro-bonfire-list {
+    font-size: 14px;
+  }
+
+  .bro-bonfire-btn {
+    width: 100%;
+  }
+
+  .bro-bonfire-btn--mentor {
+    width: auto;
+  }
+}

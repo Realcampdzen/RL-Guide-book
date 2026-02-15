@@ -3,7 +3,7 @@ echo Starting RL Guide services
 echo =========================================
 
 echo.
-echo Starting Flask API (port 5000)...
+echo Starting Flask API (port 4000)...
 start "Flask API" cmd /k "cd backend && python app.py"
 
 echo.
@@ -17,7 +17,7 @@ start "Web Interface" cmd /k "npm run dev"
 echo.
 echo URLs:
 echo Web Interface: http://localhost:3001
-echo Flask API: http://localhost:5000
+echo Flask API: http://localhost:4000
 echo ChatBot API: http://localhost:8000
 echo API Docs: http://localhost:8000/docs
 echo.

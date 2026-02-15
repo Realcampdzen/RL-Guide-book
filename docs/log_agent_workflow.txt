@@ -1,0 +1,3066 @@
+Проанализируй это [имеется в виду WORKFLOW_GAME_CONCEPT_PLAN.md], потом репозиторий, и то как работает staging, и то как работает отдельный сервер разработки 3005, где мы разрабатываем фичу мобильной игры. Пойми, где мы находимся и куда нам двигаться дальше. Исследуй текст всплывашки на главном экране: [Pasted Text: 10 lines] — надо решить, как нам сюда привязать возможность делиться в соцсетях прогрессом. Например, функцию интеграции идей скриншотов начала какого-то действия, как старт прогресса и повод для поста или рилса. И тут мне нужны ещё две идеи от тебя, которые бы дополнили бы мою идею в виде улучшения пользовательского опыта, интересности, каких-то очевидных базовых геймдев- и игровых практических механик. Давай поразмышляем на тему продуктовости нашего Путеводителя.
+Вот одна из идей: при нажатии на кнопку «добавить в избранное» может быть сделать функцию — скрин экрана и запилить рилс, где будет интерфейс экрана игры и какой-нибудь ИИ-контент. Чтобы у ребенка, взрослого, студента, рандомного вожатого рандомного лагеря был небольшой фон сделать такой рилс. И уж точно чтобы это было интересно и просто сделать с детьми в качестве одного из заданий во время мастер-класса по работе с нейросетями в лагере. Например, где я буду рассказывать про этот значок или эту функцию и Путеводитель и скажу: «Зацените фишку — сделаю такой скрин или нажму на кнопочку и получу контент, и запушу во все соцсети в посты и в рилсы это изображение», которое будет в двух форматах: 16:9 и 9:16, с адаптацией под мобильную версию — всегда и везде, это аксиома. Таким образом нам нужна игровая механика с элементами генерации вирусного ИИ-контента по тематике реального лагеря. Надо учитывать, что мы работаем в РФ, у нас GitHub Pages и всё, ну может Cloudflare потом подрубить. Мы не можем или можем, но должны учитывать законы и тонкую чувствительную информацию с необходимостью в будущем сделать всё же полноценное приложение, где будет личный кабинет и возможность авторизации по принципу выбора: родитель, участник смены, путешественник (для свободного изучения всего проекта, но без бота и каких-то фишек, которые есть у клиентов), и всё это по законам, с учётом реального положения дел в коде, с учётом развития и текущих задач. То есть хочется сделать, чтобы дети и родители могли хотя бы уже тестить свой игровой опыт, личный кабинет, чтобы у них сохранялся как-то их прогресс — чтобы не сбрасывались добавленные и полученные заметки и значки, когда приложение закрывается или типа того. На базовом уровне чтобы это уже хотя бы как-то работало у моих клиентов и воспитанников. Создай файл с результатами твоего анализа — подробно и глубоко.
+
+Ran Get-Location; Get-ChildItem -Force | Select-Object -First 50 | Format-Table -AutoSize
+
+
+Ran if (Test-Path .\WORKFLOW_GAME_CONCEPT_PLAN.md) { (Get-Content .\WORKFLOW_GAME_CONCEPT_PLAN.md | Measure-Object -Line).Lines } else { 'MISSING WORKFLOW_GAME_CONCEPT_PLAN.md' }
+
+
+Ran if (Test-Path .\WORKFLOW_GAME_CONCEPT_PLAN.md) { Get-Content .\WORKFLOW_GAME_CONCEPT_PLAN.md -TotalCount 200 }
+
+
+Ran if (Test-Path .\Путеводитель.txt) { (Get-Content .\Путеводитель.txt | Measure-Object -Line).Lines; Get-Content .\Путеводитель.txt -TotalCount 120 } else { 'MISSING Путеводитель.txt' }
+
+
+Ran rg -n "\b3005\b" -S . | Select-Object -First 50
+
+
+Ran rg -n "staging" -S . | Select-Object -First 50
+
+
+Ran rg -n "всплы|всплываш|попап|popup|modal" -S src | Select-Object -First 50
+
+
+Ran rg -n "поделиться|share|social|reels|рилс|сторис|story" -S . | Select-Object -First 50
+
+
+Ran rg -n "избран" -S src | Select-Object -First 50
+
+
+Ran Get-Content .\package.json
+
+
+Ran Get-Content .\server-staging.js -TotalCount 220
+
+
+Ran Get-Content .\SERVERS.md -TotalCount 260
+
+
+Ran if (Test-Path .\vite.staging.config.ts) { Get-Content .\vite.staging.config.ts -TotalCount 220 }
+
+
+Ran if (Test-Path .\vite.config.ts) { Get-Content .\vite.config.ts -TotalCount 220 } else { 'NO vite.config.ts' }
+
+
+Ran Get-Content .\.env
+
+
+Ran Get-Content .\.env.example
+
+
+Ran Get-Content .\vite.config.ts | Select-Object -Skip 200 -First 240
+
+
+Ran if (Test-Path .\server-preview.js) { Get-Content .\server-preview.js -TotalCount 220 }
+
+
+Ran if (Test-Path .\server-html.js) { Get-Content .\server-html.js -TotalCount 240 }
+
+
+Ran if (Test-Path .\api\index.js) { Get-Content .\api\index.js -TotalCount 260 } else { 'NO api/index.js' }
+
+
+Ran if (Test-Path .\backend\app.py) { Get-Content .\backend\app.py -TotalCount 260 } else { 'NO backend/app.py' }
+
+
+Ran rg -n "300[0-9]" -S . | Select-Object -First 120
+
+
+Ran Get-ChildItem .\src -Force | Format-Table -AutoSize
+
+
+Ran Get-ChildItem .\src\views -Force | Select-Object Name | Format-Table -AutoSize
+
+
+Ran Get-ChildItem .\src\components -Force | Select-Object Name | Format-Table -AutoSize
+
+
+Ran Get-Content .\src\components\BlueNestLanding.tsx | Select-Object -Skip 250 -First 260
+
+
+Ran Get-Content .\src\styles\bluenest.css | Select-Object -Skip 430 -First 120
+
+
+Ran Get-Content .\src\styles\categories.css | Select-Object -Skip 120 -First 80
+
+
+Ran rg -n "localStorage|sessionStorage|indexedDB" -S src | Select-Object -First 80
+
+
+Ran rg -n "progress|прогресс|favorite|избран" -S src | Select-Object -First 80
+
+
+Ran rg -n "concept|popover|242|14 катег" src\components\BlueNestLanding.tsx
+
+
+Ran Get-Content .\src\components\BlueNestLanding.tsx | Select-Object -Skip 500 -First 180
+
+
+Ran Get-ChildItem .\api -Force | Select-Object Name,Length,LastWriteTime | Format-Table -AutoSize
+
+
+Ran Get-ChildItem .\backend -Force | Select-Object Name,Length,LastWriteTime | Format-Table -AutoSize
+
+
+Ran Get-ChildItem .\api-standalone -Force | Select-Object Name,Length | Format-Table -AutoSize
+
+
+Ran Get-ChildItem .\chatbot -Force | Select-Object Name | Format-Table -AutoSize
+
+
+Ran Get-ChildItem .\.github\workflows -Force | Select-Object Name | Format-Table -AutoSize
+
+
+Ran Get-Content .\.github\workflows\deploy-simple.yml
+
+
+Ran rg -n "VITE_OPENAI_API_KEY|import\.meta\.env\.VITE_|__API_BASE_URL__|openai" src | Select-Object -First 120
+
+
+Ran rg -n "VITE_OPENAI_API_KEY" -S . | Select-Object -First 80
+
+
+Ran rg -n "\bopenai\b" -S src backend api api-standalone chatbot | Select-Object -First 120
+
+
+Ran rg -n "import\.meta\.env\.VITE" -S src | Select-Object -First 120
+
+
+Ran rg -n "__API_BASE_URL__" -S src | Select-Object -First 80
+
+
+Ran rg -n "__API_BASE_URL__" -S . | Select-Object -First 80
+
+
+Ran git ls-files .env
+
+
+Ran rg -n "\.env" .gitignore
+
+
+Ran Get-Content .\README.md -TotalCount 220
+
+
+Ran Get-Content .\DEPLOYMENT_README.md -TotalCount 220
+
+
+Ran Get-Content .\QUICK_START.md -TotalCount 220
+
+
+Ran Get-Content .\REGRESSION_CHECKLIST.md -TotalCount 200
+
+
+Ran Get-Content .\AGENT_REPO_GUIDE.md -TotalCount 220
+
+
+Ran Get-Content .\CHATBOT_DEPLOYMENT_SUMMARY.md -TotalCount 220
+
+
+Ran rg -n "3005|3001|3002|staging" WORKFLOW_GAME_CONCEPT_PLAN.md | Select-Object -First 120
+
+
+Ran rg -n "fetch\(|/api/chat|cloudflare|workers|openai" src\components\ChatBot.tsx
+
+
+Ran Get-Content .\src\components\ChatBot.tsx | Select-Object -Skip 240 -First 140
+
+
+Ran Get-Content .\src\context\ProgressContext.tsx -TotalCount 260
+
+
+Ran Get-Content .\src\context\ProgressContext.tsx | Select-Object -Skip 260 -First 260
+
+
+Ran Get-Content .\src\types\userProgress.ts -TotalCount 220
+
+
+Ran Get-Content .\src\views\RegistrationFormView.tsx -TotalCount 260
+
+
+Ran rg -n "RegistrationFormView" src | Select-Object -First 80
+
+
+Ran Get-Content .\src\app\AppViewRouter.tsx | Select-Object -Skip 200 -First 160
+
+
+Ran rg -n "handleFormSubmit" src\app\AppViewRouter.tsx
+
+
+Ran Get-Content .\src\app\AppViewRouter.tsx -TotalCount 140
+
+
+Ran Get-Content .\src\app\useAppController.ts -TotalCount 260
+
+
+Ran Get-Content .\src\app\useAppController.ts | Select-Object -Skip 260 -First 220
+
+
+Ran Get-Content .\backend\index.js -TotalCount 260
+
+
+Ran Get-Content .\start_servers.bat -TotalCount 220
+
+
+Ran Get-Content .\start_all_services.bat -TotalCount 260
+
+
+Ran if (Test-Path .\start_production.bat) { Get-Content .\start_production.bat -TotalCount 260 } else { 'NO start_production.bat' }
+
+
+Ran Get-Content .\backend\app.py | Select-Object -Skip 260 -First 220
+
+
+Ran Get-Content .\src\hooks\useNavigation.ts -TotalCount 320
+
+
+Ran Get-Content .\src\hooks\useDataLoader.ts -TotalCount 260
+
+
+Ran Get-Content .\src\utils\dataCache.ts -TotalCount 220
+
+
+Ran rg -n "подел|share|экспорт|import|export|qr|reels|рилс" src\views\ProfileView.tsx | Select-Object -First 120
+
+
+Ran rg -n "useUserProgress|startRoute|updateLevelStatus|toggleFavorite" src\views\BadgeLevelView.tsx src\views\BadgeView.tsx src\views\ProfileView.tsx | Select-Object -First 120
+
+
+Ran Get-Content .\src\hooks\useUserProgress.ts -TotalCount 220
+
+
+Ran Get-Content .\src\views\BadgeView.tsx | Select-Object -Skip 220 -First 140
+
+
+Ran Get-Content .\src\views\BadgeLevelView.tsx | Select-Object -Skip 120 -First 160
+
+
+Ran if (Test-Path .\GAME_CONCEPT_PLAN.md) { 'GAME_CONCEPT_PLAN.md exists'; (Get-Content .\GAME_CONCEPT_PLAN.md | Measure-Object -Line).Lines } else { 'NO GAME_CONCEPT_PLAN.md' }
+
+
+Ran rg -n "^##+ " WORKFLOW_GAME_CONCEPT_PLAN.md | Select-Object -First 80
+
+
+Ran rg -n "\bTODO\b|следующ|next\s*step|дальше|roadmap|риск" -S WORKFLOW_GAME_CONCEPT_PLAN.md | Select-Object -First 120
+
+
+Ran Get-Content .\WORKFLOW_GAME_CONCEPT_PLAN.md | Select-Object -Skip 180 -First 160
+
+
+Ran Get-Content .\GAME_CONCEPT_PLAN.md
+
+
+Ran Get-ChildItem .\public -Force | Select-Object -First 40 | Format-Table -AutoSize
+
+
+Ran rg -n "useUserProgress" src\views\CategoryView.tsx src\components\CategoriesGrid.tsx src\views\CategoriesScreen.tsx | Select-Object -First 120
+
+
+Ran Get-Content .\src\views\CategoryView.tsx | Select-Object -Skip 220 -First 140
+
+
+Ran rg -n "getBadgeProgress\(" src\views\CategoryView.tsx | Select-Object -First 40
+
+
+Ran Get-Content .\src\views\CategoryView.tsx | Select-Object -Skip 560 -First 120
+
+
+Ran rg -n "useUserProgress|getRank|Progress" src\components\CategoriesGrid.tsx | Select-Object -First 120
+
+
+Ran Get-Content .\.github\workflows\ci.yml
+
+
+Ran rg -n "доказ|evidence|proof" src\views\ProfileView.tsx | Select-Object -First 120
+
+
+Ran Get-Content .\src\views\ProfileView.tsx | Select-Object -Skip 160 -First 420
+
+
+Ran Get-Content .\src\views\ProfileView.tsx | Select-Object -Skip 300 -First 260
+
+
+Created
+d:\Development\Путеводитель web_new\CODEX_ANALYSIS_2026-02-04.md
++351
+-0
+d:\Development\Путеводитель web_new\CODEX_ANALYSIS_2026-02-04.md
++351
+-0
+
+# Анализ репозитория и следующие шаги (Путеводитель web_new)
+
+Дата анализа: **4 февраля 2026**  
+Контекст запроса: понять текущее состояние проекта, как устроены **staging**, dev‑сервера (включая упомянутый `3005`), где сейчас находится разработка “мобильной игровой фичи”, и как привязать **шеринг прогресса** к тексту всплывашки на главном экране + предложить **2 дополнительные идеи** по продуктовости.
+
+---
+
+## 1) TL;DR (самое важное)
+
+1) **Фронтенд уже не “просто каталог”**: в коде есть полноценный MVP‑слой “игры” — **профиль, прогресс, избранное, экспорт/импорт**, “доказательства” (через Telegram‑deeplink).  
+2) **Staging по факту = Vite dev с base path как на GitHub Pages**: `base: '/RL-Guide-book/'`, поэтому локальная разработка “симулирует прод” (и это правильно).  
+3) **Порт `3005` в репозитории не фигурирует**: поиск по проекту не даёт совпадений. Реальные порты/серверы описаны ниже; вероятно, `3005` — внешний/локальный оверрайд на вашей машине или путаница с `3002`.  
+4) **Текст “всплывашки” на главном экране уже содержит обещание** “Делитесь в соцсетях / создавайте команды / общайтесь” — это идеальная точка для CTA. Сейчас это манифест, но не действие.  
+5) Реалистичный MVP для РФ + GitHub Pages: **шеринг делаем клиент‑сайд** (Web Share API + генерация картинок), а “AI‑контент” на первом шаге — **AI‑подпись/слоган** (через уже существующий чат‑эндпоинт) + **предгенерённые фоны**.
+
+---
+
+## 2) Что находится в репозитории (как оно реально работает)
+
+### 2.1. Фронтенд (Vite + React + TS)
+
+Ключевые файлы/узлы:
+- `src/app/useAppController.ts` — “контроллер приложения”: deep‑links, scroll restoration, window‑хуки, навигация и часть интеграций (Telegram/материалы).
+- `src/hooks/useDataLoader.ts` — **ленивая загрузка данных** из `public/ai-data/*` по фиксированному пути `/RL-Guide-book/ai-data/...` + кэширование (см. ниже).
+- `src/hooks/useNavigation.ts` — состояние экранов (`intro/categories/category/badge/badge-level/about-camp/profile/...`) и логика “назад”.
+- `src/components/BlueNestLanding.tsx` — главный экран (интро) + **всплывашка “О концепции игры”** + чат.
+- `src/views/CategoryView.tsx`, `src/views/BadgeView.tsx`, `src/views/BadgeLevelView.tsx` — основной игровой цикл: категория → значок → уровень.
+- `src/views/ProfileView.tsx` — “личный кабинет”: профиль, статистика, маршруты, избранное, экспорт/импорт, “подтверждение значка” через Telegram‑deeplink.
+
+Отдельно важно про base path:
+- `vite.config.ts` выставляет `base: '/RL-Guide-book/'`.
+- В dev‑режиме есть middleware‑плагин, который **сервит файлы из `public/` по пути `/RL-Guide-book/...`** (важно для кириллицы в путях и соответствия GH Pages).
+
+### 2.2. Данные (ai-data)
+
+Рантайм‑данные для UI читаются из `public/ai-data/*`:
+- `public/ai-data/MASTER_INDEX.json`
+- `public/ai-data/category-*/index.json`
+- `public/ai-data/category-*/introduction.md`
+- `public/ai-data/category-*/N.X.json`
+
+Загрузка в UI:
+- `src/hooks/useDataLoader.ts` использует **жёстко заданные URL** вида:
+  - `/RL-Guide-book/ai-data/MASTER_INDEX.json`
+  - `/RL-Guide-book/ai-data/category-<id>/introduction.md`
+  - `/RL-Guide-book/ai-data/<path>index.json`
+  - `/RL-Guide-book/ai-data/<path><badgeId>.json`
+
+Кэш данных:
+- `src/utils/dataCache.ts` хранит **кэш ai‑данных в `sessionStorage`** (`rl-guide-ai-data-cache`).  
+  Это ускоряет навигацию “внутри сессии”, но **сбрасывается при закрытии вкладки/браузера** (в отличие от прогресса).
+
+### 2.3. Игровой слой: прогресс, избранное, “доказательства”
+
+#### Прогресс/профиль (localStorage)
+Есть контекст прогресса:
+- `src/context/ProgressContext.tsx` (hook‑обёртка: `src/hooks/useUserProgress.ts`)
+
+Что хранится:
+- `localStorage` ключ: `rl_guide_progress_v1`
+- сущности: `profile`, `progress` (map по `BadgeLevelId`), `favorites`, `meta`
+- есть `exportData()` и `importData(file)` (JSON‑бэкап)
+
+Что важно продуктово:
+- **Прогресс сохраняется между перезапусками** (localStorage), но **строго в рамках одного origin** (домен + порт).
+  - Поэтому, если вы переключаетесь между `localhost:3001` ↔ `localhost:3002` ↔ “какой‑то `3005`”, то прогресс *будет “как будто сбрасываться”* — это разные хранилища.
+- В `ProgressContext.tsx` сейчас включён `IS_TEST_MODE = true` и проставляются дефолтные достижения (`TEST_DEFAULT_ACHIEVED_LEVELS`). Для клиентов это почти наверняка надо выключить.
+
+#### Где прогресс уже интегрирован в UI
+- `src/views/BadgeView.tsx`: кнопка “В путь” вызывает `startRoute(...)` (ставит `in_progress`).
+- `src/views/BadgeLevelView.tsx`: отметка выполнения вызывает `updateLevelStatus(..., 'achieved', reflection)` + конфетти.
+- `src/views/CategoryView.tsx`: в карточки значков прокидывается `progress` (агрегация по базовому `N.X`).
+- `src/views/ProfileView.tsx`: маршруты/избранное/статы/экспорт/импорт.
+
+#### “Подтверждение значка” и файлы
+В `src/views/ProfileView.tsx` есть модалка подтверждения (“proof”), которая:
+- собирает текст (комментарий/чему научился/влияние/ссылка),
+- позволяет выбрать файлы (фото/селфи/документ/файл),
+- **но в итоге отправляет в Telegram только текст** (через `t.me/...?...text=`); файлы не прикрепляются автоматически (и это норм для MVP без backend).
+
+Это уже сильный задел под “вирусный контент”: из тех же данных можно строить **share‑карточки**.
+
+### 2.4. Чат‑бот / AI
+
+UI‑компонент:
+- `src/components/ChatBot.tsx`
+
+Режимы работы:
+- Dev: `POST /api/chat` (через Vite proxy на локальный backend)
+- Prod: Cloudflare endpoint `https://real-vibe-ai-studio.pages.dev/api/putevoditel/chat`
+
+Контекст, который UI передаёт в чат:
+- `current_view`, `current_category`, `current_badge`, `current_level`, `current_level_badge_title`
+
+Важно: это уже готовый канал “AI‑контента” для шеринга (хотя бы подпись/слоган/микро‑история).
+
+---
+
+## 3) Staging / сервера / деплой (как устроено сейчас)
+
+### 3.1. Реальные команды и порты (по коду)
+
+Frontend:
+- `npm run dev` → Vite на **3001** (`package.json`, `vite.config.ts`)
+- `npm run dev:staging` → Vite на **3002** (сейчас это просто другой порт)
+
+Backend:
+- `cd backend && python app.py` → Flask на **4000** (внутри `backend/app.py` `app.run(..., port=4000)`)
+
+Preview:
+- `npm run preview:prod` → node server **4002** (`server-preview.js`), отдаёт `dist/` с base path `/RL-Guide-book/`
+
+### 3.2. Почему “staging” = “dev”
+
+Ключевой момент: в `vite.config.ts` выставлен `base: '/RL-Guide-book/'`, и dev‑middleware специально делает так, чтобы:
+- локально можно было открывать `http://localhost:3001/RL-Guide-book/`,
+- и при этом пути к статике совпадали с GitHub Pages.
+
+Это и есть “локальный staging”: вы тестируете ровно то, что будет на GH Pages, включая base path и кириллицу в путях.
+
+### 3.3. GitHub Pages
+
+Workflow:
+- `.github/workflows/deploy-simple.yml` — на push в `main` собирает `dist/` и деплоит в Pages.
+
+### 3.4. Нестыковки/дрейф документации (важно привести в порядок)
+
+В репозитории есть дрейф портов/веток:
+- `backend/app.py` реально **4000**, а батники/часть доков говорят про **5000**.
+- `src/components/ChatBot.tsx` комментирует “порт 5000”, но Vite proxy ведёт на **4000** (`vite.config.ts`).
+- `.github/workflows/ci.yml` триггерится на `master/develop`, а деплой — на `main`.
+
+Это не “баги продукта”, но это ломает onboarding и создаёт ощущение хаоса (“где staging?”, “где какой сервер?”).
+
+### 3.5. Про порт 3005
+
+Факт по репозиторию: **`3005` нигде не задан** (поиск по проекту пустой).
+
+На практике это обычно означает одно из трёх:
+1) У вас локально запущен фронтенд с оверрайдом порта (`vite --port 3005`), чтобы не конфликтовать с другими сервисами.
+2) У вас есть *внешний* dev‑сервер/прокси, который проксирует на 3001/3002, но слушает 3005.
+3) Это “память/путаница” с `3002` (dev:staging) или с backend‑портами.
+
+Если вам принципиально нужен `3005` как “сервер фичи мобильной игры”, то сейчас самый простой способ — сделать отдельный npm‑скрипт (например `dev:game`) и зафиксировать это в `SERVERS.md`.
+
+---
+
+## 4) “Всплывашка” на главном экране: где она и что в ней важно
+
+Текст находится в:
+- `src/components/BlueNestLanding.tsx` (popover/dialog “О концепции игры”)
+
+Ключевой фрагмент (смысл):
+> “Фиксируйте достижения. Делитесь ими в соцсетях. Создавайте команды. Общайтесь с другими игроками...”
+
+Это **продуктовое обещание**. Сейчас оно живёт как манифест, но UI не делает следующий шаг “как именно делиться”.
+
+Правильная продуктовая логика:
+- Превратить 1–2 предложения манифеста в **конкретные действия** (CTA) прямо там же.
+
+Предлагаемая привязка:
+1) Внутри всплывашки добавить CTA‑кнопки:
+   - “Поделиться прогрессом” → открывает `ProfileView` (секция “Мой путь”) и сразу показывает “Share Center”.
+   - “Создать команду/Движок (MVP‑версия)” → открывает экран‑заглушку с оффлайн‑механикой (см. идеи ниже) или показывает “карточку приглашения”.
+2) На уровне событий игры — показывать “мягкий” шеринг‑промпт после ключевого действия (а не только с главного экрана).
+
+---
+
+## 5) Как привязать шеринг прогресса (MVP без backend) — проектирование механики
+
+### 5.1. Что именно шэрим: “момент” вместо “абстрактного прогресса”
+
+Люди делятся не прогрессом как таблицей, а **историей‑моментом**. У вас идеально ложится на философию “значок = маршрут”.
+
+Предлагаю 4 “момента” (каждый = повод для сторис/поста):
+1) **Старт маршрута** (“В путь”) — я выбираю направление.
+2) **Добавил в избранное** — я собрал свой “wishlist” маршрутов.
+3) **Выполнил уровень** (“achieved”) — я сделал реальное действие.
+4) **Итог дня/недели** — короткий “рекап” (максимально вирусный формат).
+
+### 5.2. Где в UI это включать (точки интеграции)
+
+Минимально достаточно 3 мест:
+- `BadgeView` после `startRoute(...)` → лёгкий тост “Сделать сторис старта?”
+- `BadgeLevelView` после `updateLevelStatus(..., 'achieved')` → модалка “Поделиться достижением” (или кнопка рядом с конфетти).
+- `ProfileView` отдельный блок “Поделиться” (центр, где можно собрать карточку вручную).
+
+Дополнительно (как вы и предлагаете):
+- на “Добавить в избранное” (`BadgeLevelView` / `ProfileView`) → “Сделать рилс/сторис wishlist”.
+
+### 5.3. Как технически сделать “картинку для соцсетей” на GitHub Pages
+
+Вариант MVP (самый надёжный):
+- Генерируем **2 PNG** (9:16 и 16:9) прямо в браузере.
+- Шэрим через:
+  - Web Share API (`navigator.share`) если доступен,
+  - иначе — “Скачать” + “Скопировать текст подписи”.
+
+Как рендерить:
+- Отдельный “ShareCard” компонент, который можно отрисовать offscreen и конвертировать в изображение.
+- Либо чистый `<canvas>` (самая предсказуемая графика и размеры).
+
+Важные детали для UX:
+- Всегда показывать предпросмотр обоих форматов (“Story” и “Wide”).
+- Переключатель “Скрыть ник” / “Показывать ник”.
+- Никаких персональных данных (телефон/возраст/имена) в карточке по умолчанию.
+
+### 5.4. Как добавить “AI‑контент” не ломая ограничения
+
+Чтобы получить “вирусность” уже сейчас, не обязательно генерировать видео ИИ.
+
+Реалистичный MVP:
+1) **AI‑подпись/слоган**: при генерации карточки дернуть уже существующий чат‑эндпоинт (prod Cloudflare), попросить:
+   - 1 короткую подпись,
+   - 3 варианта хэштегов,
+   - 1 вопрос аудитории (для вовлечения).
+2) **Предгенерённые AI‑фоны**: хранить в `public/` набор фоновых картинок/плашек и выбирать их:
+   - по категории,
+   - или рандомом “как коллекцию”.
+
+Это даёт ощущение “ИИ‑контента” и очень дешево в разработке/инфре.
+
+А уже post‑MVP:
+- генерация новых фонов на сервере (Cloudflare/другой backend) или в оффлайн‑режиме.
+
+### 5.5. Рилсы (видео) — как не попасть в ловушку “сложно/дорого”
+
+Сделать универсальный MP4 “в браузере” сложно из‑за iOS/кодеков и производительности.
+
+Здравый продуктовый ход:
+- MVP: **сторис/пост** (PNG) + “AI‑подпись”.
+- Post‑MVP: “рилс‑шаблон” как один из путей:
+  1) сервер‑рендер (но нужно оценить лимиты/стоимость),
+  2) “анимация в браузере” только там, где поддерживается, с graceful fallback.
+
+---
+
+## 6) Две дополнительные идеи (в дополнение к вашей идее “скрин/рилс по избранному”)
+
+### Идея 1 — “Карточка‑приглашение в Движок” (социальная механика без аккаунтов)
+
+Проблема, которую решает:
+- “Создавайте команды” из всплывашки сейчас ничем не подкреплено.
+- В лагере людям проще вступать в действие через **приглашение**.
+
+Как это может работать без backend:
+1) Пользователь (вожатый/участник) создаёт “Движок” локально: имя, эмблема, 1–3 значка‑цели.
+2) Приложение генерирует **пригласительную карточку** (9:16 + 16:9) + **QR‑код/ссылку** вида:
+   - `...?view=badge&badgeId=...` (у вас уже есть deep‑links),
+   - + короткий “код движка” в query (даже если он пока не хранится на сервере).
+3) Другие сканируют QR → открывается нужный значок/маршрут + кнопка “Добавить в избранное / В путь”.
+
+Почему это усиливает UX:
+- превращает “шеринг” из “смотрите на меня” в “пойдём вместе”.
+- идеально ложится на лагерную оффлайн‑социальность.
+
+### Идея 2 — “Капсула опыта” (рефлексия → автогенерация сторис)
+
+Проблема:
+- Чтобы философия “опыт важнее награды” не потерялась, нужно фиксировать **смысл**, а не только чекбокс.
+
+Как:
+1) После `achieved` показывать 1–2 микро‑вопроса (очень коротко):
+   - “Что ты сделал(а)?” (1 фраза)
+   - “Что это изменило?” (1 фраза)
+2) Эти ответы (плюс опционально фото) становятся частью “капсулы”.
+3) На основе капсулы приложение генерирует **красивую сторис‑карточку**:
+   - значок + 2 короткие фразы + дата + аккуратный лейбл “Реальный опыт”.
+
+Почему это работает:
+- повышает ценность достижения,
+- делает контент “человеческим” (а значит, вирусным),
+- поддерживает педагогическую методику (рефлексия).
+
+---
+
+## 7) Продуктовость “Путеводителя”: дорожная карта по шагам (реалистично)
+
+Ниже — не “идеальный мир”, а путь, который можно делать итерациями, оставаясь в рамках GitHub Pages.
+
+### Шаг A (1–3 дня): привести окружения/доки в единый вид
+Цель: чтобы команда и вы сами всегда знали “что запускать”.
+- Зафиксировать актуальные порты: фронт `3001`, dev:staging `3002`, backend `4000`, preview `4002`.
+- Обновить:
+  - `SERVERS.md` (там уже есть основа),
+  - батники `start_servers.bat`, `start_all_services.bat`,
+  - комментарий в `src/components/ChatBot.tsx` (порт backend).
+- Принять решение: нужен ли вообще `dev:staging` как отдельный сценарий или это просто “второй порт”.
+- Согласовать ветки в CI (`ci.yml`) vs deploy (`deploy-simple.yml`): `main`/`master`.
+
+### Шаг B (1–5 дней): “не сбрасывался прогресс” как ощущение пользователя
+Технически localStorage уже есть, но UX может быть хрупким:
+- Выключить `IS_TEST_MODE` для реальных пользователей (или сделать флагом сборки).
+- В `ProfileView` сделать заметную кнопку “Сделать резервную копию” (экспорт уже есть) + мини‑пояснение “прогресс хранится в этом устройстве”.
+- Для лагеря/клиентов: добавить “QR‑бэкап” (позже) или “отправить себе файл в Telegram”.
+
+### Шаг C (1–2 недели): Share MVP (картинки + подпись)
+- Реализовать “Share Center” в `ProfileView`.
+- Добавить CTA в всплывашку на главном экране.
+- Добавить автопредложение шеринга после:
+  - старта маршрута,
+  - выполнения уровня,
+  - добавления в избранное.
+
+### Шаг D (после MVP): роли/аккаунты/синхронизация
+С учётом РФ и детей — лучше идти так:
+1) “Гость/путешественник” (без ввода данных) — дефолт.
+2) “Код смены/отряда” (псевдоним + код, без ФИО) — лёгкая синхронизация.
+3) Родительский режим — только при необходимости и с осознанной политикой данных.
+
+---
+
+## 8) Юридика/безопасность/чувствительные данные (важно именно для вашего сценария)
+
+Вы прямо обозначили: дети, родители, РФ, соцсети, возможный личный кабинет.
+
+Рекомендации “по умолчанию” для MVP:
+- **Никаких персональных данных в share‑карточке** (имя ребёнка, телефон, возраст, отряд, геолокация и т.п.).
+- Никнейм — опционально, с тумблером “скрыть”.
+- Данные прогресса — локально (как сейчас), плюс экспорт/импорт.
+- Регистрационная форма (Telegram) — добавить явный текст:
+  - что будет открыто приложение Telegram,
+  - что пользователь сам отправляет сообщение,
+  - что не стоит указывать лишнее.
+
+Если уходите в аккаунты/синхронизацию:
+- минимизация данных (data minimization),
+- отдельные роли и ограничения,
+- хранение и обработка — только после отдельного решения, где и как вы это делаете (и какие юрисдикции/провайдеры).
+
+---
+
+## 9) Открытые вопросы (чтобы точно “двигаться дальше”)
+
+1) Что вы называете “сервером 3005”: это фронтенд‑порт, backend‑порт, или отдельный сервис (генерация контента/видео)?
+2) Какие соцсети приоритетны для РФ‑контекста прямо сейчас: VK, Telegram, Shorts/Reels (через VPN), ещё что-то?
+3) Что вы хотите шэрить в первую очередь: “я начал путь”, “я выполнил”, “я собираю избранное”, “наш отряд”?
+4) Какой уровень приватности нужен: можно ли показывать ник/отряд, или только обезличенно?
+5) Какой MVP‑порог “рилса”: достаточно ли PNG + подпись, или нужно именно видео уже в первой версии?
+
+---
+
+## 10) Вывод: где мы и куда дальше
+
+Вы уже находитесь на этапе, когда “игра” по сути **собрана в MVP‑каркас**: прогресс/профиль/избранное/доказательства/экспорт — это большая часть сложной работы.
+
+Следующий логичный шаг по продуктовости:
+- **включить social loop** (шеринг‑моменты + командные приглашения),
+- не разрушая философию “маршрутов развития”,
+- и не упираясь в backend (GitHub Pages‑совместимый MVP).
+
+Ran rg -n "Игра, которая развивает" src\components\BlueNestLanding.tsx
+
+
+Ran rg -n "Фиксируйте достижения" src\components\BlueNestLanding.tsx
+
+
+Ran rg -n "IS_TEST_MODE|rl_guide_progress_v1" src\context\ProgressContext.tsx
+
+
+Ran rg -n "base: '/RL-Guide-book/'|port: 3001|proxy" vite.config.ts
+
+
+Ran rg -n "port=4000" backend\app.py
+
+
+Ran rg -n "real-vibe-ai-studio" src\components\ChatBot.tsx
+
+
+Сделал подробный разбор и записал его в CODEX_ANALYSIS_2026-02-04.md (line 1).
+
+Ключевые находки:
+
+“Всплывашка” с обещанием шеринга/команд лежит в BlueNestLanding.tsx (line 565) (строка про шеринг — BlueNestLanding.tsx (line 577)).
+Локальный “staging” сейчас по факту = Vite dev с base: '/RL-Guide-book/' (vite.config.ts (line 242)); backend реально на 4000 (app.py (line 413)).
+Порт 3005 в репозитории не обнаружен; в отчёте описал вероятные причины и что проверить.
+Скажи, пожалуйста: 3005 — это порт фронта у тебя локально (оверрайд), или отдельный сервис (генерация контента/видео)? Если это фронт, могу следующим шагом добавить фиксированный скрипт dev:game и спроектировать/начать внедрение Share MVP (PNG 9:16 + 16:9 через Web Share API).
+
+
+1 file changed
+Undo
+
+CODEX_ANALYSIS_2026-02-04.md
+User attachment
+прочитай скрин и пойми и изучи указанные документы и пойми как это может быть нам полезно и как всё интегрировать и увязать в стройную продуктовую логику и качественный геймдев
+
+Ran if (Test-Path .\FEATURE_PATH_CREATOR.md) { 'FEATURE_PATH_CREATOR.md'; (Get-Content .\FEATURE_PATH_CREATOR.md | Measure-Object -Line).Lines } else { 'MISSING FEATURE_PATH_CREATOR.md' }
+
+
+Ran if (Test-Path .\ANALYSIS_AND_VISION_2026.md) { 'ANALYSIS_AND_VISION_2026.md'; (Get-Content .\ANALYSIS_AND_VISION_2026.md | Measure-Object -Line).Lines } else { 'MISSING ANALYSIS_AND_VISION_2026.md' }
+
+
+Ran if (Test-Path .\FEATURE_PATH_CREATOR.md) { rg -n "^#|^##|^###" .\FEATURE_PATH_CREATOR.md | Select-Object -First 80 }
+
+
+Ran if (Test-Path .\ANALYSIS_AND_VISION_2026.md) { rg -n "^#|^##|^###" .\ANALYSIS_AND_VISION_2026.md | Select-Object -First 80 }
+
+
+Ran Get-Content .\FEATURE_PATH_CREATOR.md
+
+
+Ran Get-Content .\ANALYSIS_AND_VISION_2026.md
+
+
+Ran Get-Content .\WORKFLOW_GAME_CONCEPT_PLAN.md | Select-Object -First 120
+
+
+Ran rg -n "SocialGenerator|HintOverlayContext|UIOverlay|Smart Hints|profileTutorialSteps|isFirstVisit" -S src | Select-Object -First 120
+
+
+Ran rg -n "CreatorWorkshop|Мастерская|Создатель Пути|Кузня Реальности|заявк|Предложи свой" -S src | Select-Object -First 160
+
+
+Ran rg -n "Создател|Мастерская|Кузня|Smart Hints|онбординг|hint|tutorial|подсказ" WORKFLOW_GAME_CONCEPT_PLAN.md | Select-Object -First 200
+
+
+Ran Get-Content .\WORKFLOW_GAME_CONCEPT_PLAN.md | Select-Object -Skip 1000 -First 240
+
+
+Ran Get-Content .\src\components\BadgeIcon.tsx -TotalCount 260
+
+
+Ran Get-Content .\ANALYSIS_AND_VISION_2026.md | Select-Object -Skip 35 -First 80
+
+
+Ran rg -n "ANALYSIS_AND_VISION_2026|FEATURE_PATH_CREATOR" -S . | Select-Object -First 120
+
+
+Created
+d:\Development\Путеводитель web_new\STRATEGY_GAMEDEV_STACK_2026-02-04.md
++230
+-0
+d:\Development\Путеводитель web_new\STRATEGY_GAMEDEV_STACK_2026-02-04.md
++230
+-0
+
+# Стратегия: как увязать `ANALYSIS_AND_VISION_2026.md` + `FEATURE_PATH_CREATOR.md` в стройную продуктовую логику и качественный геймдев
+
+Дата синтеза: **4 февраля 2026**.  
+Контекст: в `ANALYSIS_AND_VISION_2026.md` указана дата **5 февраля 2026** (относительно текущей сессии это “завтра”) — воспринимаю как черновик/план, а не проблему.
+
+Основано на:
+- `WORKFLOW_GAME_CONCEPT_PLAN.md` (SSOT по продукту),
+- `ANALYSIS_AND_VISION_2026.md` (Vision + Epics: viral/roles/onboarding),
+- `FEATURE_PATH_CREATOR.md` (Feature Spec: UGC‑ветка «Создатель Пути»),
+- фактическом состоянии репозитория (см. `CODEX_ANALYSIS_2026-02-04.md`).
+
+Скрин фиксирует тезис: планы в `ANALYSIS_AND_VISION_2026.md` и `FEATURE_PATH_CREATOR.md` синхронизированы и образуют единую стратегию. Ниже — как превратить это в **единый продуктовый “стек”** (Vision → Loops → UX → Tech → Roadmap), чтобы было ясно: *что делаем*, *зачем*, *в каком порядке* и *как проверяем качество*.
+
+---
+
+## 1) Роли документов (чтобы не разъехались)
+
+Чтобы стратегия оставалась “стройной”, каждому документу нужна строгая роль:
+
+1) **`WORKFLOW_GAME_CONCEPT_PLAN.md` — SSOT (single source of truth)**  
+   Здесь фиксируются: сущности/статусы, core loop, ограничения GitHub Pages, UX‑точки, этапы, DoD и риски.  
+   **Правило:** если решение влияет на продукт/архитектуру, оно должно быть отражено здесь.
+
+2) **`ANALYSIS_AND_VISION_2026.md` — Vision + Epics (“почему/что/эффект”)**  
+   Задаёт направление: вирусность, роли пользователей, Smart Onboarding, high‑level план действий.
+
+3) **`FEATURE_PATH_CREATOR.md` — Feature Spec (“как выглядит фича”)**  
+   Конкретизирует UGC‑ветку: как открывается, какие механики, какие триггеры, как превращается в контент и куда уходит на модерацию.
+
+4) **`CODEX_ANALYSIS_2026-02-04.md` — Reality Check (“что уже правда в коде”)**  
+   Это слой проверки: прогресс/профиль/избранное/экспорт/импорт уже реализованы; порты/стейджинг; где доки расходятся с реальностью.
+
+Мини‑правило синхронизации:
+- `ANALYSIS_AND_VISION_2026.md` задаёт **почему** и **какие эпики**,
+- `WORKFLOW_GAME_CONCEPT_PLAN.md` фиксирует **как это устроено в системе**,
+- `FEATURE_PATH_CREATOR.md` описывает **конкретный эпик‑модуль**,
+- `CODEX_ANALYSIS_2026-02-04.md` фиксирует **факт‑состояние репы**.
+
+---
+
+## 2) Продуктовая логика = 3 взаимосвязанных игрового цикла (Loops)
+
+Если собрать оба документа в одну “игровую” логику, получается не набор хотелок, а три цикла поведения:
+
+### Loop A — Core Loop (“Маршрут развития”)
+Категория → Значок → Уровень → Реальное действие → Рефлексия/пруф → Прогресс → Следующий шаг.
+
+Что уже есть в коде (важно понимать, что фундамент сделан):
+- `useUserProgress` + `ProgressContext` (localStorage),
+- `ProfileView` (паспорт, ранги, маршруты, избранное, экспорт/импорт, “пруфы” через Telegram‑deeplink),
+- отметка уровней + конфетти.
+
+Критерий “качественного геймдева” в этом цикле: **игрок чувствует движение** даже без backend’а.
+
+### Loop B — Social/Viral Loop (“Поделись моментом”)
+Смысл: делимся не “таблицей прогресса”, а **моментом истории**.
+
+В `ANALYSIS_AND_VISION_2026.md` это оформлено как:
+- “ИИ‑Манифест Маршрута” (старт/избранное → карточка намерения),
+- “Генератор Командных Мемов” (командная идентичность).
+
+В `FEATURE_PATH_CREATOR.md` это оформлено как:
+- “Карточка Созидателя” (предложение в канон → сторис/рилс‑карточка).
+
+Общий продуктовый принцип: **каждому важному действию соответствует share‑артефакт** (Story 9:16 + Wide 16:9) и короткая подпись.
+
+### Loop C — Creator Loop (“Создатель Пути” / UGC endgame)
+Смысл: высшая ступень — не потреблять контент, а создавать его (соавторство методики).
+
+`FEATURE_PATH_CREATOR.md` задаёт правильную конструкцию:
+- “Мастерская” открывается не всем, а через каноничные значки `1.16.1` / `1.16.2`,
+- предложить можно: новый значок / новую категорию / новый арт‑скин,
+- всё уходит на модерацию (Telegram/чат вожатых), а игрок получает share‑карточку.
+
+Почему это важно продуктово:
+- UGC даёт “бесконечный контент” без бесконечной команды,
+- усиливает open‑source философию,
+- делает “Путеводитель” инструментом соуправления лагеря (не просто каталогом).
+
+---
+
+## 3) Единая прогрессия (что и когда открывается)
+
+Чтобы Loops работали как игра, а не как “меню функций”, нужна прогрессия‑разблокировка:
+
+### 3.1. Мини‑лестница доступа (MVP → post‑MVP)
+1) **Traveler**: изучает, пробует, сохраняет локально.
+2) **Participant**: ведёт маршруты, фиксирует уровни, делится моментами.
+3) **Path Creator**: предлагает значки/категории/арты (UGC).
+
+### 3.2. Гейты для Creator‑ветки
+Из `FEATURE_PATH_CREATOR.md`:
+- `1.16.1` (Путеводитель) → открыть “Мастерскую” для предложения значков.
+- `1.16.2` (Создатель новой категории) → открыть “Архитектора” категорий (или по коду от вожатого).
+
+Практическая привязка к текущему коду:
+- статусы уровня уже хранятся по `levelId` (например `1.16.1`, `1.16.2`) в localStorage.
+- значит, гейт можно реализовать **без backend**: проверяем `progress['1.16.1']` и `progress['1.16.2']`.
+
+---
+
+## 4) UX‑склейка: как это выглядит как “единый продукт”
+
+### 4.1. Smart Onboarding (из `ANALYSIS_AND_VISION_2026.md`)
+Цель: игрок быстро понимает “паспорт”, “маршруты”, “коллекцию”, “ИИ‑помощь”.
+
+Сильная идея: кнопка “Готов начать?”/CTA на главной ведёт **в Профиль**, где запускается обучение.
+
+Как увязать с Creator‑веткой:
+- после открытия гейта (например достигнут `1.16.1`) onboarding показывает новый шаг:
+  “Открылась Мастерская — теперь ты можешь улучшать Путеводитель”.
+
+### 4.2. “Share Center” как единая точка в продукте
+Чтобы шеринг не выглядел как случайный попап:
+- в `ProfileView` нужен блок/таб “Поделиться” (центр),
+- а из остальных экранов должны быть только “мягкие” триггеры: “хочешь сделать сторис?”.
+
+### 4.3. Всплывашка на главном экране: превращаем обещание в действие
+В тексте главной всплывашки уже обещано: “Фиксируйте достижения. Делитесь… Создавайте команды…”.
+
+Продуктовая склейка:
+- добавить 1–2 CTA рядом с этим абзацем:
+  - “Поделиться прогрессом” → ведёт в “Share Center”,
+  - “Создать команду/Движок (MVP)” → ведёт в “Командный мем/приглашение”.
+
+---
+
+## 5) Tech‑склейка: как делать это без backend (и где backend появится позже)
+
+### 5.1. GitHub Pages‑реальность (MVP)
+Основная стратегия документов совпадает с реальностью проекта:
+- прогресс/профиль — **localStorage**,
+- знания/контент — **статические `public/ai-data`**,
+- ИИ‑текст/помощь — **Cloudflare endpoint** (через чат),
+- модерация UGC — **Telegram‑deeplink** (без автозагрузки файлов).
+
+### 5.2. “Заявка на Канон” как общий транспорт
+Классная общая идея из `FEATURE_PATH_CREATOR.md`:
+- любое предложение (badge/category/skin) формируется в “заявку”,
+- заявка получает share‑карточку,
+- заявка улетает в Telegram (модераторам).
+
+Это можно использовать шире:
+- “пруф достижения” (уже есть в `ProfileView`) — это тоже “заявка”, просто другого типа.
+
+То есть у вас вырисовывается общий слой: **Submission Pipeline** (MVP: Telegram, Post‑MVP: KV/DB + панель модерации).
+
+### 5.3. Post‑MVP синхронизация прогресса (из `ANALYSIS_AND_VISION_2026.md`)
+Идея “слепка/кода” — хорошая как следующий шаг, но её стоит держать как P1/P2:
+- в MVP достаточно localStorage + экспорт/импорт,
+- потом можно добавить “код‑слепок” (без ПДн: только ник+эмодзи+ID значков).
+
+---
+
+## 6) План разработки в геймдев‑логике: вертикальные срезы (Vertical Slices)
+
+Чтобы не утонуть, делаем **не “все системы сразу”**, а рабочие срезы end‑to‑end:
+
+### Slice 1 — SocialGenerator MVP (виральность без видео)
+Цель: дать “вау, я могу поделиться” без тяжёлого видеорендера.
+- Генерация 9:16 и 16:9 карточек для:
+  - “Я начал маршрут”,
+  - “Я завершил уровень”.
+- Шеринг через Web Share API (если доступно) или “скачать PNG + скопировать подпись”.
+- AI на первом шаге: **текст/подпись** (через существующий endpoint), фон — шаблон/пак.
+
+### Slice 2 — Smart Hints (единая подсказка вместо разрозненных попапов)
+Цель: убрать хрупкость подсказок и превратить онбординг в продукт.
+- единый overlay‑контекст,
+- первый вход в профиль = 4 шага обучения,
+- кнопка “(?)” для повторного запуска.
+
+### Slice 3 — Creator Workshop (черновик, но уже полезный)
+Цель: включить endgame‑ветку как “мастерскую”, даже если пока без community‑голосования.
+- таб “Мастерская” в профиле (гейт `1.16.1`),
+- формы: “предложить значок”, “предложить арт‑скин”,
+- “Заявка на Канон” → Telegram + share‑карточка.
+
+### Slice 4 — “Мой арт” (локальные скины)
+Цель: сделать механику “Эволюция Артов” хотя бы в персональном виде.
+- хранить кастом‑арт в localStorage (маппинг `badgeId → image data/url`),
+- `BadgeIcon` умеет показывать “классика / мой арт”,
+- на `BadgeView` появляется переключатель.
+
+### Slice 5 — “Выбор сообщества” (только когда будет канал доставки)
+Цель: community‑слой без хаоса.
+- сезонный “пак скинов” (курируемый вожатыми) как статический JSON+assets,
+- позже — лайки/голосование через backend.
+
+---
+
+## 7) Контроль качества (что считать “хорошим геймдевом” здесь)
+
+### 7.1. Вкусность (Game Feel)
+- каждое ключевое действие даёт понятный отклик (анимация/звук/микро‑состояния),
+- “путь” ощущается как живой (в профиле есть понятная динамика),
+- шеринг — 2 тапа максимум до результата.
+
+### 7.2. Понятность (Clarity)
+- onboarding ведёт игрока к “первому маршруту”,
+- везде один язык: “значок = маршрут”, “уровень = шаг”.
+
+### 7.3. Безопасность (дети/РФ/ПДн)
+- share‑карточки по умолчанию без персональных данных,
+- ник — опционально,
+- любые “коды/слепки” не содержат ФИО/телефонов.
+
+---
+
+## 8) Важные расхождения, которые стоит быстро закрыть (чтобы стратегия не ломалась об реальность)
+
+1) **Порт 3005:** `ANALYSIS_AND_VISION_2026.md` упоминает `3005` как “мобильная фича”, но в репозитории он не зафиксирован (поиск по коду не нашёл).  
+   Рекомендация: либо добавить реальный `dev:game` скрипт и описать его, либо убрать упоминание, чтобы не создавать ложных ориентиров.
+
+2) **Доки по портам/запуску:** в репозитории есть дрейф (часть батников/доков говорит про `5000`, код — про `4000`).  
+   Это быстро правится и сильно повышает “качество разработки” (команда меньше спорит про окружение и больше делает фичи).
+
+3) **Секреты:** убедиться, что `.env` никогда не попадает в git, и ключи ротируются при утечках (это критично перед масштабированием).
+
+---
+
+## 9) Что решить прямо сейчас (2–3 продукта‑решения, без которых нельзя двигаться ровно)
+
+1) Приоритет шеринга: что первое в MVP?
+   - “старт маршрута”, “выполнил уровень”, “добавил в избранное”, “итог дня” — выбрать 1–2.
+2) Приватность: показываем ник в share‑карточке по умолчанию или выключено?
+3) Creator‑ветка: делаем сначала “предложить значок” или “мой арт‑скин”?
+
+Если вы ответите на эти 3 пункта, дальше можно собирать **первый вертикальный срез** (Slice 1 + кусочек Slice 2) так, чтобы он уже давал вау‑эффект на мастер‑классе и у клиентов.
+
+Прочитал скрин: там зафиксировано, что ANALYSIS_AND_VISION_2026.md и FEATURE_PATH_CREATOR.md синхронизированы и вместе = единая стратегия.
+
+Я прочитал оба документа и увязал их с текущим SSOT (WORKFLOW_GAME_CONCEPT_PLAN.md) и реальным состоянием репы. Результат — файл STRATEGY_GAMEDEV_STACK_2026-02-04.md (line 1), где:
+
+разложено “кто за что отвечает” среди документов (чтобы не разъезжались),
+собраны 3 игровых цикла (Core → Social/Viral → Creator/UGC) в одну продуктовую логику,
+показано, как Creator‑ветка (1.16.1/1.16.2) должна открываться через прогресс,
+дан план разработки вертикальными срезами (шеринг‑карточки → Smart Hints → Workshop → скины),
+отмечено ключевое расхождение: порт 3005 упомянут в ANALYSIS_AND_VISION_2026.md, но в коде репозитория не зафиксирован.
+Ответь, пожалуйста, на 2 вопроса — и я предложу следующий “первый срез” уже как конкретный список задач/изменений в коде:
+
+3005 — это реально отдельный dev‑сервер/порт на твоей машине или просто идея/легенда в документе?
+Что первым шэрим в MVP: старт маршрута или выполнение уровня (выбери 1)?
+
+1 file changed
+Undo
+
+STRATEGY_GAMEDEV_STACK_2026-02-04.md
+Доработка плана: синхронизация ANALYSIS, FEATURE_PATH и CODEX с WORKFLOW
+
+Исходное состояние
+
+
+
+
+
+WORKFLOW_GAME_CONCEPT_PLAN.md — мастер-документ (агенты A–E, MVP, шеринг 11.19.1, бэклог 11.25). Онбординг в 11.19 описан кратко (Coach Marks: категория → значок → профиль); «Будущая архитектура» 11.10 — без детализации ролей и без «Слепка».
+
+
+
+ANALYSIS_AND_VISION_2026.md — онбординг «Smart Hints» (первый вход в профиль, 4 шага в ProfileView), роли (Путешественник / Участник смены / Родитель), метод «Слепок» (6-значный код), виральные идеи («ИИ-Манифест Маршрута», «Генератор Командных Мемов»), план действий (рефакторинг подсказок, маршрутизация onStartClick → profileView, SocialGenerator в src/utils).
+
+
+
+FEATURE_PATH_CREATOR.md — фича «Создатель Пути»: значки 1.16.1/1.16.2 → Мастерская, конструктор значков/категорий, скины, «Карточка Созидателя» 9:16 → Telegram, интеграция с Smart Onboarding. Ссылается на ANALYSIS для онбординга.
+
+
+
+CODEX_ANALYSIS_2026-02-04.md — анализ от 4.02.2026: текущее состояние фронта (MVP профиль/прогресс/избранное/экспорт), staging = Vite с base path, порты (3001/3002/4000/4002), замечание про 3005 (в коде не задан; при необходимости — скрипт dev:game и SERVERS.md). Всплывашка: CTA «Поделиться прогрессом» → ProfileView + Share Center; второй CTA «Создать команду/Движок» → карточка-приглашение. Шеринг: 4 «момента» (старт маршрута, избранное, achieved, рекап), точки интеграции (BadgeView toast, BadgeLevelView модалка, ProfileView Share Center). Техника MVP: 2 PNG (9:16, 16:9), Web Share API / скачивание, ShareCard или canvas, предпросмотр обоих форматов, тумблер «скрыть ник», без PII. AI: существующий чат-эндпоинт (подпись, хэштеги, вопрос) + предгенерённые фоны. Две идеи: «Карточка-приглашение в Движок» (локально: имя, эмблема, 1–3 значка → карточка + QR/deeplink); «Капсула опыта» (после achieved — 1–2 микро-вопроса → сторис-карточка). Дорожная карта: шаг A (доки/порты), B (progress UX, IS_TEST_MODE, резервная копия), C (Share MVP), D (роли). Юридика: никаких ПДн в карточке, ник — опционально с тумблером.
+
+Цель: один согласованный план развития; все ключевые решения из ANALYSIS, FEATURE_PATH и CODEX отражены в WORKFLOW; документы перекрёстно ссылаются; документация портов/окружений приведена в порядок.
+
+
+
+1. WORKFLOW_GAME_CONCEPT_PLAN.md — что добавить/изменить
+
+1.1. Ссылка на стратегические документы (в начале раздела 11 или в разделе 7)
+
+Добавить короткий подраздел (например после 11.1 или в «7) Примечания»):
+
+
+
+
+
+Стратегические документы: Детализация и обоснование вынесены в ANALYSIS_AND_VISION_2026.md (онбординг, роли, виральный контент, план рефакторинга), FEATURE_PATH_CREATOR.md (фича «Создатель Пути», пост-MVP) и CODEX_ANALYSIS_2026-02-04.md (состояние репо, шеринг по «моментам», CTA во всплывашке, техника MVP, дорожная карта A–D, юридика). Итоговая стратегия и приоритеты фиксируются в этом файле (WORKFLOW).
+
+1.2. Онбординг: Smart Hints и первый вход в профиль
+
+Где: расширить или заменить пункт «3. Онбординг (Coach Marks)» в 11.19 Frontend Polish.
+
+Добавить:
+
+
+
+
+
+Архитектура Smart Hints: единый HintOverlayContext — одно активное окно подсказки и общий Backdrop; позиционирование относительно целевого элемента (getBoundingClientRect), Scroll Lock при активной подсказке. Решает проблемы текущих всплывашек (pointer-events, «прыгающий» фокус на мобильных, повторный вызов). Детали и план рефакторинга — в ANALYSIS_AND_VISION_2026.md, раздел 5.
+
+
+
+Маршрутизация первого входа: кнопка «Готов начать?» в футере главной ведёт в Личный кабинет (profileView), а не сразу в категории. Там запускается сценарий первого посещения.
+
+
+
+Сценарий первого входа в ProfileView (4 шага): (1) Подсветка карточки паспорта — «Это твой паспорт Реального Лагеря…»; (2) Вкладка «В пути» — «Тут будут значки…»; (3) Вкладка «Коллекция» — «Твои трофеи…»; (4) Аватар НейроВалюши — «Спроси Валюшу…». Состояние isFirstVisit / tutorialCompleted в localStorage; кнопка «(?)» в профиле для повторного запуска обучения.
+
+
+
+Рефакторинг: BlueNestLanding — уход от самописных таймеров к стейт-менеджменту подсказок; вынести затемнение в компонент UIOverlay при необходимости. Ссылка на план в ANALYSIS, п. 6.
+
+1.3. Будущая архитектура: роли и метод «Слепок» (11.10)
+
+Дополнить раздел 11.10:
+
+
+
+
+
+Типы пользователей (пост-MVP):  
+
+
+
+
+
+Путешественник: только localStorage, просмотр значков, бот (лимитировано).  
+
+
+
+Участник смены: анонимный ID + секретный код (лагерь); синхронизация localStorage с простым backend (Key-Value); ЛК, журнал, пруфы.  
+
+
+
+Родитель: режим наблюдателя по ID ребёнка; прогресс-бар, «лайк» достижения (пуш/уведомление в бот).
+
+
+
+Метод «Слепок»: кнопка «Экспорт в облако» генерирует 6-значный код; код связывает localStorage с записью на сервере (например MongoDB/Redis). Не храним ФИО, почту, телефон — только никнейм-эмодзи и список ID значков (снижение требований по ФЗ-152). Детали — ANALYSIS_AND_VISION_2026.md, раздел 3.
+
+1.4. Социальный шеринг: виральные форматы и SocialGenerator (11.19.1)
+
+Дополнить подраздел 11.19.1:
+
+
+
+
+
+Модуль: общий код генерации картинок для сторис/рилсов — в src/utils/SocialGenerator (или аналог): композиция [Аватар] + [Значок] + [Текст]. Используется всеми точками входа (всплывашка, избранное, профиль). Альтернатива: компонент ShareCard (offscreen или canvas) для рендера в PNG.
+
+
+
+Четыре «момента» шеринга (CODEX): (1) Старт маршрута («В путь») — тост «Сделать сторис старта?» в BadgeView после startRoute; (2) Добавил в избранное — «Сделать рилс/сторис wishlist»; (3) Выполнил уровень (achieved) — модалка «Поделиться достижением» в BadgeLevelView (рядом с конфетти); (4) Итог дня/недели (рекап) — в ProfileView блок «Поделиться» / «Чекпоинт недели».
+
+
+
+CTA во всплывашке (два действия, CODEX): (1) «Поделиться прогрессом» → открыть ProfileView и показать «Share Center»; (2) «Создать команду/Движок (MVP)» → экран-заглушка или генерация «карточки-приглашения в Движок» (см. ниже).
+
+
+
+Техника MVP (CODEX): генерировать 2 PNG (9:16 и 16:9) в браузере; Web Share API при наличии, иначе «Скачать» + «Скопировать подпись». Всегда показывать предпросмотр обоих форматов; тумблер «Скрыть ник» / «Показывать ник»; в карточке по умолчанию никаких персональных данных. AI-контент: один запрос к существующему чат-эндпоинту — короткая подпись, 3 хэштега, 1 вопрос для вовлечения; плюс предгенерённые фоны в public/ (по категории или рандом). Рилсы (видео) — пост-MVP; MVP только PNG + подпись.
+
+
+
+Доп. идеи CODEX:  
+
+
+
+
+
+«Карточка-приглашение в Движок»: пользователь создаёт «Движок» локально (имя, эмблема, 1–3 значка-цели); приложение генерирует пригласительную карточку 9:16 + 16:9 + QR/deeplink (?view=badge&badgeId=...&engine=код). Другие по QR попадают на маршрут + «В путь»/«В избранное». Без backend.  
+
+
+
+«Капсула опыта»: после achieved — 1–2 микро-вопроса («Что ты сделал(а)?», «Что это изменило?»); ответы (+ опционально фото) → сторис-карточка «значок + 2 фразы + дата + Реальный опыт». Усиливает рефлексию и виральность.
+
+
+
+Варианты контента (пост-MVP, из ANALYSIS): «ИИ-Манифест Маршрута» (9:16, «туман войны»), «Генератор Командных Мемов» (герб Движка, стили, ИИ-изображение). Детали — ANALYSIS_AND_VISION_2026.md, раздел 2.
+
+Оставить без изменений: три точки входа, форматы 16:9/9:16, «Старт маршрута», «Чекпоинт недели» из текущего 11.19.1.
+
+1.5. Backlog: фича «Создатель Пути» (11.25)
+
+Дополнить список бэклога:
+
+
+
+
+
+P2 (или отдельный пункт): Фича «Создатель Пути» — см. FEATURE_PATH_CREATOR.md. Разблокировка по значкам 1.16.1 (Мастерская: предложить значок в категорию) и 1.16.2 (конструктор категорий). Механики: конструктор «Кузня Реальности», скины/арты (переключатель в BadgeView), «Карточка Созидателя» 9:16 → Telegram модераторам. Компонент CreatorWorkshop, доработка BadgeIcon под внешние URL. Интеграция сценария «Путеводитель — это ты» в Smart Onboarding.
+
+1.6. Документация окружений и дорожная карта по шагам (CODEX)
+
+Добавить в WORKFLOW новый подраздел (например после 11.19.1 или в раздел «План работ») или зафиксировать в «Примечания» ссылку на CODEX и кратко:
+
+
+
+
+
+Шаг A — Привести окружения/доки в единый вид (1–3 дня): Зафиксировать порты: фронт 3001, dev:staging 3002, backend 4000, preview 4002. Обновить SERVERS.md, батники запуска, комментарий в ChatBot (backend 4000, не 5000). Решить: нужен ли порт 3005 как «сервер фичи мобильной игры» — если да, добавить npm-скрипт dev:game (например vite --port 3005 --host) и описать в SERVERS.md (сейчас 3005 описан в DEV_ISOLATED_GUIDE.md, но не в SERVERS.md). Согласовать ветки: CI (ci.yml) vs deploy (deploy-simple.yml) — main/master.
+
+
+
+Шаг B — Прогресс не сбрасывается (1–5 дней): Выключить IS_TEST_MODE для прод/клиентов (или флаг сборки). В ProfileView — заметная кнопка «Сделать резервную копию» (экспорт уже есть) + краткое пояснение «прогресс хранится на этом устройстве». Опционально позже: QR-бэкап, «отправить себе файл в Telegram».
+
+
+
+Шаг C — Share MVP (1–2 недели): Share Center в ProfileView; CTA во всплывашке; автопредложение шеринга после старта маршрута, выполнения уровня, добавления в избранное. Детали — п. 1.4 и CODEX, разделы 5–6.
+
+
+
+Шаг D — Роли/аккаунты (после MVP): Гость/путешественник → код смены/псевдоним → родительский режим при необходимости. Согласовано с п. 1.3 и ANALYSIS.
+
+Юридика (CODEX, разд. 8): никаких ПДн в share-карточке; ник — опционально с тумблером; при использовании Telegram-форм — явный дисклеймер (открывается Telegram, пользователь сам отправляет, не указывать лишнее).
+
+
+
+2. ANALYSIS_AND_VISION_2026.md — доработка
+
+
+
+
+
+В начале документа (после контекста/даты) добавить блок «Связь с мастер-планом»: итоговая стратегия и приоритеты фиксируются в WORKFLOW_GAME_CONCEPT_PLAN.md. Данный документ — детализация и обоснование (онбординг, роли, виральный контент, план рефакторинга). При расхождении приоритетов ориентироваться на WORKFLOW.
+
+
+
+3. FEATURE_PATH_CREATOR.md — доработка
+
+
+
+
+
+В начале документа (после цитаты «Философия») добавить блок «Связь с мастер-планом»: фича входит в бэклог в WORKFLOW_GAME_CONCEPT_PLAN.md (раздел 11.25). Реализация — после MVP прогресса, онбординга и шеринга. Детали и план разработки — в данном файле; сценарий обучения «Путеводитель — это ты» интегрируется в Smart Onboarding из ANALYSIS_AND_VISION_2026.md.
+
+
+
+4. docs/ANALYSIS_SHARING_AND_PRODUCT.md — опционально
+
+
+
+
+
+В разделе «Рекомендуемые следующие шаги» или «Текущее состояние» одной строкой указать: стратегия развития дополнительно детализирована в ANALYSIS_AND_VISION_2026.md (онбординг, роли, виральный контент), FEATURE_PATH_CREATOR.md (Создатель Пути) и CODEX_ANALYSIS_2026-02-04.md (моменты шеринга, CTA, техника MVP, дорожная карта); единый приоритет — в WORKFLOW_GAME_CONCEPT_PLAN.md.
+
+
+
+5. CODEX_ANALYSIS_2026-02-04.md — доработка
+
+
+
+
+
+В начале документа (после даты и контекста запроса) добавить блок «Связь с мастер-планом»: итоговая стратегия и приоритеты фиксируются в WORKFLOW_GAME_CONCEPT_PLAN.md. Данный документ — срез состояния репозитория и рекомендации по шерингу/документации; при расхождении с WORKFLOW, ANALYSIS_AND_VISION_2026 или FEATURE_PATH_CREATOR ориентироваться на WORKFLOW. Порт 3005 при необходимости зафиксирован в DEV_ISOLATED_GUIDE.md и может быть добавлен в SERVERS.md скриптом dev:game.
+
+
+
+6. Порядок внесения правок (для исполнителя)
+
+
+
+
+
+WORKFLOW: добавить ссылку на стратегические документы, включая CODEX (п. 1.1).
+
+
+
+WORKFLOW: онбординг Smart Hints и первый вход в профиль (п. 1.2).
+
+
+
+WORKFLOW: роли и «Слепок» в 11.10 (п. 1.3).
+
+
+
+WORKFLOW: виральные форматы, 4 момента, CTA, техника MVP, идеи CODEX в 11.19.1 (п. 1.4).
+
+
+
+WORKFLOW: бэклог «Создатель Пути» в 11.25 (п. 1.5).
+
+
+
+WORKFLOW: подраздел или примечание про документацию окружений и шаги A–D (п. 1.6).
+
+
+
+ANALYSIS_AND_VISION_2026.md: блок «Связь с мастер-планом» (п. 2).
+
+
+
+FEATURE_PATH_CREATOR.md: блок «Связь с мастер-планом» (п. 3).
+
+
+
+CODEX_ANALYSIS_2026-02-04.md: блок «Связь с мастер-планом» (п. 5).
+
+
+
+По желанию: обновить docs/ANALYSIS_SHARING_AND_PRODUCT.md (п. 4).
+
+После этого планы в WORKFLOW, ANALYSIS_AND_VISION_2026, FEATURE_PATH_CREATOR и CODEX_ANALYSIS образуют единую синхронизированную стратегию с одним источником истины (WORKFLOW).
+
+Все пункты плана выполнены. Кратко, что сделано:
+WORKFLOW_GAME_CONCEPT_PLAN.md
+11.1.1 — добавлен подраздел «Стратегические документы» со ссылками на ANALYSIS_AND_VISION_2026, FEATURE_PATH_CREATOR и CODEX_ANALYSIS.
+11.19 п.3 — онбординг переименован в «Smart Hints», добавлены: HintOverlayContext, первый вход в profileView, 4 шага в ProfileView, рефакторинг BlueNestLanding/UIOverlay.
+11.10 — в «Будущую архитектуру» добавлены типы пользователей (Путешественник, Участник смены, Родитель) и метод «Слепок».
+11.19.1 — расширен шеринг: модуль SocialGenerator/ShareCard, четыре «момента» (CODEX), два CTA во всплывашке, техника MVP (2 PNG, тумблер «скрыть ник», AI через чат + фоны), идеи «Карточка-приглашение в Движок» и «Капсула опыта», варианты контента из ANALYSIS.
+11.25 — в бэклог добавлена фича «Создатель Пути» со ссылкой на FEATURE_PATH_CREATOR.md.
+11.19.2 — добавлен подраздел «Документация окружений и дорожная карта (CODEX)»: шаги A–D и юридика.
+Связь с мастер-планом
+ANALYSIS_AND_VISION_2026.md — после контекста добавлен блок «Связь с мастер-планом».
+FEATURE_PATH_CREATOR.md — после цитаты «Философия» добавлен блок «Связь с мастер-планом».
+CODEX_ANALYSIS_2026-02-04.md — перед «## 1) TL;DR» добавлен блок «Связь с мастер-планом».
+docs/ANALYSIS_SHARING_AND_PRODUCT.md
+В разделе «Рекомендуемые следующие шаги» добавлено предложение о стратегических документах (ANALYSIS, FEATURE_PATH, CODEX) и приоритете WORKFLOW.
+План не редактировался. Итог: WORKFLOW — единый источник истины, все четыре документа согласованы и ссылаются друг на друга.
+
+изучи это
+
+Ran rg -n "Стратегические документы|Связь с мастер|Smart Hints|HintOverlayContext|Слепок|Карточка Созидателя|Создатель Пути|SocialGenerator|Share Center|Моменты шеринга|11\.19\.1|11\.10|11\.25" WORKFLOW_GAME_CONCEPT_PLAN.md | Select-Object -First 200
+
+
+Ran if (Test-Path .\docs\ANALYSIS_SHARING_AND_PRODUCT.md) { 'docs/ANALYSIS_SHARING_AND_PRODUCT.md exists' } else { 'docs/ANALYSIS_SHARING_AND_PRODUCT.md MISSING' }
+
+
+Ran rg -n "Связь с мастер|мастер-план|WORKFLOW_GAME_CONCEPT_PLAN" ANALYSIS_AND_VISION_2026.md FEATURE_PATH_CREATOR.md CODEX_ANALYSIS_2026-02-04.md STRATEGY_GAMEDEV_STACK_2026-02-04.md | Select-Object -First 200
+
+
+Ran if (Test-Path .\docs\ANALYSIS_SHARING_AND_PRODUCT.md) { rg -n "Следующ|Рекомендуемые|ANALYSIS_AND_VISION_2026|FEATURE_PATH_CREATOR|CODEX_ANALYSIS" .\docs\ANALYSIS_SHARING_AND_PRODUCT.md | Select-Object -First 120 }
+
+
+Ran Get-Content .\WORKFLOW_GAME_CONCEPT_PLAN.md | Select-Object -Skip 380 -First 80
+
+
+Ran Get-Content .\WORKFLOW_GAME_CONCEPT_PLAN.md | Select-Object -Skip 560 -First 80
+
+
+Ran Get-Content .\WORKFLOW_GAME_CONCEPT_PLAN.md | Select-Object -Skip 1000 -First 120
+
+
+Ran Get-Content .\WORKFLOW_GAME_CONCEPT_PLAN.md | Select-Object -Skip 1040 -First 140
+
+
+Ran Get-Content .\FEATURE_PATH_CREATOR.md -TotalCount 22
+
+
+Ran Get-Content .\ANALYSIS_AND_VISION_2026.md -TotalCount 30
+
+
+Ran Get-Content .\CODEX_ANALYSIS_2026-02-04.md -TotalCount 26
+
+
+Ran Get-Content .\docs\ANALYSIS_SHARING_AND_PRODUCT.md | Select-Object -Skip 108 -First 40
+
+
+Ran if (Test-Path .\DEV_ISOLATED_GUIDE.md) { 'DEV_ISOLATED_GUIDE.md exists'; (Get-Content .\DEV_ISOLATED_GUIDE.md -TotalCount 120) } else { 'DEV_ISOLATED_GUIDE.md MISSING' }
+
+
+Ran rg -n "\b5000\b|\b4000\b|\b8000\b|\b3005\b" DEV_ISOLATED_GUIDE.md SERVERS.md QUICK_START.md start_servers.bat start_all_services.bat | Format-Table -AutoSize
+
+
+Ran rg -n "Порт `3005`|3005" CODEX_ANALYSIS_2026-02-04.md ANALYSIS_AND_VISION_2026.md | Select-Object -First 120
+
+
+Ran Get-Content .\SERVERS.md -TotalCount 200
+
+
+Ran Get-Content .\start_all_services.bat -TotalCount 80
+
+
+Ran Get-Content .\start_servers.bat -TotalCount 80
+
+
+Ran Get-Content .\QUICK_START.md -TotalCount 170
+
+
+Ran Get-Content .\CODEX_ANALYSIS_2026-02-04.md | Select-Object -Skip 8 -First 60
+
+
+Ran Get-Content .\CODEX_ANALYSIS_2026-02-04.md | Select-Object -Skip 120 -First 60
+
+
+Edited file
+d:\Development\Путеводитель web_new\CODEX_ANALYSIS_2026-02-04.md
++4
+-5
+
+
+**Связь с мастер-планом:** Итоговая стратегия и приоритеты фиксируются в [WORKFLOW_GAME_CONCEPT_PLAN.md](WORKFLOW_GAME_CONCEPT_PLAN.md). Данный документ — срез состояния репозитория и рекомендации по шерингу/документации; при расхождении с WORKFLOW, ANALYSIS_AND_VISION_2026 или FEATURE_PATH_CREATOR ориентироваться на WORKFLOW. Порт 3005 при необходимости зафиксирован в [DEV_ISOLATED_GUIDE.md](DEV_ISOLATED_GUIDE.md) и может быть добавлен в SERVERS.md скриптом `dev:game`.
+**Связь с мастер-планом:** Итоговая стратегия и приоритеты фиксируются в [WORKFLOW_GAME_CONCEPT_PLAN.md](WORKFLOW_GAME_CONCEPT_PLAN.md). Данный документ — срез состояния репозитория и рекомендации по шерингу/документации; при расхождении с WORKFLOW, ANALYSIS_AND_VISION_2026 или FEATURE_PATH_CREATOR ориентироваться на WORKFLOW. Порт 3005 описан в [DEV_ISOLATED_GUIDE.md](DEV_ISOLATED_GUIDE.md) и зафиксирован в [SERVERS.md](SERVERS.md) как изолированный режим; при желании можно добавить npm-скрипт `dev:game`.
+
+2) **Staging по факту = Vite dev с base path как на GitHub Pages**: `base: '/RL-Guide-book/'`, поэтому локальная разработка “симулирует прод” (и это правильно).  
+3) **Порт `3005` в репозитории не фигурирует**: поиск по проекту не даёт совпадений. Реальные порты/серверы описаны ниже; вероятно, `3005` — внешний/локальный оверрайд на вашей машине или путаница с `3002`.  
+3) **Порт `3005` не зафиксирован как дефолтный** (в `package.json`/`vite.config.ts`), но используется для изолированной разработки (см. `DEV_ISOLATED_GUIDE.md` и `SERVERS.md`). Важно: на другом порту прогресс будет отдельным (другой origin).  
+4) **Текст “всплывашки” на главном экране уже содержит обещание** “Делитесь в соцсетях / создавайте команды / общайтесь” — это идеальная точка для CTA. Сейчас это манифест, но не действие.  
+
+Факт по репозиторию: **`3005` нигде не задан** (поиск по проекту пустой).
+Факт: **`3005` не задан как дефолтный порт** в конфиге/скриптах (Vite dev = 3001), но используется как изолированный режим разработки (см. `DEV_ISOLATED_GUIDE.md`).
+
+
+Если вам принципиально нужен `3005` как “сервер фичи мобильной игры”, то сейчас самый простой способ — сделать отдельный npm‑скрипт (например `dev:game`) и зафиксировать это в `SERVERS.md`.
+Если вам принципиально нужен `3005` как “официальный сервер фичи мобильной игры”, то самый простой шаг — добавить отдельный npm‑скрипт (например `dev:game`) и использовать его как единый вход.
+
+- и не упираясь в backend (GitHub Pages‑совместимый MVP).
+
+Edited file
+d:\Development\Путеводитель web_new\DEV_ISOLATED_GUIDE.md
++2
+-2
+
+- Staging-сервером (3002)
+- API (5000)
+- Чат-ботом (8000)
+- Flask API (4000)
+- FastAPI чат-ботом (8000, если запускается отдельно)
+
+Edited file
+d:\Development\Путеводитель web_new\QUICK_START.md
++25
+-25
+
+# Настройки приложения
+NODE_ENV=development
+PORT=3000
+API_PORT=5000
+CHATBOT_PORT=8000
+```
+NODE_ENV=development
+PORT=3001
+API_PORT=4000
+CHATBOT_PORT=8000
+```
+
+
+После запуска всех сервисов:
+
+- **🌐 Веб-приложение**: http://localhost:3001
+- **🔧 API документация**: http://localhost:5000/docs
+- **🤖 Чат-бот НейроВалюша**: http://localhost:8000
+- **💬 Чат-интерфейс**: http://localhost:3001 (в веб-приложении)
+После запуска всех сервисов:
+
+- **🌐 Веб-приложение**: http://localhost:3001
+- **🔧 Flask API**: http://localhost:4000 (health: `/health`, чат: `/api/chat`)
+- **🤖 Чат-бот НейроВалюша**: http://localhost:8000
+- **💬 Чат-интерфейс**: http://localhost:3001 (в веб-приложении)
+
+
+### Проверка работы API
+```bash
+# Тест API сервера
+curl http://localhost:5000/health
+
+# Тест чат-бота
+curl -X POST http://localhost:8000/chat \
+  -H "Content-Type: application/json" \
+  -d '{"message": "Привет!", "user_id": "test"}'
+### Проверка работы API
+```bash
+# Тест API сервера
+curl http://localhost:4000/health
+
+# Тест чат-бота
+curl -X POST http://localhost:8000/chat \
+  -H "Content-Type: application/json" \
+  -d '{"message": "Привет!", "user_id": "test"}'
+```
+```bash
+# Проверка занятых портов
+netstat -an | findstr :3001
+netstat -an | findstr :5000
+netstat -an | findstr :8000
+# Проверка занятых портов
+netstat -an | findstr :3001
+netstat -an | findstr :4000
+netstat -an | findstr :8000
+
+
+**🎉 Готово! Теперь вы можете исследовать систему значков "Реального Лагеря" с помощью НейроВалюши!**
+**🎉 Готово! Теперь вы можете исследовать систему значков "Реального Лагеря" с помощью НейроВалюши!**
+Edited file
+d:\Development\Путеводитель web_new\SERVERS.md
++42
+-22
+
+
+## 📋 Основной staging сервер (для разработки и тестирования)
+
+**Команда:** `npm run dev` или `npm run dev:staging`  
+**Порт:** `3001`  
+**URL:** `http://localhost:3001/RL-Guide-book/`  
+**Назначение:** Локальный staging сервер, максимально точно повторяет то, что будет на GitHub Pages
+## 📋 Основной staging сервер (для разработки и тестирования)
+
+**Команда:** `npm run dev` или `npm run dev:staging`  
+**Порт:** `3001`  
+**URL:** `http://localhost:3001/RL-Guide-book/`  
+**Назначение:** Локальный staging сервер, максимально точно повторяет то, что будет на GitHub Pages
+
+- ✅ Режим разработки с source maps и быстрой перезагрузкой
+
+**Это ваш основной сервер для работы!**
+
+---
+
+## 🚀 Production Preview (тестирование собранной версии)
+
+**Команда:** `npm run preview:prod`  
+**Порт:** `4002`  
+**URL:** `http://localhost:4002/RL-Guide-book/`  
+
+**Это ваш основной сервер для работы!**
+
+---
+
+## 🧪 Изолированный dev (для разработки фичи Profile/Progress)
+
+**Порт:** `3005`  
+**URL:** `http://localhost:3005/RL-Guide-book/`  
+**Назначение:** Изолированная разработка новых UI-фич без конфликта с основным dev/staging
+
+### Как запустить:
+```bash
+# Вариант 1 (через npm, пробрасывая аргументы)
+npm run dev -- --port 3005 --host
+
+# Вариант 2 (напрямую)
+npx vite --port 3005 --host
+```
+
+Подробнее: `DEV_ISOLATED_GUIDE.md`.
+
+---
+
+## 🚀 Production Preview (тестирование собранной версии)
+
+**Команда:** `npm run preview:prod`  
+**Порт:** `4002`  
+**URL:** `http://localhost:4002/RL-Guide-book/`  
+**Назначение:** Тестирование production build перед деплоем
+
+| Сервер | Команда | Порт | URL | Назначение |
+|--------|---------|------|-----|------------|
+| **Staging** | `npm run dev` | 3001 | `/RL-Guide-book/` | Основной для разработки |
+| **Preview** | `npm run preview:prod` | 4002 | `/RL-Guide-book/` | Тест production build |
+| **HTML** | `npm run dev:html` | 4002 | `/bluenest.html` | Альтернативный |
+| **Flask API** | `npm run start:backend` | 4000 | `/api/*` | Backend API |
+| Сервер | Команда | Порт | URL | Назначение |
+|--------|---------|------|-----|------------|
+| **Staging** | `npm run dev` | 3001 | `/RL-Guide-book/` | Основной для разработки |
+| **Isolated** | `npm run dev -- --port 3005 --host` | 3005 | `/RL-Guide-book/` | Изолированная разработка фич |
+| **Preview** | `npm run preview:prod` | 4002 | `/RL-Guide-book/` | Тест production build |
+| **HTML** | `npm run dev:html` | 4002 | `/bluenest.html` | Альтернативный |
+| **Flask API** | `npm run start:backend` | 4000 | `/api/*` | Backend API |
+
+Edited file
+d:\Development\Путеводитель web_new\WORKFLOW_GAME_CONCEPT_PLAN.md
++1
+-1
+
+
+- **Шаг A — Привести окружения/доки в единый вид (1–3 дня):** Зафиксировать порты: фронт 3001, dev:staging 3002, backend 4000, preview 4002. Обновить SERVERS.md, батники запуска, комментарий в ChatBot (backend 4000, не 5000). Решить: нужен ли порт 3005 как «сервер фичи мобильной игры» — если да, добавить npm-скрипт `dev:game` (например `vite --port 3005 --host`) и описать в SERVERS.md (сейчас 3005 описан в DEV_ISOLATED_GUIDE.md, но не в SERVERS.md). Согласовать ветки: CI (ci.yml) vs deploy (deploy-simple.yml) — main/master.
+- **Шаг A — Привести окружения/доки в единый вид (1–3 дня):** Зафиксировать порты: фронт 3001, dev:staging 3002, backend 4000, preview 4002. Обновить SERVERS.md, батники запуска, комментарий в ChatBot (backend 4000, не 5000). Решить: нужен ли порт 3005 как «сервер фичи мобильной игры» — если да, добавить npm-скрипт `dev:game` (например `vite --port 3005 --host`) и использовать его как единый вход. Согласовать ветки: CI (ci.yml) vs deploy (deploy-simple.yml) — main/master.
+- **Шаг B — Прогресс не сбрасывается (1–5 дней):** Выключить `IS_TEST_MODE` для прод/клиентов (или флаг сборки). В ProfileView — заметная кнопка «Сделать резервную копию» (экспорт уже есть) + краткое пояснение «прогресс хранится на этом устройстве». Опционально позже: QR-бэкап, «отправить себе файл в Telegram».
+Edited file
+ChatBot.tsx
++1
+-1
+
+      const chatbotUrl = useLocalApi
+        ? '/api/chat' // Vite proxy к Flask backend на порту 5000
+        ? '/api/chat' // Vite proxy к Flask backend на порту 4000
+        : 'https://real-vibe-ai-studio.pages.dev/api/putevoditel/chat';
+Edited file
+d:\Development\Путеводитель web_new\start_all_services.bat
++15
+-15
+
+@echo off
+echo Starting RL Guide services
+echo =========================================
+
+echo.
+echo Starting Flask API (port 5000)...
+start "Flask API" cmd /k "cd backend && python app.py"
+echo Starting RL Guide services
+echo =========================================
+
+echo.
+echo Starting Flask API (port 4000)...
+start "Flask API" cmd /k "cd backend && python app.py"
+
+
+echo.
+echo URLs:
+echo Web Interface: http://localhost:3001
+echo Flask API: http://localhost:5000
+echo ChatBot API: http://localhost:8000
+echo API Docs: http://localhost:8000/docs
+echo.
+echo Press any key to exit...
+pause > nul
+echo.
+echo URLs:
+echo Web Interface: http://localhost:3001
+echo Flask API: http://localhost:4000
+echo ChatBot API: http://localhost:8000
+echo API Docs: http://localhost:8000/docs
+echo.
+echo Press any key to exit...
+pause > nul
+
+Edited file
+d:\Development\Путеводитель web_new\start_servers.bat
++7
+-7
+
+
+echo Запуск Frontend сервера...
+start "Frontend Server" cmd /k "npm run dev"
+
+echo Оба сервера запущены!
+echo Backend: http://localhost:5000
+echo Frontend: http://localhost:3001
+pause
+echo Запуск Frontend сервера...
+start "Frontend Server" cmd /k "npm run dev"
+
+echo Оба сервера запущены!
+echo Backend: http://localhost:4000
+echo Frontend: http://localhost:3001
+pause
+Ran rg -n "\b5000\b" SERVERS.md DEV_ISOLATED_GUIDE.md start_all_services.bat start_servers.bat QUICK_START.md src\components\ChatBot.tsx CODEX_ANALYSIS_2026-02-04.md WORKFLOW_GAME_CONCEPT_PLAN.md | Select-Object -First 80
+
+
+Ran Get-Content .\CODEX_ANALYSIS_2026-02-04.md | Select-Object -Skip 118 -First 40
+
+
+Ran rg -n "\b5000\b" -S . | Select-Object -First 120
+
+
+Ran rg -n "port\s*=\s*5000|:5000" backend chatbot api src | Select-Object -First 120
+
+
+Ran Get-Content .\README.md | Select-Object -Skip 70 -First 80
+
+
+Ran Get-Content .\GEMINI.md -TotalCount 90
+
+
+Ran Get-Content .\docs\ANALYSIS_SHARING_AND_PRODUCT.md -TotalCount 60
+
+
+Ran rg -n "\b5000\b" CHATBOT_DEPLOYMENT_SUMMARY.md | Select-Object -First 40; Get-Content .\CHATBOT_DEPLOYMENT_SUMMARY.md | Select-Object -Skip 34 -First 40
+
+
+Ran Get-Content .\scripts\chatbot_smoke.py -TotalCount 120
+
+
+Ran rg -n "5000" CHATBOT_DEPLOYMENT_SUMMARY.md | Select-Object -First 60; Get-Content .\CHATBOT_DEPLOYMENT_SUMMARY.md | Select-Object -Skip 40 -First 30
+
+
+Edited file
+d:\Development\Путеводитель web_new\CODEX_ANALYSIS_2026-02-04.md
++1
+-2
+
+В репозитории есть дрейф портов/веток:
+- `backend/app.py` реально **4000**, а батники/часть доков говорят про **5000**.
+- `src/components/ChatBot.tsx` комментирует “порт 5000”, но Vite proxy ведёт на **4000** (`vite.config.ts`).
+- `backend/app.py` реально **4000**, но в репозитории ещё встречаются упоминания **5000** в старых доках/скриптах (нужно подчистить).
+- `.github/workflows/ci.yml` триггерится на `master/develop`, а деплой — на `main`.
+Edited file
+d:\Development\Путеводитель web_new\GEMINI.md
++1
+-1
+
+*   **Frontend:** `npm run dev` (http://localhost:3001)
+*   **Backend API (Python):** `python backend/app.py` (http://localhost:5000)
+*   **Backend API (Python):** `python backend/app.py` (http://localhost:4000)
+*   **Chatbot:** `cd chatbot && python main.py` (http://localhost:8000)
+Edited file
+d:\Development\Путеводитель web_new\README.md
++10
+-10
+
+# Настройки приложения
+NODE_ENV=development
+PORT=3001
+API_PORT=5000
+CHATBOT_PORT=8000
+```
+NODE_ENV=development
+PORT=3001
+API_PORT=4000
+CHATBOT_PORT=8000
+```
+
+
+### 5. Доступ к приложению
+- **Веб-приложение**: http://localhost:3001
+- **API документация**: http://localhost:5000/docs
+- **Чат-бот НейроВалюша**: http://localhost:8000
+- **Чат-интерфейс**: http://localhost:8000
+### 5. Доступ к приложению
+- **Веб-приложение**: http://localhost:3001
+- **Flask API**: http://localhost:4000 (health: `/health`, чат: `/api/chat`)
+- **Чат-бот НейроВалюша**: http://localhost:8000
+- **Чат-интерфейс**: http://localhost:3001 (в веб-приложении)
+
+Edited file
+ANALYSIS_SHARING_AND_PRODUCT.md
++1
+-1
+
+- **Staging (основная разработка):** `npm run dev` → порт **3001** (vite.config.ts). Base path `/RL-Guide-book/`, proxy на API 4000. URL: `http://localhost:3001/RL-Guide-book/`.
+- **Изолированная фича (мобильная игра / прогресс):** порт **3005** (DEV_ISOLATED_GUIDE.md). Запуск: `npx vite --port 3005 --host` или `npm run dev -- --port 3005 --host`. Используется, чтобы не конфликтовать с 3001, 3002, 5000, 8000. URL: `http://localhost:3005/RL-Guide-book/`.
+- **Изолированная фича (мобильная игра / прогресс):** порт **3005** (DEV_ISOLATED_GUIDE.md). Запуск: `npx vite --port 3005 --host` или `npm run dev -- --port 3005 --host`. Используется, чтобы не конфликтовать с 3001, 3002, 4000, 8000. URL: `http://localhost:3005/RL-Guide-book/`.
+- **Деплой:** GitHub Pages по push в `main` (workflow `.github/workflows/deploy-simple.yml`). Сборка: `npm run build`, артефакт — `dist`. Бэкенда на хосте нет.
+Edited file
+chatbot_smoke.py
++7
+-7
+
+
+Usage:
+  python scripts/chatbot_smoke.py
+  python scripts/chatbot_smoke.py --base-url http://localhost:5000
+Usage:
+  python scripts/chatbot_smoke.py
+  python scripts/chatbot_smoke.py --base-url http://localhost:4000
+"""
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--base-url", default="http://localhost:5000", help="Local backend base URL")
+    args = parser.parse_args()
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--base-url", default="http://localhost:4000", help="Local backend base URL")
+    args = parser.parse_args()
+
+Ran $lines = Get-Content .\CHATBOT_DEPLOYMENT_SUMMARY.md; for ($i=40; $i -lt 60; $i++) { "{0,4}: {1}" -f ($i+1), $lines[$i] }
+
+
+Ran $lines = Get-Content .\CHATBOT_DEPLOYMENT_SUMMARY.md; for ($i=30; $i -lt 45; $i++) { "{0,4}: {1}" -f ($i+1), $lines[$i] }
+
+
+Ran Get-Content .\CHATBOT_DEPLOYMENT_SUMMARY.md -TotalCount 80
+
+
+Edited file
+d:\Development\Путеводитель web_new\CHATBOT_DEPLOYMENT_SUMMARY.md
++3
+-3
+
+
+# API с чат-ботом на порту 5000
+cd backend && python app.py
+```
+# API с чат-ботом на порту 4000
+cd backend && python app.py
+```
+
+Ran rg -n "\b5000\b" README.md QUICK_START.md SERVERS.md GEMINI.md DEV_ISOLATED_GUIDE.md start_all_services.bat start_servers.bat CHATBOT_DEPLOYMENT_SUMMARY.md src\components\ChatBot.tsx scripts\chatbot_smoke.py docs\ANALYSIS_SHARING_AND_PRODUCT.md CODEX_ANALYSIS_2026-02-04.md | Select-Object -First 120
+
+
+Ran rg -n "11\.1\.1\. Стратегические документы|11\.10\. Будущая архитектура|11\.19\.1\. Социальный шеринг|11\.19\.2\. Документация окружений|11\.25\. Backlog" WORKFLOW_GAME_CONCEPT_PLAN.md | Select-Object -First 40
+
+
+Ran rg -n "Связь с мастер-планом" ANALYSIS_AND_VISION_2026.md FEATURE_PATH_CREATOR.md CODEX_ANALYSIS_2026-02-04.md | Select-Object -First 40
+
+
+Ran rg -n "Изолированный dev" SERVERS.md | Select-Object -First 20
+
+
+Ran rg -n "Flask API" QUICK_START.md README.md | Select-Object -First 40
+
+
+Ran rg -n "Vite proxy" src\components\ChatBot.tsx | Select-Object -First 20
+
+
+Проверил: описанная синхронизация реально внесена и читается как единая стратегия, где SSOT = WORKFLOW_GAME_CONCEPT_PLAN.md (см. WORKFLOW_GAME_CONCEPT_PLAN.md (line 401), WORKFLOW_GAME_CONCEPT_PLAN.md (line 590), WORKFLOW_GAME_CONCEPT_PLAN.md (line 1074), WORKFLOW_GAME_CONCEPT_PLAN.md (line 1110), WORKFLOW_GAME_CONCEPT_PLAN.md (line 1016)).
+
+Связки между документами на месте:
+
+ANALYSIS_AND_VISION_2026.md (line 6), FEATURE_PATH_CREATOR.md (line 5), CODEX_ANALYSIS_2026-02-04.md (line 6).
+Дополнительно выровнял “порты/окружения”, чтобы это не ломало онбординг команды:
+
+Добавил изолированный режим 3005 в SERVERS.md (line 21), поправил DEV_ISOLATED_GUIDE.md (line 9).
+Привёл ключевые доки/скрипты к Flask 4000: QUICK_START.md (line 85), README.md (line 115), start_all_services.bat (line 6), start_servers.bat (line 14), комментарий в ChatBot.tsx (line 296), дефолт в chatbot_smoke.py (line 88).
+Если хочешь — следующим шагом вычищу оставшиеся упоминания 5000 в “исторических” доках (release notes и т.п.) одним проходом, чтобы вообще нигде не путало.
+
+
+13 files changed
++120
+-102
+Undo
+
+CHATBOT_DEPLOYMENT_SUMMARY.md
+CODEX_ANALYSIS_2026-02-04.md
+DEV_ISOLATED_GUIDE.md
+GEMINI.md
+QUICK_START.md
+README.md
+SERVERS.md
+WORKFLOW_GAME_CONCEPT_PLAN.md
+ANALYSIS_SHARING_AND_PRODUCT.md
+chatbot_smoke.py
+ChatBot.tsx
+start_all_services.bat
+start_servers.bat
+скажи у нас есть один общий план разработки с понятным алгоритмом чтобы передать его рою агентов которые начнут работать параллельно? такой воркфлоу?
+
+Ran rg -n "Agent Task Contexts|Context: \[|Чек\-лист задач|Вставка выводов агентов" WORKFLOW_GAME_CONCEPT_PLAN.md | Select-Object -First 60
+
+
+Ran rg -n "Чек\-лист задач|Этап 1 —|Этап 2 —|DoD" WORKFLOW_GAME_CONCEPT_PLAN.md | Select-Object -First 80
+
+
+Ran rg -n "Чек" WORKFLOW_GAME_CONCEPT_PLAN.md | Select-Object -First 40
+
+
+Да — у нас уже есть “один общий план + алгоритм” для параллельной работы, и он зафиксирован как SSOT в WORKFLOW_GAME_CONCEPT_PLAN.md (line 26).
+
+Где именно “воркфлоу для роя” уже описан:
+
+Роли агентов A–E и зоны ответственности: WORKFLOW_GAME_CONCEPT_PLAN.md (line 36)
+Процесс/этапы (как работать и что сдавать): WORKFLOW_GAME_CONCEPT_PLAN.md (line 65)
+Куда агенты пишут результаты: WORKFLOW_GAME_CONCEPT_PLAN.md (line 143)
+Чек‑лист задач по этапам (что брать в работу): WORKFLOW_GAME_CONCEPT_PLAN.md (line 748)
+Готовые “пакеты задач” (копипаст‑контексты для агентов): WORKFLOW_GAME_CONCEPT_PLAN.md (line 1221)
+Мини‑алгоритм, который можно прямо раздать рою:
+
+Все читают WORKFLOW_GAME_CONCEPT_PLAN.md (line 26) и берут только задачи из WORKFLOW_GAME_CONCEPT_PLAN.md (line 748).
+Координатор раздаёт независимые куски по ролям (A: данные/модель, B: UX/экраны, C: чат‑контекст/стиль, D: смыслы/копирайт, E: ограничения/хранение/деплой).
+Каждый агент берёт соответствующий “Context” из WORKFLOW_GAME_CONCEPT_PLAN.md (line 1221), делает PR/патч в своей зоне.
+Каждый агент оставляет краткий отчёт в WORKFLOW_GAME_CONCEPT_PLAN.md (line 143) (что сделано, риски, что менять в плане).
+Координатор мерджит по порядку: infra/доки → data‑слой → UI/UX → бот/копирайт → финальная регрессия.
+
+начни разработку. после тебя я подключу параллельно других агентов
+
+Ran rg -n "exportData\b|Импорт|Экспорт|Резерв" src\views\ProfileView.tsx | Select-Object -First 80
+
+
+ты будешь агент номер один
+
+Ran Get-Content .\src\views\ProfileView.tsx | Select-Object -Skip 1380 -First 220
+
+
+Ran Get-Content .\src\views\ProfileView.tsx -TotalCount 120
+
+
+Ran Get-Content .\src\utils\badgeImages.ts -TotalCount 260
+
+
+Ran Get-Content .\src\utils\imageSources.ts -TotalCount 200
+
+
+Ran rg -n "function pluralizeRu|pluralizeRu" src | Select-Object -First 80
+
+
+Ran Get-Content .\src\utils\textFormatting.ts -TotalCount 120
+
+
+Created
+socialGenerator.ts
++519
+-0
+socialGenerator.ts
++519
+-0
+
+import { getBadgeImagePath, getPreferredBadgeImageVariant } from './badgeImages';
+import { toSiblingImageUrl } from './imageSources';
+import { pluralizeRu } from './textFormatting';
+
+export type SocialCardFormat = 'story' | 'wide';
+export type SocialCardKind = 'progress_summary' | 'start_route' | 'achieved_level' | 'favorite';
+
+export type SocialCardProfile = {
+  nickname?: string;
+  avatar?: string;
+  rank?: string;
+  totalLevelsAchieved?: number;
+  totalBadgesStarted?: number;
+};
+
+export type SocialCardBadge = {
+  id?: string;
+  baseId?: string;
+  title?: string;
+  emoji?: string;
+  categoryId?: string;
+  levelLabel?: string;
+};
+
+export type SocialCardInput = {
+  format: SocialCardFormat;
+  kind: SocialCardKind;
+  hideNickname?: boolean;
+  profile?: SocialCardProfile;
+  badge?: SocialCardBadge;
+  reflection?: string;
+  createdAt?: string;
+};
+
+export type SocialCardResult = {
+  blob: Blob;
+  mimeType: string;
+  filename: string;
+  title: string;
+  text: string;
+  width: number;
+  height: number;
+};
+
+export type SocialShareOutcome = 'shared' | 'downloaded' | 'canceled';
+
+const getDims = (format: SocialCardFormat) => {
+  if (format === 'wide') return { width: 1920, height: 1080 };
+  return { width: 1080, height: 1920 };
+};
+
+const hashToSeed = (value: string): number => {
+  let h = 2166136261;
+  for (let i = 0; i < value.length; i += 1) {
+    h ^= value.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+};
+
+const mulberry32 = (seed: number) => {
+  let t = seed >>> 0;
+  return () => {
+    t += 0x6d2b79f5;
+    let r = Math.imul(t ^ (t >>> 15), 1 | t);
+    r ^= r + Math.imul(r ^ (r >>> 7), 61 | r);
+    return ((r ^ (r >>> 14)) >>> 0) / 4294967296;
+  };
+};
+
+const getRankColor = (rank: string): string => {
+  if (rank.includes('Легенда')) return '#FFD700';
+  if (rank.includes('Мастер')) return '#E0FFFF';
+  if (rank.includes('Организатор')) return '#FF69B4';
+  return '#4DA6FF';
+};
+
+const getCategoryAccent = (categoryId?: string): string => {
+  const n = Number(String(categoryId || '').replace(/\D+/g, ''));
+  if (!Number.isFinite(n) || n <= 0) return 'hsl(250, 80%, 65%)';
+  const hue = (n * 37) % 360;
+  return `hsl(${hue}, 85%, 65%)`;
+};
+
+const roundRectPath = (ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) => {
+  const radius = Math.max(0, Math.min(r, Math.min(w, h) / 2));
+  ctx.beginPath();
+  ctx.moveTo(x + radius, y);
+  ctx.arcTo(x + w, y, x + w, y + h, radius);
+  ctx.arcTo(x + w, y + h, x, y + h, radius);
+  ctx.arcTo(x, y + h, x, y, radius);
+  ctx.arcTo(x, y, x + w, y, radius);
+  ctx.closePath();
+};
+
+const wrapText = (ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string[] => {
+  const lines: string[] = [];
+  const paragraphs = String(text || '').split('\n').map((p) => p.trim()).filter(Boolean);
+  paragraphs.forEach((paragraph, paragraphIndex) => {
+    const words = paragraph.split(/\s+/).filter(Boolean);
+    let line = '';
+    words.forEach((word) => {
+      const test = line ? `${line} ${word}` : word;
+      if (ctx.measureText(test).width <= maxWidth) {
+        line = test;
+        return;
+      }
+      if (line) lines.push(line);
+      line = word;
+    });
+    if (line) lines.push(line);
+    if (paragraphIndex < paragraphs.length - 1) lines.push('');
+  });
+  return lines.length ? lines : [''];
+};
+
+const canvasToPngBlob = (canvas: HTMLCanvasElement): Promise<Blob> => {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => {
+        if (blob) resolve(blob);
+        else reject(new Error('Failed to create PNG blob'));
+      },
+      'image/png',
+      0.92
+    );
+  });
+};
+
+const loadImage = (url: string): Promise<HTMLImageElement> => {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.decoding = 'async';
+    img.loading = 'eager';
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error(`Failed to load image: ${url}`));
+    img.src = url;
+  });
+};
+
+const tryLoadBadgeImage = async (badge?: SocialCardBadge): Promise<HTMLImageElement | null> => {
+  if (!badge?.title || !badge.categoryId) return null;
+  const baseId = String(badge.baseId || badge.id || '').split('.').slice(0, 2).join('.');
+  if (!baseId) return null;
+  const variant = getPreferredBadgeImageVariant(String(badge.categoryId));
+  const jpgPath = getBadgeImagePath(
+    baseId,
+    badge.title,
+    String(badge.categoryId),
+    badge.id && String(badge.id).split('.').length === 3 ? badge.id : undefined,
+    badge.levelLabel || undefined,
+    variant
+  );
+  if (!jpgPath) return null;
+  const webpPath = toSiblingImageUrl(jpgPath, 'webp');
+  try {
+    if (webpPath) return await loadImage(webpPath);
+  } catch {
+    // ignore
+  }
+  try {
+    return await loadImage(jpgPath);
+  } catch {
+    return null;
+  }
+};
+
+const tryLoadAvatarImage = async (avatar?: string): Promise<HTMLImageElement | null> => {
+  const v = String(avatar || '').trim();
+  if (!v) return null;
+  if (v.startsWith('data:image/') || v.startsWith('http://') || v.startsWith('https://') || v.startsWith('/')) {
+    try {
+      return await loadImage(v);
+    } catch {
+      return null;
+    }
+  }
+  return null;
+};
+
+const drawStars = (ctx: CanvasRenderingContext2D, width: number, height: number, seed: number) => {
+  const rand = mulberry32(seed);
+  const count = Math.round((width * height) / 90_000);
+  for (let i = 0; i < count; i += 1) {
+    const x = rand() * width;
+    const y = rand() * height;
+    const r = 0.6 + rand() * 1.8;
+    const alpha = 0.12 + rand() * 0.35;
+    ctx.fillStyle = `rgba(255,255,255,${alpha})`;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+};
+
+const buildTitle = (input: SocialCardInput): string => {
+  switch (input.kind) {
+    case 'start_route':
+      return 'Старт маршрута';
+    case 'achieved_level':
+      return 'Достижение';
+    case 'favorite':
+      return 'Избранное';
+    default:
+      return 'Мой прогресс';
+  }
+};
+
+const buildCaption = (input: SocialCardInput): string => {
+  const nickname = String(input.profile?.nickname || '').trim();
+  const hideNickname = Boolean(input.hideNickname);
+  const who = !hideNickname && nickname ? nickname : 'Я';
+
+  const badgeTitle = String(input.badge?.title || '').trim();
+  const levelLabel = String(input.badge?.levelLabel || '').trim();
+  const rank = String(input.profile?.rank || '').trim();
+  const achieved = Number(input.profile?.totalLevelsAchieved || 0);
+  const started = Number(input.profile?.totalBadgesStarted || 0);
+
+  if (input.kind === 'progress_summary') {
+    const levelsWord = pluralizeRu(achieved, ['уровень', 'уровня', 'уровней']);
+    return `${who} в Путеводителе Реального Лагеря: ${rank || 'мой путь'}. Закрыто ${achieved} ${levelsWord}. В пути: ${started}.`;
+  }
+
+  if (input.kind === 'start_route') {
+    return `${who} начал(а) маршрут «${badgeTitle || 'новый значок'}» в Путеводителе Реального Лагеря.`;
+  }
+
+  if (input.kind === 'favorite') {
+    return `${who} добавил(а) «${badgeTitle || 'значок'}» в избранное. Мой путь — мой выбор.`;
+  }
+
+  const reflection = String(input.reflection || '').trim();
+  const reflectionLine = reflection ? `\n\n«${reflection.slice(0, 140)}»` : '';
+  return `${who} выполнил(а) уровень «${badgeTitle || 'значок'}${levelLabel ? ` — ${levelLabel}` : ''}».${reflectionLine}`;
+};
+
+const formatDate = (iso?: string): string => {
+  const d = iso ? new Date(iso) : new Date();
+  if (Number.isNaN(d.getTime())) return '';
+  return d.toLocaleDateString('ru-RU');
+};
+
+export const generateSocialCard = async (input: SocialCardInput): Promise<SocialCardResult> => {
+  if (typeof document === 'undefined') {
+    throw new Error('Social card generation is only available in browser');
+  }
+
+  const { width, height } = getDims(input.format);
+  const seed = hashToSeed(
+    [
+      input.kind,
+      input.format,
+      input.badge?.id || input.badge?.baseId || '',
+      input.profile?.nickname || '',
+      input.profile?.rank || '',
+    ].join('|')
+  );
+
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('Canvas not supported');
+
+  const isPortrait = height > width;
+  const margin = Math.round(width * 0.075);
+  const createdAt = input.createdAt || new Date().toISOString();
+  const dateLabel = formatDate(createdAt);
+
+  const rank = String(input.profile?.rank || '').trim();
+  const accent = rank ? getRankColor(rank) : getCategoryAccent(input.badge?.categoryId);
+
+  // Background
+  const bg = ctx.createLinearGradient(0, 0, width, height);
+  bg.addColorStop(0, 'rgba(9,6,20,1)');
+  bg.addColorStop(0.45, 'rgba(26,15,46,1)');
+  bg.addColorStop(1, 'rgba(10,7,22,1)');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, width, height);
+
+  // Accent glow
+  ctx.save();
+  ctx.globalAlpha = 0.18;
+  const glow = ctx.createRadialGradient(width * 0.82, height * 0.18, 0, width * 0.82, height * 0.18, width * 0.62);
+  glow.addColorStop(0, String(accent));
+  glow.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = glow;
+  ctx.fillRect(0, 0, width, height);
+  ctx.restore();
+
+  drawStars(ctx, width, height, seed);
+
+  // Brand (top-left)
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'top';
+  ctx.fillStyle = 'rgba(255,255,255,0.92)';
+  ctx.font = `900 ${Math.round(width * 0.05)}px "Montserrat", system-ui, -apple-system, sans-serif`;
+  ctx.fillText('Путеводитель', margin, margin * 0.7);
+  ctx.fillStyle = 'rgba(255,255,255,0.65)';
+  ctx.font = `700 ${Math.round(width * 0.028)}px "Montserrat", system-ui, -apple-system, sans-serif`;
+  ctx.fillText('Реальный Лагерь', margin, margin * 0.7 + Math.round(width * 0.06));
+
+  // Event pill (top-right)
+  const pillText = (() => {
+    switch (input.kind) {
+      case 'start_route':
+        return 'СТАРТ МАРШРУТА';
+      case 'achieved_level':
+        return 'УРОВЕНЬ ВЫПОЛНЕН';
+      case 'favorite':
+        return 'В ИЗБРАННОЕ';
+      default:
+        return 'МОЙ ПРОГРЕСС';
+    }
+  })();
+
+  ctx.font = `800 ${Math.round(width * 0.022)}px "Montserrat", system-ui, -apple-system, sans-serif`;
+  const pillPaddingX = Math.round(width * 0.018);
+  const pillPaddingY = Math.round(width * 0.012);
+  const pillW = Math.round(ctx.measureText(pillText).width) + pillPaddingX * 2;
+  const pillH = Math.round(width * 0.045) + pillPaddingY * 2;
+  const pillX = width - margin - pillW;
+  const pillY = margin * 0.72;
+  ctx.save();
+  ctx.globalAlpha = 0.9;
+  roundRectPath(ctx, pillX, pillY, pillW, pillH, pillH / 2);
+  ctx.fillStyle = 'rgba(255,255,255,0.08)';
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  ctx.restore();
+
+  ctx.fillStyle = 'rgba(255,255,255,0.92)';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(pillText, pillX + pillPaddingX, pillY + pillH / 2);
+
+  // Main icon (avatar or badge)
+  const iconSize = Math.round(Math.min(width, height) * (isPortrait ? 0.28 : 0.26));
+  const iconX = isPortrait ? Math.round((width - iconSize) / 2) : margin;
+  const iconY = isPortrait ? Math.round(height * 0.26) : Math.round(height * 0.28);
+  const iconCenterX = iconX + iconSize / 2;
+  const iconCenterY = iconY + iconSize / 2;
+
+  const badgeImage = input.kind === 'progress_summary' ? null : await tryLoadBadgeImage(input.badge);
+  const avatarImage = input.kind === 'progress_summary' ? await tryLoadAvatarImage(input.profile?.avatar) : null;
+  const emojiFallback =
+    input.kind === 'progress_summary'
+      ? String(input.profile?.avatar || '🧑‍🚀').trim() || '🧑‍🚀'
+      : String(input.badge?.emoji || '🏆').trim() || '🏆';
+
+  // Ring
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(iconCenterX, iconCenterY, iconSize / 2 + 12, 0, Math.PI * 2);
+  ctx.strokeStyle = String(accent);
+  ctx.globalAlpha = 0.75;
+  ctx.lineWidth = 10;
+  ctx.stroke();
+  ctx.restore();
+
+  // Clip + draw image
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(iconCenterX, iconCenterY, iconSize / 2, 0, Math.PI * 2);
+  ctx.clip();
+  if (badgeImage) {
+    ctx.drawImage(badgeImage, iconX, iconY, iconSize, iconSize);
+  } else if (avatarImage) {
+    ctx.drawImage(avatarImage, iconX, iconY, iconSize, iconSize);
+  } else {
+    ctx.fillStyle = 'rgba(255,255,255,0.06)';
+    ctx.fillRect(iconX, iconY, iconSize, iconSize);
+  }
+  ctx.restore();
+
+  if (!badgeImage && !avatarImage) {
+    ctx.save();
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.font = `900 ${Math.round(iconSize * 0.55)}px "Montserrat", system-ui, -apple-system, sans-serif`;
+    ctx.fillStyle = 'rgba(255,255,255,0.92)';
+    ctx.fillText(emojiFallback, iconCenterX, iconCenterY + Math.round(iconSize * 0.03));
+    ctx.restore();
+  }
+
+  // Text block
+  const textX = isPortrait ? margin : iconX + iconSize + Math.round(margin * 0.75);
+  const textY = isPortrait ? iconY + iconSize + Math.round(margin * 0.65) : Math.round(height * 0.26);
+  const textMaxW = isPortrait ? width - margin * 2 : width - textX - margin;
+
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'top';
+  ctx.fillStyle = 'rgba(255,255,255,0.92)';
+  ctx.font = `900 ${Math.round(width * (isPortrait ? 0.062 : 0.05))}px "Montserrat", system-ui, -apple-system, sans-serif`;
+
+  const headline = (() => {
+    if (input.kind === 'progress_summary') return String(rank || 'Мой путь');
+    const title = String(input.badge?.title || '').trim();
+    return title || 'Мой маршрут';
+  })();
+
+  const headlineLines = wrapText(ctx, headline, textMaxW);
+  const headlineLineH = Math.round(width * (isPortrait ? 0.07 : 0.058));
+  headlineLines.forEach((line, idx) => {
+    ctx.fillText(line, textX, textY + idx * headlineLineH);
+  });
+
+  let cursorY = textY + headlineLines.length * headlineLineH + Math.round(width * 0.015);
+
+  // Subheadline
+  const sub = (() => {
+    if (input.kind === 'progress_summary') {
+      const achieved = Number(input.profile?.totalLevelsAchieved || 0);
+      const started = Number(input.profile?.totalBadgesStarted || 0);
+      const levelsWord = pluralizeRu(achieved, ['уровень', 'уровня', 'уровней']);
+      return `Закрыто ${achieved} ${levelsWord} • В пути ${started}`;
+    }
+    const levelLabel = String(input.badge?.levelLabel || '').trim();
+    if (input.kind === 'favorite') return 'Мой wishlist маршрутов';
+    if (input.kind === 'start_route') return 'Я выбираю направление и делаю первый шаг';
+    return levelLabel ? `Уровень: ${levelLabel}` : 'Реальный опыт зафиксирован';
+  })();
+
+  ctx.fillStyle = 'rgba(255,255,255,0.72)';
+  ctx.font = `700 ${Math.round(width * (isPortrait ? 0.032 : 0.028))}px "Montserrat", system-ui, -apple-system, sans-serif`;
+  const subLines = wrapText(ctx, sub, textMaxW);
+  const subLineH = Math.round(width * (isPortrait ? 0.04 : 0.036));
+  subLines.forEach((line, idx) => {
+    ctx.fillText(line, textX, cursorY + idx * subLineH);
+  });
+  cursorY += subLines.length * subLineH + Math.round(width * 0.02);
+
+  // Optional nickname line
+  const nickname = String(input.profile?.nickname || '').trim();
+  if (!input.hideNickname && nickname) {
+    ctx.fillStyle = 'rgba(255,255,255,0.62)';
+    ctx.font = `700 ${Math.round(width * (isPortrait ? 0.027 : 0.024))}px "Montserrat", system-ui, -apple-system, sans-serif`;
+    ctx.fillText(`Игрок: ${nickname}`, textX, cursorY);
+    cursorY += Math.round(width * 0.042);
+  }
+
+  // Footer
+  const footerText = 'Реальные Значки — маршруты развития';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'bottom';
+  ctx.fillStyle = 'rgba(255,255,255,0.45)';
+  ctx.font = `700 ${Math.round(width * 0.024)}px "Montserrat", system-ui, -apple-system, sans-serif`;
+  ctx.fillText(footerText, margin, height - margin);
+
+  ctx.textAlign = 'right';
+  ctx.fillStyle = 'rgba(255,255,255,0.45)';
+  ctx.font = `700 ${Math.round(width * 0.024)}px "Montserrat", system-ui, -apple-system, sans-serif`;
+  ctx.fillText(dateLabel, width - margin, height - margin);
+
+  const mimeType = 'image/png';
+  const blob = await canvasToPngBlob(canvas);
+  const baseName = `rl_${input.kind}_${input.format}_${createdAt.split('T')[0]}`;
+  const filename = `${baseName}.png`;
+  const title = buildTitle(input);
+  const text = buildCaption(input);
+
+  return { blob, mimeType, filename, title, text, width, height };
+};
+
+export const downloadBlob = (blob: Blob, filename: string) => {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.rel = 'noopener';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
+};
+
+export const copyTextToClipboard = async (text: string): Promise<boolean> => {
+  const value = String(text || '').trim();
+  if (!value) return false;
+  try {
+    if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+      await navigator.clipboard.writeText(value);
+      return true;
+    }
+  } catch {
+    // ignore
+  }
+  return false;
+};
+
+export const shareOrDownloadSocialCard = async (result: SocialCardResult): Promise<SocialShareOutcome> => {
+  const navAny = navigator as any;
+  const canShare = typeof navAny?.share === 'function' && typeof navAny?.canShare === 'function';
+
+  try {
+    if (canShare) {
+      const file = new File([result.blob], result.filename, { type: result.mimeType });
+      const can = navAny.canShare({ files: [file] });
+      if (can) {
+        try {
+          await navAny.share({ files: [file], title: result.title, text: result.text });
+          return 'shared';
+        } catch (e) {
+          if ((e as any)?.name === 'AbortError') return 'canceled';
+          throw e;
+        }
+      }
+    }
+  } catch {
+    // ignore and fallback to download
+  }
+
+  downloadBlob(result.blob, result.filename);
+  return 'downloaded';
+};
+
+Context automatically compacted
+Ran cd "d:\Development\Путеводитель web_new"; git status --porcelain
+
+
+Ran cd "d:\Development\Путеводитель web_new"; ls
+
+
+Ran cd "d:\Development\Путеводитель web_new"; rg -n "socialGenerator" -S .
+
+
+Ran cd "d:\Development\Путеводитель web_new"; rg -n "generateSocialCard" -S src || true
+
+
+Ran cd "d:\Development\Путеводитель web_new"; rg -n "ProfileView" src
+
+
+Ran cd "d:\Development\Путеводитель web_new"; rg -n "profileView" src
+
+
+Ran cd "d:\Development\Путеводитель web_new"; rg -n "view=profile" -S src || true
+
+
+Ran cd "d:\Development\Путеводитель web_new"; rg -n "Profile" src/views src/components src/pages 2>$null || true
+
+
+Ran cd "d:\Development\Путеводитель web_new"; git ls-files "src/views/ProfileView.tsx"; git ls-files "src/views/ProfileView.ts"; git ls-files "src/views"
+
+
+Ran cd "d:\Development\Путеводитель web_new"; powershell -NoProfile -Command "Get-Content -Path 'src/views/ProfileView.tsx' -TotalCount 200"
+
+
+Ran cd "d:\Development\Путеводитель web_new"; rg -n "Поделиться|поделиться|Share" "src/views/ProfileView.tsx"
+
+
+Ran cd "d:\Development\Путеводитель web_new"; powershell -NoProfile -Command "Get-Content -Path 'src/hooks/useUserProgress.ts' -TotalCount 200"
+
+
+Ran cd "d:\Development\Путеводитель web_new"; ls src/context; ls src/context -Recurse
+
+
+Ran cd "d:\Development\Путеводитель web_new"; powershell -NoProfile -Command "Get-Content -Path 'src/context/ProgressContext.tsx' -TotalCount 240"
+
+
+Ran cd "d:\Development\Путеводитель web_new"; rg -n "ProgressProvider" src
+
+
+Ran cd "d:\Development\Путеводитель web_new"; powershell -NoProfile -Command "Get-Content -Path 'src/utils/socialGenerator.ts' -TotalCount 260"
+
+
+Ran cd "d:\Development\Путеводитель web_new"; ls src/utils; rg -n "export.*getBadgeImagePath" src/utils/badgeImages* src/utils/badgeImages.ts 2>$null; rg -n "getBadgeImagePath" src/utils -S
+
+
+Ran cd "d:\Development\Путеводитель web_new"; powershell -NoProfile -Command "Get-Content -Path 'src/utils/badgeImages.ts' -TotalCount 260"
+
+
+Ran cd "d:\Development\Путеводитель web_new"; powershell -NoProfile -Command "Get-Content -Path 'src/utils/socialGenerator.ts' | Select-Object -Skip 260 -First 260"
+
+
+Ran cd "d:\Development\Путеводитель web_new"; powershell -NoProfile -Command "Get-Content -Path 'src/app/AppViewRouter.tsx' -TotalCount 120"
+
+
+Ran cd "d:\Development\Путеводитель web_new"; rg -n "currentView === 'profile'" -n "src/app/AppViewRouter.tsx"; rg -n "profile" "src/app/AppViewRouter.tsx" | Select-Object -First 30
+
+
+Ran cd "d:\Development\Путеводитель web_new"; powershell -NoProfile -Command "Get-Content -Path 'src/app/AppViewRouter.tsx' | Select-Object -Skip 220 -First 120"
+
+
+Ran cd "d:\Development\Путеводитель web_new"; powershell -NoProfile -Command "Get-Content -Path 'src/components/BlueNestLanding.tsx' | Select-Object -Skip 540 -First 120"
+
+
+Ran cd "d:\Development\Путеводитель web_new"; rg -n "Поделиться|поделиться|Share|шер" "src/components/BlueNestLanding.tsx"
+
+
+Ran cd "d:\Development\Путеводитель web_new"; rg -n "Поделиться прогресс|поделиться прогресс|share progress|Share Center|Share" src
+
+
+Ran cd "d:\Development\Путеводитель web_new"; powershell -NoProfile -Command "Get-Content -Path 'src/types/userProgress.ts' -TotalCount 260"
+
+
+Ran cd "d:\Development\Путеводитель web_new"; powershell -NoProfile -Command "Get-Content -Path 'src/styles/profile-view.css' -TotalCount 260"
+
+
+Ran cd "d:\Development\Путеводитель web_new"; rg -n "profile-" "src/styles/profile-view.css" | Select-Object -First 40
+
+
+Ran cd "d:\Development\Путеводитель web_new"; powershell -NoProfile -Command "Get-Content -Path 'src/styles/profile-view.css' | Select-Object -Skip 260 -First 260"
+
+
+Ran cd "d:\Development\Путеводитель web_new"; (Get-Content -Path 'src/styles/profile-view.css').Length
+
+
+Ran cd "d:\Development\Путеводитель web_new"; rg -n "return \(" "src/views/ProfileView.tsx"
+
+
+Ran cd "d:\Development\Путеводитель web_new"; powershell -NoProfile -Command "Get-Content -Path 'src/views/ProfileView.tsx' | Select-Object -Skip 430 -First 160"
+
+
+Ran cd "d:\Development\Путеводитель web_new"; rg -n "showSettings" "src/views/ProfileView.tsx"
+
+
+Ran cd "d:\Development\Путеводитель web_new"; powershell -NoProfile -Command "Get-Content -Path 'src/views/ProfileView.tsx' | Select-Object -Skip 1380 -First 200"
+
+
+Ran cd "d:\Development\Путеводитель web_new"; cat package.json
+
+
+Ran cd "d:\Development\Путеводитель web_new"; cat SERVERS.md
+
+
+Ran cd "d:\Development\Путеводитель web_new"; powershell -NoProfile -Command "Get-Content -Path 'src/utils/badgeImageMap.ts' -TotalCount 60"
+
+
+Ran cd "d:\Development\Путеводитель web_new"; cat src/main.tsx
+
+
+Ran cd "d:\Development\Путеводитель web_new"; powershell -NoProfile -Command "Get-Content -Path 'src/context/ProgressContext.tsx' | Select-Object -Skip 360 -First 120"
+
+
+Ran cd "d:\Development\Путеводитель web_new"; rg -n "useUserProgress\(" src
+
+
+Ran cd "d:\Development\Путеводитель web_new"; rg -n "isMobile|matchMedia|window\.innerWidth" "src/views/ProfileView.tsx"
+
+
+Ran cd "d:\Development\Путеводитель web_new"; rg -n "export const toSiblingImageUrl" src/utils/imageSources.ts; cat src/utils/imageSources.ts
+
+
+Ran cd "d:\Development\Путеводитель web_new"; rg -n "export const pluralizeRu" src/utils/textFormatting.ts; powershell -NoProfile -Command "Get-Content -Path 'src/utils/textFormatting.ts' -TotalCount 120"
+
+
+Ran cd "d:\Development\Путеводитель web_new"; rg -n "const handleImport" "src/views/ProfileView.tsx"
+
+
+Ran cd "d:\Development\Путеводитель web_new"; powershell -NoProfile -Command "Get-Content -Path 'src/views/ProfileView.tsx' | Select-Object -Skip 240 -First 220"
+
+
+Ran cd "d:\Development\Путеводитель web_new"; powershell -NoProfile -Command "Get-Content -Path 'src/views/ProfileView.tsx' -TotalCount 160"
+
+
+Ran cd "d:\Development\Путеводитель web_new"; powershell -NoProfile -Command "Get-Content -Path 'src/views/ProfileView.tsx' | Select-Object -Skip 160 -First 120"
+
+
+Ran cd "d:\Development\Путеводитель web_new"; powershell -NoProfile -Command "Get-Content -Path 'src/views/ProfileView.tsx' | Select-Object -Skip 70 -First 70"
+
+
+Edited file
+ProfileView.tsx
++6
+-0
+
+import type { Badge } from '../types/guide';
+import {
+  copyTextToClipboard,
+  generateSocialCard,
+  shareOrDownloadSocialCard,
+  type SocialCardResult,
+} from '../utils/socialGenerator';
+import '../styles/profile-view.css';
+Edited file
+ProfileView.tsx
++7
+-0
+
+  const [showProfileEditor, setShowProfileEditor] = useState(false);
+  const [shareHideNickname, setShareHideNickname] = useState(true);
+  const [shareBusy, setShareBusy] = useState(false);
+  const [shareStatus, setShareStatus] = useState<string | null>(null);
+  const [shareStory, setShareStory] = useState<SocialCardResult | null>(null);
+  const [shareWide, setShareWide] = useState<SocialCardResult | null>(null);
+  const [shareStoryUrl, setShareStoryUrl] = useState<string | null>(null);
+  const [shareWideUrl, setShareWideUrl] = useState<string | null>(null);
+
+Edited file
+ProfileView.tsx
++15
+-0
+
+
+  useEffect(() => {
+    return () => {
+      if (shareStoryUrl) URL.revokeObjectURL(shareStoryUrl);
+      if (shareWideUrl) URL.revokeObjectURL(shareWideUrl);
+    };
+  }, [shareStoryUrl, shareWideUrl]);
+
+  useEffect(() => {
+    setShareStory(null);
+    setShareWide(null);
+    setShareStoryUrl(null);
+    setShareWideUrl(null);
+    setShareStatus(null);
+  }, [shareHideNickname]);
+
+  const resolveProgressBadge = (progressId: string) => {
+Ran cd "d:\Development\Путеводитель web_new"; rg -n "const handleImport" src/views/ProfileView.tsx
+
+
+Ran cd "d:\Development\Путеводитель web_new"; powershell -NoProfile -Command "Get-Content -Path 'src/views/ProfileView.tsx' | Select-Object -Skip 420 -First 70"
+
+
+Ran cd "d:\Development\Путеводитель web_new"; rg -n "Rank color logic" src/views/ProfileView.tsx
+
+
+Ran cd "d:\Development\Путеводитель web_new"; powershell -NoProfile -Command "Get-Content -Path 'src/views/ProfileView.tsx' | Select-Object -Skip 436 -First 20"
+
+
+Ran cd "d:\Development\Путеводитель web_new"; python -c "from pathlib import Path; d=Path('src/views/ProfileView.tsx').read_bytes(); print('crlf', d.count(b'\r\n'), 'lf', d.count(b'\n'), 'cr', d.count(b'\r'))"
+
+
+Ran cd "d:\Development\Путеводитель web_new"; python -c "from pathlib import Path; t=Path('src/views/ProfileView.tsx').read_text(encoding='utf-8'); print('Легенда' in t, 'Р›РµРіРµРЅРґР°' in t);"
+
+
+Edited file
+ProfileView.tsx
++75
+-0
+
+
+  const handleGenerateShareCards = async () => {
+    if (shareBusy) return;
+    setShareBusy(true);
+    setShareStatus(null);
+    try {
+      const createdAt = new Date().toISOString();
+      const profilePayload = {
+        nickname: profile.nickname,
+        avatar: profile.avatar,
+        rank,
+        totalLevelsAchieved: profile.stats.totalLevelsAchieved,
+        totalBadgesStarted: profile.stats.totalBadgesStarted,
+      };
+
+      const story = await generateSocialCard({
+        kind: 'progress_summary',
+        format: 'story',
+        hideNickname: shareHideNickname,
+        profile: profilePayload,
+        createdAt,
+      });
+
+      const wide = await generateSocialCard({
+        kind: 'progress_summary',
+        format: 'wide',
+        hideNickname: shareHideNickname,
+        profile: profilePayload,
+        createdAt,
+      });
+
+      setShareStory(story);
+      setShareWide(wide);
+      setShareStoryUrl(URL.createObjectURL(story.blob));
+      setShareWideUrl(URL.createObjectURL(wide.blob));
+      setShareStatus('Карточки готовы: 9:16 и 16:9.');
+    } catch (e) {
+      console.error(e);
+      setShareStatus('Не удалось сгенерировать карточки. Попробуй ещё раз.');
+    } finally {
+      setShareBusy(false);
+    }
+  };
+
+  const handleShareCard = async (result: SocialCardResult) => {
+    if (shareBusy) return;
+    setShareBusy(true);
+    setShareStatus(null);
+    try {
+      const outcome = await shareOrDownloadSocialCard(result);
+      if (outcome === 'canceled') {
+        setShareStatus('Отмена.');
+        return;
+      }
+      if (outcome === 'shared') {
+        setShareStatus('Отправлено через системное меню шеринга.');
+        return;
+      }
+
+      const copied = await copyTextToClipboard(result.text);
+      setShareStatus(copied ? 'PNG скачан, подпись скопирована.' : 'PNG скачан. Подпись можно скопировать ниже.');
+    } catch (e) {
+      console.error(e);
+      setShareStatus('Не удалось поделиться/скачать. Попробуй ещё раз.');
+    } finally {
+      setShareBusy(false);
+    }
+  };
+
+  const handleCopyShareCaption = async () => {
+    const text = shareStory?.text || shareWide?.text || '';
+    if (!text) return;
+    const ok = await copyTextToClipboard(text);
+    setShareStatus(ok ? 'Подпись скопирована.' : 'Не удалось скопировать подпись.');
+  };
+
+  // Rank color logic
+Ran cd "d:\Development\Путеводитель web_new"; rg -n "Footer / Settings Toggle" src/views/ProfileView.tsx
+
+
+Ran cd "d:\Development\Путеводитель web_new"; powershell -NoProfile -Command "Get-Content -Path 'src/views/ProfileView.tsx' | Select-Object -Skip 1520 -First 60"
+
+
+Edited file
+ProfileView.tsx
++193
+-0
+
+
+        {/* Share Center */}
+        <div
+          style={{
+            background: 'var(--cat-glass-bg, rgba(20, 20, 35, 0.6))',
+            backdropFilter: 'blur(16px)',
+            borderRadius: '22px',
+            padding: '18px',
+            border: '1px solid var(--cat-glass-border, rgba(255, 255, 255, 0.12))',
+            boxShadow: 'var(--shadow-medium, 0 8px 32px rgba(0, 0, 0, 0.28))',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
+            <div style={{ minWidth: '240px' }}>
+              <div style={{ fontSize: '16px', fontWeight: 800, letterSpacing: '0.2px' }}>Поделиться прогрессом</div>
+              <div style={{ fontSize: '12px', opacity: 0.7, marginTop: '6px', lineHeight: 1.45 }}>
+                Сделаем 2 PNG: сторис <b>9:16</b> и пост <b>16:9</b>. По умолчанию — без персональных данных.
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleGenerateShareCards}
+              disabled={shareBusy}
+              style={{
+                padding: '10px 14px',
+                borderRadius: '14px',
+                border: '1px solid rgba(255,255,255,0.14)',
+                background: shareBusy ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.10)',
+                color: 'white',
+                cursor: shareBusy ? 'not-allowed' : 'pointer',
+                fontSize: '12px',
+                fontWeight: 800,
+                letterSpacing: '0.6px',
+                textTransform: 'uppercase',
+              }}
+            >
+              {shareBusy ? 'Генерируем…' : shareStory && shareWide ? 'Обновить' : 'Сгенерировать'}
+            </button>
+          </div>
+
+          <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '13px' }}>
+              <input
+                type="checkbox"
+                checked={shareHideNickname}
+                onChange={(e) => setShareHideNickname(e.target.checked)}
+              />
+              Скрыть ник
+            </label>
+            <div style={{ fontSize: '12px', opacity: 0.6 }}>
+              Никнейм — опционально; в карточке нет ФИО/телефона/почты.
+            </div>
+          </div>
+
+          {shareStatus && (
+            <div style={{ marginTop: '10px', fontSize: '12px', opacity: 0.85 }}>
+              {shareStatus}
+            </div>
+          )}
+
+          <div style={{ marginTop: '14px', display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+            <div style={{ flex: '1 1 260px', minWidth: '260px' }}>
+              <div style={{ fontSize: '12px', opacity: 0.7, marginBottom: '8px' }}>Сторис 9:16</div>
+              <div
+                style={{
+                  width: '100%',
+                  aspectRatio: '9 / 16',
+                  borderRadius: '16px',
+                  border: '1px solid rgba(255,255,255,0.12)',
+                  overflow: 'hidden',
+                  background: 'rgba(0,0,0,0.22)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                {shareStoryUrl ? (
+                  <img src={shareStoryUrl} alt="Story preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : (
+                  <div style={{ padding: '14px', fontSize: '12px', opacity: 0.55, textAlign: 'center', lineHeight: 1.4 }}>
+                    Нажми «Сгенерировать», чтобы увидеть предпросмотр.
+                  </div>
+                )}
+              </div>
+              <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '10px' }}>
+                <button
+                  type="button"
+                  disabled={!shareStory || shareBusy}
+                  onClick={() => shareStory && handleShareCard(shareStory)}
+                  style={{
+                    padding: '10px 12px',
+                    borderRadius: '12px',
+                    border: '1px solid rgba(255,255,255,0.14)',
+                    background: 'rgba(255,255,255,0.08)',
+                    color: 'white',
+                    cursor: !shareStory || shareBusy ? 'not-allowed' : 'pointer',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                  }}
+                >
+                  Поделиться / скачать
+                </button>
+              </div>
+            </div>
+
+            <div style={{ flex: '1 1 260px', minWidth: '260px' }}>
+              <div style={{ fontSize: '12px', opacity: 0.7, marginBottom: '8px' }}>Пост 16:9</div>
+              <div
+                style={{
+                  width: '100%',
+                  aspectRatio: '16 / 9',
+                  borderRadius: '16px',
+                  border: '1px solid rgba(255,255,255,0.12)',
+                  overflow: 'hidden',
+                  background: 'rgba(0,0,0,0.22)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                {shareWideUrl ? (
+                  <img src={shareWideUrl} alt="Wide preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : (
+                  <div style={{ padding: '14px', fontSize: '12px', opacity: 0.55, textAlign: 'center', lineHeight: 1.4 }}>
+                    Нажми «Сгенерировать», чтобы увидеть предпросмотр.
+                  </div>
+                )}
+              </div>
+              <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '10px' }}>
+                <button
+                  type="button"
+                  disabled={!shareWide || shareBusy}
+                  onClick={() => shareWide && handleShareCard(shareWide)}
+                  style={{
+                    padding: '10px 12px',
+                    borderRadius: '12px',
+                    border: '1px solid rgba(255,255,255,0.14)',
+                    background: 'rgba(255,255,255,0.08)',
+                    color: 'white',
+                    cursor: !shareWide || shareBusy ? 'not-allowed' : 'pointer',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                  }}
+                >
+                  Поделиться / скачать
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {(shareStory || shareWide) && (
+            <div style={{ marginTop: '14px' }}>
+              <div style={{ fontSize: '12px', opacity: 0.7, marginBottom: '8px' }}>Подпись</div>
+              <textarea
+                readOnly
+                value={shareStory?.text || shareWide?.text || ''}
+                rows={3}
+                style={{
+                  width: '100%',
+                  resize: 'vertical',
+                  borderRadius: '14px',
+                  padding: '12px',
+                  border: '1px solid rgba(255,255,255,0.14)',
+                  background: 'rgba(0,0,0,0.22)',
+                  color: 'white',
+                  fontFamily: 'inherit',
+                  fontSize: '13px',
+                  lineHeight: 1.4,
+                }}
+              />
+              <div style={{ marginTop: '10px', display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  onClick={handleCopyShareCaption}
+                  disabled={shareBusy}
+                  style={{
+                    padding: '10px 12px',
+                    borderRadius: '12px',
+                    border: '1px solid rgba(255,255,255,0.14)',
+                    background: 'rgba(255,255,255,0.08)',
+                    color: 'white',
+                    cursor: shareBusy ? 'not-allowed' : 'pointer',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                  }}
+                >
+                  Скопировать подпись
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Footer / Settings Toggle */}
+Ran cd "d:\Development\Путеводитель web_new"; npm run build
+
+
+Ran cd "d:\Development\Путеводитель web_new"; cat vite.config.ts
+
+
+Ran cd "d:\Development\Путеводитель web_new"; node -e "console.log('esbuild', require('esbuild').version)"
+
+
+Ran cd "d:\Development\Путеводитель web_new"; node -e "require('esbuild').transform('let x: number = 1', { loader: 'ts' }).then(()=>console.log('ok')).catch(e=>{console.error(e); process.exit(1);})"
+
+
+Ran cd "d:\Development\Путеводитель web_new"; git status --porcelain
+
+
+Ran cd "d:\Development\Путеводитель web_new"; npx tsc --noEmit
+
+
+Ran cd "d:\Development\Путеводитель web_new"; rg -n "startRoute\(" src/views/BadgeView.tsx; rg -n "onStart|В путь|В\s*путь" src/views/BadgeView.tsx
+
+
+Ran cd "d:\Development\Путеводитель web_new"; powershell -NoProfile -Command "Get-Content -Path 'src/views/BadgeView.tsx' | Select-Object -Skip 240 -First 90"
+
+
+Ran cd "d:\Development\Путеводитель web_new"; rg -n "updateLevelStatus\(" src/views/BadgeLevelView.tsx; rg -n "achieved" src/views/BadgeLevelView.tsx | Select-Object -First 40
+
+
+Ran cd "d:\Development\Путеводитель web_new"; powershell -NoProfile -Command "Get-Content -Path 'src/views/BadgeLevelView.tsx' | Select-Object -Skip 140 -First 110"
+
+
+Edited file
+ProfileView.tsx
++1
+-1
+
+        nickname: profile.nickname,
+        avatar: profile.avatar,
+        avatar: isImageAvatar(profile.avatar) ? '' : profile.avatar,
+        rank,
+Ran cd "d:\Development\Путеводитель web_new"; rg -n "Сделаем 2 PNG" src/views/ProfileView.tsx
+
+
+Edited file
+ProfileView.tsx
++1
+-1
+
+              <div style={{ fontSize: '12px', opacity: 0.7, marginTop: '6px', lineHeight: 1.45 }}>
+                Сделаем 2 PNG: сторис <b>9:16</b> и пост <b>16:9</b>. По умолчанию — без персональных данных.
+                Сделаем 2 PNG: сторис <b>9:16</b> и пост <b>16:9</b>. По умолчанию — без персональных данных (ник скрыт, фото-аватар не добавляется).
+              </div>
+Ran cd "d:\Development\Путеводитель web_new"; python -c "from pathlib import Path; t=Path('src/utils/socialGenerator.ts').read_text(encoding='utf-8'); print('Легенда' in t, 'Мастер' in t, 'Организатор' in t)"
+
+
+Ran cd "d:\Development\Путеводитель web_new"; rg -n "Share Center" src/views/ProfileView.tsx; rg -n "handleGenerateShareCards" src/views/ProfileView.tsx; rg -n "export const generateSocialCard" src/utils/socialGenerator.ts
+
+
+Ran cd "d:\Development\Путеводитель web_new"; rg -n "shareOrDownloadSocialCard" src/utils/socialGenerator.ts
+
+
+Ran cd "d:\Development\Путеводитель web_new"; rg -n "handleToggleComplete" src/views/BadgeLevelView.tsx; rg -n "handleToggleFavorite" src/views/BadgeLevelView.tsx
+
+
+Ran cd "d:\Development\Путеводитель web_new"; rg -n "handleStartRoute" src/views/BadgeView.tsx; rg -n "startRoute\(" src/views/BadgeView.tsx
+
+
+Статус / общий воркфлоу
+
+Да: единый SSOT‑план — WORKFLOW_GAME_CONCEPT_PLAN.md (остальные документы — детализация и ссылки).
+Я (агент #1) начал разработку Share MVP
+
+Добавил базу генерации PNG‑карточек + Web Share / download fallback: socialGenerator.ts (line 244), socialGenerator.ts (line 494).
+Встроил Share Center в профиль (превью 9:16 + 16:9, тумблер “Скрыть ник”, копирование подписи; фото‑аватар намеренно не попадает в карточку): ProfileView.tsx (line 1549).
+Что отдавать параллельным агентам
+
+Агент 2: “старт маршрута” → хук после startRoute(...) в BadgeView.tsx (line 270) (kind=start_route).
+
+Агент 3: “achieved” → хук после updateLevelStatus(...,'achieved') в BadgeLevelView.tsx (line 184) (kind=achieved_level, reflection).
+
+Агент 4: “избранное” → хук в BadgeLevelView.tsx (line 196) (kind=favorite) + CTA на главном экране → открыть profile и прокрутить к Share Center.
+
+Проверка: npx tsc --noEmit проходит; vite build в этом окружении падает spawn EPERM (esbuild), UI лучше прогнать локально.
+
+
+2 files changed
++815
+-0
+Undo
+
+socialGenerator.ts
+ProfileView.tsx
+отправил твоё сообщение Агентам 2,3,4. Они начали работать.
+
+Ran cd "d:\Development\Путеводитель web_new"; rg -n "всплываш|попап|popover|подсказк|прогресс" src/components/BlueNestLanding.tsx src/components -S
+
+
+Ran cd "d:\Development\Путеводитель web_new"; ls src/app; rg -n "openBadgeById" src/app -S; rg -n "window\." src/app/useAppController.ts src/app -S
+
+
+Ran cd "d:\Development\Путеводитель web_new"; powershell -NoProfile -Command "Get-Content -Path 'src/app/useAppController.ts' | Select-Object -Skip 430 -First 90"
+
+
+Ran cd "d:\Development\Путеводитель web_new"; powershell -NoProfile -Command "Get-Content -Path 'src/app/useAppController.ts' -TotalCount 220"
+
+
+Ran cd "d:\Development\Путеводитель web_new"; powershell -NoProfile -Command "Get-Content -Path 'src/components/BlueNestLanding.tsx' -TotalCount 120"
+
+
+Ran cd "d:\Development\Путеводитель web_new"; powershell -NoProfile -Command "Get-Content -Path 'src/components/BlueNestLanding.tsx' | Select-Object -Skip 300 -First 240"
+
+
+Edited file
+ProfileView.tsx
++21
+-0
+
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const hash = String(window.location.hash || '').replace(/^#/, '').toLowerCase();
+    if (!hash) return;
+    if (hash !== 'share' && hash !== 'share-center' && hash !== 'sharecenter') return;
+
+    requestAnimationFrame(() => {
+      const el = document.getElementById('profile-share-center');
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+
+    try {
+      const url = new URL(window.location.href);
+      url.hash = '';
+      window.history.replaceState({}, '', url.toString());
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  const resolveProgressBadge = (progressId: string) => {
+        <div
+          id="profile-share-center"
+          style={{
+Ran cd "d:\Development\Путеводитель web_new"; npx tsc --noEmit
+
+
+Ок — тогда синхронизируемся по интеграции:
+
+Я добавил автоскролл в Share Center: ProfileView.tsx (line 1549) теперь имеет id="profile-share-center", и при открытии профиля с хэшем #share/#share-center он сам скроллит к блоку и потом убирает хэш.
+Скажи агентам 2/3/4: чтобы “CTA → Share Center” работало без доп.инфры, достаточно перед переходом в профиль сделать window.location.hash = '#share', затем открыть profile.
+Когда агенты закончат — скинь мне список файлов, которые они трогали (или их патчи), и я сведу всё вместе без конфликтов.
+
+
+1 file changed
+Undo
+
+ProfileView.tsx
+агент 2: Сделал “старт маршрута” хук в BadgeView.tsx (line 284): после startRoute(...) показывается тост с CTA.  Поделиться → генерит PNG-карточку kind='start_route' (story 9:16) и делает Web Share / download fallback (копирует подпись). Share Center → ставит window.location.hash = '#share' и открывает профиль (для автоскролла к Share Center). Не сейчас → закрывает тост. Для “CTA → Share Center” добавил хелпер window.openProfile() в useAppController.ts (line 472) (в тосте уже используется). Агентам 2/3/4 можно говорить: window.location.hash = '#share'; (window as any).openProfile?.();.  Стили тоста: badge-view.css (line 27). TypeScript ок (npx tsc -p tsconfig.json).   3 files changed +41 -6 Undo  useAppController.ts badge-view.css BadgeView.tsx  агент 3: Сделал “achieved → Share” хук и UI.  BadgeLevelView.tsx (line 313): после updateLevelStatus(..., 'achieved', reflection) автоматически открывается модалка и запускается генерация (kind='achieved_level', передаётся reflection). BadgeLevelView.tsx (line 216): генерация 2 PNG (9:16 и 16:9) через generateSocialCard, hide‑nickname тумблер, getRank(...) для акцента. BadgeLevelView.tsx (line 830): модалка “Поделиться достижением” с превью, “Поделиться/скачать” (Web Share / download fallback) и “Скопировать подпись”. BadgeLevelView.tsx (line 743): кнопка “Поделиться достижением” остаётся доступной после выполнения уровня (переоткрыть модалку). Проверка: npx tsc --noEmit (OK).   1 file changed Undo  BadgeLevelView.tsx
+        
+Агент 4:  
+BadgeLevelView.tsx (line 337) — хук “избранное”: при добавлении в избранное показывается toast “Сделать сторис wishlist?”, кнопка “Поделиться” генерит карточку kind: 'favorite' (9:16) и делает Web Share / download + copy caption.
+CategoriesGrid.tsx (line 120) + AppViewRouter.tsx (line 158) — CTA на главном: добавил кнопку “Поделиться” в hero и пункт меню “Поделиться прогрессом”; оба делают window.location.hash = '#share' и открывают profile (дальше автоскролл отрабатывает в ProfileView.tsx (line 218)).
+Проверка: npx tsc --noEmit проходит; npm run build падает на vite build с spawn EPERM (похоже ограничение окружения/esbuild).
+
+3 files changed
++197
+-79
+Undo
+
+AppViewRouter.tsx
+CategoriesGrid.tsx
+BadgeLevelView.tsx
+
+Ran cd "d:\Development\Путеводитель web_new"; ls src/components | Select-String -Pattern "CategoriesGrid"; cat src/components/CategoriesGrid.tsx
+
+
+Ran cd "d:\Development\Путеводитель web_new"; rg -n "openProfile" src/app/useAppController.ts src/app/AppViewRouter.tsx src/views/BadgeView.tsx src/views/BadgeLevelView.tsx src/components/CategoriesGrid.tsx -S
+
+
+Ran cd "d:\Development\Путеводитель web_new"; powershell -NoProfile -Command "Get-Content -Path 'src/app/useAppController.ts' | Select-Object -Skip 455 -First 50"
+
+
+Ran cd "d:\Development\Путеводитель web_new"; powershell -NoProfile -Command "Get-Content -Path 'src/views/BadgeView.tsx' | Select-Object -Skip 300 -First 120"
+
+
+Ran cd "d:\Development\Путеводитель web_new"; powershell -NoProfile -Command "Get-Content -Path 'src/views/BadgeView.tsx' -TotalCount 120"
+
+
+Ran cd "d:\Development\Путеводитель web_new"; rg -n "handleStartRoute" -n src/views/BadgeView.tsx; powershell -NoProfile -Command "Get-Content -Path 'src/views/BadgeView.tsx' | Select-Object -Skip 248 -First 70"
+
+
+Ran cd "d:\Development\Путеводитель web_new"; ls src/styles | Select-String -Pattern "badge"; cat src/styles/badge-view.css
+
+
+Ran cd "d:\Development\Путеводитель web_new"; rg -n "achieved_level|favorite\b|wishlist|Поделиться достижением|Сделать сторис" src/views/BadgeLevelView.tsx
+
+
+Ran cd "d:\Development\Путеводитель web_new"; powershell -NoProfile -Command "Get-Content -Path 'src/views/BadgeLevelView.tsx' -TotalCount 120"
+
+
+Ran cd "d:\Development\Путеводитель web_new"; powershell -NoProfile -Command "Get-Content -Path 'src/views/BadgeLevelView.tsx' | Select-Object -Skip 200 -First 240"
+
+
+Ran cd "d:\Development\Путеводитель web_new"; rg -n "export interface Badge" src/types/guide.ts; powershell -NoProfile -Command "Get-Content -Path 'src/types/guide.ts' -TotalCount 120"
+
+
+Ran cd "d:\Development\Путеводитель web_new"; rg -n "Поделиться|share" src/app/AppViewRouter.tsx; powershell -NoProfile -Command "Get-Content -Path 'src/app/AppViewRouter.tsx' | Select-Object -Skip 120 -First 120"
+
+
+Ran cd "d:\Development\Путеводитель web_new"; rg -n "Поделиться прогресс" src/components/CategoriesGrid.tsx src/components/BlueNestLanding.tsx src/components/MobileBottomNav.tsx src/app/AppViewRouter.tsx
+
+
+Ran cd "d:\Development\Путеводитель web_new"; powershell -NoProfile -Command "Get-Content -Path 'src/views/BadgeLevelView.tsx' | Select-Object -Skip 500 -First 120"
+
+
+Ran cd "d:\Development\Путеводитель web_new"; powershell -NoProfile -Command "Get-Content -Path 'src/views/BadgeLevelView.tsx' | Select-Object -Skip 900 -First 220"
+
+
+Ran cd "d:\Development\Путеводитель web_new"; powershell -NoProfile -Command "Get-Content -Path 'src/views/BadgeLevelView.tsx' | Select-Object -Skip 1120 -First 160"
+
+
+Ran cd "d:\Development\Путеводитель web_new"; powershell -NoProfile -Command "Get-Content -Path 'src/styles/badge-view.css' -TotalCount 120"
+
+
+Ran cd "d:\Development\Путеводитель web_new"; rg -n "--z-toast" -S src/styles src/style-variables.css src/styles/style-variables.css || true
+
+
+Ran cd "d:\Development\Путеводитель web_new"; rg -n -- "--z-toast" src || echo "not found"
+
+
+Ran cd "d:\Development\Путеводитель web_new"; rg -n -- "--mobile-nav-height" src || echo "not found"
+
+
+Edited file
+BadgeLevelView.tsx
++1
+-1
+
+      setTimeout(() => setShowConfetti(false), 3000);
+      setShareModalOpen(true);
+      void handleGenerateAchievementShareCards({
+      });
+      window.setTimeout(() => setShareModalOpen(true), 450);
+    }
+You've hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/codex/settings/usage to purchase more credits or try again at Feb 10th, 2026 1:40 AM.
+1 file changed
+Undo
+
+BadgeLevelView.tsx

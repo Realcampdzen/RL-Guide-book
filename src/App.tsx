@@ -2,6 +2,7 @@ import React from 'react';
 import { LoadingScreen } from './app/LoadingScreen';
 import { AppViewRouter } from './app/AppViewRouter';
 import { useAppController } from './app/useAppController';
+import { PathFavToast } from './components/PathFavToast';
 
 // Layout configuration overrides for specific badge groups
 // (left here intentionally in the file history; currently unused and removed to keep build clean)
@@ -149,6 +150,7 @@ const App: React.FC = () => {
   return (
     <div className="app">
       <AppViewRouter controller={controller} fallback={<LoadingScreen />} />
+      <PathFavToast />
     </div>
   );
 };

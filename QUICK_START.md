@@ -44,9 +44,11 @@ OPENAI_API_KEY=your_openai_api_key_here
 
 # Настройки приложения
 NODE_ENV=development
-PORT=3000
-API_PORT=5000
+PORT=3001
+API_PORT=4000
 CHATBOT_PORT=8000
+
+# Telegram (опционально): TELEGRAM_BOT_TOKEN, TELEGRAM_CHANNEL_ID, TELEGRAM_WEBHOOK_SECRET — см. docs/EVENTS_AND_WEBHOOKS.md
 ```
 
 ### 4. Запуск всех сервисов
@@ -81,8 +83,8 @@ python main.py
 
 После запуска всех сервисов:
 
-- **🌐 Веб-приложение**: http://localhost:3001
-- **🔧 API документация**: http://localhost:5000/docs
+- **🌐 Веб-приложение**: http://localhost:3001/RL-Guide-book/ (base path для совместимости с GitHub Pages)
+- **🔧 Flask API**: http://localhost:4000 (health: `/health`, чат: `/api/chat`)
 - **🤖 Чат-бот НейроВалюша**: http://localhost:8000
 - **💬 Чат-интерфейс**: http://localhost:3001 (в веб-приложении)
 
@@ -105,7 +107,7 @@ python main.py
 ### Проверка работы API
 ```bash
 # Тест API сервера
-curl http://localhost:5000/health
+curl http://localhost:4000/health
 
 # Тест чат-бота
 curl -X POST http://localhost:8000/chat \
@@ -114,9 +116,12 @@ curl -X POST http://localhost:8000/chat \
 ```
 
 ### Проверка веб-интерфейса
-1. Откройте http://localhost:3001
+1. Откройте http://localhost:3001/RL-Guide-book/
 2. Попробуйте навигацию по категориям
 3. Откройте чат и напишите НейроВалюше
+
+### Перед деплоем на GitHub Pages
+См. [docs/DEPLOY_GITHUB_PAGES.md](docs/DEPLOY_GITHUB_PAGES.md) — pre-deploy чеклист (sync:ai-data, verify:webp, self-check, build). Опционально проверить доступность бэкенда: `BACKEND_URL=http://localhost:4000 npm run self-check` (бэкенд должен быть запущен).
 
 ## 🐛 Решение проблем
 
@@ -124,7 +129,7 @@ curl -X POST http://localhost:8000/chat \
 ```bash
 # Проверка занятых портов
 netstat -an | findstr :3001
-netstat -an | findstr :5000
+netstat -an | findstr :4000
 netstat -an | findstr :8000
 
 # Остановка процессов
@@ -147,6 +152,9 @@ npm install
 pip install --upgrade pip
 pip install -r requirements.txt
 ```
+
+### Форма плана значка не работает (Структурировать / Сгенерировать план)
+- Для работы ИИ в форме «Составить план» (Профиль → В пути → Составить план) необходим запущенный Flask backend: `npm run start:backend` или `cd backend && python app.py`.
 
 ### Проблемы с OpenAI API
 - Проверьте правильность API ключа в `.env`

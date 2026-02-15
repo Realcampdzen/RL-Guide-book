@@ -1,0 +1,489 @@
+/**
+ * Резервные стили каруселей «Избранное» и «В пути».
+ * Подключение: импортировать в ProfileView или main.tsx при возврате каруселей (см. README.md).
+ * Все селекторы под .profile-view для корректной работы внутри профиля.
+ */
+
+.profile-view .active-tab-content__favorites-wrap {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  max-width: 560px;
+  margin-left: auto;
+  margin-right: auto;
+  overflow: visible;
+}
+.profile-view .active-tab-content__badges-list {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.profile-view .btn-action-round {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+.profile-view .btn-action-round:hover {
+  transform: scale(1.1);
+  background: rgba(255, 255, 255, 0.1);
+}
+.profile-view .btn-action-round.fav {
+  border-color: #ffd700;
+  background: rgba(255, 215, 0, 0.1);
+}
+.profile-view .btn-action-round.trash:hover {
+  background: rgba(255, 77, 77, 0.2);
+  border-color: #ff4d4d;
+}
+.profile-view .btn-action-round.btn-go-badge {
+  flex-shrink: 0;
+  color: rgba(77, 172, 255, 0.9);
+}
+.profile-view .btn-action-round.btn-go-badge:hover {
+  color: #4dacff;
+  background: rgba(77, 172, 255, 0.15);
+}
+
+.profile-view .btn-pill {
+  min-height: 36px;
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.95);
+}
+.profile-view .btn-pill:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+.profile-view .btn-pill--secondary {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.04);
+}
+.profile-view .btn-pill--primary {
+  background: rgba(77, 172, 255, 0.15);
+  color: #4dacff;
+  border-color: rgba(77, 172, 255, 0.3);
+}
+.profile-view .btn-pill--primary:hover {
+  background: rgba(77, 172, 255, 0.25);
+  transform: translateY(-1px);
+}
+
+.profile-view .favorites-shelf-container {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  background-image: url('/избранное.png');
+  background-repeat: no-repeat;
+  background-position: center bottom;
+  background-size: contain;
+  min-height: 140px;
+  border-radius: 0;
+  padding: 16px 16px 28px;
+  margin-bottom: 24px;
+  background-color: transparent;
+  border: none;
+  box-shadow: none;
+  overflow: visible;
+}
+.profile-view .favorites-shelf-container .shelf-header {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.profile-view .shelf-carousel {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  max-width: 420px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.profile-view .shelf-carousel--cylinder {
+  max-width: 560px;
+  overflow: visible;
+  gap: 4px;
+}
+.profile-view .shelf-carousel__btn {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.3);
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, border-color 0.2s;
+  position: relative;
+  z-index: 10;
+}
+.profile-view .shelf-carousel--cylinder .shelf-carousel__btn {
+  z-index: 10;
+}
+.profile-view .shelf-viewport--cylinder {
+  position: relative;
+  z-index: 1;
+}
+.profile-view .shelf-carousel__btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.35);
+}
+.profile-view .shelf-carousel__btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.profile-view .shelf-viewport {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  padding: 24px 0;
+}
+.profile-view .shelf-carousel--cylinder .shelf-viewport--cylinder {
+  overflow: visible;
+  min-width: 0;
+  flex: 1;
+  padding: 48px 72px;
+  perspective: 1400px;
+  perspective-origin: center center;
+}
+.profile-view .shelf-carousel--cylinder .shelf-track--cylinder {
+  --step-deg: 17.14deg;
+  --radius: 440px;
+  position: relative;
+  width: 100%;
+  height: 200px;
+  margin: 0;
+  padding: 0;
+  display: block;
+  transform-style: preserve-3d;
+  transform: rotateY(calc(var(--carousel-rotation-steps, 0) * var(--step-deg)));
+  transition: transform 0.4s ease-out;
+}
+.profile-view .shelf-carousel--cylinder .shelf-item--cylinder {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 128px;
+  height: 128px;
+  margin-left: -64px;
+  margin-top: -64px;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  transform: rotateY(calc(var(--slot-offset, 0) * var(--step-deg))) translateZ(var(--radius));
+}
+.profile-view .shelf-carousel--cylinder .shelf-item--cylinder > div {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  z-index: 1;
+}
+.profile-view .shelf-carousel--cylinder .shelf-item--cylinder::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 100%;
+  height: 100%;
+  margin-left: -50%;
+  margin-top: -50%;
+  border-radius: 50%;
+  background: transparent;
+  border: 3px solid rgba(200, 170, 255, 0.95);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.5), 0 0 8px 2px rgba(176, 136, 255, 0.5);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.profile-view .path-carousel.path-carousel--cylinder {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0;
+  width: 100%;
+  margin-top: 40px;
+}
+.profile-view .path-carousel__btn {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.3);
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, border-color 0.2s;
+  position: relative;
+  z-index: 10;
+}
+.profile-view .path-carousel__btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.35);
+}
+.profile-view .path-carousel__btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.profile-view .path-carousel__viewport--cylinder {
+  overflow: visible;
+  min-width: 0;
+  flex: 1;
+  padding: 24px 48px;
+  perspective: 1400px;
+  perspective-origin: center center;
+  position: relative;
+  z-index: 1;
+}
+.profile-view .path-carousel__track--cylinder {
+  --step-deg: 20deg;
+  --radius: 480px;
+  position: relative;
+  width: 100%;
+  height: 320px;
+  margin: 0;
+  padding: 0;
+  display: block;
+  transform-style: preserve-3d;
+  transform: rotateY(calc(var(--path-rotation-steps, 0) * var(--step-deg)));
+  transition: transform 0.4s ease-out;
+}
+.profile-view .path-carousel__item--cylinder {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 144px;
+  height: 300px;
+  margin-left: -72px;
+  margin-top: -150px;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  transform: rotateY(calc(var(--slot-offset, 0) * var(--step-deg))) translateZ(var(--radius));
+}
+.profile-view .path-carousel__item--cylinder > .path-card {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  z-index: 1;
+}
+
+.profile-view .path-card.path-card--vertical {
+  aspect-ratio: 9 / 16;
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+.profile-view .path-card__avatar-wrap {
+  position: relative;
+  flex-shrink: 0;
+  padding: 10px 10px 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.profile-view .path-card__star {
+  position: absolute;
+  left: 6px;
+  top: 6px;
+  margin: 0;
+  padding: 4px;
+  width: auto;
+  height: auto;
+  min-width: 0;
+  min-height: 0;
+  border: none;
+  border-radius: 0;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+.profile-view .path-card__avatar-wrap .path-card__avatar {
+  position: relative;
+  z-index: 1;
+}
+.profile-view .path-card__star:hover {
+  background: none;
+  transform: none;
+  opacity: 0.85;
+}
+.profile-view .path-card__star.fav {
+  color: #ffd700;
+}
+.profile-view .path-card__avatar {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  min-height: 84px;
+}
+.profile-view .path-card__avatar .badge-icon-wrap,
+.profile-view .path-card__avatar > div {
+  width: 84px;
+  height: 84px;
+}
+.profile-view .path-card__title {
+  padding: 4px 10px 8px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  cursor: pointer;
+  min-height: 2.4em;
+}
+.profile-view .path-card__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 0 10px 4px;
+  flex-shrink: 0;
+}
+.profile-view .path-card__actions .btn-pill {
+  width: 100%;
+  justify-content: center;
+  font-size: 11px;
+  padding: 6px 10px;
+}
+.profile-view .path-card__footer {
+  margin-top: auto;
+  padding: 4px 10px 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.profile-view .path-card__footer .btn-action-round {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.profile-view .shelf-viewport .shelf-track {
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  gap: 0;
+  padding: 0 12px;
+  overflow: visible;
+  transition: transform 0.3s ease-out;
+  transform: translateX(calc(50% - 64px - var(--carousel-index, 0) * 128px));
+}
+.profile-view .shelf-item {
+  position: relative;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  scroll-snap-align: center;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  transform: rotateY(calc(var(--center-offset, 0) * 18deg)) scale(calc(1 - abs(var(--center-offset, 0)) * 0.08));
+}
+.profile-view .shelf-item > div {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.profile-view .shelf-item > div > div {
+  width: 128px !important;
+  height: 128px !important;
+  min-width: 128px !important;
+  min-height: 128px !important;
+}
+.profile-view .shelf-item > div > div img,
+.profile-view .shelf-item > div picture img {
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 100% !important;
+  min-height: 100% !important;
+  display: block;
+}
+.profile-view .shelf-item .badge-emoji {
+  font-size: 64px !important;
+  width: 128px !important;
+  height: 128px !important;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+}
+.profile-view .btn-shelf-remove {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: #ff4d4d;
+  border: none;
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: 2px solid #0f0a1f;
+  z-index: 10;
+}
+
+.profile-view .profile-route-details__empty {
+  margin: 0;
+  padding: 12px 0;
+  font-size: 13px;
+  color: rgba(218, 232, 246, 0.85);
+}
+.profile-view .favorites-shelf-container__empty {
+  margin: 0;
+  padding: 12px 0;
+  font-size: 13px;
+  color: rgba(218, 232, 246, 0.85);
+}

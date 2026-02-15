@@ -14,8 +14,19 @@ type MasterCategory = {
 type MasterIndex = {
   version?: string;
   lastUpdated?: string;
+  totalCategories?: number;
+  totalBadges?: number;
+  totalLevels?: number;
   categories: MasterCategory[];
 };
+
+export type MasterIndexMeta = {
+  totalCategories: number;
+  totalBadges: number;
+  totalLevels: number;
+  lastUpdated: string;
+  version?: string;
+} | null;
 
 type CategoryIndex = {
   levels?: number;
@@ -51,6 +62,46 @@ const MASTER_URL = '/RL-Guide-book/ai-data/MASTER_INDEX.json';
 const CATEGORY_INTRO_URL = (categoryId: string) => `/RL-Guide-book/ai-data/category-${categoryId}/introduction.md`;
 const CATEGORY_INDEX_URL = (path: string) => `/RL-Guide-book/ai-data/${path}index.json`;
 const BADGE_URL = (path: string, id: string) => `/RL-Guide-book/ai-data/${path}${id}.json`;
+const CUSTOM_BADGES_KEY = 'rl_custom_badges_v1';
+const COMMUNITY_BADGES_CACHE_KEY = 'rl_community_badges_cache_v1';
+const COMMUNITY_PUBLISH_QUEUE_KEY = 'rl_community_publish_queue_v1';
+const COMMUNITY_LIKES_KEY = 'rl_community_badge_likes_v1';
+const COMMUNITY_API_URL = '/api/community/badges';
+const BRO_MISSIONS_API_URL = '/api/bro-missions';
+
+function getCommunityPublishQueue(): Array<{ badge: Badge; timestamp: number }> {
+  try {
+    const raw = localStorage.getItem(COMMUNITY_PUBLISH_QUEUE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function setCommunityPublishQueue(queue: Array<{ badge: Badge; timestamp: number }>): void {
+  try {
+    localStorage.setItem(COMMUNITY_PUBLISH_QUEUE_KEY, JSON.stringify(queue));
+  } catch (_) { /* ignore */ }
+}
+
+function getCommunityLikes(): Set<string> {
+  try {
+    const raw = localStorage.getItem(COMMUNITY_LIKES_KEY);
+    if (!raw) return new Set();
+    const parsed = JSON.parse(raw);
+    return new Set(Array.isArray(parsed) ? parsed : []);
+  } catch {
+    return new Set();
+  }
+}
+
+function setCommunityLikes(ids: Set<string>): void {
+  try {
+    localStorage.setItem(COMMUNITY_LIKES_KEY, JSON.stringify([...ids]));
+  } catch (_) { /* ignore */ }
+}
 
 const canonicalizeLevel = (lvl: unknown): string => {
   const raw = String(lvl ?? '').trim();
@@ -120,6 +171,16 @@ const baseBadgeIdFrom = (id: string): string => {
   return String(id || '');
 };
 
+const countLoadedBaseBadges = (categoryId: string, items: Badge[]): number => {
+  const set = new Set<string>();
+  items.forEach((b) => {
+    if (String(b.category_id || '') !== String(categoryId)) return;
+    const baseId = baseBadgeIdFrom(b.id || '');
+    if (baseId) set.add(baseId);
+  });
+  return set.size;
+};
+
 const buildBadgeEntries = (aiCategory: MasterCategory, aiBadge: AiBadge): Badge[] => {
   const fallbackEmoji = getFallbackEmojiFor(aiCategory.id);
 
@@ -171,15 +232,211 @@ const buildBadgeEntries = (aiCategory: MasterCategory, aiBadge: AiBadge): Badge[
 export const useDataLoader = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [badges, setBadges] = useState<Badge[]>([]);
+  const [customBadges, setCustomBadges] = useState<Badge[]>([]);
+  const [communityBadges, setCommunityBadges] = useState<Badge[]>([]);
+  const [communityPendingCount, setCommunityPendingCount] = useState(0);
+  const [communitySyncing, setCommunitySyncing] = useState(false);
+  const [communityLikedIds, setCommunityLikedIds] = useState<Set<string>>(() => getCommunityLikes());
+  const [dynamicBroMissions, setDynamicBroMissions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [categoryBadgeLoadState, setCategoryBadgeLoadState] = useState<
     Record<string, 'idle' | 'loading' | 'loaded' | 'error'>
   >({});
   const [categoryBadgeLoadError, setCategoryBadgeLoadError] = useState<Record<string, string | undefined>>({});
+  const [masterIndex, setMasterIndex] = useState<MasterIndexMeta>(null);
 
   const masterRef = useRef<MasterIndex | null>(null);
   const versionRef = useRef<string>('unknown');
   const inflightControllersRef = useRef<Map<string, AbortController>>(new Map());
+
+  // Load community badges: first from localStorage (cache), then from API; write back to cache on success
+  const syncCommunityBadges = useCallback(async () => {
+    const cached = localStorage.getItem(COMMUNITY_BADGES_CACHE_KEY);
+    if (cached) {
+      try {
+        const parsed = JSON.parse(cached) as Badge[];
+        if (Array.isArray(parsed) && parsed.length >= 0) setCommunityBadges(parsed.slice(0, 10));
+      } catch (_) { /* ignore */ }
+    }
+    try {
+      const res = await fetch(COMMUNITY_API_URL);
+      if (res.ok) {
+        const data = await res.json();
+        const list = (Array.isArray(data) ? data : []).slice(0, 10);
+        setCommunityBadges(list);
+        try {
+          localStorage.setItem(COMMUNITY_BADGES_CACHE_KEY, JSON.stringify(list));
+        } catch (_) { /* ignore */ }
+      }
+    } catch (e) {
+      console.warn('Failed to sync Incubator:', e);
+    }
+  }, []);
+
+  // Sync Bro-Missions (Passport)
+  const syncBroMissions = useCallback(async () => {
+    try {
+      const res = await fetch(BRO_MISSIONS_API_URL);
+      if (res.ok) {
+        const data = await res.json();
+        setDynamicBroMissions(data);
+      }
+    } catch (e) {
+      console.warn('Failed to sync Bro-Missions:', e);
+    }
+  }, []);
+
+  const updateBroMissionsOnServer = useCallback(async (missions: any[]) => {
+    try {
+      const res = await fetch(BRO_MISSIONS_API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(missions)
+      });
+      if (res.ok) {
+        setDynamicBroMissions(missions);
+        return true;
+      }
+    } catch (e) {
+      console.error('Failed to update Bro-Missions:', e);
+    }
+    return false;
+  }, []);
+
+  useEffect(() => {
+    void syncCommunityBadges();
+    void syncBroMissions();
+  }, [syncCommunityBadges, syncBroMissions]);
+
+  // Load custom badges from localStorage
+  useEffect(() => {
+    const stored = localStorage.getItem(CUSTOM_BADGES_KEY);
+    if (stored) {
+      try {
+        setCustomBadges(JSON.parse(stored));
+      } catch (e) {
+        console.error('Failed to parse custom badges', e);
+      }
+    }
+  }, []);
+
+  const allBadges = useMemo(() => {
+    // Unique by ID
+    const map = new Map<string, Badge>();
+    badges.forEach(b => map.set(b.id, b));
+    communityBadges.forEach(b => map.set(b.id, b));
+    customBadges.forEach(b => map.set(b.id, b));
+    return Array.from(map.values());
+  }, [badges, customBadges, communityBadges]);
+
+  const addCustomBadge = useCallback((badge: Badge) => {
+    setCustomBadges(prev => {
+      const updated = [...prev, badge];
+      localStorage.setItem(CUSTOM_BADGES_KEY, JSON.stringify(updated));
+      return updated;
+    });
+  }, []);
+
+  const restoreCustomBadges = useCallback((badges: Badge[]) => {
+    const list = Array.isArray(badges) ? badges : [];
+    setCustomBadges(list);
+    try {
+      localStorage.setItem(CUSTOM_BADGES_KEY, JSON.stringify(list));
+    } catch (_) { /* ignore */ }
+  }, []);
+
+  const removeCustomBadge = useCallback((badgeId: string) => {
+    setCustomBadges(prev => {
+      const updated = prev.filter(b => b.id !== badgeId);
+      if (updated.length !== prev.length) {
+        try {
+          localStorage.setItem(CUSTOM_BADGES_KEY, JSON.stringify(updated));
+        } catch (_) { /* ignore */ }
+      }
+      return updated;
+    });
+  }, []);
+
+  const processCommunityQueue = useCallback(async () => {
+    const queue = getCommunityPublishQueue();
+    if (queue.length === 0) return;
+    setCommunitySyncing(true);
+    const remaining: Array<{ badge: Badge; timestamp: number }> = [];
+    for (const { badge, timestamp } of queue) {
+      try {
+        const res = await fetch(COMMUNITY_API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(badge)
+        });
+        if (!res.ok) remaining.push({ badge, timestamp });
+      } catch (_) {
+        remaining.push({ badge, timestamp });
+      }
+    }
+    setCommunityPublishQueue(remaining);
+    setCommunityPendingCount(remaining.length);
+    setCommunitySyncing(false);
+    void syncCommunityBadges();
+  }, [syncCommunityBadges]);
+
+  useEffect(() => {
+    setCommunityPendingCount(getCommunityPublishQueue().length);
+  }, []);
+
+  useEffect(() => {
+    const onOnline = () => void processCommunityQueue();
+    window.addEventListener('online', onOnline);
+    if (typeof navigator !== 'undefined' && navigator.onLine) void processCommunityQueue();
+    return () => window.removeEventListener('online', onOnline);
+  }, [processCommunityQueue]);
+
+  const toggleCommunityLike = useCallback((badgeId: string) => {
+    setCommunityLikedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(badgeId)) next.delete(badgeId);
+      else next.add(badgeId);
+      setCommunityLikes(next);
+      return next;
+    });
+  }, []);
+
+  const publishBadgeToCommunity = useCallback(async (badge: Badge): Promise<{ ok: boolean; queued?: boolean; error?: string; status?: number }> => {
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      const queue = getCommunityPublishQueue();
+      queue.push({ badge, timestamp: Date.now() });
+      setCommunityPublishQueue(queue);
+      setCommunityPendingCount(queue.length);
+      return { ok: true, queued: true };
+    }
+    try {
+      const res = await fetch(COMMUNITY_API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(badge)
+      });
+      if (res.ok) {
+        void syncCommunityBadges();
+        void processCommunityQueue();
+        return { ok: true };
+      }
+      const status = res.status;
+      let error = '';
+      try {
+        const data = await res.json();
+        error = (data && typeof data.error === 'string') ? data.error : '';
+      } catch {
+        // non-JSON response
+      }
+      if (!error && status === 429) error = 'Слишком много отправок. Подождите минуту.';
+      if (!error && status >= 500) error = 'Ошибка сервера. Попробуйте позже.';
+      if (!error && status >= 400) error = error || 'Не удалось отправить. Проверьте подключение.';
+      return { ok: false, status, error };
+    } catch (e) {
+      console.error('Failed to publish badge:', e);
+      return { ok: false, error: 'Проверьте подключение к интернету.' };
+    }
+  }, [syncCommunityBadges, processCommunityQueue]);
 
   // Master-derived map (categoryId -> path). We keep it in a ref-derived memo so it stays stable
   // after master is loaded, without needing to load all category indexes on startup.
@@ -219,19 +476,32 @@ export const useDataLoader = () => {
     });
   }, []);
 
+  const getLoadedCategoryIds = useCallback(() => {
+    return Object.entries(categoryBadgeLoadState)
+      .filter(([, state]) => state === 'loaded')
+      .map(([id]) => id);
+  }, [categoryBadgeLoadState]);
+
   const ensureCategoryBadgesLoaded = useCallback(async (categoryId: string): Promise<void> => {
-    // Don't refetch if already loading/loaded
-    const cur = categoryBadgeLoadState[categoryId];
-    if (cur === 'loading' || cur === 'loaded') return;
-
-    setCategoryBadgeLoadState((prev) => ({ ...prev, [categoryId]: 'loading' }));
-
     const master = masterRef.current;
     const path = categoryPathById.get(categoryId);
     if (!master || !path) {
       setCategoryBadgeLoadState((prev) => ({ ...prev, [categoryId]: 'error' }));
       return;
     }
+
+    const expected =
+      categories.find((c) => c.id === categoryId)?.expected_badges ||
+      categories.find((c) => c.id === categoryId)?.badge_count ||
+      master.categories.find((c) => c.id === categoryId)?.badges ||
+      0;
+    const loadedCount = countLoadedBaseBadges(categoryId, badges);
+
+    // Don't refetch if already loading/loaded and complete.
+    const cur = categoryBadgeLoadState[categoryId];
+    if (cur === 'loading' || (cur === 'loaded' && expected > 0 && loadedCount >= expected)) return;
+
+    setCategoryBadgeLoadState((prev) => ({ ...prev, [categoryId]: 'loading' }));
 
     const requestKey = `cat:${categoryId}`;
     if (inflightControllersRef.current.has(requestKey)) return;
@@ -285,7 +555,12 @@ export const useDataLoader = () => {
       }
 
       mergeBadges(allEntries);
-      writeAiDataCache(versionRef.current, { categories, badges: [...badges, ...allEntries] });
+      const loadedCategoryIds = Array.from(new Set([...getLoadedCategoryIds(), categoryId]));
+      writeAiDataCache(
+        versionRef.current,
+        { categories, badges: [...badges, ...allEntries] },
+        loadedCategoryIds
+      );
 
       setCategoryBadgeLoadState((prev) => ({ ...prev, [categoryId]: 'loaded' }));
       setCategoryBadgeLoadError((prev) => ({ ...prev, [categoryId]: undefined }));
@@ -298,9 +573,13 @@ export const useDataLoader = () => {
     } finally {
       inflightControllersRef.current.delete(requestKey);
     }
-  }, [badges, categories, categoryBadgeLoadState, categoryPathById, mergeBadges]);
+  }, [badges, categories, categoryBadgeLoadState, categoryPathById, mergeBadges, getLoadedCategoryIds]);
 
   const ensureBadgeLoaded = useCallback(async (badgeId: string): Promise<Badge[] | null> => {
+    // Check custom badges first
+    const custom = customBadges.filter(b => b.id === badgeId || b.id === baseBadgeIdFrom(badgeId));
+    if (custom.length) return custom;
+
     const master = masterRef.current;
     if (!master) return null;
     const categoryId = String(badgeId || '').split('.')[0];
@@ -322,7 +601,7 @@ export const useDataLoader = () => {
       const aiBadge = (await res.json()) as AiBadge;
       const entries = buildBadgeEntries(aiCategory, aiBadge);
       mergeBadges(entries);
-      writeAiDataCache(versionRef.current, { categories, badges: [...badges, ...entries] });
+      writeAiDataCache(versionRef.current, { categories, badges: [...badges, ...entries] }, getLoadedCategoryIds());
       return entries;
     } catch (e) {
       if ((e as any)?.name !== 'AbortError') {
@@ -332,7 +611,7 @@ export const useDataLoader = () => {
     } finally {
       inflightControllersRef.current.delete(requestKey);
     }
-  }, [badges, categories, categoryPathById, mergeBadges]);
+  }, [badges, categories, categoryPathById, mergeBadges, getLoadedCategoryIds]);
 
   const loadDataFromAi = useCallback(async () => {
     try {
@@ -342,13 +621,28 @@ export const useDataLoader = () => {
       const version = getDataVersion(master);
       masterRef.current = master;
       versionRef.current = version;
+      setMasterIndex({
+        totalCategories: master.totalCategories ?? master.categories.length,
+        totalBadges: master.totalBadges ?? 0,
+        totalLevels: master.totalLevels ?? 0,
+        lastUpdated: master.lastUpdated ?? '',
+        version: master.version
+      });
       const cached = readAiDataCache(version);
       if (cached) {
         setCategories(cached.categories);
         setBadges(cached.badges);
-        if (cached.loadedCategoryIds?.length) {
+        const loadedCategoryIds = cached.categories
+          .map((c) => c.id)
+          .filter((id) => {
+            const category = cached.categories.find((c) => c.id === id);
+            const expected = category?.expected_badges || category?.badge_count || 0;
+            if (!expected) return false;
+            return countLoadedBaseBadges(id, cached.badges) >= expected;
+          });
+        if (loadedCategoryIds.length) {
           const st: Record<string, 'loaded'> = {};
-          cached.loadedCategoryIds.forEach((id) => (st[id] = 'loaded'));
+          loadedCategoryIds.forEach((id) => (st[id] = 'loaded'));
           setCategoryBadgeLoadState(st);
         }
         return;
@@ -384,13 +678,26 @@ export const useDataLoader = () => {
 
   return {
     categories,
-    badges,
+    badges: allBadges,
+    customBadges,
+    communityBadges,
+    communityPendingCount,
+    communitySyncing,
+    communityLikedIds,
+    toggleCommunityLike,
     loading,
     reload: loadDataFromAi,
     loadCategoryIntroduction,
     ensureCategoryBadgesLoaded,
     ensureBadgeLoaded,
+    addCustomBadge,
+    restoreCustomBadges,
+    removeCustomBadge,
+    publishBadgeToCommunity,
+    dynamicBroMissions,
+    updateBroMissionsOnServer,
     categoryBadgeLoadState,
     categoryBadgeLoadError,
+    masterIndex,
   };
 };

@@ -1,5 +1,8 @@
 export type ImageVariantExt = 'webp' | 'avif';
 
+/** Имя файла изображения «домик» для кнопки «О лагере» (nav-image-container). Лежит в public/. */
+export const NAV_HOME_IMAGE = 'Gemini_Generated_Image_ct40o9ct40o9ct40.png';
+
 type SplitUrl = {
   path: string;
   query: string;

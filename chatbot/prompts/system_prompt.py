@@ -2,6 +2,7 @@
 Системный промпт для чат-бота Путеводителя
 """
 
+from typing import Optional
 from .putevoditel_system_prompt_optimized import get_system_prompt_optimized
 from pathlib import Path
 import json
@@ -16,6 +17,16 @@ try:
 except Exception:
     _FACTS = None
 
+# Читаемые названия ролей для системного промпта (персонализация ответов)
+ROLE_LABELS = {
+    'participant': 'Участник смены',
+    'parent': 'Родитель',
+    'counselor': 'Вожатый',
+    'shift_leader': 'Руководитель смены (Старший Вожатый)',
+    'organizer': 'Организатор',
+    'developer': 'Разработчик',
+}
+
 def get_system_prompt_with_context(
     current_category: str = None,
     current_badge: str = None,
@@ -23,7 +34,8 @@ def get_system_prompt_with_context(
     user_interests: list = None,
     current_view: str = None,
     current_level: str = None,
-    current_level_badge_title: str = None
+    current_level_badge_title: str = None,
+    user_role: Optional[str] = None
 ) -> str:
     """
     Получает системный промпт с дополнительным контекстом
@@ -36,11 +48,16 @@ def get_system_prompt_with_context(
         current_view: Текущий экран приложения
         current_level: Текущий уровень значка
         current_level_badge_title: Название конкретного уровня значка
+        user_role: Роль пользователя из JWT (participant, parent, counselor, shift_leader, organizer, developer)
         
     Returns:
         Системный промпт с контекстом
     """
     context_parts = []
+    
+    if user_role:
+        role_label = ROLE_LABELS.get(user_role) or user_role or 'Участник смены'
+        context_parts.append(f"Роль пользователя: {role_label}")
     
     if current_category:
         context_parts.append(f"Пользователь сейчас изучает категорию: {current_category}")
@@ -61,6 +78,7 @@ def get_system_prompt_with_context(
             'category': 'Категория значков',
             'badge': 'Страница значка',
             'badge-level': 'Уровень значка',
+            'profile': 'Личный кабинет',
             'introduction': 'Введение в путеводитель',
             'additional-material': 'Дополнительные материалы',
             'about-camp': 'Информация о лагере',
@@ -122,6 +140,8 @@ def get_system_prompt_with_context(
     context_section = ""
     if context_parts:
         context_section = "\n\n## Текущий контекст:\n" + "\n".join(f"- {part}" for part in context_parts)
+        if user_role:
+            context_section += "\n\nАдаптируй тон и содержание ответа под роль: для вожатого или организатора можно упоминать методику, заявки, смены; для родителя — прогресс ребёнка и поддержку; для участника — значки и мотивацию."
 
     return SYSTEM_PROMPT + facts_section + context_section
 

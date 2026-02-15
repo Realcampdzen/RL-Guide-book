@@ -31,7 +31,9 @@ const copyApiPlugin = () => ({
           const destPath = path.join(dest, entry.name)
           
           if (entry.isDirectory()) {
-            copyDir(srcPath, destPath)
+            if (entry.name !== 'node_modules' && !entry.name.startsWith('.')) {
+              copyDir(srcPath, destPath)
+            }
           } else {
             fs.copyFileSync(srcPath, destPath)
           }
@@ -48,6 +50,11 @@ const rlGuideBookDevPlugin = (): Plugin => ({
   name: 'rl-guide-book-dev',
   configureServer(server) {
     server.middlewares.use((req, res, next) => {
+      if (req.url === '/RL-Guide-book' || req.url === '/RL-Guide-book/') {
+        req.url = '/RL-Guide-book/index.html'
+        next()
+        return
+      }
       if (req.url?.startsWith('/RL-Guide-book/')) {
         // Сначала декодируем URL, потом извлекаем путь
         // Обрабатываем как полностью закодированный путь, так и частично закодированный
@@ -67,14 +74,46 @@ const rlGuideBookDevPlugin = (): Plugin => ({
           decodedPath = encodedPath
         }
         
-        const publicPath = resolve(process.cwd(), 'public', decodedPath)
+        const cleanPath = decodedPath.split('?')[0].split('#')[0]
+        // profile-desktop.html: в dev отдаём из корня проекта (multi-page entry)
+        if (cleanPath === 'profile-desktop.html') {
+          const htmlPath = resolve(process.cwd(), 'profile-desktop.html')
+          if (existsSync(htmlPath) && statSync(htmlPath).isFile()) {
+            try {
+              const content = readFileSync(htmlPath)
+              res.setHeader('Content-Type', 'text/html; charset=utf-8')
+              res.setHeader('Cache-Control', 'no-cache')
+              res.end(content)
+              return
+            } catch (e) {
+              console.error('Error serving profile-desktop.html:', e)
+            }
+          }
+        }
+        // Книга Вожатификатор: в dev отдаём из docs/вожатификатор.md
+        if (cleanPath === 'vozhatifikator.md') {
+          const docsPath = resolve(process.cwd(), 'docs', 'вожатификатор.md')
+          if (existsSync(docsPath) && statSync(docsPath).isFile()) {
+            try {
+              const content = readFileSync(docsPath)
+              res.setHeader('Content-Type', 'text/markdown; charset=utf-8')
+              res.setHeader('Cache-Control', 'no-cache')
+              res.end(content)
+              return
+            } catch (e) {
+              console.error('Error serving vozhatifikator.md from docs:', e)
+            }
+          }
+        }
+        const publicPath = resolve(process.cwd(), 'public', cleanPath)
         
         // Логирование для отладки (только для изображений значков)
-        if (decodedPath.includes('Новые значки') || decodedPath.includes('%D0%9D%D0%BE%D0%B2%D1%8B%D0%B5')) {
+        if (cleanPath.includes('Новые значки') || cleanPath.includes('%D0%9D%D0%BE%D0%B2%D1%8B%D0%B5')) {
           console.log('Vite plugin: serving file', {
             originalUrl: req.url,
             encodedPath,
             decodedPath,
+            cleanPath,
             publicPath,
             exists: existsSync(publicPath)
           })
@@ -105,11 +144,12 @@ const rlGuideBookDevPlugin = (): Plugin => ({
           } catch (error) {
             console.error('Error serving file:', publicPath, error)
           }
-        } else if (decodedPath.includes('Новые значки') || decodedPath.includes('%D0%9D%D0%BE%D0%B2%D1%8B%D0%B5')) {
+        } else if (cleanPath.includes('Новые значки') || cleanPath.includes('%D0%9D%D0%BE%D0%B2%D1%8B%D0%B5')) {
           console.warn('Vite plugin: file not found', {
             originalUrl: req.url,
             encodedPath,
             decodedPath,
+            cleanPath,
             publicPath,
             exists: existsSync(publicPath),
             parentExists: existsSync(resolve(process.cwd(), 'public'))
@@ -203,6 +243,14 @@ const copyRLGuideBookPlugin = () => ({
       copyFileSync('404.html', 'dist/404.html')
       console.log('✅ Скопирован 404.html')
     }
+
+    // Книга Вожатификатор: копируем из docs в dist для просмотра на сайте
+    const vozhatifikatorSrc = resolve(process.cwd(), 'docs', 'вожатификатор.md')
+    if (existsSync(vozhatifikatorSrc)) {
+      const vozhatifikatorDest = join(rlGuideBookDir, 'vozhatifikator.md')
+      copyFileSync(vozhatifikatorSrc, vozhatifikatorDest)
+      console.log('✅ Скопирован docs/вожатификатор.md → dist/RL-Guide-book/vozhatifikator.md')
+    }
   }
 })
 
@@ -211,7 +259,14 @@ export default defineConfig(({ mode }) => {
   const isAnalyze = mode === 'analyze'
 
   const plugins = [
-    react(),
+    react({
+      // Use Babel for JSX so build parses deep JSX correctly (esbuild has a parse bug).
+      babel: {
+        babelrc: false,
+        configFile: false,
+        presets: [['@babel/preset-react', { runtime: 'automatic' }]]
+      }
+    }),
     copyApiPlugin(),
     rlGuideBookDevPlugin(),
     copyRLGuideBookPlugin(),
@@ -254,8 +309,13 @@ export default defineConfig(({ mode }) => {
     assetsInclude: ['**/*.md'],
     build: {
       outDir: 'dist',
+      emptyOutDir: false, // не очищать dist: папки с кириллицей (Новые значки) дают ENOTEMPTY на Windows
       sourcemap: false,
       rollupOptions: {
+        input: {
+          main: resolve(__dirname, 'index.html'),
+          'profile-desktop': resolve(__dirname, 'profile-desktop.html'),
+        },
         output: {
           manualChunks(id) {
             if (!id.includes('node_modules')) return
