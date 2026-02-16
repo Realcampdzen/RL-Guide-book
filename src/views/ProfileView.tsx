@@ -2918,7 +2918,7 @@ export const ProfileView: React.FC<any> = (props) => {
                         {renderPanelContent()}
                       </div>
                     ) : (
-                      <div key={`hub-${activeTab}`} className="profile-view-cabin-content profile-view-cabin-content--from-top profile-view-cabin-content--hub">
+                      <div className="profile-view-cabin-content profile-view-cabin-content--from-top profile-view-cabin-content--hub">
                         <div className="profile-view-cabin-progress-hub">
                           {renderTabsPanel({ hideNav: true })}
                         </div>
