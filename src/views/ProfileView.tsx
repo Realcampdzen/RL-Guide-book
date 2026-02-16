@@ -2842,7 +2842,9 @@ export const ProfileView: React.FC<any> = (props) => {
                   </button>
                 </div>
             </div>
-            <div className={`profile-view-cabin-center profile-view-cabin-center--offset ${panelActiveView === null ? 'profile-view-cabin-center--hub' : ''} ${panelActiveView === 'squad-corner' ? 'profile-view-cabin-center--squad-corner' : ''} ${panelActiveView === 'real-diary' ? 'profile-view-cabin-center--real-diary' : ''} ${panelActiveView === 'profile4k' ? 'profile-view-cabin-center--profile4k' : ''} ${panelActiveView === 'team' ? 'profile-view-cabin-center--team' : ''} ${panelActiveView === 'council' ? 'profile-view-cabin-center--council' : ''} ${panelActiveView === 'bro' ? 'profile-view-cabin-center--bro' : ''} ${panelActiveView === 'vozhatifikator' ? 'profile-view-cabin-center--vozhatifikator' : ''} ${panelActiveView === 'counselor-squad' ? 'profile-view-cabin-center--counselor-squad' : ''} ${panelActiveView === 'share' ? 'profile-view-cabin-center--share' : ''} ${panelActiveView === 'workshop' ? 'profile-view-cabin-center--workshop' : ''} ${panelActiveView === 'inspector' ? 'profile-view-cabin-center--inspector' : ''}`}>
+            <div
+              className={`profile-view-cabin-center profile-view-cabin-center--offset ${panelActiveView === null ? 'profile-view-cabin-center--hub' : ''} ${panelActiveView === 'squad-corner' ? 'profile-view-cabin-center--squad-corner' : ''} ${panelActiveView === 'real-diary' ? 'profile-view-cabin-center--real-diary' : ''} ${panelActiveView === 'profile4k' ? 'profile-view-cabin-center--profile4k' : ''} ${panelActiveView === 'team' ? 'profile-view-cabin-center--team' : ''} ${panelActiveView === 'council' ? 'profile-view-cabin-center--council' : ''} ${panelActiveView === 'bro' ? 'profile-view-cabin-center--bro' : ''} ${panelActiveView === 'vozhatifikator' ? 'profile-view-cabin-center--vozhatifikator' : ''} ${panelActiveView === 'counselor-squad' ? 'profile-view-cabin-center--counselor-squad' : ''} ${panelActiveView === 'share' ? 'profile-view-cabin-center--share' : ''} ${panelActiveView === 'workshop' ? 'profile-view-cabin-center--workshop' : ''} ${panelActiveView === 'inspector' ? 'profile-view-cabin-center--inspector' : ''}`}
+            >
               {(panelActiveView === null || panelActiveView === 'squad-corner' || panelActiveView === 'real-diary' || panelActiveView === 'profile4k' || panelActiveView === 'team' || panelActiveView === 'council' || panelActiveView === 'bro' || panelActiveView === 'vozhatifikator' || panelActiveView === 'counselor-squad' || panelActiveView === 'share' || panelActiveView === 'workshop' || panelActiveView === 'inspector') && (
                 <div className="profile-view-cabin-tabs-docked">
                   {panelActiveView === null
@@ -2870,7 +2872,7 @@ export const ProfileView: React.FC<any> = (props) => {
                                       : renderVozhatifikatorTabsNav('profile-tabs-nav profile-tabs-nav--docked profile-tabs-nav--vozhatifikator')}
                 </div>
               )}
-              <div className={`profile-view-cabin-center-shell ${panelCompanions ? 'profile-view-cabin-center-shell--companions' : ''}`}>
+              <div className={`profile-view-cabin-center-shell ${panelCompanions ? 'profile-view-cabin-center-shell--companions' : ''}`} style={{ background: 'transparent' }}>
                 {panelCompanions?.left && (
                   <aside className="profile-view-cabin-side-screen profile-view-cabin-side-screen--left">
                     <p className="profile-view-cabin-side-screen__label">Ветка раздела</p>
@@ -2886,6 +2888,7 @@ export const ProfileView: React.FC<any> = (props) => {
                 <div
                   ref={centerScrollRef}
                   className={`profile-view-cabin-center-scroll profile-view-scroll-container profile-view-panel-scroll${panelActiveView === null && (activeTab === 'active' || activeTab === 'favorites') ? ' profile-view-cabin-center-scroll--locked' : ''}${panelActiveView === 'passport' ? ' profile-view-cabin-center-scroll--no-scroll' : ''}${panelActiveView === 'squad-corner' || panelActiveView === 'real-diary' || panelActiveView === 'profile4k' || panelActiveView === 'team' || panelActiveView === 'council' || panelActiveView === 'bro' || panelActiveView === 'vozhatifikator' || panelActiveView === 'counselor-squad' || panelActiveView === 'share' || panelActiveView === 'workshop' || panelActiveView === 'inspector' ? ' profile-view-cabin-center-scroll--content-fit' : ''}`}
+                  style={{ background: 'transparent' }}
                 >
                     {pendingApprovalsCount > 0 && !approvalsSyncPromptDismissed && canRequestApprovals && (
                       <div className="profile-approvals-sync-banner" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10, padding: '10px 14px', marginBottom: 12, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 10 }}>

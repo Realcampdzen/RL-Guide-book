@@ -1159,12 +1159,9 @@
 }
 
 .profile-spaceship-root .profile-view::after {
-  background-image:
-    linear-gradient(145deg, rgba(2, 7, 18, 0.62) 0%, rgba(8, 19, 36, 0.45) 42%, rgba(9, 33, 48, 0.38) 100%),
-    url('/RL-Guide-book/фон для лк десктоп.jpg');
-  background-size: 100% 100%, cover;
-  background-position: center, center;
-  opacity: 0.9;
+  background-image: url('/RL-Guide-book/фон кабина.png');
+  background-size: cover;
+  background-position: center;
 }
 
 .profile-spaceship-root .profile-view-cabin-layout {
@@ -1193,6 +1190,22 @@
   background:
     linear-gradient(160deg, rgba(12, 35, 56, 0.78), rgba(7, 23, 40, 0.62)),
     var(--cabin-glass);
+}
+
+/* Центральная панель кабины — прозрачная (без размытия) */
+.profile-spaceship-root .profile-view-cabin-center {
+  --cabin-center-glass-bg: linear-gradient(
+    165deg,
+    rgba(255, 255, 255, 0.02) 0%,
+    rgba(255, 255, 255, 0.005) 45%,
+    rgba(12, 35, 56, 0.06) 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.03) inset,
+    0 8px 32px rgba(0, 0, 0, 0.12),
+    0 0 48px rgba(93, 228, 255, 0.03);
+  background: var(--cabin-center-glass-bg);
 }
 
 .profile-spaceship-root .profile-view-cabin-top {
@@ -1924,13 +1937,9 @@
 }
 
 .profile-spaceship-root .profile-view::after {
-  background-image:
-    linear-gradient(145deg, rgba(4, 10, 24, 0.78) 0%, rgba(8, 17, 34, 0.58) 42%, rgba(10, 25, 42, 0.42) 100%),
-    radial-gradient(circle at 24% 18%, rgba(var(--cabin-neon-purple-rgb), 0.16), transparent 36%),
-    radial-gradient(circle at 78% 78%, rgba(var(--cabin-neon-cyan-rgb), 0.14), transparent 42%),
-    url('/RL-Guide-book/фон для лк десктоп.jpg');
-  background-size: 100% 100%, 100% 100%, 100% 100%, cover;
-  background-position: center, center, center, center;
+  background-image: url('/RL-Guide-book/фон кабина.png');
+  background-size: cover;
+  background-position: center;
 }
 
 .profile-spaceship-root .profile-view-cabin-top,
@@ -1948,6 +1957,19 @@
     0 0 0 1px rgba(255, 255, 255, 0.04) inset,
     0 0 32px rgba(var(--cabin-neon-purple-rgb), 0.14);
   backdrop-filter: blur(11px) saturate(132%);
+}
+
+/* Центральная панель — прозрачная в неоновой теме (без размытия) */
+.profile-spaceship-root .profile-view-cabin-center {
+  border-color: rgba(255, 255, 255, 0.08);
+  background:
+    linear-gradient(165deg, rgba(255, 255, 255, 0.02) 0%, rgba(255, 255, 255, 0.005) 40%, rgba(9, 22, 41, 0.07) 100%);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.03) inset,
+    0 12px 40px rgba(0, 0, 0, 0.12),
+    0 0 56px rgba(var(--cabin-neon-cyan-rgb), 0.03);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 .profile-spaceship-root .profile-view-cabin-top,
@@ -2069,15 +2091,16 @@
   .profile-spaceship-root .profile-view-cabin-top-inspector-page--desktop-only {
     display: block !important;
     position: fixed !important;
-    left: var(--desktop-layer-left, 376px) !important;
-    right: var(--desktop-layer-right, 168px) !important;
+    left: 50% !important;
+    right: auto !important;
+    transform: translateX(-50%) !important;
     top: clamp(10px, 1.6vh, 18px) !important;
     bottom: auto !important;
     z-index: 10145 !important;
     padding: 6px 18px 8px;
     margin: 0;
+    width: min(660px, calc(100vw - 48px));
     max-width: none;
-    width: auto;
     box-sizing: border-box;
     min-height: 60px;
     max-height: 70px;
@@ -5157,6 +5180,17 @@
   backdrop-filter: blur(12px) saturate(118%);
 }
 
+/* Центральная панель кабины — прозрачная (финальный блок, без размытия) */
+.profile-spaceship-root .profile-view-cabin-center {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background:
+    linear-gradient(165deg, rgba(255, 255, 255, 0.02) 0%, rgba(255, 255, 255, 0.006) 35%, rgba(12, 28, 48, 0.06) 100%);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.03) inset,
+    0 12px 44px rgba(0, 0, 0, 0.12),
+    0 0 64px rgba(88, 231, 255, 0.03);
+}
+
 .profile-spaceship-root .profile-view-cabin-center-header {
   border-bottom: 1px solid rgba(88, 231, 255, 0.2);
   background: linear-gradient(180deg, rgba(10, 26, 45, 0.78), rgba(8, 16, 31, 0.42));
@@ -8219,6 +8253,20 @@
 
 /* Tablet only (768-1180px): cabin center tabs in one row, equal width (override mobile grid above) */
 @media (min-width: 768px) and (max-width: 1180px) {
+  /* Чуть сократить пустое место под центром (зазор ~50px до навбара), не опуская центральную консоль слишком низко */
+  .profile-spaceship-root .profile-view-cabin-layout {
+    padding-bottom: calc(50px + 56px + 8px + env(safe-area-inset-bottom)) !important;
+  }
+  .profile-spaceship-root .profile-view-cabin-center-scroll {
+    padding-bottom: calc(62px + env(safe-area-inset-bottom)) !important;
+    scroll-padding-bottom: calc(62px + env(safe-area-inset-bottom));
+  }
+
+  /* Кнопка бота в кабине — опустить на 30px ниже на планшете */
+  .profile-spaceship-root #profile-chat-trigger .chat-avatar-button {
+    bottom: calc(158px + env(safe-area-inset-bottom)) !important;
+  }
+
   /* Wrapper: flex so nav can grow to full width */
   .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--hub .profile-view-cabin-tabs-docked,
   .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--squad-corner .profile-view-cabin-tabs-docked,
@@ -8288,4 +8336,27 @@
   .profile-view-cabin-nav-overlay {
     display: none !important;
   }
+}
+
+/* Центральная панель кабины — прозрачная (без размытия, фон виден чётко) */
+.profile-spaceship-root .profile-view-cabin-center {
+  background: linear-gradient(
+    165deg,
+    rgba(255, 255, 255, 0.04) 0%,
+    rgba(12, 28, 48, 0.08) 100%
+  ) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.04) inset,
+    0 12px 40px rgba(0, 0, 0, 0.12),
+    0 0 48px rgba(88, 231, 255, 0.04) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Внутренняя область центра — без своего фона, иначе перекрывает прозрачность панели */
+.profile-spaceship-root .profile-view-cabin-center .profile-view-cabin-center-shell,
+.profile-spaceship-root .profile-view-cabin-center .profile-view-cabin-center-scroll {
+  background: transparent !important;
+  border-color: rgba(255, 255, 255, 0.06) !important;
 }
