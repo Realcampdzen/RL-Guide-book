@@ -1,0 +1,11 @@
+---
+description: Цвета кабины — закреплённые правила и токены палитры.
+globs: src/styles/profile-view-spaceship.css, src/styles/profile-view.css, docs/cabin-colors-logic.md
+alwaysApply: false
+---
+
+# Кабина (profile-view-cabin): цвета
+
+- **⛔ ЗАПРЕЩЕНО менять** рамку и подсветку центральной панели кабины (`.profile-view-cabin-center`): только свойства `border` и `box-shadow` — считаются правильными. Селекторы: `.profile-view-cabin-center` в `profile-view-spaceship.css` (блоки ~5251–5260 и любые другие, задающие border/box-shadow этой панели). Фон и внутренние элементы можно менять по токенам.
+
+- **Палитра кабины** задаётся в `.profile-spaceship-root` (блок «Cabin palette: Space Black / Violet / Teal / Amber / Warm Cream»): `--space-0`, `--panel`, `--border`, `--text-primary`, `--btn-primary-bg`, `--btn-secondary-bg`, `--tab-active-indicator`, `--focus-ring` и др. Карточки, кнопки, табы, инпуты и консоль используют эти токены. Подробности: [cabin-colors-logic.md](mdc:docs/cabin-colors-logic.md).

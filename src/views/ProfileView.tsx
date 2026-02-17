@@ -1,4 +1,6 @@
 import React, { Suspense, useEffect, useMemo, useRef, useState, useCallback } from 'react';
+import { createPortal } from 'react-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import fitty, { type FittyInstance } from 'fitty';
 import BadgeIcon from '../components/BadgeIcon';
 import { useUserProgress } from '../hooks/useUserProgress';
@@ -30,6 +32,7 @@ import { CampProgramByDays } from '../components/CampProgramByDays';
 import { VozhatifikatorChecklist } from '../components/VozhatifikatorChecklist';
 import { ImageSourceBlock } from '../components/ImageSourceBlock';
 import { FeatureGate } from '../components/FeatureGate';
+import ProfileTabletNav from '../components/ProfileTabletNav';
 import { requestImageGenerate } from '../utils/imageGenerateApi';
 import { parseMarkdownToc, markdownToHtmlWithHeadingIds } from '../utils/markdown';
 import { getBadgeImagePath } from '../utils/badgeImages';
@@ -48,9 +51,9 @@ const Icons = {
   Clip: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>,
   XCircle: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none"><circle cx="12" cy="12" r="10" opacity="0.3"/><path d="M15 9l-6 6M9 9l6 6" stroke="white" strokeWidth="2" strokeLinecap="round"/></svg>,
   Heart: ({ filled }: { filled?: boolean }) => <svg width="18" height="18" viewBox="0 0 24 24" fill={filled ? "#e74c3c" : "none"} stroke={filled ? "#e74c3c" : "currentColor"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>,
-  ArrowRight: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>,
-  ArrowLeft: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>,
-  ArrowUp: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>,
+  ArrowRight: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>,
+  ArrowLeft: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>,
+  ArrowUp: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>,
   ArrowDown: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
 };
 
@@ -134,7 +137,7 @@ const PROFILE_AUTO_FIT_SELECTOR = [
 ].join(',');
 
 export const ProfileView: React.FC<any> = (props) => {
-  const { onBack, onNavigateToBadge, badges, ensureBadgeLoaded, addCustomBadge, restoreCustomBadges, removeCustomBadge, customBadges = [], communityBadges = [], communityPendingCount = 0, communitySyncing = false, communityLikedIds = new Set<string>(), toggleCommunityLike, publishBadgeToCommunity, setCustomBadgeImage, onChatToggle, onChatClose, isChatOpen, lastUpdated, onNavigateToRegistrationForm } = props;
+  const { onBack, onNavigateToBadge, badges, ensureBadgeLoaded, addCustomBadge, restoreCustomBadges, removeCustomBadge, customBadges = [], communityBadges = [], communityPendingCount = 0, communitySyncing = false, communityLikedIds = new Set<string>(), toggleCommunityLike, publishBadgeToCommunity, setCustomBadgeImage, onChatToggle, onChatClose, isChatOpen, lastUpdated, onNavigateToRegistrationForm, onNavigateHome, onNavigateCategories, onNavigateAboutCamp, onTelegramContact, onOpenVk } = props;
   const { userData, setNickname, setAvatar, setProfileStatus, setProfileBio, toggleFavorite, removeRoute, exportData, importData, resetProgress, applyApprovedLevel, getLevelProgress, markRankUpSeen, completeTutorial, isLoading, updateLevelEvidence, updateLevelStatus, saveBadgePlan, updateBadgePlanStatus, updateVozhatifikatorChecklist, setPathFavToast } = useUserProgress();
   const { myTeam, generateInviteUrl } = useTeam();
   const { myCreatedSquad, myJoinedSquad, createSquad, deleteSquad, getInviteCode, getInviteLink, joinByCode, leaveSquad } = useCounselorSquad();
@@ -158,7 +161,16 @@ export const ProfileView: React.FC<any> = (props) => {
   const [isCabinProfileExpanded, setIsCabinProfileExpanded] = useState(false);
   const [hasTouchedCabinProfilePanel, setHasTouchedCabinProfilePanel] = useState(false);
   const [cabinNavExpanded, setCabinNavExpanded] = useState(false);
+  const [mobileConsoleExpanded, setMobileConsoleExpanded] = useState(false);
   const [showAvatarUploadConfirm, setShowAvatarUploadConfirm] = useState(false);
+  const [isTabletOrMobile, setIsTabletOrMobile] = useState(() => typeof window !== 'undefined' && window.matchMedia('(max-width: 1180px)').matches);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 1180px)');
+    const handler = () => setIsTabletOrMobile(mq.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
 
   const [proofBadge, setProofBadge] = useState<any>(null);
   const [proofForm, setProofForm] = useState({ learned: '', impact: '', link: '' });
@@ -1204,6 +1216,15 @@ export const ProfileView: React.FC<any> = (props) => {
     vozhatifikator: 'Вожатификатор',
     parents: 'Для родителей',
   };
+  const CONSOLE_SECTION_IMAGES: Record<string, string> = {
+    'squad-corner': 'отрядный уголок.png',
+    'real-diary': 'реальный дневник.png',
+    team: 'движок.png',
+    council: 'совет лагеря.png',
+    bro: 'БРО.png',
+    workshop: 'мастерская.png',
+  };
+  const baseUrl = (import.meta.env.BASE_URL || '').replace(/\/?$/, '/');
   const consoleCopy = useMemo(() => {
     const exitHint = 'Чтобы выйти, нажми на выбранный раздел ещё раз.';
 
@@ -2441,6 +2462,15 @@ export const ProfileView: React.FC<any> = (props) => {
       <div className={`profile-view-tabs-shell${options?.hideNav ? ' profile-view-tabs-shell--no-nav' : ''}`}>
         {!options?.hideNav && renderTabsNav()}
         <div className="tab-pane" role="tabpanel" id="profile-tabpanel" aria-labelledby={`profile-tab-${activeTab}`}>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            style={{ minHeight: '1px' }}
+          >
         {activeTab === 'active' && (
           <div className="active-tab-content fade-in">
             <div className="active-tab-content__badges-list">
@@ -2459,7 +2489,6 @@ export const ProfileView: React.FC<any> = (props) => {
                           <div key={`path-slot-${slotIndex}-${baseId}`} id={hubAnchorId} className="path-carousel__item path-carousel__item--static">
                             <div className="path-card path-card--vertical">
                               <div className="path-card__avatar-wrap">
-                                <button type="button" onClick={(e) => { e.stopPropagation(); toggleFavorite(baseId); }} className={`path-card__star ${isFav ? 'fav' : ''}`} aria-label={isFav ? 'Убрать из избранного' : 'В избранное'}><Icons.Star filled={isFav} /></button>
                                 <div className="path-card__avatar" onClick={() => onNavigateToBadge(baseId)}>
                                   <BadgeIcon badgeId={baseId} badgeTitle={badgeTitleForImage} categoryId={levelBadge?.category_id || baseId.split('.')[0] || '1'} emoji={levelBadge?.emoji || '🏆'} size="responsive" levelId={id !== baseId ? id : undefined} levelTitle={id !== baseId ? (levelBadge?.level || undefined) : undefined} />
                                 </div>
@@ -2470,6 +2499,7 @@ export const ProfileView: React.FC<any> = (props) => {
                               </div>
                               <div className="path-card__footer">
                                 <button type="button" onClick={(e) => { e.stopPropagation(); if(confirm("Удалить?")) removeRoute(baseId); }} className="btn-action-round trash" aria-label="Удалить из пути"><Icons.Trash /></button>
+                                <button type="button" onClick={(e) => { e.stopPropagation(); toggleFavorite(baseId); }} className={`path-card__star ${isFav ? 'fav' : ''}`} aria-label={isFav ? 'Убрать из избранного' : 'В избранное'}><Icons.Star filled={isFav} /></button>
                                 <button type="button" className="btn-action-round btn-go-badge" onClick={(e) => { e.stopPropagation(); onNavigateToBadge(baseId); }} title="Перейти к значку" aria-label="Перейти к значку"><Icons.ArrowRight /></button>
                               </div>
                             </div>
@@ -2494,7 +2524,6 @@ export const ProfileView: React.FC<any> = (props) => {
                           <div key={`path-slot-${slotIndex}-${baseId}`} id={hubAnchorId} className="path-carousel__item path-carousel__item--cylinder" style={{ ['--slot-offset' as string]: slotIndex }}>
                             <div className="path-card path-card--vertical">
                               <div className="path-card__avatar-wrap">
-                                <button type="button" onClick={(e) => { e.stopPropagation(); toggleFavorite(baseId); }} className={`path-card__star ${isFav ? 'fav' : ''}`} aria-label={isFav ? 'Убрать из избранного' : 'В избранное'}><Icons.Star filled={isFav} /></button>
                                 <div className="path-card__avatar" onClick={() => onNavigateToBadge(baseId)}>
                                   <BadgeIcon badgeId={baseId} badgeTitle={badgeTitleForImage} categoryId={levelBadge?.category_id || baseId.split('.')[0] || '1'} emoji={levelBadge?.emoji || '🏆'} size="responsive" levelId={id !== baseId ? id : undefined} levelTitle={id !== baseId ? (levelBadge?.level || undefined) : undefined} />
                                 </div>
@@ -2505,6 +2534,7 @@ export const ProfileView: React.FC<any> = (props) => {
                               </div>
                               <div className="path-card__footer">
                                 <button type="button" onClick={(e) => { e.stopPropagation(); if(confirm("Удалить?")) removeRoute(baseId); }} className="btn-action-round trash" aria-label="Удалить из пути"><Icons.Trash /></button>
+                                <button type="button" onClick={(e) => { e.stopPropagation(); toggleFavorite(baseId); }} className={`path-card__star ${isFav ? 'fav' : ''}`} aria-label={isFav ? 'Убрать из избранного' : 'В избранное'}><Icons.Star filled={isFav} /></button>
                                 <button type="button" className="btn-action-round btn-go-badge" onClick={(e) => { e.stopPropagation(); onNavigateToBadge(baseId); }} title="Перейти к значку" aria-label="Перейти к значку"><Icons.ArrowRight /></button>
                               </div>
                             </div>
@@ -2556,6 +2586,8 @@ export const ProfileView: React.FC<any> = (props) => {
             ))}
           </div>
         )}
+          </motion.div>
+        </AnimatePresence>
       </div>
       </div>
     </div>
@@ -2563,7 +2595,7 @@ export const ProfileView: React.FC<any> = (props) => {
 
   const profileOuterContent = isSpaceshipMode ? (
           <>
-          {panelActiveView === null && seeOtradBlocksInView && (
+          {(panelActiveView === null || panelActiveView === 'inspector') && seeOtradBlocksInView && (
             <div className="profile-view-cabin-top-inspector-page profile-view-cabin-top-inspector-page--desktop-only">
               <button
                 type="button"
@@ -2842,6 +2874,7 @@ export const ProfileView: React.FC<any> = (props) => {
                   </button>
                 </div>
             </div>
+            <div className="profile-view-cabin-center-wrap">
             <div
               className={`profile-view-cabin-center profile-view-cabin-center--offset ${panelActiveView === null ? 'profile-view-cabin-center--hub' : ''} ${panelActiveView === 'squad-corner' ? 'profile-view-cabin-center--squad-corner' : ''} ${panelActiveView === 'real-diary' ? 'profile-view-cabin-center--real-diary' : ''} ${panelActiveView === 'profile4k' ? 'profile-view-cabin-center--profile4k' : ''} ${panelActiveView === 'team' ? 'profile-view-cabin-center--team' : ''} ${panelActiveView === 'council' ? 'profile-view-cabin-center--council' : ''} ${panelActiveView === 'bro' ? 'profile-view-cabin-center--bro' : ''} ${panelActiveView === 'vozhatifikator' ? 'profile-view-cabin-center--vozhatifikator' : ''} ${panelActiveView === 'counselor-squad' ? 'profile-view-cabin-center--counselor-squad' : ''} ${panelActiveView === 'share' ? 'profile-view-cabin-center--share' : ''} ${panelActiveView === 'workshop' ? 'profile-view-cabin-center--workshop' : ''} ${panelActiveView === 'inspector' ? 'profile-view-cabin-center--inspector' : ''}`}
             >
@@ -2938,6 +2971,17 @@ export const ProfileView: React.FC<any> = (props) => {
                   </aside>
                 )}
               </div>
+            </div>
+              {onNavigateHome && onNavigateCategories && onNavigateAboutCamp && onTelegramContact && (
+                <ProfileTabletNav
+                  onHome={onNavigateHome}
+                  onCategories={onNavigateCategories}
+                  onAboutCamp={onNavigateAboutCamp}
+                  onTelegramContact={onTelegramContact}
+                  onProfile={() => {}}
+                  onOpenVk={onOpenVk}
+                />
+              )}
             </div>
             <div className={`profile-view-cabin-right profile-view-cabin-right--raised-sections${cabinNavExpanded ? ' profile-view-cabin-right--nav-expanded' : ''}`}>
               <div className="profile-view-cabin-nav-item profile-view-cabin-nav-item--wide">
@@ -3119,10 +3163,12 @@ export const ProfileView: React.FC<any> = (props) => {
               </section>
             </div>
           )}
-          <div className="profile-view-console" aria-label="Пульт навигации">
+          <div className={`profile-view-console${mobileConsoleExpanded ? ' profile-view-console--mobile-expanded' : ''}`} aria-label="Пульт навигации">
             <div className="console-cluster console-cluster--left">
               <div className="console-btn-wrap">
-                <button type="button" className={`console-btn ${panelActiveView === 'squad-corner' ? 'console-btn--active' : ''}`} onClick={() => openCabinPanel('squad-corner', 'left')} title="Отрядный уголок">
+                <button type="button" className={`console-btn ${panelActiveView === 'squad-corner' ? 'console-btn--active' : ''}`} data-console-section="squad-corner" onClick={() => openCabinPanel('squad-corner', 'left')} title="Отрядный уголок">
+                  <img src={`${baseUrl}${encodeURI(CONSOLE_SECTION_IMAGES['squad-corner'])}`} alt="" className="console-btn-icon-img" />
+                  <span className="console-btn-bubble-label" aria-hidden>ОТРЯДНЫЙ УГОЛОК</span>
                   <span className="console-btn-icon">🏕️</span>
                   <span className="console-btn-label">Отрядный уголок</span>
                 </button>
@@ -3131,7 +3177,9 @@ export const ProfileView: React.FC<any> = (props) => {
                 </div>
               </div>
               <div className="console-btn-wrap">
-                <button type="button" className={`console-btn ${panelActiveView === 'real-diary' ? 'console-btn--active' : ''}`} onClick={() => openCabinPanel('real-diary', 'left')} title="Реальный Дневник">
+                <button type="button" className={`console-btn ${panelActiveView === 'real-diary' ? 'console-btn--active' : ''}`} data-console-section="real-diary" onClick={() => openCabinPanel('real-diary', 'left')} title="Реальный Дневник">
+                  <img src={`${baseUrl}${encodeURI(CONSOLE_SECTION_IMAGES['real-diary'])}`} alt="" className="console-btn-icon-img" />
+                  <span className="console-btn-bubble-label" aria-hidden>РЕАЛЬНЫЙ ДНЕВНИК</span>
                   <span className="console-btn-icon">📖</span>
                   <span className="console-btn-label">Реальный Дневник</span>
                 </button>
@@ -3140,12 +3188,23 @@ export const ProfileView: React.FC<any> = (props) => {
                 </div>
               </div>
               <div className="console-btn-wrap">
-                <button type="button" className={`console-btn ${panelActiveView === 'team' ? 'console-btn--active' : ''}`} onClick={() => openCabinPanel('team', 'left')} title="Движок">
-                  <span className="console-btn-icon">🚀</span>
-                  <span className="console-btn-label">Движок</span>
-                </button>
+                {isTabletOrMobile ? (
+                  <button type="button" className={`console-btn ${panelActiveView === 'council' ? 'console-btn--active' : ''}`} data-console-section="council" onClick={() => openCabinPanel('council', 'left')} title="Совет Лагеря">
+                    <img src={`${baseUrl}${encodeURI(CONSOLE_SECTION_IMAGES.council)}`} alt="" className="console-btn-icon-img" />
+                    <span className="console-btn-bubble-label" aria-hidden>СОВЕТ ЛАГЕРЯ</span>
+                    <span className="console-btn-icon">🏛️</span>
+                    <span className="console-btn-label">Совет Лагеря</span>
+                  </button>
+                ) : (
+                  <button type="button" className={`console-btn ${panelActiveView === 'team' ? 'console-btn--active' : ''}`} data-console-section="team" onClick={() => openCabinPanel('team', 'left')} title="Движок">
+                    <img src={`${baseUrl}${encodeURI(CONSOLE_SECTION_IMAGES.team)}`} alt="" className="console-btn-icon-img" />
+                    <span className="console-btn-bubble-label" aria-hidden>ДВИЖОК</span>
+                    <span className="console-btn-icon">🚀</span>
+                    <span className="console-btn-label">Движок</span>
+                  </button>
+                )}
                 <div className="console-btn-meter console-btn-meter--vertical">
-                  <span style={{ width: `${teamProgressPercent}%`, '--progress-value': `${teamProgressPercent}%` } as React.CSSProperties} />
+                  <span style={{ width: `${isTabletOrMobile ? councilProgressPercent : teamProgressPercent}%`, '--progress-value': `${isTabletOrMobile ? councilProgressPercent : teamProgressPercent}%` } as React.CSSProperties} />
                 </div>
               </div>
             </div>
@@ -3155,16 +3214,29 @@ export const ProfileView: React.FC<any> = (props) => {
             </div>
             <div className="console-cluster console-cluster--right">
               <div className="console-btn-wrap">
-                <button type="button" className={`console-btn ${panelActiveView === 'council' ? 'console-btn--active' : ''}`} onClick={() => openCabinPanel('council', 'right')} title="Совет Лагеря">
-                  <span className="console-btn-icon">🏛️</span>
-                  <span className="console-btn-label">Совет Лагеря</span>
-                </button>
+                {isTabletOrMobile ? (
+                  <button type="button" className={`console-btn ${panelActiveView === 'team' ? 'console-btn--active' : ''}`} data-console-section="team" onClick={() => openCabinPanel('team', 'right')} title="Движок">
+                    <img src={`${baseUrl}${encodeURI(CONSOLE_SECTION_IMAGES.team)}`} alt="" className="console-btn-icon-img" />
+                    <span className="console-btn-bubble-label" aria-hidden>ДВИЖОК</span>
+                    <span className="console-btn-icon">🚀</span>
+                    <span className="console-btn-label">Движок</span>
+                  </button>
+                ) : (
+                  <button type="button" className={`console-btn ${panelActiveView === 'council' ? 'console-btn--active' : ''}`} data-console-section="council" onClick={() => openCabinPanel('council', 'right')} title="Совет Лагеря">
+                    <img src={`${baseUrl}${encodeURI(CONSOLE_SECTION_IMAGES.council)}`} alt="" className="console-btn-icon-img" />
+                    <span className="console-btn-bubble-label" aria-hidden>СОВЕТ ЛАГЕРЯ</span>
+                    <span className="console-btn-icon">🏛️</span>
+                    <span className="console-btn-label">Совет Лагеря</span>
+                  </button>
+                )}
                 <div className="console-btn-meter console-btn-meter--vertical">
-                  <span style={{ width: `${councilProgressPercent}%`, '--progress-value': `${councilProgressPercent}%` } as React.CSSProperties} />
+                  <span style={{ width: `${isTabletOrMobile ? teamProgressPercent : councilProgressPercent}%`, '--progress-value': `${isTabletOrMobile ? teamProgressPercent : councilProgressPercent}%` } as React.CSSProperties} />
                 </div>
               </div>
               <div className="console-btn-wrap">
-                <button type="button" className={`console-btn ${panelActiveView === 'bro' ? 'console-btn--active' : ''}`} onClick={() => openCabinPanel('bro', 'right')} title="БРО">
+                <button type="button" className={`console-btn ${panelActiveView === 'bro' ? 'console-btn--active' : ''}`} data-console-section="bro" onClick={() => openCabinPanel('bro', 'right')} title="БРО">
+                  <img src={`${baseUrl}${encodeURI(CONSOLE_SECTION_IMAGES.bro)}`} alt="" className="console-btn-icon-img" />
+                  <span className="console-btn-bubble-label" aria-hidden>БРО</span>
                   <span className="console-btn-icon">🎖️</span>
                   <span className="console-btn-label">БРО</span>
                 </button>
@@ -3173,7 +3245,9 @@ export const ProfileView: React.FC<any> = (props) => {
                 </div>
               </div>
               <div className="console-btn-wrap">
-                <button type="button" className={`console-btn ${panelActiveView === 'workshop' ? 'console-btn--active' : ''}`} onClick={() => openCabinPanel('workshop', 'right')} title="Мастерская">
+                <button type="button" className={`console-btn ${panelActiveView === 'workshop' ? 'console-btn--active' : ''}`} data-console-section="workshop" onClick={() => openCabinPanel('workshop', 'right')} title="Мастерская">
+                  <img src={`${baseUrl}${encodeURI(CONSOLE_SECTION_IMAGES.workshop)}`} alt="" className="console-btn-icon-img" />
+                  <span className="console-btn-bubble-label" aria-hidden>МАСТЕРСКАЯ</span>
                   <span className="console-btn-icon">⚒️</span>
                   <span className="console-btn-label">Мастерская</span>
                 </button>
@@ -4794,6 +4868,20 @@ export const ProfileView: React.FC<any> = (props) => {
         >
           <span className={`profile-view-cabin-nav-toggle-icon profile-view-cabin-nav-toggle-icon--${cabinNavExpanded ? 'right' : 'left'}`} aria-hidden>
             {cabinNavExpanded ? <Icons.ArrowRight /> : <Icons.ArrowLeft />}
+          </span>
+        </button>
+      )}
+
+      {isSpaceshipMode && (
+        <button
+          type="button"
+          className="profile-view-mobile-nav-arrow-up"
+          aria-label={mobileConsoleExpanded ? 'Свернуть пульт' : 'Развернуть пульт'}
+          aria-expanded={mobileConsoleExpanded}
+          onClick={() => setMobileConsoleExpanded((v) => !v)}
+        >
+          <span className="profile-view-mobile-nav-arrow-up__icon" aria-hidden>
+            <Icons.ArrowUp />
           </span>
         </button>
       )}

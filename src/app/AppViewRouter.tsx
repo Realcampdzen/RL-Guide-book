@@ -322,6 +322,11 @@ export const AppViewRouter: React.FC<Props> = ({ controller, fallback }) => {
           onChatClose={closeChat}
           isChatOpen={isChatOpen}
           onNavigateToRegistrationForm={() => setCurrentView('registration-form')}
+          onNavigateHome={handleBackToIntro}
+          onNavigateCategories={handleBackToCategories}
+          onNavigateAboutCamp={() => setCurrentView('about-camp')}
+          onTelegramContact={handleTelegramContact}
+          onOpenVk={handleOpenVk}
           onNavigateToBadge={(badgeId: string) => {
             const openBadge = (window as any).openBadgeById;
             if (typeof openBadge === 'function') {

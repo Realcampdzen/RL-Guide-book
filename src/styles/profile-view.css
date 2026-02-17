@@ -92,19 +92,26 @@
 
 /* Пульт кабины: показывается в profile-spaceship-root (profile-view-spaceship.css). Корень кабины всегда присутствует (main.tsx). */
 
-/* Декоративный слой под навбаром (аппликация поверх фона, под контентом) */
-.profile-view-nav-decor {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 200px;
-  background-image: url('/фон_лк_нижняя_декор.png');
-  background-size: contain;
-  background-position: bottom center;
-  background-repeat: no-repeat;
-  z-index: 0;
-  pointer-events: none;
+/* Декоративный слой под навбаром (аппликация поверх фона, под контентом) — только десктоп */
+@media (max-width: 1180px) {
+  .profile-view-nav-decor {
+    display: none !important;
+  }
+}
+@media (min-width: 1181px) {
+  .profile-view-nav-decor {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 400px;
+    background-image: url('/фон_лк_нижняя_декор.png');
+    background-size: 200% 200%;
+    background-position: bottom center;
+    background-repeat: no-repeat;
+    z-index: 0;
+    pointer-events: none;
+  }
 }
 
 /* Mobile: use a dedicated portrait background for the profile page (single layer) */

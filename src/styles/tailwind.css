@@ -1,0 +1,7 @@
+/**
+ * Tailwind CSS — утилиты для новых компонентов и дизайн-токенов.
+ * Preflight отключён в tailwind.config.js, чтобы не ломать существующие стили кабины.
+ */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;

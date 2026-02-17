@@ -156,6 +156,11 @@ html[data-perf="lite"] .mobile-bottom-nav {
     width: 15px !important;
     height: 15px !important;
   }
+
+  /* В личном кабинете на планшете нижнюю панель не показываем */
+  .mobile-bottom-nav[data-current-view="profile"] {
+    display: none !important;
+  }
 }
 
 @media (max-width: 360px) {

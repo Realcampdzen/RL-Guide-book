@@ -1,0 +1,138 @@
+/* Планшетная навигация в личном кабинете — визуально и по ширине как mobile-bottom-nav на главной */
+.profile-cabin-tablet-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  padding: 6px 12px;
+  height: 48px;
+  margin-top: 10px;
+  width: min(360px, calc(100% - 48px));
+  max-width: 360px;
+  min-width: 280px;
+  margin-left: auto;
+  margin-right: auto;
+  background: linear-gradient(140deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02)), var(--mobile-glass-bg);
+  backdrop-filter: blur(18px) saturate(1.1);
+  -webkit-backdrop-filter: blur(18px) saturate(1.1);
+  border: 1px solid var(--mobile-glass-border);
+  border-radius: 16px;
+  box-shadow: 0 14px 32px rgba(9, 6, 20, 0.55);
+}
+
+@supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+  .profile-cabin-tablet-nav {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: rgba(17, 14, 32, 0.92) !important;
+    border-color: rgba(255, 255, 255, 0.14) !important;
+  }
+}
+
+.profile-cabin-tablet-nav__item {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: none;
+  padding: 4px 0;
+  color: rgba(255, 255, 255, 0.6);
+  font-family: var(--f-display-nav, 'Syne', 'Montserrat', sans-serif);
+  font-size: 0;
+  letter-spacing: 0.1em;
+  font-weight: 700;
+  text-transform: uppercase;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  cursor: pointer;
+  transition: color 0.2s ease, transform 0.2s ease;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+  position: relative;
+}
+
+.profile-cabin-tablet-nav__item:hover {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.profile-cabin-tablet-nav__item--active {
+  color: #ffffff;
+}
+
+.profile-cabin-tablet-nav__item--active .profile-cabin-tablet-nav__icon-wrap {
+  background: rgba(168, 85, 247, 0.25);
+  border-color: rgba(192, 132, 252, 0.6);
+  box-shadow: 0 0 14px rgba(168, 85, 247, 0.45);
+  transform: translateY(-2px);
+}
+
+.profile-cabin-tablet-nav__item--active .profile-cabin-tablet-nav__icon {
+  color: #e8d5ff;
+}
+
+.profile-cabin-tablet-nav__item--cta .profile-cabin-tablet-nav__label {
+  font-size: 0.46rem;
+  letter-spacing: 0.06em;
+}
+
+.profile-cabin-tablet-nav__item--vk .profile-cabin-tablet-nav__label {
+  font-size: 0.48rem;
+  letter-spacing: 0.08em;
+}
+
+.profile-cabin-tablet-nav__icon-wrap {
+  width: 28px;
+  height: 28px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.profile-cabin-tablet-nav__icon {
+  width: 15px;
+  height: 15px;
+  display: block;
+  color: rgba(255, 255, 255, 0.8);
+  filter: drop-shadow(0 0 6px rgba(0, 0, 0, 0.4));
+}
+
+.profile-cabin-tablet-nav__icon--text {
+  width: auto;
+  height: auto;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.profile-cabin-tablet-nav__label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+  font-size: 0.5rem;
+  line-height: 1.1;
+  text-align: center;
+}
+
+/* Только планшет (769–1023px), скрыть на мобиле и десктопе */
+@media (max-width: 768px) {
+  .profile-cabin-tablet-nav {
+    display: none !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  .profile-cabin-tablet-nav {
+    display: none !important;
+  }
+}

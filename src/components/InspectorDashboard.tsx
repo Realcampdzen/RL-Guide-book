@@ -9,6 +9,9 @@ import {
 import { generateSocialCard, shareOrDownloadSocialCard } from '../utils/socialGenerator';
 import { getRank } from '../types/userProgress';
 
+const INSPECTOR_ACCENT = 'var(--violet-600)';
+const INSPECTOR_ACCENT_RGB = '53, 48, 89';
+
 const INSPECTOR_RULES = [
   'Говори прямо и вежливо, чего хочешь.',
   'Используй "Я-сообщения" вместо обвинений.',
@@ -131,12 +134,12 @@ export const InspectorDashboard: React.FC<InspectorDashboardProps> = ({
         {/* Rules block - always visible at top */}
         <div className="inspector-dashboard__rules" style={{
           padding: '12px 16px',
-          background: 'rgba(56, 239, 125, 0.08)',
+          background: `rgba(${INSPECTOR_ACCENT_RGB}, 0.08)`,
           borderRadius: '12px',
           marginBottom: '16px',
-          border: '1px solid rgba(56, 239, 125, 0.2)'
+          border: `1px solid rgba(${INSPECTOR_ACCENT_RGB}, 0.2)`
         }}>
-          <p style={{ fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', color: '#38ef7d', letterSpacing: '0.1em', margin: '0 0 8px' }}>Правила Инспектора Пользы</p>
+          <p style={{ fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', color: INSPECTOR_ACCENT, letterSpacing: '0.1em', margin: '0 0 8px' }}>Правила Инспектора Пользы</p>
           <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '13px', opacity: 0.9, lineHeight: 1.6 }}>
             {INSPECTOR_RULES.map((rule, i) => (
               <li key={i}>{rule}</li>
@@ -175,10 +178,10 @@ export const InspectorDashboard: React.FC<InspectorDashboardProps> = ({
                   alignItems: 'center',
                   gap: '6px',
                   padding: '8px 12px',
-                  background: isActive ? 'rgba(56, 239, 125, 0.2)' : tabUnlocked ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.02)',
-                  border: `1px solid ${isActive ? '#38ef7d' : tabUnlocked ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.06)'}`,
+                  background: isActive ? `rgba(${INSPECTOR_ACCENT_RGB}, 0.2)` : tabUnlocked ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.02)',
+                  border: `1px solid ${isActive ? INSPECTOR_ACCENT : tabUnlocked ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.06)'}`,
                   borderRadius: '10px',
-                  color: tabUnlocked ? (isActive ? '#38ef7d' : 'rgba(255,255,255,0.95)') : 'rgba(255,255,255,0.4)',
+                  color: tabUnlocked ? (isActive ? INSPECTOR_ACCENT : 'rgba(255,255,255,0.95)') : 'rgba(255,255,255,0.4)',
                   fontSize: '12px',
                   fontWeight: isActive ? 700 : 500,
                   cursor: tabUnlocked ? 'pointer' : 'not-allowed',
@@ -220,9 +223,9 @@ export const InspectorDashboard: React.FC<InspectorDashboardProps> = ({
                 style={{
                   marginTop: '16px',
                   padding: '10px 18px',
-                  background: 'rgba(56, 239, 125, 0.2)',
-                  border: '1px solid #38ef7d',
-                  color: '#38ef7d',
+                  background: `rgba(${INSPECTOR_ACCENT_RGB}, 0.2)`,
+                  border: `1px solid ${INSPECTOR_ACCENT}`,
+                  color: INSPECTOR_ACCENT,
                   borderRadius: '10px',
                   fontSize: '13px',
                   fontWeight: 600,
@@ -250,8 +253,8 @@ export const InspectorDashboard: React.FC<InspectorDashboardProps> = ({
                   style={{
                     padding: '8px 14px',
                     background: 'rgba(255,255,255,0.08)',
-                    border: '1px solid rgba(56, 239, 125, 0.4)',
-                    color: '#38ef7d',
+                    border: `1px solid rgba(${INSPECTOR_ACCENT_RGB}, 0.4)`,
+                    color: INSPECTOR_ACCENT,
                     borderRadius: '8px',
                     fontSize: '12px',
                     fontWeight: 600,
@@ -275,9 +278,9 @@ export const InspectorDashboard: React.FC<InspectorDashboardProps> = ({
                       alignItems: 'center',
                       gap: '12px',
                       padding: '12px 16px',
-                      background: isCompleted ? 'rgba(56, 239, 125, 0.15)' : 'rgba(255,255,255,0.03)',
+                      background: isCompleted ? `rgba(${INSPECTOR_ACCENT_RGB}, 0.15)` : 'rgba(255,255,255,0.03)',
                       borderRadius: '14px',
-                      border: `1px solid ${isCompleted ? 'rgba(56, 239, 125, 0.4)' : 'rgba(255,255,255,0.08)'}`,
+                      border: `1px solid ${isCompleted ? `rgba(${INSPECTOR_ACCENT_RGB}, 0.4)` : 'rgba(255,255,255,0.08)'}`,
                       cursor: 'pointer',
                       transition: 'all 0.2s ease'
                     }}
@@ -286,8 +289,8 @@ export const InspectorDashboard: React.FC<InspectorDashboardProps> = ({
                       width: '20px',
                       height: '20px',
                       borderRadius: '6px',
-                      border: `2px solid ${isCompleted ? '#38ef7d' : 'rgba(255,255,255,0.3)'}`,
-                      background: isCompleted ? '#38ef7d' : 'transparent',
+                      border: `2px solid ${isCompleted ? INSPECTOR_ACCENT : 'rgba(255,255,255,0.3)'}`,
+                      background: isCompleted ? INSPECTOR_ACCENT : 'transparent',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -316,7 +319,7 @@ export const InspectorDashboard: React.FC<InspectorDashboardProps> = ({
                 <div style={{
                   width: `${totalTasks ? (completedForDay.length / totalTasks) * 100 : 0}%`,
                   height: '100%',
-                  background: '#38ef7d',
+                  background: INSPECTOR_ACCENT,
                   transition: 'width 0.5s ease'
                 }} />
               </div>
@@ -327,13 +330,13 @@ export const InspectorDashboard: React.FC<InspectorDashboardProps> = ({
               <div className="fade-in" style={{
                 marginTop: '16px',
                 padding: '16px',
-                background: 'rgba(56, 239, 125, 0.2)',
+                background: `rgba(${INSPECTOR_ACCENT_RGB}, 0.2)`,
                 borderRadius: '16px',
                 textAlign: 'center',
-                border: '1px solid #38ef7d'
+                border: `1px solid ${INSPECTOR_ACCENT}`
               }}>
                 <div style={{ fontSize: '24px', marginBottom: '8px' }}>🏆</div>
-                <div style={{ fontWeight: 800, fontSize: '14px', color: '#38ef7d', textTransform: 'uppercase' }}>
+                <div style={{ fontWeight: 800, fontSize: '14px', color: INSPECTOR_ACCENT, textTransform: 'uppercase' }}>
                   Миссия выполнена!
                 </div>
                 <div style={{ fontSize: '12px', opacity: 0.9, marginTop: '4px' }}>
@@ -355,7 +358,7 @@ export const InspectorDashboard: React.FC<InspectorDashboardProps> = ({
                         <button
                           style={{
                             padding: '8px 16px',
-                            background: '#38ef7d',
+                            background: INSPECTOR_ACCENT,
                             color: '#0b1b16',
                             border: 'none',
                             borderRadius: '100px',
@@ -374,8 +377,8 @@ export const InspectorDashboard: React.FC<InspectorDashboardProps> = ({
                           style={{
                             padding: '8px 16px',
                             background: 'transparent',
-                            color: '#38ef7d',
-                            border: '1px solid #38ef7d',
+                            color: INSPECTOR_ACCENT,
+                            border: `1px solid ${INSPECTOR_ACCENT}`,
                             borderRadius: '100px',
                             fontSize: '12px',
                             fontWeight: 600,
@@ -434,10 +437,10 @@ export const InspectorDashboard: React.FC<InspectorDashboardProps> = ({
   };
 
   const wrapperStyle: React.CSSProperties = {
-    background: 'linear-gradient(135deg, rgba(56, 239, 125, 0.1) 0%, rgba(17, 153, 142, 0.15) 100%)',
+    background: `linear-gradient(135deg, rgba(${INSPECTOR_ACCENT_RGB}, 0.1) 0%, rgba(var(--teal-600-rgb), 0.15) 100%)`,
     borderRadius: '24px',
     padding: '20px',
-    border: `1px solid ${isDayComplete ? '#38ef7d' : 'rgba(56, 239, 125, 0.3)'}`,
+    border: `1px solid ${isDayComplete ? INSPECTOR_ACCENT : `rgba(${INSPECTOR_ACCENT_RGB}, 0.3)`}`,
     marginBottom: '24px',
     transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
     position: 'relative',
@@ -452,7 +455,7 @@ export const InspectorDashboard: React.FC<InspectorDashboardProps> = ({
         right: '-20px',
         width: '100px',
         height: '100px',
-        background: '#38ef7d',
+        background: INSPECTOR_ACCENT,
         filter: 'blur(50px)',
         opacity: isDayComplete ? 0.2 : 0.1,
         pointerEvents: 'none'
@@ -460,7 +463,7 @@ export const InspectorDashboard: React.FC<InspectorDashboardProps> = ({
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: isExpanded ? '20px' : '0' }}>
         <div onClick={() => setIsExpanded(!isExpanded)} style={{ cursor: 'pointer', flex: 1 }}>
-          <div style={{ fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', color: '#38ef7d', letterSpacing: '0.1em', marginBottom: '4px' }}>
+          <div style={{ fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', color: INSPECTOR_ACCENT, letterSpacing: '0.1em', marginBottom: '4px' }}>
             Ветка: Инспектор Пользы
           </div>
           <h3 style={{ margin: 0, fontSize: '18px', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -472,7 +475,7 @@ export const InspectorDashboard: React.FC<InspectorDashboardProps> = ({
                 <div style={{
                   width: `${(completedForDay.length / totalTasks) * 100}%`,
                   height: '100%',
-                  background: '#38ef7d',
+                  background: INSPECTOR_ACCENT,
                   transition: 'width 0.5s ease'
                 }} />
               </div>
@@ -504,7 +507,7 @@ export const InspectorDashboard: React.FC<InspectorDashboardProps> = ({
             style={{
               background: 'none',
               border: 'none',
-              color: '#38ef7d',
+              color: INSPECTOR_ACCENT,
               fontSize: '20px',
               cursor: 'pointer',
               padding: '0 4px',
@@ -534,8 +537,8 @@ export const InspectorDashboard: React.FC<InspectorDashboardProps> = ({
                 style={{
                   padding: '8px 14px',
                   background: 'rgba(255,255,255,0.08)',
-                  border: '1px solid rgba(56, 239, 125, 0.4)',
-                  color: '#38ef7d',
+                  border: `1px solid rgba(${INSPECTOR_ACCENT_RGB}, 0.4)`,
+                  color: INSPECTOR_ACCENT,
                   borderRadius: '8px',
                   fontSize: '12px',
                   fontWeight: 600,
@@ -558,9 +561,9 @@ export const InspectorDashboard: React.FC<InspectorDashboardProps> = ({
                   alignItems: 'center',
                   gap: '12px',
                   padding: '12px 16px',
-                  background: isCompleted ? 'rgba(56, 239, 125, 0.15)' : 'rgba(255,255,255,0.03)',
+                  background: isCompleted ? `rgba(${INSPECTOR_ACCENT_RGB}, 0.15)` : 'rgba(255,255,255,0.03)',
                   borderRadius: '14px',
-                  border: `1px solid ${isCompleted ? 'rgba(56, 239, 125, 0.4)' : 'rgba(255,255,255,0.08)'}`,
+                  border: `1px solid ${isCompleted ? `rgba(${INSPECTOR_ACCENT_RGB}, 0.4)` : 'rgba(255,255,255,0.08)'}`,
                   cursor: 'pointer',
                   transition: 'all 0.2s ease'
                 }}
@@ -569,8 +572,8 @@ export const InspectorDashboard: React.FC<InspectorDashboardProps> = ({
                   width: '20px',
                   height: '20px',
                   borderRadius: '6px',
-                  border: `2px solid ${isCompleted ? '#38ef7d' : 'rgba(255,255,255,0.3)'}`,
-                  background: isCompleted ? '#38ef7d' : 'transparent',
+                  border: `2px solid ${isCompleted ? INSPECTOR_ACCENT : 'rgba(255,255,255,0.3)'}`,
+                  background: isCompleted ? INSPECTOR_ACCENT : 'transparent',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -597,13 +600,13 @@ export const InspectorDashboard: React.FC<InspectorDashboardProps> = ({
             <div className="fade-in" style={{
               marginTop: '12px',
               padding: '16px',
-              background: 'rgba(56, 239, 125, 0.2)',
+              background: `rgba(${INSPECTOR_ACCENT_RGB}, 0.2)`,
               borderRadius: '16px',
               textAlign: 'center',
-              border: '1px solid #38ef7d'
+              border: `1px solid ${INSPECTOR_ACCENT}`
             }}>
               <div style={{ fontSize: '24px', marginBottom: '8px' }}>🏆</div>
-              <div style={{ fontWeight: 800, fontSize: '14px', color: '#38ef7d', textTransform: 'uppercase' }}>
+              <div style={{ fontWeight: 800, fontSize: '14px', color: INSPECTOR_ACCENT, textTransform: 'uppercase' }}>
                 Миссия выполнена!
               </div>
               <div style={{ fontSize: '12px', opacity: 0.9, marginTop: '4px' }}>
@@ -621,7 +624,7 @@ export const InspectorDashboard: React.FC<InspectorDashboardProps> = ({
                   style={{
                     marginTop: '12px',
                     padding: '8px 16px',
-                    background: '#38ef7d',
+                    background: INSPECTOR_ACCENT,
                     color: '#0b1b16',
                     border: 'none',
                     borderRadius: '100px',

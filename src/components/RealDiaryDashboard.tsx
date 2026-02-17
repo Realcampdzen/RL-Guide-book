@@ -4,9 +4,9 @@ import type { MyActivityKey, ShiftScheduleKey } from '../types/userProgress';
 import { downloadBlob } from '../utils/socialGenerator';
 import { ACTIVITY_ITEMS, hasValues, ScheduleCell, ScheduleItem, SHIFT_ITEMS } from '../utils/scheduleConstants';
 
-const DIARY_ACCENT = '#d97706';
-const DIARY_ACCENT_LIGHT = 'rgba(217, 119, 6, 0.25)';
-const DIARY_GRADIENT = 'linear-gradient(135deg, rgba(217, 119, 6, 0.12) 0%, rgba(120, 53, 15, 0.18) 100%)';
+const DIARY_ACCENT = 'var(--amber-500)';
+const DIARY_ACCENT_LIGHT = 'rgba(199, 119, 48, 0.25)';
+const DIARY_GRADIENT = 'linear-gradient(135deg, rgba(199, 119, 48, 0.12) 0%, rgba(120, 53, 15, 0.18) 100%)';
 const EMOJI_OPTIONS = ['😊', '😢', '😤', '🌟', '🎉', '😴', '🤔', '💪', '❤️', '🔥', '👍', '😎'];
 
 const text = (v?: string) => (v || '').trim();
@@ -428,7 +428,7 @@ export const RealDiaryDashboard: React.FC<RealDiaryDashboardProps> = ({ variant 
         <div style={{ display: 'grid', gap: 12, marginTop: variant === 'accordion' ? 12 : 0 }}>
           <button type="button" onClick={() => setPresentationText(buildPresentationText())} className="btn-secondary" style={{ alignSelf: 'flex-start' }}>Создать карточку дневника</button>
           {presentationText ? <textarea readOnly value={presentationText} rows={10} className="w-input" /> : null}
-          {presentationText ? <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}><button type="button" className="btn-secondary" onClick={onCopy}>Копировать</button><button type="button" className="btn-secondary" onClick={onTelegram}>Отправить в Telegram</button>{copyToast ? <span style={{ fontSize: 12, color: '#38ef7d' }}>Скопировано!</span> : null}{telegramToast ? <span style={{ fontSize: 12, color: '#38ef7d' }}>Открыт Telegram для отправки</span> : null}</div> : null}
+          {presentationText ? <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}><button type="button" className="btn-secondary" onClick={onCopy}>Копировать</button><button type="button" className="btn-secondary" onClick={onTelegram}>Отправить в Telegram</button>{copyToast ? <span style={{ fontSize: 12, color: 'var(--cabin-neon-purple)' }}>Скопировано!</span> : null}{telegramToast ? <span style={{ fontSize: 12, color: 'var(--cabin-neon-purple)' }}>Открыт Telegram для отправки</span> : null}</div> : null}
         </div>
       )}
     </div>

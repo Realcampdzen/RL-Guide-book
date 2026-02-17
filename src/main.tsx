@@ -8,6 +8,7 @@ import { TeamProvider } from './context/TeamContext'
 import { CounselorSquadProvider } from './context/CounselorSquadContext'
 import { AuthProvider } from './context/AuthContext'
 
+import './styles/tailwind.css'
 import './styles/profile-view-spaceship.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
