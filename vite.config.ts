@@ -321,12 +321,14 @@ const copyRLGuideBookPlugin = () => ({
       }
     }
 
-    // Книга Вожатификатор: копируем из docs в dist для просмотра на сайте
+    // Книга Вожатификатор: копируем из docs в dist для просмотра на сайте.
+    // На GitHub Pages корень артефакта = /RL-Guide-book/, поэтому vozhatifikator.md должен лежать
+    // в корне dist/ (artifact root), чтобы fetch /RL-Guide-book/vozhatifikator.md вёл на него.
     const vozhatifikatorSrc = resolve(process.cwd(), 'docs', 'вожатификатор.md')
     if (existsSync(vozhatifikatorSrc)) {
-      const vozhatifikatorDest = join(rlGuideBookDir, 'vozhatifikator.md')
-      copyFileSync(vozhatifikatorSrc, vozhatifikatorDest)
-      console.log('✅ Скопирован docs/вожатификатор.md → dist/RL-Guide-book/vozhatifikator.md')
+      const vozhatifikatorDestRoot = join(process.cwd(), 'dist', 'vozhatifikator.md')
+      copyFileSync(vozhatifikatorSrc, vozhatifikatorDestRoot)
+      console.log('✅ Скопирован docs/вожатификатор.md → dist/vozhatifikator.md')
     }
   }
 })
