@@ -1,0 +1,1274 @@
+# Codex recovery patch (workspace snapshot)\n# Created: 2026-02-20T01:33:57\n# Includes: current git diff + untracked SquadCabinetPanel/SquadChat\n
+diff --git a/backend/app.py b/backend/app.py
+index d95f0ad..3a02b45 100644
+--- a/backend/app.py
++++ b/backend/app.py
+@@ -78,6 +78,13 @@ BADGE_REQUESTS_FILE = os.path.join(os.path.dirname(__file__), "data", "badge_req
+ _BADGE_REQUESTS_LOCK = threading.Lock()
+ MEMBERSHIPS_FILE = os.path.join(os.path.dirname(__file__), "data", "memberships.json")
+ _MEMBERSHIPS_LOCK = threading.Lock()
++SQUAD_CORNERS_FILE = os.path.join(os.path.dirname(__file__), "data", "squad_corners.json")
++_SQUAD_CORNERS_LOCK = threading.Lock()
++SQUAD_INVITES_FILE = os.path.join(os.path.dirname(__file__), "data", "squad_invites.json")
++_SQUAD_INVITES_LOCK = threading.Lock()
++SQUAD_MESSAGES_FILE = os.path.join(os.path.dirname(__file__), "data", "squad_messages.json")
++_SQUAD_MESSAGES_LOCK = threading.Lock()
++SQUAD_INVITE_TTL_SEC = int(os.getenv('SQUAD_INVITE_TTL_SEC', '86400'))
+ # Staff-flow permissions (shifts/squads management, staff code issuing).
+ ORGANIZER_ROLES = ('shift_leader', 'developer')
+ LEVEL_ID_RE = re.compile(r'^\d+\.\d+(?:\.\d+)?$')
+@@ -331,6 +338,124 @@ def _memberships_save(data: dict):
+             json.dump(data, f, ensure_ascii=False, indent=2)
+ 
+ 
++def _squad_corners_load() -> dict:
++    """Load squad_corners.json under lock; returns {'corners': {}}."""
++    _ensure_chat_data_dir()
++    with _SQUAD_CORNERS_LOCK:
++        data = {"corners": {}}
++        if os.path.exists(SQUAD_CORNERS_FILE):
++            try:
++                with open(SQUAD_CORNERS_FILE, "r", encoding="utf-8") as f:
++                    raw = f.read()
++                    if raw.strip():
++                        data = json.loads(raw)
++            except (json.JSONDecodeError, OSError):
++                data = {"corners": {}}
++        if not isinstance(data, dict):
++            data = {"corners": {}}
++        if not isinstance(data.get("corners"), dict):
++            data["corners"] = {}
++        return data
++
++
++def _squad_corners_save(data: dict):
++    _ensure_chat_data_dir()
++    with _SQUAD_CORNERS_LOCK:
++        with open(SQUAD_CORNERS_FILE, "w", encoding="utf-8") as f:
++            json.dump(data, f, ensure_ascii=False, indent=2)
++
++
++def _squad_invites_load() -> dict:
++    """Load squad_invites.json under lock; returns {'codes': {}}."""
++    _ensure_chat_data_dir()
++    with _SQUAD_INVITES_LOCK:
++        data = {"codes": {}}
++        if os.path.exists(SQUAD_INVITES_FILE):
++            try:
++                with open(SQUAD_INVITES_FILE, "r", encoding="utf-8") as f:
++                    raw = f.read()
++                    if raw.strip():
++                        data = json.loads(raw)
++            except (json.JSONDecodeError, OSError):
++                data = {"codes": {}}
++        if not isinstance(data, dict):
++            data = {"codes": {}}
++        if not isinstance(data.get("codes"), dict):
++            data["codes"] = {}
++        return data
++
++
++def _squad_invites_save(data: dict):
++    _ensure_chat_data_dir()
++    with _SQUAD_INVITES_LOCK:
++        with open(SQUAD_INVITES_FILE, "w", encoding="utf-8") as f:
++            json.dump(data, f, ensure_ascii=False, indent=2)
++
++
++def _squad_invites_prune(doc: dict) -> tuple[dict, bool]:
++    """Remove expired invite codes. Returns: (doc, changed)."""
++    codes = doc.get("codes") or {}
++    if not isinstance(codes, dict):
++        doc["codes"] = {}
++        return doc, True
++    changed = False
++    now_ts = datetime.now(timezone.utc).timestamp()
++    for code in list(codes.keys()):
++        meta = codes.get(code)
++        if not isinstance(meta, dict):
++            del codes[code]
++            changed = True
++            continue
++        expires_at = _parse_iso_ts((meta.get("expiresAt") or "").strip())
++        if expires_at and expires_at < now_ts:
++            del codes[code]
++            changed = True
++    doc["codes"] = codes
++    return doc, changed
++
++
++def _squad_messages_load() -> dict:
++    """Load squad_messages.json under lock; returns {'bySquadId': {}}."""
++    _ensure_chat_data_dir()
++    with _SQUAD_MESSAGES_LOCK:
++        data = {"bySquadId": {}}
++        if os.path.exists(SQUAD_MESSAGES_FILE):
++            try:
++                with open(SQUAD_MESSAGES_FILE, "r", encoding="utf-8") as f:
++                    raw = f.read()
++                    if raw.strip():
++                        data = json.loads(raw)
++            except (json.JSONDecodeError, OSError):
++                data = {"bySquadId": {}}
++        if not isinstance(data, dict):
++            data = {"bySquadId": {}}
++        if not isinstance(data.get("bySquadId"), dict):
++            data["bySquadId"] = {}
++        return data
++
++
++def _squad_messages_save(data: dict):
++    _ensure_chat_data_dir()
++    with _SQUAD_MESSAGES_LOCK:
++        with open(SQUAD_MESSAGES_FILE, "w", encoding="utf-8") as f:
++            json.dump(data, f, ensure_ascii=False, indent=2)
++
++
++def _require_squad_membership(payload: dict, squad_id: str) -> tuple[Optional[dict], Optional[tuple]]:
++    """Ensure request actor has a membership in the requested squad. Returns: (membership, None) or (None, (resp, status))."""
++    device_id = (payload.get("deviceId") or "").strip()
++    if not device_id:
++        return None, (jsonify({"error": "deviceId missing in token"}), 400)
++    sid = (squad_id or "").strip()
++    if not sid:
++        return None, (jsonify({"error": "squadId required"}), 400)
++    mdoc = _memberships_load()
++    membership = _membership_for_device(mdoc, device_id)
++    if not membership or (membership.get("squadId") or "").strip() != sid:
++        return None, (jsonify({"error": "Not a member of this squad"}), 403)
++    return membership, None
++
++
+ def _membership_for_device(doc: dict, device_id: str) -> Optional[dict]:
+     members = doc.get("members") or []
+     if not isinstance(members, list):
+@@ -1798,6 +1923,287 @@ def squads_mine():
+     })
+ 
+ 
++@app.route('/api/squads/<squad_id>/corner', methods=['GET', 'PATCH'])
++def squad_corner_get_or_patch(squad_id: str):
++    """
++    GET /api/squads/<squadId>/corner — get shared squad corner (server-synced).
++    PATCH /api/squads/<squadId>/corner — update shared corner (staff only).
++    Auth: participant|parent|counselor|shift_leader|developer (GET), counselor|shift_leader|developer (PATCH).
++    """
++    if request.method == 'PATCH':
++        payload, err = _require_roles(("counselor", "shift_leader", "developer"), allow_localhost_dev=True)
++    else:
++        payload, err = _require_roles(("participant", "parent", "counselor", "shift_leader", "developer"), allow_localhost_dev=True)
++    if err is not None:
++        return err[0], err[1]
++    membership, mem_err = _require_squad_membership(payload, squad_id)
++    if mem_err is not None:
++        return mem_err[0], mem_err[1]
++    sid = (squad_id or "").strip()
++
++    if request.method == 'GET':
++        doc = _squad_corners_load()
++        corners = doc.get("corners") or {}
++        corner = corners.get(sid)
++        if not isinstance(corner, dict):
++            corner = None
++        return jsonify({"squadId": sid, "corner": corner})
++
++    body = request.get_json() or {}
++    if not isinstance(body, dict):
++        return jsonify({"error": "Invalid payload"}), 400
++    allowed_keys = {
++        "name",
++        "motto",
++        "chants",
++        "greeting",
++        "memes",
++        "photoCorner",
++        "photoFlag",
++        "photoSquad",
++        "photoWithCounselors",
++        "planGridA",
++        "planGridB",
++    }
++    updates = {k: body.get(k) for k in allowed_keys if k in body}
++    now_iso = datetime.now(timezone.utc).isoformat()
++    device_id = (payload.get("deviceId") or "").strip()
++
++    doc = _squad_corners_load()
++    corners = doc.get("corners") or {}
++    if not isinstance(corners, dict):
++        corners = {}
++    current = corners.get(sid) if isinstance(corners.get(sid), dict) else {}
++    next_corner = {**current, **updates, "updatedAt": now_iso, "updatedBy": device_id}
++    corners[sid] = next_corner
++    doc["corners"] = corners
++    _squad_corners_save(doc)
++    return jsonify({"squadId": sid, "corner": next_corner})
++
++
++@app.route('/api/squads/<squad_id>/invite-code', methods=['POST'])
++def squad_invite_code_create(squad_id: str):
++    """
++    POST /api/squads/<squadId>/invite-code — create invite code for joining the squad.
++    Auth: counselor|shift_leader|developer
++    """
++    payload, err = _require_roles(("counselor", "shift_leader", "developer"), allow_localhost_dev=True)
++    if err is not None:
++        return err[0], err[1]
++    membership, mem_err = _require_squad_membership(payload, squad_id)
++    if mem_err is not None:
++        return mem_err[0], mem_err[1]
++    sid = (squad_id or "").strip()
++
++    created_at = datetime.now(timezone.utc)
++    expires_at = created_at.timestamp() + max(60, int(SQUAD_INVITE_TTL_SEC))
++
++    doc = _squad_invites_load()
++    doc, changed = _squad_invites_prune(doc)
++    if changed:
++        _squad_invites_save(doc)
++        doc = _squad_invites_load()
++
++    codes = doc.get("codes") or {}
++    if not isinstance(codes, dict):
++        codes = {}
++
++    alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
++    for _ in range(50):
++        code = "".join(secrets.choice(alphabet) for _ in range(6))
++        if code not in codes:
++            break
++    else:
++        return jsonify({"error": "Invite code generation failed"}), 500
++
++    meta = {
++        "squadId": sid,
++        "createdAt": created_at.isoformat(),
++        "expiresAt": datetime.fromtimestamp(expires_at, tz=timezone.utc).isoformat(),
++        "createdBy": (payload.get("deviceId") or "").strip() or None
++    }
++    codes[code] = meta
++    doc["codes"] = codes
++    _squad_invites_save(doc)
++    return jsonify({"squadId": sid, "code": code, "createdAt": meta["createdAt"], "expiresAt": meta["expiresAt"]})
++
++
++@app.route('/api/squads/resolve-invite', methods=['GET'])
++def squad_invite_code_resolve():
++    """
++    GET /api/squads/resolve-invite?code=XXXXXX — resolve invite code to squad meta.
++    Auth: participant|parent|counselor|shift_leader|developer
++    """
++    payload, err = _require_roles(("participant", "parent", "counselor", "shift_leader", "developer"), allow_localhost_dev=True)
++    if err is not None:
++        return err[0], err[1]
++    code = (request.args.get("code") or "").strip().upper()
++    if not code:
++        return jsonify({"error": "code required"}), 400
++
++    doc = _squad_invites_load()
++    doc, changed = _squad_invites_prune(doc)
++    if changed:
++        _squad_invites_save(doc)
++        doc = _squad_invites_load()
++
++    meta = (doc.get("codes") or {}).get(code)
++    if not isinstance(meta, dict):
++        return jsonify({"error": "Invite code not found"}), 404
++    squad_id = (meta.get("squadId") or "").strip()
++    if not squad_id:
++        return jsonify({"error": "Invite code invalid"}), 400
++
++    shifts_doc = _shifts_load()
++    squad = next(
++        (s for s in (shifts_doc.get("squads") or []) if isinstance(s, dict) and (s.get("id") or "").strip() == squad_id),
++        None
++    )
++    shift = None
++    if squad:
++        shift_id = (squad.get("shiftId") or "").strip()
++        shift = next(
++            (sh for sh in (shifts_doc.get("shifts") or []) if isinstance(sh, dict) and (sh.get("id") or "").strip() == shift_id),
++            None
++        )
++
++    return jsonify({
++        "squadId": squad_id,
++        "squadName": (squad.get("name") if isinstance(squad, dict) else None),
++        "shiftId": (shift.get("id") if isinstance(shift, dict) else None),
++        "shiftName": (shift.get("name") if isinstance(shift, dict) else None)
++    })
++
++
++@app.route('/api/squads/<squad_id>/leave', methods=['POST'])
++def squad_leave(squad_id: str):
++    """
++    POST /api/squads/<squadId>/leave — leave the squad.
++    Auth: participant|parent|counselor|shift_leader|developer
++    """
++    payload, err = _require_roles(("participant", "parent", "counselor", "shift_leader", "developer"), allow_localhost_dev=True)
++    if err is not None:
++        return err[0], err[1]
++    membership, mem_err = _require_squad_membership(payload, squad_id)
++    if mem_err is not None:
++        return mem_err[0], mem_err[1]
++    device_id = (payload.get("deviceId") or "").strip()
++    sid = (squad_id or "").strip()
++
++    mdoc = _memberships_load()
++    members = [
++        row for row in (mdoc.get("members") or [])
++        if not (isinstance(row, dict) and (row.get("deviceId") or "").strip() == device_id and (row.get("squadId") or "").strip() == sid)
++    ]
++    mdoc["members"] = members
++    _memberships_save(mdoc)
++    return jsonify({"ok": True})
++
++
++@app.route('/api/squads/<squad_id>/kick', methods=['POST'])
++def squad_kick_member(squad_id: str):
++    """
++    POST /api/squads/<squadId>/kick — remove a participant from squad.
++    Auth: counselor|shift_leader|developer
++    Body: { deviceId: string }
++    """
++    payload, err = _require_roles(("counselor", "shift_leader", "developer"), allow_localhost_dev=True)
++    if err is not None:
++        return err[0], err[1]
++    membership, mem_err = _require_squad_membership(payload, squad_id)
++    if mem_err is not None:
++        return mem_err[0], mem_err[1]
++    sid = (squad_id or "").strip()
++    body = request.get_json() or {}
++    target_device_id = (body.get("deviceId") or "").strip()
++    if not target_device_id:
++        return jsonify({"error": "deviceId required"}), 400
++
++    mdoc = _memberships_load()
++    removed = False
++    next_members = []
++    for row in (mdoc.get("members") or []):
++        if not isinstance(row, dict):
++            continue
++        if (row.get("deviceId") or "").strip() != target_device_id:
++            next_members.append(row)
++            continue
++        if (row.get("squadId") or "").strip() != sid:
++            next_members.append(row)
++            continue
++        if _normalize_role((row.get("role") or "").strip()) != "participant":
++            return jsonify({"error": "Cannot kick non-participant"}), 400
++        removed = True
++        # skip row (remove)
++    mdoc["members"] = next_members
++    if removed:
++        _memberships_save(mdoc)
++    return jsonify({"ok": True})
++
++
++@app.route('/api/squads/<squad_id>/messages', methods=['GET', 'POST'])
++def squad_messages_get_or_post(squad_id: str):
++    """
++    GET /api/squads/<squadId>/messages?limit=50 — get squad chat messages.
++    POST /api/squads/<squadId>/messages — post message.
++    Auth: participant|parent|counselor|shift_leader|developer
++    """
++    payload, err = _require_roles(("participant", "parent", "counselor", "shift_leader", "developer"), allow_localhost_dev=True)
++    if err is not None:
++        return err[0], err[1]
++    membership, mem_err = _require_squad_membership(payload, squad_id)
++    if mem_err is not None:
++        return mem_err[0], mem_err[1]
++    sid = (squad_id or "").strip()
++    device_id = (payload.get("deviceId") or "").strip()
++    role = _normalize_role((payload.get("role") or "").strip())
++
++    doc = _squad_messages_load()
++    by_squad = doc.get("bySquadId") or {}
++    if not isinstance(by_squad, dict):
++        by_squad = {}
++    rows = by_squad.get(sid)
++    if not isinstance(rows, list):
++        rows = []
++
++    if request.method == 'GET':
++        try:
++            limit = int((request.args.get("limit") or "50").strip())
++        except ValueError:
++            limit = 50
++        limit = max(1, min(200, limit))
++        out = [r for r in rows if isinstance(r, dict)]
++        out = out[-limit:]
++        return jsonify({"squadId": sid, "messages": out})
++
++    ok, rate_err = _check_and_inc_chat_daily(device_id)
++    if not ok and rate_err is not None:
++        return rate_err[0], rate_err[1]
++
++    body = request.get_json() or {}
++    text = (body.get("text") or "").strip()
++    if not text:
++        return jsonify({"error": "text required"}), 400
++    if len(text) > 2000:
++        return jsonify({"error": "Message too long"}), 400
++
++    msg = {
++        "id": uuid.uuid4().hex[:12],
++        "squadId": sid,
++        "createdAt": datetime.now(timezone.utc).isoformat(),
++        "deviceId": device_id or None,
++        "nickname": (membership.get("nickname") or "").strip() or None,
++        "role": role,
++        "text": text
++    }
++    rows.append(msg)
++    rows = rows[-500:]
++    by_squad[sid] = rows
++    doc["bySquadId"] = by_squad
++    _squad_messages_save(doc)
++    return jsonify({"squadId": sid, "message": msg})
++
++
+ @app.route('/api/badges/requests', methods=['POST'])
+ def badge_request_create():
+     """
+diff --git a/src/utils/badgeApprovalApi.ts b/src/utils/badgeApprovalApi.ts
+index 7a9f59d..cef575f 100644
+--- a/src/utils/badgeApprovalApi.ts
++++ b/src/utils/badgeApprovalApi.ts
+@@ -60,6 +60,59 @@ export interface SquadMineResponse {
+   participants: Array<{ deviceId: string; nickname?: string | null; joinedAt?: string }>;
+ }
+ 
++export type SquadCornerPlanGrid = {
++  shiftLength: 9 | 21;
++  days: Record<
++    string,
++    { morning?: string; quietHour?: string; day?: string; evening?: string; night?: string }
++  >;
++};
++
++export interface SquadCorner {
++  name?: string;
++  motto?: string;
++  chants?: string;
++  greeting?: string;
++  memes?: string;
++  photoCorner?: string;
++  photoFlag?: string;
++  photoSquad?: string;
++  photoWithCounselors?: string;
++  planGridA?: SquadCornerPlanGrid | null;
++  planGridB?: SquadCornerPlanGrid | null;
++  updatedAt?: string;
++  updatedBy?: string;
++}
++
++export interface SquadCornerResponse {
++  squadId: string;
++  corner: SquadCorner | null;
++}
++
++export interface SquadInviteCodeResponse {
++  squadId: string;
++  code: string;
++  createdAt: string;
++  expiresAt: string;
++}
++
++export interface SquadInviteResolveResponse {
++  squadId: string;
++  squadName?: string | null;
++  shiftId?: string | null;
++  shiftName?: string | null;
++}
++
++export interface SquadMessage {
++  id: string;
++  squadId: string;
++  createdAt: string;
++  deviceId?: string | null;
++  nickname?: string | null;
++  role?: string | null;
++  text: string;
++}
++
+ function getApiBase(): string {
+   if (typeof window === 'undefined') return '';
+   const hostname = window.location.hostname;
+@@ -154,3 +207,64 @@ export async function loadMySquad(accessToken: string): Promise<SquadMineRespons
+     headers: { Authorization: `Bearer ${accessToken}` }
+   });
+ }
++
++export async function fetchSquadCorner(accessToken: string, squadId: string): Promise<SquadCornerResponse> {
++  return requestJson<SquadCornerResponse>(`/api/squads/${encodeURIComponent(squadId)}/corner`, {
++    headers: { Authorization: `Bearer ${accessToken}` }
++  });
++}
++
++export async function createSquadInviteCode(accessToken: string, squadId: string): Promise<SquadInviteCodeResponse> {
++  return requestJson<SquadInviteCodeResponse>(`/api/squads/${encodeURIComponent(squadId)}/invite-code`, {
++    method: 'POST',
++    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
++    body: JSON.stringify({})
++  });
++}
++
++export async function resolveSquadByInviteCode(accessToken: string, code: string): Promise<SquadInviteResolveResponse> {
++  const params = new URLSearchParams({ code });
++  return requestJson<SquadInviteResolveResponse>(`/api/squads/resolve-invite?${params.toString()}`, {
++    headers: { Authorization: `Bearer ${accessToken}` }
++  });
++}
++
++export async function kickSquadMember(accessToken: string, squadId: string, targetDeviceId: string): Promise<void> {
++  await requestJson<{ ok: true }>(`/api/squads/${encodeURIComponent(squadId)}/kick`, {
++    method: 'POST',
++    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
++    body: JSON.stringify({ deviceId: targetDeviceId })
++  });
++}
++
++export async function leaveSquad(accessToken: string, squadId: string): Promise<void> {
++  await requestJson<{ ok: true }>(`/api/squads/${encodeURIComponent(squadId)}/leave`, {
++    method: 'POST',
++    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
++    body: JSON.stringify({})
++  });
++}
++
++export async function fetchSquadMessages(
++  accessToken: string,
++  squadId: string,
++  opts?: { limit?: number }
++): Promise<{ squadId: string; messages: SquadMessage[] }> {
++  const limit = typeof opts?.limit === 'number' ? String(opts.limit) : '';
++  const suffix = limit ? `?limit=${encodeURIComponent(limit)}` : '';
++  return requestJson<{ squadId: string; messages: SquadMessage[] }>(`/api/squads/${encodeURIComponent(squadId)}/messages${suffix}`, {
++    headers: { Authorization: `Bearer ${accessToken}` }
++  });
++}
++
++export async function postSquadMessage(
++  accessToken: string,
++  squadId: string,
++  text: string
++): Promise<{ squadId: string; message: SquadMessage }> {
++  return requestJson<{ squadId: string; message: SquadMessage }>(`/api/squads/${encodeURIComponent(squadId)}/messages`, {
++    method: 'POST',
++    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
++    body: JSON.stringify({ text })
++  });
++}
+diff --git a/src/views/ProfileView.tsx b/src/views/ProfileView.tsx
+index e154d8e..11d6601 100644
+--- a/src/views/ProfileView.tsx
++++ b/src/views/ProfileView.tsx
+@@ -19,6 +19,7 @@ import { Profile4KDashboard, type Profile4KTabId } from '../components/Profile4K
+ import { TeamDashboard, type TeamTabId } from '../components/TeamDashboard';
+ import { RealDiaryDashboard, type RealDiaryTabId } from '../components/RealDiaryDashboard';
+ import { SquadCornerDashboard } from '../components/SquadCornerDashboard';
++import { SquadCabinetPanel } from '../components/SquadCabinetPanel';
+ import { ConfirmModal } from '../components/ConfirmModal';
+ import { CounselorSquadDashboard, type CounselorSquadTabId } from '../components/CounselorSquadDashboard';
+ import { CouncilDashboard, type CouncilTabId } from '../components/CouncilDashboard';
+@@ -84,7 +85,7 @@ type BroTabId = 'initiation' | 'wing';
+ type ShareTabId = 'create-card' | 'invite';
+ type WorkshopTabId = 'architect' | 'forge' | 'ideas' | 'my';
+ 
+-type PanelViewId = 'passport' | 'inspector' | 'profile4k' | 'counselor-squad' | 'wing' | 'squad-corner' | 'real-diary' | 'team' | 'council' | 'bro' | 'workshop' | 'share' | 'vozhatifikator' | 'parents';
++type PanelViewId = 'passport' | 'inspector' | 'profile4k' | 'counselor-squad' | 'wing' | 'squad-corner' | 'squad-cabinet' | 'real-diary' | 'team' | 'council' | 'bro' | 'workshop' | 'share' | 'vozhatifikator' | 'parents';
+ 
+ const PROFILE_AUTO_FIT_SELECTOR = [
+   '.profile-autofit',
+@@ -580,6 +581,7 @@ export const ProfileView: React.FC<any> = (props) => {
+     Boolean(squadData?.photoCorner || squadData?.photoFlag || squadData?.photoSquad || squadData?.photoWithCounselors),
+   ];
+   const squadCornerProgressPercent = Math.round((100 * squadSignals.filter(Boolean).length) / squadSignals.length);
++  const squadCabinetProgressPercent = mySquadInfo?.membership ? 100 : 18;
+ 
+   const broCompletedDeedsCount = Object.values(userData?.broProgress?.completedDeeds || {}).reduce((sum, deeds) => (
+     sum + (Array.isArray(deeds) ? deeds.length : 0)
+@@ -1206,6 +1208,7 @@ export const ProfileView: React.FC<any> = (props) => {
+     'counselor-squad': 'Отряд вожатых',
+     wing: 'Крыло',
+     'squad-corner': 'Отрядный уголок',
++    'squad-cabinet': 'Кабинет отряда',
+     'real-diary': 'Реальный Дневник',
+     team: 'Движок',
+     council: 'Совет Лагеря',
+@@ -1367,6 +1370,49 @@ export const ProfileView: React.FC<any> = (props) => {
+           ) : <SquadCornerDashboard onNavigateToBadge={onNavigateToBadge} />
+         )
+       )}
++      {panelActiveView === 'squad-cabinet' && (
++        travelerMode ? (
++          <FeatureGate allowed={false} reason={travelerGateReason} ctaLabel="Разблокировать по коду" onCta={openUnlockByCode}>
++            <SquadCabinetPanel
++              role={role || 'traveler'}
++              deviceId={deviceId || undefined}
++              accessToken={accessToken || undefined}
++              mySquadInfo={mySquadInfo}
++              onRefresh={loadMySquadInfo}
++              onAfterLeave={() => {
++                setActiveTab('active');
++                openCabinPanel(null, null);
++              }}
++              onShowHint={({ title, content }) => showHint({ title, content })}
++              onEditCorner={(targetTab) => {
++                setActiveTab('active');
++                openCabinPanel('squad-corner', 'left');
++                if (targetTab === 'photos') setSquadCornerActiveTab('photos');
++                if (targetTab === 'planner') setSquadCornerActiveTab('planner');
++              }}
++            />
++          </FeatureGate>
++        ) : (
++          <SquadCabinetPanel
++            role={role || 'traveler'}
++            deviceId={deviceId || undefined}
++            accessToken={accessToken || undefined}
++            mySquadInfo={mySquadInfo}
++            onRefresh={loadMySquadInfo}
++            onAfterLeave={() => {
++              setActiveTab('active');
++              openCabinPanel(null, null);
++            }}
++            onShowHint={({ title, content }) => showHint({ title, content })}
++            onEditCorner={(targetTab) => {
++              setActiveTab('active');
++              openCabinPanel('squad-corner', 'left');
++              if (targetTab === 'photos') setSquadCornerActiveTab('photos');
++              if (targetTab === 'planner') setSquadCornerActiveTab('planner');
++            }}
++          />
++        )
++      )}
+       {panelActiveView === 'real-diary' && (
+         travelerMode ? (
+           <FeatureGate allowed={false} reason={travelerGateReason} ctaLabel="Разблокировать по коду" onCta={openUnlockByCode}>
+@@ -2875,7 +2921,7 @@ export const ProfileView: React.FC<any> = (props) => {
+             </div>
+             <div className="profile-view-cabin-center-wrap">
+             <div
+-              className={`profile-view-cabin-center profile-view-cabin-center--offset ${panelActiveView === null ? 'profile-view-cabin-center--hub' : ''} ${panelActiveView === 'squad-corner' ? 'profile-view-cabin-center--squad-corner' : ''} ${panelActiveView === 'real-diary' ? 'profile-view-cabin-center--real-diary' : ''} ${panelActiveView === 'profile4k' ? 'profile-view-cabin-center--profile4k' : ''} ${panelActiveView === 'team' ? 'profile-view-cabin-center--team' : ''} ${panelActiveView === 'council' ? 'profile-view-cabin-center--council' : ''} ${panelActiveView === 'bro' ? 'profile-view-cabin-center--bro' : ''} ${panelActiveView === 'vozhatifikator' ? 'profile-view-cabin-center--vozhatifikator' : ''} ${panelActiveView === 'counselor-squad' ? 'profile-view-cabin-center--counselor-squad' : ''} ${panelActiveView === 'share' ? 'profile-view-cabin-center--share' : ''} ${panelActiveView === 'workshop' ? 'profile-view-cabin-center--workshop' : ''} ${panelActiveView === 'inspector' ? 'profile-view-cabin-center--inspector' : ''}`}
++              className={`profile-view-cabin-center profile-view-cabin-center--offset ${panelActiveView === null ? 'profile-view-cabin-center--hub' : ''} ${panelActiveView === 'squad-corner' ? 'profile-view-cabin-center--squad-corner' : ''} ${panelActiveView === 'squad-cabinet' ? ' profile-view-cabin-center--squad-cabinet' : ''} ${panelActiveView === 'real-diary' ? 'profile-view-cabin-center--real-diary' : ''} ${panelActiveView === 'profile4k' ? 'profile-view-cabin-center--profile4k' : ''} ${panelActiveView === 'team' ? 'profile-view-cabin-center--team' : ''} ${panelActiveView === 'council' ? 'profile-view-cabin-center--council' : ''} ${panelActiveView === 'bro' ? 'profile-view-cabin-center--bro' : ''} ${panelActiveView === 'vozhatifikator' ? 'profile-view-cabin-center--vozhatifikator' : ''} ${panelActiveView === 'counselor-squad' ? 'profile-view-cabin-center--counselor-squad' : ''} ${panelActiveView === 'share' ? 'profile-view-cabin-center--share' : ''} ${panelActiveView === 'workshop' ? 'profile-view-cabin-center--workshop' : ''} ${panelActiveView === 'inspector' ? 'profile-view-cabin-center--inspector' : ''}`}
+             >
+               {(panelActiveView === null || panelActiveView === 'squad-corner' || panelActiveView === 'real-diary' || panelActiveView === 'profile4k' || panelActiveView === 'team' || panelActiveView === 'council' || panelActiveView === 'bro' || panelActiveView === 'vozhatifikator' || panelActiveView === 'counselor-squad' || panelActiveView === 'share' || panelActiveView === 'workshop' || panelActiveView === 'inspector') && (
+                 <div className="profile-view-cabin-tabs-docked">
+@@ -2919,7 +2965,7 @@ export const ProfileView: React.FC<any> = (props) => {
+                 )}
+                 <div
+                   ref={centerScrollRef}
+-                  className={`profile-view-cabin-center-scroll profile-view-scroll-container profile-view-panel-scroll${panelActiveView === null && (activeTab === 'active' || activeTab === 'favorites') ? ' profile-view-cabin-center-scroll--locked' : ''}${panelActiveView === 'passport' ? ' profile-view-cabin-center-scroll--no-scroll' : ''}${panelActiveView === 'squad-corner' || panelActiveView === 'real-diary' || panelActiveView === 'profile4k' || panelActiveView === 'team' || panelActiveView === 'council' || panelActiveView === 'bro' || panelActiveView === 'vozhatifikator' || panelActiveView === 'counselor-squad' || panelActiveView === 'share' || panelActiveView === 'workshop' || panelActiveView === 'inspector' ? ' profile-view-cabin-center-scroll--content-fit' : ''}`}
++                  className={`profile-view-cabin-center-scroll profile-view-scroll-container profile-view-panel-scroll${panelActiveView === null && (activeTab === 'active' || activeTab === 'favorites') ? ' profile-view-cabin-center-scroll--locked' : ''}${panelActiveView === 'passport' ? ' profile-view-cabin-center-scroll--no-scroll' : ''}${panelActiveView === 'squad-corner' || panelActiveView === 'squad-cabinet' || panelActiveView === 'real-diary' || panelActiveView === 'profile4k' || panelActiveView === 'team' || panelActiveView === 'council' || panelActiveView === 'bro' || panelActiveView === 'vozhatifikator' || panelActiveView === 'counselor-squad' || panelActiveView === 'share' || panelActiveView === 'workshop' || panelActiveView === 'inspector' ? ' profile-view-cabin-center-scroll--content-fit' : ''}`}
+                   style={{ background: 'transparent' }}
+                 >
+                     {pendingApprovalsCount > 0 && !approvalsSyncPromptDismissed && canRequestApprovals && (
+@@ -3270,6 +3316,7 @@ export const ProfileView: React.FC<any> = (props) => {
+                 {panelActiveView === 'profile4k' && '4К'}
+                 {panelActiveView === 'counselor-squad' && 'Отряд вожатых'}
+                 {panelActiveView === 'squad-corner' && 'Отрядный уголок'}
++                {panelActiveView === 'squad-cabinet' && 'Кабинет отряда'}
+                 {panelActiveView === 'real-diary' && 'Реальный Дневник'}
+                 {panelActiveView === 'team' && 'Движок'}
+                 {panelActiveView === 'council' && 'Совет Лагеря'}
+\n\n# --- Untracked files ---\n
+diff --git a/src/components/SquadCabinetPanel.tsx b/src/components/SquadCabinetPanel.tsx
+new file mode 100644
+index 0000000..fdb498e
+--- /dev/null
++++ b/src/components/SquadCabinetPanel.tsx
+@@ -0,0 +1,452 @@
++import React, { useCallback, useEffect, useMemo, useState } from 'react';
++import {
++  createSquadInviteCode,
++  fetchSquadCorner,
++  joinSquad,
++  kickSquadMember,
++  leaveSquad,
++  resolveSquadByInviteCode,
++  type SquadCorner,
++  type SquadMineResponse
++} from '../utils/badgeApprovalApi';
++import { SquadChat } from './SquadChat';
++
++interface SquadCabinetPanelProps {
++  role: string;
++  deviceId?: string;
++  accessToken?: string;
++  mySquadInfo: SquadMineResponse | null;
++  onRefresh: () => Promise<void> | void;
++  onAfterLeave?: () => void;
++  onShowHint?: (opts: { title: string; content: string }) => void;
++  onEditCorner?: (targetTab?: 'photos' | 'planner') => void;
++}
++
++export const SquadCabinetPanel: React.FC<SquadCabinetPanelProps> = ({
++  role,
++  deviceId,
++  accessToken,
++  mySquadInfo,
++  onRefresh,
++  onAfterLeave,
++  onShowHint,
++  onEditCorner
++}) => {
++  const [busy, setBusy] = useState(false);
++  const [status, setStatus] = useState<string | null>(null);
++  const [inviteCode, setInviteCode] = useState<string | null>(null);
++  const [inviteMeta, setInviteMeta] = useState<{ createdAt: string; expiresAt: string } | null>(null);
++  const [joinCode, setJoinCode] = useState('');
++  const [joinBusy, setJoinBusy] = useState(false);
++  const [cornerBusy, setCornerBusy] = useState(false);
++  const [cornerError, setCornerError] = useState<string | null>(null);
++  const [corner, setCorner] = useState<SquadCorner | null>(null);
++  const [photoZoomUrl, setPhotoZoomUrl] = useState<string | null>(null);
++  const [plannerOpen, setPlannerOpen] = useState(false);
++  const [plannerGridId, setPlannerGridId] = useState<'planGridA' | 'planGridB'>('planGridA');
++  const [plannerDay, setPlannerDay] = useState(1);
++
++  const squadId = (mySquadInfo?.membership?.squadId || '').trim();
++  const squadName = mySquadInfo?.squad?.name || mySquadInfo?.membership?.squadId || 'Отряд';
++  const shiftName = mySquadInfo?.shift?.name || mySquadInfo?.membership?.campId || 'Смена';
++  const canManage = role === 'counselor' || role === 'shift_leader' || role === 'developer';
++  const canEditCorner = role === 'counselor' || role === 'developer';
++
++  useEffect(() => {
++    if (!accessToken || !squadId) return;
++    let cancelled = false;
++    setCornerBusy(true);
++    setCornerError(null);
++    fetchSquadCorner(accessToken, squadId)
++      .then((data) => {
++        if (cancelled) return;
++        setCorner(data?.corner || {});
++      })
++      .catch((e) => {
++        if (cancelled) return;
++        setCornerError(e instanceof Error ? e.message : 'Не удалось загрузить инфо отряда.');
++        setCorner(null);
++      })
++      .finally(() => {
++        if (!cancelled) setCornerBusy(false);
++      });
++    return () => { cancelled = true; };
++  }, [accessToken, squadId]);
++
++  const cornerPhotos = useMemo(() => {
++    const c = corner || {};
++    const items: Array<{ key: string; label: string; url: string }> = [];
++    const push = (key: string, label: string, url?: string | null) => {
++      const u = (url || '').trim();
++      if (!u) return;
++      items.push({ key, label, url: u });
++    };
++    push('photoCorner', 'Уголок', c.photoCorner);
++    push('photoFlag', 'Флаг', c.photoFlag);
++    push('photoSquad', 'Отряд', c.photoSquad);
++    push('photoWithCounselors', 'С вожатыми', c.photoWithCounselors);
++    return items;
++  }, [corner]);
++
++  const countFilledDays = useCallback((grid?: SquadCorner['planGridA'] | null) => {
++    if (!grid || typeof grid !== 'object') return { filled: 0, total: 0 };
++    const shiftLength = (grid as any).shiftLength;
++    const days = (grid as any).days;
++    if ((shiftLength !== 9 && shiftLength !== 21) || typeof days !== 'object' || !days) return { filled: 0, total: 0 };
++    let filled = 0;
++    for (let d = 1; d <= shiftLength; d++) {
++      const x = (days as any)[String(d)] || {};
++      if ((x.morning || '').trim() && (x.quietHour || '').trim() && (x.day || '').trim() && (x.evening || '').trim() && (x.night || '').trim()) filled++;
++    }
++    return { filled, total: shiftLength };
++  }, []);
++
++  const members = useMemo(() => {
++    const rows = Array.isArray(mySquadInfo?.members) ? [...(mySquadInfo?.members || [])] : [];
++    if (rows.length > 0) return rows;
++    const fallback = [];
++    if (mySquadInfo?.membership?.deviceId) {
++      fallback.push({
++        deviceId: mySquadInfo.membership.deviceId,
++        nickname: mySquadInfo.membership.nickname || null,
++        role: mySquadInfo.membership.role || 'participant',
++        joinedAt: mySquadInfo.membership.joinedAt
++      });
++    }
++    for (const p of mySquadInfo?.participants || []) {
++      if (fallback.some((x) => x.deviceId === p.deviceId)) continue;
++      fallback.push({ deviceId: p.deviceId, nickname: p.nickname || null, role: 'participant', joinedAt: p.joinedAt });
++    }
++    return fallback;
++  }, [mySquadInfo]);
++
++  const inviteLink = useMemo(() => {
++    if (!squadId || typeof window === 'undefined') return '';
++    return `${window.location.origin}/?join_squad=${encodeURIComponent(squadId)}`;
++  }, [squadId]);
++
++  const copyText = async (value: string, okText: string) => {
++    if (!value) return;
++    try {
++      await navigator.clipboard.writeText(value);
++      setStatus(okText);
++    } catch {
++      setStatus('Не удалось скопировать в буфер обмена.');
++    }
++  };
++
++  const handleLeave = async () => {
++    if (!accessToken || !squadId || busy) return;
++    if (!window.confirm('Выйти из этого отряда?')) return;
++    setBusy(true);
++    setStatus(null);
++    try {
++      await leaveSquad(accessToken, squadId);
++      await onRefresh();
++      onAfterLeave?.();
++      setStatus('Вы вышли из отряда.');
++      onShowHint?.({ title: 'Готово', content: 'Вы вышли из отряда.' });
++    } catch (e) {
++      setStatus(e instanceof Error ? e.message : 'Не удалось выйти из отряда.');
++    } finally {
++      setBusy(false);
++    }
++  };
++
++  const handleKick = async (targetDeviceId: string) => {
++    if (!accessToken || !squadId || busy) return;
++    if (!targetDeviceId || targetDeviceId === deviceId) return;
++    if (!window.confirm('Исключить участника из отряда?')) return;
++    setBusy(true);
++    setStatus(null);
++    try {
++      await kickSquadMember(accessToken, squadId, targetDeviceId);
++      await onRefresh();
++      setStatus('Участник исключён.');
++    } catch (e) {
++      setStatus(e instanceof Error ? e.message : 'Не удалось исключить участника.');
++    } finally {
++      setBusy(false);
++    }
++  };
++
++  const handleCreateInviteCode = async () => {
++    if (!accessToken || !squadId || busy) return;
++    setBusy(true);
++    setStatus(null);
++    try {
++      const created = await createSquadInviteCode(accessToken, squadId);
++      setInviteCode(created.code);
++      setInviteMeta({ createdAt: created.createdAt, expiresAt: created.expiresAt });
++      setStatus('Код приглашения создан.');
++    } catch (e) {
++      setStatus(e instanceof Error ? e.message : 'Не удалось создать код приглашения.');
++    } finally {
++      setBusy(false);
++    }
++  };
++
++  const handleJoinByCode = async () => {
++    if (!accessToken || joinBusy) return;
++    const code = joinCode.trim().toUpperCase();
++    if (!code) {
++      setStatus('Введите код приглашения.');
++      return;
++    }
++    setJoinBusy(true);
++    setStatus(null);
++    try {
++      const preview = await resolveSquadByInviteCode(accessToken, code);
++      const confirmed = window.confirm(`Вступить в отряд ${preview.squadName ? `«${preview.squadName}»` : preview.squadId}?`);
++      if (!confirmed) return;
++      await joinSquad(accessToken, preview.squadId);
++      setJoinCode('');
++      await onRefresh();
++      setStatus('Вы вступили в отряд.');
++    } catch (e) {
++      setStatus(e instanceof Error ? e.message : 'Не удалось вступить в отряд по коду.');
++    } finally {
++      setJoinBusy(false);
++    }
++  };
++
++  if (!accessToken) {
++    return <div className="profile-empty-state__text">Войдите по коду, чтобы открыть кабинет отряда.</div>;
++  }
++
++  if (!squadId) {
++    return (
++      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
++        <div className="profile-empty-state__text">Вы пока не состоите в отряде.</div>
++        <div style={{ padding: 12, borderRadius: 12, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)' }}>
++          <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8 }}>Вступить по коду</div>
++          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
++            <input
++              type="text"
++              value={joinCode}
++              onChange={(e) => { setJoinCode(e.target.value.toUpperCase()); setStatus(null); }}
++              placeholder="Введите код приглашения"
++              style={{ flex: 1, minWidth: 180, padding: '8px 10px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.2)', color: '#fff', fontSize: 13 }}
++            />
++            <button type="button" className="btn-primary-gold" style={{ padding: '8px 14px' }} onClick={() => void handleJoinByCode()} disabled={joinBusy}>
++              {joinBusy ? 'Проверка...' : 'Вступить'}
++            </button>
++          </div>
++        </div>
++        {status && <div style={{ fontSize: 12, opacity: 0.9 }}>{status}</div>}
++      </div>
++    );
++  }
++
++  return (
++    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
++      <div style={{ padding: 12, borderRadius: 12, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)' }}>
++        <div style={{ fontSize: 15, fontWeight: 700 }}>{squadName}</div>
++        <div style={{ fontSize: 12, opacity: 0.8 }}>Смена: {shiftName}</div>
++      </div>
++
++      <div style={{ padding: 12, borderRadius: 12, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)' }}>
++        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', alignItems: 'center', marginBottom: 8 }}>
++          <div style={{ fontSize: 13, fontWeight: 700 }}>Инфо отряда</div>
++          {canEditCorner && onEditCorner && (
++            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
++              <button type="button" className="btn-secondary" style={{ padding: '6px 10px', fontSize: 12 }} onClick={() => onEditCorner('photos')}>
++                Редактировать фото
++              </button>
++              <button type="button" className="btn-secondary" style={{ padding: '6px 10px', fontSize: 12 }} onClick={() => onEditCorner('planner')}>
++                Редактировать планёрку
++              </button>
++            </div>
++          )}
++        </div>
++
++        {cornerBusy && <div style={{ fontSize: 12, opacity: 0.75 }}>Загрузка…</div>}
++        {cornerError && <div style={{ fontSize: 12, opacity: 0.9 }}>{cornerError}</div>}
++        {!cornerBusy && !cornerError && (
++          <>
++            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 12, lineHeight: 1.5, opacity: 0.92 }}>
++              <div><span style={{ opacity: 0.7 }}>Название:</span> <strong>{(corner?.name || squadName) || '—'}</strong></div>
++              <div><span style={{ opacity: 0.7 }}>Девиз:</span> {(corner?.motto || '—')}</div>
++              <div><span style={{ opacity: 0.7 }}>Кричалки:</span> {(corner?.chants || '—')}</div>
++              <div><span style={{ opacity: 0.7 }}>Приветствие:</span> {(corner?.greeting || '—')}</div>
++              <div><span style={{ opacity: 0.7 }}>Мемы:</span> {(corner?.memes || '—')}</div>
++            </div>
++
++            {cornerPhotos.length > 0 && (
++              <div style={{ marginTop: 10 }}>
++                <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 8, opacity: 0.9 }}>Фото</div>
++                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
++                  {cornerPhotos.map((p) => (
++                    <button
++                      key={p.key}
++                      type="button"
++                      onClick={() => setPhotoZoomUrl(p.url)}
++                      style={{ width: 92, height: 92, borderRadius: 12, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(0,0,0,0.25)', padding: 0, cursor: 'pointer' }}
++                      title={p.label}
++                      aria-label={`Открыть фото: ${p.label}`}
++                    >
++                      <img src={p.url} alt={p.label} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
++                    </button>
++                  ))}
++                </div>
++              </div>
++            )}
++
++            <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 8 }}>
++              <div style={{ fontSize: 12, fontWeight: 700, opacity: 0.9 }}>Планёрка</div>
++              {(() => {
++                const a = countFilledDays(corner?.planGridA);
++                const b = countFilledDays(corner?.planGridB);
++                const best = (a.filled + a.total) >= (b.filled + b.total) ? { id: 'planGridA' as const, ...a } : { id: 'planGridB' as const, ...b };
++                return (
++                  <>
++                    <div style={{ fontSize: 12, opacity: 0.85 }}>
++                      Сетка 1: {a.filled}/{a.total || '—'} · Сетка 2: {b.filled}/{b.total || '—'}
++                    </div>
++                    <button
++                      type="button"
++                      className="btn-secondary"
++                      style={{ padding: '8px 12px', alignSelf: 'flex-start' }}
++                      onClick={() => { setPlannerGridId(best.id); setPlannerDay(1); setPlannerOpen(true); }}
++                    >
++                      Открыть планёрку
++                    </button>
++                  </>
++                );
++              })()}
++            </div>
++          </>
++        )}
++      </div>
++
++      <div style={{ padding: 12, borderRadius: 12, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)' }}>
++        <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8 }}>Участники</div>
++        {members.length === 0 ? (
++          <div style={{ fontSize: 12, opacity: 0.8 }}>Список участников пока пуст.</div>
++        ) : (
++          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 180, overflowY: 'auto' }}>
++            {members.map((m) => (
++              <div key={m.deviceId} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
++                <div style={{ fontSize: 12 }}>
++                  {(m.nickname || 'Без ника')} · {m.role || 'participant'} · {m.deviceId}
++                </div>
++                {canManage && m.deviceId !== deviceId && (
++                  <button type="button" className="btn-secondary" style={{ padding: '6px 10px', fontSize: 12 }} onClick={() => void handleKick(m.deviceId)} disabled={busy}>
++                    Исключить
++                  </button>
++                )}
++              </div>
++            ))}
++          </div>
++        )}
++      </div>
++
++      <div style={{ padding: 12, borderRadius: 12, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)' }}>
++        <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8 }}>Пригласить в отряд</div>
++        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
++          <div style={{ fontSize: 12, opacity: 0.85, wordBreak: 'break-all' }}>{inviteLink}</div>
++          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
++            <button type="button" className="btn-secondary" style={{ padding: '6px 12px' }} onClick={() => void copyText(inviteLink, 'Ссылка скопирована.')}>
++              Копировать ссылку
++            </button>
++            {canManage && (
++              <button type="button" className="btn-secondary" style={{ padding: '6px 12px' }} onClick={() => void handleCreateInviteCode()} disabled={busy}>
++                Создать код приглашения
++              </button>
++            )}
++          </div>
++          {inviteCode && (
++            <div style={{ marginTop: 4 }}>
++              <div style={{ fontSize: 18, fontWeight: 800, letterSpacing: 1.4, fontFamily: 'monospace' }}>{inviteCode}</div>
++              <div style={{ fontSize: 11, opacity: 0.75 }}>
++                Действует до: {inviteMeta ? new Date(inviteMeta.expiresAt).toLocaleString('ru-RU') : '—'}
++              </div>
++              <button type="button" className="btn-secondary" style={{ padding: '6px 12px', marginTop: 6 }} onClick={() => void copyText(inviteCode, 'Код скопирован.')}>
++                Копировать код
++              </button>
++            </div>
++          )}
++        </div>
++      </div>
++
++      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
++        <button type="button" className="btn-secondary" style={{ padding: '8px 14px' }} onClick={() => void onRefresh()} disabled={busy}>
++          Обновить
++        </button>
++        <button type="button" className="btn-secondary" style={{ padding: '8px 14px' }} onClick={() => void handleLeave()} disabled={busy}>
++          Выйти из отряда
++        </button>
++      </div>
++
++      {status && <div style={{ fontSize: 12, opacity: 0.9 }}>{status}</div>}
++
++      <SquadChat squadId={squadId} accessToken={accessToken} />
++
++      {photoZoomUrl && (
++        <div
++          className="proof-modal-overlay"
++          onClick={() => setPhotoZoomUrl(null)}
++          style={{ zIndex: 10200, alignItems: 'center', justifyContent: 'center' }}
++        >
++          <div onClick={(e) => e.stopPropagation()} style={{ width: 'min(92vw, 900px)', maxHeight: '90vh', borderRadius: 16, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.18)', background: 'rgba(0,0,0,0.65)' }}>
++            <img src={photoZoomUrl} alt="" style={{ width: '100%', height: '100%', maxHeight: '90vh', objectFit: 'contain', display: 'block' }} />
++          </div>
++        </div>
++      )}
++
++      {plannerOpen && (
++        <div className="proof-modal-overlay" onClick={() => setPlannerOpen(false)} style={{ alignItems: 'center', justifyContent: 'center' }}>
++          <div className="proof-modal proof-modal--mobile-sheet proof-modal--wide fade-in" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()} style={{ width: 'min(92vw, 860px)' }}>
++            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, marginBottom: 10 }}>
++              <div style={{ fontSize: 14, fontWeight: 800 }}>Планёрка отряда</div>
++              <button type="button" className="btn-secondary" style={{ padding: '6px 10px' }} onClick={() => setPlannerOpen(false)}>Закрыть</button>
++            </div>
++            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
++              <button type="button" className="btn-secondary" style={{ padding: '6px 10px', opacity: plannerGridId === 'planGridA' ? 1 : 0.75 }} onClick={() => setPlannerGridId('planGridA')}>Сетка 1</button>
++              <button type="button" className="btn-secondary" style={{ padding: '6px 10px', opacity: plannerGridId === 'planGridB' ? 1 : 0.75 }} onClick={() => setPlannerGridId('planGridB')}>Сетка 2</button>
++            </div>
++            {(() => {
++              const grid = plannerGridId === 'planGridA' ? corner?.planGridA : corner?.planGridB;
++              const shiftLength = grid?.shiftLength || 21;
++              const dayKeys = Array.from({ length: shiftLength }, (_, i) => i + 1);
++              const day = (grid?.days || {})[String(plannerDay)] || {};
++              return (
++                <>
++                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
++                    {dayKeys.map((d) => (
++                      <button key={d} type="button" className="btn-secondary" style={{ padding: '6px 10px', opacity: plannerDay === d ? 1 : 0.75 }} onClick={() => setPlannerDay(d)}>
++                        День {d}
++                      </button>
++                    ))}
++                  </div>
++                  <div style={{ display: 'grid', gap: 8 }}>
++                    <div style={{ padding: 10, borderRadius: 12, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)' }}>
++                      <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 4 }}>Утро</div>
++                      <div style={{ fontSize: 12, opacity: 0.9, whiteSpace: 'pre-wrap' }}>{day.morning || '—'}</div>
++                    </div>
++                    <div style={{ padding: 10, borderRadius: 12, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)' }}>
++                      <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 4 }}>Тихий час</div>
++                      <div style={{ fontSize: 12, opacity: 0.9, whiteSpace: 'pre-wrap' }}>{day.quietHour || '—'}</div>
++                    </div>
++                    <div style={{ padding: 10, borderRadius: 12, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)' }}>
++                      <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 4 }}>День</div>
++                      <div style={{ fontSize: 12, opacity: 0.9, whiteSpace: 'pre-wrap' }}>{day.day || '—'}</div>
++                    </div>
++                    <div style={{ padding: 10, borderRadius: 12, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)' }}>
++                      <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 4 }}>Вечер</div>
++                      <div style={{ fontSize: 12, opacity: 0.9, whiteSpace: 'pre-wrap' }}>{day.evening || '—'}</div>
++                    </div>
++                    <div style={{ padding: 10, borderRadius: 12, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)' }}>
++                      <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 4 }}>Ночь</div>
++                      <div style={{ fontSize: 12, opacity: 0.9, whiteSpace: 'pre-wrap' }}>{day.night || '—'}</div>
++                    </div>
++                  </div>
++                </>
++              );
++            })()}
++          </div>
++        </div>
++      )}
++    </div>
++  );
++};
+diff --git a/src/components/SquadChat.tsx b/src/components/SquadChat.tsx
+new file mode 100644
+index 0000000..928e64b
+--- /dev/null
++++ b/src/components/SquadChat.tsx
+@@ -0,0 +1,135 @@
++import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
++import { fetchSquadMessages, postSquadMessage, type SquadMessage } from '../utils/badgeApprovalApi';
++
++interface SquadChatProps {
++  squadId: string;
++  accessToken: string;
++}
++
++export const SquadChat: React.FC<SquadChatProps> = ({ squadId, accessToken }) => {
++  const [messages, setMessages] = useState<SquadMessage[]>([]);
++  const [loading, setLoading] = useState(false);
++  const [sending, setSending] = useState(false);
++  const [error, setError] = useState<string | null>(null);
++  const [text, setText] = useState('');
++  const listRef = useRef<HTMLDivElement | null>(null);
++
++  const isNearBottom = useCallback(() => {
++    const node = listRef.current;
++    if (!node) return true;
++    return node.scrollHeight - node.scrollTop - node.clientHeight < 64;
++  }, []);
++
++  const scrollToBottom = useCallback(() => {
++    const node = listRef.current;
++    if (!node) return;
++    node.scrollTop = node.scrollHeight;
++  }, []);
++
++  const loadMessages = useCallback(async () => {
++    setLoading(true);
++    setError(null);
++    try {
++      const stickToBottom = isNearBottom();
++      const data = await fetchSquadMessages(accessToken, squadId, { limit: 50 });
++      setMessages(data.messages || []);
++      if (stickToBottom) {
++        requestAnimationFrame(scrollToBottom);
++      }
++    } catch (e) {
++      setError(e instanceof Error ? e.message : 'Не удалось загрузить сообщения.');
++    } finally {
++      setLoading(false);
++    }
++  }, [accessToken, isNearBottom, scrollToBottom, squadId]);
++
++  useEffect(() => {
++    void loadMessages();
++  }, [loadMessages]);
++
++  useEffect(() => {
++    const timer = window.setInterval(() => {
++      void loadMessages();
++    }, 10000);
++    return () => window.clearInterval(timer);
++  }, [loadMessages]);
++
++  useEffect(() => {
++    const onFocus = () => {
++      void loadMessages();
++    };
++    window.addEventListener('focus', onFocus);
++    return () => window.removeEventListener('focus', onFocus);
++  }, [loadMessages]);
++
++  const sendMessage = useCallback(async () => {
++    const clean = text.trim();
++    if (!clean || sending) return;
++    setSending(true);
++    setError(null);
++    try {
++      const created = await postSquadMessage(accessToken, squadId, clean);
++      setMessages((prev) => [...prev, created.message]);
++      setText('');
++      requestAnimationFrame(scrollToBottom);
++    } catch (e) {
++      setError(e instanceof Error ? e.message : 'Не удалось отправить сообщение.');
++    } finally {
++      setSending(false);
++    }
++  }, [accessToken, sending, scrollToBottom, squadId, text]);
++
++  const canSend = useMemo(() => text.trim().length > 0 && !sending, [sending, text]);
++
++  return (
++    <div style={{ padding: 12, borderRadius: 12, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)' }}>
++      <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8 }}>Чат отряда</div>
++      {error && <div className="profile-error profile-error--not-found" style={{ marginBottom: 8 }}>{error}</div>}
++      <div
++        ref={listRef}
++        style={{
++          maxHeight: 240,
++          minHeight: 120,
++          overflowY: 'auto',
++          borderRadius: 10,
++          padding: 8,
++          background: 'rgba(0,0,0,0.2)',
++          border: '1px solid rgba(255,255,255,0.06)',
++          marginBottom: 8
++        }}
++      >
++        {loading && messages.length === 0 ? (
++          <div style={{ fontSize: 12, opacity: 0.8 }}>Загрузка сообщений...</div>
++        ) : messages.length === 0 ? (
++          <div style={{ fontSize: 12, opacity: 0.8 }}>Сообщений пока нет.</div>
++        ) : (
++          messages.map((m) => (
++            <div key={m.id} style={{ marginBottom: 8, fontSize: 12, lineHeight: 1.35 }}>
++              <div style={{ opacity: 0.75 }}>
++                {(m.nickname || m.deviceId || 'Участник')} {m.role ? `· ${m.role}` : ''} · {new Date(m.createdAt).toLocaleString('ru-RU')}
++              </div>
++              <div style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{m.text}</div>
++            </div>
++          ))
++        )}
++      </div>
++      <div style={{ display: 'flex', gap: 8 }}>
++        <textarea
++          className="w-input"
++          style={{ width: '100%', minHeight: 70 }}
++          placeholder="Напишите сообщение..."
++          value={text}
++          onChange={(e) => setText(e.target.value)}
++          maxLength={2000}
++        />
++      </div>
++      <div style={{ marginTop: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
++        <span style={{ fontSize: 11, opacity: 0.7 }}>{text.trim().length}/2000</span>
++        <button type="button" className="btn-primary-gold" style={{ padding: '8px 14px' }} onClick={() => void sendMessage()} disabled={!canSend}>
++          {sending ? 'Отправка...' : 'Отправить'}
++        </button>
++      </div>
++    </div>
++  );
++};
++

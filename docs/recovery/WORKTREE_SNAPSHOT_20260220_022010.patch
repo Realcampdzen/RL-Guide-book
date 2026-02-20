@@ -1,0 +1,3540 @@
+# Worktree snapshot\n# Created: 2026-02-19T23:20:10Z\n# Includes: git diff + untracked cabin files\n
+diff --git a/backend/app.py b/backend/app.py
+index d95f0ad..833d5b0 100644
+--- a/backend/app.py
++++ b/backend/app.py
+@@ -5,7 +5,7 @@ Flask API для Путеводителя "Реального Лагеря"
+ Предоставляет данные о категориях и значках
+ """
+ 
+-from flask import Flask, jsonify, request, send_from_directory
++from flask import Flask, jsonify, request, send_from_directory, has_request_context
+ from flask_cors import CORS
+ import json
+ import os
+@@ -78,6 +78,18 @@ BADGE_REQUESTS_FILE = os.path.join(os.path.dirname(__file__), "data", "badge_req
+ _BADGE_REQUESTS_LOCK = threading.Lock()
+ MEMBERSHIPS_FILE = os.path.join(os.path.dirname(__file__), "data", "memberships.json")
+ _MEMBERSHIPS_LOCK = threading.Lock()
++SQUAD_CORNERS_FILE = os.path.join(os.path.dirname(__file__), "data", "squad_corners.json")
++_SQUAD_CORNERS_LOCK = threading.Lock()
++SQUAD_INVITES_FILE = os.path.join(os.path.dirname(__file__), "data", "squad_invites.json")
++_SQUAD_INVITES_LOCK = threading.Lock()
++SQUAD_MESSAGES_FILE = os.path.join(os.path.dirname(__file__), "data", "squad_messages.json")
++_SQUAD_MESSAGES_LOCK = threading.Lock()
++SQUAD_INVITE_TTL_SEC = int(os.getenv('SQUAD_INVITE_TTL_SEC', str(30 * 24 * 60 * 60)))
++SQUAD_CORNER_PATCH_LIMIT_BYTES = 5 * 1024 * 1024
++SQUAD_MESSAGES_MAX_HISTORY = 1000
++SQUAD_MESSAGES_DEFAULT_LIMIT = 50
++SQUAD_MESSAGES_MAX_LIMIT = 100
++DEFAULT_SEEDED_SHIFT_NAME = "Реальный Лагерь 2026"
+ # Staff-flow permissions (shifts/squads management, staff code issuing).
+ ORGANIZER_ROLES = ('shift_leader', 'developer')
+ LEVEL_ID_RE = re.compile(r'^\d+\.\d+(?:\.\d+)?$')
+@@ -244,6 +256,27 @@ def _is_localhost_request() -> bool:
+     return remote in ("127.0.0.1", "::1", "localhost")
+ 
+ 
++def _normalized_shift_name(name: str) -> str:
++    return re.sub(r"\s+", " ", (name or "").strip().lower())
++
++
++def _is_default_seeded_shift_name(name: str) -> bool:
++    normalized = _normalized_shift_name(name)
++    default_name = _normalized_shift_name(DEFAULT_SEEDED_SHIFT_NAME)
++    return normalized == default_name or normalized.startswith(f"{default_name} ")
++
++
++def _pick_squad_avatar(corner: dict) -> Optional[str]:
++    if not isinstance(corner, dict):
++        return None
++    for key in ("photoFlag", "photoCorner", "photoSquad", "photoWithCounselors"):
++        raw = corner.get(key)
++        value = raw.strip() if isinstance(raw, str) else ""
++        if value:
++            return value
++    return None
++
++
+ def _require_roles(allowed_roles: tuple[str, ...], allow_localhost_dev: bool = False):
+     """
+     Универсальная JWT-проверка по ролям.
+@@ -331,6 +364,124 @@ def _memberships_save(data: dict):
+             json.dump(data, f, ensure_ascii=False, indent=2)
+ 
+ 
++def _squad_corners_load() -> dict:
++    """Load squad_corners.json under lock; returns {'corners': {}}."""
++    _ensure_chat_data_dir()
++    with _SQUAD_CORNERS_LOCK:
++        data = {"corners": {}}
++        if os.path.exists(SQUAD_CORNERS_FILE):
++            try:
++                with open(SQUAD_CORNERS_FILE, "r", encoding="utf-8") as f:
++                    raw = f.read()
++                    if raw.strip():
++                        data = json.loads(raw)
++            except (json.JSONDecodeError, OSError):
++                data = {"corners": {}}
++        if not isinstance(data, dict):
++            data = {"corners": {}}
++        if not isinstance(data.get("corners"), dict):
++            data["corners"] = {}
++        return data
++
++
++def _squad_corners_save(data: dict):
++    _ensure_chat_data_dir()
++    with _SQUAD_CORNERS_LOCK:
++        with open(SQUAD_CORNERS_FILE, "w", encoding="utf-8") as f:
++            json.dump(data, f, ensure_ascii=False, indent=2)
++
++
++def _squad_invites_load() -> dict:
++    """Load squad_invites.json under lock; returns {'codes': {}}."""
++    _ensure_chat_data_dir()
++    with _SQUAD_INVITES_LOCK:
++        data = {"codes": {}}
++        if os.path.exists(SQUAD_INVITES_FILE):
++            try:
++                with open(SQUAD_INVITES_FILE, "r", encoding="utf-8") as f:
++                    raw = f.read()
++                    if raw.strip():
++                        data = json.loads(raw)
++            except (json.JSONDecodeError, OSError):
++                data = {"codes": {}}
++        if not isinstance(data, dict):
++            data = {"codes": {}}
++        if not isinstance(data.get("codes"), dict):
++            data["codes"] = {}
++        return data
++
++
++def _squad_invites_save(data: dict):
++    _ensure_chat_data_dir()
++    with _SQUAD_INVITES_LOCK:
++        with open(SQUAD_INVITES_FILE, "w", encoding="utf-8") as f:
++            json.dump(data, f, ensure_ascii=False, indent=2)
++
++
++def _squad_invites_prune(doc: dict) -> tuple[dict, bool]:
++    """Remove expired invite codes. Returns: (doc, changed)."""
++    codes = doc.get("codes") or {}
++    if not isinstance(codes, dict):
++        doc["codes"] = {}
++        return doc, True
++    changed = False
++    now_ts = datetime.now(timezone.utc).timestamp()
++    for code in list(codes.keys()):
++        meta = codes.get(code)
++        if not isinstance(meta, dict):
++            del codes[code]
++            changed = True
++            continue
++        expires_at = _parse_iso_ts((meta.get("expiresAt") or "").strip())
++        if expires_at and expires_at < now_ts:
++            del codes[code]
++            changed = True
++    doc["codes"] = codes
++    return doc, changed
++
++
++def _squad_messages_load() -> dict:
++    """Load squad_messages.json under lock; returns {'bySquadId': {}}."""
++    _ensure_chat_data_dir()
++    with _SQUAD_MESSAGES_LOCK:
++        data = {"bySquadId": {}}
++        if os.path.exists(SQUAD_MESSAGES_FILE):
++            try:
++                with open(SQUAD_MESSAGES_FILE, "r", encoding="utf-8") as f:
++                    raw = f.read()
++                    if raw.strip():
++                        data = json.loads(raw)
++            except (json.JSONDecodeError, OSError):
++                data = {"bySquadId": {}}
++        if not isinstance(data, dict):
++            data = {"bySquadId": {}}
++        if not isinstance(data.get("bySquadId"), dict):
++            data["bySquadId"] = {}
++        return data
++
++
++def _squad_messages_save(data: dict):
++    _ensure_chat_data_dir()
++    with _SQUAD_MESSAGES_LOCK:
++        with open(SQUAD_MESSAGES_FILE, "w", encoding="utf-8") as f:
++            json.dump(data, f, ensure_ascii=False, indent=2)
++
++
++def _require_squad_membership(payload: dict, squad_id: str) -> tuple[Optional[dict], Optional[tuple]]:
++    """Ensure request actor has a membership in the requested squad. Returns: (membership, None) or (None, (resp, status))."""
++    device_id = (payload.get("deviceId") or "").strip()
++    if not device_id:
++        return None, (jsonify({"error": "deviceId missing in token"}), 400)
++    sid = (squad_id or "").strip()
++    if not sid:
++        return None, (jsonify({"error": "squadId required"}), 400)
++    mdoc = _memberships_load()
++    membership = _membership_for_device(mdoc, device_id)
++    if not membership or (membership.get("squadId") or "").strip() != sid:
++        return None, (jsonify({"error": "Not a member of this squad"}), 403)
++    return membership, None
++
++
+ def _membership_for_device(doc: dict, device_id: str) -> Optional[dict]:
+     members = doc.get("members") or []
+     if not isinstance(members, list):
+@@ -358,6 +509,190 @@ def _resolve_membership_context(device_id: str) -> tuple[str, str]:
+     return camp_id, squad_id
+ 
+ 
++def _find_squad(shifts_doc: dict, squad_id: str) -> Optional[dict]:
++    sid = (squad_id or "").strip()
++    if not sid:
++        return None
++    return next(
++        (
++            s for s in (shifts_doc.get("squads") or [])
++            if isinstance(s, dict) and (s.get("id") or "").strip() == sid
++        ),
++        None
++    )
++
++
++def _find_shift(shifts_doc: dict, shift_id: str) -> Optional[dict]:
++    sid = (shift_id or "").strip()
++    if not sid:
++        return None
++    return next(
++        (
++            s for s in (shifts_doc.get("shifts") or [])
++            if isinstance(s, dict) and (s.get("id") or "").strip() == sid
++        ),
++        None
++    )
++
++
++def _membership_in_squad(device_id: str, squad_id: str) -> Optional[dict]:
++    did = (device_id or "").strip()
++    sid = (squad_id or "").strip()
++    if not did or not sid:
++        return None
++    mdoc = _memberships_load()
++    for row in reversed(mdoc.get("members") or []):
++        if not isinstance(row, dict):
++            continue
++        if (row.get("deviceId") or "").strip() != did:
++            continue
++        if (row.get("squadId") or "").strip() != sid:
++            continue
++        return row
++    return None
++
++
++def _can_manage_squad(payload: dict, squad: dict, membership: Optional[dict]) -> tuple[bool, str]:
++    actor_role = _normalize_role((payload.get("role") or "").strip())
++    if actor_role == "developer":
++        return True, ""
++    if actor_role == "counselor":
++        if membership and _normalize_role((membership.get("role") or "").strip()) == "counselor":
++            return True, ""
++        return False, "not_member"
++    if actor_role == "shift_leader":
++        token_camp_id = (payload.get("campId") or "").strip()
++        squad_shift_id = (squad.get("shiftId") or "").strip()
++        if token_camp_id and token_camp_id == squad_shift_id:
++            return True, ""
++        if membership:
++            return True, ""
++        return False, "camp_mismatch" if token_camp_id else "not_member"
++    return False, "role_forbidden"
++
++
++def _can_read_corner(payload: dict, squad: dict, membership: Optional[dict]) -> bool:
++    actor_role = _normalize_role((payload.get("role") or "").strip())
++    if actor_role == "developer":
++        return True
++    if membership:
++        return True
++    if actor_role == "shift_leader":
++        token_camp_id = (payload.get("campId") or "").strip()
++        squad_shift_id = (squad.get("shiftId") or "").strip()
++        return bool(token_camp_id and token_camp_id == squad_shift_id)
++    return False
++
++
++def _build_squad_members_lists(squad_id: str, camp_id: str) -> tuple[list[dict], list[dict]]:
++    sid = (squad_id or "").strip()
++    cid = (camp_id or "").strip()
++    members: list[dict] = []
++    participants: list[dict] = []
++    mdoc = _memberships_load()
++    for row in (mdoc.get("members") or []):
++        if not isinstance(row, dict):
++            continue
++        if (row.get("squadId") or "").strip() != sid:
++            continue
++        if cid and (row.get("campId") or "").strip() != cid:
++            continue
++        role = _normalize_role((row.get("role") or "").strip() or "participant")
++        item = {
++            "deviceId": (row.get("deviceId") or "").strip(),
++            "nickname": (row.get("nickname") or "").strip() or None,
++            "role": role,
++            "joinedAt": (row.get("joinedAt") or "").strip()
++        }
++        members.append(item)
++        if role == "participant":
++            participants.append({
++                "deviceId": item["deviceId"],
++                "nickname": item["nickname"],
++                "joinedAt": item["joinedAt"]
++            })
++    members.sort(key=lambda item: _parse_iso_ts(item.get("joinedAt") or ""), reverse=False)
++    participants.sort(key=lambda item: _parse_iso_ts(item.get("joinedAt") or ""), reverse=False)
++    return members, participants
++
++
++def _cleanup_squad_related_data(squad_ids: set[str], shift_ids: set[str]) -> dict:
++    counts = {
++        "memberships": 0,
++        "corners": 0,
++        "chats": 0,
++        "inviteCodes": 0,
++        "badgeRequests": 0
++    }
++    normalized_squad_ids = {s.strip() for s in squad_ids if isinstance(s, str) and s.strip()}
++    normalized_shift_ids = {s.strip() for s in shift_ids if isinstance(s, str) and s.strip()}
++
++    if normalized_squad_ids or normalized_shift_ids:
++        mdoc = _memberships_load()
++        next_members = []
++        for row in (mdoc.get("members") or []):
++            if not isinstance(row, dict):
++                continue
++            squad_id = (row.get("squadId") or "").strip()
++            camp_id = (row.get("campId") or "").strip()
++            if squad_id in normalized_squad_ids or camp_id in normalized_shift_ids:
++                counts["memberships"] += 1
++                continue
++            next_members.append(row)
++        mdoc["members"] = next_members
++        _memberships_save(mdoc)
++
++        cdoc = _squad_corners_load()
++        corners = cdoc.get("corners") or {}
++        if not isinstance(corners, dict):
++            corners = {}
++        for sid in list(corners.keys()):
++            if sid in normalized_squad_ids:
++                del corners[sid]
++                counts["corners"] += 1
++        cdoc["corners"] = corners
++        _squad_corners_save(cdoc)
++
++        sdoc = _squad_messages_load()
++        by_squad = sdoc.get("bySquadId") or {}
++        if not isinstance(by_squad, dict):
++            by_squad = {}
++        for sid in list(by_squad.keys()):
++            if sid in normalized_squad_ids:
++                del by_squad[sid]
++                counts["chats"] += 1
++        sdoc["bySquadId"] = by_squad
++        _squad_messages_save(sdoc)
++
++        idoc = _squad_invites_load()
++        codes = idoc.get("codes") or {}
++        if not isinstance(codes, dict):
++            codes = {}
++        for code in list(codes.keys()):
++            meta = codes.get(code) if isinstance(codes.get(code), dict) else {}
++            if (meta.get("squadId") or "").strip() in normalized_squad_ids:
++                del codes[code]
++                counts["inviteCodes"] += 1
++        idoc["codes"] = codes
++        _squad_invites_save(idoc)
++
++        bdoc = _badge_requests_load()
++        next_requests = []
++        for row in (bdoc.get("requests") or []):
++            if not isinstance(row, dict):
++                continue
++            squad_id = (row.get("squadId") or "").strip()
++            camp_id = (row.get("campId") or "").strip()
++            if squad_id in normalized_squad_ids or camp_id in normalized_shift_ids:
++                counts["badgeRequests"] += 1
++                continue
++            next_requests.append(row)
++        bdoc["requests"] = next_requests
++        _badge_requests_save(bdoc)
++
++    return counts
++
++
+ def _is_valid_level_id(level_id: str) -> bool:
+     return bool(LEVEL_ID_RE.match((level_id or "").strip()))
+ 
+@@ -1565,6 +1900,24 @@ def _shifts_load() -> dict:
+             data["shifts"] = []
+         if not isinstance(data.get("squads"), list):
+             data["squads"] = []
++
++        # Local/dev convenience: keep one default shift so manual testing does not require recreating it.
++        if has_request_context() and _is_localhost_request():
++            has_default = any(
++                isinstance(shift, dict) and _is_default_seeded_shift_name(shift.get("name") or "")
++                for shift in (data.get("shifts") or [])
++            )
++            if not has_default:
++                data["shifts"].append({
++                    "id": uuid.uuid4().hex[:12],
++                    "name": DEFAULT_SEEDED_SHIFT_NAME,
++                    "startDate": "",
++                    "endDate": "",
++                    "createdAt": datetime.now(timezone.utc).isoformat(),
++                    "createdBy": "seed-localhost"
++                })
++                with open(SHIFTS_FILE, "w", encoding="utf-8") as f:
++                    json.dump(data, f, ensure_ascii=False, indent=2)
+         return data
+ 
+ 
+@@ -1631,7 +1984,19 @@ def squads_list(shift_id: str):
+     if not sid:
+         return jsonify({"error": "shiftId required"}), 400
+     data = _shifts_load()
+-    squads = [s for s in (data.get("squads") or []) if isinstance(s, dict) and (s.get("shiftId") or "").strip() == sid]
++    corners_doc = _squad_corners_load()
++    corners = corners_doc.get("corners") or {}
++    if not isinstance(corners, dict):
++        corners = {}
++    squads = []
++    for s in (data.get("squads") or []):
++        if not isinstance(s, dict):
++            continue
++        if (s.get("shiftId") or "").strip() != sid:
++            continue
++        squad = dict(s)
++        squad["avatarUrl"] = _pick_squad_avatar(corners.get((s.get("id") or "").strip()))
++        squads.append(squad)
+     return jsonify({"squads": squads})
+ 
+ 
+@@ -1672,14 +2037,110 @@ def squads_create(shift_id: str):
+         return jsonify({"error": str(e)}), 500
+ 
+ 
++@app.route('/api/squads/<squad_id>', methods=['DELETE'])
++def squad_delete(squad_id: str):
++    """
++    DELETE /api/squads/<squadId> — hard delete squad and related data.
++    Auth: shift_leader|developer
++    """
++    payload, err = _require_roles(("shift_leader", "developer"), allow_localhost_dev=True)
++    if err is not None:
++        return err[0], err[1]
++    sid = (squad_id or "").strip()
++    if not sid:
++        return jsonify({"error": "squadId required"}), 400
++
++    shifts_doc = _shifts_load()
++    squads = shifts_doc.get("squads") or []
++    if not isinstance(squads, list):
++        squads = []
++    target = _find_squad(shifts_doc, sid)
++    if not target:
++        return jsonify({"error": "Squad not found"}), 404
++
++    shifts_doc["squads"] = [
++        row for row in squads
++        if not (isinstance(row, dict) and (row.get("id") or "").strip() == sid)
++    ]
++    _shifts_save(shifts_doc)
++
++    cleanup = _cleanup_squad_related_data({sid}, {(target.get("shiftId") or "").strip()})
++    return jsonify({
++        "ok": True,
++        "deleted": {
++            "shifts": 0,
++            "squads": 1,
++            "memberships": cleanup["memberships"],
++            "corners": cleanup["corners"],
++            "chats": cleanup["chats"],
++            "inviteCodes": cleanup["inviteCodes"],
++            "badgeRequests": cleanup["badgeRequests"]
++        }
++    })
++
++
++@app.route('/api/shifts/<shift_id>', methods=['DELETE'])
++def shift_delete(shift_id: str):
++    """
++    DELETE /api/shifts/<shiftId> — hard delete shift, its squads and related data.
++    Auth: shift_leader|developer
++    """
++    payload, err = _require_roles(("shift_leader", "developer"), allow_localhost_dev=True)
++    if err is not None:
++        return err[0], err[1]
++    sid = (shift_id or "").strip()
++    if not sid:
++        return jsonify({"error": "shiftId required"}), 400
++
++    shifts_doc = _shifts_load()
++    shift = _find_shift(shifts_doc, sid)
++    if not shift:
++        return jsonify({"error": "Shift not found"}), 404
++    if _is_default_seeded_shift_name(shift.get("name") or ""):
++        return jsonify({"error": "Default shift cannot be deleted", "reason": "default_shift"}), 409
++
++    squads = shifts_doc.get("squads") or []
++    if not isinstance(squads, list):
++        squads = []
++    target_squad_ids = {
++        (row.get("id") or "").strip()
++        for row in squads
++        if isinstance(row, dict) and (row.get("shiftId") or "").strip() == sid
++    }
++
++    shifts_doc["shifts"] = [
++        row for row in (shifts_doc.get("shifts") or [])
++        if not (isinstance(row, dict) and (row.get("id") or "").strip() == sid)
++    ]
++    shifts_doc["squads"] = [
++        row for row in squads
++        if not (isinstance(row, dict) and ((row.get("shiftId") or "").strip() == sid or (row.get("id") or "").strip() in target_squad_ids))
++    ]
++    _shifts_save(shifts_doc)
++
++    cleanup = _cleanup_squad_related_data(target_squad_ids, {sid})
++    return jsonify({
++        "ok": True,
++        "deleted": {
++            "shifts": 1,
++            "squads": len(target_squad_ids),
++            "memberships": cleanup["memberships"],
++            "corners": cleanup["corners"],
++            "chats": cleanup["chats"],
++            "inviteCodes": cleanup["inviteCodes"],
++            "badgeRequests": cleanup["badgeRequests"]
++        }
++    })
++
++
+ @app.route('/api/squads/<squad_id>/join', methods=['POST'])
+ def squad_join(squad_id: str):
+     """
+     POST /api/squads/<squadId>/join
+-    Auth: participant|developer
+-    Body: { nickname?: string, role?: participant|counselor (for developer only) }
++    Auth: participant|counselor|shift_leader|developer
++    Body: { nickname?: string, role?: participant|counselor|shift_leader (for developer only) }
+     """
+-    payload, err = _require_roles(("participant", "developer"), allow_localhost_dev=True)
++    payload, err = _require_roles(("participant", "counselor", "shift_leader", "developer"), allow_localhost_dev=True)
+     if err is not None:
+         return err[0], err[1]
+     device_id = (payload.get("deviceId") or "").strip()
+@@ -1690,13 +2151,7 @@ def squad_join(squad_id: str):
+         return jsonify({"error": "squadId required"}), 400
+ 
+     shifts_doc = _shifts_load()
+-    squad = next(
+-        (
+-            s for s in (shifts_doc.get("squads") or [])
+-            if isinstance(s, dict) and (s.get("id") or "").strip() == sid
+-        ),
+-        None
+-    )
++    squad = _find_squad(shifts_doc, sid)
+     if not squad:
+         return jsonify({"error": "Squad not found"}), 404
+ 
+@@ -1704,12 +2159,15 @@ def squad_join(squad_id: str):
+     nickname = (body.get("nickname") or "").strip()
+     requested_role = _normalize_role((body.get("role") or "").strip() or "participant")
+     actor_role = _normalize_role((payload.get("role") or "").strip())
+-    membership_role = "participant"
+-    if actor_role == "developer" and requested_role in ("participant", "counselor"):
+-        membership_role = requested_role
++    membership_role = actor_role
++    if actor_role == "developer":
++        membership_role = requested_role if requested_role in ("participant", "counselor", "shift_leader") else "participant"
+ 
+     now_iso = datetime.now(timezone.utc).isoformat()
+     camp_id = (squad.get("shiftId") or "").strip()
++    token_camp_id = (payload.get("campId") or "").strip()
++    if actor_role != "developer" and token_camp_id and token_camp_id != camp_id:
++        return jsonify({"error": "Access denied", "reason": "camp_mismatch"}), 403
+ 
+     mdoc = _memberships_load()
+     members = [
+@@ -1748,56 +2206,424 @@ def squads_mine():
+     mdoc = _memberships_load()
+     membership = _membership_for_device(mdoc, device_id)
+     if not membership:
+-        return jsonify({"membership": None, "squad": None, "shift": None, "participants": []})
++        return jsonify({"membership": None, "squad": None, "shift": None, "participants": [], "members": []})
+ 
+     shifts_doc = _shifts_load()
+     squad_id = (membership.get("squadId") or "").strip()
+     camp_id = (membership.get("campId") or "").strip()
+-    squad = next(
+-        (
+-            s for s in (shifts_doc.get("squads") or [])
+-            if isinstance(s, dict) and (s.get("id") or "").strip() == squad_id
+-        ),
+-        None
+-    )
+-    shift = next(
+-        (
+-            sh for sh in (shifts_doc.get("shifts") or [])
+-            if isinstance(sh, dict) and (
+-                (sh.get("id") or "").strip() == camp_id or
+-                (squad and (sh.get("id") or "").strip() == (squad.get("shiftId") or "").strip())
+-            )
+-        ),
+-        None
+-    )
+-
+-    actor_role = _normalize_role((payload.get("role") or "").strip())
+-    participants = []
+-    if actor_role in ("counselor", "shift_leader", "developer"):
+-        for row in (mdoc.get("members") or []):
+-            if not isinstance(row, dict):
+-                continue
+-            if (row.get("campId") or "").strip() != camp_id:
+-                continue
+-            if (row.get("squadId") or "").strip() != squad_id:
+-                continue
+-            if _normalize_role((row.get("role") or "").strip()) != "participant":
+-                continue
+-            participants.append({
+-                "deviceId": (row.get("deviceId") or "").strip(),
+-                "nickname": (row.get("nickname") or "").strip() or None,
+-                "joinedAt": (row.get("joinedAt") or "").strip()
+-            })
+-        participants.sort(key=lambda item: _parse_iso_ts(item.get("joinedAt") or ""), reverse=False)
++    squad = _find_squad(shifts_doc, squad_id)
++    shift = _find_shift(shifts_doc, camp_id) or _find_shift(shifts_doc, (squad or {}).get("shiftId") or "")
++    members, participants = _build_squad_members_lists(squad_id, camp_id or ((squad or {}).get("shiftId") or ""))
+ 
+     return jsonify({
+         "membership": membership,
+         "squad": squad,
+         "shift": shift,
+-        "participants": participants
++        "participants": participants,
++        "members": members
++    })
++
++
++@app.route('/api/squads/<squad_id>/corner', methods=['GET', 'PATCH'])
++def squad_corner_get_or_patch(squad_id: str):
++    """
++    GET /api/squads/<squadId>/corner — get shared squad corner (server-synced).
++    PATCH /api/squads/<squadId>/corner — update shared corner (staff only).
++    Auth: participant|parent|counselor|shift_leader|developer (GET), counselor|shift_leader|developer (PATCH).
++    """
++    if request.method == 'PATCH':
++        payload, err = _require_roles(("counselor", "shift_leader", "developer"), allow_localhost_dev=True)
++    else:
++        payload, err = _require_roles(("participant", "counselor", "shift_leader", "developer"), allow_localhost_dev=True)
++    if err is not None:
++        return err[0], err[1]
++
++    sid = (squad_id or "").strip()
++    if not sid:
++        return jsonify({"error": "squadId required"}), 400
++    shifts_doc = _shifts_load()
++    squad = _find_squad(shifts_doc, sid)
++    if not squad:
++        return jsonify({"error": "Squad not found"}), 404
++
++    device_id = (payload.get("deviceId") or "").strip()
++    membership = _membership_in_squad(device_id, sid) if device_id else None
++
++    if request.method == 'GET':
++        if not _can_read_corner(payload, squad, membership):
++            return jsonify({"error": "Access denied"}), 403
++        doc = _squad_corners_load()
++        corners = doc.get("corners") or {}
++        corner = corners.get(sid)
++        if not isinstance(corner, dict):
++            corner = {}
++        return jsonify({"squadId": sid, "corner": corner})
++
++    can_manage, deny_reason = _can_manage_squad(payload, squad, membership)
++    if not can_manage:
++        return jsonify({"error": "Access denied", "reason": deny_reason or "role_forbidden"}), 403
++
++    content_len = request.content_length
++    if isinstance(content_len, int) and content_len > SQUAD_CORNER_PATCH_LIMIT_BYTES:
++        return jsonify({"error": "Payload too large"}), 413
++    raw = request.get_data(cache=True, as_text=False) or b""
++    if len(raw) > SQUAD_CORNER_PATCH_LIMIT_BYTES:
++        return jsonify({"error": "Payload too large"}), 413
++
++    body = request.get_json(silent=True) or {}
++    if not isinstance(body, dict):
++        return jsonify({"error": "Invalid payload"}), 400
++    allowed_keys = (
++        "name",
++        "motto",
++        "chants",
++        "greeting",
++        "memes",
++        "photoCorner",
++        "photoFlag",
++        "photoSquad",
++        "photoWithCounselors",
++        "planGridA",
++        "planGridB",
++    )
++
++    doc = _squad_corners_load()
++    corners = doc.get("corners") or {}
++    if not isinstance(corners, dict):
++        corners = {}
++    current = corners.get(sid)
++    next_corner = dict(current) if isinstance(current, dict) else {}
++    for key in allowed_keys:
++        if key not in body:
++            continue
++        value = body.get(key)
++        if isinstance(value, str):
++            trimmed = value.strip()
++            if not trimmed:
++                next_corner.pop(key, None)
++                continue
++            next_corner[key] = trimmed
++            continue
++        if value is None:
++            next_corner.pop(key, None)
++            continue
++        next_corner[key] = value
++
++    now_iso = datetime.now(timezone.utc).isoformat()
++    next_corner["updatedAt"] = now_iso
++    next_corner["updatedBy"] = device_id
++    corners[sid] = next_corner
++    doc["corners"] = corners
++    _squad_corners_save(doc)
++    return jsonify({"squadId": sid, "corner": next_corner, "updatedAt": now_iso})
++
++
++@app.route('/api/squads/<squad_id>/invite-code', methods=['POST'])
++def squad_invite_code_create(squad_id: str):
++    """
++    POST /api/squads/<squadId>/invite-code — create invite code for joining the squad.
++    Auth: counselor|shift_leader|developer
++    """
++    payload, err = _require_roles(("counselor", "shift_leader", "developer"), allow_localhost_dev=True)
++    if err is not None:
++        return err[0], err[1]
++    sid = (squad_id or "").strip()
++    if not sid:
++        return jsonify({"error": "squadId required"}), 400
++
++    shifts_doc = _shifts_load()
++    squad = _find_squad(shifts_doc, sid)
++    if not squad:
++        return jsonify({"error": "Squad not found"}), 404
++    membership = _membership_in_squad((payload.get("deviceId") or "").strip(), sid)
++    can_manage, deny_reason = _can_manage_squad(payload, squad, membership)
++    if not can_manage:
++        return jsonify({"error": "Access denied", "reason": deny_reason or "role_forbidden"}), 403
++
++    created_at_dt = datetime.now(timezone.utc)
++    expires_at_dt = datetime.fromtimestamp(
++        created_at_dt.timestamp() + max(60, int(SQUAD_INVITE_TTL_SEC or 0)),
++        tz=timezone.utc
++    )
++
++    doc = _squad_invites_load()
++    doc, changed = _squad_invites_prune(doc)
++    codes = doc.get("codes") or {}
++    if not isinstance(codes, dict):
++        codes = {}
++
++    # One active code per squad.
++    for existing_code in list(codes.keys()):
++        meta = codes.get(existing_code)
++        if not isinstance(meta, dict):
++            continue
++        if (meta.get("squadId") or "").strip() == sid:
++            del codes[existing_code]
++
++    alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
++    code = ""
++    for _ in range(100):
++        candidate = "".join(secrets.choice(alphabet) for _ in range(8))
++        if candidate not in codes:
++            code = candidate
++            break
++    if not code:
++        return jsonify({"error": "Invite code generation failed"}), 500
++
++    created_at = created_at_dt.isoformat()
++    expires_at = expires_at_dt.isoformat()
++    codes[code] = {
++        "squadId": sid,
++        "createdAt": created_at,
++        "expiresAt": expires_at,
++        "createdBy": (payload.get("deviceId") or "").strip() or None
++    }
++    doc["codes"] = codes
++    _squad_invites_save(doc)
++    return jsonify({"squadId": sid, "code": code, "createdAt": created_at, "expiresAt": expires_at})
++
++
++def _resolve_invite_code_response(code: str):
++    invite_code = (code or "").strip().upper()
++    if not invite_code:
++        return jsonify({"error": "code required"}), 400
++    doc = _squad_invites_load()
++    doc, changed = _squad_invites_prune(doc)
++    if changed:
++        _squad_invites_save(doc)
++        doc = _squad_invites_load()
++    meta = (doc.get("codes") or {}).get(invite_code)
++    if not isinstance(meta, dict):
++        return jsonify({"error": "Invite code not found"}), 404
++    squad_id = (meta.get("squadId") or "").strip()
++    if not squad_id:
++        return jsonify({"error": "Invite code invalid"}), 404
++    shifts_doc = _shifts_load()
++    squad = _find_squad(shifts_doc, squad_id)
++    if not squad:
++        return jsonify({"error": "Squad not found"}), 404
++    shift = _find_shift(shifts_doc, (squad.get("shiftId") or "").strip())
++    return jsonify({
++        "squadId": squad_id,
++        "squadName": squad.get("name"),
++        "shiftId": shift.get("id") if isinstance(shift, dict) else None,
++        "shiftName": shift.get("name") if isinstance(shift, dict) else None
+     })
+ 
+ 
++@app.route('/api/squads/resolve-invite', methods=['GET'])
++def squad_invite_code_resolve():
++    """
++    Legacy alias for code resolving.
++    """
++    payload, err = _require_roles(("participant", "counselor", "shift_leader", "developer"), allow_localhost_dev=True)
++    if err is not None:
++        return err[0], err[1]
++    return _resolve_invite_code_response(request.args.get("code") or "")
++
++
++@app.route('/api/squads/by-invite-code', methods=['GET'])
++def squad_invite_code_resolve_v2():
++    """
++    GET /api/squads/by-invite-code?code=XXXXXX — resolve invite code to squad meta.
++    Auth: participant|counselor|shift_leader|developer
++    """
++    payload, err = _require_roles(("participant", "counselor", "shift_leader", "developer"), allow_localhost_dev=True)
++    if err is not None:
++        return err[0], err[1]
++    return _resolve_invite_code_response(request.args.get("code") or "")
++
++
++@app.route('/api/squads/<squad_id>/preview', methods=['GET'])
++def squad_preview(squad_id: str):
++    """
++    GET /api/squads/<squadId>/preview — minimal squad info for join modal.
++    Auth required.
++    """
++    payload, err = _require_roles(("participant", "counselor", "shift_leader", "developer"), allow_localhost_dev=True)
++    if err is not None:
++        return err[0], err[1]
++    sid = (squad_id or "").strip()
++    if not sid:
++        return jsonify({"error": "squadId required"}), 400
++    shifts_doc = _shifts_load()
++    squad = _find_squad(shifts_doc, sid)
++    if not squad:
++        return jsonify({"error": "Squad not found"}), 404
++    shift = _find_shift(shifts_doc, (squad.get("shiftId") or "").strip())
++    return jsonify({
++        "squadId": sid,
++        "squadName": squad.get("name"),
++        "shiftId": shift.get("id") if isinstance(shift, dict) else (squad.get("shiftId") or None),
++        "shiftName": shift.get("name") if isinstance(shift, dict) else None
++    })
++
++
++@app.route('/api/squads/<squad_id>/leave', methods=['POST'])
++def squad_leave(squad_id: str):
++    """
++    POST /api/squads/<squadId>/leave — leave the squad.
++    Auth: participant|parent|counselor|shift_leader|developer
++    """
++    payload, err = _require_roles(("participant", "parent", "counselor", "shift_leader", "developer"), allow_localhost_dev=True)
++    if err is not None:
++        return err[0], err[1]
++    device_id = (payload.get("deviceId") or "").strip()
++    sid = (squad_id or "").strip()
++    if not sid:
++        return jsonify({"error": "squadId required"}), 400
++    membership = _membership_in_squad(device_id, sid)
++    if not membership:
++        return jsonify({"status": "left", "squadId": sid, "membership": None})
++
++    mdoc = _memberships_load()
++    members = [
++        row for row in (mdoc.get("members") or [])
++        if not (isinstance(row, dict) and (row.get("deviceId") or "").strip() == device_id and (row.get("squadId") or "").strip() == sid)
++    ]
++    mdoc["members"] = members
++    _memberships_save(mdoc)
++    return jsonify({"status": "left", "squadId": sid, "membership": None})
++
++
++def _kick_member_impl(payload: dict, squad_id: str, target_device_id: str):
++    sid = (squad_id or "").strip()
++    if not sid:
++        return jsonify({"error": "squadId required"}), 400
++    target_device = (target_device_id or "").strip()
++    if not target_device:
++        return jsonify({"error": "deviceId required"}), 400
++    actor_device = (payload.get("deviceId") or "").strip()
++    if actor_device and target_device == actor_device:
++        return jsonify({"error": "Cannot kick yourself", "reason": "self_kick"}), 409
++
++    shifts_doc = _shifts_load()
++    squad = _find_squad(shifts_doc, sid)
++    if not squad:
++        return jsonify({"error": "Squad not found"}), 404
++    membership = _membership_in_squad(actor_device, sid) if actor_device else None
++    can_manage, deny_reason = _can_manage_squad(payload, squad, membership)
++    if not can_manage:
++        return jsonify({"error": "Access denied", "reason": deny_reason or "role_forbidden"}), 403
++
++    mdoc = _memberships_load()
++    removed = False
++    next_members = []
++    for row in (mdoc.get("members") or []):
++        if not isinstance(row, dict):
++            continue
++        if (row.get("deviceId") or "").strip() == target_device and (row.get("squadId") or "").strip() == sid:
++            removed = True
++            continue
++        next_members.append(row)
++    if removed:
++        mdoc["members"] = next_members
++        _memberships_save(mdoc)
++
++    camp_id = (squad.get("shiftId") or "").strip()
++    members, participants = _build_squad_members_lists(sid, camp_id)
++    return jsonify({"squadId": sid, "members": members, "participants": participants})
++
++
++@app.route('/api/squads/<squad_id>/members/<target_device_id>', methods=['DELETE'])
++def squad_kick_member_delete(squad_id: str, target_device_id: str):
++    """
++    DELETE /api/squads/<squadId>/members/<deviceId> — remove member from squad.
++    Auth: counselor|shift_leader|developer
++    """
++    payload, err = _require_roles(("counselor", "shift_leader", "developer"), allow_localhost_dev=True)
++    if err is not None:
++        return err[0], err[1]
++    return _kick_member_impl(payload, squad_id, target_device_id)
++
++
++@app.route('/api/squads/<squad_id>/kick', methods=['POST'])
++def squad_kick_member(squad_id: str):
++    """
++    POST /api/squads/<squadId>/kick — legacy alias for member removal.
++    Auth: counselor|shift_leader|developer
++    Body: { deviceId: string }
++    """
++    payload, err = _require_roles(("counselor", "shift_leader", "developer"), allow_localhost_dev=True)
++    if err is not None:
++        return err[0], err[1]
++    body = request.get_json() or {}
++    target_device_id = (body.get("deviceId") or "").strip()
++    return _kick_member_impl(payload, squad_id, target_device_id)
++
++
++@app.route('/api/squads/<squad_id>/messages', methods=['GET', 'POST'])
++def squad_messages_get_or_post(squad_id: str):
++    """
++    GET /api/squads/<squadId>/messages?limit=50 — get squad chat messages.
++    POST /api/squads/<squadId>/messages — post message.
++    Auth: participant|parent|counselor|shift_leader|developer
++    """
++    payload, err = _require_roles(("participant", "parent", "counselor", "shift_leader", "developer"), allow_localhost_dev=True)
++    if err is not None:
++        return err[0], err[1]
++    sid = (squad_id or "").strip()
++    if not sid:
++        return jsonify({"error": "squadId required"}), 400
++    device_id = (payload.get("deviceId") or "").strip()
++    role = _normalize_role((payload.get("role") or "").strip())
++    membership = _membership_in_squad(device_id, sid) if device_id else None
++    can_bypass = role == "developer" and _is_localhost_request()
++    if not membership and not can_bypass:
++        return jsonify({"error": "Not a member of this squad"}), 403
++
++    doc = _squad_messages_load()
++    by_squad = doc.get("bySquadId") or {}
++    if not isinstance(by_squad, dict):
++        by_squad = {}
++    rows = by_squad.get(sid)
++    if not isinstance(rows, list):
++        rows = []
++
++    if request.method == 'GET':
++        try:
++            limit = int((request.args.get("limit") or str(SQUAD_MESSAGES_DEFAULT_LIMIT)).strip())
++        except ValueError:
++            limit = SQUAD_MESSAGES_DEFAULT_LIMIT
++        limit = max(1, min(SQUAD_MESSAGES_MAX_LIMIT, limit))
++        before_msg_id = (request.args.get("before") or "").strip()
++        ordered = [r for r in rows if isinstance(r, dict)]
++        if before_msg_id:
++            before_index = next((idx for idx, item in enumerate(ordered) if (item.get("id") or "").strip() == before_msg_id), None)
++            if before_index is not None:
++                ordered = ordered[:before_index]
++        has_more = len(ordered) > limit
++        out = ordered[-limit:]
++        return jsonify({"squadId": sid, "messages": out, "hasMore": has_more})
++
++    ok, rate_err = _check_and_inc_chat_daily(device_id)
++    if not ok and rate_err is not None:
++        return rate_err[0], rate_err[1]
++
++    body = request.get_json() or {}
++    text = (body.get("text") or "").strip()
++    if not text:
++        return jsonify({"error": "text required"}), 400
++    if len(text) > 2000:
++        return jsonify({"error": "Message too long"}), 400
++
++    msg = {
++        "id": uuid.uuid4().hex[:12],
++        "squadId": sid,
++        "createdAt": datetime.now(timezone.utc).isoformat(),
++        "deviceId": device_id or None,
++        "nickname": ((membership or {}).get("nickname") or "").strip() or None,
++        "role": role,
++        "text": text
++    }
++    rows.append(msg)
++    rows = rows[-SQUAD_MESSAGES_MAX_HISTORY:]
++    by_squad[sid] = rows
++    doc["bySquadId"] = by_squad
++    _squad_messages_save(doc)
++    return jsonify({"message": msg})
++
++
+ @app.route('/api/badges/requests', methods=['POST'])
+ def badge_request_create():
+     """
+diff --git a/src/components/SquadCornerDashboard.tsx b/src/components/SquadCornerDashboard.tsx
+index c603994..689f03e 100644
+--- a/src/components/SquadCornerDashboard.tsx
++++ b/src/components/SquadCornerDashboard.tsx
+@@ -4,6 +4,7 @@ import { useUserProgress } from '../hooks/useUserProgress';
+ import { useAuth } from '../context/AuthContext';
+ import { ImageSourceBlock } from './ImageSourceBlock';
+ import { requestImageGenerate } from '../utils/imageGenerateApi';
++import type { SquadCorner } from '../utils/badgeApprovalApi';
+ 
+ const ACCENT = '#d97706';
+ const ACCENT_LIGHT = 'rgba(217, 119, 6, 0.25)';
+@@ -18,6 +19,12 @@ interface SquadCornerDashboardProps {
+   activeTab?: SquadCornerTabId;
+   onTabChange?: (tab: SquadCornerTabId) => void;
+   onNavigateToBadge?: (badgeId: string) => void;
++  hasSquadMembership?: boolean;
++  mySquadName?: string;
++  canEditCorner?: boolean;
++  onOpenCabinet?: () => void;
++  onOpenShiftsAndSquads?: () => void;
++  onPersistCorner?: (payload: Partial<SquadCorner>) => Promise<void>;
+ }
+ 
+ const defaultPlanGrid = (): PlanGridData => ({ shiftLength: 21, days: {} });
+@@ -35,12 +42,49 @@ export const SquadCornerDashboard: React.FC<SquadCornerDashboardProps> = ({
+   variant = 'accordion',
+   activeTab = 'squad',
+   onTabChange,
+-  onNavigateToBadge
++  onNavigateToBadge,
++  hasSquadMembership,
++  mySquadName,
++  canEditCorner: canEditCornerProp,
++  onOpenCabinet,
++  onOpenShiftsAndSquads,
++  onPersistCorner,
+ }) => {
+   const { userData, updateDiarySquad, approveFlagBadgeRequest } = useUserProgress();
+   const { accessToken } = useAuth();
+   const progress = userData.diaryProgress || { currentDay: 1, squad: undefined };
+   const squad = progress.squad || {};
++  const canEditCorner = Boolean(canEditCornerProp ?? true);
++  const readOnlyHint = !canEditCorner ? (
++    <div style={{ padding: 12, borderRadius: 12, background: 'rgba(255,255,255,.06)', border: '1px solid rgba(255,255,255,.1)' }}>
++      <div style={{ fontWeight: 700, marginBottom: 6 }}>Редактирование недоступно</div>
++      <div style={{ fontSize: 12, opacity: 0.8 }}>
++        {hasSquadMembership === false ? 'Сначала вступите в отряд, чтобы заполнить уголок.' : 'Недостаточно прав для редактирования уголка.'}
++      </div>
++      {(onOpenShiftsAndSquads || onOpenCabinet) && (
++        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>
++          {onOpenShiftsAndSquads && (
++            <button type="button" className="btn-secondary" onClick={onOpenShiftsAndSquads}>Смены и отряды</button>
++          )}
++          {onOpenCabinet && (
++            <button type="button" className="btn-secondary" onClick={onOpenCabinet}>Открыть кабинет</button>
++          )}
++        </div>
++      )}
++    </div>
++  ) : null;
++
++  const [saveBusy, setSaveBusy] = useState(false);
++  const [saveStatus, setSaveStatus] = useState<string | null>(null);
++
++  const persist = async (payload: Partial<SquadCorner>) => {
++    if (onPersistCorner) {
++      await onPersistCorner(payload);
++      return;
++    }
++    // Legacy fallback: local-only progress (non-cabin / older flows)
++    await Promise.resolve(updateDiarySquad(payload as any));
++  };
+ 
+   const [isExpanded, setIsExpanded] = useState(false);
+   const [squadExpanded, setSquadExpanded] = useState(false);
+@@ -94,18 +138,44 @@ export const SquadCornerDashboard: React.FC<SquadCornerDashboardProps> = ({
+   const dayData = currentPlanGrid.days[String(plannerDay)] || {};
+   React.useEffect(() => { if (plannerDay > currentPlanGrid.shiftLength) setPlannerDay(currentPlanGrid.shiftLength); }, [plannerDay, currentPlanGrid.shiftLength]);
+ 
+-  const saveSquad = () => updateDiarySquad({
+-    name: localSquadName.trim() || undefined,
+-    motto: localSquadMotto.trim() || undefined,
+-    chants: localSquadChants.trim() || undefined,
+-    greeting: localSquadGreeting.trim() || undefined,
+-    memes: localSquadMemes.trim() || undefined,
+-    photoCorner: localPhotoCorner || undefined,
+-    photoFlag: localPhotoFlag || undefined,
+-    photoSquad: localPhotoSquad || undefined,
+-    photoWithCounselors: localPhotoWithCounselors || undefined
+-  });
+-  const savePlanner = () => updateDiarySquad({ planGridA: localPlanGridA, planGridB: localPlanGridB });
++  const saveSquad = async () => {
++    if (!canEditCorner) return;
++    setSaveBusy(true);
++    setSaveStatus(null);
++    try {
++      await persist({
++        name: localSquadName.trim() || undefined,
++        motto: localSquadMotto.trim() || undefined,
++        chants: localSquadChants.trim() || undefined,
++        greeting: localSquadGreeting.trim() || undefined,
++        memes: localSquadMemes.trim() || undefined,
++        photoCorner: localPhotoCorner || undefined,
++        photoFlag: localPhotoFlag || undefined,
++        photoSquad: localPhotoSquad || undefined,
++        photoWithCounselors: localPhotoWithCounselors || undefined
++      });
++      setSaveStatus('Сохранено.');
++      setTimeout(() => setSaveStatus(null), 1600);
++    } catch (e) {
++      setSaveStatus(e instanceof Error ? e.message : 'Не удалось сохранить.');
++    } finally {
++      setSaveBusy(false);
++    }
++  };
++  const savePlanner = async () => {
++    if (!canEditCorner) return;
++    setSaveBusy(true);
++    setSaveStatus(null);
++    try {
++      await persist({ planGridA: localPlanGridA, planGridB: localPlanGridB });
++      setSaveStatus('Сохранено.');
++      setTimeout(() => setSaveStatus(null), 1600);
++    } catch (e) {
++      setSaveStatus(e instanceof Error ? e.message : 'Не удалось сохранить.');
++    } finally {
++      setSaveBusy(false);
++    }
++  };
+   const setShiftLength = (len: 9 | 21) => {
+     setCurrentPlanGrid((prev) => {
+       const days = { ...prev.days };
+@@ -188,12 +258,18 @@ export const SquadCornerDashboard: React.FC<SquadCornerDashboardProps> = ({
+ 
+   const squadSection = sectionWrap(squadExpanded, (
+     <>
+-      <input className="w-input" style={{ width: '100%' }} placeholder="Название отряда" value={localSquadName} onChange={(e) => setLocalSquadName(e.target.value)} />
+-      <input className="w-input" style={{ width: '100%' }} placeholder="Девиз" value={localSquadMotto} onChange={(e) => setLocalSquadMotto(e.target.value)} />
+-      <textarea className="w-input" style={{ width: '100%' }} placeholder="Кричалки" value={localSquadChants} onChange={(e) => setLocalSquadChants(e.target.value)} rows={2} />
+-      <input className="w-input" style={{ width: '100%' }} placeholder="Приветствие" value={localSquadGreeting} onChange={(e) => setLocalSquadGreeting(e.target.value)} />
+-      <textarea className="w-input" style={{ width: '100%' }} placeholder="Мемы" value={localSquadMemes} onChange={(e) => setLocalSquadMemes(e.target.value)} rows={2} />
+-      <button type="button" className="btn-secondary" onClick={saveSquad} style={{ alignSelf: 'flex-start' }}>Сохранить отряд</button>
++      <input className="w-input" style={{ width: '100%' }} placeholder="Название отряда" value={localSquadName} onChange={(e) => setLocalSquadName(e.target.value)} disabled={!canEditCorner || saveBusy} />
++      <input className="w-input" style={{ width: '100%' }} placeholder="Девиз" value={localSquadMotto} onChange={(e) => setLocalSquadMotto(e.target.value)} disabled={!canEditCorner || saveBusy} />
++      <textarea className="w-input" style={{ width: '100%' }} placeholder="Кричалки" value={localSquadChants} onChange={(e) => setLocalSquadChants(e.target.value)} rows={2} disabled={!canEditCorner || saveBusy} />
++      <input className="w-input" style={{ width: '100%' }} placeholder="Приветствие" value={localSquadGreeting} onChange={(e) => setLocalSquadGreeting(e.target.value)} disabled={!canEditCorner || saveBusy} />
++      <textarea className="w-input" style={{ width: '100%' }} placeholder="Мемы" value={localSquadMemes} onChange={(e) => setLocalSquadMemes(e.target.value)} rows={2} disabled={!canEditCorner || saveBusy} />
++      {readOnlyHint}
++      <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
++        <button type="button" className="btn-secondary" onClick={saveSquad} style={{ alignSelf: 'flex-start' }} disabled={!canEditCorner || saveBusy}>
++          {saveBusy ? 'Сохраняем...' : 'Сохранить отряд'}
++        </button>
++        {saveStatus && <span style={{ fontSize: 12, opacity: 0.8 }}>{saveStatus}</span>}
++      </div>
+     </>
+   ), 'Отряд', () => setSquadExpanded((v) => !v));
+ 
+@@ -207,34 +283,58 @@ export const SquadCornerDashboard: React.FC<SquadCornerDashboardProps> = ({
+             className="squad-corner-image-source-block"
+             context="squad_photo"
+             value={getPhoto(key) || null}
+-            onChange={(url) => setPhoto(key, url)}
++            onChange={canEditCorner ? (url) => setPhoto(key, url) : () => {}}
+             aspect="square"
+             labels={{ placeholder: label }}
+-            onGenerate={async (o) => requestImageGenerate({ mode: 'generate', context: key === 'photoWithCounselors' ? 'counselor_squad' : 'squad_corner', prompt: o.prompt ?? '' }, accessToken ?? null)}
+-            onProcess={async (imageBase64, o) => requestImageGenerate({ mode: 'process', context: key === 'photoWithCounselors' ? 'counselor_squad' : 'squad_corner', imageBase64, prompt: o?.prompt ?? '' }, accessToken ?? null)}
++            onGenerate={canEditCorner ? async (o) => requestImageGenerate({ mode: 'generate', context: key === 'photoWithCounselors' ? 'counselor_squad' : 'squad_corner', prompt: o.prompt ?? '' }, accessToken ?? null) : undefined}
++            onProcess={canEditCorner ? async (imageBase64, o) => requestImageGenerate({ mode: 'process', context: key === 'photoWithCounselors' ? 'counselor_squad' : 'squad_corner', imageBase64, prompt: o?.prompt ?? '' }, accessToken ?? null) : undefined}
++            lockReason={!canEditCorner ? (hasSquadMembership === false ? 'Сначала вступите в отряд, чтобы добавлять фото.' : 'Недостаточно прав для добавления фото.') : undefined}
++            onUnlockRequest={!canEditCorner ? onOpenShiftsAndSquads : undefined}
+           />
+         </div>
+       ))}
+-      <button type="button" className="btn-secondary" onClick={saveSquad} style={{ alignSelf: 'flex-start' }}>Сохранить отряд</button>
++      {readOnlyHint}
++      <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
++        <button type="button" className="btn-secondary" onClick={saveSquad} style={{ alignSelf: 'flex-start' }} disabled={!canEditCorner || saveBusy}>
++          {saveBusy ? 'Сохраняем...' : 'Сохранить отряд'}
++        </button>
++        {saveStatus && <span style={{ fontSize: 12, opacity: 0.8 }}>{saveStatus}</span>}
++      </div>
+     </>
+   ), 'Добавить фото в отряд', () => setPhotosExpanded((v) => !v));
+ 
+   const plannerSection = sectionWrap(plannerExpanded, (
+     <>
+       <div style={{ display: 'flex', gap: 8 }}>
+-        {(['planGridA', 'planGridB'] as const).map((id) => <button key={id} type="button" className="btn-secondary" onClick={() => setActivePlannerGrid(id)}>{id === 'planGridA' ? 'Сетка 1' : 'Сетка 2'}</button>)}
++        {(['planGridA', 'planGridB'] as const).map((id) => (
++          <button key={id} type="button" className="btn-secondary" onClick={() => setActivePlannerGrid(id)} disabled={!canEditCorner || saveBusy}>
++            {id === 'planGridA' ? 'Сетка 1' : 'Сетка 2'}
++          </button>
++        ))}
+       </div>
+       <div style={{ display: 'flex', gap: 12 }}>
+-        <label><input type="radio" checked={currentPlanGrid.shiftLength === 9} onChange={() => setShiftLength(9)} /> 9 дней</label>
+-        <label><input type="radio" checked={currentPlanGrid.shiftLength === 21} onChange={() => setShiftLength(21)} /> 21 день</label>
++        <label><input type="radio" checked={currentPlanGrid.shiftLength === 9} onChange={() => setShiftLength(9)} disabled={!canEditCorner || saveBusy} /> 9 дней</label>
++        <label><input type="radio" checked={currentPlanGrid.shiftLength === 21} onChange={() => setShiftLength(21)} disabled={!canEditCorner || saveBusy} /> 21 день</label>
++      </div>
++      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
++        {dayKeys.map((d) => (
++          <button key={d} type="button" className="btn-secondary" onClick={() => setPlannerDay(d)} disabled={!canEditCorner || saveBusy}>
++            День {d}
++          </button>
++        ))}
++      </div>
++      <textarea className="w-input" placeholder="Утро" value={dayData.morning ?? ''} onChange={(e) => setDayField('morning', e.target.value)} rows={2} disabled={!canEditCorner || saveBusy} />
++      <textarea className="w-input" placeholder="Тихий час" value={dayData.quietHour ?? ''} onChange={(e) => setDayField('quietHour', e.target.value)} rows={2} disabled={!canEditCorner || saveBusy} />
++      <textarea className="w-input" placeholder="День" value={dayData.day ?? ''} onChange={(e) => setDayField('day', e.target.value)} rows={2} disabled={!canEditCorner || saveBusy} />
++      <textarea className="w-input" placeholder="Вечер" value={dayData.evening ?? ''} onChange={(e) => setDayField('evening', e.target.value)} rows={2} disabled={!canEditCorner || saveBusy} />
++      <textarea className="w-input" placeholder="Ночь" value={dayData.night ?? ''} onChange={(e) => setDayField('night', e.target.value)} rows={2} disabled={!canEditCorner || saveBusy} />
++      {readOnlyHint}
++      <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
++        <button type="button" className="btn-secondary" onClick={savePlanner} style={{ alignSelf: 'flex-start' }} disabled={!canEditCorner || saveBusy}>
++          {saveBusy ? 'Сохраняем...' : 'Сохранить'}
++        </button>
++        {saveStatus && <span style={{ fontSize: 12, opacity: 0.8 }}>{saveStatus}</span>}
+       </div>
+-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>{dayKeys.map((d) => <button key={d} type="button" className="btn-secondary" onClick={() => setPlannerDay(d)}>День {d}</button>)}</div>
+-      <textarea className="w-input" placeholder="Утро" value={dayData.morning ?? ''} onChange={(e) => setDayField('morning', e.target.value)} rows={2} />
+-      <textarea className="w-input" placeholder="Тихий час" value={dayData.quietHour ?? ''} onChange={(e) => setDayField('quietHour', e.target.value)} rows={2} />
+-      <textarea className="w-input" placeholder="День" value={dayData.day ?? ''} onChange={(e) => setDayField('day', e.target.value)} rows={2} />
+-      <textarea className="w-input" placeholder="Вечер" value={dayData.evening ?? ''} onChange={(e) => setDayField('evening', e.target.value)} rows={2} />
+-      <textarea className="w-input" placeholder="Ночь" value={dayData.night ?? ''} onChange={(e) => setDayField('night', e.target.value)} rows={2} />
+-      <button type="button" className="btn-secondary" onClick={savePlanner} style={{ alignSelf: 'flex-start' }}>Сохранить</button>
+     </>
+   ), 'Планёрка', () => setPlannerExpanded((v) => !v));
+ 
+@@ -249,7 +349,7 @@ export const SquadCornerDashboard: React.FC<SquadCornerDashboardProps> = ({
+     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: variant === 'accordion' && isExpanded ? 20 : 12 }}>
+       <div onClick={variant === 'accordion' ? () => setIsExpanded((v) => !v) : undefined} style={{ cursor: variant === 'accordion' ? 'pointer' : 'default', flex: 1, minWidth: 0 }}>
+         <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, marginBottom: 10 }}>
+-          <div style={{ minWidth: 0 }}><div style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', color: ACCENT, letterSpacing: '.1em', marginBottom: 4 }}>Отрядный уголок</div><h3 style={{ margin: 0, fontSize: 18 }}>{localSquadName.trim() || 'Отряд'}</h3></div>
++          <div style={{ minWidth: 0 }}><div style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', color: ACCENT, letterSpacing: '.1em', marginBottom: 4 }}>Отрядный уголок</div><h3 style={{ margin: 0, fontSize: 18 }}>{localSquadName.trim() || mySquadName || 'Отряд'}</h3></div>
+           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', maxWidth: 'min(42%, 360px)', alignSelf: 'flex-start', justifyContent: 'flex-end', flexShrink: 0 }}>{PHOTO_FIELDS.map(({ key }) => { const v = getPhoto(key); return isImageUrl(v) ? <div key={key} style={{ width: 'clamp(72px, 7vw, 96px)', height: 'clamp(72px, 7vw, 96px)', borderRadius: 12, overflow: 'hidden', border: `1px solid ${ACCENT_LIGHT}`, flex: '0 0 auto' }}><img src={v} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /></div> : null; })}</div>
+         </div>
+         <div style={{ maxWidth: 300 }}>
+diff --git a/src/main.tsx b/src/main.tsx
+index 6796388..36d4d34 100644
+--- a/src/main.tsx
++++ b/src/main.tsx
+@@ -31,9 +31,23 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
+   </React.StrictMode>,
+ )
+ 
+-// Register Service Worker only in production builds (avoid dev caching headaches).
++// Register Service Worker only in production builds.
++// Extra safety: when running a production build on localhost, auto-unregister any SW to avoid "stale UI" from cache.
+ if (import.meta.env.PROD && 'serviceWorker' in navigator) {
++  const isLocalhost =
++    typeof window !== 'undefined' &&
++    (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
++
+   window.addEventListener('load', () => {
++    if (isLocalhost) {
++      navigator.serviceWorker.getRegistrations().then((regs) => {
++        for (const r of regs) r.unregister();
++      }).catch(() => {
++        // Silent: SW must never break app startup.
++      });
++      return;
++    }
++
+     const swUrl = `${import.meta.env.BASE_URL}sw.js`;
+     navigator.serviceWorker.register(swUrl).catch(() => {
+       // Silent: SW must never break app startup.
+diff --git a/src/styles/profile-view-spaceship.css b/src/styles/profile-view-spaceship.css
+index daf92aa..bc1f03a 100644
+--- a/src/styles/profile-view-spaceship.css
++++ b/src/styles/profile-view-spaceship.css
+@@ -9,6 +9,28 @@
+   --console-padding: 24px;
+ }
+ 
++/* Final desktop safeguard: squad-corner tabs must stay in the top hit layer. */
++@media (min-width: 1181px) {
++  .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--squad-corner .profile-view-cabin-tabs-docked {
++    position: relative !important;
++    z-index: 10180 !important;
++    pointer-events: auto !important;
++  }
++
++  .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--squad-corner .profile-tabs-nav--squad-corner {
++    position: relative !important;
++    z-index: 10181 !important;
++    pointer-events: auto !important;
++  }
++
++  .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--squad-corner .profile-tabs-nav--squad-corner button {
++    position: relative !important;
++    z-index: 10182 !important;
++    pointer-events: auto !important;
++    touch-action: manipulation;
++  }
++}
++
+ /* Кнопка arrow-up: только на мобиле (≤768), скрыта на планшете и десктопе */
+ .profile-spaceship-root .profile-view-mobile-nav-arrow-up {
+   display: none !important;
+@@ -3078,6 +3100,11 @@
+   overflow: visible !important;
+ }
+ 
++.profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--squad-cabinet {
++  position: relative;
++  overflow: visible !important;
++}
++
+ .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--profile4k {
+   position: relative;
+   overflow: visible !important;
+@@ -3176,6 +3203,37 @@
+   box-shadow: none;
+ }
+ 
++/* Наклоненные левые табы (perspective) */
++.profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--hub .profile-view-cabin-tabs-docked,
++.profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--squad-corner .profile-view-cabin-tabs-docked {
++  perspective: 800px;
++  perspective-origin: left center;
++}
++.profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--hub .profile-tabs-nav--docked button,
++.profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--squad-corner .profile-tabs-nav--squad-corner button,
++.profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--real-diary .profile-tabs-nav--real-diary button,
++.profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--counselor-squad .profile-tabs-nav--counselor-squad button {
++  transform: rotateY(-6deg);
++}
++.profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--hub .profile-tabs-nav--docked button:hover,
++.profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--hub .profile-tabs-nav--docked button.active,
++.profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--squad-corner .profile-tabs-nav--squad-corner button:hover,
++.profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--squad-corner .profile-tabs-nav--squad-corner button.active {
++  transform: rotateY(-6deg) translateX(4px);
++}
++
++/* Смены и отряды: горизонтальные отступы на десктопе */
++@media (min-width: 900px) {
++  .profile-spaceship-root .organizer-shifts-section {
++    padding-left: 20px;
++    padding-right: 20px;
++    padding-top: 16px;
++  }
++  .profile-spaceship-root .organizer-shift-card {
++    padding: 18px;
++  }
++}
++
+ .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--real-diary .profile-tabs-nav--docked {
+   pointer-events: auto;
+   display: flex;
+@@ -3399,7 +3457,7 @@
+ .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--hub .profile-tabs-nav--docked button:hover,
+ .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--hub .profile-tabs-nav--docked button:focus-visible {
+   opacity: 1;
+-  transform: translateX(4px);
++  transform: rotateY(-6deg) translateX(4px);
+   background: var(--tab-hover-bg);
+   border-color: var(--border-accent);
+   box-shadow:
+@@ -3410,7 +3468,7 @@
+ }
+ 
+ .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--hub .profile-tabs-nav--docked button:active {
+-  transform: translateX(4px) scale(0.98);
++  transform: rotateY(-6deg) translateX(4px) scale(0.98);
+ }
+ 
+ .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--hub .profile-tabs-nav--docked button.active {
+@@ -3612,7 +3670,7 @@
+ .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--real-diary .profile-tabs-nav--real-diary button:focus-visible,
+ .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--counselor-squad .profile-tabs-nav--counselor-squad button:hover,
+ .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--counselor-squad .profile-tabs-nav--counselor-squad button:focus-visible {
+-  transform: translateX(4px);
++  transform: rotateY(-6deg) translateX(4px);
+   border-color: rgba(251, 146, 60, 0.85);
+   box-shadow:
+     0 14px 22px rgba(25, 12, 2, 0.5),
+@@ -3759,12 +3817,14 @@
+   .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--hub .profile-tabs-nav--docked button:active,
+   .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--squad-corner .profile-tabs-nav--squad-corner button:active,
+   .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--real-diary .profile-tabs-nav--real-diary button:active,
++  .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--counselor-squad .profile-tabs-nav--counselor-squad button:active {
++    transform: rotateY(-6deg) translateX(4px) scale(0.98);
++  }
+   .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--profile4k .profile-tabs-nav--profile4k button:active,
+   .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--team .profile-tabs-nav--team button:active,
+   .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--council .profile-tabs-nav--council button:active,
+   .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--bro .profile-tabs-nav--bro button:active,
+   .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--vozhatifikator .profile-tabs-nav--vozhatifikator button:active,
+-  .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--counselor-squad .profile-tabs-nav--counselor-squad button:active,
+   .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--share .profile-tabs-nav--share button:active,
+   .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--workshop .profile-tabs-nav--workshop button:active,
+   .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--inspector .profile-tabs-nav--inspector button:active:not(:disabled) {
+@@ -4507,6 +4567,7 @@
+   display: grid;
+   grid-template-columns: repeat(3, minmax(0, 1fr));
+   gap: 12px;
++  justify-items: center;
+ }
+ 
+ .profile-spaceship-root .squad-corner-flag-badge-card {
+diff --git a/src/styles/profile-view.css b/src/styles/profile-view.css
+index 7024f42..128b36b 100644
+--- a/src/styles/profile-view.css
++++ b/src/styles/profile-view.css
+@@ -1688,9 +1688,64 @@
+ }
+ .profile-view .organizer-squads-list {
+   margin: 8px 0 0;
+-  padding-left: 18px;
++  padding-left: 0;
++  list-style: none;
++  display: flex;
++  flex-direction: column;
++  gap: 8px;
++}
++.profile-view .organizer-squad-row {
++  display: flex;
++  align-items: center;
++  justify-content: space-between;
++  gap: 8px;
++  padding: 0;
++}
++.profile-view .organizer-squad-row__main {
++  flex: 1;
++  min-width: 0;
++  display: flex;
++  align-items: center;
++  gap: 10px;
++  border: 1px solid rgba(255, 255, 255, 0.12);
++  background: rgba(0, 0, 0, 0.24);
++  border-radius: 12px;
++  padding: 8px 10px;
++  color: rgba(255, 255, 255, 0.95);
++  cursor: pointer;
++}
++.profile-view .organizer-squad-row__main:hover {
++  border-color: rgba(217, 119, 6, 0.5);
++  background: rgba(217, 119, 6, 0.12);
++}
++.profile-view .organizer-squad-row__avatar {
++  width: 30px;
++  height: 30px;
++  min-width: 30px;
++  border-radius: 9999px;
++  overflow: hidden;
++  display: inline-flex;
++  align-items: center;
++  justify-content: center;
++  background: rgba(255, 255, 255, 0.1);
++  border: 1px solid rgba(255, 255, 255, 0.2);
++}
++.profile-view .organizer-squad-row__avatar img {
++  width: 100%;
++  height: 100%;
++  object-fit: cover;
++  display: block;
++}
++.profile-view .organizer-squad-row__name {
++  min-width: 0;
++  overflow: hidden;
++  text-overflow: ellipsis;
++  white-space: nowrap;
+   font-size: 13px;
+-  opacity: 0.9;
++  font-weight: 600;
++}
++.profile-view .organizer-squad-row__delete {
++  flex-shrink: 0;
+ }
+ .profile-view .organizer-empty-state {
+   padding: 20px;
+@@ -2325,6 +2380,18 @@
+   object-fit: cover;
+   border-radius: 50%;
+ }
++.vozhatifikator-badge-block__img-btn {
++  display: inline-flex;
++  padding: 0;
++  border: none;
++  background: transparent;
++  cursor: pointer;
++  border-radius: 999px;
++}
++.vozhatifikator-badge-block__img-btn:focus-visible {
++  outline: 2px solid rgba(139, 0, 255, 0.55);
++  outline-offset: 3px;
++}
+ .vozhatifikator-badge-block__link {
+   font-size: 12px;
+   color: rgba(139, 0, 255, 0.9);
+diff --git a/src/utils/badgeApprovalApi.ts b/src/utils/badgeApprovalApi.ts
+index 7a9f59d..ec1f595 100644
+--- a/src/utils/badgeApprovalApi.ts
++++ b/src/utils/badgeApprovalApi.ts
+@@ -43,6 +43,7 @@ export interface SquadMeta {
+   shiftId: string;
+   name: string;
+   createdAt?: string;
++  avatarUrl?: string | null;
+ }
+ 
+ export interface ShiftMeta {
+@@ -58,6 +59,68 @@ export interface SquadMineResponse {
+   squad: SquadMeta | null;
+   shift: ShiftMeta | null;
+   participants: Array<{ deviceId: string; nickname?: string | null; joinedAt?: string }>;
++  members?: Array<{ deviceId: string; nickname?: string | null; role: string; joinedAt?: string }>;
++}
++
++export type SquadCornerPlanGrid = {
++  shiftLength: 9 | 21;
++  days: Record<
++    string,
++    { morning?: string; quietHour?: string; day?: string; evening?: string; night?: string }
++  >;
++};
++
++export interface SquadCorner {
++  name?: string;
++  motto?: string;
++  chants?: string;
++  greeting?: string;
++  memes?: string;
++  photoCorner?: string;
++  photoFlag?: string;
++  photoSquad?: string;
++  photoWithCounselors?: string;
++  planGridA?: SquadCornerPlanGrid | null;
++  planGridB?: SquadCornerPlanGrid | null;
++  updatedAt?: string;
++  updatedBy?: string;
++}
++
++export interface SquadCornerResponse {
++  squadId: string;
++  corner: SquadCorner | null;
++  updatedAt?: string;
++}
++
++export interface SquadInviteCodeResponse {
++  squadId: string;
++  code: string;
++  createdAt: string;
++  expiresAt: string;
++}
++
++export interface SquadInviteResolveResponse {
++  squadId: string;
++  squadName?: string | null;
++  shiftId?: string | null;
++  shiftName?: string | null;
++}
++
++export interface SquadPreviewResponse {
++  squadId: string;
++  squadName?: string | null;
++  shiftId?: string | null;
++  shiftName?: string | null;
++}
++
++export interface SquadMessage {
++  id: string;
++  squadId: string;
++  createdAt: string;
++  deviceId?: string | null;
++  nickname?: string | null;
++  role?: string | null;
++  text: string;
+ }
+ 
+ function getApiBase(): string {
+@@ -67,13 +130,27 @@ function getApiBase(): string {
+   return useLocal ? '' : (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
+ }
+ 
++export class ApiError extends Error {
++  status: number;
++  reason?: string;
++  data: Record<string, unknown>;
++
++  constructor(message: string, status: number, data: Record<string, unknown>) {
++    super(message);
++    this.name = 'ApiError';
++    this.status = status;
++    this.reason = typeof data.reason === 'string' ? data.reason : undefined;
++    this.data = data;
++  }
++}
++
+ async function requestJson<T>(path: string, options: RequestInit = {}): Promise<T> {
+   const base = getApiBase();
+   const res = await fetch(`${base}${path}`, options);
+-  const data = await res.json().catch(() => ({}));
++  const data = await res.json().catch(() => ({})) as Record<string, unknown>;
+   if (!res.ok) {
+-    const message = (data && (data.error as string)) || `Request failed: ${res.status}`;
+-    throw new Error(message);
++    const message = (typeof data.error === 'string' && data.error) || `Request failed: ${res.status}`;
++    throw new ApiError(message, res.status, data);
+   }
+   return data as T;
+ }
+@@ -140,7 +217,7 @@ export async function loadMyApprovals(accessToken: string): Promise<BadgeApprova
+ export async function joinSquad(
+   accessToken: string,
+   squadId: string,
+-  payload?: { nickname?: string; role?: 'participant' | 'counselor' }
++  payload?: { nickname?: string; role?: 'participant' | 'counselor' | 'shift_leader' }
+ ): Promise<{ membership: SquadMembership; squad: SquadMeta }> {
+   return requestJson<{ membership: SquadMembership; squad: SquadMeta }>(`/api/squads/${encodeURIComponent(squadId)}/join`, {
+     method: 'POST',
+@@ -154,3 +231,101 @@ export async function loadMySquad(accessToken: string): Promise<SquadMineRespons
+     headers: { Authorization: `Bearer ${accessToken}` }
+   });
+ }
++
++export async function fetchSquadCorner(accessToken: string, squadId: string): Promise<SquadCornerResponse> {
++  return requestJson<SquadCornerResponse>(`/api/squads/${encodeURIComponent(squadId)}/corner`, {
++    headers: { Authorization: `Bearer ${accessToken}` }
++  });
++}
++
++export async function patchSquadCorner(
++  accessToken: string,
++  squadId: string,
++  payload: Partial<SquadCorner>
++): Promise<SquadCornerResponse> {
++  return requestJson<SquadCornerResponse>(`/api/squads/${encodeURIComponent(squadId)}/corner`, {
++    method: 'PATCH',
++    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
++    body: JSON.stringify(payload || {})
++  });
++}
++
++export async function createSquadInviteCode(accessToken: string, squadId: string): Promise<SquadInviteCodeResponse> {
++  return requestJson<SquadInviteCodeResponse>(`/api/squads/${encodeURIComponent(squadId)}/invite-code`, {
++    method: 'POST',
++    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
++    body: JSON.stringify({})
++  });
++}
++
++export async function resolveSquadByInviteCode(accessToken: string, code: string): Promise<SquadInviteResolveResponse> {
++  const params = new URLSearchParams({ code });
++  return requestJson<SquadInviteResolveResponse>(`/api/squads/by-invite-code?${params.toString()}`, {
++    headers: { Authorization: `Bearer ${accessToken}` }
++  });
++}
++
++export async function fetchSquadPreview(accessToken: string, squadId: string): Promise<SquadPreviewResponse> {
++  return requestJson<SquadPreviewResponse>(`/api/squads/${encodeURIComponent(squadId)}/preview`, {
++    headers: { Authorization: `Bearer ${accessToken}` }
++  });
++}
++
++export async function kickSquadMember(accessToken: string, squadId: string, targetDeviceId: string): Promise<void> {
++  await requestJson<{ squadId: string }>(`/api/squads/${encodeURIComponent(squadId)}/members/${encodeURIComponent(targetDeviceId)}`, {
++    method: 'DELETE',
++    headers: { Authorization: `Bearer ${accessToken}` }
++  });
++}
++
++export async function leaveSquad(
++  accessToken: string,
++  squadId: string
++): Promise<{ status: string; squadId: string; membership: null }> {
++  return requestJson<{ status: string; squadId: string; membership: null }>(`/api/squads/${encodeURIComponent(squadId)}/leave`, {
++    method: 'POST',
++    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
++    body: JSON.stringify({})
++  });
++}
++
++export async function fetchSquadMessages(
++  accessToken: string,
++  squadId: string,
++  opts?: { limit?: number; before?: string }
++): Promise<{ squadId: string; messages: SquadMessage[]; hasMore?: boolean }> {
++  const params = new URLSearchParams();
++  if (typeof opts?.limit === 'number') params.set('limit', String(opts.limit));
++  if (opts?.before) params.set('before', opts.before);
++  const suffix = params.toString() ? `?${params.toString()}` : '';
++  return requestJson<{ squadId: string; messages: SquadMessage[]; hasMore?: boolean }>(`/api/squads/${encodeURIComponent(squadId)}/messages${suffix}`, {
++    headers: { Authorization: `Bearer ${accessToken}` }
++  });
++}
++
++export async function postSquadMessage(
++  accessToken: string,
++  squadId: string,
++  text: string
++): Promise<{ squadId: string; message: SquadMessage }> {
++  const created = await requestJson<{ squadId?: string; message: SquadMessage }>(`/api/squads/${encodeURIComponent(squadId)}/messages`, {
++    method: 'POST',
++    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
++    body: JSON.stringify({ text })
++  });
++  return { squadId: created.squadId || squadId, message: created.message };
++}
++
++export async function deleteShift(accessToken: string, shiftId: string): Promise<{ ok: true; deleted: Record<string, number> }> {
++  return requestJson<{ ok: true; deleted: Record<string, number> }>(`/api/shifts/${encodeURIComponent(shiftId)}`, {
++    method: 'DELETE',
++    headers: { Authorization: `Bearer ${accessToken}` }
++  });
++}
++
++export async function deleteSquad(accessToken: string, squadId: string): Promise<{ ok: true; deleted: Record<string, number> }> {
++  return requestJson<{ ok: true; deleted: Record<string, number> }>(`/api/squads/${encodeURIComponent(squadId)}`, {
++    method: 'DELETE',
++    headers: { Authorization: `Bearer ${accessToken}` }
++  });
++}
+diff --git a/src/views/ProfileView.tsx b/src/views/ProfileView.tsx
+index e154d8e..ab36c27 100644
+--- a/src/views/ProfileView.tsx
++++ b/src/views/ProfileView.tsx
+@@ -19,6 +19,7 @@ import { Profile4KDashboard, type Profile4KTabId } from '../components/Profile4K
+ import { TeamDashboard, type TeamTabId } from '../components/TeamDashboard';
+ import { RealDiaryDashboard, type RealDiaryTabId } from '../components/RealDiaryDashboard';
+ import { SquadCornerDashboard } from '../components/SquadCornerDashboard';
++import { SquadCabinetPanel } from '../components/SquadCabinetPanel';
+ import { ConfirmModal } from '../components/ConfirmModal';
+ import { CounselorSquadDashboard, type CounselorSquadTabId } from '../components/CounselorSquadDashboard';
+ import { CouncilDashboard, type CouncilTabId } from '../components/CouncilDashboard';
+@@ -36,7 +37,23 @@ import { requestImageGenerate } from '../utils/imageGenerateApi';
+ import { parseMarkdownToc, markdownToHtmlWithHeadingIds } from '../utils/markdown';
+ import { getBadgeImagePath } from '../utils/badgeImages';
+ import { pluralizeRu } from '../utils/textFormatting';
+-import { approveBadgeRequest, joinSquad, loadBadgeRequestsInbox, loadMyApprovals, loadMyBadgeRequests, loadMySquad, rejectBadgeRequest, type BadgeApprovalItem, type BadgeRequestItem, type SquadMineResponse } from '../utils/badgeApprovalApi';
++import {
++  ApiError,
++  approveBadgeRequest,
++  fetchSquadCorner,
++  joinSquad,
++  loadBadgeRequestsInbox,
++  loadMyApprovals,
++  loadMyBadgeRequests,
++  loadMySquad,
++  patchSquadCorner,
++  rejectBadgeRequest,
++  resolveSquadByInviteCode,
++  type BadgeApprovalItem,
++  type BadgeRequestItem,
++  type SquadCorner,
++  type SquadMineResponse
++} from '../utils/badgeApprovalApi';
+ import { VOZHATIFIKATOR_CHECKLIST_ITEMS } from '../data/vozhatifikatorChecklist';
+ import { QRCodeSVG } from 'qrcode.react';
+ import '../styles/profile-view.css';
+@@ -84,7 +101,8 @@ type BroTabId = 'initiation' | 'wing';
+ type ShareTabId = 'create-card' | 'invite';
+ type WorkshopTabId = 'architect' | 'forge' | 'ideas' | 'my';
+ 
+-type PanelViewId = 'passport' | 'inspector' | 'profile4k' | 'counselor-squad' | 'wing' | 'squad-corner' | 'real-diary' | 'team' | 'council' | 'bro' | 'workshop' | 'share' | 'vozhatifikator' | 'parents';
++type PanelViewId = 'passport' | 'inspector' | 'profile4k' | 'counselor-squad' | 'wing' | 'squad-corner' | 'squad-cabinet' | 'real-diary' | 'team' | 'council' | 'bro' | 'workshop' | 'share' | 'vozhatifikator' | 'parents';
++const DEFAULT_SHIFT_NAME = 'Реальный Лагерь 2026';
+ 
+ const PROFILE_AUTO_FIT_SELECTOR = [
+   '.profile-autofit',
+@@ -137,14 +155,15 @@ const PROFILE_AUTO_FIT_SELECTOR = [
+ 
+ export const ProfileView: React.FC<any> = (props) => {
+   const { onBack, onNavigateToBadge, badges, ensureBadgeLoaded, addCustomBadge, restoreCustomBadges, removeCustomBadge, customBadges = [], communityBadges = [], communityPendingCount = 0, communitySyncing = false, communityLikedIds = new Set<string>(), toggleCommunityLike, publishBadgeToCommunity, setCustomBadgeImage, onChatToggle, onChatClose, isChatOpen, lastUpdated, onNavigateToRegistrationForm, onNavigateHome, onNavigateCategories, onNavigateAboutCamp, onTelegramContact, onOpenVk } = props;
+-  const { userData, setNickname, setAvatar, setProfileStatus, setProfileBio, toggleFavorite, removeRoute, exportData, importData, resetProgress, applyApprovedLevel, getLevelProgress, markRankUpSeen, completeTutorial, isLoading, updateLevelEvidence, updateLevelStatus, saveBadgePlan, updateBadgePlanStatus, updateVozhatifikatorChecklist, setPathFavToast } = useUserProgress();
++  const { userData, setNickname, setAvatar, setProfileStatus, setProfileBio, toggleFavorite, removeRoute, exportData, importData, resetProgress, applyApprovedLevel, getLevelProgress, markRankUpSeen, completeTutorial, isLoading, updateLevelEvidence, updateLevelStatus, saveBadgePlan, updateBadgePlanStatus, updateVozhatifikatorChecklist, updateDiarySquad, setPathFavToast } = useUserProgress();
+   const { myTeam, generateInviteUrl } = useTeam();
+   const { myCreatedSquad, myJoinedSquad, createSquad, deleteSquad, getInviteCode, getInviteLink, joinByCode, leaveSquad } = useCounselorSquad();
+   const { canUseChat, role, deviceId, setAuth, accessToken } = useAuth();
+   const seeOtradBlocks = canSeeOtradBlocks(role);
+   const showEventsForRole = showEventsPanelForRole(role);
+   const canCreateSquad = canCreateCounselorSquad(role);
+-  const showOrganizerPanel = canCreateShiftsAndSquads(role);
++  const canManageShiftsAndSquads = canCreateShiftsAndSquads(role);
++  const showOrganizerPanel = true;
+   const travelerMode = isTraveler(role);
+   const expensiveActionsAllowed = canUseExpensiveActions(role);
+   const canRequestApprovals = canRequestBadgeApproval(role);
+@@ -255,6 +274,7 @@ export const ProfileView: React.FC<any> = (props) => {
+   const [mySquadBusy, setMySquadBusy] = useState(false);
+   const [mySquadError, setMySquadError] = useState<string | null>(null);
+   const [mySquadInfo, setMySquadInfo] = useState<SquadMineResponse | null>(null);
++  const [mySquadJoinCode, setMySquadJoinCode] = useState('');
+   const [mySquadJoinId, setMySquadJoinId] = useState('');
+   const [mySquadJoinBusy, setMySquadJoinBusy] = useState(false);
+   const [mySquadJoinStatus, setMySquadJoinStatus] = useState<string | null>(null);
+@@ -262,7 +282,7 @@ export const ProfileView: React.FC<any> = (props) => {
+   const [devLoginError, setDevLoginError] = useState<string | null>(null);
+ 
+   const [organizerShifts, setOrganizerShifts] = useState<Array<{ id: string; name: string; startDate: string; endDate: string; createdAt: string; createdBy?: string }>>([]);
+-  const [organizerSquadsMap, setOrganizerSquadsMap] = useState<Record<string, Array<{ id: string; shiftId: string; name: string; createdAt: string }>>>({});
++  const [organizerSquadsMap, setOrganizerSquadsMap] = useState<Record<string, Array<{ id: string; shiftId: string; name: string; createdAt: string; avatarUrl?: string | null }>>>({});
+   const [organizerShiftFormOpen, setOrganizerShiftFormOpen] = useState(false);
+   const [organizerShiftForm, setOrganizerShiftForm] = useState({ name: '', startDate: '', endDate: '' });
+   const [organizerSquadFormOpen, setOrganizerSquadFormOpen] = useState(false);
+@@ -273,6 +293,7 @@ export const ProfileView: React.FC<any> = (props) => {
+   const [organizerCodeResult, setOrganizerCodeResult] = useState<string | null>(null);
+   const [organizerLoading, setOrganizerLoading] = useState(false);
+   const [organizerError, setOrganizerError] = useState<string | null>(null);
++  const [squadCornerReturnToOrganizer, setSquadCornerReturnToOrganizer] = useState(false);
+ 
+   const organizerApiBase = useMemo(() => {
+     if (typeof window === 'undefined') return '';
+@@ -280,68 +301,85 @@ export const ProfileView: React.FC<any> = (props) => {
+     const useLocal = import.meta.env.DEV || hostname === 'localhost' || hostname === '127.0.0.1';
+     return useLocal ? '' : (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
+   }, []);
++  const canUseOrganizerApi = canManageShiftsAndSquads && (Boolean(accessToken) || (organizerApiBase === '' && role === 'developer'));
++
++  const getOrganizerHeaders = useCallback((withJson = false): Record<string, string> => {
++    const headers: Record<string, string> = {};
++    if (withJson) headers['Content-Type'] = 'application/json';
++    if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
++    return headers;
++  }, [accessToken]);
+ 
+   const loadOrganizerData = useCallback(async () => {
+-    if (!accessToken) return;
++    if (!canManageShiftsAndSquads) {
++      setOrganizerShifts([]);
++      setOrganizerSquadsMap({});
++      setOrganizerError(null);
++      return;
++    }
++    if (!canUseOrganizerApi) {
++      setOrganizerShifts([]);
++      setOrganizerSquadsMap({});
++      setOrganizerError('Для управления сменами войдите по коду (или используйте локальный режим разработчика).');
++      return;
++    }
+     setOrganizerLoading(true);
+     setOrganizerError(null);
+     try {
+-      const res = await fetch(`${organizerApiBase}/api/shifts`, { headers: { Authorization: `Bearer ${accessToken}` } });
++      const res = await fetch(`${organizerApiBase}/api/shifts`, { headers: getOrganizerHeaders() });
+       if (res.status === 401) {
++        setOrganizerError('Сессия истекла. Войдите снова.');
+         fireOn401();
+         return;
+       }
++      if (res.status === 403) {
++        setOrganizerError('Недостаточно прав для управления сменами и отрядами.');
++        return;
++      }
+       if (!res.ok) {
+-        setOrganizerError(`Ошибка ${res.status}`);
++        const data = await res.json().catch(() => ({})) as { error?: string };
++        setOrganizerError(data.error || `Ошибка ${res.status}`);
+         return;
+       }
+       const data = await res.json().catch(() => ({})) as { shifts?: Array<{ id: string; name: string; startDate: string; endDate: string; createdAt: string; createdBy?: string }> };
+-      const shifts = data.shifts || [];
++      const shifts = [...(data.shifts || [])];
++      shifts.sort((a, b) => {
++        const aDefault = (a.name || '').trim().toLowerCase() === DEFAULT_SHIFT_NAME.toLowerCase();
++        const bDefault = (b.name || '').trim().toLowerCase() === DEFAULT_SHIFT_NAME.toLowerCase();
++        if (aDefault && !bDefault) return -1;
++        if (!aDefault && bDefault) return 1;
++        return (a.createdAt || '').localeCompare(b.createdAt || '');
++      });
+       setOrganizerShifts(shifts);
+-      const map: Record<string, Array<{ id: string; shiftId: string; name: string; createdAt: string }>> = {};
++      const map: Record<string, Array<{ id: string; shiftId: string; name: string; createdAt: string; avatarUrl?: string | null }>> = {};
+       for (const shift of shifts) {
+-        const r = await fetch(`${organizerApiBase}/api/shifts/${shift.id}/squads`, { headers: { Authorization: `Bearer ${accessToken}` } });
++        const r = await fetch(`${organizerApiBase}/api/shifts/${shift.id}/squads`, { headers: getOrganizerHeaders() });
+         if (r.status === 401) {
++          setOrganizerError('Сессия истекла. Войдите снова.');
+           fireOn401();
+           return;
+         }
+-        const squadData = r.ok ? (await r.json().catch(() => ({})) as { squads?: Array<{ id: string; shiftId: string; name: string; createdAt: string }> }) : { squads: [] };
++        if (!r.ok) {
++          map[shift.id] = [];
++          continue;
++        }
++        const squadData = await r.json().catch(() => ({})) as { squads?: Array<{ id: string; shiftId: string; name: string; createdAt: string; avatarUrl?: string | null }> };
+         map[shift.id] = squadData.squads || [];
+       }
+       setOrganizerSquadsMap(map);
+     } catch (e) {
+       setOrganizerError(e instanceof Error ? e.message : 'Ошибка загрузки');
+       setOrganizerShifts([]);
++      setOrganizerSquadsMap({});
+     } finally {
+       setOrganizerLoading(false);
+     }
+-  }, [accessToken, organizerApiBase]);
+-
+-  useEffect(() => {
+-    if (!showOrganizerPanel || !accessToken) return;
+-    loadOrganizerData();
+-  }, [showOrganizerPanel, accessToken, loadOrganizerData]);
++  }, [canManageShiftsAndSquads, canUseOrganizerApi, organizerApiBase, getOrganizerHeaders]);
+ 
+   useEffect(() => {
+-    if (!showOrganizerPanel || !accessToken || organizerShifts.length === 0) return;
+-    let cancelled = false;
+-    const shiftIds = organizerShifts.map((s) => s.id);
+-    Promise.all(shiftIds.map((shiftId) =>
+-      fetch(`${organizerApiBase}/api/shifts/${shiftId}/squads`, { headers: { Authorization: `Bearer ${accessToken}` } })
+-        .then((r) => {
+-          if (r.status === 401) { fireOn401(); return { squads: [] }; }
+-          return r.ok ? r.json() : Promise.resolve({ squads: [] });
+-        })
+-        .then((data: { squads?: Array<{ id: string; shiftId: string; name: string; createdAt: string }> }) => ({ shiftId, squads: data.squads || [] }))
+-    ))
+-      .then((results) => {
+-        if (cancelled) return;
+-        const map: Record<string, Array<{ id: string; shiftId: string; name: string; createdAt: string }>> = {};
+-        results.forEach(({ shiftId, squads }) => { map[shiftId] = squads; });
+-        setOrganizerSquadsMap(map);
+-      });
+-    return () => { cancelled = true; };
+-  }, [showOrganizerPanel, accessToken, organizerApiBase, organizerShifts.length]);
++    if (!showOrganizerPanel) return;
++    void loadOrganizerData();
++  }, [showOrganizerPanel, loadOrganizerData]);
+ 
+   const [openBubble, setOpenBubble] = useState<'bot' | 'events' | 'backup' | 'code' | 'role' | null>(null);
+   const [utilityBubblesExpanded, setUtilityBubblesExpanded] = useState(false);
+@@ -407,6 +445,19 @@ export const ProfileView: React.FC<any> = (props) => {
+     setPanelActiveView(nextViewId);
+   }, [panelActiveView]);
+ 
++  const handleSquadCornerConsoleClick = useCallback(() => {
++    if (panelActiveView === 'squad-corner') {
++      setSquadCornerReturnToOrganizer(false);
++      setSquadCornerActiveTab('squad');
++      setActiveTab('active');
++      openCabinPanel(null, null);
++      return;
++    }
++    setSquadCornerReturnToOrganizer(false);
++    setSquadCornerActiveTab('squad');
++    openCabinPanel('squad-corner', 'left');
++  }, [panelActiveView, openCabinPanel]);
++
+   useEffect(() => {
+     if (panelActiveView === 'squad-corner') setSquadCornerActiveTab('squad');
+     if (panelActiveView === 'real-diary') setRealDiaryActiveTab('diary');
+@@ -423,6 +474,12 @@ export const ProfileView: React.FC<any> = (props) => {
+     if (panelActiveView === 'inspector') setInspectorActiveTab('friendship');
+   }, [panelActiveView]);
+ 
++  useEffect(() => {
++    if (panelActiveView !== 'squad-corner') {
++      setSquadCornerReturnToOrganizer(false);
++    }
++  }, [panelActiveView]);
++
+   useEffect(() => {
+     const pending = (window as any)?.__OPEN_PROFILE_PANEL__ as unknown;
+     if (typeof pending !== 'string' || !pending) return;
+@@ -481,6 +538,7 @@ export const ProfileView: React.FC<any> = (props) => {
+   const [squadIdeasCarouselSteps, setSquadIdeasCarouselSteps] = useState(0);
+ 
+   const showSandbox = role === 'developer' || import.meta.env.DEV || (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('sandbox') === '1');
++  const canEditSquadCorner = role === 'counselor' || (showSandbox && role === 'developer');
+ 
+   const disposeProfileAutoFit = useCallback(() => {
+     profileAutoFitInstancesRef.current.forEach((instance) => instance.unsubscribe());
+@@ -580,6 +638,7 @@ export const ProfileView: React.FC<any> = (props) => {
+     Boolean(squadData?.photoCorner || squadData?.photoFlag || squadData?.photoSquad || squadData?.photoWithCounselors),
+   ];
+   const squadCornerProgressPercent = Math.round((100 * squadSignals.filter(Boolean).length) / squadSignals.length);
++  const squadCabinetProgressPercent = mySquadInfo?.membership ? 100 : 18;
+ 
+   const broCompletedDeedsCount = Object.values(userData?.broProgress?.completedDeeds || {}).reduce((sum, deeds) => (
+     sum + (Array.isArray(deeds) ? deeds.length : 0)
+@@ -756,6 +815,34 @@ export const ProfileView: React.FC<any> = (props) => {
+     }
+   }, [accessToken, expensiveActionsAllowed]);
+ 
++  const joinMySquadByCode = useCallback(async () => {
++    const code = mySquadJoinCode.trim().toUpperCase();
++    if (!code) {
++      setMySquadJoinStatus('Введите код приглашения.');
++      return;
++    }
++    if (!accessToken) {
++      setMySquadJoinStatus('Сначала войдите по коду.');
++      return;
++    }
++    setMySquadJoinBusy(true);
++    setMySquadJoinStatus(null);
++    try {
++      const preview = await resolveSquadByInviteCode(accessToken, code);
++      const confirmed = window.confirm(`Вступить в отряд «${preview.squadName || preview.squadId}»?`);
++      if (!confirmed) return;
++      await joinSquad(accessToken, preview.squadId, { nickname: profile.nickname });
++      setMySquadJoinStatus('Вступление выполнено.');
++      setMySquadJoinCode('');
++      await loadMySquadInfo();
++      await loadBadgeApprovalsData();
++    } catch (e) {
++      setMySquadJoinStatus(e instanceof Error ? e.message : 'Не удалось вступить в отряд.');
++    } finally {
++      setMySquadJoinBusy(false);
++    }
++  }, [accessToken, mySquadJoinCode, profile.nickname, loadMySquadInfo, loadBadgeApprovalsData]);
++
+   const joinMySquadById = useCallback(async () => {
+     const sid = mySquadJoinId.trim();
+     if (!sid) {
+@@ -781,6 +868,101 @@ export const ProfileView: React.FC<any> = (props) => {
+     }
+   }, [accessToken, mySquadJoinId, profile.nickname, loadMySquadInfo, loadBadgeApprovalsData]);
+ 
++  const hasSquadMembership = Boolean(mySquadInfo?.membership?.squadId);
++  const canDeleteShiftsAndSquads = role === 'shift_leader' || role === 'developer';
++
++  const persistSquadCorner = useCallback(async (payload: Partial<SquadCorner>) => {
++    const squadId = (mySquadInfo?.membership?.squadId || '').trim();
++    if (!accessToken || !squadId) throw new Error('Сначала вступите в отряд.');
++    try {
++      await patchSquadCorner(accessToken, squadId, payload);
++    } catch (e) {
++      if (e instanceof ApiError && e.reason) {
++        if (e.reason === 'not_member') throw new Error('Вы не состоите в этом отряде. Вступите заново через «Смены и отряды».');
++        if (e.reason === 'camp_mismatch') throw new Error('Смена в токене не совпадает с отрядом. Войдите снова по верному коду смены.');
++        if (e.reason === 'role_forbidden') throw new Error('Недостаточно прав для редактирования уголка.');
++      }
++      throw e;
++    }
++  }, [accessToken, mySquadInfo?.membership?.squadId]);
++
++  const openSquadFromOrganizer = useCallback(async (squad: { id: string; name: string }) => {
++    if (!accessToken) {
++      setOrganizerError('Сначала войдите по коду.');
++      return;
++    }
++    setOrganizerLoading(true);
++    setOrganizerError(null);
++    try {
++      const currentSquadId = (mySquadInfo?.membership?.squadId || '').trim();
++      if (currentSquadId !== squad.id) {
++        const confirmed = window.confirm(`Вступить в отряд «${squad.name}» и открыть кабинет?`);
++        if (!confirmed) return;
++        await joinSquad(accessToken, squad.id, { nickname: profile.nickname || undefined });
++        await Promise.all([loadMySquadInfo(), loadBadgeApprovalsData()]);
++      }
++      setActiveTab('active');
++      setSquadCornerActiveTab('squad');
++      setSquadCornerReturnToOrganizer(true);
++      openCabinPanel('squad-corner', 'left');
++    } catch (e) {
++      setOrganizerError(e instanceof Error ? e.message : 'Не удалось открыть кабинет отряда.');
++    } finally {
++      setOrganizerLoading(false);
++    }
++  }, [accessToken, mySquadInfo?.membership?.squadId, profile.nickname, loadMySquadInfo, loadBadgeApprovalsData, openCabinPanel]);
++
++  const removeShiftWithCleanup = useCallback(async (shift: { id: string; name: string }) => {
++    if (!canDeleteShiftsAndSquads) return;
++    if ((shift.name || '').trim().toLowerCase() === DEFAULT_SHIFT_NAME.toLowerCase()) {
++      setOrganizerError('Смену по умолчанию удалить нельзя.');
++      return;
++    }
++    if (!window.confirm(`Удалить смену «${shift.name}» вместе со всеми отрядами и данными?`)) return;
++    setOrganizerLoading(true);
++    setOrganizerError(null);
++    try {
++      const res = await fetch(`${organizerApiBase}/api/shifts/${encodeURIComponent(shift.id)}`, {
++        method: 'DELETE',
++        headers: getOrganizerHeaders()
++      });
++      const data = await res.json().catch(() => ({})) as { error?: string; reason?: string };
++      if (!res.ok) {
++        if (res.status === 409 && data.reason === 'default_shift') setOrganizerError('Смену по умолчанию удалить нельзя.');
++        else setOrganizerError(data.error || `Ошибка ${res.status}`);
++        return;
++      }
++      await Promise.all([loadOrganizerData(), loadMySquadInfo()]);
++    } catch (e) {
++      setOrganizerError(e instanceof Error ? e.message : 'Не удалось удалить смену.');
++    } finally {
++      setOrganizerLoading(false);
++    }
++  }, [canDeleteShiftsAndSquads, organizerApiBase, getOrganizerHeaders, loadOrganizerData, loadMySquadInfo]);
++
++  const removeSquadWithCleanup = useCallback(async (squadId: string) => {
++    if (!canDeleteShiftsAndSquads) return;
++    if (!window.confirm('Удалить отряд и связанные данные?')) return;
++    setOrganizerLoading(true);
++    setOrganizerError(null);
++    try {
++      const res = await fetch(`${organizerApiBase}/api/squads/${encodeURIComponent(squadId)}`, {
++        method: 'DELETE',
++        headers: getOrganizerHeaders()
++      });
++      const data = await res.json().catch(() => ({})) as { error?: string };
++      if (!res.ok) {
++        setOrganizerError(data.error || `Ошибка ${res.status}`);
++        return;
++      }
++      await Promise.all([loadOrganizerData(), loadMySquadInfo()]);
++    } catch (e) {
++      setOrganizerError(e instanceof Error ? e.message : 'Не удалось удалить отряд.');
++    } finally {
++      setOrganizerLoading(false);
++    }
++  }, [canDeleteShiftsAndSquads, organizerApiBase, getOrganizerHeaders, loadOrganizerData, loadMySquadInfo]);
++
+   const handleDevLoginAs = useCallback(async (targetRole: UserRole) => {
+     if (!showSandbox) return;
+     setDevLoginBusyRole(targetRole);
+@@ -825,6 +1007,34 @@ export const ProfileView: React.FC<any> = (props) => {
+     void loadMySquadInfo();
+   }, [loadMySquadInfo]);
+ 
++  useEffect(() => {
++    if (panelActiveView !== 'squad-corner') return;
++    const squadId = (mySquadInfo?.membership?.squadId || '').trim();
++    if (!accessToken || !squadId) return;
++    let cancelled = false;
++    fetchSquadCorner(accessToken, squadId)
++      .then((data) => {
++        if (cancelled) return;
++        const corner = data?.corner || {};
++        if (!corner || Object.keys(corner).length === 0) return;
++        updateDiarySquad({
++          name: corner.name || undefined,
++          motto: corner.motto || undefined,
++          chants: corner.chants || undefined,
++          greeting: corner.greeting || undefined,
++          memes: corner.memes || undefined,
++          photoCorner: corner.photoCorner || undefined,
++          photoFlag: corner.photoFlag || undefined,
++          photoSquad: corner.photoSquad || undefined,
++          photoWithCounselors: corner.photoWithCounselors || undefined,
++          planGridA: corner.planGridA || undefined,
++          planGridB: corner.planGridB || undefined
++        });
++      })
++      .catch(() => undefined);
++    return () => { cancelled = true; };
++  }, [panelActiveView, accessToken, mySquadInfo?.membership?.squadId, updateDiarySquad]);
++
+   useEffect(() => {
+     if (openBubble !== 'events') return;
+     if (eventsTab !== 'approvals') return;
+@@ -1206,6 +1416,7 @@ export const ProfileView: React.FC<any> = (props) => {
+     'counselor-squad': 'Отряд вожатых',
+     wing: 'Крыло',
+     'squad-corner': 'Отрядный уголок',
++    'squad-cabinet': 'Кабинет отряда',
+     'real-diary': 'Реальный Дневник',
+     team: 'Движок',
+     council: 'Совет Лагеря',
+@@ -1217,6 +1428,7 @@ export const ProfileView: React.FC<any> = (props) => {
+   };
+   const CONSOLE_SECTION_IMAGES: Record<string, string> = {
+     'squad-corner': 'отрядный уголок.png',
++    'squad-cabinet': 'отрядный уголок.png',
+     'real-diary': 'реальный дневник.png',
+     team: 'движок.png',
+     council: 'совет лагеря.png',
+@@ -1244,6 +1456,8 @@ export const ProfileView: React.FC<any> = (props) => {
+           return { title, meta: `Твоё Крыло: команда для дел наставников. Здесь аватар Крыла, участие в делах и шаг к Совету. ${exitHint}` };
+         case 'squad-corner':
+           return { title, meta: `Отрядный уголок: собери лицо отряда. Название, девиз, кричалки, мемы и фото. ${exitHint}` };
++        case 'squad-cabinet':
++          return { title, meta: `Кабинет отряда: состав, код приглашения, чат и быстрый доступ к уголку. ${exitHint}` };
+         case 'real-diary':
+           return { title, meta: `Реальный Дневник: записывай, как прошёл день, и собирай итоги. Это твоя история смены. ${exitHint}` };
+         case 'team':
+@@ -1347,24 +1561,189 @@ export const ProfileView: React.FC<any> = (props) => {
+       {panelActiveView === 'squad-corner' && (
+         travelerMode ? (
+           <FeatureGate allowed={false} reason={travelerGateReason} ctaLabel="Разблокировать по коду" onCta={openUnlockByCode}>
+-            {isSpaceshipMode ? (
++            {Boolean(mySquadInfo?.membership?.squadId) && squadCornerActiveTab === 'squad' ? (
++              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
++                {(canEditSquadCorner || squadCornerReturnToOrganizer) && (
++                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'space-between' }}>
++                    {squadCornerReturnToOrganizer ? (
++                      <button
++                        type="button"
++                        className="btn-secondary"
++                        style={{ padding: '8px 12px' }}
++                        onClick={() => {
++                          setSquadCornerReturnToOrganizer(false);
++                          setActiveTab('active');
++                          openCabinPanel(null, null);
++                          setTimeout(() => document.getElementById('organizer-shifts-tab-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
++                        }}
++                      >
++                        Назад к Сменам и отрядам
++                      </button>
++                    ) : <span />}
++                    {canEditSquadCorner && (
++                    <button type="button" className="btn-secondary" style={{ padding: '8px 12px' }} onClick={() => setSquadCornerActiveTab('photos')}>
++                      Редактировать уголок
++                    </button>
++                    )}
++                  </div>
++                )}
++                <SquadCabinetPanel
++                  role={role || 'traveler'}
++                  deviceId={deviceId || undefined}
++                  accessToken={accessToken || undefined}
++                  mySquadInfo={mySquadInfo}
++                  onRefresh={loadMySquadInfo}
++                  onAfterLeave={() => setSquadCornerActiveTab('squad')}
++                  onShowHint={({ title, content }) => showHint({ title, content })}
++                  onEditCorner={canEditSquadCorner ? ((t) => setSquadCornerActiveTab(t === 'planner' ? 'planner' : 'photos')) : undefined}
++                />
++              </div>
++            ) : isSpaceshipMode ? (
++            <SquadCornerDashboard
++              variant="cabin"
++              activeTab={squadCornerActiveTab}
++              onTabChange={setSquadCornerActiveTab}
++              onNavigateToBadge={onNavigateToBadge}
++              hasSquadMembership={hasSquadMembership}
++              mySquadName={mySquadInfo?.squad?.name || undefined}
++              canEditCorner={canEditSquadCorner}
++              onOpenCabinet={() => setSquadCornerActiveTab('squad')}
++              onOpenShiftsAndSquads={() => {
++                setActiveTab('active');
++                openCabinPanel(null, null);
++                setTimeout(() => document.getElementById('organizer-shifts-tab-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
++              }}
++              onPersistCorner={(payload: Partial<SquadCorner>) => persistSquadCorner(payload)}
++            />
++            ) : (
+               <SquadCornerDashboard
+-                variant="cabin"
+-                activeTab={squadCornerActiveTab}
+-                onTabChange={setSquadCornerActiveTab}
+                 onNavigateToBadge={onNavigateToBadge}
++                hasSquadMembership={hasSquadMembership}
++                mySquadName={mySquadInfo?.squad?.name || undefined}
++                canEditCorner={canEditSquadCorner}
++                onOpenCabinet={() => setSquadCornerActiveTab('squad')}
++                onOpenShiftsAndSquads={() => {
++                  setActiveTab('active');
++                  openCabinPanel(null, null);
++                  setTimeout(() => document.getElementById('organizer-shifts-tab-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
++                }}
++                onPersistCorner={(payload: Partial<SquadCorner>) => persistSquadCorner(payload)}
+               />
+-            ) : <SquadCornerDashboard onNavigateToBadge={onNavigateToBadge} />}
++            )}
+           </FeatureGate>
+         ) : (
+-          isSpaceshipMode ? (
++          Boolean(mySquadInfo?.membership?.squadId) && squadCornerActiveTab === 'squad' ? (
++            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
++              {(canEditSquadCorner || squadCornerReturnToOrganizer) && (
++                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'space-between' }}>
++                  {squadCornerReturnToOrganizer ? (
++                    <button
++                      type="button"
++                      className="btn-secondary"
++                      style={{ padding: '8px 12px' }}
++                      onClick={() => {
++                        setSquadCornerReturnToOrganizer(false);
++                        setActiveTab('active');
++                        openCabinPanel(null, null);
++                        setTimeout(() => document.getElementById('organizer-shifts-tab-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
++                      }}
++                    >
++                      Назад к Сменам и отрядам
++                    </button>
++                  ) : <span />}
++                  {canEditSquadCorner && (
++                  <button type="button" className="btn-secondary" style={{ padding: '8px 12px' }} onClick={() => setSquadCornerActiveTab('photos')}>
++                    Редактировать уголок
++                  </button>
++                  )}
++                </div>
++              )}
++              <SquadCabinetPanel
++                role={role || 'traveler'}
++                deviceId={deviceId || undefined}
++                accessToken={accessToken || undefined}
++                mySquadInfo={mySquadInfo}
++                onRefresh={loadMySquadInfo}
++                onAfterLeave={() => setSquadCornerActiveTab('squad')}
++                onShowHint={({ title, content }) => showHint({ title, content })}
++                onEditCorner={canEditSquadCorner ? ((t) => setSquadCornerActiveTab(t === 'planner' ? 'planner' : 'photos')) : undefined}
++              />
++            </div>
++          ) : isSpaceshipMode ? (
+             <SquadCornerDashboard
+               variant="cabin"
+               activeTab={squadCornerActiveTab}
+               onTabChange={setSquadCornerActiveTab}
+               onNavigateToBadge={onNavigateToBadge}
++              hasSquadMembership={hasSquadMembership}
++              mySquadName={mySquadInfo?.squad?.name || undefined}
++              canEditCorner={canEditSquadCorner}
++              onOpenCabinet={() => setSquadCornerActiveTab('squad')}
++              onOpenShiftsAndSquads={() => {
++                setActiveTab('active');
++                openCabinPanel(null, null);
++                setTimeout(() => document.getElementById('organizer-shifts-tab-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
++              }}
++              onPersistCorner={(payload: Partial<SquadCorner>) => persistSquadCorner(payload)}
++            />
++          ) : (
++            <SquadCornerDashboard
++              onNavigateToBadge={onNavigateToBadge}
++              hasSquadMembership={hasSquadMembership}
++              mySquadName={mySquadInfo?.squad?.name || undefined}
++              canEditCorner={canEditSquadCorner}
++              onOpenCabinet={() => setSquadCornerActiveTab('squad')}
++              onOpenShiftsAndSquads={() => {
++                setActiveTab('active');
++                openCabinPanel(null, null);
++                setTimeout(() => document.getElementById('organizer-shifts-tab-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
++              }}
++              onPersistCorner={(payload: Partial<SquadCorner>) => persistSquadCorner(payload)}
++            />
++          )
++        )
++      )}
++      {panelActiveView === 'squad-cabinet' && (
++        travelerMode ? (
++          <FeatureGate allowed={false} reason={travelerGateReason} ctaLabel="Разблокировать по коду" onCta={openUnlockByCode}>
++            <SquadCabinetPanel
++              role={role || 'traveler'}
++              deviceId={deviceId || undefined}
++              accessToken={accessToken || undefined}
++              mySquadInfo={mySquadInfo}
++              onRefresh={loadMySquadInfo}
++              onAfterLeave={() => {
++                setActiveTab('active');
++                openCabinPanel(null, null);
++              }}
++              onShowHint={({ title, content }) => showHint({ title, content })}
++              onEditCorner={(targetTab) => {
++                setActiveTab('active');
++                openCabinPanel('squad-corner', 'left');
++                if (targetTab === 'photos') setSquadCornerActiveTab('photos');
++                if (targetTab === 'planner') setSquadCornerActiveTab('planner');
++              }}
+             />
+-          ) : <SquadCornerDashboard onNavigateToBadge={onNavigateToBadge} />
++          </FeatureGate>
++        ) : (
++          <SquadCabinetPanel
++            role={role || 'traveler'}
++            deviceId={deviceId || undefined}
++            accessToken={accessToken || undefined}
++            mySquadInfo={mySquadInfo}
++            onRefresh={loadMySquadInfo}
++            onAfterLeave={() => {
++              setActiveTab('active');
++              openCabinPanel(null, null);
++            }}
++            onShowHint={({ title, content }) => showHint({ title, content })}
++            onEditCorner={(targetTab) => {
++              setActiveTab('active');
++              openCabinPanel('squad-corner', 'left');
++              if (targetTab === 'photos') setSquadCornerActiveTab('photos');
++              if (targetTab === 'planner') setSquadCornerActiveTab('planner');
++            }}
++          />
+         )
+       )}
+       {panelActiveView === 'real-diary' && (
+@@ -1913,7 +2292,14 @@ export const ProfileView: React.FC<any> = (props) => {
+                   <aside className="vozhatifikator-toc" aria-label="Оглавление">
+                     <div className="vozhatifikator-badge-block">
+                       {getBadgeImagePath('9.10', 'Вожатификатор', '9', undefined, undefined) && (
+-                        <img src={getBadgeImagePath('9.10', 'Вожатификатор', '9', undefined, undefined)!} alt="" className="vozhatifikator-badge-block__img" />
++                        <button
++                          type="button"
++                          className="vozhatifikator-badge-block__img-btn"
++                          onClick={() => onNavigateToBadge('9.10')}
++                          aria-label="Открыть значок Вожатификатор"
++                        >
++                          <img src={getBadgeImagePath('9.10', 'Вожатификатор', '9', undefined, undefined)!} alt="" className="vozhatifikator-badge-block__img" />
++                        </button>
+                       )}
+                       <a href="#" className="vozhatifikator-badge-block__link" onClick={(e) => { e.preventDefault(); onNavigateToBadge('9.10'); }}>Значок «Вожатификатор» в каталоге</a>
+                     </div>
+@@ -1955,10 +2341,20 @@ export const ProfileView: React.FC<any> = (props) => {
+                   <aside className="vozhatifikator-toc" aria-label="Информация о значке">
+                     <div className="vozhatifikator-badge-block">
+                       {getBadgeImagePath('9.10', 'Вожатификатор', '9', undefined, undefined) && (
+-                        <img src={getBadgeImagePath('9.10', 'Вожатификатор', '9', undefined, undefined)!} alt="" className="vozhatifikator-badge-block__img" />
++                        <button
++                          type="button"
++                          className="vozhatifikator-badge-block__img-btn"
++                          onClick={() => onNavigateToBadge('9.10')}
++                          aria-label="Открыть значок Вожатификатор"
++                        >
++                          <img src={getBadgeImagePath('9.10', 'Вожатификатор', '9', undefined, undefined)!} alt="" className="vozhatifikator-badge-block__img" />
++                        </button>
+                       )}
+                       <a href="#" className="vozhatifikator-badge-block__link" onClick={(e) => { e.preventDefault(); onNavigateToBadge('9.10'); }}>Значок «Вожатификатор» в каталоге</a>
+                     </div>
++                    <p className="profile-empty-state__text" style={{ margin: 0 }}>
++                      Путеводные огни: шкала вожатификации Андрея Горюнова. Отмечай выполненные пункты и смотри свой уровень.
++                    </p>
+                   </aside>
+                   <div className="vozhatifikator-viewer">
+                     <VozhatifikatorChecklist
+@@ -1975,7 +2371,14 @@ export const ProfileView: React.FC<any> = (props) => {
+             <aside className="vozhatifikator-toc" aria-label="Оглавление">
+               <div className="vozhatifikator-badge-block">
+                 {getBadgeImagePath('9.10', 'Вожатификатор', '9', undefined, undefined) && (
+-                  <img src={getBadgeImagePath('9.10', 'Вожатификатор', '9', undefined, undefined)!} alt="" className="vozhatifikator-badge-block__img" />
++                  <button
++                    type="button"
++                    className="vozhatifikator-badge-block__img-btn"
++                    onClick={() => onNavigateToBadge('9.10')}
++                    aria-label="Открыть значок Вожатификатор"
++                  >
++                    <img src={getBadgeImagePath('9.10', 'Вожатификатор', '9', undefined, undefined)!} alt="" className="vozhatifikator-badge-block__img" />
++                  </button>
+                 )}
+                 <a href="#" className="vozhatifikator-badge-block__link" onClick={(e) => { e.preventDefault(); onNavigateToBadge('9.10'); }}>Значок «Вожатификатор» в каталоге</a>
+                 <button type="button" className="vozhatifikator-badge-block__btn" onClick={() => setVozhatifikatorSubView('lights')}>Путеводные огни — анкета</button>
+@@ -2160,22 +2563,34 @@ export const ProfileView: React.FC<any> = (props) => {
+ 
+   const renderSquadCornerTabsNav = (className = 'profile-tabs-nav profile-tabs-nav--docked profile-tabs-nav--squad-corner') => (
+     <div className={className} role="tablist" aria-label="Разделы отрядного уголка">
+-      {squadCornerTabItems.map((t) => (
+-        <button
+-          key={t.id}
+-          id={`squad-corner-tab-${t.id}`}
+-          type="button"
+-          role="tab"
+-          aria-selected={squadCornerActiveTab === t.id}
+-          aria-controls="squad-corner-tabpanel"
+-          data-label={t.label}
+-          className={squadCornerActiveTab === t.id ? 'active' : ''}
+-          onClick={() => setSquadCornerActiveTab(t.id)}
+-        >
+-          <span className="profile-tabs-nav__icon" aria-hidden="true">{t.icon}</span>
+-          <span className="profile-tabs-nav__label">{t.label}</span>
+-        </button>
+-      ))}
++      {squadCornerTabItems.map((t) => {
++        const disabled = hasSquadMembership && !canEditSquadCorner && t.id !== 'squad';
++        return (
++          <button
++            key={t.id}
++            id={`squad-corner-tab-${t.id}`}
++            type="button"
++            role="tab"
++            aria-selected={squadCornerActiveTab === t.id}
++            aria-controls="squad-corner-tabpanel"
++            data-label={disabled ? `${t.label} (редактирует вожатый)` : t.label}
++            className={squadCornerActiveTab === t.id ? 'active' : ''}
++            disabled={disabled}
++            onMouseDown={(e) => {
++              if (disabled) return;
++              e.preventDefault();
++              setSquadCornerActiveTab(t.id);
++            }}
++            onClick={() => {
++              if (disabled) return;
++              setSquadCornerActiveTab(t.id);
++            }}
++          >
++            <span className="profile-tabs-nav__icon" aria-hidden="true">{t.icon}</span>
++            <span className="profile-tabs-nav__label">{t.label}</span>
++          </button>
++        );
++      })}
+     </div>
+   );
+ 
+@@ -2875,7 +3290,7 @@ export const ProfileView: React.FC<any> = (props) => {
+             </div>
+             <div className="profile-view-cabin-center-wrap">
+             <div
+-              className={`profile-view-cabin-center profile-view-cabin-center--offset ${panelActiveView === null ? 'profile-view-cabin-center--hub' : ''} ${panelActiveView === 'squad-corner' ? 'profile-view-cabin-center--squad-corner' : ''} ${panelActiveView === 'real-diary' ? 'profile-view-cabin-center--real-diary' : ''} ${panelActiveView === 'profile4k' ? 'profile-view-cabin-center--profile4k' : ''} ${panelActiveView === 'team' ? 'profile-view-cabin-center--team' : ''} ${panelActiveView === 'council' ? 'profile-view-cabin-center--council' : ''} ${panelActiveView === 'bro' ? 'profile-view-cabin-center--bro' : ''} ${panelActiveView === 'vozhatifikator' ? 'profile-view-cabin-center--vozhatifikator' : ''} ${panelActiveView === 'counselor-squad' ? 'profile-view-cabin-center--counselor-squad' : ''} ${panelActiveView === 'share' ? 'profile-view-cabin-center--share' : ''} ${panelActiveView === 'workshop' ? 'profile-view-cabin-center--workshop' : ''} ${panelActiveView === 'inspector' ? 'profile-view-cabin-center--inspector' : ''}`}
++              className={`profile-view-cabin-center profile-view-cabin-center--offset ${panelActiveView === null ? 'profile-view-cabin-center--hub' : ''} ${panelActiveView === 'squad-corner' ? 'profile-view-cabin-center--squad-corner' : ''} ${panelActiveView === 'squad-cabinet' ? 'profile-view-cabin-center--squad-cabinet' : ''} ${panelActiveView === 'real-diary' ? 'profile-view-cabin-center--real-diary' : ''} ${panelActiveView === 'profile4k' ? 'profile-view-cabin-center--profile4k' : ''} ${panelActiveView === 'team' ? 'profile-view-cabin-center--team' : ''} ${panelActiveView === 'council' ? 'profile-view-cabin-center--council' : ''} ${panelActiveView === 'bro' ? 'profile-view-cabin-center--bro' : ''} ${panelActiveView === 'vozhatifikator' ? 'profile-view-cabin-center--vozhatifikator' : ''} ${panelActiveView === 'counselor-squad' ? 'profile-view-cabin-center--counselor-squad' : ''} ${panelActiveView === 'share' ? 'profile-view-cabin-center--share' : ''} ${panelActiveView === 'workshop' ? 'profile-view-cabin-center--workshop' : ''} ${panelActiveView === 'inspector' ? 'profile-view-cabin-center--inspector' : ''}`}
+             >
+               {(panelActiveView === null || panelActiveView === 'squad-corner' || panelActiveView === 'real-diary' || panelActiveView === 'profile4k' || panelActiveView === 'team' || panelActiveView === 'council' || panelActiveView === 'bro' || panelActiveView === 'vozhatifikator' || panelActiveView === 'counselor-squad' || panelActiveView === 'share' || panelActiveView === 'workshop' || panelActiveView === 'inspector') && (
+                 <div className="profile-view-cabin-tabs-docked">
+@@ -2919,7 +3334,7 @@ export const ProfileView: React.FC<any> = (props) => {
+                 )}
+                 <div
+                   ref={centerScrollRef}
+-                  className={`profile-view-cabin-center-scroll profile-view-scroll-container profile-view-panel-scroll${panelActiveView === null && (activeTab === 'active' || activeTab === 'favorites') ? ' profile-view-cabin-center-scroll--locked' : ''}${panelActiveView === 'passport' ? ' profile-view-cabin-center-scroll--no-scroll' : ''}${panelActiveView === 'squad-corner' || panelActiveView === 'real-diary' || panelActiveView === 'profile4k' || panelActiveView === 'team' || panelActiveView === 'council' || panelActiveView === 'bro' || panelActiveView === 'vozhatifikator' || panelActiveView === 'counselor-squad' || panelActiveView === 'share' || panelActiveView === 'workshop' || panelActiveView === 'inspector' ? ' profile-view-cabin-center-scroll--content-fit' : ''}`}
++                  className={`profile-view-cabin-center-scroll profile-view-scroll-container profile-view-panel-scroll${panelActiveView === null && (activeTab === 'active' || activeTab === 'favorites') ? ' profile-view-cabin-center-scroll--locked' : ''}${panelActiveView === 'passport' ? ' profile-view-cabin-center-scroll--no-scroll' : ''}${panelActiveView === 'squad-corner' || panelActiveView === 'squad-cabinet' || panelActiveView === 'real-diary' || panelActiveView === 'profile4k' || panelActiveView === 'team' || panelActiveView === 'council' || panelActiveView === 'bro' || panelActiveView === 'vozhatifikator' || panelActiveView === 'counselor-squad' || panelActiveView === 'share' || panelActiveView === 'workshop' || panelActiveView === 'inspector' ? ' profile-view-cabin-center-scroll--content-fit' : ''}`}
+                   style={{ background: 'transparent' }}
+                 >
+                     {pendingApprovalsCount > 0 && !approvalsSyncPromptDismissed && canRequestApprovals && (
+@@ -2939,7 +3354,19 @@ export const ProfileView: React.FC<any> = (props) => {
+                     )}
+                     {panelActiveView ? (
+                       <div key={panelActiveView} className={`profile-view-cabin-content profile-view-cabin-content--from-${panelOrigin || 'left'}`}>
+-                        {panelActiveView !== 'passport' && panelActiveView !== 'squad-corner' && panelActiveView !== 'real-diary' && panelActiveView !== 'profile4k' && panelActiveView !== 'team' && panelActiveView !== 'council' && panelActiveView !== 'bro' && panelActiveView !== 'vozhatifikator' && panelActiveView !== 'counselor-squad' && panelActiveView !== 'share' && panelActiveView !== 'workshop' && panelActiveView !== 'inspector' && (
++                        {panelActiveView !== 'passport' &&
++                          panelActiveView !== 'squad-corner' &&
++                          panelActiveView !== 'squad-cabinet' &&
++                          panelActiveView !== 'real-diary' &&
++                          panelActiveView !== 'profile4k' &&
++                          panelActiveView !== 'team' &&
++                          panelActiveView !== 'council' &&
++                          panelActiveView !== 'bro' &&
++                          panelActiveView !== 'vozhatifikator' &&
++                          panelActiveView !== 'counselor-squad' &&
++                          panelActiveView !== 'share' &&
++                          panelActiveView !== 'workshop' &&
++                          panelActiveView !== 'inspector' && (
+                           <header className="profile-view-cabin-panel-header">
+                             <button type="button" className="profile-view-cabin-panel-header__back" onClick={() => { setActiveTab('active'); openCabinPanel(null, null); }} aria-label="В путь (стартовый экран)">
+                               В пути
+@@ -3165,7 +3592,7 @@ export const ProfileView: React.FC<any> = (props) => {
+           <div className={`profile-view-console${mobileConsoleExpanded ? ' profile-view-console--mobile-expanded' : ''}`} aria-label="Пульт навигации">
+             <div className="console-cluster console-cluster--left">
+               <div className="console-btn-wrap">
+-                <button type="button" className={`console-btn ${panelActiveView === 'squad-corner' ? 'console-btn--active' : ''}`} data-console-section="squad-corner" onClick={() => openCabinPanel('squad-corner', 'left')} title="Отрядный уголок">
++                <button type="button" className={`console-btn ${panelActiveView === 'squad-corner' ? 'console-btn--active' : ''}`} data-console-section="squad-corner" onClick={handleSquadCornerConsoleClick} title="Отрядный уголок">
+                   <img src={`${baseUrl}${encodeURI(CONSOLE_SECTION_IMAGES['squad-corner'])}`} alt="" className="console-btn-icon-img" />
+                   <span className="console-btn-bubble-label" aria-hidden>ОТРЯДНЫЙ УГОЛОК</span>
+                   <span className="console-btn-icon">🏕️</span>
+@@ -3175,6 +3602,27 @@ export const ProfileView: React.FC<any> = (props) => {
+                   <span style={{ width: `${squadCornerProgressPercent}%`, '--progress-value': `${squadCornerProgressPercent}%` } as React.CSSProperties} />
+                 </div>
+               </div>
++              <div className="console-btn-wrap">
++                <button
++                  type="button"
++                  className={`console-btn ${panelActiveView === 'squad-corner' && squadCornerActiveTab === 'squad' ? 'console-btn--active' : ''}`}
++                  data-console-section="squad-cabinet"
++                  onClick={() => {
++                    setSquadCornerReturnToOrganizer(false);
++                    setSquadCornerActiveTab('squad');
++                    openCabinPanel('squad-corner', 'left');
++                  }}
++                  title="Кабинет отряда"
++                >
++                  <img src={`${baseUrl}${encodeURI(CONSOLE_SECTION_IMAGES['squad-cabinet'])}`} alt="" className="console-btn-icon-img" />
++                  <span className="console-btn-bubble-label" aria-hidden>КАБИНЕТ ОТРЯДА</span>
++                  <span className="console-btn-icon">👥</span>
++                  <span className="console-btn-label">Кабинет отряда</span>
++                </button>
++                <div className="console-btn-meter console-btn-meter--vertical">
++                  <span style={{ width: `${squadCabinetProgressPercent}%`, '--progress-value': `${squadCabinetProgressPercent}%` } as React.CSSProperties} />
++                </div>
++              </div>
+               <div className="console-btn-wrap">
+                 <button type="button" className={`console-btn ${panelActiveView === 'real-diary' ? 'console-btn--active' : ''}`} data-console-section="real-diary" onClick={() => openCabinPanel('real-diary', 'left')} title="Реальный Дневник">
+                   <img src={`${baseUrl}${encodeURI(CONSOLE_SECTION_IMAGES['real-diary'])}`} alt="" className="console-btn-icon-img" />
+@@ -3270,6 +3718,7 @@ export const ProfileView: React.FC<any> = (props) => {
+                 {panelActiveView === 'profile4k' && '4К'}
+                 {panelActiveView === 'counselor-squad' && 'Отряд вожатых'}
+                 {panelActiveView === 'squad-corner' && 'Отрядный уголок'}
++                {panelActiveView === 'squad-cabinet' && 'Кабинет отряда'}
+                 {panelActiveView === 'real-diary' && 'Реальный Дневник'}
+                 {panelActiveView === 'team' && 'Движок'}
+                 {panelActiveView === 'council' && 'Совет Лагеря'}
+@@ -3710,8 +4159,38 @@ export const ProfileView: React.FC<any> = (props) => {
+         )}
+ 
+         {showOrganizerPanel && (
+-          <div id="organizer-shifts-section" className="profile-view-parents-section organizer-shifts-section">
++          <div id="organizer-shifts-tab-section" className="profile-view-parents-section organizer-shifts-section">
+             <h2 className="organizer-shifts-section__heading">Смены и отряды</h2>
++            <div className="organizer-empty-state organizer-empty-state--squads" style={{ marginBottom: 12 }}>
++              <p className="organizer-empty-state__title">Как открыть кабинет отряда</p>
++              <p className="organizer-empty-state__text">1. Создайте смену. 2. Добавьте отряд. 3. Вступите в отряд по коду/ссылке. 4. Перейдите в Отрядный уголок.</p>
++            </div>
++            <div style={{ padding: 10, borderRadius: 10, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', marginBottom: 12, fontSize: 12, lineHeight: 1.45 }}>
++              <strong>Мой отряд</strong>
++              {mySquadInfo?.membership ? (
++                <div style={{ marginTop: 6, display: 'grid', gap: 4 }}>
++                  <div>Смена: <strong>{mySquadInfo.shift?.name || mySquadInfo.membership.campId || '—'}</strong></div>
++                  <div>Отряд: <strong>{mySquadInfo.squad?.name || mySquadInfo.membership.squadId || '—'}</strong></div>
++                  <div style={{ marginTop: 6 }}>
++                    <button
++                      type="button"
++                      className="btn-secondary"
++                      style={{ padding: '8px 12px' }}
++                      onClick={() => {
++                        setSquadCornerReturnToOrganizer(false);
++                        setActiveTab('active');
++                        setSquadCornerActiveTab('squad');
++                        openCabinPanel('squad-corner', 'left');
++                      }}
++                    >
++                      Открыть кабинет
++                    </button>
++                  </div>
++                </div>
++              ) : (
++                <p style={{ margin: '6px 0 0', opacity: 0.85 }}>Вы пока не состоите в отряде. Вступите по коду ниже.</p>
++              )}
++            </div>
+             {organizerLoading && <p className="organizer-loading">Загрузка…</p>}
+             {organizerError && <div className="organizer-error">{organizerError}</div>}
+             {!organizerLoading && (
+@@ -3722,49 +4201,142 @@ export const ProfileView: React.FC<any> = (props) => {
+                       <div className="organizer-shift-card__header">
+                         <div>
+                           <h3 className="organizer-shift-card__title parents-section-block__heading">{shift.name}</h3>
+-                          <p className="organizer-shift-card__dates parents-section-block__text">{shift.startDate} — {shift.endDate}</p>
++                          <p className="organizer-shift-card__dates parents-section-block__text">
++                            {shift.startDate && shift.endDate ? `${shift.startDate} — ${shift.endDate}` : 'Даты не указаны'}
++                          </p>
++                        </div>
++                        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
++                          {canManageShiftsAndSquads && (
++                            <button
++                              type="button"
++                              className="btn-secondary"
++                              style={{ padding: '6px 12px' }}
++                              aria-label="Добавить отряд в смену"
++                              disabled={!canUseOrganizerApi || organizerLoading}
++                              onClick={() => {
++                                if (!canUseOrganizerApi) {
++                                  setOrganizerError('Для управления сменами войдите по коду (или используйте локальный режим разработчика).');
++                                  return;
++                                }
++                                setOrganizerSquadFormShiftId(shift.id);
++                                setOrganizerSquadFormName('');
++                                setOrganizerSquadFormOpen(true);
++                              }}
++                            >
++                              Добавить отряд
++                            </button>
++                          )}
++                          {canDeleteShiftsAndSquads && (shift.name || '').trim().toLowerCase() !== DEFAULT_SHIFT_NAME.toLowerCase() && (
++                            <button
++                              type="button"
++                              className="btn-secondary"
++                              style={{ padding: '6px 12px' }}
++                              aria-label="Удалить смену"
++                              onClick={() => void removeShiftWithCleanup(shift)}
++                            >
++                              Удалить смену
++                            </button>
++                          )}
+                         </div>
+-                        <button type="button" className="btn-secondary" style={{ padding: '6px 12px' }} aria-label="Добавить отряд в смену" onClick={() => { setOrganizerSquadFormShiftId(shift.id); setOrganizerSquadFormName(''); setOrganizerSquadFormOpen(true); }}>Добавить отряд</button>
+                       </div>
+                       {(organizerSquadsMap[shift.id] || []).length > 0 ? (
+                         <ul className="organizer-squads-list">
+                           {(organizerSquadsMap[shift.id] || []).map((s) => (
+-                            <li key={s.id}>{s.name}</li>
++                            <li key={s.id} className="organizer-squad-row" onClick={() => void openSquadFromOrganizer(s)}>
++                              <button type="button" className="organizer-squad-row__main" aria-label={`Открыть кабинет отряда ${s.name}`}>
++                                <span className="organizer-squad-row__avatar" aria-hidden>
++                                  {s.avatarUrl ? <img src={s.avatarUrl} alt="" /> : <span>🏕️</span>}
++                                </span>
++                                <span className="organizer-squad-row__name">{s.name}</span>
++                              </button>
++                              {canDeleteShiftsAndSquads && (
++                                <button
++                                  type="button"
++                                  className="btn-secondary organizer-squad-row__delete"
++                                  style={{ padding: '4px 10px' }}
++                                  onClick={(e) => {
++                                    e.stopPropagation();
++                                    void removeSquadWithCleanup(s.id);
++                                  }}
++                                >
++                                  Удалить отряд
++                                </button>
++                              )}
++                            </li>
+                           ))}
+                         </ul>
+                       ) : (
+                         <div className="organizer-empty-state organizer-empty-state--squads">
+                           <p className="organizer-empty-state__title">Пока нет отрядов</p>
+-                          <p className="organizer-empty-state__text">Добавьте первый отряд, чтобы участники могли выбирать его при входе по коду.</p>
++                          <p className="organizer-empty-state__text">Добавьте первый отряд, чтобы участники могли вступать по коду или ссылке.</p>
+                         </div>
+                       )}
+                     </div>
+                   ))}
+                   {organizerShifts.length === 0 && (
+                     <div className="organizer-empty-state">
+-                      {!accessToken ? (
++                      {!canUseOrganizerApi ? (
+                         <>
+                           <div className="organizer-empty-state__icon" aria-hidden>🔐</div>
+-                          <p className="organizer-empty-state__title">Вход для руководителя смены</p>
+-                          <p className="organizer-empty-state__text">Войдите через код верификации для управления сменами и отрядами.</p>
++                          <p className="organizer-empty-state__title">Доступ к управлению сменами</p>
++                          <p className="organizer-empty-state__text">Для управления сменами войдите по коду (или используйте локальный режим разработчика).</p>
+                         </>
+                       ) : (
+                         <>
+                           <div className="organizer-empty-state__icon" aria-hidden>📅</div>
+                           <p className="organizer-empty-state__title">Пока нет смен</p>
+-                          <p className="organizer-empty-state__text">Создайте первую смену, чтобы добавлять отряды и выдавать коды участникам и вожатым.</p>
+-                          <button type="button" className="btn-primary-gold" style={{ padding: '10px 20px' }} aria-label="Создать смену" onClick={() => { setOrganizerShiftForm({ name: '', startDate: '', endDate: '' }); setOrganizerShiftFormOpen(true); }}>Создать смену</button>
++                          <p className="organizer-empty-state__text">Создайте первую смену, чтобы добавлять отряды и выдавать коды.</p>
+                         </>
+                       )}
+                     </div>
+                   )}
+                 </div>
+-                {accessToken && (
+-                  <div className="organizer-shifts-actions">
+-                    <button type="button" className="btn-primary-gold" style={{ padding: '10px 20px' }} aria-label="Создать смену" onClick={() => { setOrganizerShiftForm({ name: '', startDate: '', endDate: '' }); setOrganizerShiftFormOpen(true); }}>Создать смену</button>
+-                    <button type="button" className="btn-secondary" style={{ padding: '10px 20px' }} aria-label="Обновить список смен и отрядов" disabled={organizerLoading} onClick={() => loadOrganizerData()}>Обновить</button>
+-                    <button type="button" className="btn-secondary" style={{ padding: '10px 20px' }} aria-label="Выдать код верификации" onClick={() => { setOrganizerCodeForm({ deviceId: deviceId || '', role: 'participant', shiftId: organizerShifts[0]?.id || '' }); setOrganizerCodeResult(null); setOrganizerCodeModalOpen(true); }}>Выдать код</button>
+-                  </div>
++                <div className="organizer-shifts-actions">
++                  {canManageShiftsAndSquads && (
++                    <button
++                      type="button"
++                      className="btn-primary-gold"
++                      style={{ padding: '10px 20px' }}
++                      aria-label="Создать смену"
++                      disabled={organizerLoading || !canUseOrganizerApi}
++                      onClick={() => {
++                        if (!canUseOrganizerApi) {
++                          setOrganizerError('Для управления сменами войдите по коду (или используйте локальный режим разработчика).');
++                          return;
++                        }
++                        setOrganizerShiftForm({ name: '', startDate: '', endDate: '' });
++                        setOrganizerShiftFormOpen(true);
++                      }}
++                    >
++                      Создать смену
++                    </button>
++                  )}
++                  <button type="button" className="btn-secondary" style={{ padding: '10px 20px' }} aria-label="Обновить список смен и отрядов" disabled={organizerLoading || !canUseOrganizerApi} onClick={() => void loadOrganizerData()}>Обновить</button>
++                  {canManageShiftsAndSquads && (
++                    <button
++                      type="button"
++                      className="btn-secondary"
++                      style={{ padding: '10px 20px' }}
++                      aria-label="Выдать код верификации"
++                      disabled={organizerLoading || !canUseOrganizerApi}
++                      onClick={() => {
++                        if (!canUseOrganizerApi) {
++                          setOrganizerError('Для управления сменами войдите по коду (или используйте локальный режим разработчика).');
++                          return;
++                        }
++                        setOrganizerCodeForm({ deviceId: deviceId || '', role: 'participant', shiftId: organizerShifts[0]?.id || '' });
++                        setOrganizerCodeResult(null);
++                        setOrganizerCodeModalOpen(true);
++                      }}
++                    >
++                      Выдать код
++                    </button>
++                  )}
++                </div>
++                {canManageShiftsAndSquads && !canUseOrganizerApi && (
++                  <p className="organizer-empty-state__text" style={{ marginTop: 8 }}>
++                    Если кнопка не срабатывает, проверьте вход по коду (или локальный режим разработчика).
++                  </p>
+                 )}
+               </>
+             )}
+@@ -3794,21 +4366,26 @@ export const ProfileView: React.FC<any> = (props) => {
+                   <label htmlFor="organizer-shift-end" style={{ fontSize: 12, opacity: 0.8 }}>Дата окончания</label>
+                   <input id="organizer-shift-end" type="date" value={organizerShiftForm.endDate} onChange={e => setOrganizerShiftForm(f => ({ ...f, endDate: e.target.value }))} style={{ display: 'block', width: '100%', padding: 8, borderRadius: 8, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.2)', color: '#fff' }} />
+                 </div>
+-                <button type="button" className="btn-primary-gold" aria-label="Создать смену" disabled={!organizerShiftForm.name.trim() || !organizerShiftForm.startDate || !organizerShiftForm.endDate || organizerLoading} onClick={async () => {
+-                  if (!accessToken) return;
++                <button type="button" className="btn-primary-gold" aria-label="Создать смену" disabled={!organizerShiftForm.name.trim() || organizerLoading || !canUseOrganizerApi} onClick={async () => {
++                  if (!canUseOrganizerApi) {
++                    setOrganizerError('Для управления сменами войдите по коду (или используйте локальный режим разработчика).');
++                    return;
++                  }
+                   setOrganizerLoading(true);
+                   setOrganizerError(null);
+                   try {
+                     const res = await fetch(`${organizerApiBase}/api/shifts`, {
+                       method: 'POST',
+-                      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
++                      headers: getOrganizerHeaders(true),
+                       body: JSON.stringify({ name: organizerShiftForm.name.trim(), startDate: organizerShiftForm.startDate, endDate: organizerShiftForm.endDate }),
+                     });
+-                    const data = await res.json().catch(() => ({}));
++                    const data = await res.json().catch(() => ({})) as { shift?: { id: string; name: string; startDate: string; endDate: string; createdAt: string; createdBy?: string }; error?: string };
+                     if (res.status === 401) { setOrganizerError('Сессия истекла. Войдите снова.'); fireOn401(); return; }
++                    if (res.status === 403) { setOrganizerError('Недостаточно прав для создания смены.'); return; }
+                     if (!res.ok) { setOrganizerError(data?.error || `Ошибка ${res.status}`); return; }
+-                    setOrganizerShifts(prev => [...prev, data]);
++                    if (data.shift) setOrganizerShifts(prev => [...prev, data.shift!]);
+                     setOrganizerShiftFormOpen(false);
++                    await loadOrganizerData();
+                   } finally {
+                     setOrganizerLoading(false);
+                   }
+@@ -3833,21 +4410,29 @@ export const ProfileView: React.FC<any> = (props) => {
+                   <label htmlFor="organizer-squad-name" style={{ fontSize: 12, opacity: 0.8 }}>Название отряда</label>
+                   <input id="organizer-squad-name" value={organizerSquadFormName} onChange={e => setOrganizerSquadFormName(e.target.value)} placeholder="Название отряда" style={{ display: 'block', width: '100%', padding: 8, borderRadius: 8, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.2)', color: '#fff' }} />
+                 </div>
+-                <button type="button" className="btn-primary-gold" aria-label="Добавить отряд" disabled={!organizerSquadFormName.trim() || organizerLoading} onClick={async () => {
+-                  if (!accessToken || !organizerSquadFormShiftId) return;
++                <button type="button" className="btn-primary-gold" aria-label="Добавить отряд" disabled={!organizerSquadFormName.trim() || organizerLoading || !canUseOrganizerApi} onClick={async () => {
++                  if (!organizerSquadFormShiftId) return;
++                  if (!canUseOrganizerApi) {
++                    setOrganizerError('Для управления сменами войдите по коду (или используйте локальный режим разработчика).');
++                    return;
++                  }
+                   setOrganizerLoading(true);
+                   setOrganizerError(null);
+                   try {
+                     const res = await fetch(`${organizerApiBase}/api/shifts/${organizerSquadFormShiftId}/squads`, {
+                       method: 'POST',
+-                      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
++                      headers: getOrganizerHeaders(true),
+                       body: JSON.stringify({ name: organizerSquadFormName.trim() }),
+                     });
+-                    const data = await res.json().catch(() => ({}));
++                    const data = await res.json().catch(() => ({})) as { squad?: { id: string; shiftId: string; name: string; createdAt: string; avatarUrl?: string | null }; error?: string };
+                     if (res.status === 401) { setOrganizerError('Сессия истекла. Войдите снова.'); fireOn401(); return; }
++                    if (res.status === 403) { setOrganizerError('Недостаточно прав для добавления отряда.'); return; }
+                     if (!res.ok) { setOrganizerError(data?.error || `Ошибка ${res.status}`); return; }
+-                    setOrganizerSquadsMap(prev => ({ ...prev, [organizerSquadFormShiftId]: [...(prev[organizerSquadFormShiftId] || []), data] }));
++                    if (data.squad) {
++                      setOrganizerSquadsMap(prev => ({ ...prev, [organizerSquadFormShiftId]: [...(prev[organizerSquadFormShiftId] || []), data.squad!] }));
++                    }
+                     setOrganizerSquadFormOpen(false);
++                    await loadOrganizerData();
+                   } finally {
+                     setOrganizerLoading(false);
+                   }
+@@ -3890,15 +4475,18 @@ export const ProfileView: React.FC<any> = (props) => {
+                     ))}
+                   </select>
+                 </div>
+-                <button type="button" className="btn-primary-gold" aria-label="Сгенерировать код верификации" disabled={!organizerCodeForm.deviceId.trim() || organizerLoading} onClick={async () => {
+-                  if (!accessToken) return;
++                <button type="button" className="btn-primary-gold" aria-label="Сгенерировать код верификации" disabled={!organizerCodeForm.deviceId.trim() || organizerLoading || !canUseOrganizerApi} onClick={async () => {
++                  if (!canUseOrganizerApi) {
++                    setOrganizerError('Для управления сменами войдите по коду (или используйте локальный режим разработчика).');
++                    return;
++                  }
+                   setOrganizerLoading(true);
+                   setOrganizerError(null);
+                   setOrganizerCodeResult(null);
+                   try {
+                     const res = await fetch(`${organizerApiBase}/api/organizer/generate-code`, {
+                       method: 'POST',
+-                      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
++                      headers: getOrganizerHeaders(true),
+                       body: JSON.stringify({ deviceId: organizerCodeForm.deviceId.trim(), role: organizerCodeForm.role, shiftId: organizerCodeForm.shiftId || undefined }),
+                     });
+                     const data = await res.json().catch(() => ({}));
+@@ -4547,21 +5135,48 @@ export const ProfileView: React.FC<any> = (props) => {
+                           <div style={{ fontSize: 12, lineHeight: 1.5 }}>
+                             <div>Смена: <strong>{mySquadInfo.shift?.name || mySquadInfo.membership.campId || '—'}</strong></div>
+                             <div>Отряд: <strong>{mySquadInfo.squad?.name || mySquadInfo.membership.squadId || '—'}</strong></div>
++                            <div style={{ marginTop: 8 }}>
++                              <button
++                                type="button"
++                                className="btn-secondary"
++                                style={{ padding: '8px 12px' }}
++                                onClick={() => {
++                                  setActiveTab('active');
++                                  openCabinPanel('squad-cabinet', 'left');
++                                }}
++                              >
++                                Открыть кабинет
++                              </button>
++                            </div>
+                           </div>
+                         ) : (
+                           <div style={{ fontSize: 12, opacity: 0.8, marginBottom: 8 }}>Вы пока не состоите в отряде.</div>
+                         )}
+-                        {(role === 'participant' || role === 'developer') && (
++                        {(role === 'participant' || role === 'counselor' || role === 'shift_leader' || role === 'developer') && (
++                          <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginTop: 8 }}>
++                            <input
++                              type="text"
++                              value={mySquadJoinCode}
++                              onChange={(e) => { setMySquadJoinCode(e.target.value.toUpperCase()); setMySquadJoinStatus(null); }}
++                              placeholder="Введите код приглашения"
++                              style={{ flex: 1, minWidth: 140, padding: '8px 10px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.2)', color: '#fff', fontSize: 13 }}
++                            />
++                            <button type="button" className="btn-primary-gold" style={{ padding: '8px 14px' }} disabled={mySquadJoinBusy} onClick={() => void joinMySquadByCode()}>
++                              {mySquadJoinBusy ? 'Вступаем...' : 'Вступить'}
++                            </button>
++                          </div>
++                        )}
++                        {showSandbox && role === 'developer' && (
+                           <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginTop: 8 }}>
+                             <input
+                               type="text"
+                               value={mySquadJoinId}
+                               onChange={(e) => { setMySquadJoinId(e.target.value); setMySquadJoinStatus(null); }}
+-                              placeholder="Введите squadId"
++                              placeholder="Dev fallback: squadId"
+                               style={{ flex: 1, minWidth: 140, padding: '8px 10px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.2)', color: '#fff', fontSize: 13 }}
+                             />
+-                            <button type="button" className="btn-primary-gold" style={{ padding: '8px 14px' }} disabled={mySquadJoinBusy} onClick={() => void joinMySquadById()}>
+-                              {mySquadJoinBusy ? 'Вступаем...' : 'Вступить'}
++                            <button type="button" className="btn-secondary" style={{ padding: '8px 14px' }} disabled={mySquadJoinBusy} onClick={() => void joinMySquadById()}>
++                              Вступить по squadId
+                             </button>
+                           </div>
+                         )}
+@@ -4826,7 +5441,7 @@ export const ProfileView: React.FC<any> = (props) => {
+                 <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid rgba(255,255,255,0.1)', display: 'grid', gap: 8 }}>
+                   <div style={{ fontSize: 12, fontWeight: 700, opacity: 0.9 }}>Dev login (localhost)</div>
+                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+-                    {(['participant', 'parent', 'counselor', 'shift_leader'] as UserRole[]).map((targetRole) => (
++                    {(['participant', 'parent', 'counselor', 'shift_leader', 'developer'] as UserRole[]).map((targetRole) => (
+                       <button
+                         key={targetRole}
+                         type="button"
+diff --git a/src/components/SquadCabinetPanel.tsx b/src/components/SquadCabinetPanel.tsx
+new file mode 100644
+index 0000000..0637b2b
+--- /dev/null
++++ b/src/components/SquadCabinetPanel.tsx
+@@ -0,0 +1,454 @@
++import React, { useCallback, useEffect, useMemo, useState } from 'react';
++import {
++  createSquadInviteCode,
++  fetchSquadCorner,
++  joinSquad,
++  kickSquadMember,
++  leaveSquad,
++  resolveSquadByInviteCode,
++  type SquadCorner,
++  type SquadMineResponse
++} from '../utils/badgeApprovalApi';
++import { SquadChat } from './SquadChat';
++
++interface SquadCabinetPanelProps {
++  role: string;
++  deviceId?: string;
++  accessToken?: string;
++  mySquadInfo: SquadMineResponse | null;
++  onRefresh: () => Promise<void> | void;
++  onAfterLeave?: () => void;
++  onShowHint?: (opts: { title: string; content: string }) => void;
++  onEditCorner?: (targetTab?: 'photos' | 'planner') => void;
++}
++
++export const SquadCabinetPanel: React.FC<SquadCabinetPanelProps> = ({
++  role,
++  deviceId,
++  accessToken,
++  mySquadInfo,
++  onRefresh,
++  onAfterLeave,
++  onShowHint,
++  onEditCorner
++}) => {
++  const [busy, setBusy] = useState(false);
++  const [status, setStatus] = useState<string | null>(null);
++  const [inviteCode, setInviteCode] = useState<string | null>(null);
++  const [inviteMeta, setInviteMeta] = useState<{ createdAt: string; expiresAt: string } | null>(null);
++  const [joinCode, setJoinCode] = useState('');
++  const [joinBusy, setJoinBusy] = useState(false);
++  const [cornerBusy, setCornerBusy] = useState(false);
++  const [cornerError, setCornerError] = useState<string | null>(null);
++  const [corner, setCorner] = useState<SquadCorner | null>(null);
++  const [photoZoomUrl, setPhotoZoomUrl] = useState<string | null>(null);
++  const [plannerOpen, setPlannerOpen] = useState(false);
++  const [plannerGridId, setPlannerGridId] = useState<'planGridA' | 'planGridB'>('planGridA');
++  const [plannerDay, setPlannerDay] = useState(1);
++
++  const squadId = (mySquadInfo?.membership?.squadId || '').trim();
++  const squadName = mySquadInfo?.squad?.name || mySquadInfo?.membership?.squadId || 'Отряд';
++  const shiftName = mySquadInfo?.shift?.name || mySquadInfo?.membership?.campId || 'Смена';
++  const canManage = role === 'counselor' || role === 'shift_leader' || role === 'developer';
++  const canEditCorner = role === 'counselor' || role === 'developer';
++
++  useEffect(() => {
++    if (!accessToken || !squadId) return;
++    let cancelled = false;
++    setCornerBusy(true);
++    setCornerError(null);
++    fetchSquadCorner(accessToken, squadId)
++      .then((data) => {
++        if (cancelled) return;
++        setCorner(data?.corner || {});
++      })
++      .catch((e) => {
++        if (cancelled) return;
++        setCornerError(e instanceof Error ? e.message : 'Не удалось загрузить инфо отряда.');
++        setCorner(null);
++      })
++      .finally(() => {
++        if (!cancelled) setCornerBusy(false);
++      });
++    return () => { cancelled = true; };
++  }, [accessToken, squadId]);
++
++  const cornerPhotos = useMemo(() => {
++    const c = corner || {};
++    const items: Array<{ key: string; label: string; url: string }> = [];
++    const push = (key: string, label: string, url?: string | null) => {
++      const u = (url || '').trim();
++      if (!u) return;
++      items.push({ key, label, url: u });
++    };
++    push('photoCorner', 'Уголок', c.photoCorner);
++    push('photoFlag', 'Флаг', c.photoFlag);
++    push('photoSquad', 'Отряд', c.photoSquad);
++    push('photoWithCounselors', 'С вожатыми', c.photoWithCounselors);
++    return items;
++  }, [corner]);
++
++  const countFilledDays = useCallback((grid?: SquadCorner['planGridA'] | null) => {
++    if (!grid || typeof grid !== 'object') return { filled: 0, total: 0 };
++    const shiftLength = (grid as any).shiftLength;
++    const days = (grid as any).days;
++    if ((shiftLength !== 9 && shiftLength !== 21) || typeof days !== 'object' || !days) return { filled: 0, total: 0 };
++    let filled = 0;
++    for (let d = 1; d <= shiftLength; d++) {
++      const x = (days as any)[String(d)] || {};
++      if ((x.morning || '').trim() && (x.quietHour || '').trim() && (x.day || '').trim() && (x.evening || '').trim() && (x.night || '').trim()) filled++;
++    }
++    return { filled, total: shiftLength };
++  }, []);
++
++  const members = useMemo(() => {
++    const fallback: Array<{ deviceId: string; nickname: string | null; role: string; joinedAt?: string }> = [];
++
++    if (mySquadInfo?.membership?.deviceId) {
++      fallback.push({
++        deviceId: mySquadInfo.membership.deviceId,
++        nickname: mySquadInfo.membership.nickname || null,
++        role: mySquadInfo.membership.role || 'participant',
++        joinedAt: mySquadInfo.membership.joinedAt
++      });
++    }
++
++    for (const p of mySquadInfo?.participants || []) {
++      if (!p?.deviceId) continue;
++      if (fallback.some((x) => x.deviceId === p.deviceId)) continue;
++      fallback.push({ deviceId: p.deviceId, nickname: p.nickname || null, role: 'participant', joinedAt: p.joinedAt });
++    }
++
++    return fallback;
++  }, [mySquadInfo]);
++
++  const inviteLink = useMemo(() => {
++    if (!squadId || typeof window === 'undefined') return '';
++    return `${window.location.origin}/?join_squad=${encodeURIComponent(squadId)}`;
++  }, [squadId]);
++
++  const copyText = async (value: string, okText: string) => {
++    if (!value) return;
++    try {
++      await navigator.clipboard.writeText(value);
++      setStatus(okText);
++    } catch {
++      setStatus('Не удалось скопировать в буфер обмена.');
++    }
++  };
++
++  const handleLeave = async () => {
++    if (!accessToken || !squadId || busy) return;
++    if (!window.confirm('Выйти из этого отряда?')) return;
++    setBusy(true);
++    setStatus(null);
++    try {
++      await leaveSquad(accessToken, squadId);
++      await onRefresh();
++      onAfterLeave?.();
++      setStatus('Вы вышли из отряда.');
++      onShowHint?.({ title: 'Готово', content: 'Вы вышли из отряда.' });
++    } catch (e) {
++      setStatus(e instanceof Error ? e.message : 'Не удалось выйти из отряда.');
++    } finally {
++      setBusy(false);
++    }
++  };
++
++  const handleKick = async (targetDeviceId: string) => {
++    if (!accessToken || !squadId || busy) return;
++    if (!targetDeviceId || targetDeviceId === deviceId) return;
++    if (!window.confirm('Исключить участника из отряда?')) return;
++    setBusy(true);
++    setStatus(null);
++    try {
++      await kickSquadMember(accessToken, squadId, targetDeviceId);
++      await onRefresh();
++      setStatus('Участник исключён.');
++    } catch (e) {
++      setStatus(e instanceof Error ? e.message : 'Не удалось исключить участника.');
++    } finally {
++      setBusy(false);
++    }
++  };
++
++  const handleCreateInviteCode = async () => {
++    if (!accessToken || !squadId || busy) return;
++    setBusy(true);
++    setStatus(null);
++    try {
++      const created = await createSquadInviteCode(accessToken, squadId);
++      setInviteCode(created.code);
++      setInviteMeta({ createdAt: created.createdAt, expiresAt: created.expiresAt });
++      setStatus('Код приглашения создан.');
++    } catch (e) {
++      setStatus(e instanceof Error ? e.message : 'Не удалось создать код приглашения.');
++    } finally {
++      setBusy(false);
++    }
++  };
++
++  const handleJoinByCode = async () => {
++    if (!accessToken || joinBusy) return;
++    const code = joinCode.trim().toUpperCase();
++    if (!code) {
++      setStatus('Введите код приглашения.');
++      return;
++    }
++    setJoinBusy(true);
++    setStatus(null);
++    try {
++      const preview = await resolveSquadByInviteCode(accessToken, code);
++      const confirmed = window.confirm(`Вступить в отряд ${preview.squadName ? `«${preview.squadName}»` : preview.squadId}?`);
++      if (!confirmed) return;
++      await joinSquad(accessToken, preview.squadId);
++      setJoinCode('');
++      await onRefresh();
++      setStatus('Вы вступили в отряд.');
++    } catch (e) {
++      setStatus(e instanceof Error ? e.message : 'Не удалось вступить в отряд по коду.');
++    } finally {
++      setJoinBusy(false);
++    }
++  };
++
++  if (!accessToken) {
++    return <div className="profile-empty-state__text">Войдите по коду, чтобы открыть кабинет отряда.</div>;
++  }
++
++  if (!squadId) {
++    return (
++      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
++        <div className="profile-empty-state__text">Вы пока не состоите в отряде.</div>
++        <div style={{ padding: 12, borderRadius: 12, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)' }}>
++          <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8 }}>Вступить по коду</div>
++          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
++            <input
++              type="text"
++              value={joinCode}
++              onChange={(e) => { setJoinCode(e.target.value.toUpperCase()); setStatus(null); }}
++              placeholder="Введите код приглашения"
++              style={{ flex: 1, minWidth: 180, padding: '8px 10px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.2)', color: '#fff', fontSize: 13 }}
++            />
++            <button type="button" className="btn-primary-gold" style={{ padding: '8px 14px' }} onClick={() => void handleJoinByCode()} disabled={joinBusy}>
++              {joinBusy ? 'Проверка...' : 'Вступить'}
++            </button>
++          </div>
++        </div>
++        {status && <div style={{ fontSize: 12, opacity: 0.9 }}>{status}</div>}
++      </div>
++    );
++  }
++
++  return (
++    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
++      <div style={{ padding: 12, borderRadius: 12, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)' }}>
++        <div style={{ fontSize: 15, fontWeight: 700 }}>{squadName}</div>
++        <div style={{ fontSize: 12, opacity: 0.8 }}>Смена: {shiftName}</div>
++      </div>
++
++      <div style={{ padding: 12, borderRadius: 12, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)' }}>
++        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', alignItems: 'center', marginBottom: 8 }}>
++          <div style={{ fontSize: 13, fontWeight: 700 }}>Инфо отряда</div>
++          {canEditCorner && onEditCorner && (
++            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
++              <button type="button" className="btn-secondary" style={{ padding: '6px 10px', fontSize: 12 }} onClick={() => onEditCorner('photos')}>
++                Редактировать фото
++              </button>
++              <button type="button" className="btn-secondary" style={{ padding: '6px 10px', fontSize: 12 }} onClick={() => onEditCorner('planner')}>
++                Редактировать планёрку
++              </button>
++            </div>
++          )}
++        </div>
++
++        {cornerBusy && <div style={{ fontSize: 12, opacity: 0.75 }}>Загрузка…</div>}
++        {cornerError && <div style={{ fontSize: 12, opacity: 0.9 }}>{cornerError}</div>}
++        {!cornerBusy && !cornerError && (
++          <>
++            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 12, lineHeight: 1.5, opacity: 0.92 }}>
++              <div><span style={{ opacity: 0.7 }}>Название:</span> <strong>{(corner?.name || squadName) || '—'}</strong></div>
++              <div><span style={{ opacity: 0.7 }}>Девиз:</span> {(corner?.motto || '—')}</div>
++              <div><span style={{ opacity: 0.7 }}>Кричалки:</span> {(corner?.chants || '—')}</div>
++              <div><span style={{ opacity: 0.7 }}>Приветствие:</span> {(corner?.greeting || '—')}</div>
++              <div><span style={{ opacity: 0.7 }}>Мемы:</span> {(corner?.memes || '—')}</div>
++            </div>
++
++            {cornerPhotos.length > 0 && (
++              <div style={{ marginTop: 10 }}>
++                <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 8, opacity: 0.9 }}>Фото</div>
++                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
++                  {cornerPhotos.map((p) => (
++                    <button
++                      key={p.key}
++                      type="button"
++                      onClick={() => setPhotoZoomUrl(p.url)}
++                      style={{ width: 92, height: 92, borderRadius: 12, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(0,0,0,0.25)', padding: 0, cursor: 'pointer' }}
++                      title={p.label}
++                      aria-label={`Открыть фото: ${p.label}`}
++                    >
++                      <img src={p.url} alt={p.label} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
++                    </button>
++                  ))}
++                </div>
++              </div>
++            )}
++
++            <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 8 }}>
++              <div style={{ fontSize: 12, fontWeight: 700, opacity: 0.9 }}>Планёрка</div>
++              {(() => {
++                const a = countFilledDays(corner?.planGridA);
++                const b = countFilledDays(corner?.planGridB);
++                const best = (a.filled + a.total) >= (b.filled + b.total) ? { id: 'planGridA' as const, ...a } : { id: 'planGridB' as const, ...b };
++                return (
++                  <>
++                    <div style={{ fontSize: 12, opacity: 0.85 }}>
++                      Сетка 1: {a.filled}/{a.total || '—'} · Сетка 2: {b.filled}/{b.total || '—'}
++                    </div>
++                    <button
++                      type="button"
++                      className="btn-secondary"
++                      style={{ padding: '8px 12px', alignSelf: 'flex-start' }}
++                      onClick={() => { setPlannerGridId(best.id); setPlannerDay(1); setPlannerOpen(true); }}
++                    >
++                      Открыть планёрку
++                    </button>
++                  </>
++                );
++              })()}
++            </div>
++          </>
++        )}
++      </div>
++
++      <div style={{ padding: 12, borderRadius: 12, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)' }}>
++        <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8 }}>Участники</div>
++        {members.length === 0 ? (
++          <div style={{ fontSize: 12, opacity: 0.8 }}>Список участников пока пуст.</div>
++        ) : (
++          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 180, overflowY: 'auto' }}>
++            {members.map((m) => (
++              <div key={m.deviceId} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
++                <div style={{ fontSize: 12 }}>
++                  {(m.nickname || 'Без ника')} · {m.role || 'participant'} · {m.deviceId}
++                </div>
++                {canManage && m.deviceId !== deviceId && (
++                  <button type="button" className="btn-secondary" style={{ padding: '6px 10px', fontSize: 12 }} onClick={() => void handleKick(m.deviceId)} disabled={busy}>
++                    Исключить
++                  </button>
++                )}
++              </div>
++            ))}
++          </div>
++        )}
++      </div>
++
++      <div style={{ padding: 12, borderRadius: 12, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)' }}>
++        <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8 }}>Пригласить в отряд</div>
++        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
++          <div style={{ fontSize: 12, opacity: 0.85, wordBreak: 'break-all' }}>{inviteLink}</div>
++          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
++            <button type="button" className="btn-secondary" style={{ padding: '6px 12px' }} onClick={() => void copyText(inviteLink, 'Ссылка скопирована.')}>
++              Копировать ссылку
++            </button>
++            {canManage && (
++              <button type="button" className="btn-secondary" style={{ padding: '6px 12px' }} onClick={() => void handleCreateInviteCode()} disabled={busy}>
++                Создать код приглашения
++              </button>
++            )}
++          </div>
++          {inviteCode && (
++            <div style={{ marginTop: 4 }}>
++              <div style={{ fontSize: 18, fontWeight: 800, letterSpacing: 1.4, fontFamily: 'monospace' }}>{inviteCode}</div>
++              <div style={{ fontSize: 11, opacity: 0.75 }}>
++                Действует до: {inviteMeta ? new Date(inviteMeta.expiresAt).toLocaleString('ru-RU') : '—'}
++              </div>
++              <button type="button" className="btn-secondary" style={{ padding: '6px 12px', marginTop: 6 }} onClick={() => void copyText(inviteCode, 'Код скопирован.')}>
++                Копировать код
++              </button>
++            </div>
++          )}
++        </div>
++      </div>
++
++      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
++        <button type="button" className="btn-secondary" style={{ padding: '8px 14px' }} onClick={() => void onRefresh()} disabled={busy}>
++          Обновить
++        </button>
++        <button type="button" className="btn-secondary" style={{ padding: '8px 14px' }} onClick={() => void handleLeave()} disabled={busy}>
++          Выйти из отряда
++        </button>
++      </div>
++
++      {status && <div style={{ fontSize: 12, opacity: 0.9 }}>{status}</div>}
++
++      <SquadChat squadId={squadId} accessToken={accessToken} />
++
++      {photoZoomUrl && (
++        <div
++          className="proof-modal-overlay"
++          onClick={() => setPhotoZoomUrl(null)}
++          style={{ zIndex: 10200, alignItems: 'center', justifyContent: 'center' }}
++        >
++          <div onClick={(e) => e.stopPropagation()} style={{ width: 'min(92vw, 900px)', maxHeight: '90vh', borderRadius: 16, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.18)', background: 'rgba(0,0,0,0.65)' }}>
++            <img src={photoZoomUrl} alt="" style={{ width: '100%', height: '100%', maxHeight: '90vh', objectFit: 'contain', display: 'block' }} />
++          </div>
++        </div>
++      )}
++
++      {plannerOpen && (
++        <div className="proof-modal-overlay" onClick={() => setPlannerOpen(false)} style={{ alignItems: 'center', justifyContent: 'center' }}>
++          <div className="proof-modal proof-modal--mobile-sheet proof-modal--wide fade-in" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()} style={{ width: 'min(92vw, 860px)' }}>
++            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, marginBottom: 10 }}>
++              <div style={{ fontSize: 14, fontWeight: 800 }}>Планёрка отряда</div>
++              <button type="button" className="btn-secondary" style={{ padding: '6px 10px' }} onClick={() => setPlannerOpen(false)}>Закрыть</button>
++            </div>
++            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
++              <button type="button" className="btn-secondary" style={{ padding: '6px 10px', opacity: plannerGridId === 'planGridA' ? 1 : 0.75 }} onClick={() => setPlannerGridId('planGridA')}>Сетка 1</button>
++              <button type="button" className="btn-secondary" style={{ padding: '6px 10px', opacity: plannerGridId === 'planGridB' ? 1 : 0.75 }} onClick={() => setPlannerGridId('planGridB')}>Сетка 2</button>
++            </div>
++            {(() => {
++              const grid = plannerGridId === 'planGridA' ? corner?.planGridA : corner?.planGridB;
++              const shiftLength = grid?.shiftLength || 21;
++              const dayKeys = Array.from({ length: shiftLength }, (_, i) => i + 1);
++              const day = (grid?.days || {})[String(plannerDay)] || {};
++              return (
++                <>
++                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
++                    {dayKeys.map((d) => (
++                      <button key={d} type="button" className="btn-secondary" style={{ padding: '6px 10px', opacity: plannerDay === d ? 1 : 0.75 }} onClick={() => setPlannerDay(d)}>
++                        День {d}
++                      </button>
++                    ))}
++                  </div>
++                  <div style={{ display: 'grid', gap: 8 }}>
++                    <div style={{ padding: 10, borderRadius: 12, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)' }}>
++                      <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 4 }}>Утро</div>
++                      <div style={{ fontSize: 12, opacity: 0.9, whiteSpace: 'pre-wrap' }}>{day.morning || '—'}</div>
++                    </div>
++                    <div style={{ padding: 10, borderRadius: 12, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)' }}>
++                      <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 4 }}>Тихий час</div>
++                      <div style={{ fontSize: 12, opacity: 0.9, whiteSpace: 'pre-wrap' }}>{day.quietHour || '—'}</div>
++                    </div>
++                    <div style={{ padding: 10, borderRadius: 12, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)' }}>
++                      <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 4 }}>День</div>
++                      <div style={{ fontSize: 12, opacity: 0.9, whiteSpace: 'pre-wrap' }}>{day.day || '—'}</div>
++                    </div>
++                    <div style={{ padding: 10, borderRadius: 12, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)' }}>
++                      <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 4 }}>Вечер</div>
++                      <div style={{ fontSize: 12, opacity: 0.9, whiteSpace: 'pre-wrap' }}>{day.evening || '—'}</div>
++                    </div>
++                    <div style={{ padding: 10, borderRadius: 12, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)' }}>
++                      <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 4 }}>Ночь</div>
++                      <div style={{ fontSize: 12, opacity: 0.9, whiteSpace: 'pre-wrap' }}>{day.night || '—'}</div>
++                    </div>
++                  </div>
++                </>
++              );
++            })()}
++          </div>
++        </div>
++      )}
++    </div>
++  );
++};
+diff --git a/src/components/SquadChat.tsx b/src/components/SquadChat.tsx
+new file mode 100644
+index 0000000..928e64b
+--- /dev/null
++++ b/src/components/SquadChat.tsx
+@@ -0,0 +1,135 @@
++import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
++import { fetchSquadMessages, postSquadMessage, type SquadMessage } from '../utils/badgeApprovalApi';
++
++interface SquadChatProps {
++  squadId: string;
++  accessToken: string;
++}
++
++export const SquadChat: React.FC<SquadChatProps> = ({ squadId, accessToken }) => {
++  const [messages, setMessages] = useState<SquadMessage[]>([]);
++  const [loading, setLoading] = useState(false);
++  const [sending, setSending] = useState(false);
++  const [error, setError] = useState<string | null>(null);
++  const [text, setText] = useState('');
++  const listRef = useRef<HTMLDivElement | null>(null);
++
++  const isNearBottom = useCallback(() => {
++    const node = listRef.current;
++    if (!node) return true;
++    return node.scrollHeight - node.scrollTop - node.clientHeight < 64;
++  }, []);
++
++  const scrollToBottom = useCallback(() => {
++    const node = listRef.current;
++    if (!node) return;
++    node.scrollTop = node.scrollHeight;
++  }, []);
++
++  const loadMessages = useCallback(async () => {
++    setLoading(true);
++    setError(null);
++    try {
++      const stickToBottom = isNearBottom();
++      const data = await fetchSquadMessages(accessToken, squadId, { limit: 50 });
++      setMessages(data.messages || []);
++      if (stickToBottom) {
++        requestAnimationFrame(scrollToBottom);
++      }
++    } catch (e) {
++      setError(e instanceof Error ? e.message : 'Не удалось загрузить сообщения.');
++    } finally {
++      setLoading(false);
++    }
++  }, [accessToken, isNearBottom, scrollToBottom, squadId]);
++
++  useEffect(() => {
++    void loadMessages();
++  }, [loadMessages]);
++
++  useEffect(() => {
++    const timer = window.setInterval(() => {
++      void loadMessages();
++    }, 10000);
++    return () => window.clearInterval(timer);
++  }, [loadMessages]);
++
++  useEffect(() => {
++    const onFocus = () => {
++      void loadMessages();
++    };
++    window.addEventListener('focus', onFocus);
++    return () => window.removeEventListener('focus', onFocus);
++  }, [loadMessages]);
++
++  const sendMessage = useCallback(async () => {
++    const clean = text.trim();
++    if (!clean || sending) return;
++    setSending(true);
++    setError(null);
++    try {
++      const created = await postSquadMessage(accessToken, squadId, clean);
++      setMessages((prev) => [...prev, created.message]);
++      setText('');
++      requestAnimationFrame(scrollToBottom);
++    } catch (e) {
++      setError(e instanceof Error ? e.message : 'Не удалось отправить сообщение.');
++    } finally {
++      setSending(false);
++    }
++  }, [accessToken, sending, scrollToBottom, squadId, text]);
++
++  const canSend = useMemo(() => text.trim().length > 0 && !sending, [sending, text]);
++
++  return (
++    <div style={{ padding: 12, borderRadius: 12, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)' }}>
++      <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8 }}>Чат отряда</div>
++      {error && <div className="profile-error profile-error--not-found" style={{ marginBottom: 8 }}>{error}</div>}
++      <div
++        ref={listRef}
++        style={{
++          maxHeight: 240,
++          minHeight: 120,
++          overflowY: 'auto',
++          borderRadius: 10,
++          padding: 8,
++          background: 'rgba(0,0,0,0.2)',
++          border: '1px solid rgba(255,255,255,0.06)',
++          marginBottom: 8
++        }}
++      >
++        {loading && messages.length === 0 ? (
++          <div style={{ fontSize: 12, opacity: 0.8 }}>Загрузка сообщений...</div>
++        ) : messages.length === 0 ? (
++          <div style={{ fontSize: 12, opacity: 0.8 }}>Сообщений пока нет.</div>
++        ) : (
++          messages.map((m) => (
++            <div key={m.id} style={{ marginBottom: 8, fontSize: 12, lineHeight: 1.35 }}>
++              <div style={{ opacity: 0.75 }}>
++                {(m.nickname || m.deviceId || 'Участник')} {m.role ? `· ${m.role}` : ''} · {new Date(m.createdAt).toLocaleString('ru-RU')}
++              </div>
++              <div style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{m.text}</div>
++            </div>
++          ))
++        )}
++      </div>
++      <div style={{ display: 'flex', gap: 8 }}>
++        <textarea
++          className="w-input"
++          style={{ width: '100%', minHeight: 70 }}
++          placeholder="Напишите сообщение..."
++          value={text}
++          onChange={(e) => setText(e.target.value)}
++          maxLength={2000}
++        />
++      </div>
++      <div style={{ marginTop: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
++        <span style={{ fontSize: 11, opacity: 0.7 }}>{text.trim().length}/2000</span>
++        <button type="button" className="btn-primary-gold" style={{ padding: '8px 14px' }} onClick={() => void sendMessage()} disabled={!canSend}>
++          {sending ? 'Отправка...' : 'Отправить'}
++        </button>
++      </div>
++    </div>
++  );
++};
++

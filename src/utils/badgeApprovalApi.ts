@@ -43,6 +43,7 @@ export interface SquadMeta {
   shiftId: string;
   name: string;
   createdAt?: string;
+  avatarUrl?: string | null;
 }
 
 export interface ShiftMeta {
@@ -58,6 +59,68 @@ export interface SquadMineResponse {
   squad: SquadMeta | null;
   shift: ShiftMeta | null;
   participants: Array<{ deviceId: string; nickname?: string | null; joinedAt?: string }>;
+  members?: Array<{ deviceId: string; nickname?: string | null; role: string; joinedAt?: string }>;
+}
+
+export type SquadCornerPlanGrid = {
+  shiftLength: 9 | 21;
+  days: Record<
+    string,
+    { morning?: string; quietHour?: string; day?: string; evening?: string; night?: string }
+  >;
+};
+
+export interface SquadCorner {
+  name?: string;
+  motto?: string;
+  chants?: string;
+  greeting?: string;
+  memes?: string;
+  photoCorner?: string;
+  photoFlag?: string;
+  photoSquad?: string;
+  photoWithCounselors?: string;
+  planGridA?: SquadCornerPlanGrid | null;
+  planGridB?: SquadCornerPlanGrid | null;
+  updatedAt?: string;
+  updatedBy?: string;
+}
+
+export interface SquadCornerResponse {
+  squadId: string;
+  corner: SquadCorner | null;
+  updatedAt?: string;
+}
+
+export interface SquadInviteCodeResponse {
+  squadId: string;
+  code: string;
+  createdAt: string;
+  expiresAt: string;
+}
+
+export interface SquadInviteResolveResponse {
+  squadId: string;
+  squadName?: string | null;
+  shiftId?: string | null;
+  shiftName?: string | null;
+}
+
+export interface SquadPreviewResponse {
+  squadId: string;
+  squadName?: string | null;
+  shiftId?: string | null;
+  shiftName?: string | null;
+}
+
+export interface SquadMessage {
+  id: string;
+  squadId: string;
+  createdAt: string;
+  deviceId?: string | null;
+  nickname?: string | null;
+  role?: string | null;
+  text: string;
 }
 
 function getApiBase(): string {
@@ -67,13 +130,27 @@ function getApiBase(): string {
   return useLocal ? '' : (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
 }
 
+export class ApiError extends Error {
+  status: number;
+  reason?: string;
+  data: Record<string, unknown>;
+
+  constructor(message: string, status: number, data: Record<string, unknown>) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+    this.reason = typeof data.reason === 'string' ? data.reason : undefined;
+    this.data = data;
+  }
+}
+
 async function requestJson<T>(path: string, options: RequestInit = {}): Promise<T> {
   const base = getApiBase();
   const res = await fetch(`${base}${path}`, options);
-  const data = await res.json().catch(() => ({}));
+  const data = await res.json().catch(() => ({})) as Record<string, unknown>;
   if (!res.ok) {
-    const message = (data && (data.error as string)) || `Request failed: ${res.status}`;
-    throw new Error(message);
+    const message = (typeof data.error === 'string' && data.error) || `Request failed: ${res.status}`;
+    throw new ApiError(message, res.status, data);
   }
   return data as T;
 }
@@ -140,7 +217,7 @@ export async function loadMyApprovals(accessToken: string): Promise<BadgeApprova
 export async function joinSquad(
   accessToken: string,
   squadId: string,
-  payload?: { nickname?: string; role?: 'participant' | 'counselor' }
+  payload?: { nickname?: string; role?: 'participant' | 'counselor' | 'shift_leader' }
 ): Promise<{ membership: SquadMembership; squad: SquadMeta }> {
   return requestJson<{ membership: SquadMembership; squad: SquadMeta }>(`/api/squads/${encodeURIComponent(squadId)}/join`, {
     method: 'POST',
@@ -151,6 +228,104 @@ export async function joinSquad(
 
 export async function loadMySquad(accessToken: string): Promise<SquadMineResponse> {
   return requestJson<SquadMineResponse>('/api/squads/mine', {
+    headers: { Authorization: `Bearer ${accessToken}` }
+  });
+}
+
+export async function fetchSquadCorner(accessToken: string, squadId: string): Promise<SquadCornerResponse> {
+  return requestJson<SquadCornerResponse>(`/api/squads/${encodeURIComponent(squadId)}/corner`, {
+    headers: { Authorization: `Bearer ${accessToken}` }
+  });
+}
+
+export async function patchSquadCorner(
+  accessToken: string,
+  squadId: string,
+  payload: Partial<SquadCorner>
+): Promise<SquadCornerResponse> {
+  return requestJson<SquadCornerResponse>(`/api/squads/${encodeURIComponent(squadId)}/corner`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+    body: JSON.stringify(payload || {})
+  });
+}
+
+export async function createSquadInviteCode(accessToken: string, squadId: string): Promise<SquadInviteCodeResponse> {
+  return requestJson<SquadInviteCodeResponse>(`/api/squads/${encodeURIComponent(squadId)}/invite-code`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+    body: JSON.stringify({})
+  });
+}
+
+export async function resolveSquadByInviteCode(accessToken: string, code: string): Promise<SquadInviteResolveResponse> {
+  const params = new URLSearchParams({ code });
+  return requestJson<SquadInviteResolveResponse>(`/api/squads/by-invite-code?${params.toString()}`, {
+    headers: { Authorization: `Bearer ${accessToken}` }
+  });
+}
+
+export async function fetchSquadPreview(accessToken: string, squadId: string): Promise<SquadPreviewResponse> {
+  return requestJson<SquadPreviewResponse>(`/api/squads/${encodeURIComponent(squadId)}/preview`, {
+    headers: { Authorization: `Bearer ${accessToken}` }
+  });
+}
+
+export async function kickSquadMember(accessToken: string, squadId: string, targetDeviceId: string): Promise<void> {
+  await requestJson<{ squadId: string }>(`/api/squads/${encodeURIComponent(squadId)}/members/${encodeURIComponent(targetDeviceId)}`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${accessToken}` }
+  });
+}
+
+export async function leaveSquad(
+  accessToken: string,
+  squadId: string
+): Promise<{ status: string; squadId: string; membership: null }> {
+  return requestJson<{ status: string; squadId: string; membership: null }>(`/api/squads/${encodeURIComponent(squadId)}/leave`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+    body: JSON.stringify({})
+  });
+}
+
+export async function fetchSquadMessages(
+  accessToken: string,
+  squadId: string,
+  opts?: { limit?: number; before?: string }
+): Promise<{ squadId: string; messages: SquadMessage[]; hasMore?: boolean }> {
+  const params = new URLSearchParams();
+  if (typeof opts?.limit === 'number') params.set('limit', String(opts.limit));
+  if (opts?.before) params.set('before', opts.before);
+  const suffix = params.toString() ? `?${params.toString()}` : '';
+  return requestJson<{ squadId: string; messages: SquadMessage[]; hasMore?: boolean }>(`/api/squads/${encodeURIComponent(squadId)}/messages${suffix}`, {
+    headers: { Authorization: `Bearer ${accessToken}` }
+  });
+}
+
+export async function postSquadMessage(
+  accessToken: string,
+  squadId: string,
+  text: string
+): Promise<{ squadId: string; message: SquadMessage }> {
+  const created = await requestJson<{ squadId?: string; message: SquadMessage }>(`/api/squads/${encodeURIComponent(squadId)}/messages`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+    body: JSON.stringify({ text })
+  });
+  return { squadId: created.squadId || squadId, message: created.message };
+}
+
+export async function deleteShift(accessToken: string, shiftId: string): Promise<{ ok: true; deleted: Record<string, number> }> {
+  return requestJson<{ ok: true; deleted: Record<string, number> }>(`/api/shifts/${encodeURIComponent(shiftId)}`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${accessToken}` }
+  });
+}
+
+export async function deleteSquad(accessToken: string, squadId: string): Promise<{ ok: true; deleted: Record<string, number> }> {
+  return requestJson<{ ok: true; deleted: Record<string, number> }>(`/api/squads/${encodeURIComponent(squadId)}`, {
+    method: 'DELETE',
     headers: { Authorization: `Bearer ${accessToken}` }
   });
 }

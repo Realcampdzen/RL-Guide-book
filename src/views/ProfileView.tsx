@@ -1,5 +1,6 @@
-import React, { Suspense, useEffect, useMemo, useRef, useState, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import React, { Suspense, useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import fitty, { type FittyInstance } from 'fitty';
 import BadgeIcon from '../components/BadgeIcon';
 import { useUserProgress } from '../hooks/useUserProgress';
@@ -19,6 +20,7 @@ import { Profile4KDashboard, type Profile4KTabId } from '../components/Profile4K
 import { TeamDashboard, type TeamTabId } from '../components/TeamDashboard';
 import { RealDiaryDashboard, type RealDiaryTabId } from '../components/RealDiaryDashboard';
 import { SquadCornerDashboard } from '../components/SquadCornerDashboard';
+import { SquadCabinetPanel } from '../components/SquadCabinetPanel';
 import { ConfirmModal } from '../components/ConfirmModal';
 import { CounselorSquadDashboard, type CounselorSquadTabId } from '../components/CounselorSquadDashboard';
 import { CouncilDashboard, type CouncilTabId } from '../components/CouncilDashboard';
@@ -27,6 +29,7 @@ import { WingDashboard } from '../components/WingDashboard';
 import { SquadArchitect } from '../components/SquadArchitect';
 import { generateSocialCard, shareOrDownloadSocialCard, type SocialCardResult } from '../utils/socialGenerator';
 import { fetchAiSlogan, fetchPedagogy4k, fetchVibeCheck, fetchBadgePlan, structureUserPlan, checkPlanApiAvailable, fetchCouncilInitiative } from '../utils/aiService';
+import { InspectorMonitorCurve } from '../components/InspectorMonitorCurve';
 import { CampProgramByDays } from '../components/CampProgramByDays';
 import { VozhatifikatorChecklist } from '../components/VozhatifikatorChecklist';
 import { ImageSourceBlock } from '../components/ImageSourceBlock';
@@ -36,7 +39,23 @@ import { requestImageGenerate } from '../utils/imageGenerateApi';
 import { parseMarkdownToc, markdownToHtmlWithHeadingIds } from '../utils/markdown';
 import { getBadgeImagePath } from '../utils/badgeImages';
 import { pluralizeRu } from '../utils/textFormatting';
-import { approveBadgeRequest, joinSquad, loadBadgeRequestsInbox, loadMyApprovals, loadMyBadgeRequests, loadMySquad, rejectBadgeRequest, type BadgeApprovalItem, type BadgeRequestItem, type SquadMineResponse } from '../utils/badgeApprovalApi';
+import {
+  ApiError,
+  approveBadgeRequest,
+  fetchSquadCorner,
+  joinSquad,
+  loadBadgeRequestsInbox,
+  loadMyApprovals,
+  loadMyBadgeRequests,
+  loadMySquad,
+  patchSquadCorner,
+  rejectBadgeRequest,
+  resolveSquadByInviteCode,
+  type BadgeApprovalItem,
+  type BadgeRequestItem,
+  type SquadCorner,
+  type SquadMineResponse
+} from '../utils/badgeApprovalApi';
 import { VOZHATIFIKATOR_CHECKLIST_ITEMS } from '../data/vozhatifikatorChecklist';
 import { QRCodeSVG } from 'qrcode.react';
 import '../styles/profile-view.css';
@@ -78,13 +97,14 @@ const ChatAvatar = React.lazy(loadChatAvatar);
 const VOZHATIFIKATOR_DOCX_FILE = 'VZhTFKTR.docx';
 const VOZHATIFIKATOR_DOCX_URL = '/' + VOZHATIFIKATOR_DOCX_FILE;
 
-type Tab = 'active' | 'favorites' | 'collection' | 'journal' | 'workshop';
+type Tab = 'active' | 'favorites' | 'collection' | 'journal' | 'workshop' | 'squads';
 type SquadCornerTabId = 'squad' | 'photos' | 'planner' | 'flag-badges';
 type BroTabId = 'initiation' | 'wing';
 type ShareTabId = 'create-card' | 'invite';
 type WorkshopTabId = 'architect' | 'forge' | 'ideas' | 'my';
 
-type PanelViewId = 'passport' | 'inspector' | 'profile4k' | 'counselor-squad' | 'wing' | 'squad-corner' | 'real-diary' | 'team' | 'council' | 'bro' | 'workshop' | 'share' | 'vozhatifikator' | 'parents';
+type PanelViewId = 'passport' | 'inspector' | 'profile4k' | 'counselor-squad' | 'wing' | 'squad-corner' | 'squad-cabinet' | 'real-diary' | 'team' | 'council' | 'bro' | 'workshop' | 'share' | 'vozhatifikator' | 'parents';
+const DEFAULT_SHIFT_NAME = 'Реальный Лагерь 2026';
 
 const PROFILE_AUTO_FIT_SELECTOR = [
   '.profile-autofit',
@@ -137,14 +157,15 @@ const PROFILE_AUTO_FIT_SELECTOR = [
 
 export const ProfileView: React.FC<any> = (props) => {
   const { onBack, onNavigateToBadge, badges, ensureBadgeLoaded, addCustomBadge, restoreCustomBadges, removeCustomBadge, customBadges = [], communityBadges = [], communityPendingCount = 0, communitySyncing = false, communityLikedIds = new Set<string>(), toggleCommunityLike, publishBadgeToCommunity, setCustomBadgeImage, onChatToggle, onChatClose, isChatOpen, lastUpdated, onNavigateToRegistrationForm, onNavigateHome, onNavigateCategories, onNavigateAboutCamp, onTelegramContact, onOpenVk } = props;
-  const { userData, setNickname, setAvatar, setProfileStatus, setProfileBio, toggleFavorite, removeRoute, exportData, importData, resetProgress, applyApprovedLevel, getLevelProgress, markRankUpSeen, completeTutorial, isLoading, updateLevelEvidence, updateLevelStatus, saveBadgePlan, updateBadgePlanStatus, updateVozhatifikatorChecklist, setPathFavToast } = useUserProgress();
+  const { userData, setNickname, setAvatar, setProfileStatus, setProfileBio, toggleFavorite, removeRoute, exportData, importData, resetProgress, applyApprovedLevel, getLevelProgress, markRankUpSeen, completeTutorial, isLoading, updateLevelEvidence, updateLevelStatus, saveBadgePlan, updateBadgePlanStatus, updateVozhatifikatorChecklist, updateDiarySquad, setPathFavToast } = useUserProgress();
   const { myTeam, generateInviteUrl } = useTeam();
   const { myCreatedSquad, myJoinedSquad, createSquad, deleteSquad, getInviteCode, getInviteLink, joinByCode, leaveSquad } = useCounselorSquad();
-  const { canUseChat, role, deviceId, setAuth, accessToken } = useAuth();
+  const { canUseChat, role, deviceId, setAuth, accessToken, campId } = useAuth();
   const seeOtradBlocks = canSeeOtradBlocks(role);
   const showEventsForRole = showEventsPanelForRole(role);
   const canCreateSquad = canCreateCounselorSquad(role);
-  const showOrganizerPanel = canCreateShiftsAndSquads(role);
+  const canManageShiftsAndSquads = canCreateShiftsAndSquads(role);
+  const showOrganizerPanel = true;
   const travelerMode = isTraveler(role);
   const expensiveActionsAllowed = canUseExpensiveActions(role);
   const canRequestApprovals = canRequestBadgeApproval(role);
@@ -255,6 +276,7 @@ export const ProfileView: React.FC<any> = (props) => {
   const [mySquadBusy, setMySquadBusy] = useState(false);
   const [mySquadError, setMySquadError] = useState<string | null>(null);
   const [mySquadInfo, setMySquadInfo] = useState<SquadMineResponse | null>(null);
+  const [mySquadJoinCode, setMySquadJoinCode] = useState('');
   const [mySquadJoinId, setMySquadJoinId] = useState('');
   const [mySquadJoinBusy, setMySquadJoinBusy] = useState(false);
   const [mySquadJoinStatus, setMySquadJoinStatus] = useState<string | null>(null);
@@ -262,7 +284,7 @@ export const ProfileView: React.FC<any> = (props) => {
   const [devLoginError, setDevLoginError] = useState<string | null>(null);
 
   const [organizerShifts, setOrganizerShifts] = useState<Array<{ id: string; name: string; startDate: string; endDate: string; createdAt: string; createdBy?: string }>>([]);
-  const [organizerSquadsMap, setOrganizerSquadsMap] = useState<Record<string, Array<{ id: string; shiftId: string; name: string; createdAt: string }>>>({});
+  const [organizerSquadsMap, setOrganizerSquadsMap] = useState<Record<string, Array<{ id: string; shiftId: string; name: string; createdAt: string; avatarUrl?: string | null }>>>({});
   const [organizerShiftFormOpen, setOrganizerShiftFormOpen] = useState(false);
   const [organizerShiftForm, setOrganizerShiftForm] = useState({ name: '', startDate: '', endDate: '' });
   const [organizerSquadFormOpen, setOrganizerSquadFormOpen] = useState(false);
@@ -273,6 +295,7 @@ export const ProfileView: React.FC<any> = (props) => {
   const [organizerCodeResult, setOrganizerCodeResult] = useState<string | null>(null);
   const [organizerLoading, setOrganizerLoading] = useState(false);
   const [organizerError, setOrganizerError] = useState<string | null>(null);
+  const [squadCornerReturnToOrganizer, setSquadCornerReturnToOrganizer] = useState(false);
 
   const organizerApiBase = useMemo(() => {
     if (typeof window === 'undefined') return '';
@@ -280,68 +303,85 @@ export const ProfileView: React.FC<any> = (props) => {
     const useLocal = import.meta.env.DEV || hostname === 'localhost' || hostname === '127.0.0.1';
     return useLocal ? '' : (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
   }, []);
+  const canUseOrganizerApi = canManageShiftsAndSquads && (Boolean(accessToken) || (organizerApiBase === '' && role === 'developer'));
+
+  const getOrganizerHeaders = useCallback((withJson = false): Record<string, string> => {
+    const headers: Record<string, string> = {};
+    if (withJson) headers['Content-Type'] = 'application/json';
+    if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
+    return headers;
+  }, [accessToken]);
 
   const loadOrganizerData = useCallback(async () => {
-    if (!accessToken) return;
+    if (!canManageShiftsAndSquads) {
+      setOrganizerShifts([]);
+      setOrganizerSquadsMap({});
+      setOrganizerError(null);
+      return;
+    }
+    if (!canUseOrganizerApi) {
+      setOrganizerShifts([]);
+      setOrganizerSquadsMap({});
+      setOrganizerError('Для управления сменами войдите по коду (или используйте локальный режим разработчика).');
+      return;
+    }
     setOrganizerLoading(true);
     setOrganizerError(null);
     try {
-      const res = await fetch(`${organizerApiBase}/api/shifts`, { headers: { Authorization: `Bearer ${accessToken}` } });
+      const res = await fetch(`${organizerApiBase}/api/shifts`, { headers: getOrganizerHeaders() });
       if (res.status === 401) {
+        setOrganizerError('Сессия истекла. Войдите снова.');
         fireOn401();
         return;
       }
+      if (res.status === 403) {
+        setOrganizerError('Недостаточно прав для управления сменами и отрядами.');
+        return;
+      }
       if (!res.ok) {
-        setOrganizerError(`Ошибка ${res.status}`);
+        const data = await res.json().catch(() => ({})) as { error?: string };
+        setOrganizerError(data.error || `Ошибка ${res.status}`);
         return;
       }
       const data = await res.json().catch(() => ({})) as { shifts?: Array<{ id: string; name: string; startDate: string; endDate: string; createdAt: string; createdBy?: string }> };
-      const shifts = data.shifts || [];
+      const shifts = [...(data.shifts || [])];
+      shifts.sort((a, b) => {
+        const aDefault = (a.name || '').trim().toLowerCase() === DEFAULT_SHIFT_NAME.toLowerCase();
+        const bDefault = (b.name || '').trim().toLowerCase() === DEFAULT_SHIFT_NAME.toLowerCase();
+        if (aDefault && !bDefault) return -1;
+        if (!aDefault && bDefault) return 1;
+        return (a.createdAt || '').localeCompare(b.createdAt || '');
+      });
       setOrganizerShifts(shifts);
-      const map: Record<string, Array<{ id: string; shiftId: string; name: string; createdAt: string }>> = {};
+      const map: Record<string, Array<{ id: string; shiftId: string; name: string; createdAt: string; avatarUrl?: string | null }>> = {};
       for (const shift of shifts) {
-        const r = await fetch(`${organizerApiBase}/api/shifts/${shift.id}/squads`, { headers: { Authorization: `Bearer ${accessToken}` } });
+        const r = await fetch(`${organizerApiBase}/api/shifts/${shift.id}/squads`, { headers: getOrganizerHeaders() });
         if (r.status === 401) {
+          setOrganizerError('Сессия истекла. Войдите снова.');
           fireOn401();
           return;
         }
-        const squadData = r.ok ? (await r.json().catch(() => ({})) as { squads?: Array<{ id: string; shiftId: string; name: string; createdAt: string }> }) : { squads: [] };
+        if (!r.ok) {
+          map[shift.id] = [];
+          continue;
+        }
+        const squadData = await r.json().catch(() => ({})) as { squads?: Array<{ id: string; shiftId: string; name: string; createdAt: string; avatarUrl?: string | null }> };
         map[shift.id] = squadData.squads || [];
       }
       setOrganizerSquadsMap(map);
     } catch (e) {
       setOrganizerError(e instanceof Error ? e.message : 'Ошибка загрузки');
       setOrganizerShifts([]);
+      setOrganizerSquadsMap({});
     } finally {
       setOrganizerLoading(false);
     }
-  }, [accessToken, organizerApiBase]);
+  }, [canManageShiftsAndSquads, canUseOrganizerApi, organizerApiBase, getOrganizerHeaders]);
 
   useEffect(() => {
-    if (!showOrganizerPanel || !accessToken) return;
-    loadOrganizerData();
-  }, [showOrganizerPanel, accessToken, loadOrganizerData]);
-
-  useEffect(() => {
-    if (!showOrganizerPanel || !accessToken || organizerShifts.length === 0) return;
-    let cancelled = false;
-    const shiftIds = organizerShifts.map((s) => s.id);
-    Promise.all(shiftIds.map((shiftId) =>
-      fetch(`${organizerApiBase}/api/shifts/${shiftId}/squads`, { headers: { Authorization: `Bearer ${accessToken}` } })
-        .then((r) => {
-          if (r.status === 401) { fireOn401(); return { squads: [] }; }
-          return r.ok ? r.json() : Promise.resolve({ squads: [] });
-        })
-        .then((data: { squads?: Array<{ id: string; shiftId: string; name: string; createdAt: string }> }) => ({ shiftId, squads: data.squads || [] }))
-    ))
-      .then((results) => {
-        if (cancelled) return;
-        const map: Record<string, Array<{ id: string; shiftId: string; name: string; createdAt: string }>> = {};
-        results.forEach(({ shiftId, squads }) => { map[shiftId] = squads; });
-        setOrganizerSquadsMap(map);
-      });
-    return () => { cancelled = true; };
-  }, [showOrganizerPanel, accessToken, organizerApiBase, organizerShifts.length]);
+    if (!showOrganizerPanel) return;
+    void loadOrganizerData();
+  }, [showOrganizerPanel, loadOrganizerData]);
 
   const [openBubble, setOpenBubble] = useState<'bot' | 'events' | 'backup' | 'code' | 'role' | null>(null);
   const [utilityBubblesExpanded, setUtilityBubblesExpanded] = useState(false);
@@ -407,6 +447,19 @@ export const ProfileView: React.FC<any> = (props) => {
     setPanelActiveView(nextViewId);
   }, [panelActiveView]);
 
+  const handleSquadCornerConsoleClick = useCallback(() => {
+    if (panelActiveView === 'squad-corner') {
+      setSquadCornerReturnToOrganizer(false);
+      setSquadCornerActiveTab('squad');
+      setActiveTab('active');
+      openCabinPanel(null, null);
+      return;
+    }
+    setSquadCornerReturnToOrganizer(false);
+    setSquadCornerActiveTab('squad');
+    openCabinPanel('squad-corner', 'left');
+  }, [panelActiveView, openCabinPanel]);
+
   useEffect(() => {
     if (panelActiveView === 'squad-corner') setSquadCornerActiveTab('squad');
     if (panelActiveView === 'real-diary') setRealDiaryActiveTab('diary');
@@ -421,6 +474,12 @@ export const ProfileView: React.FC<any> = (props) => {
     if (panelActiveView === 'share') setShareActiveTab('create-card');
     if (panelActiveView === 'workshop') setWorkshopActiveTab('architect');
     if (panelActiveView === 'inspector') setInspectorActiveTab('friendship');
+  }, [panelActiveView]);
+
+  useEffect(() => {
+    if (panelActiveView !== 'squad-corner') {
+      setSquadCornerReturnToOrganizer(false);
+    }
   }, [panelActiveView]);
 
   useEffect(() => {
@@ -481,6 +540,7 @@ export const ProfileView: React.FC<any> = (props) => {
   const [squadIdeasCarouselSteps, setSquadIdeasCarouselSteps] = useState(0);
 
   const showSandbox = role === 'developer' || import.meta.env.DEV || (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('sandbox') === '1');
+  const canEditSquadCorner = role === 'counselor' || (showSandbox && role === 'developer');
 
   const disposeProfileAutoFit = useCallback(() => {
     profileAutoFitInstancesRef.current.forEach((instance) => instance.unsubscribe());
@@ -756,6 +816,34 @@ export const ProfileView: React.FC<any> = (props) => {
     }
   }, [accessToken, expensiveActionsAllowed]);
 
+  const joinMySquadByCode = useCallback(async () => {
+    const code = mySquadJoinCode.trim().toUpperCase();
+    if (!code) {
+      setMySquadJoinStatus('Введите код приглашения.');
+      return;
+    }
+    if (!accessToken) {
+      setMySquadJoinStatus('Сначала войдите по коду.');
+      return;
+    }
+    setMySquadJoinBusy(true);
+    setMySquadJoinStatus(null);
+    try {
+      const preview = await resolveSquadByInviteCode(accessToken, code);
+      const confirmed = window.confirm(`Вступить в отряд «${preview.squadName || preview.squadId}»?`);
+      if (!confirmed) return;
+      await joinSquad(accessToken, preview.squadId, { nickname: profile.nickname });
+      setMySquadJoinStatus('Вступление выполнено.');
+      setMySquadJoinCode('');
+      await loadMySquadInfo();
+      await loadBadgeApprovalsData();
+    } catch (e) {
+      setMySquadJoinStatus(e instanceof Error ? e.message : 'Не удалось вступить в отряд.');
+    } finally {
+      setMySquadJoinBusy(false);
+    }
+  }, [accessToken, mySquadJoinCode, profile.nickname, loadMySquadInfo, loadBadgeApprovalsData]);
+
   const joinMySquadById = useCallback(async () => {
     const sid = mySquadJoinId.trim();
     if (!sid) {
@@ -781,18 +869,154 @@ export const ProfileView: React.FC<any> = (props) => {
     }
   }, [accessToken, mySquadJoinId, profile.nickname, loadMySquadInfo, loadBadgeApprovalsData]);
 
+  const hasSquadMembership = Boolean(mySquadInfo?.membership?.squadId);
+  // shift_leader must have a real JWT; developer can use localhost fallback.
+  const canDeleteShiftsAndSquads = (role === 'shift_leader' && Boolean(accessToken)) || role === 'developer';
+
+  const persistSquadCorner = useCallback(async (payload: Partial<SquadCorner>) => {
+    const squadId = (mySquadInfo?.membership?.squadId || '').trim();
+    if (!accessToken || !squadId) throw new Error('Сначала вступите в отряд.');
+    try {
+      await patchSquadCorner(accessToken, squadId, payload);
+    } catch (e) {
+      if (e instanceof ApiError && e.reason) {
+        if (e.reason === 'not_member') throw new Error('Вы не состоите в этом отряде. Вступите заново через «Смены и отряды».');
+        if (e.reason === 'camp_mismatch') throw new Error('Смена в токене не совпадает с отрядом. Войдите снова по верному коду смены.');
+        if (e.reason === 'role_forbidden') throw new Error('Недостаточно прав для редактирования уголка.');
+      }
+      throw e;
+    }
+  }, [accessToken, mySquadInfo?.membership?.squadId]);
+
+  const createSquadFromCorner = useCallback(async (payload: Partial<SquadCorner>) => {
+    if (!accessToken) throw new Error('Войдите по коду (или Dev login), чтобы создать отряд.');
+    const cornerName = (payload?.name || '').trim();
+    if (!cornerName) throw new Error('Укажите название отряда.');
+
+    const defaultShiftId = organizerShifts.find((s) => (s.name || '').trim().toLowerCase() === DEFAULT_SHIFT_NAME.toLowerCase())?.id;
+    const shiftId = (campId || '').trim() || (defaultShiftId || '').trim();
+    if (!shiftId) {
+      throw new Error('Не удалось определить смену. Войдите по коду смены (campId) или откройте «Смены и отряды».');
+    }
+
+    // 1) Create squad in shift
+    const res = await fetch(`${organizerApiBase}/api/shifts/${encodeURIComponent(shiftId)}/squads`, {
+      method: 'POST',
+      headers: getOrganizerHeaders(true),
+      body: JSON.stringify({ name: cornerName })
+    });
+    const data = await res.json().catch(() => ({})) as { squad?: { id: string; shiftId: string; name: string }; error?: string; reason?: string };
+    if (!res.ok || !data?.squad?.id) {
+      if (res.status === 403 && data.reason === 'camp_mismatch') throw new Error('Смена в токене не совпадает. Войдите по правильному коду смены.');
+      throw new Error(data.error || `Не удалось создать отряд (HTTP ${res.status}).`);
+    }
+
+    const squadId = data.squad.id;
+
+    // 2) Join
+    await joinSquad(accessToken, squadId, { nickname: profile.nickname || undefined });
+
+    // 3) Save corner
+    await patchSquadCorner(accessToken, squadId, payload);
+
+    // 4) Refresh and open cabinet
+    await Promise.all([loadMySquadInfo(), loadOrganizerData(), loadBadgeApprovalsData()]);
+    setActiveTab('active');
+    setSquadCornerActiveTab('squad');
+    setSquadCornerReturnToOrganizer(false);
+    openCabinPanel('squad-corner', 'left');
+  }, [accessToken, organizerApiBase, getOrganizerHeaders, campId, organizerShifts, profile.nickname, loadMySquadInfo, loadOrganizerData, loadBadgeApprovalsData, openCabinPanel]);
+
+  const openSquadFromOrganizer = useCallback(async (squad: { id: string; name: string }) => {
+    if (!accessToken) {
+      setOrganizerError('Сначала войдите по коду.');
+      return;
+    }
+    setOrganizerLoading(true);
+    setOrganizerError(null);
+    try {
+      const currentSquadId = (mySquadInfo?.membership?.squadId || '').trim();
+      if (currentSquadId !== squad.id) {
+        const confirmed = window.confirm(`Вступить в отряд «${squad.name}» и открыть кабинет?`);
+        if (!confirmed) return;
+        await joinSquad(accessToken, squad.id, { nickname: profile.nickname || undefined });
+        await Promise.all([loadMySquadInfo(), loadBadgeApprovalsData()]);
+      }
+      setActiveTab('active');
+      setSquadCornerActiveTab('squad');
+      setSquadCornerReturnToOrganizer(true);
+      openCabinPanel('squad-corner', 'left');
+    } catch (e) {
+      setOrganizerError(e instanceof Error ? e.message : 'Не удалось открыть кабинет отряда.');
+    } finally {
+      setOrganizerLoading(false);
+    }
+  }, [accessToken, mySquadInfo?.membership?.squadId, profile.nickname, loadMySquadInfo, loadBadgeApprovalsData, openCabinPanel]);
+
+  const removeShiftWithCleanup = useCallback(async (shift: { id: string; name: string }) => {
+    if (!canDeleteShiftsAndSquads) return;
+    if ((shift.name || '').trim().toLowerCase() === DEFAULT_SHIFT_NAME.toLowerCase()) {
+      setOrganizerError('Смену по умолчанию удалить нельзя.');
+      return;
+    }
+    if (!window.confirm(`Удалить смену «${shift.name}» вместе со всеми отрядами и данными?`)) return;
+    setOrganizerLoading(true);
+    setOrganizerError(null);
+    try {
+      const res = await fetch(`${organizerApiBase}/api/shifts/${encodeURIComponent(shift.id)}`, {
+        method: 'DELETE',
+        headers: getOrganizerHeaders()
+      });
+      const data = await res.json().catch(() => ({})) as { error?: string; reason?: string };
+      if (!res.ok) {
+        if (res.status === 409 && data.reason === 'default_shift') setOrganizerError('Смену по умолчанию удалить нельзя.');
+        else setOrganizerError(data.error || `Ошибка ${res.status}`);
+        return;
+      }
+      await Promise.all([loadOrganizerData(), loadMySquadInfo()]);
+    } catch (e) {
+      setOrganizerError(e instanceof Error ? e.message : 'Не удалось удалить смену.');
+    } finally {
+      setOrganizerLoading(false);
+    }
+  }, [canDeleteShiftsAndSquads, organizerApiBase, getOrganizerHeaders, loadOrganizerData, loadMySquadInfo]);
+
+  const removeSquadWithCleanup = useCallback(async (squadId: string) => {
+    if (!canDeleteShiftsAndSquads) return;
+    if (!window.confirm('Удалить отряд и связанные данные?')) return;
+    setOrganizerLoading(true);
+    setOrganizerError(null);
+    try {
+      const res = await fetch(`${organizerApiBase}/api/squads/${encodeURIComponent(squadId)}`, {
+        method: 'DELETE',
+        headers: getOrganizerHeaders()
+      });
+      const data = await res.json().catch(() => ({})) as { error?: string };
+      if (!res.ok) {
+        setOrganizerError(data.error || `Ошибка ${res.status}`);
+        return;
+      }
+      await Promise.all([loadOrganizerData(), loadMySquadInfo()]);
+    } catch (e) {
+      setOrganizerError(e instanceof Error ? e.message : 'Не удалось удалить отряд.');
+    } finally {
+      setOrganizerLoading(false);
+    }
+  }, [canDeleteShiftsAndSquads, organizerApiBase, getOrganizerHeaders, loadOrganizerData, loadMySquadInfo]);
+
   const handleDevLoginAs = useCallback(async (targetRole: UserRole) => {
     if (!showSandbox) return;
     setDevLoginBusyRole(targetRole);
     setDevLoginError(null);
     try {
+      const defaultShiftId = organizerShifts.find((s) => (s.name || '').trim().toLowerCase() === DEFAULT_SHIFT_NAME.toLowerCase())?.id;
       const res = await fetch('/api/dev/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           role: targetRole,
           deviceId: deviceId || 'dev-local',
-          campId: mySquadInfo?.membership?.campId || ''
+          campId: mySquadInfo?.membership?.campId || defaultShiftId || ''
         })
       });
       const data = await res.json().catch(() => ({}));
@@ -811,7 +1035,7 @@ export const ProfileView: React.FC<any> = (props) => {
     } finally {
       setDevLoginBusyRole(null);
     }
-  }, [showSandbox, deviceId, mySquadInfo?.membership?.campId, setAuth]);
+  }, [showSandbox, deviceId, mySquadInfo?.membership?.campId, organizerShifts, setAuth]);
 
   const clearDevLogin = useCallback(() => {
     setAuth({ role: 'developer', accessToken: undefined, campId: undefined, exp: undefined });
@@ -824,6 +1048,34 @@ export const ProfileView: React.FC<any> = (props) => {
   useEffect(() => {
     void loadMySquadInfo();
   }, [loadMySquadInfo]);
+
+  useEffect(() => {
+    if (panelActiveView !== 'squad-corner') return;
+    const squadId = (mySquadInfo?.membership?.squadId || '').trim();
+    if (!accessToken || !squadId) return;
+    let cancelled = false;
+    fetchSquadCorner(accessToken, squadId)
+      .then((data) => {
+        if (cancelled) return;
+        const corner = data?.corner || {};
+        if (!corner || Object.keys(corner).length === 0) return;
+        updateDiarySquad({
+          name: corner.name || undefined,
+          motto: corner.motto || undefined,
+          chants: corner.chants || undefined,
+          greeting: corner.greeting || undefined,
+          memes: corner.memes || undefined,
+          photoCorner: corner.photoCorner || undefined,
+          photoFlag: corner.photoFlag || undefined,
+          photoSquad: corner.photoSquad || undefined,
+          photoWithCounselors: corner.photoWithCounselors || undefined,
+          planGridA: corner.planGridA || undefined,
+          planGridB: corner.planGridB || undefined
+        });
+      })
+      .catch(() => undefined);
+    return () => { cancelled = true; };
+  }, [panelActiveView, accessToken, mySquadInfo?.membership?.squadId, updateDiarySquad]);
 
   useEffect(() => {
     if (openBubble !== 'events') return;
@@ -865,7 +1117,13 @@ export const ProfileView: React.FC<any> = (props) => {
   }, [planFormBadge]);
 
   useEffect(() => {
-    setIsSpaceshipMode(!!(typeof document !== 'undefined' && document.querySelector('.profile-spaceship-root')));
+    // Keep parity with the initial heuristic (DOM marker OR desktop profile route).
+    // Some environments may not have `.profile-spaceship-root` on first paint.
+    if (typeof window === 'undefined') return;
+    setIsSpaceshipMode(
+      !!(typeof document !== 'undefined' && document.querySelector('.profile-spaceship-root')) ||
+      /profile-desktop/.test(window.location.pathname || window.location.href || '')
+    );
   }, []);
 
   useEffect(() => {
@@ -1206,6 +1464,7 @@ export const ProfileView: React.FC<any> = (props) => {
     'counselor-squad': 'Отряд вожатых',
     wing: 'Крыло',
     'squad-corner': 'Отрядный уголок',
+    'squad-cabinet': 'Кабинет отряда',
     'real-diary': 'Реальный Дневник',
     team: 'Движок',
     council: 'Совет Лагеря',
@@ -1244,6 +1503,8 @@ export const ProfileView: React.FC<any> = (props) => {
           return { title, meta: `Твоё Крыло: команда для дел наставников. Здесь аватар Крыла, участие в делах и шаг к Совету. ${exitHint}` };
         case 'squad-corner':
           return { title, meta: `Отрядный уголок: собери лицо отряда. Название, девиз, кричалки, мемы и фото. ${exitHint}` };
+        case 'squad-cabinet':
+          return { title, meta: `Кабинет отряда: состав, код приглашения, чат и быстрый доступ к уголку. ${exitHint}` };
         case 'real-diary':
           return { title, meta: `Реальный Дневник: записывай, как прошёл день, и собирай итоги. Это твоя история смены. ${exitHint}` };
         case 'team':
@@ -1279,6 +1540,9 @@ export const ProfileView: React.FC<any> = (props) => {
     }
     if (activeTab === 'workshop') {
       return { title: 'Ты на экране «Мастерская».', meta: 'Создатель Пути: предлагай новые значки и улучшения Путеводителя (доступ через 1.16.1).' };
+    }
+    if (activeTab === 'squads') {
+      return { title: 'Ты на экране «Смены и отряды».', meta: 'Список смен и отрядов. Вступление по коду, кабинет отряда.' };
     }
 
     return { title: 'Ты в Кабине.', meta: 'Выбери раздел: Инспектор, Движок, Совет, БРО, Дневник, Отрядный уголок, 4К, Вожатификатор.' };
@@ -1342,31 +1606,522 @@ export const ProfileView: React.FC<any> = (props) => {
     setInitiativeModalOpen(true);
   }, [userData?.diaryProgress?.currentDay]);
 
+  const renderOrganizerShiftsSection = () => (
+    <div id="organizer-shifts-tab-section" className="profile-view-parents-section organizer-shifts-section">
+      <h2 className="organizer-shifts-section__heading">Смены и отряды</h2>
+      <div className="organizer-empty-state organizer-empty-state--squads organizer-block-darkened" style={{ marginBottom: 12 }}>
+        <p className="organizer-empty-state__title">Как открыть кабинет отряда</p>
+        <p className="organizer-empty-state__text">1. Создайте смену. 2. Добавьте отряд. 3. Вступите в отряд по коду/ссылке. 4. Перейдите в Отрядный уголок.</p>
+      </div>
+      <div style={{ padding: 12, borderRadius: 12, background: 'rgba(0,0,0,0.32)', border: '1px solid rgba(255,255,255,0.06)', marginBottom: 12, fontSize: 12, lineHeight: 1.45 }}>
+        <strong>Мой отряд</strong>
+        {mySquadInfo?.membership ? (
+          <div style={{ marginTop: 6, display: 'grid', gap: 4 }}>
+            <div>Смена: <strong>{mySquadInfo.shift?.name || mySquadInfo.membership.campId || '—'}</strong></div>
+            <div>Отряд: <strong>{mySquadInfo.squad?.name || mySquadInfo.membership.squadId || '—'}</strong></div>
+            <div style={{ marginTop: 6 }}>
+              <button
+                type="button"
+                className="btn-secondary"
+                style={{ padding: '8px 12px' }}
+                onClick={() => {
+                  setSquadCornerReturnToOrganizer(false);
+                  setActiveTab('active');
+                  setSquadCornerActiveTab('squad');
+                  openCabinPanel('squad-corner', 'left');
+                }}
+              >
+                Открыть кабинет
+              </button>
+            </div>
+          </div>
+        ) : (
+          <p style={{ margin: '6px 0 0', opacity: 0.85 }}>Вы пока не состоите в отряде. Вступите по коду ниже.</p>
+        )}
+      </div>
+      {organizerLoading && <p className="organizer-loading">Загрузка…</p>}
+      {organizerError && <div className="organizer-error">{organizerError}</div>}
+      {!organizerLoading && (
+        <>
+          <div className="organizer-shifts-list">
+            {organizerShifts.map((shift) => (
+              <div key={shift.id} className="organizer-shift-card parents-section-block">
+                <div className="organizer-shift-card__header">
+                  <div>
+                    <h3 className="organizer-shift-card__title parents-section-block__heading">{shift.name}</h3>
+                    <p className="organizer-shift-card__dates parents-section-block__text">
+                      {shift.startDate && shift.endDate ? `${shift.startDate} — ${shift.endDate}` : 'Даты не указаны'}
+                    </p>
+                  </div>
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                    {canManageShiftsAndSquads && (
+                      <button
+                        type="button"
+                        className="btn-secondary"
+                        style={{ padding: '6px 12px' }}
+                        aria-label="Добавить отряд в смену"
+                        disabled={!canUseOrganizerApi || organizerLoading}
+                        onClick={() => {
+                          if (!canUseOrganizerApi) {
+                            setOrganizerError('Для управления сменами войдите по коду (или используйте локальный режим разработчика).');
+                            return;
+                          }
+                          setOrganizerSquadFormShiftId(shift.id);
+                          setOrganizerSquadFormName('');
+                          setOrganizerSquadFormOpen(true);
+                        }}
+                      >
+                        Добавить отряд
+                      </button>
+                    )}
+                    {canDeleteShiftsAndSquads && (shift.name || '').trim().toLowerCase() !== DEFAULT_SHIFT_NAME.toLowerCase() && (
+                      <button
+                        type="button"
+                        className="btn-secondary"
+                        style={{ padding: '6px 12px' }}
+                        aria-label="Удалить смену"
+                        onClick={() => void removeShiftWithCleanup(shift)}
+                      >
+                        Удалить смену
+                      </button>
+                    )}
+                  </div>
+                </div>
+                {(organizerSquadsMap[shift.id] || []).length > 0 ? (
+                  <ul className="organizer-squads-list">
+                    {(organizerSquadsMap[shift.id] || []).map((s) => (
+                      <li key={s.id} className="organizer-squad-row">
+                        <button
+                          type="button"
+                          className="organizer-squad-row__main"
+                          aria-label={`Открыть кабинет отряда ${s.name}`}
+                          onClick={() => void openSquadFromOrganizer(s)}
+                        >
+                          <span className="organizer-squad-row__avatar" aria-hidden>
+                            {s.avatarUrl ? <img src={s.avatarUrl} alt="" /> : <span>🏕️</span>}
+                          </span>
+                          <span className="organizer-squad-row__name">{s.name}</span>
+                        </button>
+                        {canDeleteShiftsAndSquads && (
+                          <button
+                            type="button"
+                            className="btn-secondary organizer-squad-row__delete"
+                            style={{ padding: '4px 10px' }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              void removeSquadWithCleanup(s.id);
+                            }}
+                          >
+                            Удалить отряд
+                          </button>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <div className="organizer-empty-state organizer-empty-state--squads">
+                    <p className="organizer-empty-state__title">Пока нет отрядов</p>
+                    <p className="organizer-empty-state__text">Добавьте первый отряд, чтобы участники могли вступать по коду или ссылке.</p>
+                  </div>
+                )}
+              </div>
+            ))}
+            {organizerShifts.length === 0 && (
+              <div className="organizer-empty-state">
+                {!canUseOrganizerApi ? (
+                  <>
+                    <div className="organizer-empty-state__icon" aria-hidden>🔐</div>
+                    <p className="organizer-empty-state__title">Доступ к управлению сменами</p>
+                    <p className="organizer-empty-state__text">Для управления сменами войдите по коду (или используйте локальный режим разработчика).</p>
+                  </>
+                ) : (
+                  <>
+                    <div className="organizer-empty-state__icon" aria-hidden>📅</div>
+                    <p className="organizer-empty-state__title">Пока нет смен</p>
+                    <p className="organizer-empty-state__text">Создайте первую смену, чтобы добавлять отряды и выдавать коды.</p>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+          <div className="organizer-shifts-actions">
+            {canManageShiftsAndSquads && (
+              <button
+                type="button"
+                className="btn-primary-gold"
+                style={{ padding: '10px 20px' }}
+                aria-label="Создать смену"
+                disabled={organizerLoading || !canUseOrganizerApi}
+                onClick={() => {
+                  if (!canUseOrganizerApi) {
+                    setOrganizerError('Для управления сменами войдите по коду (или используйте локальный режим разработчика).');
+                    return;
+                  }
+                  setOrganizerShiftForm({ name: '', startDate: '', endDate: '' });
+                  setOrganizerShiftFormOpen(true);
+                }}
+              >
+                Создать смену
+              </button>
+            )}
+            <button type="button" className="btn-secondary" style={{ padding: '10px 20px' }} aria-label="Обновить список смен и отрядов" disabled={organizerLoading || !canUseOrganizerApi} onClick={() => void loadOrganizerData()}>Обновить</button>
+            {canManageShiftsAndSquads && (
+              <button
+                type="button"
+                className="btn-secondary"
+                style={{ padding: '10px 20px' }}
+                aria-label="Выдать код верификации"
+                disabled={organizerLoading || !canUseOrganizerApi}
+                onClick={() => {
+                  if (!canUseOrganizerApi) {
+                    setOrganizerError('Для управления сменами войдите по коду (или используйте локальный режим разработчика).');
+                    return;
+                  }
+                  setOrganizerCodeForm({ deviceId: deviceId || '', role: 'participant', shiftId: organizerShifts[0]?.id || '' });
+                  setOrganizerCodeResult(null);
+                  setOrganizerCodeModalOpen(true);
+                }}
+              >
+                Выдать код
+              </button>
+            )}
+          </div>
+          {canManageShiftsAndSquads && !canUseOrganizerApi && (
+            <p className="organizer-empty-state__text" style={{ marginTop: 8 }}>
+              Если кнопка не срабатывает, проверьте вход по коду (или локальный режим разработчика).
+            </p>
+          )}
+        </>
+      )}
+    </div>
+  );
+
+  const renderOrganizerModals = () => (
+    <>
+      {organizerShiftFormOpen && (
+        <div className="profile-utility-panel-overlay" onClick={() => setOrganizerShiftFormOpen(false)} aria-hidden="true" />
+      )}
+      {organizerShiftFormOpen && (
+        <div className="profile-utility-panel profile-utility-panel--modal-centered" role="dialog" aria-modal="true" aria-labelledby="organizer-modal-shift-title" onClick={e => e.stopPropagation()}>
+          <div className="profile-utility-panel-header">
+            <span id="organizer-modal-shift-title">Создать смену</span>
+            <button type="button" className="profile-utility-panel-close" onClick={() => setOrganizerShiftFormOpen(false)} aria-label="Закрыть"><Icons.Close /></button>
+          </div>
+          <div className="profile-utility-panel-body">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <div>
+                <label htmlFor="organizer-shift-name" style={{ fontSize: 12, opacity: 0.8 }}>Название смены</label>
+                <input id="organizer-shift-name" value={organizerShiftForm.name} onChange={e => setOrganizerShiftForm(f => ({ ...f, name: e.target.value }))} placeholder="Название смены" style={{ display: 'block', width: '100%', padding: 8, borderRadius: 8, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.2)', color: '#fff' }} />
+              </div>
+              <div>
+                <label htmlFor="organizer-shift-start" style={{ fontSize: 12, opacity: 0.8 }}>Дата начала</label>
+                <input id="organizer-shift-start" type="date" value={organizerShiftForm.startDate} onChange={e => setOrganizerShiftForm(f => ({ ...f, startDate: e.target.value }))} style={{ display: 'block', width: '100%', padding: 8, borderRadius: 8, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.2)', color: '#fff' }} />
+              </div>
+              <div>
+                <label htmlFor="organizer-shift-end" style={{ fontSize: 12, opacity: 0.8 }}>Дата окончания</label>
+                <input id="organizer-shift-end" type="date" value={organizerShiftForm.endDate} onChange={e => setOrganizerShiftForm(f => ({ ...f, endDate: e.target.value }))} style={{ display: 'block', width: '100%', padding: 8, borderRadius: 8, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.2)', color: '#fff' }} />
+              </div>
+              <button type="button" className="btn-primary-gold" aria-label="Создать смену" disabled={!organizerShiftForm.name.trim() || organizerLoading || !canUseOrganizerApi} onClick={async () => {
+                if (!canUseOrganizerApi) {
+                  setOrganizerError('Для управления сменами войдите по коду (или используйте локальный режим разработчика).');
+                  return;
+                }
+                setOrganizerLoading(true);
+                setOrganizerError(null);
+                try {
+                  const res = await fetch(`${organizerApiBase}/api/shifts`, {
+                    method: 'POST',
+                    headers: getOrganizerHeaders(true),
+                    body: JSON.stringify({ name: organizerShiftForm.name.trim(), startDate: organizerShiftForm.startDate, endDate: organizerShiftForm.endDate }),
+                  });
+                  const data = await res.json().catch(() => ({})) as { shift?: { id: string; name: string; startDate: string; endDate: string; createdAt: string; createdBy?: string }; error?: string };
+                  if (res.status === 401) { setOrganizerError('Сессия истекла. Войдите снова.'); fireOn401(); return; }
+                  if (res.status === 403) { setOrganizerError('Недостаточно прав для создания смены.'); return; }
+                  if (!res.ok) { setOrganizerError(data?.error || `Ошибка ${res.status}`); return; }
+                  if (data.shift) setOrganizerShifts(prev => [...prev, data.shift!]);
+                  setOrganizerShiftFormOpen(false);
+                  await loadOrganizerData();
+                } finally {
+                  setOrganizerLoading(false);
+                }
+              }}>Создать</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {organizerSquadFormOpen && (
+        <div className="profile-utility-panel-overlay" onClick={() => setOrganizerSquadFormOpen(false)} aria-hidden="true" />
+      )}
+      {organizerSquadFormOpen && (
+        <div className="profile-utility-panel profile-utility-panel--modal-centered" role="dialog" aria-modal="true" aria-labelledby="organizer-modal-squad-title" onClick={e => e.stopPropagation()}>
+          <div className="profile-utility-panel-header">
+            <span id="organizer-modal-squad-title">Добавить отряд</span>
+            <button type="button" className="profile-utility-panel-close" onClick={() => setOrganizerSquadFormOpen(false)} aria-label="Закрыть"><Icons.Close /></button>
+          </div>
+          <div className="profile-utility-panel-body">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <div>
+                <label htmlFor="organizer-squad-name" style={{ fontSize: 12, opacity: 0.8 }}>Название отряда</label>
+                <input id="organizer-squad-name" value={organizerSquadFormName} onChange={e => setOrganizerSquadFormName(e.target.value)} placeholder="Название отряда" style={{ display: 'block', width: '100%', padding: 8, borderRadius: 8, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.2)', color: '#fff' }} />
+              </div>
+              <button type="button" className="btn-primary-gold" aria-label="Добавить отряд" disabled={!organizerSquadFormName.trim() || organizerLoading || !canUseOrganizerApi} onClick={async () => {
+                if (!organizerSquadFormShiftId) return;
+                if (!canUseOrganizerApi) {
+                  setOrganizerError('Для управления сменами войдите по коду (или используйте локальный режим разработчика).');
+                  return;
+                }
+                setOrganizerLoading(true);
+                setOrganizerError(null);
+                try {
+                  const res = await fetch(`${organizerApiBase}/api/shifts/${organizerSquadFormShiftId}/squads`, {
+                    method: 'POST',
+                    headers: getOrganizerHeaders(true),
+                    body: JSON.stringify({ name: organizerSquadFormName.trim() }),
+                  });
+                  const data = await res.json().catch(() => ({})) as { squad?: { id: string; shiftId: string; name: string; createdAt: string; avatarUrl?: string | null }; error?: string };
+                  if (res.status === 401) { setOrganizerError('Сессия истекла. Войдите снова.'); fireOn401(); return; }
+                  if (res.status === 403) { setOrganizerError('Недостаточно прав для добавления отряда.'); return; }
+                  if (!res.ok) { setOrganizerError(data?.error || `Ошибка ${res.status}`); return; }
+                  if (data.squad) {
+                    setOrganizerSquadsMap(prev => ({ ...prev, [organizerSquadFormShiftId]: [...(prev[organizerSquadFormShiftId] || []), data.squad!] }));
+                  }
+                  setOrganizerSquadFormOpen(false);
+                  await loadOrganizerData();
+                } finally {
+                  setOrganizerLoading(false);
+                }
+              }}>Добавить</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {organizerCodeModalOpen && (
+        <div className="profile-utility-panel-overlay" onClick={() => { setOrganizerCodeModalOpen(false); setOrganizerCodeResult(null); }} aria-hidden="true" />
+      )}
+      {organizerCodeModalOpen && (
+        <div className="profile-utility-panel profile-utility-panel--modal-centered" role="dialog" aria-modal="true" aria-labelledby="organizer-modal-code-title" onClick={e => e.stopPropagation()}>
+          <div className="profile-utility-panel-header">
+            <span id="organizer-modal-code-title">Выдать код</span>
+            <button type="button" className="profile-utility-panel-close" onClick={() => { setOrganizerCodeModalOpen(false); setOrganizerCodeResult(null); }} aria-label="Закрыть"><Icons.Close /></button>
+          </div>
+          <div className="profile-utility-panel-body">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <div>
+                <label style={{ fontSize: 12, opacity: 0.8 }}>deviceId</label>
+                <p style={{ margin: '0 0 4px', fontSize: 11, opacity: 0.75 }}>Идентификатор устройства участника, к которому привязывается код (обычно подставляется автоматически).</p>
+                <input value={organizerCodeForm.deviceId} onChange={e => setOrganizerCodeForm(f => ({ ...f, deviceId: e.target.value }))} placeholder="UUID устройства" style={{ display: 'block', width: '100%', padding: 8, borderRadius: 8, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.2)', color: '#fff', fontSize: 13 }} />
+              </div>
+              <div>
+                <label style={{ fontSize: 12, opacity: 0.8 }}>Роль</label>
+                <select value={organizerCodeForm.role} onChange={e => setOrganizerCodeForm(f => ({ ...f, role: e.target.value as UserRole }))} style={{ display: 'block', width: '100%', padding: 8, borderRadius: 8, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.2)', color: '#fff', fontSize: 13 }}>
+                  {(['participant', 'parent', 'counselor', 'shift_leader'] as const).map((r) => (
+                    <option key={r} value={r}>{ROLE_LABELS[r]}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label style={{ fontSize: 12, opacity: 0.8 }}>Смена (опционально)</label>
+                <select value={organizerCodeForm.shiftId} onChange={e => setOrganizerCodeForm(f => ({ ...f, shiftId: e.target.value }))} style={{ display: 'block', width: '100%', padding: 8, borderRadius: 8, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.2)', color: '#fff', fontSize: 13 }}>
+                  <option value="">— без смены —</option>
+                  {organizerShifts.map((s) => (
+                    <option key={s.id} value={s.id}>{s.name}</option>
+                  ))}
+                </select>
+              </div>
+              <button type="button" className="btn-primary-gold" aria-label="Сгенерировать код верификации" disabled={!organizerCodeForm.deviceId.trim() || organizerLoading || !canUseOrganizerApi} onClick={async () => {
+                if (!canUseOrganizerApi) {
+                  setOrganizerError('Для управления сменами войдите по коду (или используйте локальный режим разработчика).');
+                  return;
+                }
+                setOrganizerLoading(true);
+                setOrganizerError(null);
+                setOrganizerCodeResult(null);
+                try {
+                  const res = await fetch(`${organizerApiBase}/api/organizer/generate-code`, {
+                    method: 'POST',
+                    headers: getOrganizerHeaders(true),
+                    body: JSON.stringify({ deviceId: organizerCodeForm.deviceId.trim(), role: organizerCodeForm.role, shiftId: organizerCodeForm.shiftId || undefined }),
+                  });
+                  const data = await res.json().catch(() => ({}));
+                  if (res.status === 401) { setOrganizerError('Сессия истекла. Войдите снова.'); fireOn401(); return; }
+                  if (!res.ok) { setOrganizerError(data?.error || `Ошибка ${res.status}`); return; }
+                  setOrganizerCodeResult(data.code || '');
+                } finally {
+                  setOrganizerLoading(false);
+                }
+              }}>Сгенерировать код</button>
+              {organizerCodeResult && (
+                <div style={{ marginTop: 8, padding: 12, background: 'rgba(0,0,0,0.3)', borderRadius: 8 }}>
+                  <p style={{ margin: '0 0 8px', fontSize: 12, opacity: 0.8 }}>Код:</p>
+                  <p style={{ margin: 0, fontSize: 24, fontWeight: 700, letterSpacing: 2, fontFamily: 'monospace' }}>{organizerCodeResult}</p>
+                  <button type="button" onClick={() => { navigator.clipboard?.writeText(organizerCodeResult).then(() => showHint({ title: 'Скопировано', content: 'Код скопирован в буфер обмена' })); }} className="btn-secondary" style={{ marginTop: 8, padding: '8px 16px' }}>Копировать</button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+
   const renderPanelContent = () => (
     <>
       {panelActiveView === 'squad-corner' && (
         travelerMode ? (
           <FeatureGate allowed={false} reason={travelerGateReason} ctaLabel="Разблокировать по коду" onCta={openUnlockByCode}>
-            {isSpaceshipMode ? (
-              <SquadCornerDashboard
-                variant="cabin"
-                activeTab={squadCornerActiveTab}
-                onTabChange={setSquadCornerActiveTab}
-                onNavigateToBadge={onNavigateToBadge}
-              />
-            ) : <SquadCornerDashboard onNavigateToBadge={onNavigateToBadge} />}
-          </FeatureGate>
-        ) : (
-          isSpaceshipMode ? (
+            {Boolean(mySquadInfo?.membership?.squadId) && squadCornerActiveTab === 'squad' ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {(canEditSquadCorner || squadCornerReturnToOrganizer) && (
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'space-between' }}>
+                    {squadCornerReturnToOrganizer ? (
+                      <button
+                        type="button"
+                        className="btn-secondary"
+                        style={{ padding: '8px 12px' }}
+                        onClick={() => {
+                          setSquadCornerReturnToOrganizer(false);
+                          setActiveTab('active');
+                          openCabinPanel(null, null);
+                          setTimeout(() => document.getElementById('organizer-shifts-tab-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
+                        }}
+                      >
+                        Назад к Сменам и отрядам
+                      </button>
+                    ) : <span />}
+                    {canEditSquadCorner && (
+                    <button type="button" className="btn-secondary" style={{ padding: '8px 12px' }} onClick={() => setSquadCornerActiveTab('photos')}>
+                      Редактировать уголок
+                    </button>
+                    )}
+                  </div>
+                )}
+                <SquadCabinetPanel
+                  role={role || 'traveler'}
+                  deviceId={deviceId || undefined}
+                  accessToken={accessToken || undefined}
+                  mySquadInfo={mySquadInfo}
+                  onRefresh={loadMySquadInfo}
+                  onAfterLeave={() => setSquadCornerActiveTab('squad')}
+                  onShowHint={({ title, content }) => showHint({ title, content })}
+                  onEditCorner={canEditSquadCorner ? ((t) => setSquadCornerActiveTab(t === 'planner' ? 'planner' : 'photos')) : undefined}
+                />
+              </div>
+            ) : isSpaceshipMode ? (
             <SquadCornerDashboard
               variant="cabin"
               activeTab={squadCornerActiveTab}
               onTabChange={setSquadCornerActiveTab}
               onNavigateToBadge={onNavigateToBadge}
+              hasSquadMembership={hasSquadMembership}
+              mySquadName={mySquadInfo?.squad?.name || undefined}
+              canEditCorner={canEditSquadCorner}
+              canCreateSquadFromCorner={canEditSquadCorner}
+              onOpenCabinet={() => setSquadCornerActiveTab('squad')}
+              onOpenShiftsAndSquads={() => {
+                setActiveTab('squads');
+                openCabinPanel(null, null);
+                setTimeout(() => document.getElementById('organizer-shifts-tab-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
+              }}
+              onPersistCorner={(payload: Partial<SquadCorner>) => persistSquadCorner(payload)}
+              onCreateSquadFromCorner={(payload: Partial<SquadCorner>) => createSquadFromCorner(payload)}
             />
-          ) : <SquadCornerDashboard onNavigateToBadge={onNavigateToBadge} />
+            ) : (
+              <SquadCornerDashboard
+                onNavigateToBadge={onNavigateToBadge}
+                hasSquadMembership={hasSquadMembership}
+                mySquadName={mySquadInfo?.squad?.name || undefined}
+                canEditCorner={canEditSquadCorner}
+                canCreateSquadFromCorner={canEditSquadCorner}
+                onOpenCabinet={() => setSquadCornerActiveTab('squad')}
+                onOpenShiftsAndSquads={() => {
+                  setActiveTab('squads');
+                  openCabinPanel(null, null);
+                  setTimeout(() => document.getElementById('organizer-shifts-tab-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
+                }}
+                onPersistCorner={(payload: Partial<SquadCorner>) => persistSquadCorner(payload)}
+                onCreateSquadFromCorner={(payload: Partial<SquadCorner>) => createSquadFromCorner(payload)}
+              />
+            )}
+          </FeatureGate>
+        ) : (
+          Boolean(mySquadInfo?.membership?.squadId) && squadCornerActiveTab === 'squad' ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {(canEditSquadCorner || squadCornerReturnToOrganizer) && (
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'space-between' }}>
+                  {squadCornerReturnToOrganizer ? (
+                    <button
+                      type="button"
+                      className="btn-secondary"
+                      style={{ padding: '8px 12px' }}
+                      onClick={() => {
+                        setSquadCornerReturnToOrganizer(false);
+                        setActiveTab('active');
+                        openCabinPanel(null, null);
+                        setTimeout(() => document.getElementById('organizer-shifts-tab-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
+                      }}
+                    >
+                      Назад к Сменам и отрядам
+                    </button>
+                  ) : <span />}
+                  {canEditSquadCorner && (
+                  <button type="button" className="btn-secondary" style={{ padding: '8px 12px' }} onClick={() => setSquadCornerActiveTab('photos')}>
+                    Редактировать уголок
+                  </button>
+                  )}
+                </div>
+              )}
+              <SquadCabinetPanel
+                role={role || 'traveler'}
+                deviceId={deviceId || undefined}
+                accessToken={accessToken || undefined}
+                mySquadInfo={mySquadInfo}
+                onRefresh={loadMySquadInfo}
+                onAfterLeave={() => setSquadCornerActiveTab('squad')}
+                onShowHint={({ title, content }) => showHint({ title, content })}
+                onEditCorner={canEditSquadCorner ? ((t) => setSquadCornerActiveTab(t === 'planner' ? 'planner' : 'photos')) : undefined}
+              />
+            </div>
+          ) : isSpaceshipMode ? (
+            <SquadCornerDashboard
+              variant="cabin"
+              activeTab={squadCornerActiveTab}
+              onTabChange={setSquadCornerActiveTab}
+              onNavigateToBadge={onNavigateToBadge}
+              hasSquadMembership={hasSquadMembership}
+              mySquadName={mySquadInfo?.squad?.name || undefined}
+              canEditCorner={canEditSquadCorner}
+              canCreateSquadFromCorner={canEditSquadCorner}
+              onOpenCabinet={() => setSquadCornerActiveTab('squad')}
+              onOpenShiftsAndSquads={() => {
+                setActiveTab('squads');
+                openCabinPanel(null, null);
+                setTimeout(() => document.getElementById('organizer-shifts-tab-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
+              }}
+              onPersistCorner={(payload: Partial<SquadCorner>) => persistSquadCorner(payload)}
+              onCreateSquadFromCorner={(payload: Partial<SquadCorner>) => createSquadFromCorner(payload)}
+            />
+          ) : (
+            <SquadCornerDashboard
+              onNavigateToBadge={onNavigateToBadge}
+              hasSquadMembership={hasSquadMembership}
+              mySquadName={mySquadInfo?.squad?.name || undefined}
+              canEditCorner={canEditSquadCorner}
+              canCreateSquadFromCorner={canEditSquadCorner}
+              onOpenCabinet={() => setSquadCornerActiveTab('squad')}
+              onOpenShiftsAndSquads={() => {
+                setActiveTab('squads');
+                openCabinPanel(null, null);
+                setTimeout(() => document.getElementById('organizer-shifts-tab-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
+              }}
+              onPersistCorner={(payload: Partial<SquadCorner>) => persistSquadCorner(payload)}
+              onCreateSquadFromCorner={(payload: Partial<SquadCorner>) => createSquadFromCorner(payload)}
+            />
+          )
         )
       )}
+      {/* squad-cabinet view is deprecated: cabinet is embedded into squad-corner tab "squad". */}
       {panelActiveView === 'real-diary' && (
         travelerMode ? (
           <FeatureGate allowed={false} reason={travelerGateReason} ctaLabel="Разблокировать по коду" onCta={openUnlockByCode}>
@@ -1906,39 +2661,110 @@ export const ProfileView: React.FC<any> = (props) => {
       )}
       {panelActiveView === 'vozhatifikator' && (
         isSpaceshipMode ? (
-          <div className="fade-in vozhatifikator-cabin-content">
-            {vozhatifikatorSubView === 'book' ? (
-              <section id="vozhatifikator-section-book" className="vozhatifikator-cabin-section">
-                <div className="vozhatifikator-panel">
-                  <aside className="vozhatifikator-toc" aria-label="Оглавление">
-                    <div className="vozhatifikator-badge-block">
-                      {getBadgeImagePath('9.10', 'Вожатификатор', '9', undefined, undefined) && (
+          createPortal(
+            <div className="profile-spaceship-root vozhatifikator-spotlight-portal">
+              <button
+                type="button"
+                className="vozhatifikator-spotlight-overlay"
+                onClick={() => openCabinPanel(null, null)}
+                aria-label="Закрыть Вожатификатор"
+              />
+              <div
+                className="vozhatifikator-spotlight-content"
+                role="dialog"
+                aria-modal="true"
+                aria-label="Вожатификатор"
+              >
+                <button
+                  type="button"
+                  className="vozhatifikator-spotlight-close"
+                  onClick={() => openCabinPanel(null, null)}
+                  aria-label="Закрыть окно"
+                >
+                  <Icons.Close />
+                </button>
+
+                <div className="vozhatifikator-panel vozhatifikator-panel--spotlight">
+                <aside className="vozhatifikator-toc" aria-label="Навигация Вожатификатора">
+                  <div className="vozhatifikator-badge-block">
+                    {getBadgeImagePath('9.10', 'Вожатификатор', '9', undefined, undefined) && (
+                      <button
+                        type="button"
+                        className="vozhatifikator-badge-block__img-btn"
+                        onClick={() => onNavigateToBadge('9.10')}
+                        aria-label="Открыть значок Вожатификатор"
+                      >
                         <img src={getBadgeImagePath('9.10', 'Вожатификатор', '9', undefined, undefined)!} alt="" className="vozhatifikator-badge-block__img" />
-                      )}
-                      <a href="#" className="vozhatifikator-badge-block__link" onClick={(e) => { e.preventDefault(); onNavigateToBadge('9.10'); }}>Значок «Вожатификатор» в каталоге</a>
-                    </div>
-                    <div className="vozhatifikator-downloads">
-                      <a href={VOZHATIFIKATOR_DOCX_URL} download={VOZHATIFIKATOR_DOCX_FILE} className="vozhatifikator-download vozhatifikator-download--docx" title="Редактируемая версия (Word)">
-                        Скачать
-                      </a>
-                    </div>
-                    <nav className="vozhatifikator-toc-nav" aria-label="Оглавление книги">
-                      {vozhatifikatorToc.map((item) => (
+                      </button>
+                    )}
+                    <a href="#" className="vozhatifikator-badge-block__link" onClick={(e) => { e.preventDefault(); onNavigateToBadge('9.10'); }}>
+                      Значок «Вожатификатор» в каталоге
+                    </a>
+                  </div>
+
+                  <div className="vozhatifikator-tabs" role="tablist" aria-label="Разделы Вожатификатора">
+                    <button
+                      id="vozhatifikator-tab-book"
+                      type="button"
+                      role="tab"
+                      aria-selected={vozhatifikatorSubView === 'book'}
+                      aria-controls="vozhatifikator-tabpanel-book"
+                      className={`vozhatifikator-tab ${vozhatifikatorSubView === 'book' ? 'vozhatifikator-tab--active' : ''}`}
+                      onClick={() => setVozhatifikatorSubView('book')}
+                    >
+                      Вожатификатор
+                    </button>
+                    <button
+                      id="vozhatifikator-tab-lights"
+                      type="button"
+                      role="tab"
+                      aria-selected={vozhatifikatorSubView === 'lights'}
+                      aria-controls="vozhatifikator-tabpanel-lights"
+                      className={`vozhatifikator-tab ${vozhatifikatorSubView === 'lights' ? 'vozhatifikator-tab--active' : ''}`}
+                      onClick={() => setVozhatifikatorSubView('lights')}
+                    >
+                      Путеводные огни
+                    </button>
+                  </div>
+
+                  {vozhatifikatorSubView === 'book' && (
+                    <>
+                      <div className="vozhatifikator-downloads">
                         <a
-                          key={item.id}
-                          href={`#${item.id}`}
-                          className="vozhatifikator-toc-item"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            vozhatifikatorBookRef.current?.querySelector(`#${CSS.escape(item.id)}`)?.scrollIntoView({ behavior: 'smooth' });
-                          }}
+                          href={VOZHATIFIKATOR_DOCX_URL}
+                          download={VOZHATIFIKATOR_DOCX_FILE}
+                          className="vozhatifikator-download vozhatifikator-download--docx"
+                          title="Редактируемая версия (Word)"
                         >
-                          <span className="vozhatifikator-toc-item-title">{item.title}</span>
+                          Скачать
                         </a>
-                      ))}
-                    </nav>
-                  </aside>
-                  <div className="vozhatifikator-viewer">
+                      </div>
+                      <nav className="vozhatifikator-toc-nav" aria-label="Оглавление книги">
+                        {vozhatifikatorToc.map((item) => (
+                          <a
+                            key={item.id}
+                            href={`#${item.id}`}
+                            className="vozhatifikator-toc-item"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              vozhatifikatorBookRef.current?.querySelector(`#${CSS.escape(item.id)}`)?.scrollIntoView({ behavior: 'smooth' });
+                            }}
+                          >
+                            <span className="vozhatifikator-toc-item-title">{item.title}</span>
+                          </a>
+                        ))}
+                      </nav>
+                    </>
+                  )}
+                </aside>
+
+                {vozhatifikatorSubView === 'book' ? (
+                  <div
+                    id="vozhatifikator-tabpanel-book"
+                    role="tabpanel"
+                    aria-labelledby="vozhatifikator-tab-book"
+                    className="vozhatifikator-viewer"
+                  >
                     <div ref={vozhatifikatorBookRef} className="vozhatifikator-book">
                       {vozhatifikatorLoading && <p className="vozhatifikator-book__loading">Загрузка книги…</p>}
                       {vozhatifikatorError && <p className="vozhatifikator-book__error">{vozhatifikatorError}</p>}
@@ -1947,35 +2773,37 @@ export const ProfileView: React.FC<any> = (props) => {
                       )}
                     </div>
                   </div>
-                </div>
-              </section>
-            ) : (
-              <section id="vozhatifikator-section-lights" className="vozhatifikator-cabin-section">
-                <div className="vozhatifikator-panel vozhatifikator-panel--cabin-lights">
-                  <aside className="vozhatifikator-toc" aria-label="Информация о значке">
-                    <div className="vozhatifikator-badge-block">
-                      {getBadgeImagePath('9.10', 'Вожатификатор', '9', undefined, undefined) && (
-                        <img src={getBadgeImagePath('9.10', 'Вожатификатор', '9', undefined, undefined)!} alt="" className="vozhatifikator-badge-block__img" />
-                      )}
-                      <a href="#" className="vozhatifikator-badge-block__link" onClick={(e) => { e.preventDefault(); onNavigateToBadge('9.10'); }}>Значок «Вожатификатор» в каталоге</a>
-                    </div>
-                  </aside>
-                  <div className="vozhatifikator-viewer">
+                ) : (
+                  <div
+                    id="vozhatifikator-tabpanel-lights"
+                    role="tabpanel"
+                    aria-labelledby="vozhatifikator-tab-lights"
+                    className="vozhatifikator-viewer vozhatifikator-lights-panel"
+                  >
                     <VozhatifikatorChecklist
                       completedIds={userData.vozhatifikatorChecklist?.completedIds ?? []}
                       onToggle={updateVozhatifikatorChecklist}
                     />
                   </div>
-                </div>
-              </section>
-            )}
-          </div>
+                )}
+              </div>
+            </div>
+          </div>,
+            document.body
+          )
         ) : (
           <div className="vozhatifikator-panel">
             <aside className="vozhatifikator-toc" aria-label="Оглавление">
               <div className="vozhatifikator-badge-block">
                 {getBadgeImagePath('9.10', 'Вожатификатор', '9', undefined, undefined) && (
-                  <img src={getBadgeImagePath('9.10', 'Вожатификатор', '9', undefined, undefined)!} alt="" className="vozhatifikator-badge-block__img" />
+                  <button
+                    type="button"
+                    className="vozhatifikator-badge-block__img-btn"
+                    onClick={() => onNavigateToBadge('9.10')}
+                    aria-label="Открыть значок Вожатификатор"
+                  >
+                    <img src={getBadgeImagePath('9.10', 'Вожатификатор', '9', undefined, undefined)!} alt="" className="vozhatifikator-badge-block__img" />
+                  </button>
                 )}
                 <a href="#" className="vozhatifikator-badge-block__link" onClick={(e) => { e.preventDefault(); onNavigateToBadge('9.10'); }}>Значок «Вожатификатор» в каталоге</a>
                 <button type="button" className="vozhatifikator-badge-block__btn" onClick={() => setVozhatifikatorSubView('lights')}>Путеводные огни — анкета</button>
@@ -2061,6 +2889,7 @@ export const ProfileView: React.FC<any> = (props) => {
     { id: 'favorites' as const, label: 'Избранное', icon: '⭐' },
     { id: 'collection' as const, label: 'Коллекция', icon: '🗂️' },
     { id: 'journal' as const, label: 'Журнал', icon: '📓' },
+    ...(showOrganizerPanel ? [{ id: 'squads' as const, label: 'Смены и отряды', icon: '🏕️' }] : []),
   ] satisfies Array<{ id: Tab; label: string; icon: string }>;
 
   const squadCornerTabItems = [
@@ -2093,13 +2922,12 @@ export const ProfileView: React.FC<any> = (props) => {
     { id: 'chief' as const, label: 'Главный Инспектор', icon: '👑' },
   ] satisfies Array<{ id: InspectorTabId; label: string; icon: string }>;
 
-  const counselorSquadTabItems = [
-    { id: 'squad' as const, label: 'Отряд', icon: '🏕️' },
-    { id: 'photos' as const, label: 'Фото', icon: '📷' },
-    { id: 'planner' as const, label: 'Планёрка', icon: '📋' },
-    { id: 'schedule' as const, label: 'Беспорядок дня', icon: '🕒' },
-    { id: 'flag-badges' as const, label: 'Значки на флаг', icon: '🚩' },
-  ] satisfies Array<{ id: CounselorSquadTabId; label: string; icon: string }>;
+  const counselorSquadTabItems: Array<{ id: CounselorSquadTabId; label: string; icon: string }> = [
+    { id: 'squad', label: 'Отряд', icon: '🏕️' },
+    { id: 'photos', label: 'Фото', icon: '📷' },
+    { id: 'planner', label: 'Планёрка', icon: '📋' },
+    { id: 'flag-badges', label: 'Значки на флаг', icon: '🚩' },
+  ];
 
   const realDiaryTabItems = [
     { id: 'diary' as const, label: 'Дневник', icon: '📖' },
@@ -2133,9 +2961,32 @@ export const ProfileView: React.FC<any> = (props) => {
   ] satisfies Array<{ id: CouncilTabId; label: string; icon: string }>;
 
   const vozhatifikatorTabItems = [
-    { id: 'book' as const, label: 'Вожатификатор', icon: '📘' },
-    { id: 'lights' as const, label: 'Путеводные огни', icon: '🕯️' },
+    { id: 'book' as const, label: 'Книга', icon: '📖' },
+    { id: 'lights' as const, label: 'Путеводные огни', icon: '🌟' },
   ] satisfies Array<{ id: 'book' | 'lights'; label: string; icon: string }>;
+
+  // Spotlight modal has its own local tabs; cabin also shows docked tabs for consistency.
+
+  const renderVozhatifikatorTabsNav = (className = 'profile-tabs-nav profile-tabs-nav--docked profile-tabs-nav--vozhatifikator') => (
+    <div className={className} role="tablist" aria-label="Разделы Вожатификатора">
+      {vozhatifikatorTabItems.map((t) => (
+        <button
+          key={t.id}
+          id={`vozhatifikator-tab-${t.id}`}
+          type="button"
+          role="tab"
+          aria-selected={vozhatifikatorSubView === t.id}
+          aria-controls="vozhatifikator-tabpanel"
+          data-label={t.label}
+          className={vozhatifikatorSubView === t.id ? 'active' : ''}
+          onClick={() => setVozhatifikatorSubView(t.id)}
+        >
+          <span className="profile-tabs-nav__icon" aria-hidden="true">{t.icon}</span>
+          <span className="profile-tabs-nav__label">{t.label}</span>
+        </button>
+      ))}
+    </div>
+  );
 
   const renderTabsNav = (className = 'profile-tabs-nav') => (
     <div className={className} role="tablist" aria-label="Разделы личного кабинета">
@@ -2160,22 +3011,40 @@ export const ProfileView: React.FC<any> = (props) => {
 
   const renderSquadCornerTabsNav = (className = 'profile-tabs-nav profile-tabs-nav--docked profile-tabs-nav--squad-corner') => (
     <div className={className} role="tablist" aria-label="Разделы отрядного уголка">
-      {squadCornerTabItems.map((t) => (
-        <button
-          key={t.id}
-          id={`squad-corner-tab-${t.id}`}
-          type="button"
-          role="tab"
-          aria-selected={squadCornerActiveTab === t.id}
-          aria-controls="squad-corner-tabpanel"
-          data-label={t.label}
-          className={squadCornerActiveTab === t.id ? 'active' : ''}
-          onClick={() => setSquadCornerActiveTab(t.id)}
-        >
-          <span className="profile-tabs-nav__icon" aria-hidden="true">{t.icon}</span>
-          <span className="profile-tabs-nav__label">{t.label}</span>
-        </button>
-      ))}
+      {squadCornerTabItems.map((t) => {
+        const disabled = hasSquadMembership && !canEditSquadCorner && t.id !== 'squad';
+        const selectTab = (event?: React.SyntheticEvent) => {
+          if (disabled) return;
+          event?.preventDefault();
+          event?.stopPropagation();
+          if (squadCornerActiveTab !== t.id) {
+            setSquadCornerActiveTab(t.id);
+          }
+        };
+        return (
+          <button
+            key={t.id}
+            id={`squad-corner-tab-${t.id}`}
+            type="button"
+            role="tab"
+            aria-selected={squadCornerActiveTab === t.id}
+            aria-controls="squad-corner-tabpanel"
+            data-label={disabled ? `${t.label} (редактирует вожатый)` : t.label}
+            className={squadCornerActiveTab === t.id ? 'active' : ''}
+            disabled={disabled}
+            onPointerDown={selectTab}
+            onClick={selectTab}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' || event.key === ' ') {
+                selectTab(event);
+              }
+            }}
+          >
+            <span className="profile-tabs-nav__icon" aria-hidden="true">{t.icon}</span>
+            <span className="profile-tabs-nav__label">{t.label}</span>
+          </button>
+        );
+      })}
     </div>
   );
 
@@ -2284,26 +3153,8 @@ export const ProfileView: React.FC<any> = (props) => {
     </div>
   );
 
-  const renderVozhatifikatorTabsNav = (className = 'profile-tabs-nav profile-tabs-nav--docked profile-tabs-nav--vozhatifikator') => (
-    <div className={className} role="tablist" aria-label="Разделы Вожатификатора">
-      {vozhatifikatorTabItems.map((t) => (
-        <button
-          key={t.id}
-          id={`vozhatifikator-tab-${t.id}`}
-          type="button"
-          role="tab"
-          aria-selected={vozhatifikatorSubView === t.id}
-          aria-controls={t.id === 'book' ? 'vozhatifikator-section-book' : 'vozhatifikator-section-lights'}
-          data-label={t.label}
-          className={vozhatifikatorSubView === t.id ? 'active' : ''}
-          onClick={() => setVozhatifikatorSubView(t.id)}
-        >
-          <span className="profile-tabs-nav__icon" aria-hidden="true">{t.icon}</span>
-          <span className="profile-tabs-nav__label">{t.label}</span>
-        </button>
-      ))}
-    </div>
-  );
+  // NOTE: Cabin "Вожатификатор" uses spotlight modal with local tabs inside the panel,
+  // so we don't render a global docked tablist for it.
 
   const renderCounselorSquadTabsNav = (className = 'profile-tabs-nav profile-tabs-nav--docked profile-tabs-nav--counselor-squad') => (
     <div className={className} role="tablist" aria-label="Разделы отряда вожатых">
@@ -2413,7 +3264,7 @@ export const ProfileView: React.FC<any> = (props) => {
 
   const renderFavoritesShelf = () => (
     <div className="active-tab-content__favorites-wrap">
-      <div className="favorites-shelf-container">
+      <div className={`favorites-shelf-container${favorites.length === 0 ? ' favorites-shelf-container--empty' : ''}`}>
         <div className="shelf-header">Избранное ⭐</div>
         {favorites.length > 0 ? (
           favorites.length <= CAROUSEL_STATIC_MAX ? (
@@ -2450,7 +3301,9 @@ export const ProfileView: React.FC<any> = (props) => {
           </div>
           )
         ) : (
-          <p className="favorites-shelf-container__empty">Пока пусто</p>
+          <div className="profile-empty-state profile-empty-state--hub">
+            <p className="profile-empty-state__text">Пока нет избранных значков. Отмечай звёздочкой те значки, к которым хочешь возвращаться чаще — они появятся здесь.</p>
+          </div>
         )}
       </div>
     </div>
@@ -2461,15 +3314,7 @@ export const ProfileView: React.FC<any> = (props) => {
       <div className={`profile-view-tabs-shell${options?.hideNav ? ' profile-view-tabs-shell--no-nav' : ''}`}>
         {!options?.hideNav && renderTabsNav()}
         <div className="tab-pane" role="tabpanel" id="profile-tabpanel" aria-labelledby={`profile-tab-${activeTab}`}>
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={activeTab}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.15 }}
-            style={{ minHeight: '1px' }}
-          >
+        <div key="hub" style={{ minHeight: '1px' }}>
         {activeTab === 'active' && (
           <div className="active-tab-content fade-in">
             <div className="active-tab-content__badges-list">
@@ -2546,7 +3391,9 @@ export const ProfileView: React.FC<any> = (props) => {
                 </div>
                 )
               ) : (
-                <p className="profile-route-details__empty">Нет значков в пути. Добавь значок в путь или в избранное.</p>
+                <div className="profile-empty-state profile-empty-state--hub">
+                  <p className="profile-empty-state__text">Здесь будут значки, которые ты взял в путь. Открой любой значок в каталоге и нажми «В путь» — или добавь в избранное, чтобы быстро возвращаться к ним.</p>
+                </div>
               )}
             </div>
           </div>
@@ -2558,7 +3405,11 @@ export const ProfileView: React.FC<any> = (props) => {
         )}
         {activeTab === 'journal' && (
           <div className="journal-view fade-in">
-            {achievedSorted.length === 0 ? <p style={{ textAlign: 'center', opacity: 0.5, padding: '40px' }}>История пуста</p> : achievedSorted.map(([id, p]) => (
+            {achievedSorted.length === 0 ? (
+              <div className="profile-empty-state profile-empty-state--hub">
+                <p className="profile-empty-state__text">Здесь будет история твоих подтверждений. После того как ты подтвердишь уровень значка, запись с датой и размышлением появится в журнале.</p>
+              </div>
+            ) : achievedSorted.map(([id, p]) => (
               <div key={id} style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'flex-start', borderLeft: '2px solid rgba(255,255,255,0.1)', paddingLeft: '20px', paddingBottom: '24px', position: 'relative' }}>
                 <div style={{ position: 'absolute', left: '-7px', top: '0', width: '12px', height: '12px', borderRadius: '50%', background: '#8B00FF' }} />
                 <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: '11px', opacity: 0.5 }}>{new Date(p.achievedAt || '').toLocaleDateString()}</div><div style={{ fontWeight: 700 }}>{badgeLookupMap.get(getBaseId(id))?.title || id}</div>{p.reflection && <div style={{ fontSize: '13px', fontStyle: 'italic', opacity: 0.8 }}>"{p.reflection}"</div>}</div>
@@ -2569,7 +3420,11 @@ export const ProfileView: React.FC<any> = (props) => {
         )}
         {activeTab === 'collection' && (
           <div className="collection-view fade-in">
-            {achievedSorted.length === 0 ? <p style={{ textAlign: 'center', opacity: 0.5, padding: '40px' }}>Коллекция пуста</p> : achievedSorted.map(([id, p]) => (
+            {achievedSorted.length === 0 ? (
+              <div className="profile-empty-state profile-empty-state--hub">
+                <p className="profile-empty-state__text">Здесь будут все подтверждённые значки и уровни. Пройди условия значка и подтверди достижение — он появится в коллекции.</p>
+              </div>
+            ) : achievedSorted.map(([id, p]) => (
               <div
                 key={id}
                 role="button"
@@ -2585,8 +3440,12 @@ export const ProfileView: React.FC<any> = (props) => {
             ))}
           </div>
         )}
-          </motion.div>
-        </AnimatePresence>
+        {activeTab === 'squads' && showOrganizerPanel && (
+          <div className="squad-view fade-in">
+            {renderOrganizerShiftsSection()}
+          </div>
+        )}
+        </div>
       </div>
       </div>
     </div>
@@ -2594,23 +3453,25 @@ export const ProfileView: React.FC<any> = (props) => {
 
   const profileOuterContent = isSpaceshipMode ? (
           <>
-          {(panelActiveView === null || panelActiveView === 'inspector') && seeOtradBlocksInView && (
+          {seeOtradBlocksInView && (
             <div className="profile-view-cabin-top-inspector-page profile-view-cabin-top-inspector-page--desktop-only">
               <button
                 type="button"
-                className={`profile-view-cabin-top-inspector ${panelActiveView === 'inspector' ? 'profile-view-cabin-top-inspector--active' : ''}`}
+                className={`profile-view-cabin-top-inspector profile-view-cabin-top-inspector--curved ${panelActiveView === 'inspector' ? 'profile-view-cabin-top-inspector--active' : ''}`}
                 onClick={() => openCabinPanel('inspector', 'top')}
                 aria-label="Инспектор Пользы"
                 aria-pressed={panelActiveView === 'inspector'}
               >
-                <span className="profile-view-cabin-top-inspector__title">Инспектор Пользы</span>
-                <span className="profile-view-cabin-top-inspector__subtitle">Игровая система полезных дел. Прокачивает 4К и культуру заботы.</span>
-                <div className="profile-view-cabin-top-inspector__progress" aria-hidden="true">
-                  <div
-                    className="profile-view-cabin-top-inspector__progress-bar"
-                    style={{ width: `${inspectorProgressPercent}%` }}
-                  />
-                </div>
+                <InspectorMonitorCurve curve={false} strips={20} sag={14} className="profile-view-cabin-inspector-monitor">
+                  <span className="profile-view-cabin-top-inspector__title">Инспектор Пользы</span>
+                  <span className="profile-view-cabin-top-inspector__subtitle">Игровая система полезных дел. Прокачивает 4К и культуру заботы.</span>
+                  <div className="profile-view-cabin-top-inspector__progress" aria-hidden="true">
+                    <div
+                      className="profile-view-cabin-top-inspector__progress-bar"
+                      style={{ width: `${inspectorProgressPercent}%` }}
+                    />
+                  </div>
+                </InspectorMonitorCurve>
               </button>
             </div>
           )}
@@ -2875,7 +3736,7 @@ export const ProfileView: React.FC<any> = (props) => {
             </div>
             <div className="profile-view-cabin-center-wrap">
             <div
-              className={`profile-view-cabin-center profile-view-cabin-center--offset ${panelActiveView === null ? 'profile-view-cabin-center--hub' : ''} ${panelActiveView === 'squad-corner' ? 'profile-view-cabin-center--squad-corner' : ''} ${panelActiveView === 'real-diary' ? 'profile-view-cabin-center--real-diary' : ''} ${panelActiveView === 'profile4k' ? 'profile-view-cabin-center--profile4k' : ''} ${panelActiveView === 'team' ? 'profile-view-cabin-center--team' : ''} ${panelActiveView === 'council' ? 'profile-view-cabin-center--council' : ''} ${panelActiveView === 'bro' ? 'profile-view-cabin-center--bro' : ''} ${panelActiveView === 'vozhatifikator' ? 'profile-view-cabin-center--vozhatifikator' : ''} ${panelActiveView === 'counselor-squad' ? 'profile-view-cabin-center--counselor-squad' : ''} ${panelActiveView === 'share' ? 'profile-view-cabin-center--share' : ''} ${panelActiveView === 'workshop' ? 'profile-view-cabin-center--workshop' : ''} ${panelActiveView === 'inspector' ? 'profile-view-cabin-center--inspector' : ''}`}
+              className={`profile-view-cabin-center profile-view-cabin-center--offset ${panelActiveView === null ? 'profile-view-cabin-center--hub' : ''} ${panelActiveView === 'squad-corner' ? 'profile-view-cabin-center--squad-corner' : ''} ${panelActiveView === 'squad-cabinet' ? 'profile-view-cabin-center--squad-cabinet' : ''} ${panelActiveView === 'real-diary' ? 'profile-view-cabin-center--real-diary' : ''} ${panelActiveView === 'profile4k' ? 'profile-view-cabin-center--profile4k' : ''} ${panelActiveView === 'team' ? 'profile-view-cabin-center--team' : ''} ${panelActiveView === 'council' ? 'profile-view-cabin-center--council' : ''} ${panelActiveView === 'bro' ? 'profile-view-cabin-center--bro' : ''} ${panelActiveView === 'vozhatifikator' ? 'profile-view-cabin-center--vozhatifikator' : ''} ${panelActiveView === 'counselor-squad' ? 'profile-view-cabin-center--counselor-squad' : ''} ${panelActiveView === 'share' ? 'profile-view-cabin-center--share' : ''} ${panelActiveView === 'workshop' ? 'profile-view-cabin-center--workshop' : ''} ${panelActiveView === 'inspector' ? 'profile-view-cabin-center--inspector' : ''}`}
             >
               {(panelActiveView === null || panelActiveView === 'squad-corner' || panelActiveView === 'real-diary' || panelActiveView === 'profile4k' || panelActiveView === 'team' || panelActiveView === 'council' || panelActiveView === 'bro' || panelActiveView === 'vozhatifikator' || panelActiveView === 'counselor-squad' || panelActiveView === 'share' || panelActiveView === 'workshop' || panelActiveView === 'inspector') && (
                 <div className="profile-view-cabin-tabs-docked">
@@ -2893,15 +3754,17 @@ export const ProfileView: React.FC<any> = (props) => {
                             ? renderCouncilTabsNav('profile-tabs-nav profile-tabs-nav--docked profile-tabs-nav--council')
                             : panelActiveView === 'bro'
                               ? renderBroTabsNav('profile-tabs-nav profile-tabs-nav--docked profile-tabs-nav--bro')
-                              : panelActiveView === 'counselor-squad'
-                                ? renderCounselorSquadTabsNav('profile-tabs-nav profile-tabs-nav--docked profile-tabs-nav--counselor-squad')
-                                : panelActiveView === 'share'
-                                  ? renderShareTabsNav('profile-tabs-nav profile-tabs-nav--docked profile-tabs-nav--share')
-                                  : panelActiveView === 'workshop'
-                                    ? renderWorkshopTabsNav('profile-tabs-nav profile-tabs-nav--docked profile-tabs-nav--workshop')
-                                    : panelActiveView === 'inspector'
-                                      ? renderInspectorTabsNav('profile-tabs-nav profile-tabs-nav--docked profile-tabs-nav--inspector')
-                                      : renderVozhatifikatorTabsNav('profile-tabs-nav profile-tabs-nav--docked profile-tabs-nav--vozhatifikator')}
+                              : panelActiveView === 'vozhatifikator'
+                                ? renderVozhatifikatorTabsNav('profile-tabs-nav profile-tabs-nav--docked profile-tabs-nav--vozhatifikator')
+                                : panelActiveView === 'counselor-squad'
+                                  ? renderCounselorSquadTabsNav('profile-tabs-nav profile-tabs-nav--docked profile-tabs-nav--counselor-squad')
+                                  : panelActiveView === 'share'
+                                    ? renderShareTabsNav('profile-tabs-nav profile-tabs-nav--docked profile-tabs-nav--share')
+                                    : panelActiveView === 'workshop'
+                                        ? renderWorkshopTabsNav('profile-tabs-nav profile-tabs-nav--docked profile-tabs-nav--workshop')
+                                        : panelActiveView === 'inspector'
+                                          ? renderInspectorTabsNav('profile-tabs-nav profile-tabs-nav--docked profile-tabs-nav--inspector')
+                                        : null}
                 </div>
               )}
               <div className={`profile-view-cabin-center-shell ${panelCompanions ? 'profile-view-cabin-center-shell--companions' : ''}`} style={{ background: 'transparent' }}>
@@ -2919,7 +3782,7 @@ export const ProfileView: React.FC<any> = (props) => {
                 )}
                 <div
                   ref={centerScrollRef}
-                  className={`profile-view-cabin-center-scroll profile-view-scroll-container profile-view-panel-scroll${panelActiveView === null && (activeTab === 'active' || activeTab === 'favorites') ? ' profile-view-cabin-center-scroll--locked' : ''}${panelActiveView === 'passport' ? ' profile-view-cabin-center-scroll--no-scroll' : ''}${panelActiveView === 'squad-corner' || panelActiveView === 'real-diary' || panelActiveView === 'profile4k' || panelActiveView === 'team' || panelActiveView === 'council' || panelActiveView === 'bro' || panelActiveView === 'vozhatifikator' || panelActiveView === 'counselor-squad' || panelActiveView === 'share' || panelActiveView === 'workshop' || panelActiveView === 'inspector' ? ' profile-view-cabin-center-scroll--content-fit' : ''}`}
+                  className={`profile-view-cabin-center-scroll profile-view-scroll-container profile-view-panel-scroll${panelActiveView === null && (activeTab === 'active' || activeTab === 'favorites') ? ' profile-view-cabin-center-scroll--locked' : ''}${panelActiveView === 'passport' ? ' profile-view-cabin-center-scroll--no-scroll' : ''}${panelActiveView === 'squad-corner' || panelActiveView === 'squad-cabinet' || panelActiveView === 'real-diary' || panelActiveView === 'profile4k' || panelActiveView === 'team' || panelActiveView === 'council' || panelActiveView === 'bro' || panelActiveView === 'vozhatifikator' || panelActiveView === 'counselor-squad' || panelActiveView === 'share' || panelActiveView === 'workshop' || panelActiveView === 'inspector' ? ' profile-view-cabin-center-scroll--content-fit' : ''}`}
                   style={{ background: 'transparent' }}
                 >
                     {pendingApprovalsCount > 0 && !approvalsSyncPromptDismissed && canRequestApprovals && (
@@ -2939,7 +3802,19 @@ export const ProfileView: React.FC<any> = (props) => {
                     )}
                     {panelActiveView ? (
                       <div key={panelActiveView} className={`profile-view-cabin-content profile-view-cabin-content--from-${panelOrigin || 'left'}`}>
-                        {panelActiveView !== 'passport' && panelActiveView !== 'squad-corner' && panelActiveView !== 'real-diary' && panelActiveView !== 'profile4k' && panelActiveView !== 'team' && panelActiveView !== 'council' && panelActiveView !== 'bro' && panelActiveView !== 'vozhatifikator' && panelActiveView !== 'counselor-squad' && panelActiveView !== 'share' && panelActiveView !== 'workshop' && panelActiveView !== 'inspector' && (
+                        {panelActiveView !== 'passport' &&
+                          panelActiveView !== 'squad-corner' &&
+                          panelActiveView !== 'squad-cabinet' &&
+                          panelActiveView !== 'real-diary' &&
+                          panelActiveView !== 'profile4k' &&
+                          panelActiveView !== 'team' &&
+                          panelActiveView !== 'council' &&
+                          panelActiveView !== 'bro' &&
+                          panelActiveView !== 'vozhatifikator' &&
+                          panelActiveView !== 'counselor-squad' &&
+                          panelActiveView !== 'share' &&
+                          panelActiveView !== 'workshop' &&
+                          panelActiveView !== 'inspector' && (
                           <header className="profile-view-cabin-panel-header">
                             <button type="button" className="profile-view-cabin-panel-header__back" onClick={() => { setActiveTab('active'); openCabinPanel(null, null); }} aria-label="В путь (стартовый экран)">
                               В пути
@@ -2956,6 +3831,7 @@ export const ProfileView: React.FC<any> = (props) => {
                         </div>
                       </div>
                     )}
+                    {showOrganizerPanel && renderOrganizerModals()}
                 </div>
                 {panelCompanions?.right && (
                   <aside className="profile-view-cabin-side-screen profile-view-cabin-side-screen--right">
@@ -3165,7 +4041,7 @@ export const ProfileView: React.FC<any> = (props) => {
           <div className={`profile-view-console${mobileConsoleExpanded ? ' profile-view-console--mobile-expanded' : ''}`} aria-label="Пульт навигации">
             <div className="console-cluster console-cluster--left">
               <div className="console-btn-wrap">
-                <button type="button" className={`console-btn ${panelActiveView === 'squad-corner' ? 'console-btn--active' : ''}`} data-console-section="squad-corner" onClick={() => openCabinPanel('squad-corner', 'left')} title="Отрядный уголок">
+                <button type="button" className={`console-btn ${panelActiveView === 'squad-corner' ? 'console-btn--active' : ''}`} data-console-section="squad-corner" onClick={handleSquadCornerConsoleClick} title="Отрядный уголок">
                   <img src={`${baseUrl}${encodeURI(CONSOLE_SECTION_IMAGES['squad-corner'])}`} alt="" className="console-btn-icon-img" />
                   <span className="console-btn-bubble-label" aria-hidden>ОТРЯДНЫЙ УГОЛОК</span>
                   <span className="console-btn-icon">🏕️</span>
@@ -3270,6 +4146,7 @@ export const ProfileView: React.FC<any> = (props) => {
                 {panelActiveView === 'profile4k' && '4К'}
                 {panelActiveView === 'counselor-squad' && 'Отряд вожатых'}
                 {panelActiveView === 'squad-corner' && 'Отрядный уголок'}
+                {panelActiveView === 'squad-cabinet' && 'Кабинет отряда'}
                 {panelActiveView === 'real-diary' && 'Реальный Дневник'}
                 {panelActiveView === 'team' && 'Движок'}
                 {panelActiveView === 'council' && 'Совет Лагеря'}
@@ -3709,217 +4586,7 @@ export const ProfileView: React.FC<any> = (props) => {
           </div>
         )}
 
-        {showOrganizerPanel && (
-          <div id="organizer-shifts-section" className="profile-view-parents-section organizer-shifts-section">
-            <h2 className="organizer-shifts-section__heading">Смены и отряды</h2>
-            {organizerLoading && <p className="organizer-loading">Загрузка…</p>}
-            {organizerError && <div className="organizer-error">{organizerError}</div>}
-            {!organizerLoading && (
-              <>
-                <div className="organizer-shifts-list">
-                  {organizerShifts.map((shift) => (
-                    <div key={shift.id} className="organizer-shift-card parents-section-block">
-                      <div className="organizer-shift-card__header">
-                        <div>
-                          <h3 className="organizer-shift-card__title parents-section-block__heading">{shift.name}</h3>
-                          <p className="organizer-shift-card__dates parents-section-block__text">{shift.startDate} — {shift.endDate}</p>
-                        </div>
-                        <button type="button" className="btn-secondary" style={{ padding: '6px 12px' }} aria-label="Добавить отряд в смену" onClick={() => { setOrganizerSquadFormShiftId(shift.id); setOrganizerSquadFormName(''); setOrganizerSquadFormOpen(true); }}>Добавить отряд</button>
-                      </div>
-                      {(organizerSquadsMap[shift.id] || []).length > 0 ? (
-                        <ul className="organizer-squads-list">
-                          {(organizerSquadsMap[shift.id] || []).map((s) => (
-                            <li key={s.id}>{s.name}</li>
-                          ))}
-                        </ul>
-                      ) : (
-                        <div className="organizer-empty-state organizer-empty-state--squads">
-                          <p className="organizer-empty-state__title">Пока нет отрядов</p>
-                          <p className="organizer-empty-state__text">Добавьте первый отряд, чтобы участники могли выбирать его при входе по коду.</p>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                  {organizerShifts.length === 0 && (
-                    <div className="organizer-empty-state">
-                      {!accessToken ? (
-                        <>
-                          <div className="organizer-empty-state__icon" aria-hidden>🔐</div>
-                          <p className="organizer-empty-state__title">Вход для руководителя смены</p>
-                          <p className="organizer-empty-state__text">Войдите через код верификации для управления сменами и отрядами.</p>
-                        </>
-                      ) : (
-                        <>
-                          <div className="organizer-empty-state__icon" aria-hidden>📅</div>
-                          <p className="organizer-empty-state__title">Пока нет смен</p>
-                          <p className="organizer-empty-state__text">Создайте первую смену, чтобы добавлять отряды и выдавать коды участникам и вожатым.</p>
-                          <button type="button" className="btn-primary-gold" style={{ padding: '10px 20px' }} aria-label="Создать смену" onClick={() => { setOrganizerShiftForm({ name: '', startDate: '', endDate: '' }); setOrganizerShiftFormOpen(true); }}>Создать смену</button>
-                        </>
-                      )}
-                    </div>
-                  )}
-                </div>
-                {accessToken && (
-                  <div className="organizer-shifts-actions">
-                    <button type="button" className="btn-primary-gold" style={{ padding: '10px 20px' }} aria-label="Создать смену" onClick={() => { setOrganizerShiftForm({ name: '', startDate: '', endDate: '' }); setOrganizerShiftFormOpen(true); }}>Создать смену</button>
-                    <button type="button" className="btn-secondary" style={{ padding: '10px 20px' }} aria-label="Обновить список смен и отрядов" disabled={organizerLoading} onClick={() => loadOrganizerData()}>Обновить</button>
-                    <button type="button" className="btn-secondary" style={{ padding: '10px 20px' }} aria-label="Выдать код верификации" onClick={() => { setOrganizerCodeForm({ deviceId: deviceId || '', role: 'participant', shiftId: organizerShifts[0]?.id || '' }); setOrganizerCodeResult(null); setOrganizerCodeModalOpen(true); }}>Выдать код</button>
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-        )}
-
-        {organizerShiftFormOpen && (
-          <div className="profile-utility-panel-overlay" onClick={() => setOrganizerShiftFormOpen(false)} aria-hidden="true" />
-        )}
-        {organizerShiftFormOpen && (
-          <div className="profile-utility-panel profile-utility-panel--modal-centered" role="dialog" aria-modal="true" aria-labelledby="organizer-modal-shift-title" onClick={e => e.stopPropagation()}>
-            <div className="profile-utility-panel-header">
-              <span id="organizer-modal-shift-title">Создать смену</span>
-              <button type="button" className="profile-utility-panel-close" onClick={() => setOrganizerShiftFormOpen(false)} aria-label="Закрыть"><Icons.Close /></button>
-            </div>
-            <div className="profile-utility-panel-body">
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                <div>
-                  <label htmlFor="organizer-shift-name" style={{ fontSize: 12, opacity: 0.8 }}>Название смены</label>
-                  <input id="organizer-shift-name" value={organizerShiftForm.name} onChange={e => setOrganizerShiftForm(f => ({ ...f, name: e.target.value }))} placeholder="Название смены" style={{ display: 'block', width: '100%', padding: 8, borderRadius: 8, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.2)', color: '#fff' }} />
-                </div>
-                <div>
-                  <label htmlFor="organizer-shift-start" style={{ fontSize: 12, opacity: 0.8 }}>Дата начала</label>
-                  <input id="organizer-shift-start" type="date" value={organizerShiftForm.startDate} onChange={e => setOrganizerShiftForm(f => ({ ...f, startDate: e.target.value }))} style={{ display: 'block', width: '100%', padding: 8, borderRadius: 8, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.2)', color: '#fff' }} />
-                </div>
-                <div>
-                  <label htmlFor="organizer-shift-end" style={{ fontSize: 12, opacity: 0.8 }}>Дата окончания</label>
-                  <input id="organizer-shift-end" type="date" value={organizerShiftForm.endDate} onChange={e => setOrganizerShiftForm(f => ({ ...f, endDate: e.target.value }))} style={{ display: 'block', width: '100%', padding: 8, borderRadius: 8, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.2)', color: '#fff' }} />
-                </div>
-                <button type="button" className="btn-primary-gold" aria-label="Создать смену" disabled={!organizerShiftForm.name.trim() || !organizerShiftForm.startDate || !organizerShiftForm.endDate || organizerLoading} onClick={async () => {
-                  if (!accessToken) return;
-                  setOrganizerLoading(true);
-                  setOrganizerError(null);
-                  try {
-                    const res = await fetch(`${organizerApiBase}/api/shifts`, {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
-                      body: JSON.stringify({ name: organizerShiftForm.name.trim(), startDate: organizerShiftForm.startDate, endDate: organizerShiftForm.endDate }),
-                    });
-                    const data = await res.json().catch(() => ({}));
-                    if (res.status === 401) { setOrganizerError('Сессия истекла. Войдите снова.'); fireOn401(); return; }
-                    if (!res.ok) { setOrganizerError(data?.error || `Ошибка ${res.status}`); return; }
-                    setOrganizerShifts(prev => [...prev, data]);
-                    setOrganizerShiftFormOpen(false);
-                  } finally {
-                    setOrganizerLoading(false);
-                  }
-                }}>Создать</button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {organizerSquadFormOpen && (
-          <div className="profile-utility-panel-overlay" onClick={() => setOrganizerSquadFormOpen(false)} aria-hidden="true" />
-        )}
-        {organizerSquadFormOpen && (
-          <div className="profile-utility-panel profile-utility-panel--modal-centered" role="dialog" aria-modal="true" aria-labelledby="organizer-modal-squad-title" onClick={e => e.stopPropagation()}>
-            <div className="profile-utility-panel-header">
-              <span id="organizer-modal-squad-title">Добавить отряд</span>
-              <button type="button" className="profile-utility-panel-close" onClick={() => setOrganizerSquadFormOpen(false)} aria-label="Закрыть"><Icons.Close /></button>
-            </div>
-            <div className="profile-utility-panel-body">
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                <div>
-                  <label htmlFor="organizer-squad-name" style={{ fontSize: 12, opacity: 0.8 }}>Название отряда</label>
-                  <input id="organizer-squad-name" value={organizerSquadFormName} onChange={e => setOrganizerSquadFormName(e.target.value)} placeholder="Название отряда" style={{ display: 'block', width: '100%', padding: 8, borderRadius: 8, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.2)', color: '#fff' }} />
-                </div>
-                <button type="button" className="btn-primary-gold" aria-label="Добавить отряд" disabled={!organizerSquadFormName.trim() || organizerLoading} onClick={async () => {
-                  if (!accessToken || !organizerSquadFormShiftId) return;
-                  setOrganizerLoading(true);
-                  setOrganizerError(null);
-                  try {
-                    const res = await fetch(`${organizerApiBase}/api/shifts/${organizerSquadFormShiftId}/squads`, {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
-                      body: JSON.stringify({ name: organizerSquadFormName.trim() }),
-                    });
-                    const data = await res.json().catch(() => ({}));
-                    if (res.status === 401) { setOrganizerError('Сессия истекла. Войдите снова.'); fireOn401(); return; }
-                    if (!res.ok) { setOrganizerError(data?.error || `Ошибка ${res.status}`); return; }
-                    setOrganizerSquadsMap(prev => ({ ...prev, [organizerSquadFormShiftId]: [...(prev[organizerSquadFormShiftId] || []), data] }));
-                    setOrganizerSquadFormOpen(false);
-                  } finally {
-                    setOrganizerLoading(false);
-                  }
-                }}>Добавить</button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {organizerCodeModalOpen && (
-          <div className="profile-utility-panel-overlay" onClick={() => { setOrganizerCodeModalOpen(false); setOrganizerCodeResult(null); }} aria-hidden="true" />
-        )}
-        {organizerCodeModalOpen && (
-          <div className="profile-utility-panel profile-utility-panel--modal-centered" role="dialog" aria-modal="true" aria-labelledby="organizer-modal-code-title" onClick={e => e.stopPropagation()}>
-            <div className="profile-utility-panel-header">
-              <span id="organizer-modal-code-title">Выдать код</span>
-              <button type="button" className="profile-utility-panel-close" onClick={() => { setOrganizerCodeModalOpen(false); setOrganizerCodeResult(null); }} aria-label="Закрыть"><Icons.Close /></button>
-            </div>
-            <div className="profile-utility-panel-body">
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                <div>
-                  <label style={{ fontSize: 12, opacity: 0.8 }}>deviceId</label>
-                  <p style={{ margin: '0 0 4px', fontSize: 11, opacity: 0.75 }}>Идентификатор устройства участника, к которому привязывается код (обычно подставляется автоматически).</p>
-                  <input value={organizerCodeForm.deviceId} onChange={e => setOrganizerCodeForm(f => ({ ...f, deviceId: e.target.value }))} placeholder="UUID устройства" style={{ display: 'block', width: '100%', padding: 8, borderRadius: 8, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.2)', color: '#fff', fontSize: 13 }} />
-                </div>
-                <div>
-                  <label style={{ fontSize: 12, opacity: 0.8 }}>Роль</label>
-                  <select value={organizerCodeForm.role} onChange={e => setOrganizerCodeForm(f => ({ ...f, role: e.target.value as UserRole }))} style={{ display: 'block', width: '100%', padding: 8, borderRadius: 8, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.2)', color: '#fff', fontSize: 13 }}>
-                    {(['participant', 'parent', 'counselor', 'shift_leader'] as const).map((r) => (
-                      <option key={r} value={r}>{ROLE_LABELS[r]}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label style={{ fontSize: 12, opacity: 0.8 }}>Смена (опционально)</label>
-                  <select value={organizerCodeForm.shiftId} onChange={e => setOrganizerCodeForm(f => ({ ...f, shiftId: e.target.value }))} style={{ display: 'block', width: '100%', padding: 8, borderRadius: 8, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.2)', color: '#fff', fontSize: 13 }}>
-                    <option value="">— без смены —</option>
-                    {organizerShifts.map((s) => (
-                      <option key={s.id} value={s.id}>{s.name}</option>
-                    ))}
-                  </select>
-                </div>
-                <button type="button" className="btn-primary-gold" aria-label="Сгенерировать код верификации" disabled={!organizerCodeForm.deviceId.trim() || organizerLoading} onClick={async () => {
-                  if (!accessToken) return;
-                  setOrganizerLoading(true);
-                  setOrganizerError(null);
-                  setOrganizerCodeResult(null);
-                  try {
-                    const res = await fetch(`${organizerApiBase}/api/organizer/generate-code`, {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
-                      body: JSON.stringify({ deviceId: organizerCodeForm.deviceId.trim(), role: organizerCodeForm.role, shiftId: organizerCodeForm.shiftId || undefined }),
-                    });
-                    const data = await res.json().catch(() => ({}));
-                    if (res.status === 401) { setOrganizerError('Сессия истекла. Войдите снова.'); fireOn401(); return; }
-                    if (!res.ok) { setOrganizerError(data?.error || `Ошибка ${res.status}`); return; }
-                    setOrganizerCodeResult(data.code || '');
-                  } finally {
-                    setOrganizerLoading(false);
-                  }
-                }}>Сгенерировать код</button>
-                {organizerCodeResult && (
-                  <div style={{ marginTop: 8, padding: 12, background: 'rgba(0,0,0,0.3)', borderRadius: 8 }}>
-                    <p style={{ margin: '0 0 8px', fontSize: 12, opacity: 0.8 }}>Код:</p>
-                    <p style={{ margin: 0, fontSize: 24, fontWeight: 700, letterSpacing: 2, fontFamily: 'monospace' }}>{organizerCodeResult}</p>
-                    <button type="button" onClick={() => { navigator.clipboard?.writeText(organizerCodeResult).then(() => showHint({ title: 'Скопировано', content: 'Код скопирован в буфер обмена' })); }} className="btn-secondary" style={{ marginTop: 8, padding: '8px 16px' }}>Копировать</button>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
+        {showOrganizerPanel && renderOrganizerShiftsSection()}
 
         <div className="profile-view-dashboards-grid">
         <div className="dashboards-stack" style={{ marginTop: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -4537,7 +5204,7 @@ export const ProfileView: React.FC<any> = (props) => {
                   {badgeRequestsError && <div className="profile-error profile-error--not-found">{badgeRequestsError}</div>}
                   {approvalsSyncStatus && <div style={{ fontSize: 12, opacity: 0.88 }}>{approvalsSyncStatus}</div>}
 
-                  <div style={{ padding: 10, borderRadius: 10, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                  <div style={{ padding: 12, borderRadius: 12, background: 'rgba(0,0,0,0.32)', border: '1px solid rgba(255,255,255,0.06)' }}>
                     <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 8, opacity: 0.9 }}>Мой отряд</div>
                     {!accessToken && <div style={{ fontSize: 12, opacity: 0.8 }}>Войдите по коду, чтобы привязать устройство к отряду.</div>}
                     {accessToken && (
@@ -4547,21 +5214,57 @@ export const ProfileView: React.FC<any> = (props) => {
                           <div style={{ fontSize: 12, lineHeight: 1.5 }}>
                             <div>Смена: <strong>{mySquadInfo.shift?.name || mySquadInfo.membership.campId || '—'}</strong></div>
                             <div>Отряд: <strong>{mySquadInfo.squad?.name || mySquadInfo.membership.squadId || '—'}</strong></div>
+                            <div style={{ marginTop: 8 }}>
+                              <button
+                                type="button"
+                                className="btn-secondary"
+                                style={{ padding: '8px 12px' }}
+                                onClick={() => {
+                                  if (!isSpaceshipMode) {
+                                    showHint({
+                                      title: 'Кабинет отряда',
+                                      content: 'Кабинет отряда открывается в режиме Кабины (profile-desktop).',
+                                    });
+                                    return;
+                                  }
+                                  setActiveTab('active');
+                                  setSquadCornerReturnToOrganizer(false);
+                                  setSquadCornerActiveTab('squad');
+                                  openCabinPanel('squad-corner', 'left');
+                                }}
+                              >
+                                Открыть кабинет
+                              </button>
+                            </div>
                           </div>
                         ) : (
                           <div style={{ fontSize: 12, opacity: 0.8, marginBottom: 8 }}>Вы пока не состоите в отряде.</div>
                         )}
-                        {(role === 'participant' || role === 'developer') && (
+                        {(role === 'participant' || role === 'counselor' || role === 'shift_leader' || role === 'developer') && (
+                          <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginTop: 8 }}>
+                            <input
+                              type="text"
+                              value={mySquadJoinCode}
+                              onChange={(e) => { setMySquadJoinCode(e.target.value.toUpperCase()); setMySquadJoinStatus(null); }}
+                              placeholder="Введите код приглашения"
+                              style={{ flex: 1, minWidth: 140, padding: '8px 10px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.2)', color: '#fff', fontSize: 13 }}
+                            />
+                            <button type="button" className="btn-primary-gold" style={{ padding: '8px 14px' }} disabled={mySquadJoinBusy} onClick={() => void joinMySquadByCode()}>
+                              {mySquadJoinBusy ? 'Вступаем...' : 'Вступить'}
+                            </button>
+                          </div>
+                        )}
+                        {showSandbox && role === 'developer' && (
                           <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginTop: 8 }}>
                             <input
                               type="text"
                               value={mySquadJoinId}
                               onChange={(e) => { setMySquadJoinId(e.target.value); setMySquadJoinStatus(null); }}
-                              placeholder="Введите squadId"
+                              placeholder="Dev fallback: squadId"
                               style={{ flex: 1, minWidth: 140, padding: '8px 10px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.2)', color: '#fff', fontSize: 13 }}
                             />
-                            <button type="button" className="btn-primary-gold" style={{ padding: '8px 14px' }} disabled={mySquadJoinBusy} onClick={() => void joinMySquadById()}>
-                              {mySquadJoinBusy ? 'Вступаем...' : 'Вступить'}
+                            <button type="button" className="btn-secondary" style={{ padding: '8px 14px' }} disabled={mySquadJoinBusy} onClick={() => void joinMySquadById()}>
+                              Вступить по squadId
                             </button>
                           </div>
                         )}
@@ -4581,7 +5284,7 @@ export const ProfileView: React.FC<any> = (props) => {
                   </div>
 
                   {canRequestApprovals && (
-                    <div style={{ padding: 10, borderRadius: 10, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                    <div style={{ padding: 12, borderRadius: 12, background: 'rgba(0,0,0,0.32)', border: '1px solid rgba(255,255,255,0.06)' }}>
                       <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 8, opacity: 0.9 }}>Мои заявки на подтверждение</div>
                       {badgeRequestsMine.length === 0 ? (
                         <div style={{ fontSize: 12, opacity: 0.8 }}>Заявок пока нет. Отправьте заявку из карточки уровня.</div>
@@ -4601,7 +5304,7 @@ export const ProfileView: React.FC<any> = (props) => {
                   )}
 
                   {canModerateApprovals && (
-                    <div style={{ padding: 10, borderRadius: 10, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                    <div style={{ padding: 12, borderRadius: 12, background: 'rgba(0,0,0,0.32)', border: '1px solid rgba(255,255,255,0.06)' }}>
                       <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 8, opacity: 0.9 }}>Inbox подтверждений значков</div>
                       {badgeRequestsInbox.length === 0 ? (
                         <div style={{ fontSize: 12, opacity: 0.8 }}>Входящих заявок нет.</div>
@@ -4826,7 +5529,7 @@ export const ProfileView: React.FC<any> = (props) => {
                 <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid rgba(255,255,255,0.1)', display: 'grid', gap: 8 }}>
                   <div style={{ fontSize: 12, fontWeight: 700, opacity: 0.9 }}>Dev login (localhost)</div>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                    {(['participant', 'parent', 'counselor', 'shift_leader'] as UserRole[]).map((targetRole) => (
+                    {(['participant', 'parent', 'counselor', 'shift_leader', 'developer'] as UserRole[]).map((targetRole) => (
                       <button
                         key={targetRole}
                         type="button"

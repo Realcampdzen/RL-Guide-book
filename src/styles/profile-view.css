@@ -1664,9 +1664,9 @@
 }
 .profile-view .organizer-shift-card {
   padding: 16px;
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(0, 0, 0, 0.32);
   border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.06);
 }
 .profile-view .organizer-shift-card__header {
   display: flex;
@@ -1688,9 +1688,64 @@
 }
 .profile-view .organizer-squads-list {
   margin: 8px 0 0;
-  padding-left: 18px;
+  padding-left: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.profile-view .organizer-squad-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0;
+}
+.profile-view .organizer-squad-row__main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.24);
+  border-radius: 12px;
+  padding: 8px 10px;
+  color: rgba(255, 255, 255, 0.95);
+  cursor: pointer;
+}
+.profile-view .organizer-squad-row__main:hover {
+  border-color: rgba(217, 119, 6, 0.5);
+  background: rgba(217, 119, 6, 0.12);
+}
+.profile-view .organizer-squad-row__avatar {
+  width: 30px;
+  height: 30px;
+  min-width: 30px;
+  border-radius: 9999px;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+.profile-view .organizer-squad-row__avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.profile-view .organizer-squad-row__name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-size: 13px;
-  opacity: 0.9;
+  font-weight: 600;
+}
+.profile-view .organizer-squad-row__delete {
+  flex-shrink: 0;
 }
 .profile-view .organizer-empty-state {
   padding: 20px;
@@ -1698,6 +1753,11 @@
   border: 1px dashed rgba(139, 0, 255, 0.3);
   border-radius: 16px;
   text-align: center;
+}
+.profile-view .organizer-empty-state.organizer-block-darkened {
+  background: rgba(0, 0, 0, 0.32);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-style: solid;
 }
 .profile-view .organizer-empty-state__icon {
   font-size: 28px;
@@ -1799,6 +1859,27 @@
   margin: 0;
   font-size: 12px;
   opacity: 0.75;
+}
+
+/* Пустые состояния хаба (В пути, Избранное, Коллекция, Журнал) — тёмная рамка */
+.profile-view .profile-empty-state--hub {
+  padding: 20px 24px;
+  background: rgba(0, 0, 0, 0.32);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  text-align: center;
+}
+.profile-view .profile-empty-state--hub .profile-empty-state__text {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  opacity: 0.88;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+/* Скрыть фоновую картинку полки при пустом Избранном */
+.profile-view .favorites-shelf-container--empty {
+  background-image: none !important;
 }
 .profile-view .profile-loading {
   margin: 0;
@@ -2026,6 +2107,11 @@
   background: rgba(255, 255, 255, 0.04);
   border-radius: 16px;
   border: 1px solid rgba(255, 255, 255, 0.08);
+}
+/* organizer-shift-card — затемнённый стиль (переопределяет parents-section-block) */
+.profile-view-parents-section.organizer-shifts-section .organizer-shift-card.parents-section-block {
+  background: rgba(0, 0, 0, 0.32);
+  border: 1px solid rgba(255, 255, 255, 0.06);
 }
 .profile-view-parents-section .parents-section-block__heading {
   font-size: 14px;
@@ -2325,6 +2411,18 @@
   object-fit: cover;
   border-radius: 50%;
 }
+.vozhatifikator-badge-block__img-btn {
+  display: inline-flex;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-radius: 999px;
+}
+.vozhatifikator-badge-block__img-btn:focus-visible {
+  outline: 2px solid rgba(139, 0, 255, 0.55);
+  outline-offset: 3px;
+}
 .vozhatifikator-badge-block__link {
   font-size: 12px;
   color: rgba(139, 0, 255, 0.9);
@@ -2446,6 +2544,22 @@
   overflow-y: auto;
   overflow-x: hidden;
   padding: 16px 20px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(139, 0, 255, 0.4) rgba(255, 255, 255, 0.06);
+}
+.vozhatifikator-book::-webkit-scrollbar {
+  width: 6px;
+}
+.vozhatifikator-book::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 3px;
+}
+.vozhatifikator-book::-webkit-scrollbar-thumb {
+  background: rgba(139, 0, 255, 0.4);
+  border-radius: 3px;
+}
+.vozhatifikator-book::-webkit-scrollbar-thumb:hover {
+  background: rgba(139, 0, 255, 0.6);
 }
 .vozhatifikator-book__loading,
 .vozhatifikator-book__error {

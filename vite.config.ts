@@ -50,10 +50,47 @@ const rlGuideBookDevPlugin = (): Plugin => ({
   name: 'rl-guide-book-dev',
   configureServer(server) {
     server.middlewares.use((req, res, next) => {
+      const rawUrl = req.url || '/';
+      const [rawPath, rawQuery] = rawUrl.split('?');
+      const qs = rawQuery ? `?${rawQuery}` : '';
+
+      // Convenience dev routes: allow visiting /profile-desktop and /RL-Guide-book/profile-desktop
+      // without remembering the .html suffix or base prefix.
+      if (rawPath === '/profile-desktop' || rawPath === '/profile-desktop/') {
+        req.url = `/profile-desktop.html${qs}`;
+        next();
+        return;
+      }
+      if (
+        rawPath === '/RL-Guide-book/profile-desktop' ||
+        rawPath === '/RL-Guide-book/profile-desktop/' ||
+        rawPath === '/RL-Guide-book/profile-desktop.html'
+      ) {
+        req.url = `/profile-desktop.html${qs}`;
+        next();
+        return;
+      }
+
       if (req.url === '/RL-Guide-book' || req.url === '/RL-Guide-book/') {
-        req.url = '/RL-Guide-book/index.html'
+        req.url = `/${qs}`;
         next()
         return
+      }
+      // Книга Вожатификатор: dev запрос идёт на /vozhatifikator.md (base /), prod — на /RL-Guide-book/vozhatifikator.md
+      const vozhatPath = rawPath === '/vozhatifikator.md' || rawPath === '/RL-Guide-book/vozhatifikator.md'
+      if (vozhatPath) {
+        const docsPath = resolve(process.cwd(), 'docs', 'вожатификатор.md')
+        if (existsSync(docsPath) && statSync(docsPath).isFile()) {
+          try {
+            const content = readFileSync(docsPath)
+            res.setHeader('Content-Type', 'text/markdown; charset=utf-8')
+            res.setHeader('Cache-Control', 'no-cache')
+            res.end(content)
+            return
+          } catch (e) {
+            console.error('Error serving vozhatifikator.md from docs:', e)
+          }
+        }
       }
       if (req.url?.startsWith('/RL-Guide-book/')) {
         // Сначала декодируем URL, потом извлекаем путь
@@ -181,7 +218,31 @@ const copyRLGuideBookPlugin = () => ({
       let copiedFiles = 0
       let copiedDirs = 0
       let skippedFiles = 0
-      
+
+      // Windows can sporadically throw EBUSY/EPERM while copying lots of files (AV scan, explorer previews, etc).
+      // We retry a few times to keep production builds stable.
+      const sleepSync = (ms: number) => {
+        // eslint-disable-next-line no-undef
+        Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms)
+      }
+      const copyFileWithRetry = (srcPath: string, destPath: string) => {
+        const attempts = 6
+        for (let i = 0; i < attempts; i++) {
+          try {
+            fs.copyFileSync(srcPath, destPath)
+            return true
+          } catch (e: any) {
+            const code = e?.code
+            if ((code === 'EBUSY' || code === 'EPERM') && i < attempts - 1) {
+              sleepSync(40 * (i + 1))
+              continue
+            }
+            throw e
+          }
+        }
+        return false
+      }
+       
       function copyDir(src, dest) {
         if (!existsSync(dest)) {
           mkdirSync(dest, { recursive: true })
@@ -203,18 +264,23 @@ const copyRLGuideBookPlugin = () => ({
               // Копируем все статические файлы (изображения, JSON, CSS, HTML, MD и т.д.)
               const ext = path.extname(entry.name).toLowerCase()
               const allowedExts = ['.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp', '.json', '.css', '.html', '.md', '.js', '.txt', '.ico']
-              
+              // Raw sources are not needed at runtime and can cause Windows copy flakiness.
+              if (entry.name.toLowerCase().includes('.orig.')) {
+                skippedFiles++
+                continue
+              }
+               
               if (allowedExts.includes(ext) || !ext) {
                 try {
-                  fs.copyFileSync(srcPath, destPath)
+                  copyFileWithRetry(srcPath, destPath)
                   copiedFiles++
-                  
+                   
                   // Логируем копирование изображений значков для отладки
                   if (srcPath.includes('Новые значки') && ['.jpg', '.jpeg', '.png'].includes(ext)) {
                     console.log(`  ✅ Скопировано: ${path.relative('public', srcPath)}`)
                   }
                 } catch (error) {
-                  console.error(`  ❌ Ошибка копирования ${srcPath}:`, error.message)
+                  console.error(`  ❌ Ошибка копирования ${srcPath}:`, error?.message || error)
                 }
               } else {
                 skippedFiles++
@@ -244,6 +310,17 @@ const copyRLGuideBookPlugin = () => ({
       console.log('✅ Скопирован 404.html')
     }
 
+    // Service worker must live at site root (/sw.js). We disabled Vite's publicDir copy.
+    const swSrc = resolve(process.cwd(), 'public', 'sw.js')
+    if (existsSync(swSrc)) {
+      try {
+        copyFileSync(swSrc, 'dist/sw.js')
+        console.log('✅ Скопирован public/sw.js → dist/sw.js')
+      } catch (e) {
+        console.warn('⚠️  Не удалось скопировать sw.js:', (e as any)?.message || e)
+      }
+    }
+
     // Книга Вожатификатор: копируем из docs в dist для просмотра на сайте
     const vozhatifikatorSrc = resolve(process.cwd(), 'docs', 'вожатификатор.md')
     if (existsSync(vozhatifikatorSrc)) {
@@ -255,8 +332,9 @@ const copyRLGuideBookPlugin = () => ({
 })
 
 // https://vitejs.dev/config/
-export default defineConfig(({ mode }) => {
+export default defineConfig(({ mode, command }) => {
   const isAnalyze = mode === 'analyze'
+  const isDevServer = command === 'serve'
 
   const plugins = [
     react({
@@ -284,7 +362,9 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins,
-    base: '/RL-Guide-book/',
+    // Dev should work from http://localhost:3001/ without requiring /RL-Guide-book/ prefix.
+    // Build/preview keeps the GitHub Pages base path.
+    base: isDevServer ? '/' : '/RL-Guide-book/',
     server: {
       port: 3001,
       host: true,
@@ -310,6 +390,9 @@ export default defineConfig(({ mode }) => {
     build: {
       outDir: 'dist',
       emptyOutDir: false, // не очищать dist: папки с кириллицей (Новые значки) дают ENOTEMPTY на Windows
+      // Disable Vite's default public/ -> dist copy.
+      // We copy public/ ourselves (to dist/RL-Guide-book) to avoid Windows EBUSY/ENOTEMPTY issues with large Cyrillic paths.
+      copyPublicDir: false,
       sourcemap: false,
       rollupOptions: {
         input: {

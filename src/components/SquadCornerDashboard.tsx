@@ -4,6 +4,7 @@ import { useUserProgress } from '../hooks/useUserProgress';
 import { useAuth } from '../context/AuthContext';
 import { ImageSourceBlock } from './ImageSourceBlock';
 import { requestImageGenerate } from '../utils/imageGenerateApi';
+import type { SquadCorner } from '../utils/badgeApprovalApi';
 
 const ACCENT = '#d97706';
 const ACCENT_LIGHT = 'rgba(217, 119, 6, 0.25)';
@@ -18,6 +19,14 @@ interface SquadCornerDashboardProps {
   activeTab?: SquadCornerTabId;
   onTabChange?: (tab: SquadCornerTabId) => void;
   onNavigateToBadge?: (badgeId: string) => void;
+  hasSquadMembership?: boolean;
+  mySquadName?: string;
+  canEditCorner?: boolean;
+  canCreateSquadFromCorner?: boolean;
+  onOpenCabinet?: () => void;
+  onOpenShiftsAndSquads?: () => void;
+  onPersistCorner?: (payload: Partial<SquadCorner>) => Promise<void>;
+  onCreateSquadFromCorner?: (payload: Partial<SquadCorner>) => Promise<void>;
 }
 
 const defaultPlanGrid = (): PlanGridData => ({ shiftLength: 21, days: {} });
@@ -35,12 +44,52 @@ export const SquadCornerDashboard: React.FC<SquadCornerDashboardProps> = ({
   variant = 'accordion',
   activeTab = 'squad',
   onTabChange,
-  onNavigateToBadge
+  onNavigateToBadge,
+  hasSquadMembership,
+  mySquadName,
+  canEditCorner: canEditCornerProp,
+  canCreateSquadFromCorner,
+  onOpenCabinet,
+  onOpenShiftsAndSquads,
+  onPersistCorner,
+  onCreateSquadFromCorner,
 }) => {
   const { userData, updateDiarySquad, approveFlagBadgeRequest } = useUserProgress();
   const { accessToken } = useAuth();
   const progress = userData.diaryProgress || { currentDay: 1, squad: undefined };
   const squad = progress.squad || {};
+  const canEditCorner = Boolean(canEditCornerProp ?? true);
+  const readOnlyHint = !canEditCorner ? (
+    <div style={{ padding: 12, borderRadius: 12, background: 'rgba(255,255,255,.06)', border: '1px solid rgba(255,255,255,.1)' }}>
+      <div style={{ fontWeight: 700, marginBottom: 6 }}>Редактирование недоступно</div>
+      <div style={{ fontSize: 12, opacity: 0.8 }}>
+        {hasSquadMembership === false ? 'Сначала вступите в отряд, чтобы заполнить уголок.' : 'Недостаточно прав для редактирования уголка.'}
+      </div>
+      {(onOpenShiftsAndSquads || onOpenCabinet) && (
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>
+          {onOpenShiftsAndSquads && (
+            <button type="button" className="btn-secondary" onClick={onOpenShiftsAndSquads}>Смены и отряды</button>
+          )}
+          {onOpenCabinet && (
+            <button type="button" className="btn-secondary" onClick={onOpenCabinet}>Открыть кабинет</button>
+          )}
+        </div>
+      )}
+    </div>
+  ) : null;
+
+  const [saveBusy, setSaveBusy] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<string | null>(null);
+
+  const persist = async (payload: Partial<SquadCorner>) => {
+    // Always keep a local draft.
+    await Promise.resolve(updateDiarySquad(payload as any));
+
+    // Only persist to backend when user is already a squad member.
+    if (onPersistCorner && hasSquadMembership) {
+      await onPersistCorner(payload);
+    }
+  };
 
   const [isExpanded, setIsExpanded] = useState(false);
   const [squadExpanded, setSquadExpanded] = useState(false);
@@ -61,6 +110,14 @@ export const SquadCornerDashboard: React.FC<SquadCornerDashboardProps> = ({
   const [localPhotoWithCounselors, setLocalPhotoWithCounselors] = useState(squad.photoWithCounselors ?? '');
   const [localPlanGridA, setLocalPlanGridA] = useState<PlanGridData>(() => (squad.planGridA ? { shiftLength: squad.planGridA.shiftLength, days: { ...squad.planGridA.days } } : defaultPlanGrid()));
   const [localPlanGridB, setLocalPlanGridB] = useState<PlanGridData>(() => (squad.planGridB ? { shiftLength: squad.planGridB.shiftLength, days: { ...squad.planGridB.days } } : defaultPlanGrid()));
+
+  const hasAtLeastOnePhoto = useMemo(() => (
+    [localPhotoCorner, localPhotoFlag, localPhotoSquad, localPhotoWithCounselors].some(isImageUrl)
+  ), [localPhotoCorner, localPhotoFlag, localPhotoSquad, localPhotoWithCounselors]);
+
+  const isReadyToCreateCabinet = useMemo(() => {
+    return Boolean(localSquadName.trim()) && hasAtLeastOnePhoto;
+  }, [localSquadName, hasAtLeastOnePhoto]);
 
   React.useEffect(() => {
     const s = progress.squad || {};
@@ -94,18 +151,63 @@ export const SquadCornerDashboard: React.FC<SquadCornerDashboardProps> = ({
   const dayData = currentPlanGrid.days[String(plannerDay)] || {};
   React.useEffect(() => { if (plannerDay > currentPlanGrid.shiftLength) setPlannerDay(currentPlanGrid.shiftLength); }, [plannerDay, currentPlanGrid.shiftLength]);
 
-  const saveSquad = () => updateDiarySquad({
-    name: localSquadName.trim() || undefined,
-    motto: localSquadMotto.trim() || undefined,
-    chants: localSquadChants.trim() || undefined,
-    greeting: localSquadGreeting.trim() || undefined,
-    memes: localSquadMemes.trim() || undefined,
-    photoCorner: localPhotoCorner || undefined,
-    photoFlag: localPhotoFlag || undefined,
-    photoSquad: localPhotoSquad || undefined,
-    photoWithCounselors: localPhotoWithCounselors || undefined
-  });
-  const savePlanner = () => updateDiarySquad({ planGridA: localPlanGridA, planGridB: localPlanGridB });
+  const saveSquad = async () => {
+    if (!canEditCorner) return;
+    setSaveBusy(true);
+    setSaveStatus(null);
+    try {
+      const payload: Partial<SquadCorner> = {
+        name: localSquadName.trim() || undefined,
+        motto: localSquadMotto.trim() || undefined,
+        chants: localSquadChants.trim() || undefined,
+        greeting: localSquadGreeting.trim() || undefined,
+        memes: localSquadMemes.trim() || undefined,
+        photoCorner: localPhotoCorner || undefined,
+        photoFlag: localPhotoFlag || undefined,
+        photoSquad: localPhotoSquad || undefined,
+        photoWithCounselors: localPhotoWithCounselors || undefined
+      };
+
+      // Always save local draft / server patch when membership exists.
+      await persist(payload);
+
+      // If user is not in a squad yet, allow counselor/dev to create squad + cabinet from this screen.
+      if (!hasSquadMembership && canCreateSquadFromCorner && onCreateSquadFromCorner) {
+        if (!isReadyToCreateCabinet) {
+          setSaveStatus('Чтобы создать кабинет: заполните название и добавьте минимум 1 фото.');
+          return;
+        } else {
+          setSaveStatus('Создаем отряд и кабинет...');
+          await onCreateSquadFromCorner(payload);
+          setSaveStatus('Кабинет создан.');
+          onOpenCabinet?.();
+          setTimeout(() => setSaveStatus(null), 1600);
+          return;
+        }
+      }
+
+      setSaveStatus('Сохранено.');
+      setTimeout(() => setSaveStatus(null), 1600);
+    } catch (e) {
+      setSaveStatus(e instanceof Error ? e.message : 'Не удалось сохранить.');
+    } finally {
+      setSaveBusy(false);
+    }
+  };
+  const savePlanner = async () => {
+    if (!canEditCorner) return;
+    setSaveBusy(true);
+    setSaveStatus(null);
+    try {
+      await persist({ planGridA: localPlanGridA, planGridB: localPlanGridB });
+      setSaveStatus('Сохранено.');
+      setTimeout(() => setSaveStatus(null), 1600);
+    } catch (e) {
+      setSaveStatus(e instanceof Error ? e.message : 'Не удалось сохранить.');
+    } finally {
+      setSaveBusy(false);
+    }
+  };
   const setShiftLength = (len: 9 | 21) => {
     setCurrentPlanGrid((prev) => {
       const days = { ...prev.days };
@@ -188,12 +290,33 @@ export const SquadCornerDashboard: React.FC<SquadCornerDashboardProps> = ({
 
   const squadSection = sectionWrap(squadExpanded, (
     <>
-      <input className="w-input" style={{ width: '100%' }} placeholder="Название отряда" value={localSquadName} onChange={(e) => setLocalSquadName(e.target.value)} />
-      <input className="w-input" style={{ width: '100%' }} placeholder="Девиз" value={localSquadMotto} onChange={(e) => setLocalSquadMotto(e.target.value)} />
-      <textarea className="w-input" style={{ width: '100%' }} placeholder="Кричалки" value={localSquadChants} onChange={(e) => setLocalSquadChants(e.target.value)} rows={2} />
-      <input className="w-input" style={{ width: '100%' }} placeholder="Приветствие" value={localSquadGreeting} onChange={(e) => setLocalSquadGreeting(e.target.value)} />
-      <textarea className="w-input" style={{ width: '100%' }} placeholder="Мемы" value={localSquadMemes} onChange={(e) => setLocalSquadMemes(e.target.value)} rows={2} />
-      <button type="button" className="btn-secondary" onClick={saveSquad} style={{ alignSelf: 'flex-start' }}>Сохранить отряд</button>
+      {!hasSquadMembership && (
+        <div style={{ padding: 12, borderRadius: 12, background: 'rgba(255,255,255,.04)', border: '1px solid rgba(255,255,255,.1)' }}>
+          <div style={{ fontWeight: 700, marginBottom: 6 }}>Как открыть кабинет отряда</div>
+          <div style={{ fontSize: 12, opacity: 0.85, lineHeight: 1.5 }}>
+            1) Заполните название и добавьте 1 фото. 2) Нажмите «Сохранить отряд».
+          </div>
+          {onOpenShiftsAndSquads && (
+            <div style={{ marginTop: 10 }}>
+              <button type="button" className="btn-secondary" onClick={onOpenShiftsAndSquads}>
+                Смены и отряды
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+      <input className="w-input" style={{ width: '100%' }} placeholder="Название отряда" value={localSquadName} onChange={(e) => setLocalSquadName(e.target.value)} disabled={!canEditCorner || saveBusy} />
+      <input className="w-input" style={{ width: '100%' }} placeholder="Девиз" value={localSquadMotto} onChange={(e) => setLocalSquadMotto(e.target.value)} disabled={!canEditCorner || saveBusy} />
+      <textarea className="w-input" style={{ width: '100%' }} placeholder="Кричалки" value={localSquadChants} onChange={(e) => setLocalSquadChants(e.target.value)} rows={2} disabled={!canEditCorner || saveBusy} />
+      <input className="w-input" style={{ width: '100%' }} placeholder="Приветствие" value={localSquadGreeting} onChange={(e) => setLocalSquadGreeting(e.target.value)} disabled={!canEditCorner || saveBusy} />
+      <textarea className="w-input" style={{ width: '100%' }} placeholder="Мемы" value={localSquadMemes} onChange={(e) => setLocalSquadMemes(e.target.value)} rows={2} disabled={!canEditCorner || saveBusy} />
+      {readOnlyHint}
+      <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+        <button type="button" className="btn-secondary" onClick={saveSquad} style={{ alignSelf: 'flex-start' }} disabled={!canEditCorner || saveBusy}>
+          {saveBusy ? 'Сохраняем...' : 'Сохранить отряд'}
+        </button>
+        {saveStatus && <span style={{ fontSize: 12, opacity: 0.8 }}>{saveStatus}</span>}
+      </div>
     </>
   ), 'Отряд', () => setSquadExpanded((v) => !v));
 
@@ -207,34 +330,58 @@ export const SquadCornerDashboard: React.FC<SquadCornerDashboardProps> = ({
             className="squad-corner-image-source-block"
             context="squad_photo"
             value={getPhoto(key) || null}
-            onChange={(url) => setPhoto(key, url)}
+            onChange={canEditCorner ? (url) => setPhoto(key, url) : () => {}}
             aspect="square"
             labels={{ placeholder: label }}
-            onGenerate={async (o) => requestImageGenerate({ mode: 'generate', context: key === 'photoWithCounselors' ? 'counselor_squad' : 'squad_corner', prompt: o.prompt ?? '' }, accessToken ?? null)}
-            onProcess={async (imageBase64, o) => requestImageGenerate({ mode: 'process', context: key === 'photoWithCounselors' ? 'counselor_squad' : 'squad_corner', imageBase64, prompt: o?.prompt ?? '' }, accessToken ?? null)}
+            onGenerate={canEditCorner ? async (o) => requestImageGenerate({ mode: 'generate', context: key === 'photoWithCounselors' ? 'counselor_squad' : 'squad_corner', prompt: o.prompt ?? '' }, accessToken ?? null) : undefined}
+            onProcess={canEditCorner ? async (imageBase64, o) => requestImageGenerate({ mode: 'process', context: key === 'photoWithCounselors' ? 'counselor_squad' : 'squad_corner', imageBase64, prompt: o?.prompt ?? '' }, accessToken ?? null) : undefined}
+            lockReason={!canEditCorner ? (hasSquadMembership === false ? 'Сначала вступите в отряд, чтобы добавлять фото.' : 'Недостаточно прав для добавления фото.') : undefined}
+            onUnlockRequest={!canEditCorner ? onOpenShiftsAndSquads : undefined}
           />
         </div>
       ))}
-      <button type="button" className="btn-secondary" onClick={saveSquad} style={{ alignSelf: 'flex-start' }}>Сохранить отряд</button>
+      {readOnlyHint}
+      <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+        <button type="button" className="btn-secondary" onClick={saveSquad} style={{ alignSelf: 'flex-start' }} disabled={!canEditCorner || saveBusy}>
+          {saveBusy ? 'Сохраняем...' : 'Сохранить отряд'}
+        </button>
+        {saveStatus && <span style={{ fontSize: 12, opacity: 0.8 }}>{saveStatus}</span>}
+      </div>
     </>
   ), 'Добавить фото в отряд', () => setPhotosExpanded((v) => !v));
 
   const plannerSection = sectionWrap(plannerExpanded, (
     <>
       <div style={{ display: 'flex', gap: 8 }}>
-        {(['planGridA', 'planGridB'] as const).map((id) => <button key={id} type="button" className="btn-secondary" onClick={() => setActivePlannerGrid(id)}>{id === 'planGridA' ? 'Сетка 1' : 'Сетка 2'}</button>)}
+        {(['planGridA', 'planGridB'] as const).map((id) => (
+          <button key={id} type="button" className="btn-secondary" onClick={() => setActivePlannerGrid(id)} disabled={!canEditCorner || saveBusy}>
+            {id === 'planGridA' ? 'Сетка 1' : 'Сетка 2'}
+          </button>
+        ))}
       </div>
       <div style={{ display: 'flex', gap: 12 }}>
-        <label><input type="radio" checked={currentPlanGrid.shiftLength === 9} onChange={() => setShiftLength(9)} /> 9 дней</label>
-        <label><input type="radio" checked={currentPlanGrid.shiftLength === 21} onChange={() => setShiftLength(21)} /> 21 день</label>
+        <label><input type="radio" checked={currentPlanGrid.shiftLength === 9} onChange={() => setShiftLength(9)} disabled={!canEditCorner || saveBusy} /> 9 дней</label>
+        <label><input type="radio" checked={currentPlanGrid.shiftLength === 21} onChange={() => setShiftLength(21)} disabled={!canEditCorner || saveBusy} /> 21 день</label>
       </div>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>{dayKeys.map((d) => <button key={d} type="button" className="btn-secondary" onClick={() => setPlannerDay(d)}>День {d}</button>)}</div>
-      <textarea className="w-input" placeholder="Утро" value={dayData.morning ?? ''} onChange={(e) => setDayField('morning', e.target.value)} rows={2} />
-      <textarea className="w-input" placeholder="Тихий час" value={dayData.quietHour ?? ''} onChange={(e) => setDayField('quietHour', e.target.value)} rows={2} />
-      <textarea className="w-input" placeholder="День" value={dayData.day ?? ''} onChange={(e) => setDayField('day', e.target.value)} rows={2} />
-      <textarea className="w-input" placeholder="Вечер" value={dayData.evening ?? ''} onChange={(e) => setDayField('evening', e.target.value)} rows={2} />
-      <textarea className="w-input" placeholder="Ночь" value={dayData.night ?? ''} onChange={(e) => setDayField('night', e.target.value)} rows={2} />
-      <button type="button" className="btn-secondary" onClick={savePlanner} style={{ alignSelf: 'flex-start' }}>Сохранить</button>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+        {dayKeys.map((d) => (
+          <button key={d} type="button" className="btn-secondary" onClick={() => setPlannerDay(d)} disabled={!canEditCorner || saveBusy}>
+            День {d}
+          </button>
+        ))}
+      </div>
+      <textarea className="w-input" placeholder="Утро" value={dayData.morning ?? ''} onChange={(e) => setDayField('morning', e.target.value)} rows={2} disabled={!canEditCorner || saveBusy} />
+      <textarea className="w-input" placeholder="Тихий час" value={dayData.quietHour ?? ''} onChange={(e) => setDayField('quietHour', e.target.value)} rows={2} disabled={!canEditCorner || saveBusy} />
+      <textarea className="w-input" placeholder="День" value={dayData.day ?? ''} onChange={(e) => setDayField('day', e.target.value)} rows={2} disabled={!canEditCorner || saveBusy} />
+      <textarea className="w-input" placeholder="Вечер" value={dayData.evening ?? ''} onChange={(e) => setDayField('evening', e.target.value)} rows={2} disabled={!canEditCorner || saveBusy} />
+      <textarea className="w-input" placeholder="Ночь" value={dayData.night ?? ''} onChange={(e) => setDayField('night', e.target.value)} rows={2} disabled={!canEditCorner || saveBusy} />
+      {readOnlyHint}
+      <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+        <button type="button" className="btn-secondary" onClick={savePlanner} style={{ alignSelf: 'flex-start' }} disabled={!canEditCorner || saveBusy}>
+          {saveBusy ? 'Сохраняем...' : 'Сохранить'}
+        </button>
+        {saveStatus && <span style={{ fontSize: 12, opacity: 0.8 }}>{saveStatus}</span>}
+      </div>
     </>
   ), 'Планёрка', () => setPlannerExpanded((v) => !v));
 
@@ -249,7 +396,7 @@ export const SquadCornerDashboard: React.FC<SquadCornerDashboardProps> = ({
     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: variant === 'accordion' && isExpanded ? 20 : 12 }}>
       <div onClick={variant === 'accordion' ? () => setIsExpanded((v) => !v) : undefined} style={{ cursor: variant === 'accordion' ? 'pointer' : 'default', flex: 1, minWidth: 0 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, marginBottom: 10 }}>
-          <div style={{ minWidth: 0 }}><div style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', color: ACCENT, letterSpacing: '.1em', marginBottom: 4 }}>Отрядный уголок</div><h3 style={{ margin: 0, fontSize: 18 }}>{localSquadName.trim() || 'Отряд'}</h3></div>
+          <div style={{ minWidth: 0 }}><div style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', color: ACCENT, letterSpacing: '.1em', marginBottom: 4 }}>Отрядный уголок</div><h3 style={{ margin: 0, fontSize: 18 }}>{localSquadName.trim() || mySquadName || 'Отряд'}</h3></div>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', maxWidth: 'min(42%, 360px)', alignSelf: 'flex-start', justifyContent: 'flex-end', flexShrink: 0 }}>{PHOTO_FIELDS.map(({ key }) => { const v = getPhoto(key); return isImageUrl(v) ? <div key={key} style={{ width: 'clamp(72px, 7vw, 96px)', height: 'clamp(72px, 7vw, 96px)', borderRadius: 12, overflow: 'hidden', border: `1px solid ${ACCENT_LIGHT}`, flex: '0 0 auto' }}><img src={v} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /></div> : null; })}</div>
         </div>
         <div style={{ maxWidth: 300 }}>

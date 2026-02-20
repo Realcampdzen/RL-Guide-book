@@ -3,20 +3,15 @@ import BadgeIcon from './BadgeIcon';
 import { ConfirmModal } from './ConfirmModal';
 import { useCounselorSquad } from '../context/CounselorSquadContext';
 import { useAuth } from '../context/AuthContext';
-import { useUserProgress } from '../hooks/useUserProgress';
 import { ImageSourceBlock } from './ImageSourceBlock';
 import { requestImageGenerate } from '../utils/imageGenerateApi';
 import type { CounselorSquadPlanGridData } from '../types/counselorSquad';
-import type { MyActivityKey, ShiftScheduleKey } from '../types/userProgress';
-import { ACTIVITY_ITEMS, hasValues, SHIFT_ITEMS } from '../utils/scheduleConstants';
-
-type ScheduleCell = { time?: string; note?: string };
 
 const ACCENT = '#d97706';
 const ACCENT_LIGHT = 'rgba(217, 119, 6, 0.25)';
 const isImageUrl = (s?: string) => !!s && (s.startsWith('data:') || s.startsWith('http'));
 
-export type CounselorSquadTabId = 'squad' | 'photos' | 'planner' | 'schedule' | 'flag-badges';
+export type CounselorSquadTabId = 'squad' | 'photos' | 'planner' | 'flag-badges';
 
 interface CounselorSquadDashboardProps {
   variant?: 'accordion' | 'cabin';
@@ -38,14 +33,13 @@ const FLAG_BADGE_ORDER = ['10.1', '10.2', '10.3'] as const;
 const COUNSELOR_TELEGRAM = 'https://t.me/Stivanovv';
 
 export const CounselorSquadDashboard: React.FC<CounselorSquadDashboardProps> = ({
-  variant = 'cabin',
+  variant = 'accordion',
   activeTab = 'squad',
   onTabChange,
   onNavigateToBadge,
   onShowHint
 }) => {
   const { role, accessToken } = useAuth();
-  const { userData, updateDiaryShiftTemplates } = useUserProgress();
   const {
     myCreatedSquad,
     myJoinedSquad,
@@ -62,7 +56,7 @@ export const CounselorSquadDashboard: React.FC<CounselorSquadDashboardProps> = (
     approveActiveFlagBadgeRequest
   } = useCounselorSquad();
 
-  const canEdit = role === 'shift_leader' || role === 'camp_director' || role === 'developer';
+  const canEdit = role === 'shift_leader' || role === 'developer';
   const canCreateSquad = canEdit;
 
   const [counselorJoinCode, setCounselorJoinCode] = useState('');
@@ -88,40 +82,6 @@ export const CounselorSquadDashboard: React.FC<CounselorSquadDashboardProps> = (
   const [localPlanGridB, setLocalPlanGridB] = useState<CounselorSquadPlanGridData>(() =>
     squad.planGridB ? { shiftLength: squad.planGridB.shiftLength, days: { ...squad.planGridB.days } } : defaultPlanGrid()
   );
-
-  const savedShift = userData?.diaryProgress?.shiftSchedule ?? {};
-  const savedActivities = userData?.diaryProgress?.myActivities ?? {};
-  const [localShift, setLocalShift] = useState<Partial<Record<ShiftScheduleKey, ScheduleCell>>>(savedShift);
-  const [localActivities, setLocalActivities] = useState<Partial<Record<MyActivityKey, ScheduleCell>>>(savedActivities);
-  const [editingShift, setEditingShift] = useState(!hasValues(savedShift, SHIFT_ITEMS));
-  const [editingActivities, setEditingActivities] = useState(!hasValues(savedActivities, ACTIVITY_ITEMS));
-
-  React.useEffect(() => {
-    setLocalShift(savedShift);
-    if (!hasValues(savedShift, SHIFT_ITEMS)) setEditingShift(true);
-  }, [savedShift]);
-
-  React.useEffect(() => {
-    setLocalActivities(savedActivities);
-    if (!hasValues(savedActivities, ACTIVITY_ITEMS)) setEditingActivities(true);
-  }, [savedActivities]);
-
-  const patchCell = <K extends string>(
-    setState: React.Dispatch<React.SetStateAction<Partial<Record<K, ScheduleCell>>>>,
-    key: K,
-    field: 'time' | 'note',
-    value: string
-  ) => {
-    setState((prev) => ({ ...prev, [key]: { ...(prev[key] || {}), [field]: value } }));
-  };
-  const saveShift = () => {
-    updateDiaryShiftTemplates({ shiftSchedule: localShift });
-    setEditingShift(!hasValues(localShift, SHIFT_ITEMS));
-  };
-  const saveActivities = () => {
-    updateDiaryShiftTemplates({ myActivities: localActivities });
-    setEditingActivities(!hasValues(localActivities, ACTIVITY_ITEMS));
-  };
 
   React.useEffect(() => {
     const s = activeSquadCard ?? {};
@@ -396,57 +356,6 @@ export const CounselorSquadDashboard: React.FC<CounselorSquadDashboardProps> = (
     </>
   );
 
-  const scheduleText = (v?: string) => (v || '').trim();
-  const scheduleCard = <K extends string>(
-    title: string,
-    items: Array<{ key: K; label: string }>,
-    values: Partial<Record<K, ScheduleCell>>,
-    editing: boolean,
-    onEdit: () => void,
-    onSave: () => void,
-    onChange: (k: K, field: 'time' | 'note', value: string) => void
-  ) => (
-    <article className="real-diary-schedule-card">
-      <h4 className="real-diary-schedule-card__title">{title}</h4>
-      {canEdit && editing ? (
-        <div className="real-diary-schedule-editor">
-          {items.map(({ key, label }) => (
-            <div key={String(key)} className="real-diary-schedule-editor__row">
-              <div className="real-diary-schedule-editor__label">{label}</div>
-              <input className="w-input real-diary-schedule-editor__time" placeholder="Время" value={values[key]?.time || ''} onChange={(e) => onChange(key, 'time', e.target.value)} />
-              <input className="w-input real-diary-schedule-editor__note" placeholder="Заметка" value={values[key]?.note || ''} onChange={(e) => onChange(key, 'note', e.target.value)} />
-            </div>
-          ))}
-          <div className="real-diary-schedule-actions"><button type="button" className="btn-primary-gold" onClick={onSave}>Сохранить</button></div>
-        </div>
-      ) : (
-        <>
-          <div className="real-diary-schedule-list">
-            {items.map(({ key, label }) => (
-              <div key={String(key)} className="real-diary-schedule-row">
-                <div className="real-diary-schedule-label">{label}</div>
-                <div className="real-diary-schedule-time">{scheduleText(values[key]?.time) || '—'}</div>
-                <div className="real-diary-schedule-note">{scheduleText(values[key]?.note) || '—'}</div>
-              </div>
-            ))}
-          </div>
-          {canEdit && (
-            <div className="real-diary-schedule-actions"><button type="button" className="btn-secondary" onClick={onEdit}>Редактировать</button></div>
-          )}
-        </>
-      )}
-    </article>
-  );
-
-  const scheduleSection = (
-    <div className="counselor-squad-cabin-section">
-      <div className="real-diary-schedule-columns">
-        {scheduleCard('Распорядок смены', SHIFT_ITEMS, localShift, editingShift, () => setEditingShift(true), saveShift, (k, f, v) => patchCell(setLocalShift, k, f, v))}
-        {scheduleCard('Мои занятия (кружки/тренировки)', ACTIVITY_ITEMS, localActivities, editingActivities, () => setEditingActivities(true), saveActivities, (k, f, v) => patchCell(setLocalActivities, k, f, v))}
-      </div>
-    </div>
-  );
-
   const flagsSection = sectionWrap(
     <>
       {flagBadgesVisual}
@@ -568,7 +477,7 @@ export const CounselorSquadDashboard: React.FC<CounselorSquadDashboardProps> = (
     );
   }
 
-  const emptyStateCard = !activeSquadCard && (role === 'counselor' || role === 'educator') && (
+  const emptyStateCard = !activeSquadCard && role === 'counselor' && (
     <div className="profile-empty-state organizer-empty-state" style={{ padding: 20 }}>
       <p className="profile-empty-state__text">Данные отряда недоступны в этом устройстве без синхронизации.</p>
     </div>
@@ -580,7 +489,7 @@ export const CounselorSquadDashboard: React.FC<CounselorSquadDashboardProps> = (
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, marginBottom: 10 }}>
           <div style={{ minWidth: 0 }}>
             <div style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', color: ACCENT, letterSpacing: '.1em', marginBottom: 4 }}>Вожатский отряд</div>
-            <h3 style={{ margin: 0, fontSize: 18 }}>{activeTab === 'schedule' ? 'Беспорядок дня' : (activeSquadName || localSquadName || 'Отряд').trim()}</h3>
+            <h3 style={{ margin: 0, fontSize: 18 }}>{(activeSquadName || localSquadName || 'Отряд').trim()}</h3>
           </div>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', maxWidth: 'min(42%, 360px)', alignSelf: 'flex-start', justifyContent: 'flex-end', flexShrink: 0 }}>
             {PHOTO_FIELDS.map(({ key }) => {
@@ -654,7 +563,7 @@ export const CounselorSquadDashboard: React.FC<CounselorSquadDashboardProps> = (
   );
 
   const cabinContent =
-    activeTab === 'squad' ? squadSection : activeTab === 'photos' ? photosSection : activeTab === 'planner' ? plannerSection : activeTab === 'schedule' ? scheduleSection : flagsSection;
+    activeTab === 'squad' ? squadSection : activeTab === 'photos' ? photosSection : activeTab === 'planner' ? plannerSection : flagsSection;
 
   return (
     <div className={`fade-in counselor-squad-cabin-content ${!canEdit ? 'counselor-squad-read-only' : ''}`} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>

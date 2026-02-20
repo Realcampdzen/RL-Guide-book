@@ -5,7 +5,7 @@ Flask API для Путеводителя "Реального Лагеря"
 Предоставляет данные о категориях и значках
 """
 
-from flask import Flask, jsonify, request, send_from_directory
+from flask import Flask, jsonify, request, send_from_directory, has_request_context
 from flask_cors import CORS
 import json
 import os
@@ -78,6 +78,18 @@ BADGE_REQUESTS_FILE = os.path.join(os.path.dirname(__file__), "data", "badge_req
 _BADGE_REQUESTS_LOCK = threading.Lock()
 MEMBERSHIPS_FILE = os.path.join(os.path.dirname(__file__), "data", "memberships.json")
 _MEMBERSHIPS_LOCK = threading.Lock()
+SQUAD_CORNERS_FILE = os.path.join(os.path.dirname(__file__), "data", "squad_corners.json")
+_SQUAD_CORNERS_LOCK = threading.Lock()
+SQUAD_INVITES_FILE = os.path.join(os.path.dirname(__file__), "data", "squad_invites.json")
+_SQUAD_INVITES_LOCK = threading.Lock()
+SQUAD_MESSAGES_FILE = os.path.join(os.path.dirname(__file__), "data", "squad_messages.json")
+_SQUAD_MESSAGES_LOCK = threading.Lock()
+SQUAD_INVITE_TTL_SEC = int(os.getenv('SQUAD_INVITE_TTL_SEC', str(30 * 24 * 60 * 60)))
+SQUAD_CORNER_PATCH_LIMIT_BYTES = 5 * 1024 * 1024
+SQUAD_MESSAGES_MAX_HISTORY = 1000
+SQUAD_MESSAGES_DEFAULT_LIMIT = 50
+SQUAD_MESSAGES_MAX_LIMIT = 100
+DEFAULT_SEEDED_SHIFT_NAME = "Реальный Лагерь 2026"
 # Staff-flow permissions (shifts/squads management, staff code issuing).
 ORGANIZER_ROLES = ('shift_leader', 'developer')
 LEVEL_ID_RE = re.compile(r'^\d+\.\d+(?:\.\d+)?$')
@@ -244,6 +256,27 @@ def _is_localhost_request() -> bool:
     return remote in ("127.0.0.1", "::1", "localhost")
 
 
+def _normalized_shift_name(name: str) -> str:
+    return re.sub(r"\s+", " ", (name or "").strip().lower())
+
+
+def _is_default_seeded_shift_name(name: str) -> bool:
+    normalized = _normalized_shift_name(name)
+    default_name = _normalized_shift_name(DEFAULT_SEEDED_SHIFT_NAME)
+    return normalized == default_name or normalized.startswith(f"{default_name} ")
+
+
+def _pick_squad_avatar(corner: dict) -> Optional[str]:
+    if not isinstance(corner, dict):
+        return None
+    for key in ("photoFlag", "photoCorner", "photoSquad", "photoWithCounselors"):
+        raw = corner.get(key)
+        value = raw.strip() if isinstance(raw, str) else ""
+        if value:
+            return value
+    return None
+
+
 def _require_roles(allowed_roles: tuple[str, ...], allow_localhost_dev: bool = False):
     """
     Универсальная JWT-проверка по ролям.
@@ -331,6 +364,124 @@ def _memberships_save(data: dict):
             json.dump(data, f, ensure_ascii=False, indent=2)
 
 
+def _squad_corners_load() -> dict:
+    """Load squad_corners.json under lock; returns {'corners': {}}."""
+    _ensure_chat_data_dir()
+    with _SQUAD_CORNERS_LOCK:
+        data = {"corners": {}}
+        if os.path.exists(SQUAD_CORNERS_FILE):
+            try:
+                with open(SQUAD_CORNERS_FILE, "r", encoding="utf-8") as f:
+                    raw = f.read()
+                    if raw.strip():
+                        data = json.loads(raw)
+            except (json.JSONDecodeError, OSError):
+                data = {"corners": {}}
+        if not isinstance(data, dict):
+            data = {"corners": {}}
+        if not isinstance(data.get("corners"), dict):
+            data["corners"] = {}
+        return data
+
+
+def _squad_corners_save(data: dict):
+    _ensure_chat_data_dir()
+    with _SQUAD_CORNERS_LOCK:
+        with open(SQUAD_CORNERS_FILE, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+
+
+def _squad_invites_load() -> dict:
+    """Load squad_invites.json under lock; returns {'codes': {}}."""
+    _ensure_chat_data_dir()
+    with _SQUAD_INVITES_LOCK:
+        data = {"codes": {}}
+        if os.path.exists(SQUAD_INVITES_FILE):
+            try:
+                with open(SQUAD_INVITES_FILE, "r", encoding="utf-8") as f:
+                    raw = f.read()
+                    if raw.strip():
+                        data = json.loads(raw)
+            except (json.JSONDecodeError, OSError):
+                data = {"codes": {}}
+        if not isinstance(data, dict):
+            data = {"codes": {}}
+        if not isinstance(data.get("codes"), dict):
+            data["codes"] = {}
+        return data
+
+
+def _squad_invites_save(data: dict):
+    _ensure_chat_data_dir()
+    with _SQUAD_INVITES_LOCK:
+        with open(SQUAD_INVITES_FILE, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+
+
+def _squad_invites_prune(doc: dict) -> tuple[dict, bool]:
+    """Remove expired invite codes. Returns: (doc, changed)."""
+    codes = doc.get("codes") or {}
+    if not isinstance(codes, dict):
+        doc["codes"] = {}
+        return doc, True
+    changed = False
+    now_ts = datetime.now(timezone.utc).timestamp()
+    for code in list(codes.keys()):
+        meta = codes.get(code)
+        if not isinstance(meta, dict):
+            del codes[code]
+            changed = True
+            continue
+        expires_at = _parse_iso_ts((meta.get("expiresAt") or "").strip())
+        if expires_at and expires_at < now_ts:
+            del codes[code]
+            changed = True
+    doc["codes"] = codes
+    return doc, changed
+
+
+def _squad_messages_load() -> dict:
+    """Load squad_messages.json under lock; returns {'bySquadId': {}}."""
+    _ensure_chat_data_dir()
+    with _SQUAD_MESSAGES_LOCK:
+        data = {"bySquadId": {}}
+        if os.path.exists(SQUAD_MESSAGES_FILE):
+            try:
+                with open(SQUAD_MESSAGES_FILE, "r", encoding="utf-8") as f:
+                    raw = f.read()
+                    if raw.strip():
+                        data = json.loads(raw)
+            except (json.JSONDecodeError, OSError):
+                data = {"bySquadId": {}}
+        if not isinstance(data, dict):
+            data = {"bySquadId": {}}
+        if not isinstance(data.get("bySquadId"), dict):
+            data["bySquadId"] = {}
+        return data
+
+
+def _squad_messages_save(data: dict):
+    _ensure_chat_data_dir()
+    with _SQUAD_MESSAGES_LOCK:
+        with open(SQUAD_MESSAGES_FILE, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+
+
+def _require_squad_membership(payload: dict, squad_id: str) -> tuple[Optional[dict], Optional[tuple]]:
+    """Ensure request actor has a membership in the requested squad. Returns: (membership, None) or (None, (resp, status))."""
+    device_id = (payload.get("deviceId") or "").strip()
+    if not device_id:
+        return None, (jsonify({"error": "deviceId missing in token"}), 400)
+    sid = (squad_id or "").strip()
+    if not sid:
+        return None, (jsonify({"error": "squadId required"}), 400)
+    mdoc = _memberships_load()
+    membership = _membership_for_device(mdoc, device_id)
+    if not membership or (membership.get("squadId") or "").strip() != sid:
+        return None, (jsonify({"error": "Not a member of this squad"}), 403)
+    return membership, None
+
+
 def _membership_for_device(doc: dict, device_id: str) -> Optional[dict]:
     members = doc.get("members") or []
     if not isinstance(members, list):
@@ -356,6 +507,190 @@ def _resolve_membership_context(device_id: str) -> tuple[str, str]:
     camp_id = (row.get("campId") or "").strip()
     squad_id = (row.get("squadId") or "").strip()
     return camp_id, squad_id
+
+
+def _find_squad(shifts_doc: dict, squad_id: str) -> Optional[dict]:
+    sid = (squad_id or "").strip()
+    if not sid:
+        return None
+    return next(
+        (
+            s for s in (shifts_doc.get("squads") or [])
+            if isinstance(s, dict) and (s.get("id") or "").strip() == sid
+        ),
+        None
+    )
+
+
+def _find_shift(shifts_doc: dict, shift_id: str) -> Optional[dict]:
+    sid = (shift_id or "").strip()
+    if not sid:
+        return None
+    return next(
+        (
+            s for s in (shifts_doc.get("shifts") or [])
+            if isinstance(s, dict) and (s.get("id") or "").strip() == sid
+        ),
+        None
+    )
+
+
+def _membership_in_squad(device_id: str, squad_id: str) -> Optional[dict]:
+    did = (device_id or "").strip()
+    sid = (squad_id or "").strip()
+    if not did or not sid:
+        return None
+    mdoc = _memberships_load()
+    for row in reversed(mdoc.get("members") or []):
+        if not isinstance(row, dict):
+            continue
+        if (row.get("deviceId") or "").strip() != did:
+            continue
+        if (row.get("squadId") or "").strip() != sid:
+            continue
+        return row
+    return None
+
+
+def _can_manage_squad(payload: dict, squad: dict, membership: Optional[dict]) -> tuple[bool, str]:
+    actor_role = _normalize_role((payload.get("role") or "").strip())
+    if actor_role == "developer":
+        return True, ""
+    if actor_role == "counselor":
+        if membership and _normalize_role((membership.get("role") or "").strip()) == "counselor":
+            return True, ""
+        return False, "not_member"
+    if actor_role == "shift_leader":
+        token_camp_id = (payload.get("campId") or "").strip()
+        squad_shift_id = (squad.get("shiftId") or "").strip()
+        if token_camp_id and token_camp_id == squad_shift_id:
+            return True, ""
+        if membership:
+            return True, ""
+        return False, "camp_mismatch" if token_camp_id else "not_member"
+    return False, "role_forbidden"
+
+
+def _can_read_corner(payload: dict, squad: dict, membership: Optional[dict]) -> bool:
+    actor_role = _normalize_role((payload.get("role") or "").strip())
+    if actor_role == "developer":
+        return True
+    if membership:
+        return True
+    if actor_role == "shift_leader":
+        token_camp_id = (payload.get("campId") or "").strip()
+        squad_shift_id = (squad.get("shiftId") or "").strip()
+        return bool(token_camp_id and token_camp_id == squad_shift_id)
+    return False
+
+
+def _build_squad_members_lists(squad_id: str, camp_id: str) -> tuple[list[dict], list[dict]]:
+    sid = (squad_id or "").strip()
+    cid = (camp_id or "").strip()
+    members: list[dict] = []
+    participants: list[dict] = []
+    mdoc = _memberships_load()
+    for row in (mdoc.get("members") or []):
+        if not isinstance(row, dict):
+            continue
+        if (row.get("squadId") or "").strip() != sid:
+            continue
+        if cid and (row.get("campId") or "").strip() != cid:
+            continue
+        role = _normalize_role((row.get("role") or "").strip() or "participant")
+        item = {
+            "deviceId": (row.get("deviceId") or "").strip(),
+            "nickname": (row.get("nickname") or "").strip() or None,
+            "role": role,
+            "joinedAt": (row.get("joinedAt") or "").strip()
+        }
+        members.append(item)
+        if role == "participant":
+            participants.append({
+                "deviceId": item["deviceId"],
+                "nickname": item["nickname"],
+                "joinedAt": item["joinedAt"]
+            })
+    members.sort(key=lambda item: _parse_iso_ts(item.get("joinedAt") or ""), reverse=False)
+    participants.sort(key=lambda item: _parse_iso_ts(item.get("joinedAt") or ""), reverse=False)
+    return members, participants
+
+
+def _cleanup_squad_related_data(squad_ids: set[str], shift_ids: set[str]) -> dict:
+    counts = {
+        "memberships": 0,
+        "corners": 0,
+        "chats": 0,
+        "inviteCodes": 0,
+        "badgeRequests": 0
+    }
+    normalized_squad_ids = {s.strip() for s in squad_ids if isinstance(s, str) and s.strip()}
+    normalized_shift_ids = {s.strip() for s in shift_ids if isinstance(s, str) and s.strip()}
+
+    if normalized_squad_ids or normalized_shift_ids:
+        mdoc = _memberships_load()
+        next_members = []
+        for row in (mdoc.get("members") or []):
+            if not isinstance(row, dict):
+                continue
+            squad_id = (row.get("squadId") or "").strip()
+            camp_id = (row.get("campId") or "").strip()
+            if squad_id in normalized_squad_ids or camp_id in normalized_shift_ids:
+                counts["memberships"] += 1
+                continue
+            next_members.append(row)
+        mdoc["members"] = next_members
+        _memberships_save(mdoc)
+
+        cdoc = _squad_corners_load()
+        corners = cdoc.get("corners") or {}
+        if not isinstance(corners, dict):
+            corners = {}
+        for sid in list(corners.keys()):
+            if sid in normalized_squad_ids:
+                del corners[sid]
+                counts["corners"] += 1
+        cdoc["corners"] = corners
+        _squad_corners_save(cdoc)
+
+        sdoc = _squad_messages_load()
+        by_squad = sdoc.get("bySquadId") or {}
+        if not isinstance(by_squad, dict):
+            by_squad = {}
+        for sid in list(by_squad.keys()):
+            if sid in normalized_squad_ids:
+                del by_squad[sid]
+                counts["chats"] += 1
+        sdoc["bySquadId"] = by_squad
+        _squad_messages_save(sdoc)
+
+        idoc = _squad_invites_load()
+        codes = idoc.get("codes") or {}
+        if not isinstance(codes, dict):
+            codes = {}
+        for code in list(codes.keys()):
+            meta = codes.get(code) if isinstance(codes.get(code), dict) else {}
+            if (meta.get("squadId") or "").strip() in normalized_squad_ids:
+                del codes[code]
+                counts["inviteCodes"] += 1
+        idoc["codes"] = codes
+        _squad_invites_save(idoc)
+
+        bdoc = _badge_requests_load()
+        next_requests = []
+        for row in (bdoc.get("requests") or []):
+            if not isinstance(row, dict):
+                continue
+            squad_id = (row.get("squadId") or "").strip()
+            camp_id = (row.get("campId") or "").strip()
+            if squad_id in normalized_squad_ids or camp_id in normalized_shift_ids:
+                counts["badgeRequests"] += 1
+                continue
+            next_requests.append(row)
+        bdoc["requests"] = next_requests
+        _badge_requests_save(bdoc)
+
+    return counts
 
 
 def _is_valid_level_id(level_id: str) -> bool:
@@ -1565,6 +1900,24 @@ def _shifts_load() -> dict:
             data["shifts"] = []
         if not isinstance(data.get("squads"), list):
             data["squads"] = []
+
+        # Local/dev convenience: keep one default shift so manual testing does not require recreating it.
+        if has_request_context() and _is_localhost_request():
+            has_default = any(
+                isinstance(shift, dict) and _is_default_seeded_shift_name(shift.get("name") or "")
+                for shift in (data.get("shifts") or [])
+            )
+            if not has_default:
+                data["shifts"].append({
+                    "id": uuid.uuid4().hex[:12],
+                    "name": DEFAULT_SEEDED_SHIFT_NAME,
+                    "startDate": "",
+                    "endDate": "",
+                    "createdAt": datetime.now(timezone.utc).isoformat(),
+                    "createdBy": "seed-localhost"
+                })
+                with open(SHIFTS_FILE, "w", encoding="utf-8") as f:
+                    json.dump(data, f, ensure_ascii=False, indent=2)
         return data
 
 
@@ -1631,14 +1984,31 @@ def squads_list(shift_id: str):
     if not sid:
         return jsonify({"error": "shiftId required"}), 400
     data = _shifts_load()
-    squads = [s for s in (data.get("squads") or []) if isinstance(s, dict) and (s.get("shiftId") or "").strip() == sid]
+    corners_doc = _squad_corners_load()
+    corners = corners_doc.get("corners") or {}
+    if not isinstance(corners, dict):
+        corners = {}
+    squads = []
+    for s in (data.get("squads") or []):
+        if not isinstance(s, dict):
+            continue
+        if (s.get("shiftId") or "").strip() != sid:
+            continue
+        squad = dict(s)
+        squad["avatarUrl"] = _pick_squad_avatar(corners.get((s.get("id") or "").strip()))
+        squads.append(squad)
     return jsonify({"squads": squads})
 
 
 @app.route('/api/shifts/<shift_id>/squads', methods=['POST'])
 def squads_create(shift_id: str):
-    """POST /api/shifts/<shiftId>/squads — create squad (name). Auth: shift_leader/developer."""
-    payload, err = _require_organizer_jwt()
+    """
+    POST /api/shifts/<shiftId>/squads — create squad (name).
+    Auth: counselor|shift_leader|developer
+
+    Counselor is allowed to create squads only inside their own shift (campId match).
+    """
+    payload, err = _require_roles(("counselor", "shift_leader", "developer"), allow_localhost_dev=True)
     if err is not None:
         return err[0], err[1]
     sid = (shift_id or "").strip()
@@ -1650,8 +2020,19 @@ def squads_create(shift_id: str):
         if not name:
             return jsonify({"error": "name required"}), 400
         doc = _shifts_load()
-        if not any(isinstance(s, dict) and (s.get("id") or "").strip() == sid for s in (doc.get("shifts") or [])):
+        shift = _find_shift(doc, sid)
+        if not shift:
             return jsonify({"error": "Shift not found"}), 404
+
+        actor_role = _normalize_role((payload.get("role") or "").strip())
+        token_camp_id = (payload.get("campId") or "").strip()
+        if actor_role == "counselor":
+            # Counselor can only create squads within their shift.
+            # Dev-local sandbox can omit campId; allow only for the seeded default shift.
+            if token_camp_id and token_camp_id != sid:
+                return jsonify({"error": "Access denied", "reason": "camp_mismatch"}), 403
+            if not token_camp_id and not _is_default_seeded_shift_name(shift.get("name") or ""):
+                return jsonify({"error": "Access denied", "reason": "camp_mismatch"}), 403
         squad_id = uuid.uuid4().hex[:12]
         created_at = datetime.now(timezone.utc).isoformat()
         created_by = (payload.get("deviceId") or "").strip() or None
@@ -1672,14 +2053,110 @@ def squads_create(shift_id: str):
         return jsonify({"error": str(e)}), 500
 
 
+@app.route('/api/squads/<squad_id>', methods=['DELETE'])
+def squad_delete(squad_id: str):
+    """
+    DELETE /api/squads/<squadId> — hard delete squad and related data.
+    Auth: shift_leader|developer
+    """
+    payload, err = _require_roles(("shift_leader", "developer"), allow_localhost_dev=True)
+    if err is not None:
+        return err[0], err[1]
+    sid = (squad_id or "").strip()
+    if not sid:
+        return jsonify({"error": "squadId required"}), 400
+
+    shifts_doc = _shifts_load()
+    squads = shifts_doc.get("squads") or []
+    if not isinstance(squads, list):
+        squads = []
+    target = _find_squad(shifts_doc, sid)
+    if not target:
+        return jsonify({"error": "Squad not found"}), 404
+
+    shifts_doc["squads"] = [
+        row for row in squads
+        if not (isinstance(row, dict) and (row.get("id") or "").strip() == sid)
+    ]
+    _shifts_save(shifts_doc)
+
+    cleanup = _cleanup_squad_related_data({sid}, {(target.get("shiftId") or "").strip()})
+    return jsonify({
+        "ok": True,
+        "deleted": {
+            "shifts": 0,
+            "squads": 1,
+            "memberships": cleanup["memberships"],
+            "corners": cleanup["corners"],
+            "chats": cleanup["chats"],
+            "inviteCodes": cleanup["inviteCodes"],
+            "badgeRequests": cleanup["badgeRequests"]
+        }
+    })
+
+
+@app.route('/api/shifts/<shift_id>', methods=['DELETE'])
+def shift_delete(shift_id: str):
+    """
+    DELETE /api/shifts/<shiftId> — hard delete shift, its squads and related data.
+    Auth: shift_leader|developer
+    """
+    payload, err = _require_roles(("shift_leader", "developer"), allow_localhost_dev=True)
+    if err is not None:
+        return err[0], err[1]
+    sid = (shift_id or "").strip()
+    if not sid:
+        return jsonify({"error": "shiftId required"}), 400
+
+    shifts_doc = _shifts_load()
+    shift = _find_shift(shifts_doc, sid)
+    if not shift:
+        return jsonify({"error": "Shift not found"}), 404
+    if _is_default_seeded_shift_name(shift.get("name") or ""):
+        return jsonify({"error": "Default shift cannot be deleted", "reason": "default_shift"}), 409
+
+    squads = shifts_doc.get("squads") or []
+    if not isinstance(squads, list):
+        squads = []
+    target_squad_ids = {
+        (row.get("id") or "").strip()
+        for row in squads
+        if isinstance(row, dict) and (row.get("shiftId") or "").strip() == sid
+    }
+
+    shifts_doc["shifts"] = [
+        row for row in (shifts_doc.get("shifts") or [])
+        if not (isinstance(row, dict) and (row.get("id") or "").strip() == sid)
+    ]
+    shifts_doc["squads"] = [
+        row for row in squads
+        if not (isinstance(row, dict) and ((row.get("shiftId") or "").strip() == sid or (row.get("id") or "").strip() in target_squad_ids))
+    ]
+    _shifts_save(shifts_doc)
+
+    cleanup = _cleanup_squad_related_data(target_squad_ids, {sid})
+    return jsonify({
+        "ok": True,
+        "deleted": {
+            "shifts": 1,
+            "squads": len(target_squad_ids),
+            "memberships": cleanup["memberships"],
+            "corners": cleanup["corners"],
+            "chats": cleanup["chats"],
+            "inviteCodes": cleanup["inviteCodes"],
+            "badgeRequests": cleanup["badgeRequests"]
+        }
+    })
+
+
 @app.route('/api/squads/<squad_id>/join', methods=['POST'])
 def squad_join(squad_id: str):
     """
     POST /api/squads/<squadId>/join
-    Auth: participant|developer
-    Body: { nickname?: string, role?: participant|counselor (for developer only) }
+    Auth: participant|counselor|shift_leader|developer
+    Body: { nickname?: string, role?: participant|counselor|shift_leader (for developer only) }
     """
-    payload, err = _require_roles(("participant", "developer"), allow_localhost_dev=True)
+    payload, err = _require_roles(("participant", "counselor", "shift_leader", "developer"), allow_localhost_dev=True)
     if err is not None:
         return err[0], err[1]
     device_id = (payload.get("deviceId") or "").strip()
@@ -1690,13 +2167,7 @@ def squad_join(squad_id: str):
         return jsonify({"error": "squadId required"}), 400
 
     shifts_doc = _shifts_load()
-    squad = next(
-        (
-            s for s in (shifts_doc.get("squads") or [])
-            if isinstance(s, dict) and (s.get("id") or "").strip() == sid
-        ),
-        None
-    )
+    squad = _find_squad(shifts_doc, sid)
     if not squad:
         return jsonify({"error": "Squad not found"}), 404
 
@@ -1704,12 +2175,15 @@ def squad_join(squad_id: str):
     nickname = (body.get("nickname") or "").strip()
     requested_role = _normalize_role((body.get("role") or "").strip() or "participant")
     actor_role = _normalize_role((payload.get("role") or "").strip())
-    membership_role = "participant"
-    if actor_role == "developer" and requested_role in ("participant", "counselor"):
-        membership_role = requested_role
+    membership_role = actor_role
+    if actor_role == "developer":
+        membership_role = requested_role if requested_role in ("participant", "counselor", "shift_leader") else "participant"
 
     now_iso = datetime.now(timezone.utc).isoformat()
     camp_id = (squad.get("shiftId") or "").strip()
+    token_camp_id = (payload.get("campId") or "").strip()
+    if actor_role != "developer" and token_camp_id and token_camp_id != camp_id:
+        return jsonify({"error": "Access denied", "reason": "camp_mismatch"}), 403
 
     mdoc = _memberships_load()
     members = [
@@ -1748,54 +2222,422 @@ def squads_mine():
     mdoc = _memberships_load()
     membership = _membership_for_device(mdoc, device_id)
     if not membership:
-        return jsonify({"membership": None, "squad": None, "shift": None, "participants": []})
+        return jsonify({"membership": None, "squad": None, "shift": None, "participants": [], "members": []})
 
     shifts_doc = _shifts_load()
     squad_id = (membership.get("squadId") or "").strip()
     camp_id = (membership.get("campId") or "").strip()
-    squad = next(
-        (
-            s for s in (shifts_doc.get("squads") or [])
-            if isinstance(s, dict) and (s.get("id") or "").strip() == squad_id
-        ),
-        None
-    )
-    shift = next(
-        (
-            sh for sh in (shifts_doc.get("shifts") or [])
-            if isinstance(sh, dict) and (
-                (sh.get("id") or "").strip() == camp_id or
-                (squad and (sh.get("id") or "").strip() == (squad.get("shiftId") or "").strip())
-            )
-        ),
-        None
-    )
-
-    actor_role = _normalize_role((payload.get("role") or "").strip())
-    participants = []
-    if actor_role in ("counselor", "shift_leader", "developer"):
-        for row in (mdoc.get("members") or []):
-            if not isinstance(row, dict):
-                continue
-            if (row.get("campId") or "").strip() != camp_id:
-                continue
-            if (row.get("squadId") or "").strip() != squad_id:
-                continue
-            if _normalize_role((row.get("role") or "").strip()) != "participant":
-                continue
-            participants.append({
-                "deviceId": (row.get("deviceId") or "").strip(),
-                "nickname": (row.get("nickname") or "").strip() or None,
-                "joinedAt": (row.get("joinedAt") or "").strip()
-            })
-        participants.sort(key=lambda item: _parse_iso_ts(item.get("joinedAt") or ""), reverse=False)
+    squad = _find_squad(shifts_doc, squad_id)
+    shift = _find_shift(shifts_doc, camp_id) or _find_shift(shifts_doc, (squad or {}).get("shiftId") or "")
+    members, participants = _build_squad_members_lists(squad_id, camp_id or ((squad or {}).get("shiftId") or ""))
 
     return jsonify({
         "membership": membership,
         "squad": squad,
         "shift": shift,
-        "participants": participants
+        "participants": participants,
+        "members": members
     })
+
+
+@app.route('/api/squads/<squad_id>/corner', methods=['GET', 'PATCH'])
+def squad_corner_get_or_patch(squad_id: str):
+    """
+    GET /api/squads/<squadId>/corner — get shared squad corner (server-synced).
+    PATCH /api/squads/<squadId>/corner — update shared corner (staff only).
+    Auth: participant|parent|counselor|shift_leader|developer (GET), counselor|shift_leader|developer (PATCH).
+    """
+    if request.method == 'PATCH':
+        payload, err = _require_roles(("counselor", "shift_leader", "developer"), allow_localhost_dev=True)
+    else:
+        payload, err = _require_roles(("participant", "counselor", "shift_leader", "developer"), allow_localhost_dev=True)
+    if err is not None:
+        return err[0], err[1]
+
+    sid = (squad_id or "").strip()
+    if not sid:
+        return jsonify({"error": "squadId required"}), 400
+    shifts_doc = _shifts_load()
+    squad = _find_squad(shifts_doc, sid)
+    if not squad:
+        return jsonify({"error": "Squad not found"}), 404
+
+    device_id = (payload.get("deviceId") or "").strip()
+    membership = _membership_in_squad(device_id, sid) if device_id else None
+
+    if request.method == 'GET':
+        if not _can_read_corner(payload, squad, membership):
+            return jsonify({"error": "Access denied"}), 403
+        doc = _squad_corners_load()
+        corners = doc.get("corners") or {}
+        corner = corners.get(sid)
+        if not isinstance(corner, dict):
+            corner = {}
+        return jsonify({"squadId": sid, "corner": corner})
+
+    can_manage, deny_reason = _can_manage_squad(payload, squad, membership)
+    if not can_manage:
+        return jsonify({"error": "Access denied", "reason": deny_reason or "role_forbidden"}), 403
+
+    content_len = request.content_length
+    if isinstance(content_len, int) and content_len > SQUAD_CORNER_PATCH_LIMIT_BYTES:
+        return jsonify({"error": "Payload too large"}), 413
+    raw = request.get_data(cache=True, as_text=False) or b""
+    if len(raw) > SQUAD_CORNER_PATCH_LIMIT_BYTES:
+        return jsonify({"error": "Payload too large"}), 413
+
+    body = request.get_json(silent=True) or {}
+    if not isinstance(body, dict):
+        return jsonify({"error": "Invalid payload"}), 400
+    allowed_keys = (
+        "name",
+        "motto",
+        "chants",
+        "greeting",
+        "memes",
+        "photoCorner",
+        "photoFlag",
+        "photoSquad",
+        "photoWithCounselors",
+        "planGridA",
+        "planGridB",
+    )
+
+    doc = _squad_corners_load()
+    corners = doc.get("corners") or {}
+    if not isinstance(corners, dict):
+        corners = {}
+    current = corners.get(sid)
+    next_corner = dict(current) if isinstance(current, dict) else {}
+    for key in allowed_keys:
+        if key not in body:
+            continue
+        value = body.get(key)
+        if isinstance(value, str):
+            trimmed = value.strip()
+            if not trimmed:
+                next_corner.pop(key, None)
+                continue
+            next_corner[key] = trimmed
+            continue
+        if value is None:
+            next_corner.pop(key, None)
+            continue
+        next_corner[key] = value
+
+    now_iso = datetime.now(timezone.utc).isoformat()
+    next_corner["updatedAt"] = now_iso
+    next_corner["updatedBy"] = device_id
+    corners[sid] = next_corner
+    doc["corners"] = corners
+    _squad_corners_save(doc)
+    return jsonify({"squadId": sid, "corner": next_corner, "updatedAt": now_iso})
+
+
+@app.route('/api/squads/<squad_id>/invite-code', methods=['POST'])
+def squad_invite_code_create(squad_id: str):
+    """
+    POST /api/squads/<squadId>/invite-code — create invite code for joining the squad.
+    Auth: counselor|shift_leader|developer
+    """
+    payload, err = _require_roles(("counselor", "shift_leader", "developer"), allow_localhost_dev=True)
+    if err is not None:
+        return err[0], err[1]
+    sid = (squad_id or "").strip()
+    if not sid:
+        return jsonify({"error": "squadId required"}), 400
+
+    shifts_doc = _shifts_load()
+    squad = _find_squad(shifts_doc, sid)
+    if not squad:
+        return jsonify({"error": "Squad not found"}), 404
+    membership = _membership_in_squad((payload.get("deviceId") or "").strip(), sid)
+    can_manage, deny_reason = _can_manage_squad(payload, squad, membership)
+    if not can_manage:
+        return jsonify({"error": "Access denied", "reason": deny_reason or "role_forbidden"}), 403
+
+    created_at_dt = datetime.now(timezone.utc)
+    expires_at_dt = datetime.fromtimestamp(
+        created_at_dt.timestamp() + max(60, int(SQUAD_INVITE_TTL_SEC or 0)),
+        tz=timezone.utc
+    )
+
+    doc = _squad_invites_load()
+    doc, changed = _squad_invites_prune(doc)
+    codes = doc.get("codes") or {}
+    if not isinstance(codes, dict):
+        codes = {}
+
+    # One active code per squad.
+    for existing_code in list(codes.keys()):
+        meta = codes.get(existing_code)
+        if not isinstance(meta, dict):
+            continue
+        if (meta.get("squadId") or "").strip() == sid:
+            del codes[existing_code]
+
+    alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+    code = ""
+    for _ in range(100):
+        candidate = "".join(secrets.choice(alphabet) for _ in range(8))
+        if candidate not in codes:
+            code = candidate
+            break
+    if not code:
+        return jsonify({"error": "Invite code generation failed"}), 500
+
+    created_at = created_at_dt.isoformat()
+    expires_at = expires_at_dt.isoformat()
+    codes[code] = {
+        "squadId": sid,
+        "createdAt": created_at,
+        "expiresAt": expires_at,
+        "createdBy": (payload.get("deviceId") or "").strip() or None
+    }
+    doc["codes"] = codes
+    _squad_invites_save(doc)
+    return jsonify({"squadId": sid, "code": code, "createdAt": created_at, "expiresAt": expires_at})
+
+
+def _resolve_invite_code_response(code: str):
+    invite_code = (code or "").strip().upper()
+    if not invite_code:
+        return jsonify({"error": "code required"}), 400
+    doc = _squad_invites_load()
+    doc, changed = _squad_invites_prune(doc)
+    if changed:
+        _squad_invites_save(doc)
+        doc = _squad_invites_load()
+    meta = (doc.get("codes") or {}).get(invite_code)
+    if not isinstance(meta, dict):
+        return jsonify({"error": "Invite code not found"}), 404
+    squad_id = (meta.get("squadId") or "").strip()
+    if not squad_id:
+        return jsonify({"error": "Invite code invalid"}), 404
+    shifts_doc = _shifts_load()
+    squad = _find_squad(shifts_doc, squad_id)
+    if not squad:
+        return jsonify({"error": "Squad not found"}), 404
+    shift = _find_shift(shifts_doc, (squad.get("shiftId") or "").strip())
+    return jsonify({
+        "squadId": squad_id,
+        "squadName": squad.get("name"),
+        "shiftId": shift.get("id") if isinstance(shift, dict) else None,
+        "shiftName": shift.get("name") if isinstance(shift, dict) else None
+    })
+
+
+@app.route('/api/squads/resolve-invite', methods=['GET'])
+def squad_invite_code_resolve():
+    """
+    Legacy alias for code resolving.
+    """
+    payload, err = _require_roles(("participant", "counselor", "shift_leader", "developer"), allow_localhost_dev=True)
+    if err is not None:
+        return err[0], err[1]
+    return _resolve_invite_code_response(request.args.get("code") or "")
+
+
+@app.route('/api/squads/by-invite-code', methods=['GET'])
+def squad_invite_code_resolve_v2():
+    """
+    GET /api/squads/by-invite-code?code=XXXXXX — resolve invite code to squad meta.
+    Auth: participant|counselor|shift_leader|developer
+    """
+    payload, err = _require_roles(("participant", "counselor", "shift_leader", "developer"), allow_localhost_dev=True)
+    if err is not None:
+        return err[0], err[1]
+    return _resolve_invite_code_response(request.args.get("code") or "")
+
+
+@app.route('/api/squads/<squad_id>/preview', methods=['GET'])
+def squad_preview(squad_id: str):
+    """
+    GET /api/squads/<squadId>/preview — minimal squad info for join modal.
+    Auth required.
+    """
+    payload, err = _require_roles(("participant", "counselor", "shift_leader", "developer"), allow_localhost_dev=True)
+    if err is not None:
+        return err[0], err[1]
+    sid = (squad_id or "").strip()
+    if not sid:
+        return jsonify({"error": "squadId required"}), 400
+    shifts_doc = _shifts_load()
+    squad = _find_squad(shifts_doc, sid)
+    if not squad:
+        return jsonify({"error": "Squad not found"}), 404
+    shift = _find_shift(shifts_doc, (squad.get("shiftId") or "").strip())
+    return jsonify({
+        "squadId": sid,
+        "squadName": squad.get("name"),
+        "shiftId": shift.get("id") if isinstance(shift, dict) else (squad.get("shiftId") or None),
+        "shiftName": shift.get("name") if isinstance(shift, dict) else None
+    })
+
+
+@app.route('/api/squads/<squad_id>/leave', methods=['POST'])
+def squad_leave(squad_id: str):
+    """
+    POST /api/squads/<squadId>/leave — leave the squad.
+    Auth: participant|parent|counselor|shift_leader|developer
+    """
+    payload, err = _require_roles(("participant", "parent", "counselor", "shift_leader", "developer"), allow_localhost_dev=True)
+    if err is not None:
+        return err[0], err[1]
+    device_id = (payload.get("deviceId") or "").strip()
+    sid = (squad_id or "").strip()
+    if not sid:
+        return jsonify({"error": "squadId required"}), 400
+    membership = _membership_in_squad(device_id, sid)
+    if not membership:
+        return jsonify({"status": "left", "squadId": sid, "membership": None})
+
+    mdoc = _memberships_load()
+    members = [
+        row for row in (mdoc.get("members") or [])
+        if not (isinstance(row, dict) and (row.get("deviceId") or "").strip() == device_id and (row.get("squadId") or "").strip() == sid)
+    ]
+    mdoc["members"] = members
+    _memberships_save(mdoc)
+    return jsonify({"status": "left", "squadId": sid, "membership": None})
+
+
+def _kick_member_impl(payload: dict, squad_id: str, target_device_id: str):
+    sid = (squad_id or "").strip()
+    if not sid:
+        return jsonify({"error": "squadId required"}), 400
+    target_device = (target_device_id or "").strip()
+    if not target_device:
+        return jsonify({"error": "deviceId required"}), 400
+    actor_device = (payload.get("deviceId") or "").strip()
+    if actor_device and target_device == actor_device:
+        return jsonify({"error": "Cannot kick yourself", "reason": "self_kick"}), 409
+
+    shifts_doc = _shifts_load()
+    squad = _find_squad(shifts_doc, sid)
+    if not squad:
+        return jsonify({"error": "Squad not found"}), 404
+    membership = _membership_in_squad(actor_device, sid) if actor_device else None
+    can_manage, deny_reason = _can_manage_squad(payload, squad, membership)
+    if not can_manage:
+        return jsonify({"error": "Access denied", "reason": deny_reason or "role_forbidden"}), 403
+
+    mdoc = _memberships_load()
+    removed = False
+    next_members = []
+    for row in (mdoc.get("members") or []):
+        if not isinstance(row, dict):
+            continue
+        if (row.get("deviceId") or "").strip() == target_device and (row.get("squadId") or "").strip() == sid:
+            removed = True
+            continue
+        next_members.append(row)
+    if removed:
+        mdoc["members"] = next_members
+        _memberships_save(mdoc)
+
+    camp_id = (squad.get("shiftId") or "").strip()
+    members, participants = _build_squad_members_lists(sid, camp_id)
+    return jsonify({"squadId": sid, "members": members, "participants": participants})
+
+
+@app.route('/api/squads/<squad_id>/members/<target_device_id>', methods=['DELETE'])
+def squad_kick_member_delete(squad_id: str, target_device_id: str):
+    """
+    DELETE /api/squads/<squadId>/members/<deviceId> — remove member from squad.
+    Auth: counselor|shift_leader|developer
+    """
+    payload, err = _require_roles(("counselor", "shift_leader", "developer"), allow_localhost_dev=True)
+    if err is not None:
+        return err[0], err[1]
+    return _kick_member_impl(payload, squad_id, target_device_id)
+
+
+@app.route('/api/squads/<squad_id>/kick', methods=['POST'])
+def squad_kick_member(squad_id: str):
+    """
+    POST /api/squads/<squadId>/kick — legacy alias for member removal.
+    Auth: counselor|shift_leader|developer
+    Body: { deviceId: string }
+    """
+    payload, err = _require_roles(("counselor", "shift_leader", "developer"), allow_localhost_dev=True)
+    if err is not None:
+        return err[0], err[1]
+    body = request.get_json() or {}
+    target_device_id = (body.get("deviceId") or "").strip()
+    return _kick_member_impl(payload, squad_id, target_device_id)
+
+
+@app.route('/api/squads/<squad_id>/messages', methods=['GET', 'POST'])
+def squad_messages_get_or_post(squad_id: str):
+    """
+    GET /api/squads/<squadId>/messages?limit=50 — get squad chat messages.
+    POST /api/squads/<squadId>/messages — post message.
+    Auth: participant|parent|counselor|shift_leader|developer
+    """
+    payload, err = _require_roles(("participant", "parent", "counselor", "shift_leader", "developer"), allow_localhost_dev=True)
+    if err is not None:
+        return err[0], err[1]
+    sid = (squad_id or "").strip()
+    if not sid:
+        return jsonify({"error": "squadId required"}), 400
+    device_id = (payload.get("deviceId") or "").strip()
+    role = _normalize_role((payload.get("role") or "").strip())
+    membership = _membership_in_squad(device_id, sid) if device_id else None
+    can_bypass = role == "developer" and _is_localhost_request()
+    if not membership and not can_bypass:
+        return jsonify({"error": "Not a member of this squad"}), 403
+
+    doc = _squad_messages_load()
+    by_squad = doc.get("bySquadId") or {}
+    if not isinstance(by_squad, dict):
+        by_squad = {}
+    rows = by_squad.get(sid)
+    if not isinstance(rows, list):
+        rows = []
+
+    if request.method == 'GET':
+        try:
+            limit = int((request.args.get("limit") or str(SQUAD_MESSAGES_DEFAULT_LIMIT)).strip())
+        except ValueError:
+            limit = SQUAD_MESSAGES_DEFAULT_LIMIT
+        limit = max(1, min(SQUAD_MESSAGES_MAX_LIMIT, limit))
+        before_msg_id = (request.args.get("before") or "").strip()
+        ordered = [r for r in rows if isinstance(r, dict)]
+        if before_msg_id:
+            before_index = next((idx for idx, item in enumerate(ordered) if (item.get("id") or "").strip() == before_msg_id), None)
+            if before_index is not None:
+                ordered = ordered[:before_index]
+        has_more = len(ordered) > limit
+        out = ordered[-limit:]
+        return jsonify({"squadId": sid, "messages": out, "hasMore": has_more})
+
+    ok, rate_err = _check_and_inc_chat_daily(device_id)
+    if not ok and rate_err is not None:
+        return rate_err[0], rate_err[1]
+
+    body = request.get_json() or {}
+    text = (body.get("text") or "").strip()
+    if not text:
+        return jsonify({"error": "text required"}), 400
+    if len(text) > 2000:
+        return jsonify({"error": "Message too long"}), 400
+
+    msg = {
+        "id": uuid.uuid4().hex[:12],
+        "squadId": sid,
+        "createdAt": datetime.now(timezone.utc).isoformat(),
+        "deviceId": device_id or None,
+        "nickname": ((membership or {}).get("nickname") or "").strip() or None,
+        "role": role,
+        "text": text
+    }
+    rows.append(msg)
+    rows = rows[-SQUAD_MESSAGES_MAX_HISTORY:]
+    by_squad[sid] = rows
+    doc["bySquadId"] = by_squad
+    _squad_messages_save(doc)
+    return jsonify({"message": msg})
 
 
 @app.route('/api/badges/requests', methods=['POST'])
