@@ -3467,7 +3467,6 @@
   }
 
   /* Правые кнопки (4К, Вожатификатор и т.д.) — perspective() в transform, без preserve-3d, чтобы клики работали */
-    transform-style: preserve-3d;
   .profile-spaceship-root .profile-view-cabin-right .profile-view-cabin-nav-item {
     pointer-events: auto;
     cursor: pointer;

@@ -4,10 +4,9 @@ import fitty, { type FittyInstance } from 'fitty';
 import BadgeIcon from '../components/BadgeIcon';
 import { useUserProgress } from '../hooks/useUserProgress';
 import { useTeam } from '../context/TeamContext';
-import { useCounselorSquad } from '../context/CounselorSquadContext';
 import { useAuth } from '../context/AuthContext';
 import { fireOn401 } from '../utils/authStorage';
-import { canSeeOtradBlocks, showEventsPanelForRole, ROLE_ORDER, getRoleDisplay, ROLE_LABELS, canCreateCounselorSquad, canCreateShiftsAndSquads, isTraveler, canUseExpensiveActions, canRequestBadgeApproval, canModerateBadgeApprovals } from '../types/authRole';
+import { canSeeOtradBlocks, showEventsPanelForRole, ROLE_ORDER, getRoleDisplay, ROLE_LABELS, canCreateShiftsAndSquads, isTraveler, canUseExpensiveActions, canRequestBadgeApproval, canModerateBadgeApprovals } from '../types/authRole';
 import type { UserRole } from '../types/authRole';
 import { getRank, buildParentReportPayload } from '../types/userProgress';
 import type { ParentReportPayload } from '../types/userProgress';
@@ -21,7 +20,6 @@ import { RealDiaryDashboard, type RealDiaryTabId } from '../components/RealDiary
 import { SquadCornerDashboard } from '../components/SquadCornerDashboard';
 import { SquadCabinetPanel } from '../components/SquadCabinetPanel';
 import { ConfirmModal } from '../components/ConfirmModal';
-import { CounselorSquadDashboard, type CounselorSquadTabId } from '../components/CounselorSquadDashboard';
 import { CouncilDashboard, type CouncilTabId } from '../components/CouncilDashboard';
 import { BroInitiation } from '../components/BroInitiation';
 import { WingDashboard } from '../components/WingDashboard';
@@ -41,6 +39,7 @@ import { pluralizeRu } from '../utils/textFormatting';
 import {
   ApiError,
   approveBadgeRequest,
+  fetchSquadPreview,
   fetchSquadCorner,
   joinSquad,
   loadBadgeRequestsInbox,
@@ -102,8 +101,9 @@ type BroTabId = 'initiation' | 'wing';
 type ShareTabId = 'create-card' | 'invite';
 type WorkshopTabId = 'architect' | 'forge' | 'ideas' | 'my';
 
-type PanelViewId = 'passport' | 'inspector' | 'profile4k' | 'counselor-squad' | 'wing' | 'squad-corner' | 'squad-cabinet' | 'real-diary' | 'team' | 'council' | 'bro' | 'workshop' | 'share' | 'vozhatifikator' | 'parents';
+type PanelViewId = 'passport' | 'inspector' | 'profile4k' | 'wing' | 'squad-corner' | 'real-diary' | 'team' | 'council' | 'bro' | 'workshop' | 'share' | 'vozhatifikator' | 'parents';
 const DEFAULT_SHIFT_NAME = 'Реальный Лагерь 2026';
+const PENDING_JOIN_SQUAD_SESSION_KEY = 'rl_pending_join_squad_id';
 
 const PROFILE_AUTO_FIT_SELECTOR = [
   '.profile-autofit',
@@ -158,11 +158,10 @@ export const ProfileView: React.FC<any> = (props) => {
   const { onBack, onNavigateToBadge, badges, ensureBadgeLoaded, addCustomBadge, restoreCustomBadges, removeCustomBadge, customBadges = [], communityBadges = [], communityPendingCount = 0, communitySyncing = false, communityLikedIds = new Set<string>(), toggleCommunityLike, publishBadgeToCommunity, setCustomBadgeImage, onChatToggle, onChatClose, isChatOpen, lastUpdated, onNavigateToRegistrationForm, onNavigateHome, onNavigateCategories, onNavigateAboutCamp, onTelegramContact, onOpenVk } = props;
   const { userData, setNickname, setAvatar, setProfileStatus, setProfileBio, toggleFavorite, removeRoute, exportData, importData, resetProgress, applyApprovedLevel, getLevelProgress, markRankUpSeen, completeTutorial, isLoading, updateLevelEvidence, updateLevelStatus, saveBadgePlan, updateBadgePlanStatus, updateVozhatifikatorChecklist, updateDiarySquad, setPathFavToast } = useUserProgress();
   const { myTeam, generateInviteUrl } = useTeam();
-  const { myCreatedSquad, myJoinedSquad, createSquad, deleteSquad, getInviteCode, getInviteLink, joinByCode, leaveSquad } = useCounselorSquad();
   const { canUseChat, role, deviceId, setAuth, accessToken, campId } = useAuth();
   const seeOtradBlocks = canSeeOtradBlocks(role);
   const showEventsForRole = showEventsPanelForRole(role);
-  const canCreateSquad = canCreateCounselorSquad(role);
+  const canReadShiftsAndSquads = role === 'participant' || role === 'counselor' || role === 'shift_leader' || role === 'camp_director' || role === 'developer';
   const canManageShiftsAndSquads = canCreateShiftsAndSquads(role);
   const showOrganizerPanel = true;
   const travelerMode = isTraveler(role);
@@ -294,7 +293,9 @@ export const ProfileView: React.FC<any> = (props) => {
   const [organizerCodeResult, setOrganizerCodeResult] = useState<string | null>(null);
   const [organizerLoading, setOrganizerLoading] = useState(false);
   const [organizerError, setOrganizerError] = useState<string | null>(null);
+  const [openingSquadId, setOpeningSquadId] = useState<string | null>(null);
   const [squadCornerReturnToOrganizer, setSquadCornerReturnToOrganizer] = useState(false);
+  const joinSquadDeepLinkRef = useRef<string | null>(null);
 
   const organizerApiBase = useMemo(() => {
     if (typeof window === 'undefined') return '';
@@ -302,7 +303,8 @@ export const ProfileView: React.FC<any> = (props) => {
     const useLocal = import.meta.env.DEV || hostname === 'localhost' || hostname === '127.0.0.1';
     return useLocal ? '' : (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
   }, []);
-  const canUseOrganizerApi = canManageShiftsAndSquads && (Boolean(accessToken) || (organizerApiBase === '' && role === 'developer'));
+  const canUseOrganizerApiForRead = canReadShiftsAndSquads && (Boolean(accessToken) || (organizerApiBase === '' && role === 'developer'));
+  const canUseOrganizerApiForManage = canManageShiftsAndSquads && (Boolean(accessToken) || (organizerApiBase === '' && role === 'developer'));
 
   const getOrganizerHeaders = useCallback((withJson = false): Record<string, string> => {
     const headers: Record<string, string> = {};
@@ -311,17 +313,25 @@ export const ProfileView: React.FC<any> = (props) => {
     return headers;
   }, [accessToken]);
 
+  const formatOrganizerHttpError = useCallback((status: number, payload: { error?: string; reason?: string }, context: string) => {
+    const reasonText = payload?.reason ? ` (${payload.reason})` : '';
+    if (status === 401) return 'Сессия истекла. Войдите снова.';
+    if (status === 403) return `Недостаточно прав: ${context}.${reasonText}`;
+    if (status === 500) return `${context}: ошибка сервера 500${reasonText}.`;
+    return `${context}: ${payload?.error || `Ошибка ${status}`}${reasonText}`;
+  }, []);
+
   const loadOrganizerData = useCallback(async () => {
-    if (!canManageShiftsAndSquads) {
+    if (!canReadShiftsAndSquads) {
       setOrganizerShifts([]);
       setOrganizerSquadsMap({});
       setOrganizerError(null);
       return;
     }
-    if (!canUseOrganizerApi) {
+    if (!canUseOrganizerApiForRead) {
       setOrganizerShifts([]);
       setOrganizerSquadsMap({});
-      setOrganizerError('Для управления сменами войдите по коду (или используйте локальный режим разработчика).');
+      setOrganizerError('Войдите по коду, чтобы просматривать смены и отряды (или используйте локальный режим разработчика).');
       return;
     }
     setOrganizerLoading(true);
@@ -333,13 +343,9 @@ export const ProfileView: React.FC<any> = (props) => {
         fireOn401();
         return;
       }
-      if (res.status === 403) {
-        setOrganizerError('Недостаточно прав для управления сменами и отрядами.');
-        return;
-      }
       if (!res.ok) {
-        const data = await res.json().catch(() => ({})) as { error?: string };
-        setOrganizerError(data.error || `Ошибка ${res.status}`);
+        const data = await res.json().catch(() => ({})) as { error?: string; reason?: string };
+        setOrganizerError(formatOrganizerHttpError(res.status, data, 'Смены'));
         return;
       }
       const data = await res.json().catch(() => ({})) as { shifts?: Array<{ id: string; name: string; startDate: string; endDate: string; createdAt: string; createdBy?: string }> };
@@ -353,6 +359,7 @@ export const ProfileView: React.FC<any> = (props) => {
       });
       setOrganizerShifts(shifts);
       const map: Record<string, Array<{ id: string; shiftId: string; name: string; createdAt: string; avatarUrl?: string | null }>> = {};
+      let partialError: string | null = null;
       for (const shift of shifts) {
         const r = await fetch(`${organizerApiBase}/api/shifts/${shift.id}/squads`, { headers: getOrganizerHeaders() });
         if (r.status === 401) {
@@ -361,6 +368,8 @@ export const ProfileView: React.FC<any> = (props) => {
           return;
         }
         if (!r.ok) {
+          const payload = await r.json().catch(() => ({})) as { error?: string; reason?: string };
+          if (!partialError) partialError = formatOrganizerHttpError(r.status, payload, `Отряды смены «${shift.name || shift.id}»`);
           map[shift.id] = [];
           continue;
         }
@@ -368,14 +377,21 @@ export const ProfileView: React.FC<any> = (props) => {
         map[shift.id] = squadData.squads || [];
       }
       setOrganizerSquadsMap(map);
+      if (partialError) setOrganizerError(partialError);
     } catch (e) {
-      setOrganizerError(e instanceof Error ? e.message : 'Ошибка загрузки');
+      const fallbackMessage = e instanceof Error ? e.message : 'Ошибка загрузки';
+      const lower = fallbackMessage.toLowerCase();
+      if (lower.includes('failed to fetch') || lower.includes('networkerror') || lower.includes('fetch')) {
+        setOrganizerError('Backend недоступен. Проверьте, что API запущен на http://localhost:4000 и dev proxy /api активен.');
+      } else {
+        setOrganizerError(fallbackMessage);
+      }
       setOrganizerShifts([]);
       setOrganizerSquadsMap({});
     } finally {
       setOrganizerLoading(false);
     }
-  }, [canManageShiftsAndSquads, canUseOrganizerApi, organizerApiBase, getOrganizerHeaders]);
+  }, [canReadShiftsAndSquads, canUseOrganizerApiForRead, organizerApiBase, getOrganizerHeaders, formatOrganizerHttpError]);
 
   useEffect(() => {
     if (!showOrganizerPanel) return;
@@ -397,7 +413,6 @@ export const ProfileView: React.FC<any> = (props) => {
   const [teamActiveTab, setTeamActiveTab] = useState<TeamTabId>('engine');
   const [councilActiveTab, setCouncilActiveTab] = useState<CouncilTabId>('council');
   const [broActiveTab, setBroActiveTab] = useState<BroTabId>('initiation');
-  const [counselorSquadActiveTab, setCounselorSquadActiveTab] = useState<CounselorSquadTabId>('squad');
   const [shareActiveTab, setShareActiveTab] = useState<ShareTabId>('create-card');
   const [workshopActiveTab, setWorkshopActiveTab] = useState<WorkshopTabId>('architect');
   const [inspectorActiveTab, setInspectorActiveTab] = useState<InspectorTabId>('friendship');
@@ -469,7 +484,6 @@ export const ProfileView: React.FC<any> = (props) => {
       setBroActiveTab(broTabOnOpenRef.current ?? 'initiation');
       broTabOnOpenRef.current = null;
     }
-    if (panelActiveView === 'counselor-squad') setCounselorSquadActiveTab('squad');
     if (panelActiveView === 'share') setShareActiveTab('create-card');
     if (panelActiveView === 'workshop') setWorkshopActiveTab('architect');
     if (panelActiveView === 'inspector') setInspectorActiveTab('friendship');
@@ -489,7 +503,9 @@ export const ProfileView: React.FC<any> = (props) => {
     } catch {
       // ignore
     }
-    const panel = pending as PanelViewId;
+    const panel = (pending === 'counselor-squad' || pending === 'squad-cabinet')
+      ? 'squad-corner'
+      : (pending as PanelViewId);
     if (panel === 'bro') {
       openCabinPanel('bro', 'right');
       return;
@@ -530,10 +546,6 @@ export const ProfileView: React.FC<any> = (props) => {
   const [campFacts, setCampFacts] = useState<{ address?: { campName?: string; base?: string; address?: string; route?: string }; contacts?: { phone?: string; email?: string; vk?: string; site?: string; telegram?: string; organizer?: string }; currentSeason?: { name?: string; dates?: string; price?: string; theme?: string }; documents?: string[] } | null>(null);
   const [campFactsLoading, setCampFactsLoading] = useState(false);
   const [campFactsError, setCampFactsError] = useState<string | null>(null);
-  const [counselorSquadName, setCounselorSquadName] = useState('');
-  const [counselorJoinCode, setCounselorJoinCode] = useState('');
-  const [counselorJoinError, setCounselorJoinError] = useState<string | null>(null);
-  const [disbandConfirmOpen, setDisbandConfirmOpen] = useState(false);
   const [carouselRotationSteps, setCarouselRotationSteps] = useState(0);
   const [pathCarouselRotationSteps, setPathCarouselRotationSteps] = useState(0);
   const [squadIdeasCarouselSteps, setSquadIdeasCarouselSteps] = useState(0);
@@ -869,8 +881,8 @@ export const ProfileView: React.FC<any> = (props) => {
   }, [accessToken, mySquadJoinId, profile.nickname, loadMySquadInfo, loadBadgeApprovalsData]);
 
   const hasSquadMembership = Boolean(mySquadInfo?.membership?.squadId);
-  // shift_leader must have a real JWT; developer can use localhost fallback.
-  const canDeleteShiftsAndSquads = (role === 'shift_leader' && Boolean(accessToken)) || role === 'developer';
+  // Staff must have a real JWT; developer can use sandbox fallback.
+  const canDeleteShiftsAndSquads = ((role === 'shift_leader' || role === 'camp_director') && Boolean(accessToken)) || (showSandbox && role === 'developer');
 
   const persistSquadCorner = useCallback(async (payload: Partial<SquadCorner>) => {
     const squadId = (mySquadInfo?.membership?.squadId || '').trim();
@@ -929,9 +941,13 @@ export const ProfileView: React.FC<any> = (props) => {
   const openSquadFromOrganizer = useCallback(async (squad: { id: string; name: string }) => {
     if (!accessToken) {
       setOrganizerError('Сначала войдите по коду.');
+      showHint({ title: 'Нужен вход', content: 'Войдите по коду, чтобы открыть кабинет отряда.' });
       return;
     }
-    setOrganizerLoading(true);
+    if (openingSquadId) {
+      return;
+    }
+    setOpeningSquadId(squad.id);
     setOrganizerError(null);
     try {
       const currentSquadId = (mySquadInfo?.membership?.squadId || '').trim();
@@ -941,19 +957,22 @@ export const ProfileView: React.FC<any> = (props) => {
         await joinSquad(accessToken, squad.id, { nickname: profile.nickname || undefined });
         await Promise.all([loadMySquadInfo(), loadBadgeApprovalsData()]);
       }
+      setOrganizerError(null);
       setActiveTab('active');
       setSquadCornerActiveTab('squad');
       setSquadCornerReturnToOrganizer(true);
       openCabinPanel('squad-corner', 'left');
     } catch (e) {
-      setOrganizerError(e instanceof Error ? e.message : 'Не удалось открыть кабинет отряда.');
+      const message = e instanceof Error ? e.message : 'Не удалось открыть кабинет отряда.';
+      setOrganizerError(message);
+      showHint({ title: 'Ошибка открытия кабинета', content: message });
     } finally {
-      setOrganizerLoading(false);
+      setOpeningSquadId(null);
     }
-  }, [accessToken, mySquadInfo?.membership?.squadId, profile.nickname, loadMySquadInfo, loadBadgeApprovalsData, openCabinPanel]);
+  }, [accessToken, openingSquadId, mySquadInfo?.membership?.squadId, profile.nickname, loadMySquadInfo, loadBadgeApprovalsData, openCabinPanel, showHint]);
 
   const removeShiftWithCleanup = useCallback(async (shift: { id: string; name: string }) => {
-    if (!canDeleteShiftsAndSquads) return;
+    if (!canDeleteShiftsAndSquads || organizerLoading) return;
     if ((shift.name || '').trim().toLowerCase() === DEFAULT_SHIFT_NAME.toLowerCase()) {
       setOrganizerError('Смену по умолчанию удалить нельзя.');
       return;
@@ -968,20 +987,30 @@ export const ProfileView: React.FC<any> = (props) => {
       });
       const data = await res.json().catch(() => ({})) as { error?: string; reason?: string };
       if (!res.ok) {
-        if (res.status === 409 && data.reason === 'default_shift') setOrganizerError('Смену по умолчанию удалить нельзя.');
-        else setOrganizerError(data.error || `Ошибка ${res.status}`);
+        if (res.status === 409 && data.reason === 'default_shift') {
+          const message = 'Смену по умолчанию удалить нельзя.';
+          setOrganizerError(message);
+          showHint({ title: 'Удаление недоступно', content: message });
+        } else {
+          const message = formatOrganizerHttpError(res.status, data, 'Удаление смены');
+          setOrganizerError(message);
+          showHint({ title: 'Не удалось удалить смену', content: message });
+        }
         return;
       }
       await Promise.all([loadOrganizerData(), loadMySquadInfo()]);
+      showHint({ title: 'Готово', content: `Смена «${shift.name}» удалена.` });
     } catch (e) {
-      setOrganizerError(e instanceof Error ? e.message : 'Не удалось удалить смену.');
+      const message = e instanceof Error ? e.message : 'Не удалось удалить смену.';
+      setOrganizerError(message);
+      showHint({ title: 'Ошибка удаления', content: message });
     } finally {
       setOrganizerLoading(false);
     }
-  }, [canDeleteShiftsAndSquads, organizerApiBase, getOrganizerHeaders, loadOrganizerData, loadMySquadInfo]);
+  }, [canDeleteShiftsAndSquads, organizerLoading, organizerApiBase, getOrganizerHeaders, loadOrganizerData, loadMySquadInfo, showHint, formatOrganizerHttpError]);
 
   const removeSquadWithCleanup = useCallback(async (squadId: string) => {
-    if (!canDeleteShiftsAndSquads) return;
+    if (!canDeleteShiftsAndSquads || organizerLoading) return;
     if (!window.confirm('Удалить отряд и связанные данные?')) return;
     setOrganizerLoading(true);
     setOrganizerError(null);
@@ -990,18 +1019,23 @@ export const ProfileView: React.FC<any> = (props) => {
         method: 'DELETE',
         headers: getOrganizerHeaders()
       });
-      const data = await res.json().catch(() => ({})) as { error?: string };
+      const data = await res.json().catch(() => ({})) as { error?: string; reason?: string };
       if (!res.ok) {
-        setOrganizerError(data.error || `Ошибка ${res.status}`);
+        const message = formatOrganizerHttpError(res.status, data, 'Удаление отряда');
+        setOrganizerError(message);
+        showHint({ title: 'Не удалось удалить отряд', content: message });
         return;
       }
       await Promise.all([loadOrganizerData(), loadMySquadInfo()]);
+      showHint({ title: 'Готово', content: 'Отряд удалён.' });
     } catch (e) {
-      setOrganizerError(e instanceof Error ? e.message : 'Не удалось удалить отряд.');
+      const message = e instanceof Error ? e.message : 'Не удалось удалить отряд.';
+      setOrganizerError(message);
+      showHint({ title: 'Ошибка удаления', content: message });
     } finally {
       setOrganizerLoading(false);
     }
-  }, [canDeleteShiftsAndSquads, organizerApiBase, getOrganizerHeaders, loadOrganizerData, loadMySquadInfo]);
+  }, [canDeleteShiftsAndSquads, organizerLoading, organizerApiBase, getOrganizerHeaders, loadOrganizerData, loadMySquadInfo, showHint, formatOrganizerHttpError]);
 
   const handleDevLoginAs = useCallback(async (targetRole: UserRole) => {
     if (!showSandbox) return;
@@ -1047,6 +1081,68 @@ export const ProfileView: React.FC<any> = (props) => {
   useEffect(() => {
     void loadMySquadInfo();
   }, [loadMySquadInfo]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const dropJoinSquadQueryParam = () => {
+      const params = new URLSearchParams(window.location.search);
+      if (!params.has('join_squad')) return;
+      params.delete('join_squad');
+      const query = params.toString();
+      window.history.replaceState(null, '', `${window.location.pathname}${query ? `?${query}` : ''}${window.location.hash || ''}`);
+    };
+
+    const params = new URLSearchParams(window.location.search);
+    const squadIdFromUrl = (params.get('join_squad') || '').trim();
+    const squadIdFromSession = (window.sessionStorage.getItem(PENDING_JOIN_SQUAD_SESSION_KEY) || '').trim();
+    const targetSquadId = squadIdFromUrl || squadIdFromSession;
+    if (!targetSquadId) return;
+
+    if (!accessToken) {
+      if (squadIdFromUrl) {
+        window.sessionStorage.setItem(PENDING_JOIN_SQUAD_SESSION_KEY, squadIdFromUrl);
+        dropJoinSquadQueryParam();
+        showHint({ title: 'Нужен вход', content: 'Войдите по коду, чтобы вступить в отряд по ссылке.' });
+      }
+      return;
+    }
+
+    if (joinSquadDeepLinkRef.current === targetSquadId) return;
+    joinSquadDeepLinkRef.current = targetSquadId;
+
+    let cancelled = false;
+    void (async () => {
+      try {
+        const preview = await fetchSquadPreview(accessToken, targetSquadId);
+        if (cancelled) return;
+        const targetName = (preview?.squadName || targetSquadId).trim();
+        const confirmed = window.confirm(`Вступить в отряд «${targetName}»?`);
+        if (!confirmed) return;
+        await joinSquad(accessToken, targetSquadId, { nickname: profile.nickname || undefined });
+        if (cancelled) return;
+        await loadMySquadInfo();
+        if (cancelled) return;
+        setActiveTab('active');
+        setSquadCornerActiveTab('squad');
+        setSquadCornerReturnToOrganizer(false);
+        openCabinPanel('squad-corner', 'left');
+        showHint({ title: 'Готово', content: `Вы вступили в отряд «${targetName}».` });
+      } catch (e) {
+        if (cancelled) return;
+        const message = e instanceof Error ? e.message : 'Не удалось вступить в отряд по ссылке.';
+        showHint({ title: 'Ошибка вступления', content: message });
+      } finally {
+        window.sessionStorage.removeItem(PENDING_JOIN_SQUAD_SESSION_KEY);
+        dropJoinSquadQueryParam();
+        joinSquadDeepLinkRef.current = null;
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [accessToken, loadMySquadInfo, openCabinPanel, profile.nickname, showHint]);
 
   useEffect(() => {
     if (panelActiveView !== 'squad-corner') return;
@@ -1460,10 +1556,8 @@ export const ProfileView: React.FC<any> = (props) => {
     passport: 'Паспорт',
     inspector: 'Инспектор Пользы',
     profile4k: '4К-профиль',
-    'counselor-squad': 'Отряд вожатых',
     wing: 'Крыло',
     'squad-corner': 'Отрядный уголок',
-    'squad-cabinet': 'Кабинет отряда',
     'real-diary': 'Реальный Дневник',
     team: 'Движок',
     council: 'Совет Лагеря',
@@ -1496,14 +1590,10 @@ export const ProfileView: React.FC<any> = (props) => {
           return { title, meta: `Инспектор Пользы: игровая система полезных дел. Прокачивает 4К и культуру заботы. ${exitHint}` };
         case 'profile4k':
           return { title, meta: `4К-профиль: твой рост в креативности, коммуникации, кооперации и критическом мышлении. ${exitHint}` };
-        case 'counselor-squad':
-          return { title, meta: `Отряд вожатых: вход по коду или создание отряда (для СВ/организаторов). ${exitHint}` };
         case 'wing':
           return { title, meta: `Твоё Крыло: команда для дел наставников. Здесь аватар Крыла, участие в делах и шаг к Совету. ${exitHint}` };
         case 'squad-corner':
           return { title, meta: `Отрядный уголок: собери лицо отряда. Название, девиз, кричалки, мемы и фото. ${exitHint}` };
-        case 'squad-cabinet':
-          return { title, meta: `Кабинет отряда: состав, код приглашения, чат и быстрый доступ к уголку. ${exitHint}` };
         case 'real-diary':
           return { title, meta: `Реальный Дневник: записывай, как прошёл день, и собирай итоги. Это твоя история смены. ${exitHint}` };
         case 'team':
@@ -1659,9 +1749,9 @@ export const ProfileView: React.FC<any> = (props) => {
                         className="btn-secondary"
                         style={{ padding: '6px 12px' }}
                         aria-label="Добавить отряд в смену"
-                        disabled={!canUseOrganizerApi || organizerLoading}
+                        disabled={!canUseOrganizerApiForManage || organizerLoading}
                         onClick={() => {
-                          if (!canUseOrganizerApi) {
+                          if (!canUseOrganizerApiForManage) {
                             setOrganizerError('Для управления сменами войдите по коду (или используйте локальный режим разработчика).');
                             return;
                           }
@@ -1679,6 +1769,7 @@ export const ProfileView: React.FC<any> = (props) => {
                         className="btn-secondary"
                         style={{ padding: '6px 12px' }}
                         aria-label="Удалить смену"
+                        disabled={organizerLoading}
                         onClick={() => void removeShiftWithCleanup(shift)}
                       >
                         Удалить смену
@@ -1694,18 +1785,20 @@ export const ProfileView: React.FC<any> = (props) => {
                           type="button"
                           className="organizer-squad-row__main"
                           aria-label={`Открыть кабинет отряда ${s.name}`}
+                          disabled={openingSquadId === s.id}
                           onClick={() => void openSquadFromOrganizer(s)}
                         >
                           <span className="organizer-squad-row__avatar" aria-hidden>
                             {s.avatarUrl ? <img src={s.avatarUrl} alt="" /> : <span>🏕️</span>}
                           </span>
-                          <span className="organizer-squad-row__name">{s.name}</span>
+                          <span className="organizer-squad-row__name">{openingSquadId === s.id ? 'Открываем...' : s.name}</span>
                         </button>
                         {canDeleteShiftsAndSquads && (
                           <button
                             type="button"
                             className="btn-secondary organizer-squad-row__delete"
                             style={{ padding: '4px 10px' }}
+                            disabled={organizerLoading || openingSquadId === s.id}
                             onClick={(e) => {
                               e.stopPropagation();
                               void removeSquadWithCleanup(s.id);
@@ -1727,11 +1820,11 @@ export const ProfileView: React.FC<any> = (props) => {
             ))}
             {organizerShifts.length === 0 && (
               <div className="organizer-empty-state">
-                {!canUseOrganizerApi ? (
+                {!canUseOrganizerApiForRead ? (
                   <>
                     <div className="organizer-empty-state__icon" aria-hidden>🔐</div>
-                    <p className="organizer-empty-state__title">Доступ к управлению сменами</p>
-                    <p className="organizer-empty-state__text">Для управления сменами войдите по коду (или используйте локальный режим разработчика).</p>
+                    <p className="organizer-empty-state__title">Доступ к сменам и отрядам</p>
+                    <p className="organizer-empty-state__text">Войдите по коду, чтобы видеть смены и отряды (или используйте локальный режим разработчика).</p>
                   </>
                 ) : (
                   <>
@@ -1750,9 +1843,9 @@ export const ProfileView: React.FC<any> = (props) => {
                 className="btn-primary-gold"
                 style={{ padding: '10px 20px' }}
                 aria-label="Создать смену"
-                disabled={organizerLoading || !canUseOrganizerApi}
+                disabled={organizerLoading || !canUseOrganizerApiForManage}
                 onClick={() => {
-                  if (!canUseOrganizerApi) {
+                  if (!canUseOrganizerApiForManage) {
                     setOrganizerError('Для управления сменами войдите по коду (или используйте локальный режим разработчика).');
                     return;
                   }
@@ -1763,16 +1856,16 @@ export const ProfileView: React.FC<any> = (props) => {
                 Создать смену
               </button>
             )}
-            <button type="button" className="btn-secondary" style={{ padding: '10px 20px' }} aria-label="Обновить список смен и отрядов" disabled={organizerLoading || !canUseOrganizerApi} onClick={() => void loadOrganizerData()}>Обновить</button>
+            <button type="button" className="btn-secondary" style={{ padding: '10px 20px' }} aria-label="Обновить список смен и отрядов" disabled={organizerLoading || !canUseOrganizerApiForRead} onClick={() => void loadOrganizerData()}>Обновить</button>
             {canManageShiftsAndSquads && (
               <button
                 type="button"
                 className="btn-secondary"
                 style={{ padding: '10px 20px' }}
                 aria-label="Выдать код верификации"
-                disabled={organizerLoading || !canUseOrganizerApi}
+                disabled={organizerLoading || !canUseOrganizerApiForManage}
                 onClick={() => {
-                  if (!canUseOrganizerApi) {
+                  if (!canUseOrganizerApiForManage) {
                     setOrganizerError('Для управления сменами войдите по коду (или используйте локальный режим разработчика).');
                     return;
                   }
@@ -1785,7 +1878,7 @@ export const ProfileView: React.FC<any> = (props) => {
               </button>
             )}
           </div>
-          {canManageShiftsAndSquads && !canUseOrganizerApi && (
+          {canManageShiftsAndSquads && !canUseOrganizerApiForManage && (
             <p className="organizer-empty-state__text" style={{ marginTop: 8 }}>
               Если кнопка не срабатывает, проверьте вход по коду (или локальный режим разработчика).
             </p>
@@ -1795,13 +1888,16 @@ export const ProfileView: React.FC<any> = (props) => {
     </div>
   );
 
-  const renderOrganizerModals = () => (
-    <>
+  const renderOrganizerModals = () => {
+    if (typeof document === 'undefined') return null;
+    if (!organizerShiftFormOpen && !organizerSquadFormOpen && !organizerCodeModalOpen) return null;
+    return createPortal(
+      <div className="profile-organizer-modals-root" aria-live="polite">
       {organizerShiftFormOpen && (
-        <div className="profile-utility-panel-overlay" onClick={() => setOrganizerShiftFormOpen(false)} aria-hidden="true" />
+        <div className="profile-utility-panel-overlay profile-utility-panel-overlay--organizer" onClick={() => setOrganizerShiftFormOpen(false)} aria-hidden="true" />
       )}
       {organizerShiftFormOpen && (
-        <div className="profile-utility-panel profile-utility-panel--modal-centered" role="dialog" aria-modal="true" aria-labelledby="organizer-modal-shift-title" onClick={e => e.stopPropagation()}>
+        <div className="profile-utility-panel profile-utility-panel--modal-centered profile-utility-panel--organizer-modal" role="dialog" aria-modal="true" aria-labelledby="organizer-modal-shift-title" onClick={e => e.stopPropagation()}>
           <div className="profile-utility-panel-header">
             <span id="organizer-modal-shift-title">Создать смену</span>
             <button type="button" className="profile-utility-panel-close" onClick={() => setOrganizerShiftFormOpen(false)} aria-label="Закрыть"><Icons.Close /></button>
@@ -1820,8 +1916,8 @@ export const ProfileView: React.FC<any> = (props) => {
                 <label htmlFor="organizer-shift-end" style={{ fontSize: 12, opacity: 0.8 }}>Дата окончания</label>
                 <input id="organizer-shift-end" type="date" value={organizerShiftForm.endDate} onChange={e => setOrganizerShiftForm(f => ({ ...f, endDate: e.target.value }))} style={{ display: 'block', width: '100%', padding: 8, borderRadius: 8, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.2)', color: '#fff' }} />
               </div>
-              <button type="button" className="btn-primary-gold" aria-label="Создать смену" disabled={!organizerShiftForm.name.trim() || organizerLoading || !canUseOrganizerApi} onClick={async () => {
-                if (!canUseOrganizerApi) {
+              <button type="button" className="btn-primary-gold" aria-label="Создать смену" disabled={!organizerShiftForm.name.trim() || organizerLoading || !canUseOrganizerApiForManage} onClick={async () => {
+                if (!canUseOrganizerApiForManage) {
                   setOrganizerError('Для управления сменами войдите по коду (или используйте локальный режим разработчика).');
                   return;
                 }
@@ -1833,10 +1929,9 @@ export const ProfileView: React.FC<any> = (props) => {
                     headers: getOrganizerHeaders(true),
                     body: JSON.stringify({ name: organizerShiftForm.name.trim(), startDate: organizerShiftForm.startDate, endDate: organizerShiftForm.endDate }),
                   });
-                  const data = await res.json().catch(() => ({})) as { shift?: { id: string; name: string; startDate: string; endDate: string; createdAt: string; createdBy?: string }; error?: string };
+                  const data = await res.json().catch(() => ({})) as { shift?: { id: string; name: string; startDate: string; endDate: string; createdAt: string; createdBy?: string }; error?: string; reason?: string };
                   if (res.status === 401) { setOrganizerError('Сессия истекла. Войдите снова.'); fireOn401(); return; }
-                  if (res.status === 403) { setOrganizerError('Недостаточно прав для создания смены.'); return; }
-                  if (!res.ok) { setOrganizerError(data?.error || `Ошибка ${res.status}`); return; }
+                  if (!res.ok) { setOrganizerError(formatOrganizerHttpError(res.status, data, 'Создание смены')); return; }
                   if (data.shift) setOrganizerShifts(prev => [...prev, data.shift!]);
                   setOrganizerShiftFormOpen(false);
                   await loadOrganizerData();
@@ -1850,10 +1945,10 @@ export const ProfileView: React.FC<any> = (props) => {
       )}
 
       {organizerSquadFormOpen && (
-        <div className="profile-utility-panel-overlay" onClick={() => setOrganizerSquadFormOpen(false)} aria-hidden="true" />
+        <div className="profile-utility-panel-overlay profile-utility-panel-overlay--organizer" onClick={() => setOrganizerSquadFormOpen(false)} aria-hidden="true" />
       )}
       {organizerSquadFormOpen && (
-        <div className="profile-utility-panel profile-utility-panel--modal-centered" role="dialog" aria-modal="true" aria-labelledby="organizer-modal-squad-title" onClick={e => e.stopPropagation()}>
+        <div className="profile-utility-panel profile-utility-panel--modal-centered profile-utility-panel--organizer-modal" role="dialog" aria-modal="true" aria-labelledby="organizer-modal-squad-title" onClick={e => e.stopPropagation()}>
           <div className="profile-utility-panel-header">
             <span id="organizer-modal-squad-title">Добавить отряд</span>
             <button type="button" className="profile-utility-panel-close" onClick={() => setOrganizerSquadFormOpen(false)} aria-label="Закрыть"><Icons.Close /></button>
@@ -1864,9 +1959,9 @@ export const ProfileView: React.FC<any> = (props) => {
                 <label htmlFor="organizer-squad-name" style={{ fontSize: 12, opacity: 0.8 }}>Название отряда</label>
                 <input id="organizer-squad-name" value={organizerSquadFormName} onChange={e => setOrganizerSquadFormName(e.target.value)} placeholder="Название отряда" style={{ display: 'block', width: '100%', padding: 8, borderRadius: 8, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.2)', color: '#fff' }} />
               </div>
-              <button type="button" className="btn-primary-gold" aria-label="Добавить отряд" disabled={!organizerSquadFormName.trim() || organizerLoading || !canUseOrganizerApi} onClick={async () => {
+              <button type="button" className="btn-primary-gold" aria-label="Добавить отряд" disabled={!organizerSquadFormName.trim() || organizerLoading || !canUseOrganizerApiForManage} onClick={async () => {
                 if (!organizerSquadFormShiftId) return;
-                if (!canUseOrganizerApi) {
+                if (!canUseOrganizerApiForManage) {
                   setOrganizerError('Для управления сменами войдите по коду (или используйте локальный режим разработчика).');
                   return;
                 }
@@ -1878,10 +1973,9 @@ export const ProfileView: React.FC<any> = (props) => {
                     headers: getOrganizerHeaders(true),
                     body: JSON.stringify({ name: organizerSquadFormName.trim() }),
                   });
-                  const data = await res.json().catch(() => ({})) as { squad?: { id: string; shiftId: string; name: string; createdAt: string; avatarUrl?: string | null }; error?: string };
+                  const data = await res.json().catch(() => ({})) as { squad?: { id: string; shiftId: string; name: string; createdAt: string; avatarUrl?: string | null }; error?: string; reason?: string };
                   if (res.status === 401) { setOrganizerError('Сессия истекла. Войдите снова.'); fireOn401(); return; }
-                  if (res.status === 403) { setOrganizerError('Недостаточно прав для добавления отряда.'); return; }
-                  if (!res.ok) { setOrganizerError(data?.error || `Ошибка ${res.status}`); return; }
+                  if (!res.ok) { setOrganizerError(formatOrganizerHttpError(res.status, data, 'Создание отряда')); return; }
                   if (data.squad) {
                     setOrganizerSquadsMap(prev => ({ ...prev, [organizerSquadFormShiftId]: [...(prev[organizerSquadFormShiftId] || []), data.squad!] }));
                   }
@@ -1897,10 +1991,10 @@ export const ProfileView: React.FC<any> = (props) => {
       )}
 
       {organizerCodeModalOpen && (
-        <div className="profile-utility-panel-overlay" onClick={() => { setOrganizerCodeModalOpen(false); setOrganizerCodeResult(null); }} aria-hidden="true" />
+        <div className="profile-utility-panel-overlay profile-utility-panel-overlay--organizer" onClick={() => { setOrganizerCodeModalOpen(false); setOrganizerCodeResult(null); }} aria-hidden="true" />
       )}
       {organizerCodeModalOpen && (
-        <div className="profile-utility-panel profile-utility-panel--modal-centered" role="dialog" aria-modal="true" aria-labelledby="organizer-modal-code-title" onClick={e => e.stopPropagation()}>
+        <div className="profile-utility-panel profile-utility-panel--modal-centered profile-utility-panel--organizer-modal" role="dialog" aria-modal="true" aria-labelledby="organizer-modal-code-title" onClick={e => e.stopPropagation()}>
           <div className="profile-utility-panel-header">
             <span id="organizer-modal-code-title">Выдать код</span>
             <button type="button" className="profile-utility-panel-close" onClick={() => { setOrganizerCodeModalOpen(false); setOrganizerCodeResult(null); }} aria-label="Закрыть"><Icons.Close /></button>
@@ -1915,7 +2009,7 @@ export const ProfileView: React.FC<any> = (props) => {
               <div>
                 <label style={{ fontSize: 12, opacity: 0.8 }}>Роль</label>
                 <select value={organizerCodeForm.role} onChange={e => setOrganizerCodeForm(f => ({ ...f, role: e.target.value as UserRole }))} style={{ display: 'block', width: '100%', padding: 8, borderRadius: 8, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.2)', color: '#fff', fontSize: 13 }}>
-                  {(['participant', 'parent', 'counselor', 'shift_leader'] as const).map((r) => (
+                  {(['participant', 'parent', 'counselor', 'shift_leader', 'camp_director', 'developer'] as const).map((r) => (
                     <option key={r} value={r}>{ROLE_LABELS[r]}</option>
                   ))}
                 </select>
@@ -1929,8 +2023,8 @@ export const ProfileView: React.FC<any> = (props) => {
                   ))}
                 </select>
               </div>
-              <button type="button" className="btn-primary-gold" aria-label="Сгенерировать код верификации" disabled={!organizerCodeForm.deviceId.trim() || organizerLoading || !canUseOrganizerApi} onClick={async () => {
-                if (!canUseOrganizerApi) {
+              <button type="button" className="btn-primary-gold" aria-label="Сгенерировать код верификации" disabled={!organizerCodeForm.deviceId.trim() || organizerLoading || !canUseOrganizerApiForManage} onClick={async () => {
+                if (!canUseOrganizerApiForManage) {
                   setOrganizerError('Для управления сменами войдите по коду (или используйте локальный режим разработчика).');
                   return;
                 }
@@ -1943,9 +2037,9 @@ export const ProfileView: React.FC<any> = (props) => {
                     headers: getOrganizerHeaders(true),
                     body: JSON.stringify({ deviceId: organizerCodeForm.deviceId.trim(), role: organizerCodeForm.role, shiftId: organizerCodeForm.shiftId || undefined }),
                   });
-                  const data = await res.json().catch(() => ({}));
+                  const data = await res.json().catch(() => ({})) as { error?: string; reason?: string; code?: string };
                   if (res.status === 401) { setOrganizerError('Сессия истекла. Войдите снова.'); fireOn401(); return; }
-                  if (!res.ok) { setOrganizerError(data?.error || `Ошибка ${res.status}`); return; }
+                  if (!res.ok) { setOrganizerError(formatOrganizerHttpError(res.status, data, 'Код верификации')); return; }
                   setOrganizerCodeResult(data.code || '');
                 } finally {
                   setOrganizerLoading(false);
@@ -1962,8 +2056,10 @@ export const ProfileView: React.FC<any> = (props) => {
           </div>
         </div>
       )}
-    </>
-  );
+      </div>,
+      document.body
+    );
+  };
 
   const renderPanelContent = () => (
     <>
@@ -2120,7 +2216,6 @@ export const ProfileView: React.FC<any> = (props) => {
           )
         )
       )}
-      {/* squad-cabinet view is deprecated: cabinet is embedded into squad-corner tab "squad". */}
       {panelActiveView === 'real-diary' && (
         travelerMode ? (
           <FeatureGate allowed={false} reason={travelerGateReason} ctaLabel="Разблокировать по коду" onCta={openUnlockByCode}>
@@ -2458,52 +2553,6 @@ export const ProfileView: React.FC<any> = (props) => {
             rank={rank}
             nickname={profile.nickname}
           />
-        )
-      )}
-      {panelActiveView === 'counselor-squad' && (canCreateSquad || (role === 'counselor' || role === 'educator') || myJoinedSquad) && (
-        isSpaceshipMode ? (
-          <CounselorSquadDashboard
-            variant="cabin"
-            activeTab={counselorSquadActiveTab}
-            onTabChange={setCounselorSquadActiveTab}
-            onNavigateToBadge={onNavigateToBadge}
-            onShowHint={showHint}
-          />
-        ) : (
-        <div style={{ padding: 16, background: 'rgba(139, 0, 255, 0.06)', borderRadius: 16, border: '1px solid rgba(139, 0, 255, 0.2)' }}>
-          <h3 style={{ fontSize: 16, fontWeight: 700, color: 'rgba(255,255,255,0.95)', margin: '0 0 12px' }}>Отряд вожатых</h3>
-          {myJoinedSquad && (<div style={{ marginBottom: 14 }}><p style={{ margin: 0, fontSize: 13, opacity: 0.9 }}>Вы в отряде: <strong>{myJoinedSquad.squadName}</strong></p><button type="button" onClick={() => { leaveSquad(); setCounselorJoinCode(''); setCounselorJoinError(null); }} className="btn-secondary" style={{ marginTop: 8, padding: '6px 12px', fontSize: 12 }}>Выйти из отряда</button></div>)}
-          {!myJoinedSquad && ((role === 'counselor' || role === 'educator') || (canCreateSquad && !myCreatedSquad)) && (
-            <div style={{ marginBottom: 14 }} className={(role === 'counselor' || role === 'educator') ? 'organizer-empty-state' : ''}>
-              {(role === 'counselor' || role === 'educator') && (
-                <>
-                  <div className="organizer-empty-state__icon" aria-hidden>🔑</div>
-                  <p className="organizer-empty-state__title" style={{ margin: '0 0 6px', fontSize: 14 }}>Войти в отряд вожатых</p>
-                  <p className="organizer-empty-state__text" style={{ margin: '0 0 12px', fontSize: 12, opacity: 0.85 }}>Старший Вожатый (или Разработчик в песочнице) создаёт отряд и даёт код приглашения. Вставьте код, чтобы присоединиться.</p>
-                </>
-              )}
-              <label style={{ display: 'block', fontSize: 12, opacity: 0.8, marginBottom: 4 }}>Войти по коду</label>
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-                <input type="text" value={counselorJoinCode} onChange={(e) => { setCounselorJoinCode(e.target.value); setCounselorJoinError(null); }} placeholder="Код приглашения" style={{ flex: 1, minWidth: 140, padding: '8px 10px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.2)', color: '#fff', fontSize: 13 }} />
-                <button type="button" onClick={() => { if (!counselorJoinCode.trim()) { setCounselorJoinError('Введите код'); return; } const ok = joinByCode(counselorJoinCode.trim()); setCounselorJoinError(ok ? null : 'Неверный код'); if (ok) setCounselorJoinCode(''); }} className="btn-primary-gold" style={{ padding: '8px 14px', fontSize: 12 }}>Войти</button>
-              </div>
-              {counselorJoinError && <span style={{ fontSize: 12, color: '#ff6b6b', display: 'block', marginTop: 4 }}>{counselorJoinError}</span>}
-            </div>
-          )}
-          {canCreateSquad && (!myCreatedSquad ? (
-            <div className="organizer-empty-state" style={{ padding: '12px 0' }}>
-              <div className="organizer-empty-state__icon" aria-hidden>👥</div>
-              <p className="organizer-empty-state__title" style={{ margin: '0 0 8px' }}>Создать отряд вожатых</p>
-              <p className="organizer-empty-state__text" style={{ margin: '0 0 12px', fontSize: 13, opacity: 0.85 }}>Введите название и создайте отряд, чтобы приглашать вожатых по коду или ссылке.</p>
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-                <input type="text" value={counselorSquadName} onChange={(e) => setCounselorSquadName(e.target.value)} placeholder="Например: Отряд «Солнышко»" style={{ flex: 1, minWidth: 160, padding: '8px 10px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.2)', color: '#fff', fontSize: 13 }} />
-                <button type="button" disabled={!counselorSquadName.trim()} title={!counselorSquadName.trim() ? 'Введите название отряда' : undefined} onClick={() => { if (counselorSquadName.trim()) { createSquad(counselorSquadName.trim()); setCounselorSquadName(''); } else { showHint({ title: 'Введите название', content: 'Укажите название отряда, чтобы создать его.' }); } }} className="btn-primary-gold" style={{ padding: '8px 14px', fontSize: 12 }}>Создать отряд</button>
-              </div>
-            </div>
-          ) : (
-            <div><p style={{ margin: '0 0 8px', fontSize: 13, opacity: 0.9 }}><strong>{myCreatedSquad.name}</strong></p><p style={{ margin: '0 0 4px', fontSize: 11, opacity: 0.8 }}>Код приглашения:</p><p style={{ margin: '0 0 8px', fontSize: 14, fontFamily: 'monospace', wordBreak: 'break-all' }}>{getInviteCode()}</p><div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}><button type="button" onClick={() => { navigator.clipboard?.writeText(getInviteCode()); showHint({ title: 'Скопировано', content: 'Код скопирован' }); }} className="btn-secondary" style={{ padding: '6px 12px', fontSize: 12 }}>Копировать код</button><button type="button" onClick={() => { navigator.clipboard?.writeText(getInviteLink()); showHint({ title: 'Скопировано', content: 'Ссылка скопирована' }); }} className="btn-secondary" style={{ padding: '6px 12px', fontSize: 12 }}>Копировать ссылку</button><button type="button" onClick={() => setDisbandConfirmOpen(true)} style={{ padding: '6px 12px', fontSize: 12, background: 'rgba(255,77,77,0.15)', color: '#ff6b6b', border: '1px solid rgba(255,77,77,0.3)', borderRadius: 8, cursor: 'pointer' }}>Распустить отряд</button></div></div>
-          ))}
-        </div>
         )
       )}
       {panelActiveView === 'workshop' && (
@@ -2921,13 +2970,6 @@ export const ProfileView: React.FC<any> = (props) => {
     { id: 'chief' as const, label: 'Главный Инспектор', icon: '👑' },
   ] satisfies Array<{ id: InspectorTabId; label: string; icon: string }>;
 
-  const counselorSquadTabItems: Array<{ id: CounselorSquadTabId; label: string; icon: string }> = [
-    { id: 'squad', label: 'Отряд', icon: '🏕️' },
-    { id: 'photos', label: 'Фото', icon: '📷' },
-    { id: 'planner', label: 'Планёрка', icon: '📋' },
-    { id: 'flag-badges', label: 'Значки на флаг', icon: '🚩' },
-  ];
-
   const realDiaryTabItems = [
     { id: 'diary' as const, label: 'Дневник', icon: '📖' },
     { id: 'reflection' as const, label: 'Рефлексия', icon: '🪞' },
@@ -3012,10 +3054,8 @@ export const ProfileView: React.FC<any> = (props) => {
     <div className={className} role="tablist" aria-label="Разделы отрядного уголка">
       {squadCornerTabItems.map((t) => {
         const disabled = hasSquadMembership && !canEditSquadCorner && t.id !== 'squad';
-        const selectTab = (event?: React.SyntheticEvent) => {
+        const selectTab = () => {
           if (disabled) return;
-          event?.preventDefault();
-          event?.stopPropagation();
           if (squadCornerActiveTab !== t.id) {
             setSquadCornerActiveTab(t.id);
           }
@@ -3031,11 +3071,14 @@ export const ProfileView: React.FC<any> = (props) => {
             data-label={disabled ? `${t.label} (редактирует вожатый)` : t.label}
             className={squadCornerActiveTab === t.id ? 'active' : ''}
             disabled={disabled}
-            onPointerDown={selectTab}
-            onClick={selectTab}
+            onClick={(event) => {
+              event.stopPropagation();
+              selectTab();
+            }}
             onKeyDown={(event) => {
               if (event.key === 'Enter' || event.key === ' ') {
-                selectTab(event);
+                event.preventDefault();
+                selectTab();
               }
             }}
           >
@@ -3154,27 +3197,6 @@ export const ProfileView: React.FC<any> = (props) => {
 
   // NOTE: Cabin "Вожатификатор" uses spotlight modal with local tabs inside the panel,
   // so we don't render a global docked tablist for it.
-
-  const renderCounselorSquadTabsNav = (className = 'profile-tabs-nav profile-tabs-nav--docked profile-tabs-nav--counselor-squad') => (
-    <div className={className} role="tablist" aria-label="Разделы отряда вожатых">
-      {counselorSquadTabItems.map((t) => (
-        <button
-          key={t.id}
-          id={`counselor-squad-tab-${t.id}`}
-          type="button"
-          role="tab"
-          aria-selected={counselorSquadActiveTab === t.id}
-          aria-controls="counselor-squad-tabpanel"
-          data-label={t.label}
-          className={counselorSquadActiveTab === t.id ? 'active' : ''}
-          onClick={() => setCounselorSquadActiveTab(t.id)}
-        >
-          <span className="profile-tabs-nav__icon" aria-hidden="true">{t.icon}</span>
-          <span className="profile-tabs-nav__label">{t.label}</span>
-        </button>
-      ))}
-    </div>
-  );
 
   const renderShareTabsNav = (className = 'profile-tabs-nav profile-tabs-nav--docked profile-tabs-nav--share') => (
     <div className={className} role="tablist" aria-label="Разделы карточек прогресса">
@@ -3735,9 +3757,9 @@ export const ProfileView: React.FC<any> = (props) => {
             </div>
             <div className="profile-view-cabin-center-wrap">
             <div
-              className={`profile-view-cabin-center profile-view-cabin-center--offset ${panelActiveView === null ? 'profile-view-cabin-center--hub' : ''} ${panelActiveView === 'squad-corner' ? 'profile-view-cabin-center--squad-corner' : ''} ${panelActiveView === 'squad-cabinet' ? 'profile-view-cabin-center--squad-cabinet' : ''} ${panelActiveView === 'real-diary' ? 'profile-view-cabin-center--real-diary' : ''} ${panelActiveView === 'profile4k' ? 'profile-view-cabin-center--profile4k' : ''} ${panelActiveView === 'team' ? 'profile-view-cabin-center--team' : ''} ${panelActiveView === 'council' ? 'profile-view-cabin-center--council' : ''} ${panelActiveView === 'bro' ? 'profile-view-cabin-center--bro' : ''} ${panelActiveView === 'vozhatifikator' ? 'profile-view-cabin-center--vozhatifikator' : ''} ${panelActiveView === 'counselor-squad' ? 'profile-view-cabin-center--counselor-squad' : ''} ${panelActiveView === 'share' ? 'profile-view-cabin-center--share' : ''} ${panelActiveView === 'workshop' ? 'profile-view-cabin-center--workshop' : ''} ${panelActiveView === 'inspector' ? 'profile-view-cabin-center--inspector' : ''}`}
+              className={`profile-view-cabin-center profile-view-cabin-center--offset ${panelActiveView === null ? 'profile-view-cabin-center--hub' : ''} ${panelActiveView === 'squad-corner' ? 'profile-view-cabin-center--squad-corner' : ''} ${panelActiveView === 'real-diary' ? 'profile-view-cabin-center--real-diary' : ''} ${panelActiveView === 'profile4k' ? 'profile-view-cabin-center--profile4k' : ''} ${panelActiveView === 'team' ? 'profile-view-cabin-center--team' : ''} ${panelActiveView === 'council' ? 'profile-view-cabin-center--council' : ''} ${panelActiveView === 'bro' ? 'profile-view-cabin-center--bro' : ''} ${panelActiveView === 'vozhatifikator' ? 'profile-view-cabin-center--vozhatifikator' : ''} ${panelActiveView === 'share' ? 'profile-view-cabin-center--share' : ''} ${panelActiveView === 'workshop' ? 'profile-view-cabin-center--workshop' : ''} ${panelActiveView === 'inspector' ? 'profile-view-cabin-center--inspector' : ''}`}
             >
-              {(panelActiveView === null || panelActiveView === 'squad-corner' || panelActiveView === 'real-diary' || panelActiveView === 'profile4k' || panelActiveView === 'team' || panelActiveView === 'council' || panelActiveView === 'bro' || panelActiveView === 'vozhatifikator' || panelActiveView === 'counselor-squad' || panelActiveView === 'share' || panelActiveView === 'workshop' || panelActiveView === 'inspector') && (
+              {(panelActiveView === null || panelActiveView === 'squad-corner' || panelActiveView === 'real-diary' || panelActiveView === 'profile4k' || panelActiveView === 'team' || panelActiveView === 'council' || panelActiveView === 'bro' || panelActiveView === 'vozhatifikator' || panelActiveView === 'share' || panelActiveView === 'workshop' || panelActiveView === 'inspector') && (
                 <div className="profile-view-cabin-tabs-docked">
                   {panelActiveView === null
                     ? renderTabsNav('profile-tabs-nav profile-tabs-nav--docked')
@@ -3755,9 +3777,7 @@ export const ProfileView: React.FC<any> = (props) => {
                               ? renderBroTabsNav('profile-tabs-nav profile-tabs-nav--docked profile-tabs-nav--bro')
                               : panelActiveView === 'vozhatifikator'
                                 ? renderVozhatifikatorTabsNav('profile-tabs-nav profile-tabs-nav--docked profile-tabs-nav--vozhatifikator')
-                                : panelActiveView === 'counselor-squad'
-                                  ? renderCounselorSquadTabsNav('profile-tabs-nav profile-tabs-nav--docked profile-tabs-nav--counselor-squad')
-                                  : panelActiveView === 'share'
+                                : panelActiveView === 'share'
                                     ? renderShareTabsNav('profile-tabs-nav profile-tabs-nav--docked profile-tabs-nav--share')
                                     : panelActiveView === 'workshop'
                                         ? renderWorkshopTabsNav('profile-tabs-nav profile-tabs-nav--docked profile-tabs-nav--workshop')
@@ -3781,7 +3801,7 @@ export const ProfileView: React.FC<any> = (props) => {
                 )}
                 <div
                   ref={centerScrollRef}
-                  className={`profile-view-cabin-center-scroll profile-view-scroll-container profile-view-panel-scroll${panelActiveView === null && (activeTab === 'active' || activeTab === 'favorites') ? ' profile-view-cabin-center-scroll--locked' : ''}${panelActiveView === 'passport' ? ' profile-view-cabin-center-scroll--no-scroll' : ''}${panelActiveView === 'squad-corner' || panelActiveView === 'squad-cabinet' || panelActiveView === 'real-diary' || panelActiveView === 'profile4k' || panelActiveView === 'team' || panelActiveView === 'council' || panelActiveView === 'bro' || panelActiveView === 'vozhatifikator' || panelActiveView === 'counselor-squad' || panelActiveView === 'share' || panelActiveView === 'workshop' || panelActiveView === 'inspector' ? ' profile-view-cabin-center-scroll--content-fit' : ''}`}
+                  className={`profile-view-cabin-center-scroll profile-view-scroll-container profile-view-panel-scroll${panelActiveView === null && (activeTab === 'active' || activeTab === 'favorites') ? ' profile-view-cabin-center-scroll--locked' : ''}${panelActiveView === 'passport' ? ' profile-view-cabin-center-scroll--no-scroll' : ''}${panelActiveView === 'squad-corner' || panelActiveView === 'real-diary' || panelActiveView === 'profile4k' || panelActiveView === 'team' || panelActiveView === 'council' || panelActiveView === 'bro' || panelActiveView === 'vozhatifikator' || panelActiveView === 'share' || panelActiveView === 'workshop' || panelActiveView === 'inspector' ? ' profile-view-cabin-center-scroll--content-fit' : ''}`}
                   style={{ background: 'transparent' }}
                 >
                     {pendingApprovalsCount > 0 && !approvalsSyncPromptDismissed && canRequestApprovals && (
@@ -3803,14 +3823,12 @@ export const ProfileView: React.FC<any> = (props) => {
                       <div key={panelActiveView} className={`profile-view-cabin-content profile-view-cabin-content--from-${panelOrigin || 'left'}`}>
                         {panelActiveView !== 'passport' &&
                           panelActiveView !== 'squad-corner' &&
-                          panelActiveView !== 'squad-cabinet' &&
                           panelActiveView !== 'real-diary' &&
                           panelActiveView !== 'profile4k' &&
                           panelActiveView !== 'team' &&
                           panelActiveView !== 'council' &&
                           panelActiveView !== 'bro' &&
                           panelActiveView !== 'vozhatifikator' &&
-                          panelActiveView !== 'counselor-squad' &&
                           panelActiveView !== 'share' &&
                           panelActiveView !== 'workshop' &&
                           panelActiveView !== 'inspector' && (
@@ -3936,30 +3954,6 @@ export const ProfileView: React.FC<any> = (props) => {
                   <span className="profile-view-cabin-card-hint">{vozhCompletedCount}/{VOZHATIFIKATOR_CHECKLIST_ITEMS.length} легендарность</span>
                 </button>
               </div>
-              {(canCreateSquad || (role === 'counselor' || role === 'educator') || myJoinedSquad) && (
-                <div className="profile-view-cabin-nav-item profile-view-cabin-nav-item--wide">
-                  <div
-                    className="profile-view-cabin-right-rail-progress profile-view-cabin-right-rail-progress--purple"
-                    style={{ ['--progress-value' as string]: `${myJoinedSquad || myCreatedSquad ? 100 : 18}%` }}
-                    aria-hidden="true"
-                  >
-                    <div className="profile-view-cabin-right-rail-progress__fill" />
-                  </div>
-                  <button type="button" className={`profile-view-cabin-nav-btn profile-view-cabin-nav-btn--wide profile-view-cabin-card ${panelActiveView === 'counselor-squad' ? 'profile-view-cabin-nav-btn--active' : ''}`} onClick={() => openCabinPanel('counselor-squad', 'right')} aria-label="Отряд вожатых">
-                    <span className="profile-view-cabin-nav-icon" aria-hidden>👥</span>
-                    <span className="profile-view-cabin-card-subtitle">Вожатский Отряд</span>
-                    <div className="profile-view-cabin-card-progress-wrap profile-view-cabin-card-progress-wrap--vertical">
-                      <div
-                        className="profile-view-cabin-card-progress profile-view-cabin-card-progress--vertical"
-                        style={{ width: `${myJoinedSquad || myCreatedSquad ? 100 : 18}%`, '--progress-value': `${myJoinedSquad || myCreatedSquad ? 100 : 18}%` } as React.CSSProperties}
-                      />
-                    </div>
-                    <span className="profile-view-cabin-card-hint">
-                      {myJoinedSquad?.squadName || myCreatedSquad?.name || 'Войти / Создать'}
-                    </span>
-                  </button>
-                </div>
-              )}
               <div className="profile-view-cabin-nav-item profile-view-cabin-nav-item--wide">
                 <div
                   className="profile-view-cabin-right-rail-progress profile-view-cabin-right-rail-progress--orange"
@@ -4040,7 +4034,16 @@ export const ProfileView: React.FC<any> = (props) => {
           <div className={`profile-view-console${mobileConsoleExpanded ? ' profile-view-console--mobile-expanded' : ''}`} aria-label="Пульт навигации">
             <div className="console-cluster console-cluster--left">
               <div className="console-btn-wrap">
-                <button type="button" className={`console-btn ${panelActiveView === 'squad-corner' ? 'console-btn--active' : ''}`} data-console-section="squad-corner" onClick={handleSquadCornerConsoleClick} title="Отрядный уголок">
+                <button
+                  type="button"
+                  className={`console-btn ${panelActiveView === 'squad-corner' ? 'console-btn--active' : ''}`}
+                  data-console-section="squad-corner"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    handleSquadCornerConsoleClick();
+                  }}
+                  title="Отрядный уголок"
+                >
                   <img src={`${baseUrl}${encodeURI(CONSOLE_SECTION_IMAGES['squad-corner'])}`} alt="" className="console-btn-icon-img" />
                   <span className="console-btn-bubble-label" aria-hidden>ОТРЯДНЫЙ УГОЛОК</span>
                   <span className="console-btn-icon">🏕️</span>
@@ -4143,9 +4146,7 @@ export const ProfileView: React.FC<any> = (props) => {
                 {panelActiveView === 'passport' && 'Паспорт'}
                 {panelActiveView === 'inspector' && 'Инспектор'}
                 {panelActiveView === 'profile4k' && '4К'}
-                {panelActiveView === 'counselor-squad' && 'Отряд вожатых'}
                 {panelActiveView === 'squad-corner' && 'Отрядный уголок'}
-                {panelActiveView === 'squad-cabinet' && 'Кабинет отряда'}
                 {panelActiveView === 'real-diary' && 'Реальный Дневник'}
                 {panelActiveView === 'team' && 'Движок'}
                 {panelActiveView === 'council' && 'Совет Лагеря'}
@@ -4630,86 +4631,6 @@ export const ProfileView: React.FC<any> = (props) => {
                 } : undefined}
               />
              )
-           )}
-
-           {(canCreateSquad || (role === 'counselor' || role === 'educator') || myJoinedSquad) && (
-             <div id="counselor-squad-section" style={{ marginTop: 0, padding: 16, background: 'rgba(139, 0, 255, 0.06)', borderRadius: 16, border: '1px solid rgba(139, 0, 255, 0.2)' }}>
-               <h3 style={{ fontSize: 16, fontWeight: 700, color: 'rgba(255,255,255,0.95)', margin: '0 0 12px' }}>Отряд вожатых</h3>
-               {myJoinedSquad && (
-                 <div style={{ marginBottom: 14 }}>
-                   <p style={{ margin: 0, fontSize: 13, opacity: 0.9 }}>Вы в отряде: <strong>{myJoinedSquad.squadName}</strong></p>
-                   <button type="button" onClick={() => { leaveSquad(); setCounselorJoinCode(''); setCounselorJoinError(null); }} className="btn-secondary" style={{ marginTop: 8, padding: '6px 12px', fontSize: 12 }}>Выйти из отряда</button>
-                 </div>
-               )}
-               {!myJoinedSquad && ((role === 'counselor' || role === 'educator') || (canCreateSquad && !myCreatedSquad)) && (
-                 <div style={{ marginBottom: 14 }} className={(role === 'counselor' || role === 'educator') ? 'organizer-empty-state' : ''}>
-                   {(role === 'counselor' || role === 'educator') && (
-                     <>
-                       <div className="organizer-empty-state__icon" aria-hidden>🔑</div>
-                       <p className="organizer-empty-state__title" style={{ margin: '0 0 6px', fontSize: 14 }}>Войти в отряд вожатых</p>
-                       <p className="organizer-empty-state__text" style={{ margin: '0 0 12px', fontSize: 12, opacity: 0.85 }}>Старший Вожатый (или Разработчик в песочнице) создаёт отряд и даёт код приглашения. Вставьте код, чтобы присоединиться.</p>
-                     </>
-                   )}
-                   <label style={{ display: 'block', fontSize: 12, opacity: 0.8, marginBottom: 4 }}>Войти в отряд вожатых по коду</label>
-                   <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-                     <input
-                       type="text"
-                       value={counselorJoinCode}
-                       onChange={(e) => { setCounselorJoinCode(e.target.value); setCounselorJoinError(null); }}
-                       placeholder="Вставьте код приглашения"
-                       style={{ flex: 1, minWidth: 140, padding: '8px 10px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.2)', color: '#fff', fontSize: 13 }}
-                     />
-                     <button
-                       type="button"
-                       onClick={() => {
-                         if (!counselorJoinCode.trim()) { setCounselorJoinError('Введите код'); return; }
-                         const ok = joinByCode(counselorJoinCode.trim());
-                         setCounselorJoinError(ok ? null : 'Неверный код');
-                         if (ok) setCounselorJoinCode('');
-                       }}
-                       className="btn-primary-gold"
-                       style={{ padding: '8px 14px', fontSize: 12 }}
-                     >
-                       Войти
-                     </button>
-                   </div>
-                   {counselorJoinError && <span style={{ fontSize: 12, color: '#ff6b6b', display: 'block', marginTop: 4 }}>{counselorJoinError}</span>}
-                 </div>
-               )}
-               {canCreateSquad && (
-                 <div>
-                   {!myCreatedSquad ? (
-                     <div className="organizer-empty-state" style={{ padding: '12px 0' }}>
-                       <div className="organizer-empty-state__icon" aria-hidden>👥</div>
-                       <p className="organizer-empty-state__title" style={{ margin: '0 0 8px' }}>Создать отряд вожатых</p>
-                       <p className="organizer-empty-state__text" style={{ margin: '0 0 12px', fontSize: 13, opacity: 0.85 }}>Введите название и создайте отряд, чтобы приглашать вожатых по коду или ссылке.</p>
-                       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-                         <input
-                           type="text"
-                           value={counselorSquadName}
-                           onChange={(e) => setCounselorSquadName(e.target.value)}
-                           placeholder="Например: Отряд «Солнышко»"
-                           style={{ flex: 1, minWidth: 160, padding: '8px 10px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.2)', color: '#fff', fontSize: 13 }}
-                         />
-                         <button type="button" disabled={!counselorSquadName.trim()} title={!counselorSquadName.trim() ? 'Введите название отряда' : undefined} onClick={() => { if (counselorSquadName.trim()) { createSquad(counselorSquadName.trim()); setCounselorSquadName(''); } else { showHint({ title: 'Введите название', content: 'Укажите название отряда, чтобы создать его.' }); } }} className="btn-primary-gold" style={{ padding: '8px 14px', fontSize: 12 }}>Создать отряд</button>
-                       </div>
-                     </div>
-                   ) : (
-                     <div>
-                       <p style={{ margin: '0 0 8px', fontSize: 13, opacity: 0.9 }}><strong>{myCreatedSquad.name}</strong></p>
-                       <p style={{ margin: '0 0 4px', fontSize: 11, opacity: 0.8 }}>Код приглашения:</p>
-                       <p style={{ margin: '0 0 8px', fontSize: 14, fontFamily: 'monospace', wordBreak: 'break-all' }}>{getInviteCode()}</p>
-                       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                         <button type="button" onClick={() => { navigator.clipboard?.writeText(getInviteCode()); showHint({ title: 'Скопировано', content: 'Код скопирован' }); }} className="btn-secondary" style={{ padding: '6px 12px', fontSize: 12 }}>Копировать код</button>
-                         <button type="button" onClick={() => { navigator.clipboard?.writeText(getInviteLink()); showHint({ title: 'Скопировано', content: 'Ссылка скопирована' }); }} className="btn-secondary" style={{ padding: '6px 12px', fontSize: 12 }}>Копировать ссылку</button>
-                         <button type="button" onClick={() => setDisbandConfirmOpen(true)} style={{ padding: '6px 12px', fontSize: 12, background: 'rgba(255,77,77,0.15)', color: '#ff6b6b', border: '1px solid rgba(255,77,77,0.3)', borderRadius: 8, cursor: 'pointer' }}>Распустить отряд</button>
-                       </div>
-                       <p style={{ margin: '12px 0 0', fontSize: 11, opacity: 0.7 }}>Список участников будет доступен при синхронизации с сервером.</p>
-                     </div>
-                   )}
-                 </div>
-               )}
-             </div>
            )}
 
            {seeOtradBlocksInView && (
@@ -5528,7 +5449,7 @@ export const ProfileView: React.FC<any> = (props) => {
                 <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid rgba(255,255,255,0.1)', display: 'grid', gap: 8 }}>
                   <div style={{ fontSize: 12, fontWeight: 700, opacity: 0.9 }}>Dev login (localhost)</div>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                    {(['participant', 'parent', 'counselor', 'shift_leader', 'developer'] as UserRole[]).map((targetRole) => (
+                    {(['participant', 'parent', 'counselor', 'shift_leader', 'camp_director', 'developer'] as UserRole[]).map((targetRole) => (
                       <button
                         key={targetRole}
                         type="button"
@@ -6260,16 +6181,6 @@ export const ProfileView: React.FC<any> = (props) => {
         </Suspense>
       </div>
 
-      <ConfirmModal
-        open={disbandConfirmOpen}
-        onClose={() => setDisbandConfirmOpen(false)}
-        title="Распустить отряд?"
-        message="Все данные отряда (название, фото, планёрка, значки) будут удалены безвозвратно."
-        confirmLabel="Распустить"
-        cancelLabel="Отмена"
-        onConfirm={() => deleteSquad()}
-        danger
-      />
       <ConfirmModal
         open={showAvatarUploadConfirm}
         onClose={() => setShowAvatarUploadConfirm(false)}

@@ -233,9 +233,16 @@ export function useAppController() {
     if (urlParamsProcessedRef.current) return;
 
     const params = new URLSearchParams(window.location.search);
+    const joinSquadId = (params.get('join_squad') || '').trim();
     const view = params.get('view');
     const categoryId = params.get('categoryId');
     const badgeId = params.get('badgeId');
+
+    if (joinSquadId) {
+      setCurrentView('profile');
+      urlParamsProcessedRef.current = true;
+      return;
+    }
 
     if (view === 'category' && categoryId) {
       const category = categories.find((c) => c.id === categoryId);

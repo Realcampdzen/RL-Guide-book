@@ -5,7 +5,7 @@ Flask API для Путеводителя "Реального Лагеря"
 Предоставляет данные о категориях и значках
 """
 
-from flask import Flask, jsonify, request, send_from_directory, has_request_context
+from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 import json
 import os
@@ -14,6 +14,7 @@ import time
 import uuid
 import hmac
 import re
+import traceback
 from datetime import datetime, timezone
 from typing import Optional
 import hashlib
@@ -61,7 +62,7 @@ AUTH_SLOT_SEC = 600
 AUTH_VERIFY_SLOTS = 4
 # RBAC roles allowed to access protected endpoints (chat, teams, images, etc.).
 # Legacy: role "organizer" is deprecated and treated as "shift_leader".
-CHAT_ALLOWED_ROLES = ('participant', 'parent', 'counselor', 'shift_leader', 'developer')
+CHAT_ALLOWED_ROLES = ('participant', 'parent', 'counselor', 'shift_leader', 'camp_director', 'developer')
 # Лимит сообщений в день для чата (env: CHAT_MESSAGES_PER_DAY, по умолчанию 20)
 CHAT_MESSAGES_PER_DAY = int(os.getenv('CHAT_MESSAGES_PER_DAY', '20'))
 
@@ -91,8 +92,12 @@ SQUAD_MESSAGES_DEFAULT_LIMIT = 50
 SQUAD_MESSAGES_MAX_LIMIT = 100
 DEFAULT_SEEDED_SHIFT_NAME = "Реальный Лагерь 2026"
 # Staff-flow permissions (shifts/squads management, staff code issuing).
-ORGANIZER_ROLES = ('shift_leader', 'developer')
+ORGANIZER_ROLES = ('shift_leader', 'camp_director', 'developer')
 LEVEL_ID_RE = re.compile(r'^\d+\.\d+(?:\.\d+)?$')
+
+
+class ShiftSeedError(RuntimeError):
+    """Raised when default shift seeding cannot be persisted."""
 
 
 def _normalize_role(role: str) -> str:
@@ -209,7 +214,7 @@ def _require_parent_snapshot_auth():
 def _require_teams_auth():
     """
     Проверяет JWT в Authorization для доступа к API онлайн-Движков.
-    Разрешены роли: participant, parent, counselor, shift_leader, developer (не traveler).
+    Разрешены роли: participant, parent, counselor, shift_leader, camp_director, developer (не traveler).
     При запросе с localhost без токена (песочница, роль «Разработчик») считаем роль developer.
     Returns: (payload, None) при успехе или (None, (response, status_code)) при ошибке.
     """
@@ -256,6 +261,20 @@ def _is_localhost_request() -> bool:
     return remote in ("127.0.0.1", "::1", "localhost")
 
 
+def _is_dev_mode() -> bool:
+    """True for local/dev environments where seed data is expected."""
+    env_candidates = [
+        os.getenv("FLASK_ENV", ""),
+        os.getenv("ENV", ""),
+        os.getenv("NODE_ENV", ""),
+    ]
+    normalized = {(raw or "").strip().lower() for raw in env_candidates if isinstance(raw, str)}
+    if {"development", "dev", "local"} & normalized:
+        return True
+    debug_raw = (os.getenv("FLASK_DEBUG", "") or "").strip().lower()
+    return debug_raw in {"1", "true", "yes", "on"}
+
+
 def _normalized_shift_name(name: str) -> str:
     return re.sub(r"\s+", " ", (name or "").strip().lower())
 
@@ -275,6 +294,38 @@ def _pick_squad_avatar(corner: dict) -> Optional[str]:
         if value:
             return value
     return None
+
+
+def _ensure_default_shift_seeded(data: dict) -> tuple[dict, bool]:
+    """
+    Ensure default shift exists in development mode.
+    Returns: (data, seeded_now).
+    Raises: ShiftSeedError on persistence failures.
+    """
+    if not _is_dev_mode():
+        return data, False
+    shifts = data.get("shifts") or []
+    has_default = any(
+        isinstance(shift, dict) and _is_default_seeded_shift_name(shift.get("name") or "")
+        for shift in shifts
+    )
+    if has_default:
+        return data, False
+    seeded_shift = {
+        "id": uuid.uuid4().hex[:12],
+        "name": DEFAULT_SEEDED_SHIFT_NAME,
+        "startDate": "",
+        "endDate": "",
+        "createdAt": datetime.now(timezone.utc).isoformat(),
+        "createdBy": "seed-dev-mode"
+    }
+    data["shifts"].append(seeded_shift)
+    try:
+        with open(SHIFTS_FILE, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+    except OSError as exc:
+        raise ShiftSeedError(str(exc)) from exc
+    return data, True
 
 
 def _require_roles(allowed_roles: tuple[str, ...], allow_localhost_dev: bool = False):
@@ -560,7 +611,7 @@ def _can_manage_squad(payload: dict, squad: dict, membership: Optional[dict]) ->
         if membership and _normalize_role((membership.get("role") or "").strip()) == "counselor":
             return True, ""
         return False, "not_member"
-    if actor_role == "shift_leader":
+    if actor_role in ("shift_leader", "camp_director"):
         token_camp_id = (payload.get("campId") or "").strip()
         squad_shift_id = (squad.get("shiftId") or "").strip()
         if token_camp_id and token_camp_id == squad_shift_id:
@@ -577,7 +628,7 @@ def _can_read_corner(payload: dict, squad: dict, membership: Optional[dict]) -> 
         return True
     if membership:
         return True
-    if actor_role == "shift_leader":
+    if actor_role in ("shift_leader", "camp_director"):
         token_camp_id = (payload.get("campId") or "").strip()
         squad_shift_id = (squad.get("shiftId") or "").strip()
         return bool(token_camp_id and token_camp_id == squad_shift_id)
@@ -1756,7 +1807,7 @@ def dev_login():
     try:
         data = request.get_json() or {}
         role = _normalize_role((data.get("role") or "participant").strip() or "participant")
-        allowed = ("participant", "parent", "counselor", "shift_leader", "developer")
+        allowed = ("participant", "parent", "counselor", "shift_leader", "camp_director", "developer")
         if role not in allowed:
             return jsonify({"error": "Invalid role"}), 400
         device_id = (data.get("deviceId") or "").strip() or (request.headers.get("X-Device-Id") or "").strip() or "dev-local"
@@ -1851,7 +1902,7 @@ def auth_verify_code():
 def _require_organizer_jwt():
     """
     Проверяет JWT для staff-flow эндпоинтов (смены/отряды/выдача кодов).
-    Разрешены роли: shift_leader, developer.
+    Разрешены роли: shift_leader, camp_director, developer.
     Legacy: role "organizer" трактуем как "shift_leader".
     Returns: (payload, None) при успехе или (None, (response, status_code)) при ошибке.
     """
@@ -1900,24 +1951,8 @@ def _shifts_load() -> dict:
             data["shifts"] = []
         if not isinstance(data.get("squads"), list):
             data["squads"] = []
-
-        # Local/dev convenience: keep one default shift so manual testing does not require recreating it.
-        if has_request_context() and _is_localhost_request():
-            has_default = any(
-                isinstance(shift, dict) and _is_default_seeded_shift_name(shift.get("name") or "")
-                for shift in (data.get("shifts") or [])
-            )
-            if not has_default:
-                data["shifts"].append({
-                    "id": uuid.uuid4().hex[:12],
-                    "name": DEFAULT_SEEDED_SHIFT_NAME,
-                    "startDate": "",
-                    "endDate": "",
-                    "createdAt": datetime.now(timezone.utc).isoformat(),
-                    "createdBy": "seed-localhost"
-                })
-                with open(SHIFTS_FILE, "w", encoding="utf-8") as f:
-                    json.dump(data, f, ensure_ascii=False, indent=2)
+        # Dev convenience: keep one default shift so manual testing does not require recreating it.
+        data, _ = _ensure_default_shift_seeded(data)
         return data
 
 
@@ -1931,17 +1966,27 @@ def _shifts_save(data: dict):
 
 @app.route('/api/shifts', methods=['GET'])
 def shifts_list():
-    """GET /api/shifts — list shifts. Auth: shift_leader/developer."""
-    payload, err = _require_organizer_jwt()
+    """GET /api/shifts — list shifts. Auth: participant/counselor/shift_leader/camp_director/developer."""
+    payload, err = _require_roles(("participant", "counselor", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
     if err is not None:
         return err[0], err[1]
-    data = _shifts_load()
-    return jsonify({"shifts": data.get("shifts", [])})
+    try:
+        data = _shifts_load()
+        return jsonify({"shifts": data.get("shifts", [])})
+    except ShiftSeedError:
+        traceback.print_exc()
+        return jsonify({"error": "Failed to seed default shift", "reason": "seed_error"}), 500
+    except OSError:
+        traceback.print_exc()
+        return jsonify({"error": "Storage error", "reason": "storage_error"}), 500
+    except Exception:
+        traceback.print_exc()
+        return jsonify({"error": "Internal server error", "reason": "internal_error"}), 500
 
 
 @app.route('/api/shifts', methods=['POST'])
 def shifts_create():
-    """POST /api/shifts — create shift (name, startDate, endDate). Auth: shift_leader/developer."""
+    """POST /api/shifts — create shift (name, startDate, endDate). Auth: shift_leader/camp_director/developer."""
     payload, err = _require_organizer_jwt()
     if err is not None:
         return err[0], err[1]
@@ -1968,47 +2013,62 @@ def shifts_create():
         doc["shifts"].append(shift)
         _shifts_save(doc)
         return jsonify({"shift": shift})
+    except ShiftSeedError:
+        traceback.print_exc()
+        return jsonify({"error": "Failed to seed default shift", "reason": "seed_error"}), 500
     except OSError:
-        return jsonify({"error": "Storage error"}), 500
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        traceback.print_exc()
+        return jsonify({"error": "Storage error", "reason": "storage_error"}), 500
+    except Exception:
+        traceback.print_exc()
+        return jsonify({"error": "Internal server error", "reason": "internal_error"}), 500
 
 
 @app.route('/api/shifts/<shift_id>/squads', methods=['GET'])
 def squads_list(shift_id: str):
-    """GET /api/shifts/<shiftId>/squads — list squads in shift. Auth: shift_leader/developer."""
-    payload, err = _require_organizer_jwt()
+    """GET /api/shifts/<shiftId>/squads — list squads in shift. Auth: participant/counselor/shift_leader/camp_director/developer."""
+    payload, err = _require_roles(("participant", "counselor", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
     if err is not None:
         return err[0], err[1]
     sid = (shift_id or "").strip()
     if not sid:
         return jsonify({"error": "shiftId required"}), 400
-    data = _shifts_load()
-    corners_doc = _squad_corners_load()
-    corners = corners_doc.get("corners") or {}
-    if not isinstance(corners, dict):
-        corners = {}
-    squads = []
-    for s in (data.get("squads") or []):
-        if not isinstance(s, dict):
-            continue
-        if (s.get("shiftId") or "").strip() != sid:
-            continue
-        squad = dict(s)
-        squad["avatarUrl"] = _pick_squad_avatar(corners.get((s.get("id") or "").strip()))
-        squads.append(squad)
-    return jsonify({"squads": squads})
+    try:
+        data = _shifts_load()
+        corners_doc = _squad_corners_load()
+        corners = corners_doc.get("corners") or {}
+        if not isinstance(corners, dict):
+            corners = {}
+        squads = []
+        for s in (data.get("squads") or []):
+            if not isinstance(s, dict):
+                continue
+            if (s.get("shiftId") or "").strip() != sid:
+                continue
+            squad = dict(s)
+            squad["avatarUrl"] = _pick_squad_avatar(corners.get((s.get("id") or "").strip()))
+            squads.append(squad)
+        return jsonify({"squads": squads})
+    except ShiftSeedError:
+        traceback.print_exc()
+        return jsonify({"error": "Failed to seed default shift", "reason": "seed_error"}), 500
+    except OSError:
+        traceback.print_exc()
+        return jsonify({"error": "Storage error", "reason": "storage_error"}), 500
+    except Exception:
+        traceback.print_exc()
+        return jsonify({"error": "Internal server error", "reason": "internal_error"}), 500
 
 
 @app.route('/api/shifts/<shift_id>/squads', methods=['POST'])
 def squads_create(shift_id: str):
     """
     POST /api/shifts/<shiftId>/squads — create squad (name).
-    Auth: counselor|shift_leader|developer
+    Auth: counselor|shift_leader|camp_director|developer
 
     Counselor is allowed to create squads only inside their own shift (campId match).
     """
-    payload, err = _require_roles(("counselor", "shift_leader", "developer"), allow_localhost_dev=True)
+    payload, err = _require_roles(("counselor", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
     if err is not None:
         return err[0], err[1]
     sid = (shift_id or "").strip()
@@ -2047,19 +2107,24 @@ def squads_create(shift_id: str):
         doc["squads"].append(squad)
         _shifts_save(doc)
         return jsonify({"squad": squad})
+    except ShiftSeedError:
+        traceback.print_exc()
+        return jsonify({"error": "Failed to seed default shift", "reason": "seed_error"}), 500
     except OSError:
-        return jsonify({"error": "Storage error"}), 500
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        traceback.print_exc()
+        return jsonify({"error": "Storage error", "reason": "storage_error"}), 500
+    except Exception:
+        traceback.print_exc()
+        return jsonify({"error": "Internal server error", "reason": "internal_error"}), 500
 
 
 @app.route('/api/squads/<squad_id>', methods=['DELETE'])
 def squad_delete(squad_id: str):
     """
     DELETE /api/squads/<squadId> — hard delete squad and related data.
-    Auth: shift_leader|developer
+    Auth: shift_leader|camp_director|developer
     """
-    payload, err = _require_roles(("shift_leader", "developer"), allow_localhost_dev=True)
+    payload, err = _require_roles(("shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
     if err is not None:
         return err[0], err[1]
     sid = (squad_id or "").strip()
@@ -2099,9 +2164,9 @@ def squad_delete(squad_id: str):
 def shift_delete(shift_id: str):
     """
     DELETE /api/shifts/<shiftId> — hard delete shift, its squads and related data.
-    Auth: shift_leader|developer
+    Auth: shift_leader|camp_director|developer
     """
-    payload, err = _require_roles(("shift_leader", "developer"), allow_localhost_dev=True)
+    payload, err = _require_roles(("shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
     if err is not None:
         return err[0], err[1]
     sid = (shift_id or "").strip()
@@ -2153,10 +2218,10 @@ def shift_delete(shift_id: str):
 def squad_join(squad_id: str):
     """
     POST /api/squads/<squadId>/join
-    Auth: participant|counselor|shift_leader|developer
-    Body: { nickname?: string, role?: participant|counselor|shift_leader (for developer only) }
+    Auth: participant|counselor|shift_leader|camp_director|developer
+    Body: { nickname?: string, role?: participant|counselor|shift_leader|camp_director (for developer only) }
     """
-    payload, err = _require_roles(("participant", "counselor", "shift_leader", "developer"), allow_localhost_dev=True)
+    payload, err = _require_roles(("participant", "counselor", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
     if err is not None:
         return err[0], err[1]
     device_id = (payload.get("deviceId") or "").strip()
@@ -2177,7 +2242,7 @@ def squad_join(squad_id: str):
     actor_role = _normalize_role((payload.get("role") or "").strip())
     membership_role = actor_role
     if actor_role == "developer":
-        membership_role = requested_role if requested_role in ("participant", "counselor", "shift_leader") else "participant"
+        membership_role = requested_role if requested_role in ("participant", "counselor", "shift_leader", "camp_director") else "participant"
 
     now_iso = datetime.now(timezone.utc).isoformat()
     camp_id = (squad.get("shiftId") or "").strip()
@@ -2209,10 +2274,10 @@ def squad_join(squad_id: str):
 def squads_mine():
     """
     GET /api/squads/mine
-    Auth: participant|counselor|shift_leader|developer
+    Auth: participant|counselor|shift_leader|camp_director|developer
     Returns: membership + squad/shift meta.
     """
-    payload, err = _require_roles(("participant", "counselor", "shift_leader", "developer"), allow_localhost_dev=True)
+    payload, err = _require_roles(("participant", "counselor", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
     if err is not None:
         return err[0], err[1]
     device_id = (payload.get("deviceId") or "").strip()
@@ -2245,12 +2310,12 @@ def squad_corner_get_or_patch(squad_id: str):
     """
     GET /api/squads/<squadId>/corner — get shared squad corner (server-synced).
     PATCH /api/squads/<squadId>/corner — update shared corner (staff only).
-    Auth: participant|parent|counselor|shift_leader|developer (GET), counselor|shift_leader|developer (PATCH).
+    Auth: participant|parent|counselor|shift_leader|camp_director|developer (GET), counselor|shift_leader|camp_director|developer (PATCH).
     """
     if request.method == 'PATCH':
-        payload, err = _require_roles(("counselor", "shift_leader", "developer"), allow_localhost_dev=True)
+        payload, err = _require_roles(("counselor", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
     else:
-        payload, err = _require_roles(("participant", "counselor", "shift_leader", "developer"), allow_localhost_dev=True)
+        payload, err = _require_roles(("participant", "counselor", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
     if err is not None:
         return err[0], err[1]
 
@@ -2338,9 +2403,9 @@ def squad_corner_get_or_patch(squad_id: str):
 def squad_invite_code_create(squad_id: str):
     """
     POST /api/squads/<squadId>/invite-code — create invite code for joining the squad.
-    Auth: counselor|shift_leader|developer
+    Auth: counselor|shift_leader|camp_director|developer
     """
-    payload, err = _require_roles(("counselor", "shift_leader", "developer"), allow_localhost_dev=True)
+    payload, err = _require_roles(("counselor", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
     if err is not None:
         return err[0], err[1]
     sid = (squad_id or "").strip()
@@ -2432,7 +2497,7 @@ def squad_invite_code_resolve():
     """
     Legacy alias for code resolving.
     """
-    payload, err = _require_roles(("participant", "counselor", "shift_leader", "developer"), allow_localhost_dev=True)
+    payload, err = _require_roles(("participant", "counselor", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
     if err is not None:
         return err[0], err[1]
     return _resolve_invite_code_response(request.args.get("code") or "")
@@ -2442,9 +2507,9 @@ def squad_invite_code_resolve():
 def squad_invite_code_resolve_v2():
     """
     GET /api/squads/by-invite-code?code=XXXXXX — resolve invite code to squad meta.
-    Auth: participant|counselor|shift_leader|developer
+    Auth: participant|counselor|shift_leader|camp_director|developer
     """
-    payload, err = _require_roles(("participant", "counselor", "shift_leader", "developer"), allow_localhost_dev=True)
+    payload, err = _require_roles(("participant", "counselor", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
     if err is not None:
         return err[0], err[1]
     return _resolve_invite_code_response(request.args.get("code") or "")
@@ -2456,7 +2521,7 @@ def squad_preview(squad_id: str):
     GET /api/squads/<squadId>/preview — minimal squad info for join modal.
     Auth required.
     """
-    payload, err = _require_roles(("participant", "counselor", "shift_leader", "developer"), allow_localhost_dev=True)
+    payload, err = _require_roles(("participant", "counselor", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
     if err is not None:
         return err[0], err[1]
     sid = (squad_id or "").strip()
@@ -2479,9 +2544,9 @@ def squad_preview(squad_id: str):
 def squad_leave(squad_id: str):
     """
     POST /api/squads/<squadId>/leave — leave the squad.
-    Auth: participant|parent|counselor|shift_leader|developer
+    Auth: participant|parent|counselor|shift_leader|camp_director|developer
     """
-    payload, err = _require_roles(("participant", "parent", "counselor", "shift_leader", "developer"), allow_localhost_dev=True)
+    payload, err = _require_roles(("participant", "parent", "counselor", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
     if err is not None:
         return err[0], err[1]
     device_id = (payload.get("deviceId") or "").strip()
@@ -2545,9 +2610,9 @@ def _kick_member_impl(payload: dict, squad_id: str, target_device_id: str):
 def squad_kick_member_delete(squad_id: str, target_device_id: str):
     """
     DELETE /api/squads/<squadId>/members/<deviceId> — remove member from squad.
-    Auth: counselor|shift_leader|developer
+    Auth: counselor|shift_leader|camp_director|developer
     """
-    payload, err = _require_roles(("counselor", "shift_leader", "developer"), allow_localhost_dev=True)
+    payload, err = _require_roles(("counselor", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
     if err is not None:
         return err[0], err[1]
     return _kick_member_impl(payload, squad_id, target_device_id)
@@ -2557,10 +2622,10 @@ def squad_kick_member_delete(squad_id: str, target_device_id: str):
 def squad_kick_member(squad_id: str):
     """
     POST /api/squads/<squadId>/kick — legacy alias for member removal.
-    Auth: counselor|shift_leader|developer
+    Auth: counselor|shift_leader|camp_director|developer
     Body: { deviceId: string }
     """
-    payload, err = _require_roles(("counselor", "shift_leader", "developer"), allow_localhost_dev=True)
+    payload, err = _require_roles(("counselor", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
     if err is not None:
         return err[0], err[1]
     body = request.get_json() or {}
@@ -2573,9 +2638,9 @@ def squad_messages_get_or_post(squad_id: str):
     """
     GET /api/squads/<squadId>/messages?limit=50 — get squad chat messages.
     POST /api/squads/<squadId>/messages — post message.
-    Auth: participant|parent|counselor|shift_leader|developer
+    Auth: participant|parent|counselor|shift_leader|camp_director|developer
     """
-    payload, err = _require_roles(("participant", "parent", "counselor", "shift_leader", "developer"), allow_localhost_dev=True)
+    payload, err = _require_roles(("participant", "parent", "counselor", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
     if err is not None:
         return err[0], err[1]
     sid = (squad_id or "").strip()
@@ -2726,9 +2791,9 @@ def badge_request_mine():
 def badge_request_inbox():
     """
     GET /api/badges/requests/inbox?campId=&squadId=&status=
-    Auth: counselor|shift_leader|developer
+    Auth: counselor|shift_leader|camp_director|developer
     """
-    payload, err = _require_roles(("counselor", "shift_leader", "developer"), allow_localhost_dev=True)
+    payload, err = _require_roles(("counselor", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
     if err is not None:
         return err[0], err[1]
 
@@ -2768,7 +2833,7 @@ def badge_request_inbox():
 
 
 def _badge_request_resolve(request_id: str, next_status: str):
-    payload, err = _require_roles(("counselor", "shift_leader", "developer"), allow_localhost_dev=True)
+    payload, err = _require_roles(("counselor", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
     if err is not None:
         return err[0], err[1]
     rid = (request_id or "").strip()
@@ -2877,7 +2942,7 @@ def organizer_generate_code():
     """
     POST /api/organizer/generate-code
     Body: { "deviceId": "uuid", "role": "participant", "shiftId": "optional" }
-    Requires JWT for staff-flow (shift_leader/developer). Uses AUTH_SECRET for code generation.
+    Requires JWT for staff-flow (shift_leader/camp_director/developer). Uses AUTH_SECRET for code generation.
     """
     payload, err = _require_organizer_jwt()
     if err is not None:

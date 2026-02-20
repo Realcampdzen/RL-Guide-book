@@ -1469,6 +1469,95 @@
   z-index: var(--profile-mobile-z-modal, 1200);
 }
 
+.profile-view .profile-utility-panel.profile-utility-panel--modal-centered {
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.profile-organizer-modals-root {
+  position: fixed;
+  inset: 0;
+  z-index: 12040;
+  pointer-events: none;
+}
+
+.profile-organizer-modals-root .profile-utility-panel-overlay--organizer {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.58);
+  backdrop-filter: blur(4px);
+  z-index: 12041;
+  pointer-events: auto;
+}
+
+.profile-organizer-modals-root .profile-utility-panel--organizer-modal {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(460px, calc(100vw - 24px));
+  max-height: min(90vh, 720px);
+  overflow-y: auto;
+  background: #16162a;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 16px 46px rgba(0, 0, 0, 0.56);
+  z-index: 12042;
+  pointer-events: auto;
+}
+
+.profile-organizer-modals-root .profile-utility-panel--organizer-modal .profile-utility-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.profile-organizer-modals-root .profile-utility-panel--organizer-modal .profile-utility-panel-header span {
+  font-size: 14px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.profile-organizer-modals-root .profile-utility-panel--organizer-modal .profile-utility-panel-close {
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.92);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.profile-organizer-modals-root .profile-utility-panel--organizer-modal .profile-utility-panel-close:hover {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.profile-organizer-modals-root .profile-utility-panel--organizer-modal .profile-utility-panel-body {
+  padding: 14px 16px 16px;
+}
+
+@media (max-width: 1180px) {
+  .profile-organizer-modals-root .profile-utility-panel--organizer-modal {
+    width: min(92vw, 460px);
+    max-height: 88vh;
+  }
+}
+
+@media (max-width: 767px) {
+  .profile-organizer-modals-root .profile-utility-panel--organizer-modal {
+    width: min(94vw, 440px);
+    max-height: 86vh;
+    border-radius: 14px;
+  }
+}
+
 .proof-modal--mobile-sheet {
   max-width: 420px;
   max-height: var(--profile-mobile-modal-max-h, 90vh);
