@@ -34,7 +34,7 @@ function deepCloneForStrip(
     childChildren === undefined || childChildren === null
       ? undefined
       : Children.map(childChildren, (c, i) =>
-          deepCloneForStrip(c, stripId, `${path}-${i}`)
+          deepCloneForStrip(c as React.ReactNode, stripId, `${path}-${i}`)
         );
 
   return cloneElement(
