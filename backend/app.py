@@ -3016,13 +3016,7 @@ def parent_snapshot_get():
 @app.route('/api/health', methods=['GET'])
 def api_health():
     """Liveness probe: always 200, no auth. For monitoring, Vercel, CI."""
-    use_supabase = os.environ.get("USE_SUPABASE", "NOT_SET")
-    supabase_url = os.environ.get("SUPABASE_URL", "NOT_SET")
-    return jsonify({
-        "status": "ok",
-        "use_supabase": use_supabase,
-        "supabase_url_set": supabase_url != "NOT_SET" and bool(supabase_url),
-    }), 200
+    return jsonify({"status": "ok"}), 200
 
 
 @app.route('/health')
