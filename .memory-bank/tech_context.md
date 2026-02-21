@@ -83,9 +83,28 @@
 
 ## Architecture & Resources
 - **GitHub Pages:** frontend static deploy — basePath `/RL-Guide-book/`, workflow [.github/workflows/deploy-simple.yml](.github/workflows/deploy-simple.yml), push `main`. Pre-deploy: sync:ai-data, verify:webp, self-check, build. См. [docs/DEPLOY_GITHUB_PAGES.md](docs/DEPLOY_GITHUB_PAGES.md).
-- **Vercel:** rl-guide-book (frontend), backend (API). Push to `main` triggers deploy.
+- **Vercel:** 2 проекта в аккаунте `nomorningst-2550`:
+  - `rl-guide-book` → фронтенд (деплой через GitHub Actions, не напрямую из CLI)
+  - `backend` → Flask Python API. **Production URL:** `https://backend-murex-one-40.vercel.app` (alias: `https://backend-nomorningst-2550s-projects.vercel.app`). Деплоится: push `main` → GitHub Actions → Vercel auto-deploy.
+- **Vercel Backend env vars (Production):** `USE_SUPABASE=true`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `AUTH_SECRET`, `AUTH_JWT_SECRET`, `AUTH_GENERATE_SECRET`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHANNEL_ID`, `OPENAI_API_KEY`. **ВАЖНО:** все env vars заданы через Vercel dashboard / CLI. При добавлении новых — нужен redeploy (push чего-либо в main).
+- **Supabase:** project `inkhtjcrzblzsfqvceid` (URL: `https://inkhtjcrzblzsfqvceid.supabase.co`). Migration 001 применена (9 таблиц: shifts, squads, memberships, squad_corners, squad_invites, squad_messages, badge_requests, parent_snapshots, chat_daily_usage). Migration 002 применена (council_initiatives). **USE_SUPABASE=true на prod — активен**, JSON-файлы используются только при локальной разработке (USE_SUPABASE=false).
+- **GitHub Variables (для GitHub Actions build):** `VITE_API_URL`, `VITE_BACKEND_URL=https://backend-murex-one-40.vercel.app` — встроены в frontend bundle Vite при сборке. Настроены в Settings → Variables (не Secrets, т.к. не секретные).
 - **cf-api (Cloudflare):** Bots VK/TG (NeuroValyusha in social). Not in Python.
-- **Roles (planned):** Путешественник, Участник смены, Родитель, Вожатый, Руководитель смены. See [docs/ARCHITECTURE_AND_RESOURCES.md](docs/ARCHITECTURE_AND_RESOURCES.md) and [docs/FEATURE_AUTH_ROLES_DVIZHKI_PLAN.md](docs/FEATURE_AUTH_ROLES_DVIZHKI_PLAN.md).
+- **Roles (implemented):** Путешественник (traveler), Участник (participant), Родитель (parent), Вожатый (counselor), Старший вожатый (shift_leader), Педагог (educator), Директор (camp_director), Разработчик (developer). See [docs/ARCHITECTURE_AND_RESOURCES.md](docs/ARCHITECTURE_AND_RESOURCES.md).
+
+## StorageProvider (backend/storage/)
+- **Паттерн:** абстракция `get_store(name)` из `backend/storage/__init__.py`. Все данные через `get_store('shifts').load()` / `.save(data)`.
+- **JSON provider** (default, `USE_SUPABASE=false`): файлы в `backend/data/*.json` — только для локальной разработки.
+- **Supabase provider** (`USE_SUPABASE=true`): таблицы в Supabase Postgres — prod/staging.
+- **Ключи сторов:** `shifts`, `memberships`, `squad_corners`, `squad_invites`, `squad_messages`, `badge_requests`, `parent_snapshots`, `chat_daily_usage`, `council_initiatives`.
+- **ВАЖНО для агентов:** не добавляй новые `_xxx_load/_xxx_save` напрямую — добавляй новый Store в `base.py`, реализуй в `json_provider.py` и `supabase_provider.py`, регистрируй в `__init__.py`. Миграцию SQL кладёт в `backend/migrations/NNN_name.sql`.
+
+## Auth Flow (prod)
+- **Коды авторизации:** `POST /api/auth/generate-code` (требует заголовок `X-Generate-Code-Secret: <AUTH_GENERATE_SECRET>`). Генерирует код на ~40 минут. Роль задаётся в теле (`role: "participant"|"shift_leader"|...`).
+- **Верификация:** `POST /api/auth/verify-code` (тело: `{code, deviceId}`). Возвращает `{accessToken, role, campId, exp}`. `accessToken` = JWT.
+- **JWT payload:** `{role, campId, deviceId, exp}`. Подписан `AUTH_JWT_SECRET`.
+- **Фронтенд:** хранит `accessToken` в localStorage через `authStorage.ts`. При expired/отсутствии — `role = 'traveler'`.
+- **Prod smoke-test (2026-02-21):** Полный цикл проверен: generate-code → verify-code → создание смены → создание отряда → join → squads/mine — всё работает через Supabase.
 
 ## Backend for participants (future)
 When implementing sync/backend for camp participants (Participant role, KV store by anonymous ID + secret code):

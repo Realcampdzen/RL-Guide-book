@@ -1,7 +1,9 @@
 # Active Context
 
 ## Current Task
-**Agent B — текущая цель:** Подключение разделов ЛК к **POST /api/images/generate** — передать в ImageSourceBlock колбэк `onGenerate`, вызывающий универсальный API (context, prompt, mode generate/process). Разделы: флаг Движка, Отрядный уголок (4 фото), Крыло (аватар), Паспорт (аватар), Мастерская (изображение значка). Ориентир: [ROADMAP_2026](docs/ROADMAP_2026.md) «ИИ-изображения во всех кабинетах (UI)», [tech_context.md](.memory-bank/tech_context.md) § POST /api/images/generate, [IMAGE_CONTEXTS_SPEC.md](docs/IMAGE_CONTEXTS_SPEC.md) при наличии.
+**Agent A (сессия 2026-02-21) — ЗАВЕРШЕНО:** Деплой Flask backend на Vercel, подключение Supabase в prod, smoke-тест первого среза работ. Все задачи P1-01..P1-10 и P2-01..P2-04 выполнены.
+
+**Следующий агент:** Выбрать задачу из [PRODUCT_MECHANICS_AND_ROADMAP.md](docs/PRODUCT_MECHANICS_AND_ROADMAP.md) (Фаза 2 продуктовых механик) или новую инициативу из [ROADMAP_2026.md](docs/ROADMAP_2026.md). Перед стартом — проверить [CLAIM_BOARD.md](docs/PROD_ROADMAP_IMPL/CLAIM_BOARD.md).
 
 ## Current Goals
 1.  **Single source of truth:** All roadmap status and "what's next" live in [docs/ROADMAP_2026.md](../docs/ROADMAP_2026.md). Do not re-implement items marked Done (check Evidence there).

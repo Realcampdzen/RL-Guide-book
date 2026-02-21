@@ -16,6 +16,15 @@
 
 ---
 
+## ✅ Первый срез подтверждён (smoke-test 2026-02-21)
+
+**Prod backend:** `https://backend-murex-one-40.vercel.app` (Flask + Supabase, USE_SUPABASE=true)
+**Supabase:** `inkhtjcrzblzsfqvceid` — все миграции применены (001 + 002)
+**Frontend:** VITE_BACKEND_URL встроен в GitHub Pages bundle через GitHub Variable
+**Smoke-test:** generate-code → verify-code → создание смены → отряд «Дельфины» → join → squads/mine — всё через Supabase ✅
+
+---
+
 ## Текущий Claim Board (Фаза 1)
 
 | Агент | Task ID | Задача | Статус | Дата начала | Следующий шаг | Отчёт |
@@ -23,6 +32,8 @@
 | **Agent A** | P1-01 | Supabase schema v1 | ✅ done | 2026-02-21 | — | `backend/migrations/001_schema_v1.sql` |
 | **Agent A** | P1-02 | StorageProvider + Supabase (основные домены) | ✅ done | 2026-02-21 | — | `backend/storage/` (4 файла) + рефакторинг `app.py` |
 | **Agent A** | P1-03 | Supabase для badge_requests/parent_snapshots/chat | ✅ done | 2026-02-21 | — | Включено в P1-02 (все 8 сторов сразу) |
+|| **Agent A** | DEPLOY | Деплой Flask на Vercel + Supabase prod | ✅ done | 2026-02-21 | — | backend-murex-one-40.vercel.app; USE_SUPABASE=true; VITE_BACKEND_URL в GitHub Variable |
+|| **Agent A** | SMOKE  | Smoke-test первого среза | ✅ done | 2026-02-21 | — | Все API: auth/shifts/squads/join/mine через Supabase — passed |
 | **Agent D** | P1-04 | Закрыть dev-двери в production | ✅ done | 2026-02-21 | — | [REPORT_D_P1-04.md](reports/REPORT_D_P1-04.md) |
 | **Agent B** | P1-05 | Убрать forced traveler | done | 2026-02-21 | P1-09 следующим | [REPORT_B_P1-05.md](reports/REPORT_B_P1-05.md) |
 | **Agent D** | P1-06 | Server-side RBAC по JWT | ✅ done | 2026-02-21 | — | [REPORT_D_P1-06.md](reports/REPORT_D_P1-06.md) |

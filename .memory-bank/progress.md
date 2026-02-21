@@ -1,8 +1,18 @@
 # Progress - rl-guide-book
 
 ## Current Status
-- **Date**: 2026-02-09
-- **Focus**: Песочница — Done. Auth flow — Done. Роли, адаптация ЛК — Done. UX-шлифовка блока «Смены и отряды» — Done. Консистентность пустых состояний/ошибок в блоках ЛК — Done. **Герб Движка шаг 2 (backend ИИ)** — Done. Next: UX-сообщения в TeamDashboard после D/E или доработки ЛК организатора. Видение: [docs/STEPA_VISION_LC.md](../docs/STEPA_VISION_LC.md), план: [docs/FEATURE_AUTH_ROLES_DVIZHKI_PLAN.md](../docs/FEATURE_AUTH_ROLES_DVIZHKI_PLAN.md).
+- **Date**: 2026-02-21
+- **Focus**: ✅ **Первый срез работ из PRODUCT_MECHANICS_AND_ROADMAP.md — выполнен и подтверждён smoke-тестом в prod.**
+
+### Что задеплоено и работает (prod)
+- **Vercel backend:** `https://backend-murex-one-40.vercel.app` — Flask Python API (auth, смены, отряды, badge_requests, chat, community)
+- **Supabase:** `inkhtjcrzblzsfqvceid` — USE_SUPABASE=true на Vercel, все данные пишутся в Postgres
+- **GitHub Pages frontend:** `VITE_BACKEND_URL=https://backend-murex-one-40.vercel.app` встроен в Vite bundle через GitHub Variable
+- **Smoke-test 2026-02-21:** generate-code → verify-code (JWT) → POST /api/shifts → POST /api/shifts/{id}/squads → POST /api/squads/{id}/join → GET /api/squads/mine — всё работает через Supabase
+- **Задачи PROD_ROADMAP_IMPL:** P1-01..P1-10 и P2-01..P2-04 — все Done (см. [PROD_ROADMAP_IMPL/CLAIM_BOARD.md](../docs/PROD_ROADMAP_IMPL/CLAIM_BOARD.md))
+
+### Next
+Выбрать следующий срез из [PRODUCT_MECHANICS_AND_ROADMAP.md](../docs/PRODUCT_MECHANICS_AND_ROADMAP.md) (Фаза 2 продуктовых механик) или новые инициативы.
 
 ## Completed (Plan 2026 — среда, первый вход, резервная копия, тест-режим)
 - [x] **Среда и доки:** SERVERS.md — основной dev = Vite на выбранном порту (3001 по умолчанию, допустим 3009 и др.), прогресс привязан к origin.

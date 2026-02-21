@@ -13,8 +13,17 @@
 
 ## Где мы сейчас
 
-**Текущий фокус:** Песочница — Done. Auth flow — Done. Роли, авторизация, адаптация ЛК — Done (родитель как участник, лимит с бэкенда, GET /api/chat/limits). Учёт лимита сообщений чата на бэкенде (429) — Done. Slice 4 «Мой арт» (локальные скины) — Done. Просмотр прогресса ребёнка родителем по коду/ссылке (Phase 1: файл и ссылка `parent_view`; Phase 2: короткий код, API, QR) — Done. **CI:** перед сборкой выполняется self-check (в job lint-and-test); отдельный job backend-health поднимает бэкенд, ждёт ответа GET /api/health и при успехе запускает self-check с BACKEND_URL — Done.  
-**Следующая конкретная задача:** Выбрать из видения и планов: [STEPA_VISION_LC.md](STEPA_VISION_LC.md), [FEATURE_AUTH_ROLES_DVIZHKI_PLAN.md](FEATURE_AUTH_ROLES_DVIZHKI_PLAN.md), [WORKFLOW_GAME_CONCEPT_PLAN.md](../WORKFLOW_GAME_CONCEPT_PLAN.md) — или новая инициатива. Следующие кандидаты: онлайн-Движки (расширение), Герб Движка шаг 2 (backend ИИ). **Создание смен/отрядов организатором (staff flow MVP)** — Done. **UX-шлифовка блока «Смены и отряды»** — Done. **Консистентность пустых состояний/ошибок в блоках ЛК** — Done. **Унификация ЛК**, **Серверный RBAC для чата**, **Shift_leader и отряд из вожатых (MVP)** — Done. **Архитектура:** Vercel + cf-api — см. [ARCHITECTURE_AND_RESOURCES.md](ARCHITECTURE_AND_RESOURCES.md).
+**Текущий фокус:** ✅ **Первый срез работ из роадмапа (Фаза 1 + Фаза 2 PROD_ROADMAP_IMPL) — полностью завершён и подтверждён smoke-тестом (2026-02-21).**
+
+**Что сделано и задеплоено в прод:**
+- Supabase schema v1 (9 таблиц) + migration 002 (council_initiatives) — применены к `inkhtjcrzblzsfqvceid`
+- StorageProvider: `USE_SUPABASE=true` на Vercel — все данные пишутся/читаются из Supabase Postgres
+- Flask backend задеплоен на Vercel: `https://backend-murex-one-40.vercel.app` (production)
+- VITE_BACKEND_URL прописан в GitHub Variables → встроен в frontend bundle
+- Smoke-test пройден: generate-code → verify-code → создание смены → отряд «Дельфины» → join → squads/mine — всё через Supabase
+- Все задачи P1-01..P1-10 и P2-01..P2-04 выполнены (см. [PROD_ROADMAP_IMPL/CLAIM_BOARD.md](PROD_ROADMAP_IMPL/CLAIM_BOARD.md))
+
+**Следующая конкретная задача:** Выбрать следующий срез из [PRODUCT_MECHANICS_AND_ROADMAP.md](PRODUCT_MECHANICS_AND_ROADMAP.md) (Фаза 2 механик — Badge Flow, Squad Corner, Council) или из видения и планов: [STEPA_VISION_LC.md](STEPA_VISION_LC.md), [FEATURE_AUTH_ROLES_DVIZHKI_PLAN.md](FEATURE_AUTH_ROLES_DVIZHKI_PLAN.md). **Архитектура:** Vercel backend (`backend-murex-one-40.vercel.app`) + Supabase — активны и рабочие. cf-api — см. [ARCHITECTURE_AND_RESOURCES.md](ARCHITECTURE_AND_RESOURCES.md).
 
 ---
 
@@ -22,17 +31,17 @@
 
 **Подключённые ресурсы:**
 
-| Ресурс | Назначение | Триггер |
-|--------|------------|---------|
-| **Vercel: rl-guide-book** | Фронтенд | Push main |
-| **Vercel: backend** | API (чаты, community, будущее: auth) | Push main |
-| **cf-api (Cloudflare)** | Боты VK/TG (автокомменты, обсуждения) | Ручной/CI |
-
+| Ресурс | Назначение | URL |
+||--------|------------|-----|
+|| **Vercel: backend** | Flask Python API — auth, смены, отряды, badges, chat | `https://backend-murex-one-40.vercel.app` |
+|| **Supabase** | Postgres БД (USE_SUPABASE=true на prod) | `https://inkhtjcrzblzsfqvceid.supabase.co` |
+|| **GitHub Pages** | Основной фронтенд (React/Vite) | `https://realcampdzen.github.io/RL-Guide-book/` |
+|| **cf-api (Cloudflare)** | Боты VK/TG (NeuroValyusha в соцсетях) | — |
 **Разделение ответственности:**
-- **Vercel** — фронт + backend для авторизации, синхронизации, community badges, роли.
-- **cf-api** — специализированная логика ботов (NeuroValyusha в соцсетях), Cloudflare KV.
-- **Детали:** [ARCHITECTURE_AND_RESOURCES.md](ARCHITECTURE_AND_RESOURCES.md), Cursor plan Centralize Bot Backend Migration.
-
+**Разделение ответственности:**
+- **Vercel backend** — авторизация (JWT/HMAC), смены/отряды/значки/community/chat. Данные в Supabase (prod) / JSON-файлы (local dev).
+- **GitHub Pages** — frontend static. VITE_BACKEND_URL=https://backend-murex-one-40.vercel.app встроен из GitHub Variable.
+- **Детали:** [ARCHITECTURE_AND_RESOURCES.md](ARCHITECTURE_AND_RESOURCES.md), [.memory-bank/tech_context.md](../.memory-bank/tech_context.md) §Architecture & Resources.
 **Целевые роли (реализовано):** Путешественник, Участник смены, Родитель, Вожатый (Реальный вожатый), Руководитель смены (Старший Вожатый), Разработчик — см. [FEATURE_AUTH_ROLES_DVIZHKI_PLAN.md](FEATURE_AUTH_ROLES_DVIZHKI_PLAN.md), [AGENT_REPORT_ORGANIZER_ROLE.md](AGENT_REPORT_ORGANIZER_ROLE.md).
 
 ---
