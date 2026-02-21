@@ -4,6 +4,7 @@ import fitty, { type FittyInstance } from 'fitty';
 import BadgeIcon from '../components/BadgeIcon';
 import { useUserProgress } from '../hooks/useUserProgress';
 import { useTeam } from '../context/TeamContext';
+import { useCounselorSquad } from '../context/CounselorSquadContext';
 import { useAuth } from '../context/AuthContext';
 import { fireOn401 } from '../utils/authStorage';
 import { canSeeOtradBlocks, showEventsPanelForRole, ROLE_ORDER, getRoleDisplay, ROLE_LABELS, canCreateShiftsAndSquads, isTraveler, canUseExpensiveActions, canRequestBadgeApproval, canModerateBadgeApprovals } from '../types/authRole';
@@ -19,6 +20,7 @@ import { TeamDashboard, type TeamTabId } from '../components/TeamDashboard';
 import { RealDiaryDashboard, type RealDiaryTabId } from '../components/RealDiaryDashboard';
 import { SquadCornerDashboard } from '../components/SquadCornerDashboard';
 import { SquadCabinetPanel } from '../components/SquadCabinetPanel';
+import { CounselorSquadDashboard, type CounselorSquadTabId } from '../components/CounselorSquadDashboard';
 import { ConfirmModal } from '../components/ConfirmModal';
 import { CouncilDashboard, type CouncilTabId } from '../components/CouncilDashboard';
 import { BroInitiation } from '../components/BroInitiation';
@@ -101,7 +103,7 @@ type BroTabId = 'initiation' | 'wing';
 type ShareTabId = 'create-card' | 'invite';
 type WorkshopTabId = 'architect' | 'forge' | 'ideas' | 'my';
 
-type PanelViewId = 'passport' | 'inspector' | 'profile4k' | 'wing' | 'squad-corner' | 'real-diary' | 'team' | 'council' | 'bro' | 'workshop' | 'share' | 'vozhatifikator' | 'parents';
+type PanelViewId = 'passport' | 'inspector' | 'profile4k' | 'counselor-squad' | 'wing' | 'squad-corner' | 'real-diary' | 'team' | 'council' | 'bro' | 'workshop' | 'share' | 'vozhatifikator' | 'parents';
 const DEFAULT_SHIFT_NAME = 'Реальный Лагерь 2026';
 const PENDING_JOIN_SQUAD_SESSION_KEY = 'rl_pending_join_squad_id';
 
@@ -159,6 +161,7 @@ export const ProfileView: React.FC<any> = (props) => {
   const { userData, setNickname, setAvatar, setProfileStatus, setProfileBio, toggleFavorite, removeRoute, exportData, importData, resetProgress, applyApprovedLevel, getLevelProgress, markRankUpSeen, completeTutorial, isLoading, updateLevelEvidence, updateLevelStatus, saveBadgePlan, updateBadgePlanStatus, updateVozhatifikatorChecklist, updateDiarySquad, setPathFavToast } = useUserProgress();
   const { myTeam, generateInviteUrl } = useTeam();
   const { canUseChat, role, deviceId, setAuth, accessToken, campId } = useAuth();
+  const { activeSquadName: counselorSquadName, activeSquadCard: counselorSquadCard } = useCounselorSquad();
   const seeOtradBlocks = canSeeOtradBlocks(role);
   const showEventsForRole = showEventsPanelForRole(role);
   const canReadShiftsAndSquads = role === 'participant' || role === 'counselor' || role === 'shift_leader' || role === 'camp_director' || role === 'developer';
@@ -408,6 +411,7 @@ export const ProfileView: React.FC<any> = (props) => {
   }, [utilityBubblesExpanded, openBubble]);
   const [panelActiveView, setPanelActiveView] = useState<PanelViewId | null>(null);
   const [squadCornerActiveTab, setSquadCornerActiveTab] = useState<SquadCornerTabId>('squad');
+  const [counselorSquadActiveTab, setCounselorSquadActiveTab] = useState<CounselorSquadTabId>('squad');
   const [realDiaryActiveTab, setRealDiaryActiveTab] = useState<RealDiaryTabId>('diary');
   const [profile4kActiveTab, setProfile4kActiveTab] = useState<Profile4KTabId>('skills');
   const [teamActiveTab, setTeamActiveTab] = useState<TeamTabId>('engine');
@@ -476,6 +480,7 @@ export const ProfileView: React.FC<any> = (props) => {
 
   useEffect(() => {
     if (panelActiveView === 'squad-corner') setSquadCornerActiveTab('squad');
+    if (panelActiveView === 'counselor-squad') setCounselorSquadActiveTab('squad');
     if (panelActiveView === 'real-diary') setRealDiaryActiveTab('diary');
     if (panelActiveView === 'profile4k') setProfile4kActiveTab('skills');
     if (panelActiveView === 'team') setTeamActiveTab('engine');
@@ -503,7 +508,7 @@ export const ProfileView: React.FC<any> = (props) => {
     } catch {
       // ignore
     }
-    const panel = (pending === 'counselor-squad' || pending === 'squad-cabinet')
+    const panel = pending === 'squad-cabinet'
       ? 'squad-corner'
       : (pending as PanelViewId);
     if (panel === 'bro') {
@@ -651,6 +656,24 @@ export const ProfileView: React.FC<any> = (props) => {
     Boolean(squadData?.photoCorner || squadData?.photoFlag || squadData?.photoSquad || squadData?.photoWithCounselors),
   ];
   const squadCornerProgressPercent = Math.round((100 * squadSignals.filter(Boolean).length) / squadSignals.length);
+
+  const counselorSquadSignals = [
+    Boolean((counselorSquadCard?.name || '').trim()),
+    Boolean((counselorSquadCard?.motto || '').trim()),
+    Boolean((counselorSquadCard?.chants || '').trim()),
+    Boolean((counselorSquadCard?.greeting || '').trim()),
+    Boolean((counselorSquadCard?.memes || '').trim()),
+    Boolean(counselorSquadCard?.photoCorner || counselorSquadCard?.photoFlag || counselorSquadCard?.photoSquad || counselorSquadCard?.photoWithCounselors),
+  ];
+  const counselorSquadProgressPercent = Math.round((100 * counselorSquadSignals.filter(Boolean).length) / counselorSquadSignals.length);
+  const counselorSquadNameText = (counselorSquadName || '').trim();
+  const counselorSquadNavHint = counselorSquadNameText
+    ? `Отряд: ${counselorSquadNameText}`
+    : (role === 'counselor' || role === 'educator')
+      ? 'Войти по коду'
+      : (role === 'shift_leader' || role === 'camp_director' || role === 'developer')
+        ? 'Создать отряд'
+        : 'Раздел для вожатых';
 
   const broCompletedDeedsCount = Object.values(userData?.broProgress?.completedDeeds || {}).reduce((sum, deeds) => (
     sum + (Array.isArray(deeds) ? deeds.length : 0)
@@ -899,16 +922,46 @@ export const ProfileView: React.FC<any> = (props) => {
     }
   }, [accessToken, mySquadInfo?.membership?.squadId]);
 
+  const resolveShiftIdForCornerCreate = useCallback(async (): Promise<string> => {
+    const tokenShiftId = (campId || '').trim();
+    if (tokenShiftId) return tokenShiftId;
+
+    const defaultShiftIdFromState = organizerShifts.find((s) =>
+      (s.name || '').trim().toLowerCase() === DEFAULT_SHIFT_NAME.toLowerCase()
+    )?.id;
+    if (defaultShiftIdFromState) return defaultShiftIdFromState;
+
+    const res = await fetch(`${organizerApiBase}/api/shifts`, { headers: getOrganizerHeaders() });
+    if (res.status === 401) {
+      fireOn401();
+      throw new Error('Сессия истекла. Войдите снова.');
+    }
+
+    const data = await res.json().catch(() => ({})) as {
+      shifts?: Array<{ id: string; name: string }>;
+      error?: string;
+      reason?: string;
+    };
+    if (!res.ok) {
+      throw new Error(formatOrganizerHttpError(res.status, data, 'Смены'));
+    }
+
+    const defaultShift = (data.shifts || []).find((s) =>
+      (s.name || '').trim().toLowerCase() === DEFAULT_SHIFT_NAME.toLowerCase()
+    );
+    if (defaultShift?.id) return defaultShift.id;
+
+    throw new Error(
+      `Смена «${DEFAULT_SHIFT_NAME}» не найдена. Откройте «Смены и отряды» и создайте смену, либо войдите по коду смены (campId).`
+    );
+  }, [campId, organizerShifts, organizerApiBase, getOrganizerHeaders, formatOrganizerHttpError]);
+
   const createSquadFromCorner = useCallback(async (payload: Partial<SquadCorner>) => {
     if (!accessToken) throw new Error('Войдите по коду (или Dev login), чтобы создать отряд.');
     const cornerName = (payload?.name || '').trim();
     if (!cornerName) throw new Error('Укажите название отряда.');
 
-    const defaultShiftId = organizerShifts.find((s) => (s.name || '').trim().toLowerCase() === DEFAULT_SHIFT_NAME.toLowerCase())?.id;
-    const shiftId = (campId || '').trim() || (defaultShiftId || '').trim();
-    if (!shiftId) {
-      throw new Error('Не удалось определить смену. Войдите по коду смены (campId) или откройте «Смены и отряды».');
-    }
+    const shiftId = await resolveShiftIdForCornerCreate();
 
     // 1) Create squad in shift
     const res = await fetch(`${organizerApiBase}/api/shifts/${encodeURIComponent(shiftId)}/squads`, {
@@ -933,10 +986,10 @@ export const ProfileView: React.FC<any> = (props) => {
     // 4) Refresh and open cabinet
     await Promise.all([loadMySquadInfo(), loadOrganizerData(), loadBadgeApprovalsData()]);
     setActiveTab('active');
-    setSquadCornerActiveTab('squad');
-    setSquadCornerReturnToOrganizer(false);
-    openCabinPanel('squad-corner', 'left');
-  }, [accessToken, organizerApiBase, getOrganizerHeaders, campId, organizerShifts, profile.nickname, loadMySquadInfo, loadOrganizerData, loadBadgeApprovalsData, openCabinPanel]);
+     setSquadCornerActiveTab('squad');
+     setSquadCornerReturnToOrganizer(false);
+     openCabinPanel('squad-corner', 'left');
+  }, [accessToken, resolveShiftIdForCornerCreate, organizerApiBase, getOrganizerHeaders, profile.nickname, loadMySquadInfo, loadOrganizerData, loadBadgeApprovalsData, openCabinPanel]);
 
   const openSquadFromOrganizer = useCallback(async (squad: { id: string; name: string }) => {
     if (!accessToken) {
@@ -1556,6 +1609,7 @@ export const ProfileView: React.FC<any> = (props) => {
     passport: 'Паспорт',
     inspector: 'Инспектор Пользы',
     profile4k: '4К-профиль',
+    'counselor-squad': 'Вожатский отряд',
     wing: 'Крыло',
     'squad-corner': 'Отрядный уголок',
     'real-diary': 'Реальный Дневник',
@@ -1594,6 +1648,8 @@ export const ProfileView: React.FC<any> = (props) => {
           return { title, meta: `Твоё Крыло: команда для дел наставников. Здесь аватар Крыла, участие в делах и шаг к Совету. ${exitHint}` };
         case 'squad-corner':
           return { title, meta: `Отрядный уголок: собери лицо отряда. Название, девиз, кричалки, мемы и фото. ${exitHint}` };
+        case 'counselor-squad':
+          return { title, meta: `Вожатский отряд: кабинет отряда вожатых. Отряд, фото, планёрка и значки на флаг. ${exitHint}` };
         case 'real-diary':
           return { title, meta: `Реальный Дневник: записывай, как прошёл день, и собирай итоги. Это твоя история смены. ${exitHint}` };
         case 'team':
@@ -1634,7 +1690,7 @@ export const ProfileView: React.FC<any> = (props) => {
       return { title: 'Ты на экране «Смены и отряды».', meta: 'Список смен и отрядов. Вступление по коду, кабинет отряда.' };
     }
 
-    return { title: 'Ты в Кабине.', meta: 'Выбери раздел: Инспектор, Движок, Совет, БРО, Дневник, Отрядный уголок, 4К, Вожатификатор.' };
+    return { title: 'Ты в Кабине.', meta: 'Выбери раздел: Инспектор, Движок, Совет, БРО, Дневник, Отрядный уголок, 4К, Вожатификатор, Вожатский отряд.' };
   }, [panelActiveView, activeTab]);
   const travelerGateReason = 'Для отправки, модерации и онлайн-синхронизации войдите как участник смены по коду.';
   const openUnlockByCode = useCallback(() => {
@@ -1897,7 +1953,7 @@ export const ProfileView: React.FC<any> = (props) => {
         <div className="profile-utility-panel-overlay profile-utility-panel-overlay--organizer" onClick={() => setOrganizerShiftFormOpen(false)} aria-hidden="true" />
       )}
       {organizerShiftFormOpen && (
-        <div className="profile-utility-panel profile-utility-panel--modal-centered profile-utility-panel--organizer-modal" role="dialog" aria-modal="true" aria-labelledby="organizer-modal-shift-title" onClick={e => e.stopPropagation()}>
+        <div className="profile-utility-panel profile-utility-panel--organizer-modal" role="dialog" aria-modal="true" aria-labelledby="organizer-modal-shift-title" onClick={e => e.stopPropagation()}>
           <div className="profile-utility-panel-header">
             <span id="organizer-modal-shift-title">Создать смену</span>
             <button type="button" className="profile-utility-panel-close" onClick={() => setOrganizerShiftFormOpen(false)} aria-label="Закрыть"><Icons.Close /></button>
@@ -1948,7 +2004,7 @@ export const ProfileView: React.FC<any> = (props) => {
         <div className="profile-utility-panel-overlay profile-utility-panel-overlay--organizer" onClick={() => setOrganizerSquadFormOpen(false)} aria-hidden="true" />
       )}
       {organizerSquadFormOpen && (
-        <div className="profile-utility-panel profile-utility-panel--modal-centered profile-utility-panel--organizer-modal" role="dialog" aria-modal="true" aria-labelledby="organizer-modal-squad-title" onClick={e => e.stopPropagation()}>
+        <div className="profile-utility-panel profile-utility-panel--organizer-modal" role="dialog" aria-modal="true" aria-labelledby="organizer-modal-squad-title" onClick={e => e.stopPropagation()}>
           <div className="profile-utility-panel-header">
             <span id="organizer-modal-squad-title">Добавить отряд</span>
             <button type="button" className="profile-utility-panel-close" onClick={() => setOrganizerSquadFormOpen(false)} aria-label="Закрыть"><Icons.Close /></button>
@@ -1994,7 +2050,7 @@ export const ProfileView: React.FC<any> = (props) => {
         <div className="profile-utility-panel-overlay profile-utility-panel-overlay--organizer" onClick={() => { setOrganizerCodeModalOpen(false); setOrganizerCodeResult(null); }} aria-hidden="true" />
       )}
       {organizerCodeModalOpen && (
-        <div className="profile-utility-panel profile-utility-panel--modal-centered profile-utility-panel--organizer-modal" role="dialog" aria-modal="true" aria-labelledby="organizer-modal-code-title" onClick={e => e.stopPropagation()}>
+        <div className="profile-utility-panel profile-utility-panel--organizer-modal" role="dialog" aria-modal="true" aria-labelledby="organizer-modal-code-title" onClick={e => e.stopPropagation()}>
           <div className="profile-utility-panel-header">
             <span id="organizer-modal-code-title">Выдать код</span>
             <button type="button" className="profile-utility-panel-close" onClick={() => { setOrganizerCodeModalOpen(false); setOrganizerCodeResult(null); }} aria-label="Закрыть"><Icons.Close /></button>
@@ -2215,6 +2271,15 @@ export const ProfileView: React.FC<any> = (props) => {
             />
           )
         )
+      )}
+      {panelActiveView === 'counselor-squad' && (
+        <CounselorSquadDashboard
+          variant="cabin"
+          activeTab={counselorSquadActiveTab}
+          onTabChange={setCounselorSquadActiveTab}
+          onNavigateToBadge={onNavigateToBadge}
+          onShowHint={({ title, content }) => showHint({ title, content })}
+        />
       )}
       {panelActiveView === 'real-diary' && (
         travelerMode ? (
@@ -2947,6 +3012,13 @@ export const ProfileView: React.FC<any> = (props) => {
     { id: 'flag-badges' as const, label: 'Значки на флаг', icon: '🚩' },
   ] satisfies Array<{ id: SquadCornerTabId; label: string; icon: string }>;
 
+  const counselorSquadTabItems = [
+    { id: 'squad' as const, label: 'Отряд', icon: '🏕️' },
+    { id: 'photos' as const, label: 'Фото', icon: '📷' },
+    { id: 'planner' as const, label: 'Планёрка', icon: '📋' },
+    { id: 'flag-badges' as const, label: 'Значки на флаг', icon: '🚩' },
+  ] satisfies Array<{ id: CounselorSquadTabId; label: string; icon: string }>;
+
   const shareTabItems = [
     { id: 'create-card' as const, label: 'Создать карточку', icon: '📤' },
     { id: 'invite' as const, label: 'Пригласить друзей', icon: '🤝' },
@@ -3071,8 +3143,7 @@ export const ProfileView: React.FC<any> = (props) => {
             data-label={disabled ? `${t.label} (редактирует вожатый)` : t.label}
             className={squadCornerActiveTab === t.id ? 'active' : ''}
             disabled={disabled}
-            onClick={(event) => {
-              event.stopPropagation();
+            onClick={() => {
               selectTab();
             }}
             onKeyDown={(event) => {
@@ -3087,6 +3158,27 @@ export const ProfileView: React.FC<any> = (props) => {
           </button>
         );
       })}
+    </div>
+  );
+
+  const renderCounselorSquadTabsNav = (className = 'profile-tabs-nav profile-tabs-nav--docked profile-tabs-nav--counselor-squad') => (
+    <div className={className} role="tablist" aria-label="Разделы Вожатского отряда">
+      {counselorSquadTabItems.map((t) => (
+        <button
+          key={t.id}
+          id={`counselor-squad-tab-${t.id}`}
+          type="button"
+          role="tab"
+          aria-selected={counselorSquadActiveTab === t.id}
+          aria-controls="counselor-squad-tabpanel"
+          data-label={t.label}
+          className={counselorSquadActiveTab === t.id ? 'active' : ''}
+          onClick={() => setCounselorSquadActiveTab(t.id)}
+        >
+          <span className="profile-tabs-nav__icon" aria-hidden="true">{t.icon}</span>
+          <span className="profile-tabs-nav__label">{t.label}</span>
+        </button>
+      ))}
     </div>
   );
 
@@ -3757,9 +3849,9 @@ export const ProfileView: React.FC<any> = (props) => {
             </div>
             <div className="profile-view-cabin-center-wrap">
             <div
-              className={`profile-view-cabin-center profile-view-cabin-center--offset ${panelActiveView === null ? 'profile-view-cabin-center--hub' : ''} ${panelActiveView === 'squad-corner' ? 'profile-view-cabin-center--squad-corner' : ''} ${panelActiveView === 'real-diary' ? 'profile-view-cabin-center--real-diary' : ''} ${panelActiveView === 'profile4k' ? 'profile-view-cabin-center--profile4k' : ''} ${panelActiveView === 'team' ? 'profile-view-cabin-center--team' : ''} ${panelActiveView === 'council' ? 'profile-view-cabin-center--council' : ''} ${panelActiveView === 'bro' ? 'profile-view-cabin-center--bro' : ''} ${panelActiveView === 'vozhatifikator' ? 'profile-view-cabin-center--vozhatifikator' : ''} ${panelActiveView === 'share' ? 'profile-view-cabin-center--share' : ''} ${panelActiveView === 'workshop' ? 'profile-view-cabin-center--workshop' : ''} ${panelActiveView === 'inspector' ? 'profile-view-cabin-center--inspector' : ''}`}
+              className={`profile-view-cabin-center profile-view-cabin-center--offset ${panelActiveView === null ? 'profile-view-cabin-center--hub' : ''} ${panelActiveView === 'squad-corner' ? 'profile-view-cabin-center--squad-corner' : ''} ${panelActiveView === 'real-diary' ? 'profile-view-cabin-center--real-diary' : ''} ${panelActiveView === 'profile4k' ? 'profile-view-cabin-center--profile4k' : ''} ${panelActiveView === 'team' ? 'profile-view-cabin-center--team' : ''} ${panelActiveView === 'council' ? 'profile-view-cabin-center--council' : ''} ${panelActiveView === 'bro' ? 'profile-view-cabin-center--bro' : ''} ${panelActiveView === 'vozhatifikator' ? 'profile-view-cabin-center--vozhatifikator' : ''} ${panelActiveView === 'counselor-squad' ? 'profile-view-cabin-center--counselor-squad' : ''} ${panelActiveView === 'share' ? 'profile-view-cabin-center--share' : ''} ${panelActiveView === 'workshop' ? 'profile-view-cabin-center--workshop' : ''} ${panelActiveView === 'inspector' ? 'profile-view-cabin-center--inspector' : ''}`}
             >
-              {(panelActiveView === null || panelActiveView === 'squad-corner' || panelActiveView === 'real-diary' || panelActiveView === 'profile4k' || panelActiveView === 'team' || panelActiveView === 'council' || panelActiveView === 'bro' || panelActiveView === 'vozhatifikator' || panelActiveView === 'share' || panelActiveView === 'workshop' || panelActiveView === 'inspector') && (
+              {(panelActiveView === null || panelActiveView === 'squad-corner' || panelActiveView === 'real-diary' || panelActiveView === 'profile4k' || panelActiveView === 'team' || panelActiveView === 'council' || panelActiveView === 'bro' || panelActiveView === 'vozhatifikator' || panelActiveView === 'counselor-squad' || panelActiveView === 'share' || panelActiveView === 'workshop' || panelActiveView === 'inspector') && (
                 <div className="profile-view-cabin-tabs-docked">
                   {panelActiveView === null
                     ? renderTabsNav('profile-tabs-nav profile-tabs-nav--docked')
@@ -3777,13 +3869,15 @@ export const ProfileView: React.FC<any> = (props) => {
                               ? renderBroTabsNav('profile-tabs-nav profile-tabs-nav--docked profile-tabs-nav--bro')
                               : panelActiveView === 'vozhatifikator'
                                 ? renderVozhatifikatorTabsNav('profile-tabs-nav profile-tabs-nav--docked profile-tabs-nav--vozhatifikator')
-                                : panelActiveView === 'share'
-                                    ? renderShareTabsNav('profile-tabs-nav profile-tabs-nav--docked profile-tabs-nav--share')
-                                    : panelActiveView === 'workshop'
-                                        ? renderWorkshopTabsNav('profile-tabs-nav profile-tabs-nav--docked profile-tabs-nav--workshop')
-                                        : panelActiveView === 'inspector'
-                                          ? renderInspectorTabsNav('profile-tabs-nav profile-tabs-nav--docked profile-tabs-nav--inspector')
-                                        : null}
+                                : panelActiveView === 'counselor-squad'
+                                  ? renderCounselorSquadTabsNav('profile-tabs-nav profile-tabs-nav--docked profile-tabs-nav--counselor-squad')
+                                  : panelActiveView === 'share'
+                                      ? renderShareTabsNav('profile-tabs-nav profile-tabs-nav--docked profile-tabs-nav--share')
+                                      : panelActiveView === 'workshop'
+                                          ? renderWorkshopTabsNav('profile-tabs-nav profile-tabs-nav--docked profile-tabs-nav--workshop')
+                                          : panelActiveView === 'inspector'
+                                            ? renderInspectorTabsNav('profile-tabs-nav profile-tabs-nav--docked profile-tabs-nav--inspector')
+                                          : null}
                 </div>
               )}
               <div className={`profile-view-cabin-center-shell ${panelCompanions ? 'profile-view-cabin-center-shell--companions' : ''}`} style={{ background: 'transparent' }}>
@@ -3801,7 +3895,7 @@ export const ProfileView: React.FC<any> = (props) => {
                 )}
                 <div
                   ref={centerScrollRef}
-                  className={`profile-view-cabin-center-scroll profile-view-scroll-container profile-view-panel-scroll${panelActiveView === null && (activeTab === 'active' || activeTab === 'favorites') ? ' profile-view-cabin-center-scroll--locked' : ''}${panelActiveView === 'passport' ? ' profile-view-cabin-center-scroll--no-scroll' : ''}${panelActiveView === 'squad-corner' || panelActiveView === 'real-diary' || panelActiveView === 'profile4k' || panelActiveView === 'team' || panelActiveView === 'council' || panelActiveView === 'bro' || panelActiveView === 'vozhatifikator' || panelActiveView === 'share' || panelActiveView === 'workshop' || panelActiveView === 'inspector' ? ' profile-view-cabin-center-scroll--content-fit' : ''}`}
+                  className={`profile-view-cabin-center-scroll profile-view-scroll-container profile-view-panel-scroll${panelActiveView === null && (activeTab === 'active' || activeTab === 'favorites') ? ' profile-view-cabin-center-scroll--locked' : ''}${panelActiveView === 'passport' ? ' profile-view-cabin-center-scroll--no-scroll' : ''}${panelActiveView === 'squad-corner' || panelActiveView === 'real-diary' || panelActiveView === 'profile4k' || panelActiveView === 'team' || panelActiveView === 'council' || panelActiveView === 'bro' || panelActiveView === 'vozhatifikator' || panelActiveView === 'counselor-squad' || panelActiveView === 'share' || panelActiveView === 'workshop' || panelActiveView === 'inspector' ? ' profile-view-cabin-center-scroll--content-fit' : ''}`}
                   style={{ background: 'transparent' }}
                 >
                     {pendingApprovalsCount > 0 && !approvalsSyncPromptDismissed && canRequestApprovals && (
@@ -3829,6 +3923,7 @@ export const ProfileView: React.FC<any> = (props) => {
                           panelActiveView !== 'council' &&
                           panelActiveView !== 'bro' &&
                           panelActiveView !== 'vozhatifikator' &&
+                          panelActiveView !== 'counselor-squad' &&
                           panelActiveView !== 'share' &&
                           panelActiveView !== 'workshop' &&
                           panelActiveView !== 'inspector' && (
@@ -3952,6 +4047,31 @@ export const ProfileView: React.FC<any> = (props) => {
                     />
                   </div>
                   <span className="profile-view-cabin-card-hint">{vozhCompletedCount}/{VOZHATIFIKATOR_CHECKLIST_ITEMS.length} легендарность</span>
+                </button>
+              </div>
+              <div className="profile-view-cabin-nav-item profile-view-cabin-nav-item--wide">
+                <div
+                  className="profile-view-cabin-right-rail-progress profile-view-cabin-right-rail-progress--purple"
+                  style={{ ['--progress-value' as string]: `${counselorSquadProgressPercent}%` }}
+                  aria-hidden="true"
+                >
+                  <div className="profile-view-cabin-right-rail-progress__fill" />
+                </div>
+                <button
+                  type="button"
+                  className={`profile-view-cabin-nav-btn profile-view-cabin-nav-btn--wide profile-view-cabin-card ${panelActiveView === 'counselor-squad' ? 'profile-view-cabin-nav-btn--active' : ''}`}
+                  onClick={() => openCabinPanel('counselor-squad', 'right')}
+                  aria-label="Вожатский отряд"
+                >
+                  <span className="profile-view-cabin-nav-icon" aria-hidden>👥</span>
+                  <span className="profile-view-cabin-card-subtitle">Вожатский отряд</span>
+                  <div className="profile-view-cabin-card-progress-wrap profile-view-cabin-card-progress-wrap--vertical">
+                    <div
+                      className="profile-view-cabin-card-progress profile-view-cabin-card-progress--vertical"
+                      style={{ width: `${counselorSquadProgressPercent}%`, '--progress-value': `${counselorSquadProgressPercent}%` } as React.CSSProperties}
+                    />
+                  </div>
+                  <span className="profile-view-cabin-card-hint">{counselorSquadNavHint}</span>
                 </button>
               </div>
               <div className="profile-view-cabin-nav-item profile-view-cabin-nav-item--wide">
@@ -4146,6 +4266,7 @@ export const ProfileView: React.FC<any> = (props) => {
                 {panelActiveView === 'passport' && 'Паспорт'}
                 {panelActiveView === 'inspector' && 'Инспектор'}
                 {panelActiveView === 'profile4k' && '4К'}
+                {panelActiveView === 'counselor-squad' && 'Вожатский отряд'}
                 {panelActiveView === 'squad-corner' && 'Отрядный уголок'}
                 {panelActiveView === 'real-diary' && 'Реальный Дневник'}
                 {panelActiveView === 'team' && 'Движок'}
