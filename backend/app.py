@@ -26,11 +26,13 @@ from pathlib import Path
 from collections import defaultdict
 from dotenv import load_dotenv
 
-# Чтобы import events находил backend/events.py при любом cwd
+# Чтобы import events и storage находили backend/ при любом cwd
 _BACKEND_DIR = Path(__file__).resolve().parent
 _PROJECT_ROOT = _BACKEND_DIR.parent
 if str(_BACKEND_DIR) not in __import__('sys').path:
     __import__('sys').path.insert(0, str(_BACKEND_DIR))
+
+from storage import get_store  # noqa: E402 — после sys.path patch
 
 # Загружаем переменные окружения из .env (сначала корень репо, затем backend/) — чтобы генерация изображений в ЛК находила OPENAI_API_KEY при любом cwd
 _env_root = _PROJECT_ROOT / ".env"
@@ -62,7 +64,8 @@ AUTH_SLOT_SEC = 600
 AUTH_VERIFY_SLOTS = 4
 # RBAC roles allowed to access protected endpoints (chat, teams, images, etc.).
 # Legacy: role "organizer" is deprecated and treated as "shift_leader".
-CHAT_ALLOWED_ROLES = ('participant', 'parent', 'counselor', 'shift_leader', 'camp_director', 'developer')
+# P2-01: educator added — can use chat, view badge inbox, read squads/shifts; cannot create/delete shifts/squads.
+CHAT_ALLOWED_ROLES = ('participant', 'parent', 'counselor', 'educator', 'shift_leader', 'camp_director', 'developer')
 # Лимит сообщений в день для чата (env: CHAT_MESSAGES_PER_DAY, по умолчанию 20)
 CHAT_MESSAGES_PER_DAY = int(os.getenv('CHAT_MESSAGES_PER_DAY', '20'))
 
@@ -95,6 +98,88 @@ DEFAULT_SEEDED_SHIFT_NAME = "Реальный Лагерь 2026"
 ORGANIZER_ROLES = ('shift_leader', 'camp_director', 'developer')
 LEVEL_ID_RE = re.compile(r'^\d+\.\d+(?:\.\d+)?$')
 
+# ---------------------------------------------------------------------------
+# P1-07: Safety filters & rate limits for squad messages and /api/chat
+# ---------------------------------------------------------------------------
+# Max message length for squad chat (env: SQUAD_MSG_MAX_LEN, default 500)
+SQUAD_MSG_MAX_LEN = int(os.getenv('SQUAD_MSG_MAX_LEN', '500'))
+# Per-device per-minute rate limit for squad messages (env: SQUAD_MSG_RATE_LIMIT, default 10)
+SQUAD_MSG_RATE_LIMIT_PER_MIN = int(os.getenv('SQUAD_MSG_RATE_LIMIT', '10'))
+SQUAD_MSG_RATE_WINDOW_SEC = 60
+_squad_msg_times: dict = defaultdict(list)
+_squad_msg_rate_lock = threading.Lock()
+
+# Per-device per-minute rate limit for /api/chat НейроВалюша (env: CHAT_MSG_RATE_LIMIT_PER_MIN, default 15)
+CHAT_MSG_RATE_LIMIT_PER_MIN = int(os.getenv('CHAT_MSG_RATE_LIMIT_PER_MIN', '15'))
+CHAT_MSG_RATE_WINDOW_SEC = 60
+_chat_per_min_times: dict = defaultdict(list)
+_chat_per_min_lock = threading.Lock()
+
+# URL filter regex — block links in squad messages
+_URL_RE = re.compile(
+    r'https?://|www\.|t\.me/|vk\.com/|youtu\.be/|bit\.ly/|tinyurl\.com/',
+    re.IGNORECASE
+)
+
+# Basic profanity filter: list of root fragments (Russian). Only match whole-word-ish context.
+_PROFANITY_ROOTS = [
+    'хуй', 'хуе', 'хуя', 'хуё', 'пизд', 'ёбан', 'еban', 'блядь', 'бляд', 'ебат',
+    'ёбат', 'ебет', 'ёбет', 'сука', 'мудак', 'мудил', 'залуп', 'долбоёб', 'долбоеб',
+    'ёб твою', 'еб твою', 'манд', 'шлюх', 'пиздёж', 'пиздеж',
+]
+_PROFANITY_RE = re.compile(
+    '|'.join(re.escape(r) for r in _PROFANITY_ROOTS),
+    re.IGNORECASE
+)
+
+
+def _check_squad_msg_rate_limit(device_id: str) -> bool:
+    """Per-device per-minute rate limit for squad messages. Returns True if under limit."""
+    if not device_id:
+        return True
+    now = time.time()
+    with _squad_msg_rate_lock:
+        times = _squad_msg_times[device_id]
+        times[:] = [t for t in times if now - t < SQUAD_MSG_RATE_WINDOW_SEC]
+        if len(times) >= SQUAD_MSG_RATE_LIMIT_PER_MIN:
+            return False
+        times.append(now)
+    return True
+
+
+def _check_chat_per_min_rate_limit(device_id: str) -> bool:
+    """Per-device per-minute rate limit for /api/chat. Returns True if under limit."""
+    if not device_id:
+        return True
+    now = time.time()
+    with _chat_per_min_lock:
+        times = _chat_per_min_times[device_id]
+        times[:] = [t for t in times if now - t < CHAT_MSG_RATE_WINDOW_SEC]
+        if len(times) >= CHAT_MSG_RATE_LIMIT_PER_MIN:
+            return False
+        times.append(now)
+    return True
+
+
+def _log_rate_limit_event(endpoint: str, device_id: str) -> None:
+    """Log a rate limit event without storing personal data (device_id is hashed)."""
+    hashed = hashlib.sha256(device_id.encode()).hexdigest()[:12] if device_id else 'anonymous'
+    print(f"[RATE_LIMIT] 429 {endpoint} device={hashed} ts={datetime.now(timezone.utc).isoformat()}")
+
+
+def _validate_squad_message(text: str) -> tuple:
+    """
+    Validate squad chat message content.
+    Returns (clean_text, error_message) — error_message is None if valid.
+    """
+    if len(text) > SQUAD_MSG_MAX_LEN:
+        return None, f"Сообщение слишком длинное (максимум {SQUAD_MSG_MAX_LEN} символов)"
+    if _URL_RE.search(text):
+        return None, "Ссылки в чате отряда запрещены"
+    if _PROFANITY_RE.search(text):
+        return None, "Сообщение содержит недопустимые слова"
+    return text, None
+
 
 class ShiftSeedError(RuntimeError):
     """Raised when default shift seeding cannot be persisted."""
@@ -122,32 +207,25 @@ def _check_and_inc_chat_daily(device_id: str) -> tuple[bool, Optional[tuple]]:
     if not device_id:
         return True, None
     date_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-    _ensure_chat_data_dir()
-    with _CHAT_DAILY_LOCK:
+    store = get_store("chat_daily_usage")
+    try:
+        data = store.load()
+    except Exception:
         data = {}
-        if os.path.exists(CHAT_DAILY_USAGE_FILE):
-            try:
-                with open(CHAT_DAILY_USAGE_FILE, "r", encoding="utf-8") as f:
-                    raw = f.read()
-                    if raw.strip():
-                        data = json.loads(raw)
-            except (json.JSONDecodeError, OSError):
-                data = {}
-        if not isinstance(data, dict):
-            data = {}
-        counts = data.get(date_str, {})
-        if not isinstance(counts, dict):
-            counts = {}
-        current = counts.get(device_id, 0)
-        if current >= CHAT_MESSAGES_PER_DAY:
-            return False, (jsonify({"error": "Daily limit exceeded", "retryAfter": "tomorrow"}), 429)
-        counts[device_id] = current + 1
-        data[date_str] = counts
-        try:
-            with open(CHAT_DAILY_USAGE_FILE, "w", encoding="utf-8") as f:
-                json.dump(data, f, ensure_ascii=False, indent=2)
-        except OSError:
-            return False, (jsonify({"error": "Daily limit exceeded", "retryAfter": "tomorrow"}), 429)
+    if not isinstance(data, dict):
+        data = {}
+    counts = data.get(date_str, {})
+    if not isinstance(counts, dict):
+        counts = {}
+    current = counts.get(device_id, 0)
+    if current >= CHAT_MESSAGES_PER_DAY:
+        return False, (jsonify({"error": "Daily limit exceeded", "retryAfter": "tomorrow"}), 429)
+    counts[device_id] = current + 1
+    data[date_str] = counts
+    try:
+        store.save(data)
+    except Exception:
+        return False, (jsonify({"error": "Daily limit exceeded", "retryAfter": "tomorrow"}), 429)
     return True, None
 
 
@@ -261,8 +339,19 @@ def _is_localhost_request() -> bool:
     return remote in ("127.0.0.1", "::1", "localhost")
 
 
+def _is_production() -> bool:
+    """True when ENVIRONMENT=production or NODE_ENV=production. Used to block dev-only endpoints."""
+    env_raw = (os.getenv("ENVIRONMENT", "") or "").strip().lower()
+    if env_raw == "production":
+        return True
+    node_env = (os.getenv("NODE_ENV", "") or "").strip().lower()
+    return node_env == "production"
+
+
 def _is_dev_mode() -> bool:
     """True for local/dev environments where seed data is expected."""
+    if _is_production():
+        return False
     env_candidates = [
         os.getenv("FLASK_ENV", ""),
         os.getenv("ENV", ""),
@@ -321,9 +410,8 @@ def _ensure_default_shift_seeded(data: dict) -> tuple[dict, bool]:
     }
     data["shifts"].append(seeded_shift)
     try:
-        with open(SHIFTS_FILE, "w", encoding="utf-8") as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
-    except OSError as exc:
+        get_store("shifts").save(data)
+    except Exception as exc:
         raise ShiftSeedError(str(exc)) from exc
     return data, True
 
@@ -362,111 +450,39 @@ def _require_roles(allowed_roles: tuple[str, ...], allow_localhost_dev: bool = F
 
 
 def _badge_requests_load() -> dict:
-    """Load badge_requests.json under lock; returns {'requests': []}."""
-    _ensure_chat_data_dir()
-    with _BADGE_REQUESTS_LOCK:
-        data = {"requests": []}
-        if os.path.exists(BADGE_REQUESTS_FILE):
-            try:
-                with open(BADGE_REQUESTS_FILE, "r", encoding="utf-8") as f:
-                    raw = f.read()
-                    if raw.strip():
-                        data = json.loads(raw)
-            except (json.JSONDecodeError, OSError):
-                data = {"requests": []}
-        if not isinstance(data, dict):
-            data = {"requests": []}
-        if not isinstance(data.get("requests"), list):
-            data["requests"] = []
-        return data
+    """Load badge requests via StorageProvider."""
+    return get_store("badge_requests").load()
 
 
 def _badge_requests_save(data: dict):
-    _ensure_chat_data_dir()
-    with _BADGE_REQUESTS_LOCK:
-        with open(BADGE_REQUESTS_FILE, "w", encoding="utf-8") as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
+    get_store("badge_requests").save(data)
 
 
 def _memberships_load() -> dict:
-    """Load memberships.json under lock; returns {'members': []}."""
-    _ensure_chat_data_dir()
-    with _MEMBERSHIPS_LOCK:
-        data = {"members": []}
-        if os.path.exists(MEMBERSHIPS_FILE):
-            try:
-                with open(MEMBERSHIPS_FILE, "r", encoding="utf-8") as f:
-                    raw = f.read()
-                    if raw.strip():
-                        data = json.loads(raw)
-            except (json.JSONDecodeError, OSError):
-                data = {"members": []}
-        if not isinstance(data, dict):
-            data = {"members": []}
-        if not isinstance(data.get("members"), list):
-            data["members"] = []
-        return data
+    """Load memberships via StorageProvider."""
+    return get_store("memberships").load()
 
 
 def _memberships_save(data: dict):
-    _ensure_chat_data_dir()
-    with _MEMBERSHIPS_LOCK:
-        with open(MEMBERSHIPS_FILE, "w", encoding="utf-8") as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
+    get_store("memberships").save(data)
 
 
 def _squad_corners_load() -> dict:
-    """Load squad_corners.json under lock; returns {'corners': {}}."""
-    _ensure_chat_data_dir()
-    with _SQUAD_CORNERS_LOCK:
-        data = {"corners": {}}
-        if os.path.exists(SQUAD_CORNERS_FILE):
-            try:
-                with open(SQUAD_CORNERS_FILE, "r", encoding="utf-8") as f:
-                    raw = f.read()
-                    if raw.strip():
-                        data = json.loads(raw)
-            except (json.JSONDecodeError, OSError):
-                data = {"corners": {}}
-        if not isinstance(data, dict):
-            data = {"corners": {}}
-        if not isinstance(data.get("corners"), dict):
-            data["corners"] = {}
-        return data
+    """Load squad corners via StorageProvider."""
+    return get_store("squad_corners").load()
 
 
 def _squad_corners_save(data: dict):
-    _ensure_chat_data_dir()
-    with _SQUAD_CORNERS_LOCK:
-        with open(SQUAD_CORNERS_FILE, "w", encoding="utf-8") as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
+    get_store("squad_corners").save(data)
 
 
 def _squad_invites_load() -> dict:
-    """Load squad_invites.json under lock; returns {'codes': {}}."""
-    _ensure_chat_data_dir()
-    with _SQUAD_INVITES_LOCK:
-        data = {"codes": {}}
-        if os.path.exists(SQUAD_INVITES_FILE):
-            try:
-                with open(SQUAD_INVITES_FILE, "r", encoding="utf-8") as f:
-                    raw = f.read()
-                    if raw.strip():
-                        data = json.loads(raw)
-            except (json.JSONDecodeError, OSError):
-                data = {"codes": {}}
-        if not isinstance(data, dict):
-            data = {"codes": {}}
-        if not isinstance(data.get("codes"), dict):
-            data["codes"] = {}
-        return data
+    """Load squad invites via StorageProvider."""
+    return get_store("squad_invites").load()
 
 
 def _squad_invites_save(data: dict):
-    _ensure_chat_data_dir()
-    with _SQUAD_INVITES_LOCK:
-        with open(SQUAD_INVITES_FILE, "w", encoding="utf-8") as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
+    get_store("squad_invites").save(data)
 
 
 def _squad_invites_prune(doc: dict) -> tuple[dict, bool]:
@@ -492,30 +508,12 @@ def _squad_invites_prune(doc: dict) -> tuple[dict, bool]:
 
 
 def _squad_messages_load() -> dict:
-    """Load squad_messages.json under lock; returns {'bySquadId': {}}."""
-    _ensure_chat_data_dir()
-    with _SQUAD_MESSAGES_LOCK:
-        data = {"bySquadId": {}}
-        if os.path.exists(SQUAD_MESSAGES_FILE):
-            try:
-                with open(SQUAD_MESSAGES_FILE, "r", encoding="utf-8") as f:
-                    raw = f.read()
-                    if raw.strip():
-                        data = json.loads(raw)
-            except (json.JSONDecodeError, OSError):
-                data = {"bySquadId": {}}
-        if not isinstance(data, dict):
-            data = {"bySquadId": {}}
-        if not isinstance(data.get("bySquadId"), dict):
-            data["bySquadId"] = {}
-        return data
+    """Load squad messages via StorageProvider."""
+    return get_store("squad_messages").load()
 
 
 def _squad_messages_save(data: dict):
-    _ensure_chat_data_dir()
-    with _SQUAD_MESSAGES_LOCK:
-        with open(SQUAD_MESSAGES_FILE, "w", encoding="utf-8") as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
+    get_store("squad_messages").save(data)
 
 
 def _require_squad_membership(payload: dict, squad_id: str) -> tuple[Optional[dict], Optional[tuple]]:
@@ -749,32 +747,13 @@ def _is_valid_level_id(level_id: str) -> bool:
 
 
 def _parent_snapshots_load():
-    """Load parent_snapshots.json under lock; returns dict."""
-    _ensure_chat_data_dir()
-    with _PARENT_SNAPSHOTS_LOCK:
-        data = {}
-        if os.path.exists(PARENT_SNAPSHOTS_FILE):
-            try:
-                with open(PARENT_SNAPSHOTS_FILE, "r", encoding="utf-8") as f:
-                    raw = f.read()
-                    if raw.strip():
-                        data = json.loads(raw)
-            except (json.JSONDecodeError, OSError):
-                data = {}
-        if not isinstance(data, dict):
-            data = {}
-        return data
+    """Load parent snapshots via StorageProvider."""
+    return get_store("parent_snapshots").load()
 
 
 def _parent_snapshots_save(data: dict):
-    """Save parent_snapshots.json under lock."""
-    _ensure_chat_data_dir()
-    with _PARENT_SNAPSHOTS_LOCK:
-        try:
-            with open(PARENT_SNAPSHOTS_FILE, "w", encoding="utf-8") as f:
-                json.dump(data, f, ensure_ascii=False, indent=2)
-        except OSError:
-            raise
+    """Save parent snapshots via StorageProvider."""
+    get_store("parent_snapshots").save(data)
 
 
 def send_vk_message(peer_id, text: str) -> bool:
@@ -1799,7 +1778,10 @@ def dev_login():
     POST /api/dev/login
     Body: { role, deviceId?, campId? }
     Returns: { accessToken, role, campId, exp }.
+    NOT available in production (ENVIRONMENT=production).
     """
+    if _is_production():
+        return jsonify({"error": "Not found"}), 404
     if not _is_localhost_request():
         return jsonify({"error": "Forbidden"}), 403
     if not AUTH_JWT_SECRET:
@@ -1933,41 +1915,22 @@ def _require_organizer_jwt():
 
 
 def _shifts_load() -> dict:
-    """Load shifts.json under lock; returns {shifts: [], squads: []}."""
-    _ensure_chat_data_dir()
-    with _SHIFTS_LOCK:
-        data = {"shifts": [], "squads": []}
-        if os.path.exists(SHIFTS_FILE):
-            try:
-                with open(SHIFTS_FILE, "r", encoding="utf-8") as f:
-                    raw = f.read()
-                    if raw.strip():
-                        data = json.loads(raw)
-            except (json.JSONDecodeError, OSError):
-                data = {"shifts": [], "squads": []}
-        if not isinstance(data, dict):
-            data = {"shifts": [], "squads": []}
-        if not isinstance(data.get("shifts"), list):
-            data["shifts"] = []
-        if not isinstance(data.get("squads"), list):
-            data["squads"] = []
-        # Dev convenience: keep one default shift so manual testing does not require recreating it.
-        data, _ = _ensure_default_shift_seeded(data)
-        return data
+    """Load shifts via StorageProvider."""
+    data = get_store("shifts").load()
+    # Dev convenience: keep one default shift so manual testing does not require recreating it.
+    data, _ = _ensure_default_shift_seeded(data)
+    return data
 
 
 def _shifts_save(data: dict):
-    """Save shifts.json under lock."""
-    _ensure_chat_data_dir()
-    with _SHIFTS_LOCK:
-        with open(SHIFTS_FILE, "w", encoding="utf-8") as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
+    """Save shifts via StorageProvider."""
+    get_store("shifts").save(data)
 
 
 @app.route('/api/shifts', methods=['GET'])
 def shifts_list():
-    """GET /api/shifts — list shifts. Auth: participant/counselor/shift_leader/camp_director/developer."""
-    payload, err = _require_roles(("participant", "counselor", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
+    """GET /api/shifts — list shifts. Auth: participant/counselor/educator/shift_leader/camp_director/developer."""
+    payload, err = _require_roles(("participant", "counselor", "educator", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
     if err is not None:
         return err[0], err[1]
     try:
@@ -2026,8 +1989,8 @@ def shifts_create():
 
 @app.route('/api/shifts/<shift_id>/squads', methods=['GET'])
 def squads_list(shift_id: str):
-    """GET /api/shifts/<shiftId>/squads — list squads in shift. Auth: participant/counselor/shift_leader/camp_director/developer."""
-    payload, err = _require_roles(("participant", "counselor", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
+    """GET /api/shifts/<shiftId>/squads — list squads in shift. Auth: participant/counselor/educator/shift_leader/camp_director/developer."""
+    payload, err = _require_roles(("participant", "counselor", "educator", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
     if err is not None:
         return err[0], err[1]
     sid = (shift_id or "").strip()
@@ -2218,10 +2181,10 @@ def shift_delete(shift_id: str):
 def squad_join(squad_id: str):
     """
     POST /api/squads/<squadId>/join
-    Auth: participant|counselor|shift_leader|camp_director|developer
+    Auth: participant|counselor|educator|shift_leader|camp_director|developer
     Body: { nickname?: string, role?: participant|counselor|shift_leader|camp_director (for developer only) }
     """
-    payload, err = _require_roles(("participant", "counselor", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
+    payload, err = _require_roles(("participant", "counselor", "educator", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
     if err is not None:
         return err[0], err[1]
     device_id = (payload.get("deviceId") or "").strip()
@@ -2274,10 +2237,10 @@ def squad_join(squad_id: str):
 def squads_mine():
     """
     GET /api/squads/mine
-    Auth: participant|counselor|shift_leader|camp_director|developer
+    Auth: participant|counselor|educator|shift_leader|camp_director|developer
     Returns: membership + squad/shift meta.
     """
-    payload, err = _require_roles(("participant", "counselor", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
+    payload, err = _require_roles(("participant", "counselor", "educator", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
     if err is not None:
         return err[0], err[1]
     device_id = (payload.get("deviceId") or "").strip()
@@ -2315,7 +2278,7 @@ def squad_corner_get_or_patch(squad_id: str):
     if request.method == 'PATCH':
         payload, err = _require_roles(("counselor", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
     else:
-        payload, err = _require_roles(("participant", "counselor", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
+        payload, err = _require_roles(("participant", "counselor", "educator", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
     if err is not None:
         return err[0], err[1]
 
@@ -2638,9 +2601,9 @@ def squad_messages_get_or_post(squad_id: str):
     """
     GET /api/squads/<squadId>/messages?limit=50 — get squad chat messages.
     POST /api/squads/<squadId>/messages — post message.
-    Auth: participant|parent|counselor|shift_leader|camp_director|developer
+    Auth: participant|parent|counselor|educator|shift_leader|camp_director|developer
     """
-    payload, err = _require_roles(("participant", "parent", "counselor", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
+    payload, err = _require_roles(("participant", "parent", "counselor", "educator", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
     if err is not None:
         return err[0], err[1]
     sid = (squad_id or "").strip()
@@ -2677,16 +2640,25 @@ def squad_messages_get_or_post(squad_id: str):
         out = ordered[-limit:]
         return jsonify({"squadId": sid, "messages": out, "hasMore": has_more})
 
+    # Per-minute rate limit (in addition to daily limit)
+    if not _check_squad_msg_rate_limit(device_id):
+        _log_rate_limit_event('/api/squads/messages', device_id)
+        return jsonify({"error": f"Слишком много сообщений. Подождите немного (лимит: {SQUAD_MSG_RATE_LIMIT_PER_MIN} сообщений в минуту)"}), 429
+
     ok, rate_err = _check_and_inc_chat_daily(device_id)
     if not ok and rate_err is not None:
+        _log_rate_limit_event('/api/squads/messages/daily', device_id)
         return rate_err[0], rate_err[1]
 
     body = request.get_json() or {}
     text = (body.get("text") or "").strip()
     if not text:
         return jsonify({"error": "text required"}), 400
-    if len(text) > 2000:
-        return jsonify({"error": "Message too long"}), 400
+
+    # Safety validation: length, URL filter, profanity filter
+    clean_text, validation_error = _validate_squad_message(text)
+    if validation_error:
+        return jsonify({"error": validation_error}), 400
 
     msg = {
         "id": uuid.uuid4().hex[:12],
@@ -2695,7 +2667,7 @@ def squad_messages_get_or_post(squad_id: str):
         "deviceId": device_id or None,
         "nickname": ((membership or {}).get("nickname") or "").strip() or None,
         "role": role,
-        "text": text
+        "text": clean_text
     }
     rows.append(msg)
     rows = rows[-SQUAD_MESSAGES_MAX_HISTORY:]
@@ -2791,9 +2763,9 @@ def badge_request_mine():
 def badge_request_inbox():
     """
     GET /api/badges/requests/inbox?campId=&squadId=&status=
-    Auth: counselor|shift_leader|camp_director|developer
+    Auth: counselor|educator|shift_leader|camp_director|developer
     """
-    payload, err = _require_roles(("counselor", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
+    payload, err = _require_roles(("counselor", "educator", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
     if err is not None:
         return err[0], err[1]
 
@@ -2833,7 +2805,7 @@ def badge_request_inbox():
 
 
 def _badge_request_resolve(request_id: str, next_status: str):
-    payload, err = _require_roles(("counselor", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
+    payload, err = _require_roles(("counselor", "educator", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
     if err is not None:
         return err[0], err[1]
     rid = (request_id or "").strip()
@@ -3044,7 +3016,13 @@ def parent_snapshot_get():
 @app.route('/api/health', methods=['GET'])
 def api_health():
     """Liveness probe: always 200, no auth. For monitoring, Vercel, CI."""
-    return jsonify({"status": "ok"}), 200
+    use_supabase = os.environ.get("USE_SUPABASE", "NOT_SET")
+    supabase_url = os.environ.get("SUPABASE_URL", "NOT_SET")
+    return jsonify({
+        "status": "ok",
+        "use_supabase": use_supabase,
+        "supabase_url_set": supabase_url != "NOT_SET" and bool(supabase_url),
+    }), 200
 
 
 @app.route('/health')
@@ -3164,8 +3142,14 @@ def chat_with_bot():
         return err_response[0], err_response[1]
     device_id = (payload.get("deviceId") or "").strip()
     if device_id:
+        # Per-minute rate limit check
+        if not _check_chat_per_min_rate_limit(device_id):
+            _log_rate_limit_event('/api/chat', device_id)
+            return jsonify({"error": f"Слишком много сообщений. Подождите немного (лимит: {CHAT_MSG_RATE_LIMIT_PER_MIN} в минуту)"}), 429
+        # Daily limit check
         ok, limit_err = _check_and_inc_chat_daily(device_id)
         if limit_err is not None:
+            _log_rate_limit_event('/api/chat/daily', device_id)
             return limit_err[0], limit_err[1]
     try:
         data = request.get_json()
@@ -3233,6 +3217,85 @@ def chat_with_bot():
             "error": "Ошибка при обращении к чат-боту",
             "message": str(e)
         }), 500
+
+# ---------------------------------------------------------------------------
+# Council Initiatives — GET + POST /api/council/initiatives
+# ---------------------------------------------------------------------------
+
+@app.route('/api/council/initiatives', methods=['GET'])
+def council_initiatives_list():
+    """
+    GET /api/council/initiatives?camp_id=<id> — список инициатив Совета Лагеря.
+    Query param camp_id (optional) — фильтр по смене/лагерю.
+    Возвращает последние 100 в обратном хронологическом порядке.
+    Auth: CHAT_ALLOWED_ROLES
+    """
+    payload, err = _require_roles(CHAT_ALLOWED_ROLES, allow_localhost_dev=True)
+    if err is not None:
+        return err[0], err[1]
+
+    camp_id_filter = (request.args.get("camp_id") or "").strip()
+
+    store = get_store("council_initiatives")
+    data = store.load()
+    items = data.get("initiatives") or []
+
+    # Sort descending by created_at, keep last 100
+    items_sorted = sorted(items, key=lambda x: x.get("created_at", ""), reverse=True)[:100]
+
+    if camp_id_filter:
+        items_sorted = [i for i in items_sorted if i.get("campId") == camp_id_filter or i.get("camp_id") == camp_id_filter]
+
+    return jsonify({"initiatives": items_sorted})
+
+
+@app.route('/api/council/initiatives', methods=['POST'])
+def council_initiatives_create():
+    """
+    POST /api/council/initiatives — создать инициативу Совета Лагеря.
+    Body: {"title": "...", "camp_id": "..."} — title обязателен (max 200 символов).
+    Auth: CHAT_ALLOWED_ROLES
+    """
+    payload, err = _require_roles(CHAT_ALLOWED_ROLES, allow_localhost_dev=True)
+    if err is not None:
+        return err[0], err[1]
+
+    body = request.get_json() or {}
+    title = (body.get("title") or "").strip()
+    camp_id = (body.get("camp_id") or body.get("campId") or "").strip()
+
+    if not title:
+        return jsonify({"error": "title обязателен"}), 400
+    if len(title) > 200:
+        return jsonify({"error": "title не должен превышать 200 символов"}), 400
+
+    device_id = (payload.get("deviceId") or "").strip()
+    nickname = (payload.get("nickname") or "").strip()
+
+    import secrets as _secrets
+    initiative_id = f"CI-{_secrets.token_hex(5)}"
+    created_at = datetime.now(timezone.utc).isoformat()
+
+    new_item = {
+        "id": initiative_id,
+        "campId": camp_id,
+        "title": title,
+        "status": "idea",
+        "created_at": created_at,
+        "createdAt": created_at,
+        "createdBy": device_id,
+        "createdByNickname": nickname,
+    }
+
+    store = get_store("council_initiatives")
+    data = store.load()
+    items = data.get("initiatives") or []
+    items.append(new_item)
+    data["initiatives"] = items
+    store.save(data)
+
+    return jsonify(new_item), 201
+
 
 # Для Vercel
 if __name__ == '__main__':
