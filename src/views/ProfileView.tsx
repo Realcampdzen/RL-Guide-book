@@ -899,16 +899,46 @@ export const ProfileView: React.FC<any> = (props) => {
     }
   }, [accessToken, mySquadInfo?.membership?.squadId]);
 
+  const resolveShiftIdForCornerCreate = useCallback(async (): Promise<string> => {
+    const tokenShiftId = (campId || '').trim();
+    if (tokenShiftId) return tokenShiftId;
+
+    const defaultShiftIdFromState = organizerShifts.find((s) =>
+      (s.name || '').trim().toLowerCase() === DEFAULT_SHIFT_NAME.toLowerCase()
+    )?.id;
+    if (defaultShiftIdFromState) return defaultShiftIdFromState;
+
+    const res = await fetch(`${organizerApiBase}/api/shifts`, { headers: getOrganizerHeaders() });
+    if (res.status === 401) {
+      fireOn401();
+      throw new Error('Сессия истекла. Войдите снова.');
+    }
+
+    const data = await res.json().catch(() => ({})) as {
+      shifts?: Array<{ id: string; name: string }>;
+      error?: string;
+      reason?: string;
+    };
+    if (!res.ok) {
+      throw new Error(formatOrganizerHttpError(res.status, data, 'Смены'));
+    }
+
+    const defaultShift = (data.shifts || []).find((s) =>
+      (s.name || '').trim().toLowerCase() === DEFAULT_SHIFT_NAME.toLowerCase()
+    );
+    if (defaultShift?.id) return defaultShift.id;
+
+    throw new Error(
+      `Смена «${DEFAULT_SHIFT_NAME}» не найдена. Откройте «Смены и отряды» и создайте смену, либо войдите по коду смены (campId).`
+    );
+  }, [campId, organizerShifts, organizerApiBase, getOrganizerHeaders, formatOrganizerHttpError]);
+
   const createSquadFromCorner = useCallback(async (payload: Partial<SquadCorner>) => {
     if (!accessToken) throw new Error('Войдите по коду (или Dev login), чтобы создать отряд.');
     const cornerName = (payload?.name || '').trim();
     if (!cornerName) throw new Error('Укажите название отряда.');
 
-    const defaultShiftId = organizerShifts.find((s) => (s.name || '').trim().toLowerCase() === DEFAULT_SHIFT_NAME.toLowerCase())?.id;
-    const shiftId = (campId || '').trim() || (defaultShiftId || '').trim();
-    if (!shiftId) {
-      throw new Error('Не удалось определить смену. Войдите по коду смены (campId) или откройте «Смены и отряды».');
-    }
+    const shiftId = await resolveShiftIdForCornerCreate();
 
     // 1) Create squad in shift
     const res = await fetch(`${organizerApiBase}/api/shifts/${encodeURIComponent(shiftId)}/squads`, {
@@ -933,10 +963,10 @@ export const ProfileView: React.FC<any> = (props) => {
     // 4) Refresh and open cabinet
     await Promise.all([loadMySquadInfo(), loadOrganizerData(), loadBadgeApprovalsData()]);
     setActiveTab('active');
-    setSquadCornerActiveTab('squad');
-    setSquadCornerReturnToOrganizer(false);
-    openCabinPanel('squad-corner', 'left');
-  }, [accessToken, organizerApiBase, getOrganizerHeaders, campId, organizerShifts, profile.nickname, loadMySquadInfo, loadOrganizerData, loadBadgeApprovalsData, openCabinPanel]);
+     setSquadCornerActiveTab('squad');
+     setSquadCornerReturnToOrganizer(false);
+     openCabinPanel('squad-corner', 'left');
+  }, [accessToken, resolveShiftIdForCornerCreate, organizerApiBase, getOrganizerHeaders, profile.nickname, loadMySquadInfo, loadOrganizerData, loadBadgeApprovalsData, openCabinPanel]);
 
   const openSquadFromOrganizer = useCallback(async (squad: { id: string; name: string }) => {
     if (!accessToken) {
@@ -1897,7 +1927,7 @@ export const ProfileView: React.FC<any> = (props) => {
         <div className="profile-utility-panel-overlay profile-utility-panel-overlay--organizer" onClick={() => setOrganizerShiftFormOpen(false)} aria-hidden="true" />
       )}
       {organizerShiftFormOpen && (
-        <div className="profile-utility-panel profile-utility-panel--modal-centered profile-utility-panel--organizer-modal" role="dialog" aria-modal="true" aria-labelledby="organizer-modal-shift-title" onClick={e => e.stopPropagation()}>
+        <div className="profile-utility-panel profile-utility-panel--organizer-modal" role="dialog" aria-modal="true" aria-labelledby="organizer-modal-shift-title" onClick={e => e.stopPropagation()}>
           <div className="profile-utility-panel-header">
             <span id="organizer-modal-shift-title">Создать смену</span>
             <button type="button" className="profile-utility-panel-close" onClick={() => setOrganizerShiftFormOpen(false)} aria-label="Закрыть"><Icons.Close /></button>
@@ -1948,7 +1978,7 @@ export const ProfileView: React.FC<any> = (props) => {
         <div className="profile-utility-panel-overlay profile-utility-panel-overlay--organizer" onClick={() => setOrganizerSquadFormOpen(false)} aria-hidden="true" />
       )}
       {organizerSquadFormOpen && (
-        <div className="profile-utility-panel profile-utility-panel--modal-centered profile-utility-panel--organizer-modal" role="dialog" aria-modal="true" aria-labelledby="organizer-modal-squad-title" onClick={e => e.stopPropagation()}>
+        <div className="profile-utility-panel profile-utility-panel--organizer-modal" role="dialog" aria-modal="true" aria-labelledby="organizer-modal-squad-title" onClick={e => e.stopPropagation()}>
           <div className="profile-utility-panel-header">
             <span id="organizer-modal-squad-title">Добавить отряд</span>
             <button type="button" className="profile-utility-panel-close" onClick={() => setOrganizerSquadFormOpen(false)} aria-label="Закрыть"><Icons.Close /></button>
@@ -1994,7 +2024,7 @@ export const ProfileView: React.FC<any> = (props) => {
         <div className="profile-utility-panel-overlay profile-utility-panel-overlay--organizer" onClick={() => { setOrganizerCodeModalOpen(false); setOrganizerCodeResult(null); }} aria-hidden="true" />
       )}
       {organizerCodeModalOpen && (
-        <div className="profile-utility-panel profile-utility-panel--modal-centered profile-utility-panel--organizer-modal" role="dialog" aria-modal="true" aria-labelledby="organizer-modal-code-title" onClick={e => e.stopPropagation()}>
+        <div className="profile-utility-panel profile-utility-panel--organizer-modal" role="dialog" aria-modal="true" aria-labelledby="organizer-modal-code-title" onClick={e => e.stopPropagation()}>
           <div className="profile-utility-panel-header">
             <span id="organizer-modal-code-title">Выдать код</span>
             <button type="button" className="profile-utility-panel-close" onClick={() => { setOrganizerCodeModalOpen(false); setOrganizerCodeResult(null); }} aria-label="Закрыть"><Icons.Close /></button>
@@ -3071,8 +3101,7 @@ export const ProfileView: React.FC<any> = (props) => {
             data-label={disabled ? `${t.label} (редактирует вожатый)` : t.label}
             className={squadCornerActiveTab === t.id ? 'active' : ''}
             disabled={disabled}
-            onClick={(event) => {
-              event.stopPropagation();
+            onClick={() => {
               selectTab();
             }}
             onKeyDown={(event) => {
