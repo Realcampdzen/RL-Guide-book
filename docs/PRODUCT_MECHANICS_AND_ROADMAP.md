@@ -1,10 +1,18 @@
 # PRODUCT SSOT — Путеводитель «Реальный Лагерь»: механики и дорожная карта
 
-**Срез реализации (фиксируем как факт):** 2026‑02‑19  
+**Срез реализации (фиксируем как факт):** 2026‑02‑21  
 **Назначение:** единый канонический документ по **механикам продукта** и **roadmap по фазам**.  
 **Где смотреть “текущие dev‑статусы задач / Done‑evidence”:** [`docs/ROADMAP_2026.md`](ROADMAP_2026.md).  
 **Источник видения по ЛК:** [`docs/STEPA_VISION_LC.md`](STEPA_VISION_LC.md).  
 **Философия продукта и циклы прогресса:** [`../.memory-bank/product_logic.md`](../.memory-bank/product_logic.md).
+
+**Изменения с 2026‑02‑19 (кратко):**
+- Появился **кабинет отряда** (участники, инвайты, выход/исключение, чат) в связке с `Отрядным уголком`.
+- `Отрядный уголок` стал **hybrid**: локальный черновик + общий серверный контент по `squadId`.
+- Добавлены серверные API/хранилища для отрядов: `corner`, `invite-code`, `by-invite-code`, `preview`, `leave/kick`, `messages` + JSON-файлы в `backend/data/`.
+- Deep link приглашения в отряд по ссылке: `?join_squad=<squadId>` (с preview + confirm + join).
+- В dev окружении сидится default смена **«Реальный Лагерь 2026»** для тестов.
+- Усилен RBAC для organizer/squad-flow, включая роль `camp_director` (уровень `shift_leader`) для смен/отрядов.
 
 ---
 
@@ -28,6 +36,7 @@
 ### 0.3. Принципы
 - Фундамент: **значки → маршруты развития**, а не “награды‑жетоны”.  
   Ориентиры: [`docs/STEPA_VISION_LC.md`](STEPA_VISION_LC.md), [`../.memory-bank/project_brief.md`](../.memory-bank/project_brief.md).
+- Если непонятно, “что делает” раздел/механика: найти соответствующую **категорию/значок/уровень** в каталоге и прочитать методику там (сначала была система значков, потом поверх неё строится ЛК).
 - Фокус: **4К навыки** (Коллаборация, Критическое мышление, Креативность, Коммуникация), развитие и творчество.
 - Не приоритет: соревновательность (рейтинги/битвы) — только если явно решаем.
 
@@ -57,6 +66,7 @@
   - Router: [`../src/app/AppViewRouter.tsx`](../src/app/AppViewRouter.tsx)
   - Controller: [`../src/app/useAppController.ts`](../src/app/useAppController.ts)
   - ЛК (кабина): [`../src/views/ProfileView.tsx`](../src/views/ProfileView.tsx)
+- Supabase (infra note): в `.env` уже есть `SUPABASE_URL` (и MCP Supabase настроен), но текущие SSOT-хранилища для смен/отрядов/уголков/чата — file-based JSON в `backend/data/*`. Миграция в Supabase = отдельный эпик (ориентир: Фаза 3/4, вместе с multi-camp и server-sync прогресса).
 
 ---
 
@@ -113,6 +123,14 @@ flowchart TD
   LK --> Backend
 ```
 
+### 2.2.1. Фрактал РЛ (camp → shift → squad → engine) — продуктовый концепт
+Базовая идея из видения (и из `.cursor/putevoditel_prodroadmap_demo.md`): лагерь устроен как фрактал, где “большое отражается в малом”.
+
+- **Camp** (лагерь/инсталляция) содержит смены.
+- **Shift** (смена) создаётся staff (старший вожатый/начальник/разработчик) и задаёт рамку периода.
+- **Squad** (отряд смены) создаётся staff (вожатый/старший/разработчик), участники вступают по коду/ссылке.
+- **Engine / Team** (движок) — микро‑команда/проект “внутри отряда” (As‑is в коде: отдельная сущность `Team`; To‑be: гибридный scope `camp|shift|squad` по Q1).
+
 **Ключевое расхождение с “фрактальным” видением:**  
 в коде **Движок (Team)** и **Отряд (Squad)** — параллельные сущности и пока не связаны как “отряд → движки внутри отряда”.
 
@@ -139,13 +157,13 @@ flowchart TD
 
 ### 2.4. Явные продуктовые расхождения (фиксируем, не “решаем молча”)
 - **Движки внутри отрядов/смен** (To‑be) vs **Движки как отдельная сущность** (As‑is).  
-  → Решение требуется: см. “Открытые вопросы” Q1.
+  → **Решено (Q1):** гибридная модель — у движка есть `scope: camp | shift | squad` + опциональные `shiftId/squadId`. В коде As‑is `Team` глобальный; To‑be — добавляем scope и связи.
 - **Родитель как read‑only наблюдатель** (To‑be/описано в черновике) vs **родитель как участник + доп. просмотр ребёнка** (частично As‑is).  
-  → Решение требуется: см. Q2.
+  → **Решено (Q2):** hybrid — у родителя есть свой ЛК/прогресс, а “режим ребёнка” всегда строго read‑only (отдельная витрина).
 - **Подтверждение достижений**: что “можно отметить самому”, а что “только через staff”.  
-  → Решение требуется: см. Q3.
+  → **Решено (Q3):** mixed — безопасное/рефлексивное self‑claim, ключевое/социально‑значимое через staff‑апрув.
 - **Совет Лагеря**: сейчас есть “обзор + генерация инициатив”, но нет протоколов/голосований.  
-  → Решение требуется: см. Q4.
+  → **Решено (Q4):** оставляем генератор в ближайшей фазе, добавляем персистентный список инициатив (чтобы не “улетало в воздух”); протоколы/голосования — позже.
 
 ---
 
@@ -157,11 +175,11 @@ flowchart TD
 - **traveler / Путешественник** — режим “посмотреть и попробовать”: каталог + локальный прогресс, но без “дорогих” онлайн‑фич (чат/ИИ/модерации/онлайн‑синхронизаций).
 - **participant / Участник смены** — основной пользователь MVP “на смене”: чат, ИИ‑помощь, подтверждения, принадлежность к смене/отряду, шэринг прогресса.
 - **parent / Родитель** — отдельный пользователь с “своим ЛК”, плюс просмотр прогресса ребёнка через отчёт/код (см. §7.19).  
-  **Важно:** продуктово пока не решено, родитель — read‑only наблюдатель или “играет как участник” → см. Q2.
+  **Решено (Q2):** hybrid — у родителя есть свой ЛК/прогресс, а “режим ребёнка” всегда строго read‑only (отдельная витрина).
 - **counselor / Вожатый** — staff‑роль: разбор входящих заявок по значкам, контур отрядов/смен (в т.ч. просмотр участников).
-- **educator / Педагог** — роль “мастерская/кружковод”. В коде роль есть, но часть RBAC пока не сведена на бэкенде (см. §3.4).
+- **educator / Педагог** — роль “мастерская/кружковод”. В коде роль есть (UI/типы), но бэкенд‑RBAC пока не включает `educator` в ключевые staff‑эндпоинты (To‑be для Phase 1/2).
 - **shift_leader / Старший Вожатый** — руководитель смены: staff‑flow (создание смен/отрядов, выдача кодов), модерация.
-- **camp_director / Начальник лагеря** — верхняя staff‑роль. В коде роль есть, но часть RBAC пока не сведена на бэкенде (см. §3.4).
+- **camp_director / Начальник лагеря** — верхняя staff‑роль уровня `shift_leader` для контуров смен/отрядов и модерации (в актуальном бэкенде включена в RBAC для organizer/squad-flow).
 - **developer / Разработчик** — песочница и отладка: роль для локального dev‑входа и тестирования систем.
 
 ### 3.2. Вход / “разблокировка по коду” (As‑is в коде)
@@ -181,20 +199,21 @@ flowchart TD
 - В production‑сборке (`import.meta.env.PROD`) клиент **принудительно возвращает роль `traveler`**, даже если в `rl_auth_v1` записано другое.  
   Это safety‑ограничение, но оно делает роли/чат/часть staff‑фич **фактически отключёнными в проде**, пока не будет принято продуктово‑инженерное решение. Evidence: [`../src/utils/authStorage.ts`](../src/utils/authStorage.ts).
 
-### 3.3. Матрица доступов (As‑is, срез 2026‑02‑19)
+### 3.3. Матрица доступов (As‑is, срез 2026‑02‑21)
 Легенда: **Да** / **Нет** / **Частично** (есть UI, но ограничено ролью/токеном/бэкендом).
 
 | Действие / механика | traveler | participant | parent | counselor | educator | shift_leader | camp_director | developer |
 |---|---|---|---|---|---|---|---|---|
 | Смотреть каталог (категории/значки/уровни) | Да | Да | Да | Да | Да | Да | Да | Да |
 | Вести локальный прогресс (В путь/Коллекция/Журнал/Избранное) | Да | Да | Да | Да | Да | Да | Да | Да |
-| Чат “НейроВалюша” (POST /api/chat) | Нет | Да | Да | Да | Да | Да | Да | Да |
-| “Дорогие” онлайн‑действия (ИИ‑планы, ИИ‑картинки и т.п.) | Нет | Да | Да | Да | Да | Да | Да | Да |
+| Чат “НейроВалюша” (POST /api/chat) | Нет | Да | Да | Да | Нет | Да | Да | Да |
+| “Дорогие” онлайн‑действия (ИИ‑планы, ИИ‑картинки и т.п.) | Нет | Да | Да | Да | Нет | Да | Да | Да |
 | Отправить заявку на подтверждение уровня | Нет | Да | Да | Нет | Нет | Нет | Нет | Да |
-| Разбирать входящие заявки (inbox) | Нет | Нет | Нет | Да | **Частично** | Да | **Частично** | Да |
-| Staff‑flow: смены/отряды (создать/посмотреть/выдать код) | Нет | Нет | Нет | Нет | Нет | Да | **Частично** | Да |
-| Вступить в отряд по `squadId` (join) | Нет | Да | Нет | Нет | Нет | Нет | Нет | Да |
-| Просмотр участников отряда (через /api/squads/mine) | Нет | Нет | Нет | Да | Нет | Да | Нет | Да |
+| Разбирать входящие заявки (inbox) | Нет | Нет | Нет | Да | Нет | Да | Да | Да |
+| Список смен/отрядов (read-only) | Нет | Да | Нет | Да | Нет | Да | Да | Да |
+| Управление сменами/отрядами (создать/удалить/выдать код) | Нет | Нет | Нет | **Частично** | Нет | Да | Да | Да |
+| Вступить в отряд (join по `squadId`, из кода/ссылки) | Нет | Да | Нет | Да | Нет | Да | Да | Да |
+| Кабинет/участники отряда (через /api/squads/mine) | Нет | Да | Нет | Да | Нет | Да | Да | Да |
 | Просмотр прогресса ребёнка (отчёт/код/QR) | Да | Да | Да | Да | Да | Да | Да | Да |
 | UGC: кастомные значки (локально) | Да | Да | Да | Да | Да | Да | Да | Да |
 | UGC: публикация в сообщество (API /api/community/badges) | Да | Да | Да | Да | Да | Да | Да | Да |
@@ -204,10 +223,9 @@ flowchart TD
 
 - **PROD‑ограничение роли (`traveler` forced)** ломает часть смысловых ролей в production UX (чат, staff, модерация).  
   → см. Q5 (добавлено): политика ролей в проде.
-- **`educator` и `camp_director`**: роль есть в типах и UI, но бэкенд‑RBAC для модерации заявок/организаторских эндпоинтов сейчас не везде включает эти роли.  
-  → см. Q6 (добавлено): “какие staff‑роли реально нужны в v1 и где”.
-- **Staff‑flow (смены/отряды)** на бэкенде разрешён для `shift_leader|developer`, но фронт в логике может показывать часть UI и для `camp_director`.  
-  → либо расширяем RBAC на сервере, либо считаем `camp_director` “над‑ролью” и маппим на `shift_leader` на сервере (продуктовое решение).
+- **`educator`**: роль есть в типах и UI, но бэкенд‑RBAC сейчас не включает её в ключевые “онлайн” контуры (чат `/api/chat`, inbox `/api/badges/requests/inbox`, shifts/squads, squad‑кабинет).  
+  → см. Q6: в v1 нужен полный набор staff‑ролей, значит educator нужно довести на сервере (и согласовать права).
+- **`camp_director`**: на срез 2026‑02‑21 роль уже включена в server RBAC для organizer/squad-flow (уровень `shift_leader`). Ранее отмеченный mismatch закрыт.
 
 ---
 
@@ -257,8 +275,9 @@ Evidence: [`../src/hooks/useDataLoader.ts`](../src/hooks/useDataLoader.ts), [`..
 **Метафора:** кабина — это хаб прогресса + “панели управления” механиками лагеря.
 
 **Навигационные слои As‑is:**
-- **Табы (центральный контент):** `active` (В пути), `favorites` (Избранное), `collection` (Коллекция), `journal` (Журнал), `workshop` (служебный/глубокий вход, открывается по `#workshop`). Evidence: [`../src/views/ProfileView.tsx`](../src/views/ProfileView.tsx).
-- **Панели кабины (panel views):** `passport`, `inspector`, `profile4k`, `team`, `council`, `bro`, `squad-corner`, `real-diary`, `vozhatifikator`, `counselor-squad`, `workshop`, `share`, `parents`. Evidence: [`../src/views/ProfileView.tsx`](../src/views/ProfileView.tsx).
+- **Табы (центральный контент):** `active` (В пути), `favorites` (Избранное), `collection` (Коллекция), `journal` (Журнал), `squads` (Смены и отряды), `workshop` (служебный/глубокий вход, открывается по `#workshop`). Evidence: [`../src/views/ProfileView.tsx`](../src/views/ProfileView.tsx).
+- **Панели кабины (panel views):** `passport`, `inspector`, `profile4k`, `wing`, `team`, `council`, `bro`, `squad-corner`, `real-diary`, `vozhatifikator`, `workshop`, `share`, `parents`. Evidence: [`../src/views/ProfileView.tsx`](../src/views/ProfileView.tsx).
+- **To‑be (продуктово):** отдельный вход/панель “Отряд вожатых” (см. §7.7.1) как ключевая механика staff-коллектива. Сейчас в коде есть локальный контур (`CounselorSquadContext`), но нет стабильного UX-входа в `ProfileView.tsx`.
 - **Пузырьки-утилиты:** роль (sandbox), “войти по коду”, входящие заявки, и т.д. Evidence: [`../src/views/ProfileView.tsx`](../src/views/ProfileView.tsx).
 
 **Технические особенности UX:**
@@ -269,7 +288,7 @@ Evidence: [`../src/hooks/useDataLoader.ts`](../src/hooks/useDataLoader.ts), [`..
 
 ## 6) Feature Inventory (инвентаризация механо‑поверхностей из кода)
 
-Цель раздела — “быстрый индекс” по продукту: что есть, где это в UI, где данные/сервер, и какой статус на срез 2026‑02‑19.  
+Цель раздела — “быстрый индекс” по продукту: что есть, где это в UI, где данные/сервер, и какой статус на срез 2026‑02‑21.  
 Детали каждой механики раскрыты в §7.
 
 | Механика / раздел | Статус | Evidence (UI) | Evidence (данные / API / хранилище) |
@@ -280,8 +299,10 @@ Evidence: [`../src/hooks/useDataLoader.ts`](../src/hooks/useDataLoader.ts), [`..
 | 4) Подтверждение уровней (заявки → inbox staff → approve/reject) + Telegram уведомления | Done | `src/views/BadgeLevelView.tsx` (форма пруфа), `src/views/ProfileView.tsx` (пузырёк “Входящие заявки”) | `src/utils/badgeApprovalApi.ts`, `backend/app.py` (`/api/badges/requests*`, `/api/telegram/notify-achievement`), локальное применение: `ProgressContext.applyApprovedLevel()` |
 | 5) Арты/скины значков (classic/realism/AI/мой арт) + лимиты | Partial | `src/components/BadgeSkinPanel.tsx`, `src/views/BadgeView.tsx`, `src/views/BadgeLevelView.tsx` | `ProgressContext` (`generatedBadgeSkins`, `customBadgeImages`, `approvedBadgeSkins`, `badgeArtProposals`), `backend/app.py` (`/api/images/generate`) |
 | 6) Движки (Team/Engine): создать/вступить/инвайт, цели, флаг/герб, план-сетки, путь | Done | `src/components/TeamDashboard.tsx`, `src/views/ProfileView.tsx` (панель `team`) | `src/context/TeamContext.tsx`, `backend/app.py` (`/api/teams*`, `/api/images/generate` context=gerb/team_flag) |
-| 7) Смены и отряды (staff flow) + членство (join/mine) | Partial | `src/views/ProfileView.tsx` (блоки staff и “мой отряд”) | `backend/app.py` (`/api/shifts*`, `/api/squads*`, `/api/organizer/generate-code`), `backend/data/shifts.json`, `backend/data/memberships.json` |
-| 8) Отрядный уголок (локальный) + планёрка + “значки на флаг” | Done | `src/components/SquadCornerDashboard.tsx`, `src/views/ProfileView.tsx` (панель `squad-corner`) | `ProgressContext.updateDiarySquad()`, данные: `userData.diaryProgress.squad` (`rl_guide_progress_v1`) |
+| 7) Смены и отряды (Shift/Squad): список, создание/удаление, вступление по коду/ссылке | Done | `src/views/ProfileView.tsx` (таб `squads`, organizer‑модалки, “Мой отряд”) | `backend/app.py` (`/api/shifts*`, `/api/shifts/<id>/squads*`, `DELETE /api/shifts/<id>`, `DELETE /api/squads/<id>`), `backend/data/shifts.json` |
+| 7.1) Кабинет отряда (server squad cabinet): участники, инвайты, leave/kick, чат, инфо уголка | Done | `src/components/SquadCabinetPanel.tsx`, `src/components/SquadChat.tsx`, `src/views/ProfileView.tsx` (панель `squad-corner`, таб “Отряд”) | `backend/app.py` (`/api/squads/mine`, `/api/squads/<id>/invite-code`, `/api/squads/by-invite-code`, `/api/squads/<id>/preview`, `/api/squads/<id>/leave`, `/api/squads/<id>/members/<deviceId>`, `/api/squads/<id>/messages`), `backend/data/memberships.json`, `backend/data/squad_invites.json`, `backend/data/squad_messages.json`, `backend/data/squad_corners.json` |
+| 7.2) Отряд вожатых (Counselor Squad): отдельная игровая механика staff‑коллектива | Partial | `src/context/CounselorSquadContext.tsx`, `src/components/CounselorSquadDashboard.tsx` | localStorage: `rl_counselor_squad_*`, deep‑link `?counselor_squad=...`; To‑be: server‑синхронизация уровня Squad (участники/чат/план/атрибутика) |
+| 8) Отрядный уголок (Squad Corner): hybrid (локальный черновик + server shared) | Done (hybrid) | `src/components/SquadCornerDashboard.tsx`, `src/views/ProfileView.tsx` (панель `squad-corner`) | local draft: `rl_guide_progress_v1` (`userData.diaryProgress.squad`), server shared: `GET/PATCH /api/squads/<id>/corner` → `backend/data/squad_corners.json` |
 | 9) Совет Лагеря (обзор + ИИ‑инициативы) | Partial | `src/components/CouncilDashboard.tsx`, `src/views/ProfileView.tsx` (панель `council`) | `src/utils/aiService.ts` (`fetchCouncilInitiative` → `/api/chat`), связь с Движками через `useTeam` |
 | 10) Реальный Дневник (записи, “беспорядок дня”, карточка/шеринг) | Done | `src/components/RealDiaryDashboard.tsx`, `src/views/ProfileView.tsx` (панель `real-diary`) | `userData.diaryProgress` (`rl_guide_progress_v1`), шэринг: `src/utils/socialGenerator.ts`, Telegram share link в `RealDiaryDashboard` |
 | 11) Инспектор Пользы (миссии/чеклисты, прогрессия, связь с дневником) | Done | `src/components/InspectorDashboard.tsx`, `src/views/ProfileView.tsx` (панель `inspector`) | `src/types/inspector.ts`, `userData.inspectorProgress` (`rl_guide_progress_v1`) |
@@ -290,7 +311,7 @@ Evidence: [`../src/hooks/useDataLoader.ts`](../src/hooks/useDataLoader.ts), [`..
 | 14) 4К‑профиль и программа РЛ 2026 (расчёт + ИИ‑характеристика) | Done | `src/components/Profile4KDashboard.tsx`, `src/views/ProfileView.tsx` (панель `profile4k`) | `src/utils/profile4k.ts`, `src/utils/aiService.ts` (`fetchPedagogy4k`) |
 | 15) Вожатификатор + “Путеводные огни” (чеклист) | Done | `src/components/VozhatifikatorChecklist.tsx`, viewer в `ProfileView` | `src/data/vozhatifikatorChecklist.ts`, `userData.vozhatifikatorChecklist` (`rl_guide_progress_v1`) |
 | 16) Мастерская/UGC (кастомные значки, публикация, лента/лайки, карточка созидателя) | Done | `src/views/ProfileView.tsx` (панель `workshop`) | `src/hooks/useDataLoader.ts` (custom/community + лайки), `backend/app.py` (`/api/community/badges`, `/api/telegram/notify-creator-card`) |
-| 17) Соцкарточки / Share Center | Done | `src/views/ProfileView.tsx` (панель `share`) + точки входа | `src/utils/socialGenerator.ts` (kinds/formats), deep‑links `?view=badge` в `src/app/useAppController.ts` |
+| 17) Соцкарточки / Share Center (+ карточки прогресса) | Partial | `src/views/ProfileView.tsx` (панель `share`) + точки входа | `src/utils/socialGenerator.ts` (kinds/formats), deep‑links `?view=badge` в `src/app/useAppController.ts` (To‑be: триггеры “в моменте”) |
 | 18) НейроВалюша (чат + контекст + лимиты) | Partial | `src/components/ChatBot.tsx` (Radix Dialog), триггеры в landing/каталоге/ЛК | `backend/app.py` (`/api/chat`, `/api/chat/limits`), Cloudflare endpoint fallback (см. `ChatBot.tsx`, `aiService.ts`) |
 | 19) Экспорт/импорт/сброс + родительский просмотр (file/link/code/QR) | Done | `src/views/ProfileView.tsx` (раздел “Для родителей”, модалки) | `ProgressContext.exportData/importData/resetProgress`, `src/types/userProgress.ts` (`buildParentReportPayload`), `backend/app.py` (`/api/parent-snapshot`) |
 | 20) Онбординг/подсказки (tutorial + SmartHint) | Done | `ProfileView` tutorial, `TeamDashboard` hints | `src/context/HintOverlayContext.tsx`, `src/components/SmartHint.tsx` |
@@ -306,7 +327,7 @@ Evidence: [`../src/hooks/useDataLoader.ts`](../src/hooks/useDataLoader.ts), [`..
 - **Данные/состояния** (localStorage vs backend)
 - **Гейты/разблокировки** (роли, лимиты, “дорогие” действия)
 - **Интеграции** (ИИ, Telegram/VK, шеринг, лимиты)
-- **Статус** (Done / Partial / Planned) на срез 2026‑02‑19
+- **Статус** (Done / Partial / Planned) на срез 2026‑02‑21
 - **Evidence** (ключевые файлы/эндпоинты)
 - **Открытые вопросы** (`[Вопрос к Стёпе]`)
 
@@ -360,9 +381,8 @@ Evidence: [`../src/hooks/useDataLoader.ts`](../src/hooks/useDataLoader.ts), [`..
 - **Статус:** **Partial** (есть генерация/сохранение/чеклист, но нет нормализованного staff‑workflow “отправить план → апрув вожатого → статус approved на сервере”).
 - **Evidence (UI):** [`../src/views/ProfileView.tsx`](../src/views/ProfileView.tsx).
 - **Evidence (AI):** [`../src/utils/aiService.ts`](../src/utils/aiService.ts), `backend/app.py` (`/api/chat`).
-- **Открытые вопросы:**
-  - `[Вопрос к Стёпе]` План значка должен утверждаться вожатым (как в черновике) или это “личный инструмент”, а staff подключается только на уровне подтверждения факта выполнения?
-  - `[Вопрос к Стёпе]` Если нужен апрув: где живёт истина — localStorage, backend, или оба (offline-first + sync)?
+- **Решено:** должна быть возможность апрува плана вожатым, но план можно использовать и как личный инструмент.
+- **Решено (истина):** hybrid — local draft + backend (offline-first + sync). As‑is план хранится в `rl_guide_progress_v1`; To‑be добавляем server‑workflow и статусы/апрув.
 
 ### 7.4. Подтверждение/модерация достижений: заявки, inbox staff, approve/reject, Telegram
 
@@ -376,12 +396,12 @@ Evidence: [`../src/hooks/useDataLoader.ts`](../src/hooks/useDataLoader.ts), [`..
   - После апрува staff пользователь подтягивает “мои approvals” и локально применяет `applyApprovedLevel(levelId, evidence)`. Evidence: [`../src/context/ProgressContext.tsx`](../src/context/ProgressContext.tsx).
 - **Гейты/разблокировки:**
   - Отправка заявки требует `accessToken` и роли `participant|parent|developer`. Evidence: `canRequestBadgeApproval()` в [`../src/types/authRole.ts`](../src/types/authRole.ts), `backend/app.py` (`/api/badges/requests`).
-  - Разбор inbox доступен на сервере `counselor|shift_leader|developer` (в UI это показано шире — см. §3.4). Evidence: `backend/app.py` (`/api/badges/requests/inbox`).
+  - Разбор inbox доступен на сервере `counselor|shift_leader|camp_director|developer`. Evidence: `backend/app.py` (`/api/badges/requests/inbox`).
 - **Интеграции (As‑is):**
   - Telegram‑уведомление о достижении/заявке: `POST /api/telegram/notify-achievement`. Evidence: [`../src/views/ProfileView.tsx`](../src/views/ProfileView.tsx), [`../backend/app.py`](../backend/app.py).
 - **Статус:** **Done** (end‑to‑end: заявка → inbox → approve/reject → синк в прогресс).
-- **Открытые вопросы:**
-  - `[Вопрос к Стёпе]` Q3: какие категории/уровни можно “получить самому”, а какие — только через staff? Это влияет на UX и на нагрузку модерации.
+- **Решено (Q3):** mixed — “бытовые/рефлексивные/безопасные” self‑claim, “ключевые/БРО/социально значимые/с риском читинга” через staff.
+- **To‑be:** зафиксировать это в контенте (ai-data) флагом типа `requiresApproval`, чтобы UX был однозначный.
 
 ### 7.5. Арты/скины значков (classic/realism/AI/мой арт) + предложения арта
 
@@ -397,8 +417,7 @@ Evidence: [`../src/hooks/useDataLoader.ts`](../src/hooks/useDataLoader.ts), [`..
   - ИИ‑генерация: `POST /api/images/generate` (`context=badge_skins`, mode generate/process). Evidence: [`../src/components/BadgeSkinPanel.tsx`](../src/components/BadgeSkinPanel.tsx), [`../backend/app.py`](../backend/app.py).
 - **Гейты:** traveler не может вызывать ИИ; “мой арт” доступен как локальная функция, но продуктово можем тоже гейтить (решение).
 - **Статус:** **Partial** (UX и локальная модель есть; но “канонизация арта” и модерация/публикация в общий каталог пока не сведены в серверный workflow).
-- **Открытые вопросы:**
-  - `[Вопрос к Стёпе]` Нужна ли серверная модерация артов (как обязательный этап) или достаточно локального “мой арт” + выбор “одобренных” от админов вручную?
+- **Решено:** нужно и локальное (“мой арт”), и серверная модерация/канон/список одобренных (To‑be: workflow публикации + модерации).
 
 ### 7.6. Движки (Team/Engine): создание/вступление/инвайт, цели, флаг/герб, планёрка, “путь Движка”
 
@@ -414,56 +433,78 @@ Evidence: [`../src/hooks/useDataLoader.ts`](../src/hooks/useDataLoader.ts), [`..
   - Клиентский контекст: [`../src/context/TeamContext.tsx`](../src/context/TeamContext.tsx).
   - ИИ‑картинки: `POST /api/images/generate` (`context=team_flag|gerb`). Evidence: [`../src/components/TeamDashboard.tsx`](../src/components/TeamDashboard.tsx), [`../src/components/ImageSourceBlock.tsx`](../src/components/ImageSourceBlock.tsx), [`../backend/app.py`](../backend/app.py).
 - **Гейты:** для серверных операций нужен `accessToken` (unlock по коду). Traveler видит UI, но должен “разблокировать” дорогие действия. Evidence: `FeatureGate` в [`../src/views/ProfileView.tsx`](../src/views/ProfileView.tsx).
-- **Статус:** **Done**.
-- **Открытые вопросы:**
-  - `[Вопрос к Стёпе]` Q1: Движки должны быть привязаны к отряду/смене (To‑be) или оставляем “глобальными командами” (As‑is)?
+- **Статус:** **Done (As‑is)** — движки работают как отдельная сущность `Team`.
+- **Решено (Q1):** To‑be гибрид — у движка есть `scope: camp | shift | squad` + опциональные `shiftId/squadId` (с постепенной привязкой к отряду/смене без ломки As‑is).
+- **To‑be (roadmap):**
+  - Добавить `scope` и связи в модель движка (и отображение “Движки моего отряда” в кабинете отряда).
+  - Доработать RBAC/видимость движков в рамках `shift/squad`.
 
-### 7.7. Смены и отряды (staff flow): создание смен/отрядов, вход участника, роли, кабинет отряда
+### 7.7. Смены и отряды (Shift/Squad): список, создание, вступление, кабинет отряда
 
-- **Value:** организационный контур лагеря: “кто в какой смене/отряде”, доступы staff и контекст для модерации/аналитики.
-- **UX (As‑is):**
-  - В ЛК есть staff‑блоки для управления сменами и отрядами (создать смену → создать отряд → выдать коды).
-  - Участник/устройство может “привязаться к отряду” через join (в текущем UI — ввод `squadId`).
-  - У staff есть возможность видеть участников своего отряда через `/api/squads/mine` (для counselor/shift_leader/developer).
+- **Value:** организационный контур лагеря: “кто в какой смене/отряде”, доступы staff и общие поверхности отряда (уголок/кабинет/чат).
+- **UX (As‑is, срез 2026‑02‑21):**
+  - В ЛК есть таб **“Смены и отряды”**: список смен/отрядов + блок **“Мой отряд”**.
+  - Участник видит read‑only список отрядов смены и может вступить:
+    - **по коду приглашения** (resolve → confirm → join),
+    - **по ссылке** `?join_squad=<squadId>` (preview → confirm → join).
+  - Клик по строке отряда в списке:
+    - если уже в этом отряде → сразу открывается кабинет (через “Отрядный уголок”),
+    - если в другом → confirm → join (одно membership на устройство) → открыть кабинет.
+  - Staff (и частично counselor) управляет сменами/отрядами: создать смену/отряд, удалить, выдать инвайт‑код.
+  - В dev окружении для тестов сидится default смена **“Реальный Лагерь 2026”**.
 - **Данные/состояния (As‑is):**
-  - Backend: `GET/POST /api/shifts`, `GET/POST /api/shifts/<shiftId>/squads`, `POST /api/squads/<squadId>/join`, `GET /api/squads/mine`, `POST /api/organizer/generate-code`. Evidence: [`../backend/app.py`](../backend/app.py).
-  - Хранилища: `backend/data/shifts.json`, `backend/data/memberships.json`. Evidence: репозиторий `backend/data/`.
-  - “Контекст лагеря” в заявках по значкам подтягивается из membership (campId/squadId). Evidence: `_resolve_membership_context()` в [`../backend/app.py`](../backend/app.py).
-  - Отчёт по реализованному staff‑flow MVP: [`../docs/REPORT_STAFF_FLOW_SHIFTS_SQUADS_MVP.md`](REPORT_STAFF_FLOW_SHIFTS_SQUADS_MVP.md).
-- **Гейты:** staff endpoints требуют JWT и роль `shift_leader|developer` (As‑is). Evidence: `_require_organizer_jwt()` в [`../backend/app.py`](../backend/app.py).
-- **Статус:** **Partial** (есть staff‑MVP и membership, но **нет** полноценного “кабинета отряда” как продукта: чат, планирование, общие артефакты, связка с Движками и Отрядным уголком).
-- **Открытые вопросы:**
-  - `[Вопрос к Стёпе]` Отряд должен иметь “кабинет” внутри приложения уже в production MVP (Фаза 1) или можно оставить staff‑контур + локальный Отрядный уголок до Фазы 2?
+  - Хранилища:
+    - смены/отряды: `backend/data/shifts.json`,
+    - membership устройства: `backend/data/memberships.json`.
+  - API смен/отрядов:
+    - `GET/POST /api/shifts`, `DELETE /api/shifts/<shiftId>` (409 `reason=default_shift` для seeded‑смены),
+    - `GET/POST /api/shifts/<shiftId>/squads` (в `GET` добавляется `avatarUrl`, агрегированный из уголка),
+    - `DELETE /api/squads/<squadId>` (hard delete + чистка связанных данных).
+  - API вступления/кабинета:
+    - `POST /api/squads/<squadId>/join`,
+    - `GET /api/squads/mine` (membership + `members` + `participants` + meta отряда/смены),
+    - инвайты: `POST /api/squads/<squadId>/invite-code` → `GET /api/squads/by-invite-code?code=...` → `join`,
+    - preview для join‑ссылки: `GET /api/squads/<squadId>/preview`.
+- **RBAC / гейты (As‑is):**
+  - Read‑only список смен/отрядов: `participant|counselor|shift_leader|camp_director|developer` (traveler не читает).
+  - Управление сменами/отрядами: `shift_leader|camp_director|developer`; `counselor` может создавать отряды только в своей смене (campId), а в dev‑sandbox допускается без `campId` только для seeded‑смены.
+  - Membership: **одно активное membership на устройство**; join в другой отряд заменяет текущую привязку (поэтому в UI отряд может быть в списке, но вы в нём не состоите).
+- **Статус:** **Done** (экосистема смен/отрядов + кабинет отряда как продуктовый MVP).
+- **Evidence:** [`../src/views/ProfileView.tsx`](../src/views/ProfileView.tsx), [`../src/components/SquadCabinetPanel.tsx`](../src/components/SquadCabinetPanel.tsx), [`../backend/app.py`](../backend/app.py).
 
-#### 7.7.1. Отряд вожатых (Counselor Squad) — локальный MVP (не путать со `Squad` из staff‑flow)
+#### 7.7.1. Отряд вожатых (Counselor Squad) — ключевая механика staff‑коллектива (As‑is: локальный прототип)
 
-- **Value:** дать взрослым/вожатым “свой отряд” как рабочее пространство: традиции, планёрка, расписание, значки на флаг — без ожидания полной серверной синхронизации.
+- **Продуктовый смысл:** у вожатых есть “свой отряд” (коллектив) с лидером **Старший вожатый (`shift_leader`)**: традиции, планёрка, расписание, атрибутика, чат и рабочие артефакты.
+- **Целевая аудитория (To‑be):** `counselor|educator|shift_leader|camp_director` (+ `developer` в sandbox).
+- **As‑is в коде (честно):**
+  - Есть локальный контур `CounselorSquadContext` + `CounselorSquadDashboard`.
+  - Вступление по коду/ссылке через `?counselor_squad=CODE`, хранение в localStorage (`rl_counselor_squad_*`).
+  - **Нет стабильного UX‑входа в ЛК** (в `ProfileView.tsx` сейчас нет panel view/кнопки “Отряд вожатых”), поэтому механика фактически “спрятана”.
+  - Нет server‑shared состояния, участников и чата (в отличие от `Squad`).
+- **Статус:** **Partial** (механика важная, но не доведена до продуктового уровня).
+- **To‑be (roadmap):**
+  - Довести “Отряд вожатых” до уровня server‑Squad‑кабинета: участники, инвайты, чат, общий уголок/план/атрибутика.
+  - Решить доменную модель:
+    - отдельная server‑сущность `StaffSquad`, или
+    - расширение `Squad` с `kind: participant|staff` (и отдельным RBAC/видимостью).
+- **Evidence:** [`../src/context/CounselorSquadContext.tsx`](../src/context/CounselorSquadContext.tsx), [`../src/components/CounselorSquadDashboard.tsx`](../src/components/CounselorSquadDashboard.tsx).
+
+### 7.8. Отрядный уголок (Squad Corner): hybrid (локальный черновик + server shared) + вход в кабинет
+
+- **Value:** общий “дом отряда” и единая точка входа в кабинет: традиции, атрибутика, планирование, чат и участники.
 - **UX (As‑is):**
-  - Панель “Отряд вожатых” в ЛК (tab‑навигация как в уголке): “Отряд/Фото/Планёрка/Беспорядок дня/Значки на флаг”.
-  - Создание отряда (для `shift_leader|camp_director|developer`) + код/ссылка приглашения; вступление по коду; выход; “распустить отряд”.
+  - Панель “Отрядный уголок” (`panel=squad-corner`) с табами: “Отряд”, “Фото”, “Планёрка”, “Значки на флаг”.
+  - Таб **“Отряд”**:
+    - если membership есть → рендерим **кабинет отряда** (участники/инвайты/чат + read‑only инфо уголка),
+    - если membership нет → показываем wizard (что нужно заполнить/сделать) + вступление/создание.
+  - Редактирование уголка доступно staff‑ролям (в первую очередь `counselor`; dev‑sandbox тоже), участники читают контент через кабинет.
 - **Данные/состояния (As‑is):**
-  - Хранение: localStorage (`rl_counselor_squad_created_v1`, `rl_counselor_squad_joined_v1`, `rl_counselor_squad_cards_v1`). Evidence: [`../src/context/CounselorSquadContext.tsx`](../src/context/CounselorSquadContext.tsx).
-  - UI: [`../src/components/CounselorSquadDashboard.tsx`](../src/components/CounselorSquadDashboard.tsx), интеграция в [`../src/views/ProfileView.tsx`](../src/views/ProfileView.tsx) (panel `counselor-squad`).
-  - ИИ‑картинки: `POST /api/images/generate` (`context=counselor_squad`). Evidence: `CounselorSquadDashboard.tsx`, [`../backend/app.py`](../backend/app.py).
-- **Статус:** **Done** (как локальная механика).
-- **Открытые вопросы:**
-  - `[Вопрос к Стёпе]` Должен ли “отряд вожатых” в будущем стать тем же `Squad`/`Shift` (staff‑flow), или оставляем отдельной сущностью (локальная, “для методики”)?
-
-### 7.8. Отрядный уголок (локальный): лицо отряда, планёрка, фото, значки на флаг
-
-- **Value:** дать отряду “дом”: традиции, атрибутика, планирование и общая память (даже без сложной серверной синхронизации).
-- **UX (As‑is):**
-  - Панель “Отрядный уголок” с табами: “Отряд”, “Фото”, “Планёрка”, “Значки на флаг”.
-  - Наполнение: название/девиз/кричалки/приветствие/мемы + фото‑блоки.
-  - “Значки на флаг”: локальные заявки/апрувы на значки флага (как мини‑модерация внутри отряда).
-- **Данные/состояния (As‑is):**
-  - Хранение: `userData.diaryProgress.squad` внутри `rl_guide_progress_v1`. Evidence: [`../src/types/userProgress.ts`](../src/types/userProgress.ts), [`../src/context/ProgressContext.tsx`](../src/context/ProgressContext.tsx).
-  - UI: [`../src/components/SquadCornerDashboard.tsx`](../src/components/SquadCornerDashboard.tsx).
-  - ИИ‑картинки в уголке доступны через `ImageSourceBlock` (context `squad_corner`). Evidence: `SquadCornerDashboard.tsx`, `backend/app.py` (`/api/images/generate`).
-- **Гейты:** traveler может смотреть, но генерация/онлайн‑действия гейтятся “unlock по коду” (см. §3).
-- **Статус:** **Done** (как локальная механика).
-- **Открытые вопросы:**
-  - `[Вопрос к Стёпе]` Нужно ли синхронизировать уголок на сервер (для общего доступа отряду), или офлайн‑first остаётся нормой в MVP?
+  - Local draft: `rl_guide_progress_v1` (`userData.diaryProgress.squad`).
+  - Server shared: `GET/PATCH /api/squads/<squadId>/corner` → `backend/data/squad_corners.json` (лимит PATCH: 5 MB).
+  - Кабинет тянет read‑only инфо уголка через `GET /api/squads/<squadId>/corner`.
+- **Решено (§7.8):** уголок синхронизируем на сервер (общий доступ отряду); local остаётся черновиком/кэшем.
+- **Статус:** **Done (hybrid)**.
+- **Evidence:** [`../src/components/SquadCornerDashboard.tsx`](../src/components/SquadCornerDashboard.tsx), [`../src/components/SquadCabinetPanel.tsx`](../src/components/SquadCabinetPanel.tsx), [`../backend/app.py`](../backend/app.py).
 
 ### 7.9. Совет Лагеря: обзор + связь с Движками + ИИ‑инициативы (To‑be: обсуждение/голосование/протоколы)
 
@@ -477,8 +518,7 @@ Evidence: [`../src/hooks/useDataLoader.ts`](../src/hooks/useDataLoader.ts), [`..
   - ИИ‑генерация инициативы: `fetchCouncilInitiative()` → `/api/chat` (или Cloudflare endpoint). Evidence: [`../src/utils/aiService.ts`](../src/utils/aiService.ts), [`../src/components/CouncilDashboard.tsx`](../src/components/CouncilDashboard.tsx).
 - **Статус:** **Partial**.
 - **To‑be (roadmap):** хранение инициатив, статусы, обсуждения, голосования, протоколы, связи “инициатива ↔ Движок ↔ отряд ↔ значки”.
-- **Открытые вопросы:**
-  - `[Вопрос к Стёпе]` Q4: ближайшая фаза — это “генератор инициатив + обзор” (как сейчас), или нужен MVP протоколирования/голосований?
+- **Решено (Q4):** ближайшая фаза — “обзор + генератор инициатив” + **персистентный список инициатив** (чтобы не “улетало в воздух”); протоколы/голосования — позже.
 
 ### 7.10. Реальный Дневник: дневные записи + “беспорядок дня” + презентация/шеринг
 
@@ -506,8 +546,7 @@ Evidence: [`../src/hooks/useDataLoader.ts`](../src/hooks/useDataLoader.ts), [`..
   - Соцкарточка вида `inspector_mission` в share‑центре. Evidence: [`../src/utils/socialGenerator.ts`](../src/utils/socialGenerator.ts).
   - Связность с Дневником: `onOpenDiary` в `InspectorDashboard` и подсказки в `RealDiaryDashboard`. Evidence: [`../src/components/InspectorDashboard.tsx`](../src/components/InspectorDashboard.tsx), [`../src/components/RealDiaryDashboard.tsx`](../src/components/RealDiaryDashboard.tsx).
 - **Статус:** **Done** (как игровая механика и UX).
-- **Открытые вопросы:**
-  - `[Вопрос к Стёпе]` В черновике отмечено “нужно доработать подтверждение и переход к следующим чеклистам”. Что именно является “переходом”: день/миссия/ранг инспектора/значок?
+- **Решено:** “переход” = при подтверждении выполнения чеклиста он закрывается и открывается следующий (это прогрессия чеклистов/миссий). Методика описана в соответствующих материалах.
 
 ### 7.12. БРО: бропаспорт → бродела → инициация (To‑be: подтверждение у вожатого)
 
@@ -521,8 +560,8 @@ Evidence: [`../src/hooks/useDataLoader.ts`](../src/hooks/useDataLoader.ts), [`..
   - Доп. контент/миссии: `GET/POST /api/bro-missions`. Evidence: [`../backend/app.py`](../backend/app.py), `useDataLoader` (dynamicBroMissions).
 - **Гейты:** traveler должен разблокировать по коду для продвинутых действий; “Крыло” дополнительно гейтится `userData.broProgress.isBro`. Evidence: FeatureGate в [`../src/views/ProfileView.tsx`](../src/views/ProfileView.tsx).
 - **Статус:** **Done** (как текущий интерактивный трек).
-- **Открытые вопросы:**
-  - `[Вопрос к Стёпе]` Нужен ли обязательный staff‑апрув “Бросвящения” (серверно), и если да — как он должен выглядеть в UX?
+- **Решено:** нужен обязательный staff‑апрув “Бросвящения”.  
+  **To‑be:** оформить это как серверный workflow (заявка → inbox staff → approve/reject) с понятным UX‑статусом.
 
 ### 7.13. Крыло: айдентика, план‑сетки, наставничество, “посвящение отряда”
 
@@ -536,8 +575,7 @@ Evidence: [`../src/hooks/useDataLoader.ts`](../src/hooks/useDataLoader.ts), [`..
   - UI: [`../src/components/WingDashboard.tsx`](../src/components/WingDashboard.tsx), [`../src/components/SquadArchitect.tsx`](../src/components/SquadArchitect.tsx).
   - ИИ‑картинки: `POST /api/images/generate` (`context=wing`, mode generate/process). Evidence: `WingDashboard.tsx`, [`../backend/app.py`](../backend/app.py).
 - **Статус:** **Done**.
-- **Открытые вопросы:**
-  - `[Вопрос к Стёпе]` В To‑be Крыло “в будущем становится новым отрядом”. Это означает миграцию в сущность `Squad` (staff‑flow) или отдельный тип?
+- **Решено:** Крыло остаётся **отдельным типом**, не мигрирует в `Squad` (staff‑flow).
 
 ### 7.14. 4К‑профиль и “Программа РЛ 2026”: расчёт + ИИ‑характеристика
 
@@ -563,8 +601,7 @@ Evidence: [`../src/hooks/useDataLoader.ts`](../src/hooks/useDataLoader.ts), [`..
   - DOCX: `VZhTFKTR.docx` (download). Evidence: `ProfileView.tsx`.
   - Чеклист: [`../src/data/vozhatifikatorChecklist.ts`](../src/data/vozhatifikatorChecklist.ts) + `userData.vozhatifikatorChecklist` в `rl_guide_progress_v1`. Evidence: [`../src/context/ProgressContext.tsx`](../src/context/ProgressContext.tsx).
 - **Статус:** **Done** (как механика; наполнение книги — продуктовый контент‑трек).
-- **Открытые вопросы:**
-  - `[Вопрос к Стёпе]` В черновике есть “разделы 2019–2022 и 2023–н.в. в разработке”. Это контент‑план (ok), или нужны UI‑маркеры “в разработке” в viewer?
+- **Решено:** нужны UI‑маркеры “в разработке” для разделов/глав, которые ещё не дописаны (чтобы это читалось как контент‑план, а не баг).
 
 ### 7.16. Мастерская / UGC: “Кузница смыслов”, кастомные значки, публикация, лента, карточка созидателя
 
@@ -582,8 +619,7 @@ Evidence: [`../src/hooks/useDataLoader.ts`](../src/hooks/useDataLoader.ts), [`..
 - **Гейты:** часть действий может требовать unlock по коду (по политике “дорогих” действий); сейчас UGC в основном локальный.
 - **Статус:** **Done** (как UGC‑MVP).
 - **To‑be (roadmap):** модерация и перевод в канон (pipeline в `public/ai-data`), предложения категорий, роли педагога/мастерской как сущности.
-- **Открытые вопросы:**
-  - `[Вопрос к Стёпе]` Нужен ли “кабинет мастерской педагога” как сущность v1 (из черновика), или это Фаза 2+?
+- **Решено:** “кабинет мастерской педагога” нужен уже в v1 (как отдельная сущность/поверхность в рамках Мастерской).
 
 ### 7.17. Социальные карточки / Share Center (stories + wide) + приглашения
 
@@ -596,7 +632,12 @@ Evidence: [`../src/hooks/useDataLoader.ts`](../src/hooks/useDataLoader.ts), [`..
   - Виды карточек (kinds): `progress_summary`, `start_route`, `achieved_level`, `favorite`, `inspector_mission`, `creator_proposal`. Evidence: `SocialCardKind` в `socialGenerator.ts`.
   - Share UX: `navigator.share` (если доступно) → иначе download. Evidence: `shareOrDownloadSocialCard()` в `socialGenerator.ts`.
   - Приглашение/шаринг значка: `?view=badge&badgeId=...`. Evidence: `getBadgeShareUrl()` в `socialGenerator.ts`, deep‑link обработка в [`../src/app/useAppController.ts`](../src/app/useAppController.ts).
-- **Статус:** **Done**.
+- **Карточки прогресса (To‑be):** продуктовые триггеры и сценарии шеринга, которые должны “всплывать в моменте”:
+  - при `В путь` (start_route),
+  - при `achieved` (achieved_level),
+  - при 100% заполнении дневника/уголка/чеклиста,
+  - при ключевых “разблокировках” разделов/ранга.
+- **Статус:** **Partial** (генератор карточек Done, но “моменты” и продуктовые сценарии шеринга требуют доводки).
 
 ### 7.18. НейроВалюша: чат, контекст (категория/значок/уровень), лимиты, роли
 
@@ -611,8 +652,8 @@ Evidence: [`../src/hooks/useDataLoader.ts`](../src/hooks/useDataLoader.ts), [`..
   - Ограничение по сообщениям: бэкенд возвращает 429 при превышении дневного лимита. Evidence: [`../backend/app.py`](../backend/app.py).
 - **Гейты/разблокировки:** `canUseChat` по роли (см. `CHAT_ALLOWED_ROLES`) + наличие `accessToken`. Evidence: [`../src/types/authRole.ts`](../src/types/authRole.ts), [`../src/context/AuthContext.tsx`](../src/context/AuthContext.tsx).
 - **Статус:** **Partial** (механика в коде есть, но в PROD сейчас действует “traveler forced”, а также есть зависимость от внешнего endpoint в прод‑режиме).
-- **Открытые вопросы:**
-  - `[Вопрос к Стёпе]` Нужна ли единая “продовая” схема: всё через наш backend `/api/chat` (Vercel) или часть запросов уходит в Cloudflare (как сейчас в клиенте)?
+- **Решено:** единая продовая схема через наш backend (без Cloudflare‑обходов).  
+  **To‑be:** закрыть dev‑двери в проде, добавить rate limits/квоты и перевести прод‑вызовы чата на `/api/chat`.
 
 ### 7.19. Резервная копия/экспорт‑импорт/сброс + родительский просмотр (file/link/code/QR)
 
@@ -629,8 +670,7 @@ Evidence: [`../src/hooks/useDataLoader.ts`](../src/hooks/useDataLoader.ts), [`..
   - `parent_view`: кодирование base64url в ссылку и парсинг на загрузке. Evidence: [`../src/views/ProfileView.tsx`](../src/views/ProfileView.tsx).
   - `parent_code`: `POST/GET /api/parent-snapshot?code=...` + TTL (7 дней). Evidence: [`../backend/app.py`](../backend/app.py), UI/QR: `ProfileView.tsx` (QRCodeSVG).
 - **Статус:** **Done**.
-- **Открытые вопросы:**
-  - `[Вопрос к Стёпе]` Родительский режим должен быть строго read‑only (To‑be) или “родитель как участник” (As‑is‑склонность)? → см. Q2.
+- **Решено (Q2):** hybrid — у родителя есть свой ЛК/прогресс, а “режим ребёнка” всегда строго read‑only (отдельная витрина/отчёт).
 
 ### 7.20. Онбординг/подсказки (tutorial, SmartHint)
 
@@ -662,6 +702,7 @@ Evidence: [`../src/hooks/useDataLoader.ts`](../src/hooks/useDataLoader.ts), [`..
 ### 8.1. Что уже реализовано в коде, но в черновике было неявно/не зафиксировано как механика
 - **Родительский просмотр прогресса** (Phase 1 `parent_view` + Phase 2 `parent_code`/QR + API). Evidence: [`../src/views/ProfileView.tsx`](../src/views/ProfileView.tsx), [`../src/types/userProgress.ts`](../src/types/userProgress.ts), [`../backend/app.py`](../backend/app.py).
 - **Серверный контур подтверждений уровней** (requests/inbox/approve/reject + “синк approvals”). Evidence: [`../src/utils/badgeApprovalApi.ts`](../src/utils/badgeApprovalApi.ts), [`../backend/app.py`](../backend/app.py).
+- **Экосистема смен/отрядов + кабинет отряда** (join/invite/leave/kick/chat + инфо уголка) в связке с “Отрядным уголком”. Evidence: [`../src/views/ProfileView.tsx`](../src/views/ProfileView.tsx), [`../src/components/SquadCabinetPanel.tsx`](../src/components/SquadCabinetPanel.tsx), [`../backend/app.py`](../backend/app.py).
 - **UGC лента/лайки + publish queue** для кастомных значков (community). Evidence: [`../src/hooks/useDataLoader.ts`](../src/hooks/useDataLoader.ts), `backend/app.py` (`/api/community/badges`).
 - **Онбординг SmartHint + tutorial** как отдельная механика “ввести в продукт”. Evidence: [`../src/context/HintOverlayContext.tsx`](../src/context/HintOverlayContext.tsx), [`../src/views/ProfileView.tsx`](../src/views/ProfileView.tsx).
 - **Service Worker/offline caching** как продуктовый слой (быстрота/устойчивость). Evidence: [`../public/sw.js`](../public/sw.js), [`../src/main.tsx`](../src/main.tsx).
@@ -672,9 +713,8 @@ Evidence: [`../src/hooks/useDataLoader.ts`](../src/hooks/useDataLoader.ts), [`..
 
 ### 8.2. Что описано в черновике, но в коде отсутствует или Partial
 - **“Фрактал” связей: Shift → Squad → Engines внутри отряда** — в коде Движки (Team) и отряды (Squad) пока параллельны. Status: Partial/Planned (см. Q1).
-- **Кабинет отряда (server Squad)** как полноценный продукт: чат, общие документы/планирование, список Движков внутри отряда. Status: Planned (см. §7.7).
-- **Голосования/протоколы Совета Лагеря** (внутри приложения). Status: Planned (см. §7.9, Q4).
-- **Кабинет мастерской педагога** как сущность (расписание, группы, задания, проверки). Status: Planned (см. §7.16).
+- **Голосования/протоколы Совета Лагеря** (внутри приложения). Status: Planned (см. §7.9).
+- **Кабинет мастерской педагога** как сущность (расписание, группы, задания, проверки). Status: Planned (нужно в v1; см. §7.16).
 - **Бизнес‑контур лагеря** (запись/бронь/оплата/подписки/мульти‑лагерь). Status: Planned (см. Фаза 4).
 - **Мобильная игра** как отдельный продуктовый трек. Status: Planned (см. Фаза 5).
 
@@ -689,7 +729,7 @@ Evidence: [`../src/hooks/useDataLoader.ts`](../src/hooks/useDataLoader.ts), [`..
 
 > Принцип: этот roadmap — по **фазам** и **продуктовым эпикам**. Операционный dev‑трекер задач остаётся в [`docs/ROADMAP_2026.md`](ROADMAP_2026.md).
 
-### Фаза 0 — “Срез текущего продукта (As‑is)” (зафиксировано на 2026‑02‑19)
+### Фаза 0 — “Срез текущего продукта (As‑is)” (зафиксировано на 2026‑02‑21)
 **Цель:** не перепридумывать реализованное и честно видеть пробелы.
 
 **В продукте уже есть (высокий уровень):**
@@ -702,8 +742,10 @@ Evidence: [`../src/hooks/useDataLoader.ts`](../src/hooks/useDataLoader.ts), [`..
 
 **Главные пробелы, которые влияют на прод‑MVP:**
 - Production политика ролей/разблокировок (forced traveler).
-- “Смены/отряды” есть как staff‑контур, но нет “кабинета отряда” как продукта.
-- Совет Лагеря пока без протоколов/голосований и без хранения инициатив в приложении.
+- Движки пока не связаны с отрядами/сменами (Q1) и не видны “внутри отряда” как часть фрактала.
+- Совет Лагеря пока без хранения инициатив в приложении (персистентного списка) и без протоколов/голосований.
+- “Отряд вожатых” важен продуктово, но сейчас это локальный прототип без server‑синхронизации и без UX‑входа в ЛК.
+- `educator`: роль нужна в v1 (Q6), но backend RBAC ещё не доведён.
 
 ### Фаза 1 — Production MVP “Участник смены” (стабилизация + UX‑склейка)
 **Цель:** ребёнок на смене + вожатый + родитель проходят ключевой путь без “дыр”.
@@ -712,9 +754,10 @@ Evidence: [`../src/hooks/useDataLoader.ts`](../src/hooks/useDataLoader.ts), [`..
 1) **Роли в production и безопасная авторизация**
    - Решить Q5: как включаем роли/чат/онлайн‑фичи в проде без “dev‑дыр”.
    - DoD: пользователь может разблокировать доступ по коду; traveler‑ограничения понятны; 401/expired‑токены ведут к понятному UX.
-2) **Отряд (MVP путь)**
-   - Минимум: вступление участника в отряд (по коду/ссылке/QR — продуктово решить), базовый “кабинет отряда” (ростер + объявления + связка с уголком).
-   - Связать локальный “Отрядный уголок” с `Squad` или явно развести (решение Q1/Q7).
+2) **Отряд (стабилизация + UX‑склейка)**
+   - База уже реализована: `Смены и отряды` + вступление по коду/ссылке + кабинет отряда (участники/чат/инвайты/leave/kick) + hybrid‑уголок.
+   - Довести UX: понятные “что дальше” подсказки, стабильные переходы в кабинет, корректные пустые состояния, меньше дублирования информации.
+   - To‑be: связать отряд ↔ движки (Q1) и отобразить “Движки отряда” в кабинете.
 3) **Значки: маршрут → пруф → подтверждение**
    - Политика Q3, единые состояния “pending/approved/rejected”, понятный журнал действий.
    - DoD: участник отправляет заявку; staff подтверждает; участник синхронизирует и видит achieved.
@@ -738,7 +781,7 @@ Evidence: [`../src/hooks/useDataLoader.ts`](../src/hooks/useDataLoader.ts), [`..
 - Полный RBAC на сервере для staff‑ролей (educator, camp_director) + согласование прав (Q6).
 - Дашборды staff: смены/отряды, модерация заявок, списки детей (минимально: nickname snapshot), базовая статистика.
 - Совет Лагеря: протоколирование решений (MVP) и связи инициатив с Движками/отрядами.
-- (Опционально) “Кабинет мастерской педагога” — если подтверждается как ближайшая ценность.
+- “Кабинет мастерской педагога” (educator) — v1 must-have: расписание, группы, задания, проверки.
 
 ### Фаза 3 — Creator/UGC “конструктор Путеводителя”
 **Цель:** вывести UGC в управляемый процесс и переводить лучшее в канон.
@@ -766,49 +809,43 @@ Evidence: [`../src/hooks/useDataLoader.ts`](../src/hooks/useDataLoader.ts), [`..
 
 ## 10) Открытые вопросы (реестр)
 
+> На срез 2026‑02‑21 ключевые вопросы Q1–Q7 продуктово **решены**. Ниже фиксируем решения как SSOT и оставляем открытыми только детали реализации.
+
 ### Q1 — Движки: внутри отряда/смены или глобальные команды?
-- **Зачем:** определяет доменную модель, хранение, права, UX навигации и Совет.
-- **Варианты:**
-  1) *As‑is:* глобальные `Team` (независимо от `Squad`).
-  2) *To‑be:* `Team` привязан к `Squad` (и через него к `Shift`).
-- **Рекомендую (инженерно):** начать с As‑is для MVP (меньше блокеров), но в Phase 2 добавить связь `team.squadId?` и миграционный сценарий (чтобы прийти к фракталу без переписывания всего).
+- **Решено:** гибрид — у движка есть `scope: camp | shift | squad` + опциональные `shiftId/squadId`.
+- **As‑is:** `Team` глобальный и живёт параллельно `Squad` (без связей).
+- **To‑be:** добавить `scope` + связность в кабинете отряда (“Движки моего отряда”), RBAC и миграцию данных.
 
 ### Q2 — Родитель: read‑only наблюдатель или “играет как участник + наблюдает”?
-- **Зачем:** влияет на UX, доверие и безопасность; определяет, какие действия родитель может делать от своего имени.
-- **Варианты:**
-  1) Read‑only: родитель только смотрит achieved‑прогресс ребёнка (через отчёт/код).
-  2) Hybrid: у родителя есть свой ЛК (как сейчас частично) + отдельный “режим ребёнка” read‑only.
-- **Рекомендую:** Hybrid (2) с жёстким read‑only режимом “ребёнок”, чтобы не было смешения прогресса.
+- **Решено:** hybrid — у родителя есть свой ЛК/прогресс, а “режим ребёнка” всегда строго read‑only (отдельная витрина/отчёт).
 
 ### Q3 — Подтверждение достижений: self‑claim vs staff‑апрув
-- **Зачем:** нагрузка на staff vs доверие к значкам.
-- **Варианты:**
-  1) Self‑claim для части уровней (низкий риск) + staff‑апрув для “ключевых”.
-  2) Staff‑апрув для всех achieved.
-- **Рекомендую:** (1) и заранее пометить в контенте (ai-data) “нужен апрув” как флаг, чтобы UX был однозначный.
+- **Решено:** mixed — “бытовые/рефлексивные/безопасные” self‑claim, “ключевые/БРО/социально значимые/с риском читинга” через staff.
+- **To‑be:** помечать в контенте (ai-data) флаг `requiresApproval`, чтобы UX был однозначный.
 
 ### Q4 — Совет Лагеря: ближайшая фаза
-- **Варианты:**
-  1) Оставляем как сейчас: обзор + генератор инициатив (Фаза 1).
-  2) Добавляем MVP протоколов/голосований (Фаза 2).
-- **Рекомендую:** (1) в Фазе 1, (2) в Фазе 2, когда появятся связки с отрядами/ролями.
+- **Решено:** оставляем “обзор + генератор инициатив” и добавляем персистентный список инициатив; протоколы/голосования — позже.
 
 ### Q5 — Политика ролей в production (forced traveler сейчас)
-- **Зачем:** без решения роли/чат/онлайн‑фичи в проде “не существуют”.
-- **Варианты:**
-  1) Убираем forced traveler, но вводим строгие проверки на сервере (JWT + RBAC) и убираем dev‑пассажи.
-  2) Оставляем forced traveler и делаем отдельный “prod unlock” флаг (например, от домена/конфига), чтобы включать роли только на нужных инсталляциях.
-- **Рекомендую:** (2) если есть риск “случайного dev‑доступа” в публичном домене; (1) если продукт реально должен жить в открытом интернете с ролями.
+- **Решено:** убираем “демо‑режим” (forced traveler) — прод становится “настоящим приложением”: роли работают всегда и везде.
+- **Требования (must):**
+  - RBAC железный на сервере (всё решается по JWT, не по словам клиента).
+  - `POST /api/dev/login` и любые dev‑двери закрыты в проде.
+  - Лимиты/рейткейпы на чат/ИИ (иначе расходы/абьюз).
+- **As‑is:** клиент в `import.meta.env.PROD` принудительно форсит `traveler` (это временная safety‑политика).
 
 ### Q6 — Staff‑роли: educator и camp_director
-- **Зачем:** сейчас типы/UI знают про роли, но серверные RBAC эндпоинты не везде их учитывают.
-- **Варианты:** (a) урезаем роли до реально используемых в v1; (b) доводим RBAC до полноты.
-- **Рекомендую:** в Фазе 1 — урезать/спрятать лишнее в прод‑UX, в Фазе 2 — довести RBAC и расширить.
+- **Решено:** полный набор staff‑ролей в v1, включая `educator` (мастерская/кружки) + `camp_director`.
+- **As‑is:** `camp_director` уже включён в server RBAC для organizer/squad-flow; `educator` в backend RBAC пока отсутствует (см. §3.4).
+- **To‑be:** довести backend RBAC и поверхности “кабинета педагога” в Мастерской.
 
 ### Q7 — Синхронизация прогресса: только localStorage или сервер + мульти‑девайс?
-- **Зачем:** влияет на доверие (“не потерять прогресс”), на shared‑режимы и на операционку лагеря.
-- **Варианты:** (a) localStorage + экспорт/импорт (как сейчас); (b) серверный аккаунт и синк.
-- **Рекомендую:** (a) для Фазы 1, (b) как отдельный эпик Фазы 3/4 (когда появится multi‑camp).
+- **Решено:** (a) для Фазы 1, (b) как отдельный эпик Фазы 3/4 (когда появится multi‑camp).
+
+### Открытые вопросы (остаток)
+- Доменная модель server‑версии “Отряд вожатых”: отдельная сущность vs `Squad(kind=staff)` (см. §7.7.1).
+- Миграционный путь движков на hybrid scope без ломки As‑is `Team`.
+- Минимальная схема “инициатив” для Совета (статусы, ownership, связи с движком/отрядом).
 
 ---
 
