@@ -56,7 +56,7 @@ export const CounselorSquadDashboard: React.FC<CounselorSquadDashboardProps> = (
     approveActiveFlagBadgeRequest
   } = useCounselorSquad();
 
-  const canEdit = role === 'shift_leader' || role === 'developer';
+  const canEdit = role === 'shift_leader' || role === 'camp_director' || role === 'developer';
   const canCreateSquad = canEdit;
 
   const [counselorJoinCode, setCounselorJoinCode] = useState('');
@@ -383,6 +383,28 @@ export const CounselorSquadDashboard: React.FC<CounselorSquadDashboardProps> = (
         <div className="counselor-squad-cabin-section" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <div style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', color: ACCENT, letterSpacing: '.1em', marginBottom: 4 }}>Вожатский отряд</div>
         </div>
+        {!myJoinedSquad && !canCreateSquad && role !== 'counselor' && role !== 'educator' && (
+          <div className="organizer-empty-state" style={{ marginBottom: 14 }}>
+            <div className="organizer-empty-state__icon" aria-hidden>
+              🔒
+            </div>
+            <p className="organizer-empty-state__title" style={{ margin: '0 0 6px', fontSize: 14 }}>
+              Доступ ограничен
+            </p>
+            <p className="organizer-empty-state__text" style={{ margin: '0 0 10px', fontSize: 12, opacity: 0.85 }}>
+              Раздел предназначен для вожатых и старших. Ты видишь, что функционал предусмотрен, но пользоваться им не можешь.
+            </p>
+            <div className="organizer-empty-state__text" style={{ margin: 0, fontSize: 12, opacity: 0.85 }}>
+              <strong>Что внутри:</strong>
+              <ul style={{ margin: '6px 0 0', paddingLeft: 18 }}>
+                <li>Отряд</li>
+                <li>Фото</li>
+                <li>Планёрка</li>
+                <li>Значки на флаг</li>
+              </ul>
+            </div>
+          </div>
+        )}
         {myJoinedSquad && (
           <div style={{ marginBottom: 14 }}>
             <p style={{ margin: 0, fontSize: 13, opacity: 0.9 }}>
