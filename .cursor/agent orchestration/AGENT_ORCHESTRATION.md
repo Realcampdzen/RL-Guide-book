@@ -4,6 +4,13 @@
 
 **Связанные документы:** [agent.md](../../agent.md), [HOW_TO_BRIEF_AGENTS.md](../../docs/HOW_TO_BRIEF_AGENTS.md), [active_context.md](../../.memory-bank/active_context.md), [ROADMAP_2026.md](../../docs/ROADMAP_2026.md).
 
+**Production Roadmap (Фазы 1–5):** координация по реализации `PRODUCT_MECHANICS_AND_ROADMAP.md` — отдельная система в [`docs/PROD_ROADMAP_IMPL/`](../../docs/PROD_ROADMAP_IMPL/):
+- Инструкция агентам: [`AGENT_INSTRUCTIONS.md`](../../docs/PROD_ROADMAP_IMPL/AGENT_INSTRUCTIONS.md)
+- Задачи по фазам: [`TASKS.md`](../../docs/PROD_ROADMAP_IMPL/TASKS.md)
+- Живой Claim Board prod-roadmap: [`CLAIM_BOARD.md`](../../docs/PROD_ROADMAP_IMPL/CLAIM_BOARD.md)
+- Планы реализации: [`plans/`](../../docs/PROD_ROADMAP_IMPL/plans/)
+- Отчёты агентов: [`reports/`](../../docs/PROD_ROADMAP_IMPL/reports/)
+
 ---
 
 ## 1. Роли агентов (из active_context)
@@ -40,9 +47,12 @@
 |-------|--------|--------|-------------|------------------------|
 | **Agent B** | Подключение разделов ЛК к POST /api/images/generate (onGenerate в ImageSourceBlock) | Done | 2026-02-09 | После: следующая задача по ROADMAP/видению (ИИ-изображения, онлайн-Движки и т.д.). UX-полировка 429/503 и режим Process (аудит, aria-label) выполнены. |
 | **C** | Синхронизация промптов backend ↔ cf-api (единый тон NeuroValyusha) | Done | 2026-02-09 | После: при смене тона/правил в Python — проверить NEUROVALYUSHA_SOCIAL_SYSTEM и CAMP_STATIC_INFO в cf-api; опционально — автоматизация. |
+
 **Как обновлять:**
 - При **старте** задачи: добавить строку с агентом, задачей, статусом «In progress», датой.
 - При **завершении**: пометить статус «Done», при желании переместить строку в раздел «История» ниже.
+
+> **Production Roadmap (Фазы 1–5):** задачи по реализации `PRODUCT_MECHANICS_AND_ROADMAP.md` ведутся в отдельном Claim Board: [`docs/PROD_ROADMAP_IMPL/CLAIM_BOARD.md`](../../docs/PROD_ROADMAP_IMPL/CLAIM_BOARD.md). Агенты: читать [`docs/PROD_ROADMAP_IMPL/AGENT_INSTRUCTIONS.md`](../../docs/PROD_ROADMAP_IMPL/AGENT_INSTRUCTIONS.md).
 
 ---
 

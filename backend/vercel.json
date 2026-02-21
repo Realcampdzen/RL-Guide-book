@@ -4,12 +4,24 @@
     {
       "src": "api/index.js",
       "use": "@vercel/node"
+    },
+    {
+      "src": "api/flask_app.py",
+      "use": "@vercel/python"
     }
   ],
   "routes": [
     {
-      "src": "/api/(.*)",
+      "src": "/api/chat",
       "dest": "/api/index.js"
+    },
+    {
+      "src": "/api/stats",
+      "dest": "/api/index.js"
+    },
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/flask_app.py"
     }
   ]
 }

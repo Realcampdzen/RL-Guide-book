@@ -165,9 +165,10 @@ Retention:
 
 ## 5) Migration strategy (по шагам)
 
-### Этап 0: подготовка
+### Этап 0: подготовка ✅ Done (2026-02-21, Agent A)
 - Создать Supabase проект для staging и prod.
 - Применить schema v1.
+- SQL миграция: [`backend/migrations/001_schema_v1.sql`](../backend/migrations/001_schema_v1.sql) — 9 таблиц, индексы, constraints, retention trigger.
 
 ### Этап 1: Storage adapter в backend
 Добавить интерфейс `StorageProvider` (или аналог) и инкапсулировать доступы к данным:
