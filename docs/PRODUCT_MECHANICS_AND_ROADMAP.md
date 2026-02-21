@@ -18,6 +18,38 @@
 
 ## 0) Как пользоваться этим документом
 
+### 0.0. Prod Target (Pilot): “тест на смене” = настоящее hosted‑приложение
+**Цель пилота:** подключить детей/родителей/вожатых на реальной смене так, чтобы приложение работало как сервис: данные не теряются, роли и доступы железные, чат/онлайн‑фичи безопасны.
+
+**Что считаем “prod” для пилота (целевой стенд):**
+- Frontend: Vercel (основной), GitHub Pages остаётся как демо‑хост (не как основная среда смены).
+- Backend: Vercel (API), без file‑storage как источника истины.
+- DB: Supabase Postgres (персистентность критичных доменов) + опционально Supabase Storage для картинок (отряд/флаг/прочее).
+- cf‑api (Cloudflare) остаётся отдельным контуром ботов, но для web‑прода **все** вызовы ИИ/чат‑лимитов идут через наш backend.
+
+**Pilot roles (минимальный состав для запуска смены):**
+- `participant` (ребёнок на смене)
+- `parent` (родитель, read‑only витрина ребёнка)
+- `counselor` (вожатый)
+- `shift_leader` (старший вожатый / руководитель смены)
+
+**P0 сценарии пилота (must):**
+- Participant: unlock по коду → вступление в отряд → “Отрядный уголок” (таб “Отряд” = кабинет) → чат отряда → заявки на значки.
+- Counselor: вступление → кабинет отряда → invite/kick/leave → редактирование уголка (название/атрибутика/фото/планёрка) → изменения видны участникам.
+- Shift leader: создать смену/отряды → выдавать коды (unlock и инвайты) → модерировать inbox заявок (approve/reject) → видеть стабильную орг‑картину.
+- Parent: получить `parent_code/QR` → открыть read‑only отчёт (без возможности что‑то “сломать” ребёнку).
+
+**P0 non‑functional (must):**
+- Персистентность: данные смен/отрядов/уголка/чата/заявок переживают деплой и рестарт (Supabase).
+- Dev‑двери закрыты в проде: dev login/sandbox UI отключены; forced traveler снят (Q5).
+- Safety: минимальные лимиты и фильтры (чат/ИИ/сообщения/картинки), запрет ссылок, ограничение длины/частоты.
+- Наблюдаемость: логи + алерты по 5xx/429, диагностика “что делать staff” при инцидентах.
+
+**Runbooks / спецификации (как запускать и как мигрировать storage):**
+- [`docs/CAMP_RUNBOOK.md`](CAMP_RUNBOOK.md) — как “провести смену” (T‑0 → ежедневная работа → финиш).
+- [`docs/PROD_RELEASE_PLAYBOOK.md`](PROD_RELEASE_PLAYBOOK.md) — чеклисты релиза, стенды, секреты, откат, мониторинг.
+- [`docs/SUPABASE_SCHEMA_AND_MIGRATION.md`](SUPABASE_SCHEMA_AND_MIGRATION.md) — схема БД и план миграции с `backend/data/*.json`.
+
 ### 0.1. Что это (и что это не)
 - Это **SSOT по механикам**: как работает продукт, что уже есть, что ещё нужно, где evidence в коде.
 - Это **high‑level roadmap по фазам релизов** (MVP → Beta → v1.0 → vNext), без привязки к датам.
@@ -63,10 +95,10 @@
 - Бэкенд API: [`../backend/app.py`](../backend/app.py)
 - Основной UI:
   - Entry: [`../src/main.tsx`](../src/main.tsx)
-  - Router: [`../src/app/AppViewRouter.tsx`](../src/app/AppViewRouter.tsx)
+ - Router: [`../src/app/AppViewRouter.tsx`](../src/app/AppViewRouter.tsx)
   - Controller: [`../src/app/useAppController.ts`](../src/app/useAppController.ts)
   - ЛК (кабина): [`../src/views/ProfileView.tsx`](../src/views/ProfileView.tsx)
-- Supabase (infra note): в `.env` уже есть `SUPABASE_URL` (и MCP Supabase настроен), но текущие SSOT-хранилища для смен/отрядов/уголков/чата — file-based JSON в `backend/data/*`. Миграция в Supabase = отдельный эпик (ориентир: Фаза 3/4, вместе с multi-camp и server-sync прогресса).
+- Supabase (infra note): в `.env` уже есть `SUPABASE_URL` (и MCP Supabase настроен). Для hosted‑пилота/prod file‑based JSON в `backend/data/*` **нельзя** (Vercel FS ephemeral + конкуренция записей), поэтому целевой storage: Supabase Postgres (+ Storage для картинок). План миграции: [`docs/SUPABASE_SCHEMA_AND_MIGRATION.md`](SUPABASE_SCHEMA_AND_MIGRATION.md). Multi‑camp и server‑sync прогресса остаются отдельными эпиками Фазы 3/4.
 
 ---
 
@@ -274,6 +306,11 @@ Evidence: [`../src/hooks/useDataLoader.ts`](../src/hooks/useDataLoader.ts), [`..
 ### 5.2. ЛК “Космическая кабина” (ProfileView)
 **Метафора:** кабина — это хаб прогресса + “панели управления” механиками лагеря.
 
+**Runbook/операционка (pilot/prod):**
+- [`docs/CAMP_RUNBOOK.md`](CAMP_RUNBOOK.md)
+- [`docs/PROD_RELEASE_PLAYBOOK.md`](PROD_RELEASE_PLAYBOOK.md)
+- [`docs/SUPABASE_SCHEMA_AND_MIGRATION.md`](SUPABASE_SCHEMA_AND_MIGRATION.md)
+
 **Навигационные слои As‑is:**
 - **Табы (центральный контент):** `active` (В пути), `favorites` (Избранное), `collection` (Коллекция), `journal` (Журнал), `squads` (Смены и отряды), `workshop` (служебный/глубокий вход, открывается по `#workshop`). Evidence: [`../src/views/ProfileView.tsx`](../src/views/ProfileView.tsx).
 - **Панели кабины (panel views):** `passport`, `inspector`, `profile4k`, `wing`, `team`, `council`, `bro`, `squad-corner`, `real-diary`, `vozhatifikator`, `workshop`, `share`, `parents`. Evidence: [`../src/views/ProfileView.tsx`](../src/views/ProfileView.tsx).
@@ -469,6 +506,9 @@ Evidence: [`../src/hooks/useDataLoader.ts`](../src/hooks/useDataLoader.ts), [`..
   - Read‑only список смен/отрядов: `participant|counselor|shift_leader|camp_director|developer` (traveler не читает).
   - Управление сменами/отрядами: `shift_leader|camp_director|developer`; `counselor` может создавать отряды только в своей смене (campId), а в dev‑sandbox допускается без `campId` только для seeded‑смены.
   - Membership: **одно активное membership на устройство**; join в другой отряд заменяет текущую привязку (поэтому в UI отряд может быть в списке, но вы в нём не состоите).
+- **Prod notes (pilot/prod):**
+  - File‑storage в `backend/data/*.json` подходит для local dev, но не для hosted prod → для пилота обязателен Supabase (см. [`docs/SUPABASE_SCHEMA_AND_MIGRATION.md`](SUPABASE_SCHEMA_AND_MIGRATION.md)).
+  - Одно membership на устройство = UX должен явно показывать “вы сейчас в отряде X” и запрашивать confirm перед join в другой отряд.
 - **Статус:** **Done** (экосистема смен/отрядов + кабинет отряда как продуктовый MVP).
 - **Evidence:** [`../src/views/ProfileView.tsx`](../src/views/ProfileView.tsx), [`../src/components/SquadCabinetPanel.tsx`](../src/components/SquadCabinetPanel.tsx), [`../backend/app.py`](../backend/app.py).
 
@@ -502,6 +542,9 @@ Evidence: [`../src/hooks/useDataLoader.ts`](../src/hooks/useDataLoader.ts), [`..
   - Local draft: `rl_guide_progress_v1` (`userData.diaryProgress.squad`).
   - Server shared: `GET/PATCH /api/squads/<squadId>/corner` → `backend/data/squad_corners.json` (лимит PATCH: 5 MB).
   - Кабинет тянет read‑only инфо уголка через `GET /api/squads/<squadId>/corner`.
+- **Prod notes (pilot/prod):**
+  - Фото сейчас хранятся как base64 внутри corner JSON и легко выбивают лимит 5MB → в hosted prod выносим фото в object storage (Supabase Storage) и в corner храним ссылки + метаданные.
+  - Нужны компрессия/thumbnail и лимиты на размер файлов (иначе медленный UX и рост расходов).
 - **Решено (§7.8):** уголок синхронизируем на сервер (общий доступ отряду); local остаётся черновиком/кэшем.
 - **Статус:** **Done (hybrid)**.
 - **Evidence:** [`../src/components/SquadCornerDashboard.tsx`](../src/components/SquadCornerDashboard.tsx), [`../src/components/SquadCabinetPanel.tsx`](../src/components/SquadCabinetPanel.tsx), [`../backend/app.py`](../backend/app.py).
@@ -638,6 +681,7 @@ Evidence: [`../src/hooks/useDataLoader.ts`](../src/hooks/useDataLoader.ts), [`..
   - при 100% заполнении дневника/уголка/чеклиста,
   - при ключевых “разблокировках” разделов/ранга.
 - **Статус:** **Partial** (генератор карточек Done, но “моменты” и продуктовые сценарии шеринга требуют доводки).
+- **Prod notes (pilot/prod):** карточки не должны содержать `deviceId`, JWT или внутренние id; только безопасные поля (nickname, агрегаты прогресса).
 
 ### 7.18. НейроВалюша: чат, контекст (категория/значок/уровень), лимиты, роли
 
@@ -654,6 +698,9 @@ Evidence: [`../src/hooks/useDataLoader.ts`](../src/hooks/useDataLoader.ts), [`..
 - **Статус:** **Partial** (механика в коде есть, но в PROD сейчас действует “traveler forced”, а также есть зависимость от внешнего endpoint в прод‑режиме).
 - **Решено:** единая продовая схема через наш backend (без Cloudflare‑обходов).  
   **To‑be:** закрыть dev‑двери в проде, добавить rate limits/квоты и перевести прод‑вызовы чата на `/api/chat`.
+- **Prod notes (pilot/prod):**
+  - В проде запрещаем прямые вызовы внешних endpoint’ов с клиента; весь чат/лимиты идут через backend для RBAC, фильтров, квот и логов.
+  - Минимальная safety: запрет ссылок, базовый мат‑фильтр, лимиты по длине/частоте, мониторинг 429/5xx.
 
 ### 7.19. Резервная копия/экспорт‑импорт/сброс + родительский просмотр (file/link/code/QR)
 
@@ -751,22 +798,34 @@ Evidence: [`../src/hooks/useDataLoader.ts`](../src/hooks/useDataLoader.ts), [`..
 **Цель:** ребёнок на смене + вожатый + родитель проходят ключевой путь без “дыр”.
 
 **Эпики (рекомендуемый состав):**
-1) **Роли в production и безопасная авторизация**
+1) **Prod Hardening (hosted‑готовность)**
+   - Персистентность: вынести критичные домены из `backend/data/*.json` в Supabase (shifts/squads/memberships/corners/invite‑codes/messages/badge_requests/parent_snapshots).
+   - Dev‑двери выключены в prod: `/api/dev/login` недоступен, sandbox UI скрыт, forced traveler снят (Q5).
+   - Safety‑минимум: rate limits + запрет ссылок + длины/частоты сообщений + базовые фильтры (чат/отрядный чат/ИИ картинки).
+   - Staging + smoke‑проверки перед релизом (см. [`docs/PROD_RELEASE_PLAYBOOK.md`](PROD_RELEASE_PLAYBOOK.md)).
+2) **Роли в production и безопасная авторизация**
    - Решить Q5: как включаем роли/чат/онлайн‑фичи в проде без “dev‑дыр”.
    - DoD: пользователь может разблокировать доступ по коду; traveler‑ограничения понятны; 401/expired‑токены ведут к понятному UX.
-2) **Отряд (стабилизация + UX‑склейка)**
+3) **Отряд (стабилизация + UX‑склейка)**
    - База уже реализована: `Смены и отряды` + вступление по коду/ссылке + кабинет отряда (участники/чат/инвайты/leave/kick) + hybrid‑уголок.
    - Довести UX: понятные “что дальше” подсказки, стабильные переходы в кабинет, корректные пустые состояния, меньше дублирования информации.
    - To‑be: связать отряд ↔ движки (Q1) и отобразить “Движки отряда” в кабинете.
-3) **Значки: маршрут → пруф → подтверждение**
+4) **Значки: маршрут → пруф → подтверждение**
    - Политика Q3, единые состояния “pending/approved/rejected”, понятный журнал действий.
    - DoD: участник отправляет заявку; staff подтверждает; участник синхронизирует и видит achieved.
-4) **Дневник ↔ Инспектор**
+5) **Дневник ↔ Инспектор**
    - Усилить связность: подсказки/CTA, минимум “что делать сегодня”.
-5) **Страховка: экспорт/импорт + родительский просмотр**
+6) **Страховка: экспорт/импорт + родительский просмотр**
    - DoD: родитель получает ссылку/код/QR и смотрит только achieved‑прогресс ребёнка.
-6) **НФ‑требования**
+7) **НФ‑требования**
    - Производительность на слабых устройствах, офлайн‑поведение ai‑data, устойчивость к ошибкам API.
+
+**Definition of Done (Pilot Prod):**
+- Все P0 сценарии по ролям из §0.0 проходят без ручных “правок в базе”.
+- Данные смен/отрядов/уголка/чата/заявок переживают деплой и рестарт (Supabase).
+- В проде нет dev‑дверей; forced traveler выключен; RBAC решается на backend по JWT.
+- Есть лимиты на чат/ИИ/сообщения и минимальная safety‑политика (с логированием и 429).
+- Есть staging‑стенд и smoke‑регрессия перед релизом.
 
 **Метрики (для MVP):**
 - % участников, которые добавили ≥1 уровень “В путь”.
