@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "description": "Mapping post types to ai-data layers for SMM comments",
+  "postTypes": {
+    "camp_activity": {
+      "useAiData": ["badge_level", "skills_4k", "category_description"],
+      "commentGoal": "show practical development value"
+    },
+    "program_explainer": {
+      "useAiData": ["category_method", "learning_path", "expected_outcomes"],
+      "commentGoal": "explain educational logic for parents"
+    },
+    "ai_creativity": {
+      "useAiData": ["ai_module", "skills_4k", "creative_tasks"],
+      "commentGoal": "position AI as skill amplifier"
+    },
+    "team_values": {
+      "useAiData": ["collaboration_blocks", "bro_track", "counselor_practice"],
+      "commentGoal": "connect camp culture to outcomes"
+    },
+    "case_result": {
+      "useAiData": ["route_progression", "proof_patterns", "reflection_model"],
+      "commentGoal": "show transformation trajectory"
+    },
+    "spring_shift_promo": {
+      "useAiData": ["program_modules", "age_fit", "camp_scenarios"],
+      "commentGoal": "soft conversion to dialogue/application"
+    }
+  }
+}
