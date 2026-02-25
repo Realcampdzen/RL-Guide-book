@@ -937,11 +937,67 @@ def handle_bro_missions():
     except (json.JSONDecodeError, OSError):
         return jsonify([])
 
+def _normalize_team_scope(raw_scope: str) -> str:
+    scope = (raw_scope or '').strip().lower()
+    if scope in ('camp', 'shift', 'squad'):
+        return scope
+    return 'camp'
+
+
+def _normalize_team_doc(team_doc: dict) -> dict:
+    if not isinstance(team_doc, dict):
+        return {}
+    normalized = dict(team_doc)
+    normalized['scope'] = _normalize_team_scope(normalized.get('scope') or 'camp')
+    shift_id = (normalized.get('shiftId') or '').strip() or None
+    squad_id = (normalized.get('squadId') or '').strip() or None
+    if normalized['scope'] == 'camp':
+        shift_id = None
+        squad_id = None
+    elif normalized['scope'] == 'shift':
+        squad_id = None
+    normalized['shiftId'] = shift_id
+    normalized['squadId'] = squad_id
+    return normalized
+
+
+def _is_scope_slot_equal(a: dict, b: dict) -> bool:
+    """Same slot = same scope and same context identifiers."""
+    if _normalize_team_scope(a.get('scope')) != _normalize_team_scope(b.get('scope')):
+        return False
+    scope = _normalize_team_scope(a.get('scope'))
+    if scope == 'camp':
+        return True
+    if scope == 'shift':
+        return (a.get('shiftId') or '') == (b.get('shiftId') or '')
+    return (a.get('shiftId') or '') == (b.get('shiftId') or '') and (a.get('squadId') or '') == (b.get('squadId') or '')
+
+
+def _team_matches_context(team_doc: dict, scope: str = '', shift_id: str = '', squad_id: str = '') -> bool:
+    doc = _normalize_team_doc(team_doc)
+    if scope and doc.get('scope') != _normalize_team_scope(scope):
+        return False
+    if shift_id and (doc.get('shiftId') or '') != shift_id:
+        return False
+    if squad_id and (doc.get('squadId') or '') != squad_id:
+        return False
+    return True
+
+
 def _teams_load():
     """Load teams.json; return dict. ensure_json_files already ensured it exists."""
     with open(TEAMS_FILE, 'r', encoding='utf-8') as f:
         raw = f.read()
-    return json.loads(raw) if raw.strip() else {}
+    data = json.loads(raw) if raw.strip() else {}
+    if not isinstance(data, dict):
+        return {}
+    # backward compatibility for legacy docs without scope fields
+    normalized: dict = {}
+    for team_id, team_doc in data.items():
+        if not isinstance(team_doc, dict):
+            continue
+        normalized[team_id] = _normalize_team_doc(team_doc)
+    return normalized
 
 
 def _teams_save(teams):
@@ -956,8 +1012,19 @@ def _find_team_by_member(teams, device_id):
         members = doc.get('members') or []
         for m in members:
             if isinstance(m, dict) and (m.get('id') or '').strip() == device_id:
-                return doc
+                return _normalize_team_doc(doc)
     return None
+
+
+def _find_member_teams(teams, device_id):
+    found = []
+    for _, doc in teams.items():
+        if not isinstance(doc, dict):
+            continue
+        members = doc.get('members') or []
+        if any(isinstance(m, dict) and (m.get('id') or '').strip() == device_id for m in members):
+            found.append(_normalize_team_doc(doc))
+    return found
 
 
 def _sanitize_team_plan_grid(raw):
@@ -995,10 +1062,22 @@ def handle_teams():
             device_id = (payload.get('deviceId') or '').strip()
             if not device_id:
                 return jsonify({"error": "deviceId missing in token"}), 400
+
+            scope = _normalize_team_scope(data.get('scope') or 'camp')
+            shift_id = (data.get('shiftId') or '').strip() or None
+            squad_id = (data.get('squadId') or '').strip() or None
+            if scope == 'shift' and not shift_id:
+                return jsonify({"error": "shiftId required for scope=shift"}), 400
+            if scope == 'squad' and (not shift_id or not squad_id):
+                return jsonify({"error": "shiftId and squadId required for scope=squad"}), 400
+
             teams = _teams_load()
-            existing = _find_team_by_member(teams, device_id)
-            if existing is not None:
-                return jsonify({"error": "Already in a team", "teamId": existing.get('id')}), 409
+            existing_teams = _find_member_teams(teams, device_id)
+            requested_slot = _normalize_team_doc({"scope": scope, "shiftId": shift_id, "squadId": squad_id})
+            for existing in existing_teams:
+                if _is_scope_slot_equal(existing, requested_slot):
+                    return jsonify({"error": "Already in a team for this scope", "teamId": existing.get('id')}), 409
+
             new_id = 'T-' + ''.join(secrets.choice('ABCDEFGHJKLMNPQRSTUVWXYZ23456789') for _ in range(6))
             nickname = (data.get('nickname') or '').strip() or 'Искатель'
             avatar = (data.get('avatar') or '').strip() or ''
@@ -1013,10 +1092,14 @@ def handle_teams():
                 "logo": (data.get('logo') or '').strip() or '🚀',
                 "leaderId": device_id,
                 "members": [member],
+                "scope": scope,
+                "shiftId": shift_id,
+                "squadId": squad_id,
                 "createdAt": datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z'),
                 "achievements": data.get('achievements') if isinstance(data.get('achievements'), list) else [],
                 "goals": data.get('goals') if isinstance(data.get('goals'), list) else [],
             }
+            team_doc = _normalize_team_doc(team_doc)
             for opt in ('flagImage', 'gerbImage'):
                 if data.get(opt):
                     team_doc[opt] = (data.get(opt) or '').strip()
@@ -1027,15 +1110,18 @@ def handle_teams():
             teams[new_id] = team_doc
             _teams_save(teams)
             return jsonify(team_doc), 201
-        with open(TEAMS_FILE, 'r', encoding='utf-8') as f:
-            teams = json.load(f)
-        teams[team_id] = data
-        with open(TEAMS_FILE, 'w', encoding='utf-8') as f:
-            json.dump(teams, f, ensure_ascii=False, indent=2)
+
+        teams = _teams_load()
+        teams[team_id] = _normalize_team_doc(data)
+        _teams_save(teams)
         return jsonify({"status": "success"}), 201
 
-    with open(TEAMS_FILE, 'r', encoding='utf-8') as f:
-        teams = json.load(f)
+    teams = _teams_load()
+    scope = (request.args.get('scope') or '').strip()
+    shift_id = (request.args.get('shiftId') or '').strip()
+    squad_id = (request.args.get('squadId') or '').strip()
+    if scope or shift_id or squad_id:
+        teams = {tid: doc for tid, doc in teams.items() if _team_matches_context(doc, scope=scope, shift_id=shift_id, squad_id=squad_id)}
     return jsonify(teams)
 
 
@@ -1047,10 +1133,19 @@ def teams_mine():
         return err[0], err[1]
     device_id = (payload.get('deviceId') or '').strip()
     teams = _teams_load()
-    team = _find_team_by_member(teams, device_id)
-    if team is None:
+    my_teams = _find_member_teams(teams, device_id)
+
+    scope = (request.args.get('scope') or '').strip()
+    shift_id = (request.args.get('shiftId') or '').strip()
+    squad_id = (request.args.get('squadId') or '').strip()
+    if scope or shift_id or squad_id:
+        my_teams = [t for t in my_teams if _team_matches_context(t, scope=scope, shift_id=shift_id, squad_id=squad_id)]
+
+    if not my_teams:
         return jsonify({"error": "No team"}), 404
-    return jsonify(team)
+
+    # backward-compatible behavior: return one team object
+    return jsonify(my_teams[0])
 
 
 @app.route('/api/teams/<team_id>/join', methods=['POST'])
@@ -1061,14 +1156,16 @@ def teams_join(team_id):
         return err[0], err[1]
     device_id = (payload.get('deviceId') or '').strip()
     teams = _teams_load()
-    in_other = _find_team_by_member(teams, device_id)
-    if in_other is not None:
-        if (in_other.get('id') or '') == team_id:
-            return jsonify(in_other)
-        return jsonify({"error": "Already in another team", "teamId": in_other.get('id')}), 409
     if team_id not in teams:
         return jsonify({"error": "Team not found"}), 404
-    doc = teams[team_id]
+    doc = _normalize_team_doc(teams[team_id])
+    teams[team_id] = doc
+    in_teams = _find_member_teams(teams, device_id)
+    for in_other in in_teams:
+        if (in_other.get('id') or '') == team_id:
+            return jsonify(in_other)
+        if _is_scope_slot_equal(in_other, doc):
+            return jsonify({"error": "Already in another team for this scope", "teamId": in_other.get('id')}), 409
     if not isinstance(doc, dict):
         return jsonify({"error": "Team not found"}), 404
     members = list(doc.get('members') or [])
@@ -1258,6 +1355,8 @@ def handle_team(team_id):
     doc = teams.get(team_id)
     if not doc or not isinstance(doc, dict):
         return jsonify({"error": "Team not found"}), 404
+    doc = _normalize_team_doc(doc)
+    teams[team_id] = doc
 
     if request.method == 'GET':
         return jsonify(doc)
@@ -1270,7 +1369,7 @@ def handle_team(team_id):
         if (doc.get('leaderId') or '').strip() != device_id:
             return jsonify({"error": "Only leader can update team"}), 403
         data = request.get_json() or {}
-        allowed = ('name', 'motto', 'logo', 'goals', 'achievements', 'flagImage', 'gerbImage', 'planGridA', 'planGridB')
+        allowed = ('name', 'motto', 'logo', 'goals', 'achievements', 'flagImage', 'gerbImage', 'planGridA', 'planGridB', 'scope', 'shiftId', 'squadId')
         for key in allowed:
             if key in data:
                 if key in ('goals', 'achievements') and isinstance(data[key], list):
@@ -1279,10 +1378,20 @@ def handle_team(team_id):
                     normalized_plan = _sanitize_team_plan_grid(data[key])
                     if normalized_plan is not None:
                         doc[key] = normalized_plan
+                elif key in ('scope', 'shiftId', 'squadId'):
+                    doc[key] = data[key]
                 elif isinstance(data[key], str):
                     doc[key] = data[key].strip() if key != 'logo' else (data[key].strip() or '🚀')
                 elif data[key] is None:
                     doc[key] = None
+
+        doc = _normalize_team_doc(doc)
+        if doc.get('scope') == 'shift' and not doc.get('shiftId'):
+            return jsonify({"error": "shiftId required for scope=shift"}), 400
+        if doc.get('scope') == 'squad' and (not doc.get('shiftId') or not doc.get('squadId')):
+            return jsonify({"error": "shiftId and squadId required for scope=squad"}), 400
+
+        teams[team_id] = doc
         _teams_save(teams)
         return jsonify(doc)
 
