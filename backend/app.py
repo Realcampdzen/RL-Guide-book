@@ -985,10 +985,8 @@ def _team_matches_context(team_doc: dict, scope: str = '', shift_id: str = '', s
 
 
 def _teams_load():
-    """Load teams.json; return dict. ensure_json_files already ensured it exists."""
-    with open(TEAMS_FILE, 'r', encoding='utf-8') as f:
-        raw = f.read()
-    data = json.loads(raw) if raw.strip() else {}
+    """Load teams via StorageProvider (JSON local / Supabase prod)."""
+    data = get_store("teams").load()
     if not isinstance(data, dict):
         return {}
     # backward compatibility for legacy docs without scope fields
@@ -1001,8 +999,7 @@ def _teams_load():
 
 
 def _teams_save(teams):
-    with open(TEAMS_FILE, 'w', encoding='utf-8') as f:
-        json.dump(teams, f, ensure_ascii=False, indent=2)
+    get_store("teams").save(teams)
 
 
 def _find_team_by_member(teams, device_id):

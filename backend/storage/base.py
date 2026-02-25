@@ -121,3 +121,16 @@ class CouncilInitiativesStore(ABC):
 
     @abstractmethod
     def save(self, data: dict) -> None: ...
+
+
+class TeamsStore(ABC):
+    """
+    Хранилище Движков (teams/engines).
+    Формат: {team_id: team_doc}
+    team_doc: id, name, leaderId, members, scope, shiftId, squadId, ...
+    """
+    @abstractmethod
+    def load(self) -> dict: ...
+
+    @abstractmethod
+    def save(self, data: dict) -> None: ...

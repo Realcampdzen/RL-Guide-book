@@ -17,7 +17,7 @@ from .base import (
     ShiftsStore, MembershipsStore, SquadCornersStore,
     SquadInvitesStore, SquadMessagesStore,
     BadgeRequestsStore, ParentSnapshotsStore, ChatDailyUsageStore,
-    CouncilInitiativesStore,
+    CouncilInitiativesStore, TeamsStore,
 )
 
 _sb_client = None
@@ -495,6 +495,70 @@ def _initiative_to_row(item: dict) -> dict:
 
 
 # ---------------------------------------------------------------------------
+# TeamsStore — таблица teams
+# ---------------------------------------------------------------------------
+
+class SupabaseTeamsStore(TeamsStore):
+    """
+    Формат load(): {team_id: team_doc}
+    """
+
+    def load(self) -> dict:
+        sb = _client()
+        rows = sb.table("teams").select("*").execute().data or []
+        result = {}
+        for r in rows:
+            tid = r.get("id")
+            if not tid:
+                continue
+            result[tid] = {
+                "id": tid,
+                "name": r.get("name") or "",
+                "motto": r.get("motto") or "",
+                "logo": r.get("logo") or "🚀",
+                "leaderId": r.get("leader_id") or "",
+                "members": r.get("members_json") or [],
+                "createdAt": _ts(r.get("created_at")),
+                "achievements": r.get("achievements_json") or [],
+                "goals": r.get("goals_json") or [],
+                "planGridA": r.get("plan_grid_a") or None,
+                "planGridB": r.get("plan_grid_b") or None,
+                "flagImage": r.get("flag_image") or None,
+                "gerbImage": r.get("gerb_image") or None,
+                "scope": r.get("scope") or "camp",
+                "shiftId": r.get("shift_id") or None,
+                "squadId": r.get("squad_id") or None,
+            }
+        return result
+
+    def save(self, data: dict) -> None:
+        sb = _client()
+        if not isinstance(data, dict):
+            return
+        for team_id, t in data.items():
+            if not isinstance(t, dict):
+                continue
+            row = {
+                "id": team_id,
+                "name": t.get("name") or "",
+                "motto": t.get("motto") or "",
+                "logo": t.get("logo") or "🚀",
+                "leader_id": t.get("leaderId") or "",
+                "members_json": t.get("members") or [],
+                "achievements_json": t.get("achievements") or [],
+                "goals_json": t.get("goals") or [],
+                "plan_grid_a": t.get("planGridA") or None,
+                "plan_grid_b": t.get("planGridB") or None,
+                "flag_image": t.get("flagImage") or None,
+                "gerb_image": t.get("gerbImage") or None,
+                "scope": t.get("scope") or "camp",
+                "shift_id": t.get("shiftId") or None,
+                "squad_id": t.get("squadId") or None,
+            }
+            sb.table("teams").upsert(row).execute()
+
+
+# ---------------------------------------------------------------------------
 # Вспомогательные функции
 # ---------------------------------------------------------------------------
 
@@ -523,4 +587,5 @@ SUPABASE_STORES = {
     "parent_snapshots": SupabaseParentSnapshotsStore(),
     "chat_daily_usage": SupabaseChatDailyUsageStore(),
     "council_initiatives": SupabaseCouncilInitiativesStore(),
+    "teams":             SupabaseTeamsStore(),
 }
