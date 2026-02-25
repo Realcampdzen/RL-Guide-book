@@ -62,7 +62,7 @@
 | Трек | ID | Задача | Статус | Дата старта | Следующий шаг | План |
 |------|----|--------|--------|-------------|---------------|------|
 | **Ops** | O1 | НейроСтёпа как операционный слой (SMM/FAQ/objections/runbook) | in_progress | 2026-02-25 | KPI-лог + 7-дневный цикл + ретро-патчи | [PLAN_O1_M1_2026-02-25.md](plans/PLAN_O1_M1_2026-02-25.md) |
-| **Mechanics** | M1 (Q1) | Scoped engines: `scope camp|shift|squad` + `shiftId/squadId` | in_progress | 2026-02-25 | Детальный тех-план по API/storage/UI + smoke | [PLAN_O1_M1_2026-02-25.md](plans/PLAN_O1_M1_2026-02-25.md) |
+| **Mechanics** | M1 (Q1) | Scoped engines: `scope camp|shift|squad` + `shiftId/squadId` | in_progress | 2026-02-25 | Детальный тех-план готов, next: vertical slice implementation | [PLAN_M1_SCOPED_ENGINES_TECHSPEC.md](plans/PLAN_M1_SCOPED_ENGINES_TECHSPEC.md) |
 
 ---
 
