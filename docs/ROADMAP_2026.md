@@ -194,3 +194,17 @@
 ---
 
 *При завершении новой задачи: обнови статус в таблице на Done, добавь Evidence, сдвинь «Где мы сейчас». Детали — в [.memory-bank/progress.md](../.memory-bank/progress.md).*
+
+## Status Sync Log
+
+### 2026-02-26 — M1 (Q1 Scoped Engines)
+
+- Status: Done
+- Scope delivered: scope camp|shift|squad + shiftId/squadId (backend + frontend + storage providers + migration).
+- Evidence:
+  - docs/PROD_ROADMAP_IMPL/reports/REPORT_M1_Q1_SCOPE_SLICE_2026-02-25.md
+  - docs/PROD_ROADMAP_IMPL/reports/REPORT_M1_Q1_SCOPE_SLICE2_2026-02-25.md
+  - docs/PROD_ROADMAP_IMPL/reports/REPORT_M1_Q1_SCOPE_SLICE3_2026-02-26.md
+  - docs/PROD_ROADMAP_IMPL/reports/REPORT_M1_Q1_STAGING_VALIDATION_DONE_2026-02-26.md
+  - docs/PROD_ROADMAP_IMPL/reports/REPORT_M1_UI_SMOKE_MANUAL_2026-02-26.md
+  - docs/PROD_ROADMAP_IMPL/reports/REPORT_M1_Q1_CLOSEOUT_DRAFT_2026-02-26.md
