@@ -157,6 +157,12 @@ function shouldReplyToText(text: string): boolean {
     'творч',
     'команд',
     'лидер',
+    // engagement cues in discussions (to avoid silent drops on neutral prompts)
+    'расскажи',
+    'интересн',
+    'факт',
+    'поделис',
+    'подскажи',
   ]
   return keywords.some((k) => t.includes(k))
 }
