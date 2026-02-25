@@ -85,7 +85,15 @@ export const TeamDashboard: React.FC<TeamDashboardProps> = ({
   const [isCollapsed, setIsCollapsed] = useState(() => (forceExpanded ? false : readCollapsedFromStorage()));
   const [isCreating, setIsCreating] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
-  const [teamForm, setTeamForm] = useState({ name: '', motto: '', logo: '🚀', firstProject: '' });
+  const [teamForm, setTeamForm] = useState({
+    name: '',
+    motto: '',
+    logo: '🚀',
+    firstProject: '',
+    scope: 'camp' as 'camp' | 'shift' | 'squad',
+    shiftId: '',
+    squadId: ''
+  });
   const [joinCode, setJoinCode] = useState('');
   const [joinPreview, setJoinPreview] = useState<{ id: string; name: string; motto: string } | null>(null);
   const [joinPreviewLoading, setJoinPreviewLoading] = useState(false);
@@ -195,13 +203,24 @@ export const TeamDashboard: React.FC<TeamDashboardProps> = ({
       showHint({ title: 'Нужны имя и проект', content: 'Для запуска Движка нужно имя и описание первого проекта.' });
       return;
     }
+    if (teamForm.scope === 'shift' && !teamForm.shiftId.trim()) {
+      showHint({ title: 'Нужен shiftId', content: 'Для движка уровня смены укажи идентификатор смены.' });
+      return;
+    }
+    if (teamForm.scope === 'squad' && (!teamForm.shiftId.trim() || !teamForm.squadId.trim())) {
+      showHint({ title: 'Нужны shiftId и squadId', content: 'Для движка уровня отряда укажи идентификаторы смены и отряда.' });
+      return;
+    }
     try {
       await createTeam({
         name: teamForm.name.trim(),
         motto: teamForm.motto.trim(),
         logo: teamForm.logo.trim() || '🚀',
         leaderId: userData?.profile?.id ?? 'local',
-        goals: []
+        goals: [],
+        scope: teamForm.scope,
+        shiftId: teamForm.shiftId.trim() || undefined,
+        squadId: teamForm.squadId.trim() || undefined
       });
       setIsCreating(false);
     } catch (error) {
@@ -368,6 +387,17 @@ export const TeamDashboard: React.FC<TeamDashboardProps> = ({
           <input className="w-input" placeholder="Название Движка" value={teamForm.name} onChange={(e) => setTeamForm({ ...teamForm, name: e.target.value })} />
           <input className="w-input" placeholder="Девиз" value={teamForm.motto} onChange={(e) => setTeamForm({ ...teamForm, motto: e.target.value })} />
           <input className="w-input" placeholder="Эмодзи/лого" value={teamForm.logo} onChange={(e) => setTeamForm({ ...teamForm, logo: e.target.value })} />
+          <select className="w-input" value={teamForm.scope} onChange={(e) => setTeamForm({ ...teamForm, scope: e.target.value as 'camp' | 'shift' | 'squad' })}>
+            <option value="camp">Уровень лагеря (camp)</option>
+            <option value="shift">Уровень смены (shift)</option>
+            <option value="squad">Уровень отряда (squad)</option>
+          </select>
+          {(teamForm.scope === 'shift' || teamForm.scope === 'squad') ? (
+            <input className="w-input" placeholder="shiftId (например: shift-2026-spring)" value={teamForm.shiftId} onChange={(e) => setTeamForm({ ...teamForm, shiftId: e.target.value })} />
+          ) : null}
+          {teamForm.scope === 'squad' ? (
+            <input className="w-input" placeholder="squadId (например: squad-dolphins)" value={teamForm.squadId} onChange={(e) => setTeamForm({ ...teamForm, squadId: e.target.value })} />
+          ) : null}
           <textarea className="w-input" rows={2} placeholder="Первый проект" value={teamForm.firstProject} onChange={(e) => setTeamForm({ ...teamForm, firstProject: e.target.value })} />
           <button type="button" className="btn-primary-gold" onClick={() => void handleCreate()}>Запустить Движок</button>
         </div>
@@ -404,6 +434,11 @@ export const TeamDashboard: React.FC<TeamDashboardProps> = ({
               <div style={{ fontSize: 11, fontWeight: 800, color: TEAM_ACCENT, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Код: {myTeam.id}</div>
               <h3 style={{ margin: '2px 0', fontSize: 20 }}>{myTeam.name}</h3>
               <p style={{ margin: 0, fontSize: 13, opacity: 0.76, fontStyle: 'italic' }}>«{myTeam.motto}»</p>
+              <p style={{ margin: '4px 0 0', fontSize: 11, opacity: 0.72 }}>
+                scope: {myTeam.scope || 'camp'}
+                {myTeam.shiftId ? ` · shift: ${myTeam.shiftId}` : ''}
+                {myTeam.squadId ? ` · squad: ${myTeam.squadId}` : ''}
+              </p>
             </div>
           </div>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>

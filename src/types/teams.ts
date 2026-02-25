@@ -10,6 +10,8 @@ export type TeamPlanGridData = {
   days: Record<string, { morning?: string; quietHour?: string; day?: string; evening?: string; night?: string }>;
 };
 
+export type TeamScope = 'camp' | 'shift' | 'squad';
+
 export interface TeamData {
   id: string;
   name: string;
@@ -22,6 +24,9 @@ export interface TeamData {
   createdAt: string;
   achievements: string[]; // Badge IDs
   goals: string[]; // Badge IDs (1-3 goals)
+  scope?: TeamScope;
+  shiftId?: string;
+  squadId?: string;
   planGridA?: TeamPlanGridData;
   planGridB?: TeamPlanGridData;
 }

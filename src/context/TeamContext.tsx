@@ -9,6 +9,19 @@ const TeamContext = createContext<TeamContextType | undefined>(undefined);
 
 const TEAM_STORAGE_KEY = 'rl_my_team_v1';
 
+function getScopeContextFromUrl(): { scope?: 'camp' | 'shift' | 'squad'; shiftId?: string; squadId?: string } {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const scopeRaw = (params.get('scope') || '').trim().toLowerCase();
+    const scope = scopeRaw === 'shift' || scopeRaw === 'squad' || scopeRaw === 'camp' ? scopeRaw : undefined;
+    const shiftId = (params.get('shiftId') || '').trim() || undefined;
+    const squadId = (params.get('squadId') || '').trim() || undefined;
+    return { scope, shiftId, squadId };
+  } catch {
+    return {};
+  }
+}
+
 const isDataUrl = (s: string | undefined): boolean => !!s && s.startsWith('data:');
 
 /** Build a storage-safe copy of the team: strip data URLs to avoid QuotaExceededError. */
@@ -52,7 +65,13 @@ export const TeamProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (accessToken) {
       setLoadError(null);
       setIsLoading(true);
-      fetch('/api/teams/mine', { headers: { Authorization: `Bearer ${accessToken}` } })
+      const ctx = getScopeContextFromUrl();
+      const query = new URLSearchParams();
+      if (ctx.scope) query.set('scope', ctx.scope);
+      if (ctx.shiftId) query.set('shiftId', ctx.shiftId);
+      if (ctx.squadId) query.set('squadId', ctx.squadId);
+      const mineUrl = query.toString() ? `/api/teams/mine?${query.toString()}` : '/api/teams/mine';
+      fetch(mineUrl, { headers: { Authorization: `Bearer ${accessToken}` } })
         .then(res => {
           if (res.status === 401) { fireOn401(); return Promise.reject(new Error('auth')); }
           if (res.ok) return res.json();
@@ -111,7 +130,13 @@ export const TeamProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setLoadError(null);
       setIsLoading(true);
       try {
-        const res = await fetch('/api/teams/mine', { headers: { Authorization: `Bearer ${accessToken}` } });
+        const ctx = getScopeContextFromUrl();
+        const query = new URLSearchParams();
+        if (ctx.scope) query.set('scope', ctx.scope);
+        if (ctx.shiftId) query.set('shiftId', ctx.shiftId);
+        if (ctx.squadId) query.set('squadId', ctx.squadId);
+        const mineUrl = query.toString() ? `/api/teams/mine?${query.toString()}` : '/api/teams/mine';
+        const res = await fetch(mineUrl, { headers: { Authorization: `Bearer ${accessToken}` } });
         if (res.status === 401) { fireOn401(); return; }
         if (res.ok) {
           const data = await res.json();
@@ -156,6 +181,11 @@ export const TeamProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (accessToken) {
       setIsLoading(true);
       try {
+        const ctx = getScopeContextFromUrl();
+        const scope = data.scope ?? ctx.scope ?? 'camp';
+        const shiftId = data.shiftId ?? ctx.shiftId;
+        const squadId = data.squadId ?? ctx.squadId;
+
         const res = await fetch('/api/teams', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
@@ -164,6 +194,9 @@ export const TeamProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             motto: data.motto,
             logo: data.logo,
             goals: data.goals ?? [],
+            scope,
+            shiftId,
+            squadId,
             nickname: memberNickname,
             avatar: memberAvatar ?? '',
             rank
@@ -172,7 +205,8 @@ export const TeamProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         if (res.status === 401) { fireOn401(); return; }
         if (res.status === 409) {
           const err = await res.json().catch(() => ({}));
-          throw new Error(err?.error === 'Already in a team' ? 'already_in_team' : 'Conflict');
+          const code = (err?.error || '').toLowerCase();
+          throw new Error(code.includes('already in a team') ? 'already_in_team' : 'Conflict');
         }
         if (!res.ok) throw new Error(res.statusText);
         const team = await res.json();

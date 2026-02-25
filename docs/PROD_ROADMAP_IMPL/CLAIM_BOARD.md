@@ -62,7 +62,7 @@
 | Трек | ID | Задача | Статус | Дата старта | Следующий шаг | План |
 |------|----|--------|--------|-------------|---------------|------|
 | **Ops** | O1 | НейроСтёпа как операционный слой (SMM/FAQ/objections/runbook) | in_progress | 2026-02-25 | KPI-лог + 7-дневный цикл + ретро-патчи | [PLAN_O1_M1_2026-02-25.md](plans/PLAN_O1_M1_2026-02-25.md) |
-| **Mechanics** | M1 (Q1) | Scoped engines: `scope camp|shift|squad` + `shiftId/squadId` | in_progress | 2026-02-25 | Slice-1 (backend JSON) готов; next: Supabase + frontend + smoke | [PLAN_M1_SCOPED_ENGINES_TECHSPEC.md](plans/PLAN_M1_SCOPED_ENGINES_TECHSPEC.md); [REPORT_M1_Q1_SCOPE_SLICE_2026-02-25.md](reports/REPORT_M1_Q1_SCOPE_SLICE_2026-02-25.md) |
+| **Mechanics** | M1 (Q1) | Scoped engines: `scope camp|shift|squad` + `shiftId/squadId` | in_progress | 2026-02-25 | Slice-1+2 готовы (backend JSON + frontend + migration); next: Supabase runtime path + smoke e2e | [PLAN_M1_SCOPED_ENGINES_TECHSPEC.md](plans/PLAN_M1_SCOPED_ENGINES_TECHSPEC.md); [REPORT_M1_Q1_SCOPE_SLICE_2026-02-25.md](reports/REPORT_M1_Q1_SCOPE_SLICE_2026-02-25.md); [REPORT_M1_Q1_SCOPE_SLICE2_2026-02-25.md](reports/REPORT_M1_Q1_SCOPE_SLICE2_2026-02-25.md) |
 
 ---
 
