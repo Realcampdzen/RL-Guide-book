@@ -11,6 +11,7 @@ import { canSeeOtradBlocks, showEventsPanelForRole, ROLE_ORDER, getRoleDisplay, 
 import type { UserRole } from '../types/authRole';
 import { getRank, buildParentReportPayload } from '../types/userProgress';
 import type { ParentReportPayload } from '../types/userProgress';
+import { canRunParentChildMutation, isParentChildReadonlyMode, PARENT_READONLY_BADGE_TEXT, PARENT_READONLY_TOOLTIP } from '../utils/parentReadonly';
 import { inspectorMissions, type InspectorTabId, INSPECTOR_TAB_IDS, INSPECTOR_TAB_BADGE_IDS } from '../types/inspector';
 import type { Badge } from '../types/guide';
 import { useHintOverlay, type HintStep } from '../context/HintOverlayContext';
@@ -547,6 +548,10 @@ export const ProfileView: React.FC<any> = (props) => {
   const [showParentCodeModal, setShowParentCodeModal] = useState(false);
   const [parentCodeResult, setParentCodeResult] = useState<{ parentLinkCode: string; expiresAt: number } | null>(null);
   const [parentCodeBusy, setParentCodeBusy] = useState(false);
+  const isParentChildReadonlyView = isParentChildReadonlyMode({
+    role,
+    hasChildProgressSnapshot: showChildBadges || !!childProgressFromFile,
+  });
   const [childRouteText, setChildRouteText] = useState('');
   const [campFacts, setCampFacts] = useState<{ address?: { campName?: string; base?: string; address?: string; route?: string }; contacts?: { phone?: string; email?: string; vk?: string; site?: string; telegram?: string; organizer?: string }; currentSeason?: { name?: string; dates?: string; price?: string; theme?: string }; documents?: string[] } | null>(null);
   const [campFactsLoading, setCampFactsLoading] = useState(false);
@@ -2982,6 +2987,7 @@ export const ProfileView: React.FC<any> = (props) => {
       {panelActiveView === 'parents' && role === 'parent' && (
         <div id="parents-section" className="profile-view-parents-section">
           <h2 style={{ fontSize: 20, fontWeight: 800, color: 'rgba(255,255,255,0.95)', margin: 0 }}>Для родителей</h2>
+          <p style={{ margin: '4px 0 0', fontSize: 12, opacity: 0.75 }}>Режим ребёнка в этом разделе всегда read-only.</p>
           {campFactsLoading && <p className="parents-section-block__text" style={{ margin: 0 }}>Данные загружаются…</p>}
           {campFactsError && <p style={{ fontSize: 13, margin: 0, color: '#f59e0b' }}>{campFactsError}</p>}
           {!campFactsLoading && !campFactsError && campFacts && (
@@ -4609,6 +4615,7 @@ export const ProfileView: React.FC<any> = (props) => {
         {role === 'parent' && (
           <div id="parents-section" className="profile-view-parents-section" style={{ marginTop: 24, display: 'flex', flexDirection: 'column', gap: 20 }}>
             <h2 style={{ fontSize: 20, fontWeight: 800, color: 'rgba(255,255,255,0.95)', margin: 0 }}>Для родителей</h2>
+            <p style={{ margin: '4px 0 0', fontSize: 12, opacity: 0.75 }}>Режим ребёнка в этом разделе всегда read-only.</p>
             {campFactsLoading && <p className="parents-section-block__text" style={{ margin: 0 }}>Данные загружаются…</p>}
             {campFactsError && <p style={{ fontSize: 13, margin: 0, color: '#f59e0b' }}>Проверьте подключение. {campFactsError}</p>}
             {!campFactsLoading && !campFactsError && campFacts && (
@@ -4695,11 +4702,25 @@ export const ProfileView: React.FC<any> = (props) => {
             )}
             <h3 className="parents-section__program-title">Программа смены</h3>
             <CampProgramByDays />
+            {isParentChildReadonlyView && (
+              <div style={{ alignSelf: 'flex-start', fontSize: 12, fontWeight: 700, letterSpacing: 0.2, padding: '6px 10px', borderRadius: 999, border: '1px solid rgba(255,255,255,0.32)', background: 'rgba(26,33,53,0.55)' }}>
+                {PARENT_READONLY_BADGE_TEXT}
+              </div>
+            )}
             <div className="parents-section__actions">
               <button type="button" onClick={() => setShowChildBadges(true)} className="parents-section__btn-child">
                 Значки моего ребёнка
               </button>
-              <button type="button" onClick={() => setShowChildRouteForm(true)} className="parents-section__btn-route">
+              <button
+                type="button"
+                onClick={() => {
+                  if (!canRunParentChildMutation({ role, hasChildProgressSnapshot: showChildBadges || !!childProgressFromFile })) return;
+                  setShowChildRouteForm(true);
+                }}
+                className="parents-section__btn-route"
+                disabled={!canRunParentChildMutation({ role, hasChildProgressSnapshot: showChildBadges || !!childProgressFromFile })}
+                title={isParentChildReadonlyView ? PARENT_READONLY_TOOLTIP : undefined}
+              >
                 Предложить маршрут развития для ребёнка
               </button>
               <p style={{ fontSize: 12, opacity: 0.7, margin: 0 }}>Предложить идею для лагеря — в блоке «Совет Лагеря» ниже.</p>
@@ -6123,6 +6144,7 @@ export const ProfileView: React.FC<any> = (props) => {
         <div className="proof-modal-overlay" onClick={() => { setShowChildBadges(false); setChildProgressFromFile(null); setChildReportMeta(null); }}>
           <div className="proof-modal proof-modal--mobile-sheet proof-modal--wide fade-in" role="dialog" aria-modal="true" aria-labelledby="profile-modal-child-badges-title" onClick={e => e.stopPropagation()}>
             <h3 id="profile-modal-child-badges-title" style={{ marginTop: 0, marginBottom: 8 }}>Значки моего ребёнка</h3>
+            <p style={{ fontSize: 12, opacity: 0.78, marginTop: 0, marginBottom: 8 }}>{PARENT_READONLY_BADGE_TEXT}. Изменения прогресса ребёнка из этого режима недоступны.</p>
             <p style={{ fontSize: 13, opacity: 0.9, marginBottom: 12 }}>Ребёнок может создать отчёт по кнопке «Создать отчёт для родителя» в своём профиле и передать вам файл, ссылку или код.</p>
             <div style={{ marginBottom: 12 }}>
               <label style={{ display: 'block', fontSize: 12, opacity: 0.9, marginBottom: 4 }}>Ввести код от ребёнка</label>
