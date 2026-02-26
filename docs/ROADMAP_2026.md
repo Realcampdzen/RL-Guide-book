@@ -208,3 +208,14 @@
   - docs/PROD_ROADMAP_IMPL/reports/REPORT_M1_Q1_STAGING_VALIDATION_DONE_2026-02-26.md
   - docs/PROD_ROADMAP_IMPL/reports/REPORT_M1_UI_SMOKE_MANUAL_2026-02-26.md
   - docs/PROD_ROADMAP_IMPL/reports/REPORT_M1_Q1_CLOSEOUT_DRAFT_2026-02-26.md
+
+### 2026-02-26 — M2 (Q2 Parent hybrid, read-only slices 2–3)
+
+- Status: In progress (slices 2–3 delivered)
+- Scope delivered:
+  - Centralized parent read-only guard helper (`src/utils/parentReadonly.ts`).
+  - Parent child-view hardening in `ProfileView` (read-only badge + guarded mutation CTA).
+  - RBAC tightening: parent removed from child-progress mutation endpoints in backend.
+- Evidence:
+  - docs/PROD_ROADMAP_IMPL/reports/REPORT_M2_Q2_KICKOFF_2026-02-26.md
+  - docs/PROD_ROADMAP_IMPL/reports/REPORT_M2_Q2_PARENT_READONLY_SLICE2_3_2026-02-26.md
