@@ -5483,7 +5483,7 @@ export const ProfileView: React.FC<any> = (props) => {
               >
                 Создать отчёт для родителя
               </button>
-              {accessToken && (role === 'participant' || role === 'parent') && (
+              {accessToken && role === 'participant' && (
                 <button
                   type="button"
                   className="btn-secondary"

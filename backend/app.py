@@ -266,7 +266,7 @@ def _require_chat_auth():
 def _require_parent_snapshot_auth():
     """
     Проверяет JWT в Authorization для создания снепшота для родителя.
-    Разрешены роли participant и parent.
+    Разрешена роль participant (родитель в M2 читает child-view в read-only).
     Returns: (payload, None) при успехе или (None, (response, status_code)) при ошибке.
     """
     auth_header = (request.headers.get('Authorization') or '').strip()
@@ -284,7 +284,7 @@ def _require_parent_snapshot_auth():
     except jwt.InvalidTokenError:
         return None, (jsonify({"error": "Invalid or expired token"}), 401)
     role = (payload.get("role") or "").strip()
-    if role not in ("participant", "parent"):
+    if role not in ("participant",):
         return None, (jsonify({"error": "Access denied for this role"}), 403)
     return payload, None
 
@@ -2787,10 +2787,10 @@ def squad_messages_get_or_post(squad_id: str):
 def badge_request_create():
     """
     POST /api/badges/requests
-    Auth: participant|parent|developer
+    Auth: participant|developer
     Body: { levelId, evidence?, badgeTitle? }
     """
-    payload, err = _require_roles(("participant", "parent", "developer"), allow_localhost_dev=True)
+    payload, err = _require_roles(("participant", "developer"), allow_localhost_dev=True)
     if err is not None:
         return err[0], err[1]
     device_id = (payload.get("deviceId") or "").strip()
@@ -2844,9 +2844,9 @@ def badge_request_create():
 def badge_request_mine():
     """
     GET /api/badges/requests/mine
-    Auth: participant|parent|developer
+    Auth: participant|developer
     """
-    payload, err = _require_roles(("participant", "parent", "developer"), allow_localhost_dev=True)
+    payload, err = _require_roles(("participant", "developer"), allow_localhost_dev=True)
     if err is not None:
         return err[0], err[1]
     device_id = (payload.get("deviceId") or "").strip()
@@ -2983,9 +2983,9 @@ def badge_request_reject(request_id: str):
 def badge_approvals_mine():
     """
     GET /api/badges/approvals/mine
-    Auth: participant|parent|developer
+    Auth: participant|developer
     """
-    payload, err = _require_roles(("participant", "parent", "developer"), allow_localhost_dev=True)
+    payload, err = _require_roles(("participant", "developer"), allow_localhost_dev=True)
     if err is not None:
         return err[0], err[1]
     device_id = (payload.get("deviceId") or "").strip()
@@ -3054,7 +3054,7 @@ def organizer_generate_code():
 def parent_snapshot_create():
     """
     POST /api/parent-snapshot
-    Header: Authorization: Bearer <accessToken> (role participant or parent).
+    Header: Authorization: Bearer <accessToken> (role participant).
     Body: { "progress": {...}, "profile": { "nickname": "...", "totalLevelsAchieved": N }, "exportedAt": "ISO" }
     Returns: { "parentLinkCode": "<code>", "expiresAt": <unix_ts> } or 400/401/403.
     """
