@@ -288,3 +288,18 @@
   - backend/scripts/smoke_backend_critical.py (Flow D + 31 checks)
   - docs/BACKEND_CONTRACT_GUARD.md (updated)
   - docs/PROD_ROADMAP_IMPL/reports/REPORT_A_M5_R2_B.md
+
+### 2026-02-27 - M5-R3-A (Badge Requests Cleanup + Teams Smoke)
+
+- Status: Done
+- Owner: Agent A
+- Scope delivered:
+  - `backend/app.py` ? `BADGE_REQUESTS_RESOLVED_TTL_DAYS` env const (default 30). `GET /api/badges/requests/inbox`: added `includeResolved` optional query param (default=false) + TTL filter for resolved records. `POST /api/badges/requests/cleanup`: new endpoint for shift_leader/developer, deletes resolved requests older than N days, logs `[BADGE_CLEANUP]`. Also applied M5-R2-B changes (`_project_mine_row`, mine expanded roles, inbox educator auto-scope) missing from this branch.
+  - `backend/scripts/smoke_backend_critical.py` ? Flow F (Teams lifecycle): create team, GET team, join, mine, leave x2. Total: **39 CHECKS PASSED**.
+  - `docs/BACKEND_CONTRACT_GUARD.md` ? inbox `includeResolved` param + TTL note, new cleanup endpoint contract §3.1, Flow F in smoke table (39 checks).
+  - No RBAC changes, no migrations, additive contract only.
+- Evidence:
+  - backend/app.py (TTL filter + cleanup endpoint)
+  - backend/scripts/smoke_backend_critical.py (Flow F + 39 checks)
+  - docs/BACKEND_CONTRACT_GUARD.md (updated)
+  - docs/PROD_ROADMAP_IMPL/reports/REPORT_A_M5_R3_A.md

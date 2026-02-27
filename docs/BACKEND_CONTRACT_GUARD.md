@@ -2,7 +2,7 @@
 
 **Срез:** 2026-02-27  
 **Автор:** Agent A (Data/Backend contracts)  
-**Tasks:** M5-R2-A, M5-R2-B  
+**Tasks:** M5-R2-A, M5-R2-B, M5-R3-A  
 **Источник истины:** `backend/app.py`
 
 Этот документ фиксирует API-контракты для трёх критических endpoint-групп постпилотного контура. Цель — не допустить breaking-регрессий при будущих доработках backend'а.
@@ -15,7 +15,7 @@
 
 | Группа | Endpoints |
 |--------|-----------|
-| **Badge Requests** | `POST /api/badges/requests`, `GET /api/badges/requests/mine`, `GET /api/badges/requests/inbox`, `POST /api/badges/requests/{id}/approve`, `POST /api/badges/requests/{id}/reject` |
+| **Badge Requests** | `POST /api/badges/requests`, `GET /api/badges/requests/mine`, `GET /api/badges/requests/inbox`, `POST /api/badges/requests/{id}/approve`, `POST /api/badges/requests/{id}/reject`, `POST /api/badges/requests/cleanup` |
 | **Parent Snapshot** | `POST /api/parent-snapshot`, `GET /api/parent-snapshot?code=` |
 | **Council Initiatives** | `GET /api/council/initiatives`, `POST /api/council/initiatives` |
 | **Image Generation** | `POST /api/images/generate` |
@@ -124,7 +124,12 @@
 #### `GET /api/badges/requests/inbox`
 
 **Auth:** `counselor | educator | shift_leader | camp_director | developer`  
-**Query params:** `campId` (optional), `squadId` (optional), `status` (optional: `pending|approved|rejected`)  
+**Query params:**
+- `campId` (optional)
+- `squadId` (optional)
+- `status` (optional: `pending|approved|rejected`)
+- `includeResolved` (optional, M5-R3-A): `true|1|yes` — включить все resolved записи независимо от TTL. Default: `false` — resolved записи старше `BADGE_REQUESTS_RESOLVED_TTL_DAYS` (env, default 30 дней) не возвращаются.
+
 **Response 200:**
 ```json
 {
@@ -134,6 +139,8 @@
 
 > **Auto-scope (M5-R2-B):** При отсутствии явных query-param `campId`/`squadId` роли `counselor` и `educator` автоматически ограничивают выдачу своим отрядом (через `_resolve_membership_context`). Роли `shift_leader`, `camp_director`, `developer` возвращают все заявки по умолчанию.
 
+> **TTL-фильтр (M5-R3-A):** По умолчанию (`includeResolved=false`) resolved заявки старше `BADGE_REQUESTS_RESOLVED_TTL_DAYS` дней из ответа исключаются. Pending-заявки не подпадают под TTL и всегда возвращаются. Существующие клиенты, не передающие `includeResolved`, получают pending + свежие resolved — **обратно совместимо**.
+
 **Mandatory fields:** `requests` (array)  
 **Sort:** pending-first, then newest-first within group
 
@@ -141,6 +148,40 @@
 - Удаление фильтра `status`
 - Смена порядка сортировки без уведомления
 - Отключение auto-scope для counselor/educator без явного opt-out механизма
+- Изменение поведения дефолта `includeResolved` — должен оставаться `false`
+
+---
+
+#### `POST /api/badges/requests/cleanup` *(M5-R3-A)*
+
+**Auth:** `shift_leader | developer` (Bearer JWT)  
+**Body:**
+```json
+{
+  "olderThanDays": 30
+}
+```
+`olderThanDays` (optional, int ≥ 0): число дней. Default: значение env `BADGE_REQUESTS_RESOLVED_TTL_DAYS` (30).
+
+**Response 200:**
+```json
+{
+  "deleted": 5
+}
+```
+
+**Поведение:** Удаляет из `badge_requests.json` все записи со статусом `approved` или `rejected`, у которых `resolvedAt` старше `olderThanDays` дней. Логирует удаление: `[BADGE_CLEANUP] deleted=N actor=<sha256[:12]> ts=<ISO>`.
+
+**Errors:**
+- `400` — `olderThanDays` не является числом или < 0
+- `401/403` — неавторизован или недостаточно прав
+
+**Mandatory response fields:** `deleted` (int ≥ 0)
+
+**Breaking changes:**
+- Удаление поля `deleted` из ответа
+- Изменение набора разрешённых ролей (расширение на `participant` — security regression)
+- Смена семантики (например, начать удалять pending-заявки)
 
 ---
 
@@ -395,7 +436,7 @@
 Контракты автоматически проверяются скриптом:
 
 ```bash
-# С AUTH_SECRET — полный прогон (31 check):
+# С AUTH_SECRET — полный прогон (39 checks):
 # Windows (cp1251): запускать с -X utf8 для корректного вывода
 AUTH_SECRET=<secret> python -X utf8 backend/scripts/smoke_backend_critical.py --base-url http://localhost:4000
 
@@ -416,7 +457,8 @@ python backend/scripts/smoke_backend_critical.py --base-url http://localhost:400
 | C | Council Initiatives (create → list) | 6 |
 | D | Mine privacy + contract (M5-R2-B) | 4 |
 | E | Image Generation (happy path, truncation, missing fields) | 5 |
-| **Total** | | **31** |
+| F | Teams lifecycle (create → get → join → mine → leave x2) (M5-R3-A) | 8 |
+| **Total** | | **39** |
 
 **Flow D** (M5-R2-B, `/api/badges/requests/mine`):
 - D-1: GET /mine → 200, requests is list
@@ -429,6 +471,14 @@ python backend/scripts/smoke_backend_critical.py --base-url http://localhost:400
 - E-2: `prompt` длиной > 300 символов → не 500 (200 или 503, sanitization отработала)
 - E-3: без `mode` → 400
 - E-4: без `context` → 400
+
+**Flow F** (M5-R3-A, `/api/teams`):
+- F-1: POST /api/teams (leader) → 201, id present
+- F-2: GET /api/teams/<id> → 200, name matches
+- F-3: POST /api/teams/<id>/join (joiner) → 200, joiner in members
+- F-4: GET /api/teams/mine (leader) → 200, team id matches
+- F-5: POST /api/teams/<id>/leave (joiner) → 200, status=success
+- F-6: POST /api/teams/<id>/leave (leader, last member) → 200, status=success (team deleted)
 
 При изменении любого контракта из §3 — обновить скрипт, запустить, убедиться в 0 failures.
 
@@ -443,4 +493,4 @@ python backend/scripts/smoke_backend_critical.py --base-url http://localhost:400
 | Breaking change — согласовать с фронтом | NeuroStepa → Agent A + Agent B |
 | После обновления — перезапустить smoke | Agent A |
 
-*Последнее обновление: 2026-02-27 (M5-R2-B, Agent A — /mine privacy + expanded roles, inbox educator auto-scope, smoke 31 checks, §3.2 Parent Snapshot актуализирован)*
+*Последнее обновление: 2026-02-27 (M5-R3-A, Agent A — inbox TTL filter + includeResolved param, POST /api/badges/requests/cleanup, smoke Flow F Teams lifecycle, 39 checks total)*

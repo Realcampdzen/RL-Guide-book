@@ -66,16 +66,18 @@
 | **Mechanics** | M2 (Q2) | Parent hybrid: свой ЛК + read-only витрина ребёнка | done | 2026-02-26 | Closed: parent-home vs child-view split delivered, read-only UX finalized | [PLAN_M2_Q2_PARENT_HYBRID_TECHSPEC.md](plans/PLAN_M2_Q2_PARENT_HYBRID_TECHSPEC.md); [REPORT_M2_Q2_KICKOFF_2026-02-26.md](reports/REPORT_M2_Q2_KICKOFF_2026-02-26.md); [REPORT_M2_Q2_PARENT_READONLY_SLICE2_3_2026-02-26.md](reports/REPORT_M2_Q2_PARENT_READONLY_SLICE2_3_2026-02-26.md); [REPORT_M2_Q2_PARENT_HYBRID_CLOSEOUT_2026-02-26.md](reports/REPORT_M2_Q2_PARENT_HYBRID_CLOSEOUT_2026-02-26.md) |
 | **Mechanics** | M3-SC-S1 | Squad Corner stabilized readiness slice | done | 2026-02-27 | Closed: readiness model + chip consistency + normalization | [REPORT_M3_SC_S1_2026-02-27.md](reports/REPORT_M3_SC_S1_2026-02-27.md) |
 | **Agent B** | M3-BF-S4 | Badge Request Status Panel: chip tones, empty state CTA, Sync CTA, M2 guard, scroll+hint after proof submit | done | 2026-02-27 | Closed: build clean, lint clean, M2 guard confirmed; commit e474174 | [REPORT_B_M3_BF_S4_2026-02-27.md](reports/REPORT_B_M3_BF_S4_2026-02-27.md) |
+| **Agent B** | M3-BF-S5 | Auto-sync approved levels on mount + celebration hint (startTutorial) + reject reason in «Мои заявки» | done | 2026-02-27 | Closed: build clean, lint clean, M2 guard confirmed; commit 44533b0 | [REPORT_B_M3_BF_S5_2026-02-27.md](reports/REPORT_B_M3_BF_S5_2026-02-27.md) |
 
 ---
 
-## Backend Hardening (M5-R2, 2026-02-27)
+## Backend Hardening (M5-R2 / M5-R3, 2026-02-27)
 
 | Агент | Task ID | Задача | Статус | Дата | Отчёт |
 |-------|---------|--------|--------|------|-------|
 | **Agent A** | M5-R2-A | Backend Release Hardening: smoke script (22 checks), contract guard doc, playbook §5.3 | ✅ done | 2026-02-27 | [REPORT_A_M5_R2_A.md](reports/REPORT_A_M5_R2_A.md) |
 | **Agent C** | M5-R2-C | Images Safety Hardening: prompt sanitization + per-camp daily quota + BACKEND_CONTRACT_GUARD §3.4 + smoke Flow E | ✅ done (CERTIFIED) | 2026-02-27 | [REPORT_C_M5_R2_C_2026-02-27.md](reports/REPORT_C_M5_R2_C_2026-02-27.md) |
 | **Agent A** | M5-R2-B | Badge Requests: inbox educator auto-scope + /mine privacy + smoke Flow D (31 checks total) | ✅ done | 2026-02-27 | [REPORT_A_M5_R2_B.md](reports/REPORT_A_M5_R2_B.md) |
+| **Agent A** | M5-R3-A | Badge Requests Cleanup + Teams Smoke: inbox TTL filter (`includeResolved`), cleanup endpoint, smoke Flow F (Teams lifecycle), 39 checks total | ✅ done | 2026-02-27 | [REPORT_A_M5_R3_A.md](reports/REPORT_A_M5_R3_A.md) |
 
 ---
 

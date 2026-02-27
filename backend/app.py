@@ -3359,6 +3359,28 @@ def chat_with_bot():
         context = data.get("context") or {}
         context = dict(context) if isinstance(context, dict) else {}
         context["user_role"] = payload.get("role")
+
+        # M5-R3-C: Enrich context with membership/identity data from JWT
+        context["nickname"] = (payload.get("nickname") or "").strip() or None
+
+        # Resolve squad/shift names via membership lookup (non-blocking, only when device_id known)
+        if device_id and not context.get("squad_name"):
+            try:
+                _camp, _squad = _resolve_membership_context(device_id)
+                if _squad:
+                    _shifts_doc = _shifts_load()
+                    _squad_obj  = _find_squad(_shifts_doc, _squad) or {}
+                    _sq_name = (_squad_obj.get("name") or "").strip() or None
+                    context["squad_name"] = _sq_name
+                    _shift_id = (_squad_obj.get("shiftId") or "").strip()
+                    if _shift_id:
+                        for _sh in (_shifts_doc.get("shifts") or []):
+                            if isinstance(_sh, dict) and _sh.get("id") == _shift_id:
+                                context["shift_name"] = (_sh.get("name") or "").strip() or None
+                                break
+            except Exception:
+                pass  # non-blocking: lookup failure must never block chat response
+
         if context:
             chatbot_components['response_generator'].context_manager.update_web_context(
                 user_id=data.get("user_id", "web_user"),

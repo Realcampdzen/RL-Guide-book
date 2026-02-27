@@ -11,6 +11,7 @@ Covers:
   Flow C — Council Initiatives: create → list
   Flow D — Mine endpoint: privacy check + contract (M5-R2-B)
   Flow E — Image Generation: happy path (200|503), prompt truncation (not 500), missing-field guards (400)
+  Flow F — Teams lifecycle: create → get → join → mine → leave x2 (M5-R3-A)
 
 Usage:
   python backend/scripts/smoke_backend_critical.py
@@ -616,6 +617,144 @@ class SmokeRunner:
             )
 
     # -----------------------------------------------------------------------
+    # Flow F — Teams lifecycle (M5-R3-A)
+    # -----------------------------------------------------------------------
+
+    def run_flow_f(self) -> None:
+        """Flow F: Teams create -> GET -> join -> mine -> leave x2."""
+        print("\n[Flow F] Teams lifecycle: create -> get -> join -> mine -> leave")
+        if not self.auth_secret:
+            print("  SKIP  (no AUTH_SECRET — auth flows require it)")
+            return
+
+        leader_device = f"smoke_tl_{uuid.uuid4().hex[:8]}"
+        joiner_device = f"smoke_tj_{uuid.uuid4().hex[:8]}"
+
+        leader_token = self._get_jwt(leader_device, "participant")
+        joiner_token = self._get_jwt(joiner_device, "participant")
+        if not leader_token or not joiner_token:
+            return
+
+        team_name = f"Smoke Team {uuid.uuid4().hex[:6]}"
+
+        # F1 — POST /api/teams (create)
+        try:
+            status_f1, body_f1 = _http(
+                self._url("/api/teams"),
+                method="POST",
+                body={"name": team_name, "scope": "camp"},
+                headers=self._bearer(leader_token),
+                expect_status=201,
+            )
+        except SmokeError as exc:
+            self.fail("POST /api/teams", str(exc))
+            return
+
+        team_id = body_f1.get("id")
+        self.check(
+            "POST /api/teams — id present",
+            bool(team_id),
+            f"no id in: {body_f1}",
+        )
+        if not team_id:
+            return
+
+        # F2 — GET /api/teams/<id> (no auth required)
+        try:
+            _, body_f2 = _http(
+                self._url(f"/api/teams/{team_id}"),
+                expect_status=200,
+            )
+        except SmokeError as exc:
+            self.fail(f"GET /api/teams/{team_id}", str(exc))
+            return
+
+        self.check(
+            "GET /api/teams/<id> — name matches",
+            body_f2.get("name") == team_name,
+            f"name={body_f2.get('name')!r} expected {team_name!r}",
+        )
+
+        # F3 — POST /api/teams/<id>/join (joiner)
+        try:
+            _, body_f3 = _http(
+                self._url(f"/api/teams/{team_id}/join"),
+                method="POST",
+                body={"nickname": "SmokeJoiner"},
+                headers=self._bearer(joiner_token),
+                expect_status=200,
+            )
+        except SmokeError as exc:
+            self.fail(f"POST /api/teams/{team_id}/join", str(exc))
+            return
+
+        members = body_f3.get("members") or []
+        joiner_in_members = any(
+            isinstance(m, dict) and m.get("id") == joiner_device
+            for m in members
+        )
+        self.check(
+            "POST /api/teams/<id>/join — joiner in members",
+            joiner_in_members,
+            f"joiner {joiner_device} not found in members: {[m.get('id') for m in members]}",
+        )
+
+        # F4 — GET /api/teams/mine (leader)
+        try:
+            _, body_f4 = _http(
+                self._url("/api/teams/mine"),
+                headers=self._bearer(leader_token),
+                expect_status=200,
+            )
+        except SmokeError as exc:
+            self.fail("GET /api/teams/mine (leader)", str(exc))
+            return
+
+        self.check(
+            "GET /api/teams/mine — team id matches",
+            body_f4.get("id") == team_id,
+            f"mine team id={body_f4.get('id')!r} expected {team_id!r}",
+        )
+
+        # F5 — POST /api/teams/<id>/leave (joiner)
+        try:
+            _, body_f5 = _http(
+                self._url(f"/api/teams/{team_id}/leave"),
+                method="POST",
+                body={},
+                headers=self._bearer(joiner_token),
+                expect_status=200,
+            )
+        except SmokeError as exc:
+            self.fail(f"POST /api/teams/{team_id}/leave (joiner)", str(exc))
+            return
+
+        self.check(
+            "POST /api/teams/<id>/leave (joiner) — status=success",
+            body_f5.get("status") == "success",
+            f"status={body_f5.get('status')}",
+        )
+
+        # F6 — POST /api/teams/<id>/leave (leader, last member → team deleted)
+        try:
+            _, body_f6 = _http(
+                self._url(f"/api/teams/{team_id}/leave"),
+                method="POST",
+                body={},
+                headers=self._bearer(leader_token),
+                expect_status=200,
+            )
+        except SmokeError as exc:
+            self.fail(f"POST /api/teams/{team_id}/leave (leader)", str(exc))
+            return
+
+        self.check(
+            "POST /api/teams/<id>/leave (leader/last) — status=success",
+            body_f6.get("status") == "success",
+            f"status={body_f6.get('status')}",
+        )
+
+    # -----------------------------------------------------------------------
     # Run all
     # -----------------------------------------------------------------------
 
@@ -634,6 +773,7 @@ class SmokeRunner:
         self.run_flow_c()
         self.run_flow_d(req_id, participant_token)
         self.run_flow_e()
+        self.run_flow_f()
         return self._print_summary()
 
     def _print_summary(self) -> int:
@@ -672,7 +812,7 @@ def main() -> int:
     if not auth_secret:
         print(
             "WARNING: --auth-secret / AUTH_SECRET not set. "
-            "Auth flows (A, B, C, D, E) will be skipped. Only /api/health will be checked."
+            "Auth flows (A, B, C, D, E, F) will be skipped. Only /api/health will be checked."
         )
 
     runner = SmokeRunner(base_url=args.base_url, auth_secret=auth_secret)
