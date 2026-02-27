@@ -775,52 +775,117 @@ def send_vk_message(peer_id, text: str) -> bool:
         return False
 
 
-def send_telegram_message(text: str) -> bool:
-    """Отправить сообщение в Telegram-канал через Bot API. Возвращает True при успехе."""
+def send_telegram_message(text: str, root_message_id: Optional[int] = None) -> bool:
+    """Отправить сообщение в Telegram-канал через Bot API.
+
+    Args:
+        text: Текст сообщения (обрезается до 4096 символов).
+        root_message_id: Если задан — отправляет как reply (thread-comment) к этому message_id.
+            Без него — обычный пост в канал. Требуется для thread-транспорта.
+
+    Returns:
+        True при успехе (ok=True от Telegram API).
+    """
     if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHANNEL_ID:
         return False
     url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+    payload: dict = {
+        "chat_id": TELEGRAM_CHANNEL_ID,
+        "text": text[:4096],
+        "disable_web_page_preview": True,
+    }
+    if root_message_id is not None:
+        payload["reply_to_message_id"] = root_message_id
     try:
-        r = requests.post(url, json={
-            "chat_id": TELEGRAM_CHANNEL_ID,
-            "text": text[:4096],
-            "disable_web_page_preview": True,
-        }, timeout=10)
+        r = requests.post(url, json=payload, timeout=10)
         return r.status_code == 200 and (r.json() or {}).get("ok") is True
     except Exception:
         return False
 
 
-def send_telegram_to_chat(chat_id, text: str) -> bool:
-    """Отправить сообщение в указанный Telegram-чат (личка или группа)."""
+def send_telegram_to_chat(chat_id, text: str, root_message_id: Optional[int] = None) -> bool:
+    """Отправить сообщение в указанный Telegram-чат (личка или группа).
+
+    Args:
+        chat_id: ID чата/канала.
+        text: Текст сообщения.
+        root_message_id: Если задан — reply-to (thread anchor).
+    """
     if not TELEGRAM_BOT_TOKEN:
         return False
     url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+    payload: dict = {
+        "chat_id": chat_id,
+        "text": text[:4096],
+        "disable_web_page_preview": True,
+    }
+    if root_message_id is not None:
+        payload["reply_to_message_id"] = root_message_id
     try:
-        r = requests.post(url, json={
-            "chat_id": chat_id,
-            "text": text[:4096],
-            "disable_web_page_preview": True,
-        }, timeout=10)
+        r = requests.post(url, json=payload, timeout=10)
         return r.status_code == 200 and (r.json() or {}).get("ok") is True
     except Exception:
         return False
 
 
-def send_telegram_photo(photo_bytes: bytes, caption: str) -> bool:
-    """Отправить фото в Telegram-канал через Bot API sendPhoto. caption обрезается до 1024 символов."""
+def send_telegram_photo(photo_bytes: bytes, caption: str, root_message_id: Optional[int] = None) -> bool:
+    """Отправить фото в Telegram-канал через Bot API sendPhoto.
+
+    Args:
+        photo_bytes: Байты изображения.
+        caption: Подпись (обрезается до 1024 символов).
+        root_message_id: Если задан — reply-to (thread anchor).
+    """
     if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHANNEL_ID:
         return False
     url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendPhoto"
+    data: dict = {
+        "chat_id": TELEGRAM_CHANNEL_ID,
+        "caption": caption[:1024],
+    }
+    if root_message_id is not None:
+        data["reply_to_message_id"] = str(root_message_id)
     try:
         r = requests.post(
             url,
-            data={"chat_id": TELEGRAM_CHANNEL_ID, "caption": caption[:1024]},
+            data=data,
             files={"photo": ("creator_card.png", photo_bytes, "image/png")},
             timeout=15,
         )
         return r.status_code == 200 and (r.json() or {}).get("ok") is True
     except Exception:
+        return False
+
+
+# ---------------------------------------------------------------------------
+# Thread-transport: anti-duplicate guard (KOT_THREAD_TRANSPORT_FIX_V1.1)
+# Deduplication window: 60 seconds, keyed by (channel_id, content_hash).
+# ---------------------------------------------------------------------------
+_THREAD_DEDUP_WINDOW_SEC = 60
+_thread_dedup: dict = {}  # key → last_sent_ts
+_thread_dedup_lock = threading.Lock()
+
+
+def _thread_dedup_key(chat_id, text: str) -> str:
+    content_hash = hashlib.sha256(f"{chat_id}:{text[:512]}".encode()).hexdigest()[:16]
+    return content_hash
+
+
+def _is_thread_duplicate(chat_id, text: str) -> bool:
+    """Return True if the same content was sent to this chat within the dedup window."""
+    key = _thread_dedup_key(chat_id, text)
+    now = time.time()
+    with _thread_dedup_lock:
+        last_ts = _thread_dedup.get(key)
+        if last_ts is not None and (now - last_ts) < _THREAD_DEDUP_WINDOW_SEC:
+            return True
+        _thread_dedup[key] = now
+        # Prune expired entries periodically (keep dict bounded)
+        if len(_thread_dedup) > 2000:
+            cutoff = now - _THREAD_DEDUP_WINDOW_SEC
+            expired = [k for k, ts in _thread_dedup.items() if ts < cutoff]
+            for k in expired:
+                _thread_dedup.pop(k, None)
         return False
 
 
@@ -1493,6 +1558,57 @@ def telegram_webhook(secret_path):
         return '', 200
     except Exception:
         return '', 200  # всё равно 200, чтобы Telegram не повторял
+
+
+@app.route('/api/telegram/thread-post', methods=['POST'])
+def telegram_thread_post():
+    """Thread-transport endpoint (KOT_THREAD_TRANSPORT_FIX_V1.1).
+
+    Отправляет текстовый комментарий в Telegram-канал как reply к корневому посту.
+
+    Request JSON:
+        root_message_id (int, required): message_id корневого поста в канале (anchor).
+            Без него запрос отклоняется — blind-post запрещён.
+        text (str, required): текст комментария (до 4096 символов).
+        source (str, optional): идентификатор источника (для логирования).
+
+    Responses:
+        200 {"ok": true, "sent": true}
+        400 {"error": "root_message_id required"} — если rootId отсутствует
+        400 {"error": "text required"} — если текст пустой
+        409 {"error": "duplicate", "detail": "same message sent recently"} — dedup guard
+        503 {"error": "telegram_unavailable"} — Telegram API недоступен / не настроен
+    """
+    jwt_payload, auth_err = _require_chat_auth()
+    if auth_err is not None:
+        return auth_err
+
+    body = request.get_json(silent=True) or {}
+    root_message_id = body.get("root_message_id")
+    text = (body.get("text") or "").strip()
+    source = (body.get("source") or "").strip()[:64]
+
+    # Guard: без rootId отправка запрещена
+    if root_message_id is None:
+        return jsonify({"error": "root_message_id required", "detail": "blind-post is not allowed; provide root_message_id"}), 400
+
+    try:
+        root_message_id = int(root_message_id)
+    except (TypeError, ValueError):
+        return jsonify({"error": "root_message_id must be integer"}), 400
+
+    if not text:
+        return jsonify({"error": "text required"}), 400
+
+    # Anti-duplicate guard: same content to same channel within 60s → 409
+    dedup_chat = str(TELEGRAM_CHANNEL_ID or "")
+    if _is_thread_duplicate(dedup_chat, text):
+        return jsonify({"error": "duplicate", "detail": "same message sent recently"}), 409
+
+    ok = send_telegram_message(text, root_message_id=root_message_id)
+    if ok:
+        return jsonify({"ok": True, "sent": True, "root_message_id": root_message_id, "source": source})
+    return jsonify({"error": "telegram_unavailable", "detail": "Telegram API not configured or unreachable"}), 503
 
 
 def _handle_vk_webhook_payload(payload):
@@ -3094,6 +3210,199 @@ def parent_snapshot_create():
         return jsonify({"error": str(e)}), 500
 
 
+def _compute_parent_weekly_trend(progress: dict) -> tuple[dict, dict]:
+    """
+    Compare two windows: last 7 days vs previous 7 days.
+    Uses achievedAt timestamps from progress entries.
+    """
+    now_ts = int(time.time())
+    week_sec = 7 * 86400
+    cur_start = now_ts - week_sec
+    prev_start = now_ts - (2 * week_sec)
+    current_count = 0
+    previous_count = 0
+
+    for _, row in (progress or {}).items():
+        if not isinstance(row, dict):
+            continue
+        ts = _parse_iso_ts(str(row.get("achievedAt") or ""))
+        if ts <= 0:
+            continue
+        if ts >= cur_start:
+            current_count += 1
+        elif ts >= prev_start:
+            previous_count += 1
+
+    if current_count > previous_count:
+        direction = "up"
+        note = "За последнюю неделю прогресс ускорился — поддерживайте этот ритм короткими шагами."
+    elif current_count < previous_count:
+        direction = "down"
+        note = "Темп стал ниже, чем неделей раньше — поможет мягкий фокус на одном ближайшем шаге."
+    else:
+        direction = "flat"
+        note = "Темп стабильный — регулярная поддержка помогает удерживать движение."
+
+    if current_count == 0 and previous_count == 0:
+        direction = "flat"
+        note = "Прогресс только набирает историю — начните с одного посильного шага в ближайшие дни."
+
+    return ({"direction": direction, "note": note}, {
+        "windowDays": 7,
+        "currentWindowAchievements": current_count,
+        "previousWindowAchievements": previous_count,
+    })
+
+
+def _build_parent_explainability(weekly_trend: dict, strengths: list, weakest: list, dynamic_signals: dict) -> tuple[str, dict]:
+    trend = (weekly_trend.get("direction") or "flat").strip()
+    strong_titles = [str(x.get("title") or "").strip() for x in (strengths or [])[:2] if isinstance(x, dict) and str(x.get("title") or "").strip()]
+    weak_titles = [str(x.get("title") or "").strip() for x in (weakest or [])[:2] if isinstance(x, dict) and str(x.get("title") or "").strip()]
+    window_days = int(dynamic_signals.get("windowDays") or 7)
+
+    if trend == "up":
+        why = "Рекомендация поддерживает текущий положительный темп и помогает закрепить успех небольшими шагами."
+    elif trend == "down":
+        why = "Рекомендация сфокусирована на мягком восстановлении ритма, чтобы снизить нагрузку и вернуть стабильность."
+    else:
+        why = "Рекомендация помогает удерживать ровный темп и поддерживать устойчивый интерес ребёнка."
+
+    based_on = {
+        "trend": trend,
+        "strongestAreas": strong_titles,
+        "weakestAreas": weak_titles,
+        "activityWindow": f"последние {window_days} дней и предыдущие {window_days} дней",
+    }
+    return why, based_on
+
+
+def _compute_parent_insights(progress: dict) -> dict:
+    data = _load_data() if DATA_FILE and os.path.exists(DATA_FILE) else {"badges": [], "categories": []}
+    badges = data.get("badges") or []
+    categories = data.get("categories") or []
+
+    category_titles = {}
+    for c in categories:
+        if isinstance(c, dict):
+            category_titles[str(c.get("id") or "")] = str(c.get("title") or c.get("name") or "Категория")
+
+    levels = [b for b in badges if isinstance(b, dict) and _is_valid_level_id(str(b.get("id") or "")) and str(b.get("id") or "").count(".") >= 2]
+    total_levels = len(levels)
+
+    cat_stats = {}
+    achieved_total = 0
+    for level in levels:
+        lid = str(level.get("id") or "")
+        cid = str(level.get("category_id") or lid.split(".")[0] or "")
+        st = (progress.get(lid) or {}).get("status") if isinstance(progress.get(lid), dict) else None
+        status = (st or "locked").strip().lower()
+        bucket = cat_stats.setdefault(cid, {"total": 0, "achieved": 0, "in_progress": 0})
+        bucket["total"] += 1
+        if status == "achieved":
+            bucket["achieved"] += 1
+            achieved_total += 1
+        elif status == "in_progress":
+            bucket["in_progress"] += 1
+
+    percent = int(round((achieved_total / total_levels) * 100)) if total_levels > 0 else 0
+    if percent >= 80:
+        stage = "high"
+    elif percent >= 40:
+        stage = "steady"
+    else:
+        stage = "start"
+
+    strengths = []
+    for cid, s in cat_stats.items():
+        total = s["total"] or 1
+        score = (s["achieved"] * 2 + s["in_progress"]) / (total * 2)
+        strengths.append({
+            "categoryId": cid,
+            "title": category_titles.get(cid) or f"Категория {cid}",
+            "score": round(score, 4),
+            "achieved": s["achieved"],
+            "total": s["total"],
+        })
+    strengths.sort(key=lambda x: (x["score"], x["achieved"]), reverse=True)
+    strengths_top3 = strengths[:3]
+
+    weekly_trend, dynamic_signals = _compute_parent_weekly_trend(progress)
+
+    next_steps = []
+    weakest = sorted(strengths, key=lambda x: (x["score"], x["achieved"]))[:2]
+    for w in weakest:
+        if w["total"] <= 0:
+            continue
+        if weekly_trend.get("direction") == "up":
+            msg = f"В «{w['title']}» уже заметен прогресс — мягко поддержите ещё один небольшой шаг в ближайшие дни."
+        elif weekly_trend.get("direction") == "down":
+            msg = f"Для «{w['title']}» лучше выбрать один посильный шаг на неделю и поддержать спокойный ритм."
+        elif w["achieved"] == 0:
+            msg = f"В «{w['title']}» можно начать с простого шага: вместе обсудите понятный план на ближайший день."
+        else:
+            msg = f"В «{w['title']}» есть хорошая база — поддержите завершение следующего шага в комфортном темпе."
+        next_steps.append({"categoryId": w["categoryId"], "title": w["title"], "hint": msg})
+
+    if not strengths_top3:
+        strengths_top3 = [{"title": "Ребёнок уже в пути", "hint": "Отмечайте даже маленький прогресс — это укрепляет уверенность."}]
+    if not next_steps:
+        next_steps = [{"title": "Продолжайте в том же ритме", "hint": "Мягкая поддержка дома помогает закреплять лагерьные успехи."}]
+
+    why_this_suggestion, based_on = _build_parent_explainability(weekly_trend, strengths_top3, weakest, dynamic_signals)
+
+    return {
+        "overallProgress": {
+            "percent": percent,
+            "stage": stage,
+            "achieved": achieved_total,
+            "total": total_levels,
+        },
+        "weeklyTrend": weekly_trend,
+        "dynamicSignals": dynamic_signals,
+        "whyThisSuggestion": why_this_suggestion,
+        "basedOn": based_on,
+        "strengthsTop3": strengths_top3,
+        "nextSteps": next_steps[:2],
+    }
+
+
+@app.route('/api/parent-insights', methods=['GET'])
+def parent_insights_get():
+    """
+    GET /api/parent-insights?code=XXXX
+    Uses existing parent snapshot code context (no child_device_id needed).
+    Returns parent-friendly read-only progress insights.
+    """
+    code = (request.args.get("code") or "").strip()
+    if not code:
+        return jsonify({
+            "overallProgress": {"percent": 0, "stage": "start", "achieved": 0, "total": 0},
+            "weeklyTrend": {"direction": "flat", "note": "Подключите витрину ребёнка — и здесь появится еженедельная динамика."},
+            "strengthsTop3": [{"title": "Когда подключите витрину ребёнка, здесь появятся сильные стороны."}],
+            "nextSteps": [{"title": "Что поддержать дальше", "hint": "Откройте витрину достижений ребёнка по коду или ссылке."}],
+        })
+
+    snapshots = _parent_snapshots_load()
+    rec = snapshots.get(code)
+    if not rec:
+        return jsonify({"error": "Code not found"}), 404
+
+    try:
+        expires_at = int(rec.get("expiresAt") or 0)
+    except Exception:
+        expires_at = 0
+    if expires_at <= int(time.time()):
+        return jsonify({"error": "Code expired"}), 410
+
+    progress = rec.get("payload", {}).get("progress") or {}
+    if not isinstance(progress, dict):
+        progress = {}
+
+    insights = _compute_parent_insights(progress)
+    insights["source"] = "parent_snapshot_code"
+    return jsonify(insights)
+
+
 @app.route('/api/parent-snapshot', methods=['GET'])
 def parent_snapshot_get():
     """
@@ -3322,6 +3631,27 @@ def chat_with_bot():
 # Council Initiatives — GET + POST /api/council/initiatives
 # ---------------------------------------------------------------------------
 
+def _map_council_status_legacy(raw_status: str) -> str:
+    """Normalize legacy initiative statuses to unified lifecycle.
+    new -> reviewing -> accepted|rejected|done
+    """
+    s = (raw_status or "").strip().lower()
+    if s in ("new", "reviewing", "accepted", "rejected", "done"):
+        return s
+    # legacy aliases
+    if s in ("idea", "draft"):
+        return "new"
+    if s in ("discussion", "in_review", "under_review"):
+        return "reviewing"
+    if s in ("approved", "accepted_v1"):
+        return "accepted"
+    if s in ("declined", "denied"):
+        return "rejected"
+    if s in ("implemented", "completed"):
+        return "done"
+    return "new"
+
+
 @app.route('/api/council/initiatives', methods=['GET'])
 def council_initiatives_list():
     """
@@ -3340,8 +3670,20 @@ def council_initiatives_list():
     data = store.load()
     items = data.get("initiatives") or []
 
-    # Sort descending by created_at, keep last 100
-    items_sorted = sorted(items, key=lambda x: x.get("created_at", ""), reverse=True)[:100]
+    # Read-model normalization (non-breaking): add readStatus + createdAt fallback.
+    normalized = []
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        c_at = item.get("createdAt") or item.get("created_at") or ""
+        read_status = _map_council_status_legacy(item.get("status") or "")
+        x = dict(item)
+        x["createdAt"] = c_at
+        x["readStatus"] = read_status
+        normalized.append(x)
+
+    # Sort descending by createdAt, keep last 100
+    items_sorted = sorted(normalized, key=lambda x: x.get("createdAt", ""), reverse=True)[:100]
 
     if camp_id_filter:
         items_sorted = [i for i in items_sorted if i.get("campId") == camp_id_filter or i.get("camp_id") == camp_id_filter]

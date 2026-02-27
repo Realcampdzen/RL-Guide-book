@@ -65,6 +65,7 @@
 | **Mechanics** | M1 (Q1) | Scoped engines: `scope camp|shift|squad` + `shiftId/squadId` | done | 2026-02-25 | Closed: roadmap synced, evidence package attached | [PLAN_M1_SCOPED_ENGINES_TECHSPEC.md](plans/PLAN_M1_SCOPED_ENGINES_TECHSPEC.md); [PLAN_M1_UI_SMOKE_CHECKLIST.md](plans/PLAN_M1_UI_SMOKE_CHECKLIST.md); [REPORT_M1_Q1_SCOPE_SLICE_2026-02-25.md](reports/REPORT_M1_Q1_SCOPE_SLICE_2026-02-25.md); [REPORT_M1_Q1_SCOPE_SLICE2_2026-02-25.md](reports/REPORT_M1_Q1_SCOPE_SLICE2_2026-02-25.md); [REPORT_M1_Q1_SCOPE_SLICE3_2026-02-26.md](reports/REPORT_M1_Q1_SCOPE_SLICE3_2026-02-26.md); [REPORT_M1_Q1_STAGING_VALIDATION_DONE_2026-02-26.md](reports/REPORT_M1_Q1_STAGING_VALIDATION_DONE_2026-02-26.md); [REPORT_M1_UI_SMOKE_AUTOTEST_PREP_2026-02-26.md](reports/REPORT_M1_UI_SMOKE_AUTOTEST_PREP_2026-02-26.md); [REPORT_M1_UI_SMOKE_MANUAL_2026-02-26.md](reports/REPORT_M1_UI_SMOKE_MANUAL_2026-02-26.md); [REPORT_M1_Q1_CLOSEOUT_DRAFT_2026-02-26.md](reports/REPORT_M1_Q1_CLOSEOUT_DRAFT_2026-02-26.md) |
 | **Mechanics** | M2 (Q2) | Parent hybrid: свой ЛК + read-only витрина ребёнка | done | 2026-02-26 | Closed: parent-home vs child-view split delivered, read-only UX finalized | [PLAN_M2_Q2_PARENT_HYBRID_TECHSPEC.md](plans/PLAN_M2_Q2_PARENT_HYBRID_TECHSPEC.md); [REPORT_M2_Q2_KICKOFF_2026-02-26.md](reports/REPORT_M2_Q2_KICKOFF_2026-02-26.md); [REPORT_M2_Q2_PARENT_READONLY_SLICE2_3_2026-02-26.md](reports/REPORT_M2_Q2_PARENT_READONLY_SLICE2_3_2026-02-26.md); [REPORT_M2_Q2_PARENT_HYBRID_CLOSEOUT_2026-02-26.md](reports/REPORT_M2_Q2_PARENT_HYBRID_CLOSEOUT_2026-02-26.md) |
 | **Mechanics** | M3-SC-S1 | Squad Corner stabilized readiness slice | done | 2026-02-27 | Closed: readiness model + chip consistency + normalization | [REPORT_M3_SC_S1_2026-02-27.md](reports/REPORT_M3_SC_S1_2026-02-27.md) |
+| **Agent B** | M3-BF-S4 | Badge Request Status Panel: chip tones, empty state CTA, Sync CTA, M2 guard, scroll+hint after proof submit | done | 2026-02-27 | Closed: build clean, lint clean, M2 guard confirmed; commit e474174 | [REPORT_B_M3_BF_S4_2026-02-27.md](reports/REPORT_B_M3_BF_S4_2026-02-27.md) |
 
 ---
 
@@ -73,6 +74,9 @@
 | Агент | Task ID | Задача | Статус | Дата | Отчёт |
 |-------|---------|--------|--------|------|-------|
 | **Agent A** | M5-R2-A | Backend Release Hardening: smoke script (22 checks), contract guard doc, playbook §5.3 | ✅ done | 2026-02-27 | [REPORT_A_M5_R2_A.md](reports/REPORT_A_M5_R2_A.md) |
+| **Agent C** | M5-R2-C | Images Safety Hardening: prompt sanitization + per-camp daily quota + BACKEND_CONTRACT_GUARD §3.4 + smoke Flow E | ✅ done (CERTIFIED) | 2026-02-27 | [REPORT_C_M5_R2_C_2026-02-27.md](reports/REPORT_C_M5_R2_C_2026-02-27.md) |
+| **Agent A** | M5-R2-B | Badge Requests: inbox educator auto-scope + /mine privacy + smoke Flow D (31 checks total) | ✅ done | 2026-02-27 | [REPORT_A_M5_R2_B.md](reports/REPORT_A_M5_R2_B.md) |
+| **Agent D** | M5-R3-D | Staging smoke (STAGING_BACKEND_NOT_DEPLOYED), env matrix audit (VERIFIED/UNVERIFIED), RELEASE_NOTE Known Issues (R5→Resolved) | ✅ done | 2026-02-27 | [REPORT_D_STAGING_SMOKE_M5_2026-02-27.md](reports/REPORT_D_STAGING_SMOKE_M5_2026-02-27.md) |
 
 ---
 

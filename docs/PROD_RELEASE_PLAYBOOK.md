@@ -8,6 +8,9 @@
 - Runbook смены: [`docs/CAMP_RUNBOOK.md`](CAMP_RUNBOOK.md)
 - Supabase схема/миграция: [`docs/SUPABASE_SCHEMA_AND_MIGRATION.md`](SUPABASE_SCHEMA_AND_MIGRATION.md)
 - Архитектура ресурсов (as‑is): [`docs/ARCHITECTURE_AND_RESOURCES.md`](ARCHITECTURE_AND_RESOURCES.md)
+- **M5 release readiness baseline:** [`docs/RELEASE_READINESS_BASELINE_M5.md`](RELEASE_READINESS_BASELINE_M5.md)
+- **M5 final release note (GO):** [`docs/RELEASE_NOTE_M5_FINAL.md`](RELEASE_NOTE_M5_FINAL.md)
+- **Ops snapshot (pre-release checklist):** [`docs/OPS_SNAPSHOT_M5_GO.md`](OPS_SNAPSHOT_M5_GO.md)
 
 ---
 
@@ -110,55 +113,38 @@ UI smoke (минимум руками):
 2. заявка на значок → inbox approve → синк → achieved
 3. parent snapshot: создать код/QR → открыть read‑only
 
-### §5.3 — Backend Critical Flows (автоматический, ~5 мин)
+### §5.2 Расширенный smoke‑checklist (M3/M4 surfaces — добавлен TAILS_RECONCILE_D)
 
-**M5-R2-A smoke script** покрывает три критических flow одной командой:
+Участник:
+- Открыть Council Dashboard → список инициатив отображается → статус‑чипы (new/reviewing/accepted/done) корректны → additive‑фильтр работает.
+- Открыть Squad Corner → чип readiness (empty/partial/ready) виден → данные корректны.
+- Badge flow → статус‑чипы бейджей корректны (in‑progress/achieved) → без артефактов в UI.
 
-```bash
-# Полный прогон (22 checks) — требует AUTH_SECRET от backend-контура:
-AUTH_SECRET=<ваш_auth_secret> python backend/scripts/smoke_backend_critical.py \
-  --base-url https://backend-murex-one-40.vercel.app
+Родитель (read‑only):
+- Открыть child‑view по parent_code → режим read‑only активен → **нет мутирующих CTA** (кнопок «Отправить», «Изменить» и т.д.).
+- Блок Parent Insights → прогресс/тренд/рекомендации/explainability отображаются → fallback‑тексты читаемы (не технические placeholder'ы).
+- Открыть child‑view с частичными/пустыми данными → graceful fallback, не ошибка.
 
-# Против локального backend:
-AUTH_SECRET=<secret> python backend/scripts/smoke_backend_critical.py \
-  --base-url http://localhost:4000
+Staff:
+- Панель approvals → inbox badge requests с фильтром статуса → approve/reject работает.
+- Squad Corner как counselor → readiness chip обновляется при сохранении данных.
+- Educator Cabinet (если educator role) → 3 вкладки доступны.
 
-# Health-only (без секрета):
-python backend/scripts/smoke_backend_critical.py --base-url https://backend-murex-one-40.vercel.app
-```
-
-**Что проверяет:**
-
-| Flow | Шаги | Checks |
-|------|------|--------|
-| **A — Badge Request** | request→inbox→approve→mine | 9 checks |
-| **B — Parent Insights** | snapshot→insights→invalid-404 | 6 checks |
-| **C — Council Initiatives** | create→list | 5 checks |
-| **Health** | /api/health | 1 check |
-
-**Ожидаемый вывод при успехе:**
-```
-RESULT: ALL 22 CHECKS PASSED
-```
-
-**Интерпретация провалов:**
-- `FAIL auth/verify-code` — AUTH_SECRET не совпадает с prod или backend недоступен
-- `FAIL POST /api/badges/requests` — 401/403: RBAC regression; 500: Supabase unavailable
-- `FAIL GET /api/parent-insights — overallProgress present` — breaking change в contract
-- `FAIL GET /api/council/initiatives — new initiative found in list` — storage layer failure
-
-Контракты (mandatory fields, breaking-change policy): [`docs/BACKEND_CONTRACT_GUARD.md`](BACKEND_CONTRACT_GUARD.md)
+Полный drill‑расчёт: <30 мин. Эталон: [`docs/OPS_SNAPSHOT_M5_GO.md §5`](OPS_SNAPSHOT_M5_GO.md).
 
 ---
 
 ## 6) Rollback
 
 Frontend/back:
-- Откатить деплой в Vercel на предыдущий успешный build (быстрое восстановление UI/API).
+- **Fast rollback:** Vercel Dashboard → Deployments → “Promote to Production” на предыдущий успешный build.
+- **Git‑based rollback:** см. полную процедуру в [\docs/RELEASE_NOTE_M5_FINAL.md §Rollback\](RELEASE_NOTE_M5_FINAL.md).
+- **LKG:** \008797\ (GO), anchor 8f8bd5\ (stable pre‑R1.2).
 
 DB:
 - Для пилота предпочитать “forward‑only migrations”.
-- Перед релизом иметь точку восстановления (backup) и отдельный staging для проверки миграций.
+- M5 track: **нет новых миграций** — откат DB не требуется.
+- Перед новым релизным треком иметь точку восстановления (backup) и отдельный staging для проверки миграций.
 
 ---
 

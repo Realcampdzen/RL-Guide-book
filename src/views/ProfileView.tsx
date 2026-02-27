@@ -551,6 +551,9 @@ export const ProfileView: React.FC<any> = (props) => {
   const [showParentCodeModal, setShowParentCodeModal] = useState(false);
   const [parentCodeResult, setParentCodeResult] = useState<{ parentLinkCode: string; expiresAt: number } | null>(null);
   const [parentCodeBusy, setParentCodeBusy] = useState(false);
+  const [parentSnapshotCode, setParentSnapshotCode] = useState('');
+  const [parentInsights, setParentInsights] = useState<{ overallProgress?: { percent?: number; stage?: string }; weeklyTrend?: { direction?: 'up' | 'flat' | 'down'; note?: string }; dynamicSignals?: { windowDays?: number; currentWindowAchievements?: number; previousWindowAchievements?: number }; whyThisSuggestion?: string; basedOn?: { trend?: string; strongestAreas?: string[]; weakestAreas?: string[]; activityWindow?: string }; strengthsTop3?: Array<{ title?: string }>; nextSteps?: Array<{ hint?: string }> } | null>(null);
+  const [parentInsightsLoading, setParentInsightsLoading] = useState(false);
   const [parentSectionMode, setParentSectionMode] = useState<'home' | 'child'>('home');
   const isParentChildReadonlyView = isParentChildReadonlyMode({
     role,
@@ -1346,6 +1349,7 @@ export const ProfileView: React.FC<any> = (props) => {
         if (!data || typeof data.progress !== 'object') return;
         setChildProgressFromFile(data.progress);
         setChildReportMeta(data.profile?.nickname != null || data.exportedAt ? { nickname: data.profile?.nickname, exportedAt: data.exportedAt } : null);
+        setParentSnapshotCode(code.trim());
         setShowChildBadges(true);
         if (role === 'parent') openCabinPanel('parents', 'right');
         params.delete('parent_code');
@@ -1358,6 +1362,52 @@ export const ProfileView: React.FC<any> = (props) => {
   useEffect(() => {
     if (isParentChildReadonlyView) setParentSectionMode('child');
   }, [isParentChildReadonlyView]);
+
+  const fallbackParentInsights = useMemo(() => {
+    if (!childProgressFromFile) return null;
+    const entries = Object.values(childProgressFromFile || {});
+    const total = entries.length;
+    const achieved = entries.filter((p) => p?.status === 'achieved').length;
+    const percent = total > 0 ? Math.round((achieved / total) * 100) : 0;
+    return {
+      overallProgress: { percent, stage: percent >= 80 ? 'high' : percent >= 40 ? 'steady' : 'start' },
+      weeklyTrend: { direction: 'flat', note: 'История прогресса только формируется — начните с одного посильного шага на этой неделе.' },
+      whyThisSuggestion: 'Рекомендация помогает поддерживать спокойный и устойчивый темп развития.',
+      basedOn: { trend: 'flat', strongestAreas: [], weakestAreas: [], activityWindow: 'последние 7 дней и предыдущие 7 дней' },
+      strengthsTop3: [
+        { title: percent >= 60 ? 'Ребёнок уверенно завершает начатые шаги' : 'Ребёнок включён в лагерный процесс' },
+        { title: 'Есть стабильный интерес к значкам и заданиям' },
+        { title: 'Прогресс можно усиливать регулярной поддержкой дома' },
+      ],
+      nextSteps: [
+        { hint: 'Обсудите один ближайший значок и мягко поддержите завершение следующего шага.' },
+        { hint: 'Хвалите конкретные усилия ребёнка — это ускоряет движение по маршруту.' },
+      ]
+    };
+  }, [childProgressFromFile]);
+
+  useEffect(() => {
+    if (role !== 'parent' || !parentSnapshotCode) return;
+    const hostname = typeof window !== 'undefined' ? window.location.hostname : '';
+    const useLocalApi = import.meta.env.DEV || hostname === 'localhost' || hostname === '127.0.0.1';
+    const apiUrl = useLocalApi ? '/api/parent-insights' : `${(import.meta.env.VITE_API_URL || '').replace(/\/$/, '')}/api/parent-insights`;
+    let cancelled = false;
+    setParentInsightsLoading(true);
+    fetch(`${apiUrl}?code=${encodeURIComponent(parentSnapshotCode)}`)
+      .then(async (res) => {
+        const data = await res.json().catch(() => ({}));
+        if (!cancelled) setParentInsights((data && typeof data === 'object') ? data : null);
+      })
+      .catch(() => {
+        if (!cancelled) setParentInsights(null);
+      })
+      .finally(() => {
+        if (!cancelled) setParentInsightsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [role, parentSnapshotCode]);
 
   const initialHashHandledRef = useRef(false);
   useEffect(() => {
@@ -4639,7 +4689,7 @@ export const ProfileView: React.FC<any> = (props) => {
                 onClick={() => setParentSectionMode('child')}
                 style={{ opacity: parentSectionMode === 'child' ? 1 : 0.75 }}
               >
-                Прогресс ребёнка (read-only)
+                Прогресс ребёнка · read-only
               </button>
             </div>
             {parentSectionMode === 'home' && campFactsLoading && <p className="parents-section-block__text" style={{ margin: 0 }}>Данные загружаются…</p>}
@@ -4729,13 +4779,56 @@ export const ProfileView: React.FC<any> = (props) => {
             {parentSectionMode === 'home' && <h3 className="parents-section__program-title">Программа смены</h3>}
             {parentSectionMode === 'home' && <CampProgramByDays />}
             {parentSectionMode === 'child' && (
-              <div className="parents-section-block" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                <h3 className="parents-section-block__heading" style={{ margin: 0 }}>Витрина прогресса ребёнка</h3>
-                <p className="parents-section-block__text" style={{ margin: 0 }}>Здесь только безопасный read-only просмотр. Изменять прогресс ребёнка нельзя.</p>
-                <button type="button" onClick={() => setShowChildBadges(true)} className="parents-section__btn-child" style={{ alignSelf: 'flex-start' }}>
-                  Открыть витрину достижений
-                </button>
-              </div>
+              <>
+                <div className="parents-section-block" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  <h3 className="parents-section-block__heading" style={{ margin: 0 }}>Витрина прогресса ребёнка</h3>
+                  <p className="parents-section-block__text" style={{ margin: 0 }}>Здесь только безопасный read-only просмотр. Изменять прогресс ребёнка нельзя.</p>
+                  <button type="button" onClick={() => setShowChildBadges(true)} className="parents-section__btn-child" style={{ alignSelf: 'flex-start' }}>
+                    Открыть прогресс ребёнка (read-only)
+                  </button>
+                </div>
+                <div className="parents-section-block" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  <h3 className="parents-section-block__heading" style={{ margin: 0 }}>Рекомендации для поддержки ребёнка</h3>
+                  {parentInsightsLoading && <p className="parents-section-block__text" style={{ margin: 0 }}>Собираем понятную сводку прогресса и ближайших шагов…</p>}
+                  {!parentInsightsLoading && (
+                    <>
+                      <p className="parents-section-block__text" style={{ margin: 0 }}>
+                        Общий прогресс: <strong>{(parentInsights?.overallProgress?.percent ?? fallbackParentInsights?.overallProgress?.percent ?? 0)}%</strong>
+                      </p>
+                      <p className="parents-section-block__text" style={{ margin: 0 }}>
+                        Тренд недели: <strong>{(parentInsights?.weeklyTrend?.direction ?? fallbackParentInsights?.weeklyTrend?.direction ?? 'flat') === 'up' ? 'рост' : (parentInsights?.weeklyTrend?.direction ?? fallbackParentInsights?.weeklyTrend?.direction ?? 'flat') === 'down' ? 'снижение' : 'стабильно'}</strong>
+                        {' — '}
+                        {(parentInsights?.weeklyTrend?.note ?? fallbackParentInsights?.weeklyTrend?.note ?? 'Темп ровный, поддерживайте регулярный ритм.')}
+                      </p>
+                      <div>
+                        <div className="parents-section-block__label">Что уже хорошо</div>
+                        <ul style={{ margin: '6px 0 0 18px', padding: 0 }}>
+                          {(parentInsights?.strengthsTop3 || fallbackParentInsights?.strengthsTop3 || [{ title: 'Когда будет доступна витрина ребёнка, здесь появятся сильные стороны и достижения.' }]).slice(0, 3).map((s, idx) => (
+                            <li key={`pi-s-${idx}`} className="parents-section-block__text" style={{ margin: 0 }}>{s?.title}</li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div>
+                        <div className="parents-section-block__label">Что поддержать дальше</div>
+                        <ul style={{ margin: '6px 0 0 18px', padding: 0 }}>
+                          {(parentInsights?.nextSteps || fallbackParentInsights?.nextSteps || [{ hint: 'Откройте витрину достижений ребёнка по коду или ссылке, чтобы получить точные рекомендации.' }]).slice(0, 2).map((s, idx) => (
+                            <li key={`pi-n-${idx}`} className="parents-section-block__text" style={{ margin: 0 }}>{s?.hint}</li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div>
+                        <div className="parents-section-block__label">Почему такая рекомендация</div>
+                        <p className="parents-section-block__text" style={{ margin: '6px 0 0 0' }}>
+                          {parentInsights?.whyThisSuggestion || fallbackParentInsights?.whyThisSuggestion || 'Рекомендация собрана из текущего темпа и зон, где поддержка даст наибольший эффект.'}
+                        </p>
+                        <p className="parents-section-block__text" style={{ margin: '4px 0 0 0', opacity: 0.78 }}>
+                          Основа: тренд {((parentInsights?.basedOn?.trend || fallbackParentInsights?.basedOn?.trend || 'flat') === 'up' ? 'рост' : (parentInsights?.basedOn?.trend || fallbackParentInsights?.basedOn?.trend || 'flat') === 'down' ? 'снижение' : 'стабильно')} · окно {(parentInsights?.basedOn?.activityWindow || fallbackParentInsights?.basedOn?.activityWindow || 'последние 7 дней и предыдущие 7 дней')}
+                        </p>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </>
             )}
             {isParentChildReadonlyView && (
               <div style={{ alignSelf: 'flex-start', fontSize: 12, fontWeight: 700, letterSpacing: 0.2, padding: '6px 10px', borderRadius: 999, border: '1px solid rgba(255,255,255,0.32)', background: 'rgba(26,33,53,0.55)' }}>
@@ -6267,6 +6360,7 @@ export const ProfileView: React.FC<any> = (props) => {
                       if (data && typeof data.progress === 'object') {
                         setChildProgressFromFile(data.progress);
                         setChildReportMeta(data.profile?.nickname != null || data.exportedAt ? { nickname: data.profile?.nickname, exportedAt: data.exportedAt } : null);
+                        setParentSnapshotCode(code);
                         setParentCodeInput('');
                       }
                     } catch {

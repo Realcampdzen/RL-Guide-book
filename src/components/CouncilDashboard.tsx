@@ -7,6 +7,25 @@ const COUNCIL_ACCENT = '#FFD700';
 const COUNCIL_ACCENT_LIGHT = 'rgba(255, 215, 0, 0.2)';
 const COUNCIL_GRADIENT = 'linear-gradient(135deg, rgba(255, 215, 0, 0.08) 0%, rgba(184, 134, 11, 0.12) 100%)';
 
+const mapLegacyInitiativeStatus = (raw?: string): InitiativeStatus => {
+  const s = (raw || '').trim().toLowerCase();
+  if (s === 'new' || s === 'reviewing' || s === 'accepted' || s === 'rejected' || s === 'done') return s;
+  if (s === 'idea' || s === 'draft') return 'new';
+  if (s === 'discussion' || s === 'in_review' || s === 'under_review') return 'reviewing';
+  if (s === 'approved' || s === 'accepted_v1') return 'accepted';
+  if (s === 'declined' || s === 'denied') return 'rejected';
+  if (s === 'implemented' || s === 'completed') return 'done';
+  return 'new';
+};
+
+const initiativeStatusLabel = (status: InitiativeStatus): string => ({
+  new: 'Новая',
+  reviewing: 'На рассмотрении',
+  accepted: 'Принята',
+  rejected: 'Отклонена',
+  done: 'Выполнена',
+}[status]);
+
 export type CouncilTabId = 'council' | 'engines' | 'camp-management' | 'badge';
 
 type TeamListItem = {
@@ -15,6 +34,9 @@ type TeamListItem = {
   motto?: string;
   members?: Array<{ id?: string }>;
 };
+
+type InitiativeStatus = 'new' | 'reviewing' | 'accepted' | 'rejected' | 'done';
+type InitiativeItem = { id: string; title: string; createdAt?: string; status?: string; readStatus?: InitiativeStatus };
 
 interface CouncilDashboardProps {
   variant?: 'accordion' | 'cabin';
@@ -44,6 +66,9 @@ export const CouncilDashboard: React.FC<CouncilDashboardProps> = ({
   const [teams, setTeams] = useState<TeamListItem[]>([]);
   const [teamsLoading, setTeamsLoading] = useState(false);
   const [teamsError, setTeamsError] = useState<string | null>(null);
+  const [initiatives, setInitiatives] = useState<InitiativeItem[]>([]);
+  const [initiativesLoading, setInitiativesLoading] = useState(false);
+  const [initiativeFilter, setInitiativeFilter] = useState<'all' | InitiativeStatus>('all');
 
   useEffect(() => {
     if (variant === 'cabin' && onTabChange) onTabChange(activeTab);
@@ -84,6 +109,41 @@ export const CouncilDashboard: React.FC<CouncilDashboardProps> = ({
       })
       .finally(() => {
         if (!cancelled) setTeamsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [variant, activeTab]);
+
+  useEffect(() => {
+    if (variant !== 'cabin' || activeTab !== 'camp-management') return;
+    let cancelled = false;
+    setInitiativesLoading(true);
+    fetch('/api/council/initiatives')
+      .then(async (res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
+      .then((data: unknown) => {
+        if (cancelled) return;
+        const items = Array.isArray((data as any)?.initiatives) ? (data as any).initiatives : [];
+        const mapped: InitiativeItem[] = items
+          .filter((x: any) => x && typeof x === 'object' && x.id && x.title)
+          .map((x: any) => ({
+            id: String(x.id),
+            title: String(x.title),
+            createdAt: String(x.createdAt || x.created_at || ''),
+            status: typeof x.status === 'string' ? x.status : undefined,
+            readStatus: mapLegacyInitiativeStatus(String(x.readStatus || x.status || 'new'))
+          }))
+          .sort((a: InitiativeItem, b: InitiativeItem) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+        setInitiatives(mapped);
+      })
+      .catch(() => {
+        if (!cancelled) setInitiatives([]);
+      })
+      .finally(() => {
+        if (!cancelled) setInitiativesLoading(false);
       });
     return () => {
       cancelled = true;
@@ -202,6 +262,11 @@ export const CouncilDashboard: React.FC<CouncilDashboardProps> = ({
     </div>
   );
 
+  const filteredInitiatives = useMemo(() => {
+    if (initiativeFilter === 'all') return initiatives;
+    return initiatives.filter((x) => x.readStatus === initiativeFilter);
+  }, [initiativeFilter, initiatives]);
+
   const campManagementSection = (
     <div className="council-cabin-section" style={{ display: 'grid', gap: 12 }}>
       <p style={{ margin: 0, fontSize: 14, opacity: 0.9, lineHeight: 1.55 }}>
@@ -227,6 +292,42 @@ export const CouncilDashboard: React.FC<CouncilDashboardProps> = ({
         </button>
       ) : (
         <p className="profile-empty-state__text">Функция предложения инициативы недоступна.</p>
+      )}
+
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+        <span style={{ fontSize: 12, opacity: 0.8 }}>Фильтр:</span>
+        {(['all', 'new', 'reviewing', 'accepted', 'rejected', 'done'] as const).map((k) => (
+          <button
+            key={k}
+            type="button"
+            className="btn-secondary"
+            style={{ padding: '6px 10px', fontSize: 12, opacity: initiativeFilter === k ? 1 : 0.8 }}
+            onClick={() => setInitiativeFilter(k)}
+          >
+            {k === 'all' ? 'Все' : initiativeStatusLabel(k)}
+          </button>
+        ))}
+      </div>
+
+      {initiativesLoading ? (
+        <p className="profile-loading">Загрузка инициатив…</p>
+      ) : filteredInitiatives.length === 0 ? (
+        <p className="profile-empty-state__text">Инициативы не найдены.</p>
+      ) : (
+        <div style={{ display: 'grid', gap: 8 }}>
+          {filteredInitiatives.map((item) => {
+            const st = item.readStatus || mapLegacyInitiativeStatus(item.status);
+            return (
+              <article key={item.id} className="council-initiative-card">
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'start' }}>
+                  <strong style={{ fontSize: 13 }}>{item.title}</strong>
+                  <span className={`m3-status-chip council-status-chip tone-${st}`}>{initiativeStatusLabel(st)}</span>
+                </div>
+                <div style={{ fontSize: 11, opacity: 0.72, marginTop: 4 }}>{item.createdAt ? new Date(item.createdAt).toLocaleString('ru-RU') : '—'}</div>
+              </article>
+            );
+          })}
+        </div>
       )}
     </div>
   );

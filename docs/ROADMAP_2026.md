@@ -234,16 +234,135 @@
   - docs/PROD_ROADMAP_IMPL/reports/REPORT_M3_SC_S1_2026-02-27.md
   - docs/SQUAD_CORNER_READINESS.md
 
-### 2026-02-27 - M5-R2-A (Backend Release Hardening)
+### 2026-02-27 - M3-CN-S1 (Council Deepening Slice 1)
 
 - Status: Done
 - Scope delivered:
-  - `backend/scripts/smoke_backend_critical.py` ? ?????????????? smoke (22 checks) ??? 3 critical flows: badge-request, parent-insights, council-initiatives. Verified: ALL 22 CHECKS PASSED.
-  - `docs/BACKEND_CONTRACT_GUARD.md` ? contract guard: mandatory/optional fields + breaking-change policy ??? 6 endpoint-?????.
-  - `docs/PROD_RELEASE_PLAYBOOK.md §5.3` ? ?????? Backend Critical Flows (automated, ~5 min).
-  - No RBAC changes, no migrations, no new features.
+  - Introduced unified initiative read-status lifecycle (`new -> reviewing -> accepted|rejected|done`).
+  - Added legacy status mapper for old records and non-breaking `readStatus` in initiatives read-model.
+  - Added compact status chips + additive filters in Council camp-management view.
+  - Preserved default freshness sorting and existing create/staff/participant flows.
 - Evidence:
-  - backend/scripts/smoke_backend_critical.py
-  - docs/BACKEND_CONTRACT_GUARD.md
-  - docs/PROD_RELEASE_PLAYBOOK.md (§5.3 added)
-  - docs/PROD_ROADMAP_IMPL/reports/REPORT_A_M5_R2_A.md
+  - docs/PROD_ROADMAP_IMPL/reports/REPORT_M3_CN_S1_2026-02-27.md
+  - docs/COUNCIL_STATUS_MODEL.md
+
+### 2026-02-28 - M3-STAB-1 (Cross-slice stabilization)
+
+- Status: Done
+- Scope delivered:
+  - API non-breaking/fallback audit with unified mini-spec for M3 read-models.
+  - UI consistency pass for status chips across Badge/Squad/Council surfaces.
+  - Regression smoke matrix pass for participant / parent-read-only / staff.
+  - Low-risk edge-case fixes only.
+- Evidence:
+  - docs/PROD_ROADMAP_IMPL/reports/REPORT_M3_STAB_1_2026-02-28.md
+  - docs/M3_READ_MODELS_MINI_SPEC.md
+
+### 2026-02-28 - M4-PARENT-INSIGHTS-S1
+
+- Status: Done
+- Scope delivered:
+  - Added read-only parent insights endpoint `/api/parent-insights` using existing snapshot code context.
+  - Added parent recommendations block in parent child-view: "что уже хорошо" + "что поддержать дальше".
+  - Added human-readable fallback texts for partial/empty data.
+  - Preserved M2 read-only guarantees and avoided RBAC/write-flow/migration changes.
+- Evidence:
+  - docs/PROD_ROADMAP_IMPL/reports/REPORT_M4_PARENT_INSIGHTS_S1_2026-02-28.md
+  - docs/PARENT_INSIGHTS_READ_MODEL.md
+
+### 2026-02-28 - M4-PARENT-INSIGHTS-S2
+
+- Status: Done
+- Scope delivered:
+  - Extended parent insights read-model with optional `weeklyTrend` and `dynamicSignals` (non-breaking).
+  - Added rule-based dynamic recommendations by trend (up/flat/down).
+  - Added weekly trend indicator in parent child-view.
+  - Kept strict read-only and no RBAC/migration/write-flow changes.
+- Evidence:
+  - docs/PROD_ROADMAP_IMPL/reports/REPORT_M4_PARENT_INSIGHTS_S2_2026-02-28.md
+  - docs/PARENT_INSIGHTS_READ_MODEL.md
+
+### 2026-02-28 - M4-PARENT-INSIGHTS-S3
+
+- Status: Done
+- Scope delivered:
+  - Added optional explainability fields (`whyThisSuggestion`, `basedOn`) to parent insights read-model.
+  - Added compact "Почему такая рекомендация" block in parent child-view.
+  - Unified recommendation tone for supportive parent-friendly wording.
+  - Preserved read-only and non-breaking constraints.
+- Evidence:
+  - docs/PROD_ROADMAP_IMPL/reports/REPORT_M4_PARENT_INSIGHTS_S3_2026-02-28.md
+  - docs/PARENT_INSIGHTS_READ_MODEL.md
+
+### 2026-02-28 - M4-STAB-1 (Parent Insights stabilization)
+
+- Status: Done
+- Scope delivered:
+  - Final non-breaking contract audit for Parent Insights S1/S2/S3 fields.
+  - Explainability consistency hardening (stable short why + compact basedOn).
+  - UI cleanup for parent-friendly trend/window wording and reduced noise.
+  - Docs sync and regression smoke pass.
+- Evidence:
+  - docs/PROD_ROADMAP_IMPL/reports/REPORT_M4_STAB_1_2026-02-28.md
+  - docs/PARENT_INSIGHTS_READ_MODEL.md
+
+### 2026-02-28 - M5-KICKOFF (Role/UX Harmonization + Release Readiness Baseline)
+
+- Status: Done
+- Scope delivered:
+  - Role-path UX wording audit and low-risk harmonization patch.
+  - Release-readiness baseline with smoke gates, API compatibility checks, rollback criteria, and known-risk matrix.
+  - Dedicated M2 parent read-only invariants block.
+  - Regression smoke pass for participant / parent-read-only / staff.
+- Evidence:
+  - docs/PROD_ROADMAP_IMPL/reports/REPORT_M5_KICKOFF_2026-02-28.md
+  - docs/RELEASE_READINESS_BASELINE_M5.md
+
+### 2026-02-28 - M5-R1 (Release Readiness Pass #1)
+
+- Status: Done
+- Scope delivered:
+  - End-to-end baseline readiness pass with pass/conditional/fail mapping.
+  - GO/NO-GO matrix and minimum must-fix list.
+  - Separate M2 parent read-only invariants verification block.
+  - Verdict: CONDITIONAL GO (no release-blocking defects found).
+- Evidence:
+  - docs/PROD_ROADMAP_IMPL/reports/REPORT_M5_R1_RELEASE_PASS_2026-02-28.md
+
+### 2026-02-28 - M5-R1.1 (Pre-release Conditional Fix Sprint)
+
+- Status: Done
+- Scope delivered:
+  - R1 conditional item #2 closed (LKG + executable rollback procedure documented).
+  - R1 conditional item #1 downgraded with explicit impact/trigger/owner/fix-window.
+  - Quick smoke re-check complete for participant / parent-read-only / staff.
+- Evidence:
+  - docs/PROD_ROADMAP_IMPL/reports/REPORT_M5_R1_1_ADDENDUM_2026-02-28.md
+  - docs/RELEASE_NOTE_M5_R1_1.md
+
+### 2026-02-28 - M5-R1.2 (Runtime Warnings Closure Pass)
+
+- Status: Done
+- Scope delivered:
+  - Runtime warnings triage + closure table completed.
+  - Unresolved runtime-path warnings reduced to 0.
+  - Critical role surfaces verified (participant / parent-read-only / staff).
+  - Final readiness verdict updated to GO.
+- Evidence:
+  - docs/PROD_ROADMAP_IMPL/reports/REPORT_M5_R1_2_RUNTIME_WARNINGS_2026-02-28.md
+
+### 2026-02-27 - TAILS_RECONCILE_A (Documentation & Proof Tail Closure)
+
+- Status: Done
+- Scope delivered:
+  - `002_council_initiatives.sql` prod-evidence ???????????? (endpoint 401 ?? prod ? ??????? ??????????; `SupabaseCouncilInitiativesStore` ?????????? ? ??????????????? ? SUPABASE_STORES).
+  - P1-02 ???????? Definition of Done ? ??????? ?? ???? (`backend/storage/` 5 ???????? ?????? + env.example).
+  - P1-03 ?????? ????????? `open` ? `done`; ??? ???????? ???????; E2E smoke ???????????.
+  - P1-09 ????????? ??????? ("E2E ? Supabase ???? P1-03") ??????.
+  - Badge-flow E2E smoke (request ? inbox ? approve ? achieved): ALL PASS.
+  - Parent snapshot smoke (create ? read-only): PASS.
+  - Council initiatives smoke (create ? list): PASS.
+  - CLAIM_BOARD.md ????????: ?????? ????????????? done.
+- Evidence:
+  - docs/PROD_ROADMAP_IMPL/TASKS.md (???????? P1-02/P1-03/P1-09 ?????????)
+  - docs/PROD_ROADMAP_IMPL/reports/REPORT_A_TAILS_RECONCILE_A.md
