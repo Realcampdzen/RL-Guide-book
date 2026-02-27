@@ -3,7 +3,7 @@
 """
 backend/scripts/smoke_backend_critical.py
 
-Smoke-check for backend critical API flows (M5-R2-A, M5-R2-C).
+Smoke-check for backend critical API flows (M5-R2-A, M5-R2-C, M5-R3-C).
 
 Covers:
   Flow A — Badge Request: request → inbox → approve → mine
@@ -11,6 +11,7 @@ Covers:
   Flow C — Council Initiatives: create → list
   Flow D — Mine endpoint: privacy check + contract (M5-R2-B)
   Flow E — Image Generation: happy path (200|503), prompt truncation (not 500), missing-field guards (400)
+  Flow G — Chat: 200+response present with valid JWT, 401 with invalid token
   Flow F — Teams lifecycle: create → get → join → mine → leave x2 (M5-R3-A)
 
 Usage:
@@ -755,6 +756,66 @@ class SmokeRunner:
         )
 
     # -----------------------------------------------------------------------
+    # Flow G — Chat context (M5-R3-C)
+    # -----------------------------------------------------------------------
+
+    def run_flow_g(self) -> None:
+        """Flow G: POST /api/chat — 200+response present, 401 with invalid token."""
+        print("\n[Flow G] Chat: valid JWT → 200+response, invalid token → 401")
+        if not self.auth_secret:
+            print("  SKIP  (no AUTH_SECRET — auth flows require it)")
+            return
+
+        participant_device = f"smoke_ch_{uuid.uuid4().hex[:8]}"
+        participant_token = self._get_jwt(participant_device, "participant")
+        if not participant_token:
+            return
+
+        # G-1: valid participant JWT → 200, response field present
+        try:
+            status_g1, body_g1 = _http(
+                self._url("/api/chat"),
+                method="POST",
+                body={"message": "Как меня зовут?", "user_id": participant_device},
+                headers=self._bearer(participant_token),
+            )
+        except SmokeError as exc:
+            self.fail("POST /api/chat — G-1 valid JWT", str(exc))
+            status_g1, body_g1 = None, {}
+
+        if status_g1 is not None:
+            self.check(
+                "POST /api/chat — G-1: valid JWT → 200",
+                status_g1 == 200,
+                f"expected 200, got {status_g1}: {body_g1}",
+            )
+            if status_g1 == 200:
+                self.check(
+                    "POST /api/chat — G-1: response field present",
+                    bool(body_g1.get("response")),
+                    f"response missing or empty in: {list(body_g1.keys())}",
+                )
+
+        # G-2: invalid Bearer token → 401
+        try:
+            status_g2, body_g2 = _http(
+                self._url("/api/chat"),
+                method="POST",
+                body={"message": "test", "user_id": "invalid_user"},
+                headers={"Authorization": "Bearer invalid.token.here"},
+            )
+        except SmokeError as exc:
+            self.fail("POST /api/chat — G-2 invalid token", str(exc))
+            status_g2, body_g2 = None, {}
+
+        if status_g2 is not None:
+            self.check(
+                "POST /api/chat — G-2: invalid token → 401",
+                status_g2 == 401,
+                f"expected 401, got {status_g2}: {body_g2}",
+            )
+
+    # -----------------------------------------------------------------------
     # Run all
     # -----------------------------------------------------------------------
 
@@ -774,6 +835,7 @@ class SmokeRunner:
         self.run_flow_d(req_id, participant_token)
         self.run_flow_e()
         self.run_flow_f()
+        self.run_flow_g()
         return self._print_summary()
 
     def _print_summary(self) -> int:
@@ -812,7 +874,7 @@ def main() -> int:
     if not auth_secret:
         print(
             "WARNING: --auth-secret / AUTH_SECRET not set. "
-            "Auth flows (A, B, C, D, E, F) will be skipped. Only /api/health will be checked."
+            "Auth flows (A, B, C, D, E, F, G) will be skipped. Only /api/health will be checked."
         )
 
     runner = SmokeRunner(base_url=args.base_url, auth_secret=auth_secret)

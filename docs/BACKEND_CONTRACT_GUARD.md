@@ -19,6 +19,7 @@
 | **Parent Snapshot** | `POST /api/parent-snapshot`, `GET /api/parent-snapshot?code=` |
 | **Council Initiatives** | `GET /api/council/initiatives`, `POST /api/council/initiatives` |
 | **Image Generation** | `POST /api/images/generate` |
+| **Chat** | `POST /api/chat` |
 
 ---
 
@@ -409,6 +410,69 @@
 - Расширение `IMAGES_USER_PROMPT_MAX_LEN`
 - Добавление новых значений `context`
 
+### 3.5 Chat Endpoint
+
+#### `POST /api/chat`
+
+**Auth:** `participant | counselor | shift_leader | organizer | developer` (Bearer JWT)  
+**Body:**
+```json
+{
+  "message":  "string (required)",
+  "user_id":  "string (required)",
+  "context":  {
+    "current_view":            "string (optional)",
+    "current_category":        "object (optional)",
+    "current_badge":           "object (optional)",
+    "current_level":           "string (optional)",
+    "current_level_badge_title": "string (optional)"
+  }
+}
+```
+
+**Context fields enriched server-side (M5-R3-C, не передаются клиентом):**
+| Поле | Источник | Описание |
+|------|----------|----------|
+| `nickname` | JWT payload `nickname` | Никнейм участника |
+| `squad_name` | membership lookup → squads doc | Название отряда |
+| `shift_name` | membership lookup → shifts doc | Название смены |
+
+Клиент **не обязан** передавать эти поля — они обогащаются автоматически на сервере из JWT и данных membership. Lookup выполняется только при наличии `deviceId` и memberships; любая ошибка lookup не блокирует ответ (try/except).
+
+**Response (200):**
+```json
+{
+  "response":        "string (mandatory)",
+  "suggestions":     ["string"] ,
+  "context_updates": { ... },
+  "metadata":        { ... }
+}
+```
+
+**HTTP Statuses:**
+| Статус | Условие |
+|--------|---------|
+| `200` | Успешный ответ бота |
+| `401` | JWT отсутствует, невалиден или истёк |
+| `403` | Роль не в `CHAT_ALLOWED_ROLES` |
+| `429` | Превышен per-minute или daily лимит |
+| `500` | Внутренняя ошибка (не должна утекать в прод) |
+| `503` | chatbot не инициализирован (OpenAI key absent) |
+
+**Rate Limits:**
+- Per-minute: `CHAT_MSG_RATE_LIMIT_PER_MIN` (default 10), per `deviceId`
+- Daily: `CHAT_DAILY_LIMIT` (default env-configured), per `deviceId`
+
+**Breaking changes:**
+- Удаление поля `response` из 200-ответа
+- Изменение HTTP-статуса 200 на успехе
+- Добавление обязательного поля в body без default
+
+**Non-breaking changes:**
+- Добавление новых опциональных полей в context body
+- Добавление новых полей в 200-ответ (`context_updates`, `metadata`)
+- Расширение `CHAT_ALLOWED_ROLES`
+
 ---
 
 ## 4. Breaking vs Non-Breaking — Классификация
@@ -436,7 +500,7 @@
 Контракты автоматически проверяются скриптом:
 
 ```bash
-# С AUTH_SECRET — полный прогон (39 checks):
+# С AUTH_SECRET — полный прогон (43 checks):
 # Windows (cp1251): запускать с -X utf8 для корректного вывода
 AUTH_SECRET=<secret> python -X utf8 backend/scripts/smoke_backend_critical.py --base-url http://localhost:4000
 
@@ -458,7 +522,8 @@ python backend/scripts/smoke_backend_critical.py --base-url http://localhost:400
 | D | Mine privacy + contract (M5-R2-B) | 4 |
 | E | Image Generation (happy path, truncation, missing fields) | 5 |
 | F | Teams lifecycle (create → get → join → mine → leave x2) (M5-R3-A) | 8 |
-| **Total** | | **39** |
+| G | Chat endpoint: valid JWT → 200+response, invalid token → 401 (M5-R3-C) | 4 |
+| **Total** | | **43** |
 
 **Flow D** (M5-R2-B, `/api/badges/requests/mine`):
 - D-1: GET /mine → 200, requests is list
@@ -480,6 +545,11 @@ python backend/scripts/smoke_backend_critical.py --base-url http://localhost:400
 - F-5: POST /api/teams/<id>/leave (joiner) → 200, status=success
 - F-6: POST /api/teams/<id>/leave (leader, last member) → 200, status=success (team deleted)
 
+**Flow G** (M5-R3-C, `/api/chat`):
+- G-auth: `auth/verify-code (participant)` → 200, accessToken present
+- G-1: POST /api/chat с valid JWT → 200, `response` field present
+- G-2: POST /api/chat с invalid Bearer token → 401
+
 При изменении любого контракта из §3 — обновить скрипт, запустить, убедиться в 0 failures.
 
 ---
@@ -493,4 +563,4 @@ python backend/scripts/smoke_backend_critical.py --base-url http://localhost:400
 | Breaking change — согласовать с фронтом | NeuroStepa → Agent A + Agent B |
 | После обновления — перезапустить smoke | Agent A |
 
-*Последнее обновление: 2026-02-27 (M5-R3-A, Agent A — inbox TTL filter + includeResolved param, POST /api/badges/requests/cleanup, smoke Flow F Teams lifecycle, 39 checks total)*
+*Последнее обновление: 2026-02-27 (M5-R3-C, Agent C — /api/chat contract §3.5: nickname/squad_name/shift_name context enrichment, smoke Flow G Chat, 43 checks total)*

@@ -35,7 +35,10 @@ def get_system_prompt_with_context(
     current_view: str = None,
     current_level: str = None,
     current_level_badge_title: str = None,
-    user_role: Optional[str] = None
+    user_role: Optional[str] = None,
+    nickname: Optional[str] = None,
+    squad_name: Optional[str] = None,
+    shift_name: Optional[str] = None,
 ) -> str:
     """
     Получает системный промпт с дополнительным контекстом
@@ -49,6 +52,9 @@ def get_system_prompt_with_context(
         current_level: Текущий уровень значка
         current_level_badge_title: Название конкретного уровня значка
         user_role: Роль пользователя из JWT (participant, parent, counselor, shift_leader, organizer, developer)
+        nickname: Никнейм участника (из JWT / membership)
+        squad_name: Название отряда (из membership lookup)
+        shift_name: Название смены (из membership lookup)
         
     Returns:
         Системный промпт с контекстом
@@ -58,6 +64,15 @@ def get_system_prompt_with_context(
     if user_role:
         role_label = ROLE_LABELS.get(user_role) or user_role or 'Участник смены'
         context_parts.append(f"Роль пользователя: {role_label}")
+    
+    if nickname:
+        context_parts.append(f"Никнейм пользователя: {nickname}")
+    
+    if squad_name:
+        context_parts.append(f"Отряд пользователя: {squad_name}")
+    
+    if shift_name:
+        context_parts.append(f"Смена: {shift_name}")
     
     if current_category:
         context_parts.append(f"Пользователь сейчас изучает категорию: {current_category}")
@@ -142,6 +157,8 @@ def get_system_prompt_with_context(
         context_section = "\n\n## Текущий контекст:\n" + "\n".join(f"- {part}" for part in context_parts)
         if user_role:
             context_section += "\n\nАдаптируй тон и содержание ответа под роль: для вожатого или организатора можно упоминать методику, заявки, смены; для родителя — прогресс ребёнка и поддержку; для участника — значки и мотивацию."
+        if nickname or squad_name:
+            context_section += "\nОбращайся к пользователю по нику если он указан. Упоминай название отряда когда это уместно."
 
     return SYSTEM_PROMPT + facts_section + context_section
 
