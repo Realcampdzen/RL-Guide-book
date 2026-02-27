@@ -80,6 +80,7 @@ SHIFTS_FILE = os.path.join(os.path.dirname(__file__), "data", "shifts.json")
 _SHIFTS_LOCK = threading.Lock()
 BADGE_REQUESTS_FILE = os.path.join(os.path.dirname(__file__), "data", "badge_requests.json")
 _BADGE_REQUESTS_LOCK = threading.Lock()
+BADGE_REQUESTS_RESOLVED_TTL_DAYS = int(os.getenv("BADGE_REQUESTS_RESOLVED_TTL_DAYS", "30"))
 MEMBERSHIPS_FILE = os.path.join(os.path.dirname(__file__), "data", "memberships.json")
 _MEMBERSHIPS_LOCK = threading.Lock()
 SQUAD_CORNERS_FILE = os.path.join(os.path.dirname(__file__), "data", "squad_corners.json")
@@ -114,6 +115,8 @@ CHAT_MSG_RATE_LIMIT_PER_MIN = int(os.getenv('CHAT_MSG_RATE_LIMIT_PER_MIN', '15')
 CHAT_MSG_RATE_WINDOW_SEC = 60
 _chat_per_min_times: dict = defaultdict(list)
 _chat_per_min_lock = threading.Lock()
+# M5-R4-C: Max message length for /api/chat (env: CHAT_MAX_MESSAGE_LEN, default 2000)
+CHAT_MAX_MESSAGE_LEN = int(os.getenv('CHAT_MAX_MESSAGE_LEN', '2000'))
 
 # URL filter regex — block links in squad messages
 _URL_RE = re.compile(
@@ -879,6 +882,71 @@ def _check_images_generate_rate_limit(key):
         times.append(now)
     return True
 
+
+# ---------------------------------------------------------------------------
+# Images safety: prompt sanitization (M5-R2-C)
+# ---------------------------------------------------------------------------
+IMAGES_USER_PROMPT_MAX_LEN = int(os.getenv('IMAGES_USER_PROMPT_MAX_LEN', '300'))
+
+_PROMPT_INJECTION_KEYWORDS = [
+    'ignore previous',
+    'forget instructions',
+    'jailbreak',
+    'disregard',
+    'override prompt',
+]
+_HTML_TAG_RE = re.compile(r'<[^>]+>')
+
+
+def _hash_key(k: str) -> str:
+    """Return first 8 hex chars of SHA-256(k) — safe to log, not reversible."""
+    return hashlib.sha256(k.encode('utf-8', errors='replace')).hexdigest()[:8]
+
+
+def _sanitize_user_prompt(text: str, device_key: str = '') -> str:
+    """Strip HTML, detect injection attempts, truncate to IMAGES_USER_PROMPT_MAX_LEN.
+
+    Returns sanitized prompt string. Returns empty string on injection detection.
+    """
+    cleaned = _HTML_TAG_RE.sub('', text)
+    lower = cleaned.lower()
+    for kw in _PROMPT_INJECTION_KEYWORDS:
+        if kw in lower:
+            app.logger.warning('[IMAGES_SAFETY] prompt_injection_attempt device=%s', _hash_key(device_key))
+            return ''
+    orig_len = len(cleaned)
+    if orig_len > IMAGES_USER_PROMPT_MAX_LEN:
+        cleaned = cleaned[:IMAGES_USER_PROMPT_MAX_LEN]
+        app.logger.info('[IMAGES_SANITIZE] prompt truncated device=%s len=%d', _hash_key(device_key), orig_len)
+    return cleaned
+
+
+# ---------------------------------------------------------------------------
+# Images safety: per-camp daily quota (M5-R2-C)
+# ---------------------------------------------------------------------------
+IMAGES_CAMP_DAILY_LIMIT = int(os.getenv('IMAGES_CAMP_DAILY_LIMIT', '200'))
+_images_camp_daily: dict = {}   # camp_key -> {'date': 'YYYY-MM-DD', 'count': int}
+_images_camp_daily_lock = threading.Lock()
+
+
+def _check_images_camp_daily_quota(camp_key: str) -> bool:
+    """Check and record one image generation against the per-camp daily limit.
+
+    Returns True if request is within quota, False if daily limit exceeded.
+    camp_key is campId from JWT or deviceId as graceful fallback.
+    Counters reset automatically at UTC midnight (date comparison).
+    """
+    today = datetime.utcnow().strftime('%Y-%m-%d')
+    with _images_camp_daily_lock:
+        entry = _images_camp_daily.get(camp_key)
+        if entry and entry['date'] == today:
+            if entry['count'] >= IMAGES_CAMP_DAILY_LIMIT:
+                return False
+            entry['count'] += 1
+        else:
+            _images_camp_daily[camp_key] = {'date': today, 'count': 1}
+    return True
+
 def _validate_community_badge(data):
     """Validate and sanitize POST body. Returns (sanitized_dict, error_message)."""
     if not data or not isinstance(data, dict):
@@ -1237,10 +1305,22 @@ def images_generate():
             "error": "Слишком много запросов генерации. Подождите минуту.",
             "retryAfter": 60,
         }), 429
+    # Per-camp daily quota (M5-R2-C)
+    camp_id = (payload.get('campId') or '').strip()
+    camp_quota_key = camp_id or key
+    if not _check_images_camp_daily_quota(camp_quota_key):
+        app.logger.warning('[IMAGES_QUOTA] daily_limit_hit campId=%s ts=%s',
+                           _hash_key(camp_quota_key), datetime.utcnow().isoformat())
+        return jsonify({
+            "error": "Лимит генерации изображений для смены исчерпан",
+            "retryAfter": "tomorrow",
+        }), 429
     data = request.get_json() or {}
     mode = (data.get("mode") or "").strip().lower()
     context = (data.get("context") or "").strip()
     user_prompt = (data.get("prompt") or "").strip()
+    # Sanitize user_prompt: strip HTML, detect injection, truncate (M5-R2-C)
+    user_prompt = _sanitize_user_prompt(user_prompt, key)
     image_base64 = (data.get("imageBase64") or "").strip()
     team_name_hint = (data.get("teamName") or "").strip()
     captain_name_hint = (data.get("captainName") or "").strip()
@@ -2840,13 +2920,27 @@ def badge_request_create():
     return jsonify({"request": request_doc}), 201
 
 
+def _project_mine_row(row: dict) -> dict:
+    """Return badge request row without requestedBy.deviceId (privacy projection)."""
+    result = {k: v for k, v in row.items() if k != "requestedBy"}
+    req_by = row.get("requestedBy") or {}
+    if req_by:
+        result["requestedBy"] = {"nickname": req_by.get("nickname")}
+    return result
+
+
 @app.route('/api/badges/requests/mine', methods=['GET'])
 def badge_request_mine():
     """
     GET /api/badges/requests/mine
-    Auth: participant|developer
+    Auth: participant|parent|educator|counselor|shift_leader|developer
+    Returns own badge requests (filtered by deviceId from JWT), newest-first.
+    Privacy: requestedBy.deviceId is stripped from response.
     """
-    payload, err = _require_roles(("participant", "developer"), allow_localhost_dev=True)
+    payload, err = _require_roles(
+        ("participant", "parent", "educator", "counselor", "shift_leader", "developer"),
+        allow_localhost_dev=True,
+    )
     if err is not None:
         return err[0], err[1]
     device_id = (payload.get("deviceId") or "").strip()
@@ -2855,7 +2949,8 @@ def badge_request_mine():
 
     bdoc = _badge_requests_load()
     rows = [
-        row for row in (bdoc.get("requests") or [])
+        _project_mine_row(row)
+        for row in (bdoc.get("requests") or [])
         if isinstance(row, dict) and (
             isinstance(row.get("requestedBy"), dict) and
             (row.get("requestedBy", {}).get("deviceId") or "").strip() == device_id
@@ -2883,23 +2978,42 @@ def badge_request_inbox():
     if status_filter and status_filter not in ("pending", "approved", "rejected"):
         return jsonify({"error": "Invalid status filter"}), 400
 
-    if actor_role == "counselor" and not camp_filter and not squad_filter:
+    if actor_role in ("counselor", "educator") and not camp_filter and not squad_filter:
         camp_self, squad_self = _resolve_membership_context(device_id)
         camp_filter = camp_self
         squad_filter = squad_self
 
-    bdoc = _badge_requests_load()
-    rows = []
-    for row in (bdoc.get("requests") or []):
-        if not isinstance(row, dict):
-            continue
-        if camp_filter and (row.get("campId") or "").strip() != camp_filter:
-            continue
-        if squad_filter and (row.get("squadId") or "").strip() != squad_filter:
-            continue
-        if status_filter and (row.get("status") or "").strip() != status_filter:
-            continue
-        rows.append(row)
+    include_resolved = (request.args.get("includeResolved") or "").lower() in ("true", "1", "yes")
+    cutoff_ts = time.time() - BADGE_REQUESTS_RESOLVED_TTL_DAYS * 86400
+
+    store = get_store("badge_requests")
+    if hasattr(store, "load_inbox"):
+        rows = store.load_inbox(
+            camp_id=camp_filter or None,
+            squad_id=squad_filter or None,
+            status_filter=status_filter or None,
+            include_resolved=include_resolved,
+            resolved_ttl_days=BADGE_REQUESTS_RESOLVED_TTL_DAYS,
+        )
+    else:
+        bdoc = _badge_requests_load()
+        rows = []
+        for row in (bdoc.get("requests") or []):
+            if not isinstance(row, dict):
+                continue
+            if camp_filter and (row.get("campId") or "").strip() != camp_filter:
+                continue
+            if squad_filter and (row.get("squadId") or "").strip() != squad_filter:
+                continue
+            row_status = (row.get("status") or "").strip()
+            if status_filter and row_status != status_filter:
+                continue
+            if not include_resolved and row_status != "pending":
+                resolved_at = row.get("resolvedAt") or ""
+                row_ts = _parse_iso_ts(resolved_at) if resolved_at else 0
+                if row_ts < cutoff_ts:
+                    continue
+            rows.append(row)
 
     rows.sort(
         key=lambda item: (
@@ -2977,6 +3091,51 @@ def badge_request_approve(request_id: str):
 @app.route('/api/badges/requests/<request_id>/reject', methods=['POST'])
 def badge_request_reject(request_id: str):
     return _badge_request_resolve(request_id, "rejected")
+
+
+@app.route('/api/badges/requests/cleanup', methods=['POST'])
+def badge_requests_cleanup():
+    """
+    POST /api/badges/requests/cleanup
+    Auth: shift_leader | developer
+    Body: { "olderThanDays": 30 }  // optional, default from BADGE_REQUESTS_RESOLVED_TTL_DAYS
+    Response: { "deleted": N }
+    Deletes approved/rejected requests older than N days. Logs [BADGE_CLEANUP].
+    """
+    payload, err = _require_roles(("shift_leader", "developer"), allow_localhost_dev=True)
+    if err is not None:
+        return err[0], err[1]
+    device_id = (payload.get("deviceId") or "").strip()
+    body = request.get_json() or {}
+    try:
+        older_than_days = int(body.get("olderThanDays") or BADGE_REQUESTS_RESOLVED_TTL_DAYS)
+    except (TypeError, ValueError):
+        return jsonify({"error": "olderThanDays must be an integer"}), 400
+    if older_than_days < 0:
+        return jsonify({"error": "olderThanDays must be non-negative"}), 400
+    cutoff_ts = time.time() - older_than_days * 86400
+
+    bdoc = _badge_requests_load()
+    before = len(bdoc.get("requests") or [])
+    kept = []
+    for row in (bdoc.get("requests") or []):
+        if not isinstance(row, dict):
+            continue
+        row_status = (row.get("status") or "").strip()
+        if row_status in ("approved", "rejected"):
+            resolved_at = row.get("resolvedAt") or ""
+            row_ts = _parse_iso_ts(resolved_at) if resolved_at else 0
+            if row_ts < cutoff_ts:
+                continue
+        kept.append(row)
+    deleted = before - len(kept)
+    bdoc["requests"] = kept
+    _badge_requests_save(bdoc)
+    hashed_device = hashlib.sha256(device_id.encode()).hexdigest()[:12] if device_id else "unknown"
+    app.logger.info(
+        f"[BADGE_CLEANUP] deleted={deleted} actor={hashed_device} ts={datetime.now(timezone.utc).isoformat()}"
+    )
+    return jsonify({"deleted": deleted})
 
 
 @app.route('/api/badges/approvals/mine', methods=['GET'])
@@ -3262,11 +3421,58 @@ def chat_with_bot():
                     "error": "Чат-бот не может быть инициализирован",
                     "message": "Проверьте настройки OpenAI API"
                 }), 503
-        
+
+        # M5-R4-C: Message length guard (before enrichment to avoid wasted work)
+        _raw_message = (data.get("message") or "") if data else ""
+        if len(_raw_message) > CHAT_MAX_MESSAGE_LEN:
+            app.logger.warning('[CHAT_SAFETY] message_too_long device=%s len=%d',
+                               _hash_key(device_id or 'anon'), len(_raw_message))
+            return jsonify({"error": "Сообщение слишком длинное", "maxLen": CHAT_MAX_MESSAGE_LEN}), 400
+
         # Обрабатываем веб-контекст (подмешиваем роль из JWT для персонализации ответов)
         context = data.get("context") or {}
         context = dict(context) if isinstance(context, dict) else {}
         context["user_role"] = payload.get("role")
+
+        # M5-R3-C: Enrich context with membership/identity data from JWT
+        context["nickname"] = (payload.get("nickname") or "").strip() or None
+
+        # Resolve squad/shift names via membership lookup (non-blocking, only when device_id known)
+        if device_id and not context.get("squad_name"):
+            try:
+                _camp, _squad = _resolve_membership_context(device_id)
+                if _squad:
+                    _shifts_doc = _shifts_load()
+                    _squad_obj  = _find_squad(_shifts_doc, _squad) or {}
+                    _sq_name = (_squad_obj.get("name") or "").strip() or None
+                    context["squad_name"] = _sq_name
+                    _shift_id = (_squad_obj.get("shiftId") or "").strip()
+                    if _shift_id:
+                        for _sh in (_shifts_doc.get("shifts") or []):
+                            if isinstance(_sh, dict) and _sh.get("id") == _shift_id:
+                                context["shift_name"] = (_sh.get("name") or "").strip() or None
+                                break
+            except Exception:
+                pass  # non-blocking: lookup failure must never block chat response
+
+        # M5-R4-C: Inject pending badge requests for personalization
+        try:
+            _bdoc = _badge_requests_load()
+            _pending = [
+                r for r in (_bdoc.get("requests") or [])
+                if isinstance(r, dict)
+                and (r.get("requestedBy") or {}).get("deviceId") == device_id
+                and r.get("status") == "pending"
+            ]
+            if _pending:
+                context["pending_badge_count"] = len(_pending)
+                context["pending_badge_titles"] = [
+                    r.get("badgeTitle") or r.get("levelId") or "?"
+                    for r in _pending[:3]
+                ]
+        except Exception:
+            pass  # non-blocking
+
         if context:
             chatbot_components['response_generator'].context_manager.update_web_context(
                 user_id=data.get("user_id", "web_user"),

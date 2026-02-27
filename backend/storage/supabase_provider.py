@@ -313,8 +313,37 @@ class SupabaseBadgeRequestsStore(BadgeRequestsStore):
                 continue
             sb.table("badge_requests").upsert(_badge_request_to_row(req)).execute()
 
+    def load_inbox(self, *, camp_id=None, squad_id=None, status_filter=None,
+                   include_resolved=True, resolved_ttl_days=30) -> list:
+        """SQL-level inbox filtering — added in M5-R4-A."""
+        import datetime
+        sb = _client()
+        if not include_resolved and not status_filter:
+            def _s(q):
+                if camp_id:
+                    q = q.eq("camp_id", camp_id)
+                if squad_id:
+                    q = q.eq("squad_id", squad_id)
+                return q
+            pending = _s(sb.table("badge_requests").select("*")).eq("status", "pending").order("created_at", desc=False).execute().data or []
+            cutoff = (datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=resolved_ttl_days)).isoformat()
+            resolved = _s(sb.table("badge_requests").select("*")).neq("status", "pending").gte("resolved_at", cutoff).order("created_at", desc=False).execute().data or []
+            rows = pending + resolved
+        else:
+            q = sb.table("badge_requests").select("*")
+            if camp_id:
+                q = q.eq("camp_id", camp_id)
+            if squad_id:
+                q = q.eq("squad_id", squad_id)
+            if status_filter:
+                q = q.eq("status", status_filter)
+            rows = q.order("created_at", desc=False).execute().data or []
+        return [_row_to_badge_request(r) for r in rows]
+
 
 def _row_to_badge_request(r: dict) -> dict:
+    """Convert DB row to nested requestedBy/resolvedBy dict. Fixed in M5-R4-A."""
+    res_dev = r.get("resolved_by_device_id") or ""
     return {
         "id": r.get("id", ""),
         "campId": r.get("camp_id") or "",
@@ -324,22 +353,26 @@ def _row_to_badge_request(r: dict) -> dict:
         "evidence": r.get("evidence") or {},
         "status": r.get("status", "pending"),
         "createdAt": _ts(r.get("created_at")),
-        "requestedByDeviceId": r.get("requested_by_device_id", ""),
-        "requestedByNickname": r.get("requested_by_nickname") or "",
+        "requestedBy": {
+            "deviceId": r.get("requested_by_device_id") or "",
+            "nickname": r.get("requested_by_nickname") or "",
+        },
         "resolvedAt": _ts(r.get("resolved_at")),
-        "resolvedByDeviceId": r.get("resolved_by_device_id") or "",
-        "resolvedByRole": r.get("resolved_by_role") or "",
+        "resolvedBy": {"deviceId": res_dev, "role": r.get("resolved_by_role") or ""} if res_dev else None,
         "resolutionNote": r.get("resolution_note") or "",
     }
 
 
 def _badge_request_to_row(req: dict) -> dict:
+    """Convert nested requestedBy/resolvedBy dict to DB row. Fixed in M5-R4-A."""
+    rb = req.get("requestedBy") or {}
+    res_b = req.get("resolvedBy") or {}
     row = {
         "id": req.get("id") or uuid.uuid4().hex[:12],
         "level_id": req.get("levelId", ""),
         "evidence": req.get("evidence") or {},
         "status": req.get("status", "pending"),
-        "requested_by_device_id": req.get("requestedByDeviceId", ""),
+        "requested_by_device_id": rb.get("deviceId") or req.get("requestedByDeviceId", ""),
     }
     if req.get("campId"):
         row["camp_id"] = req["campId"]
@@ -347,14 +380,17 @@ def _badge_request_to_row(req: dict) -> dict:
         row["squad_id"] = req["squadId"]
     if req.get("badgeTitle"):
         row["badge_title"] = req["badgeTitle"]
-    if req.get("requestedByNickname"):
-        row["requested_by_nickname"] = req["requestedByNickname"]
+    nick = rb.get("nickname") or req.get("requestedByNickname") or ""
+    if nick:
+        row["requested_by_nickname"] = nick
     if req.get("resolvedAt"):
         row["resolved_at"] = req["resolvedAt"]
-    if req.get("resolvedByDeviceId"):
-        row["resolved_by_device_id"] = req["resolvedByDeviceId"]
-    if req.get("resolvedByRole"):
-        row["resolved_by_role"] = req["resolvedByRole"]
+    res_dev = res_b.get("deviceId") or req.get("resolvedByDeviceId", "")
+    if res_dev:
+        row["resolved_by_device_id"] = res_dev
+    res_role = res_b.get("role") or req.get("resolvedByRole", "")
+    if res_role:
+        row["resolved_by_role"] = res_role
     if req.get("resolutionNote"):
         row["resolution_note"] = req["resolutionNote"]
     return row
