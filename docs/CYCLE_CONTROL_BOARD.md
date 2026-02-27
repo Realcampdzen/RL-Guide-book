@@ -17,7 +17,7 @@
 
 | Agent | Current Task | Branch | Status | Last Commit | Risks/Blockers | Next Action | Owner |
 |---|---|---|---|---|---|---|---|
-| Agent A | Awaiting next TASK | — | IDLE | `2f6139d` (M5-R4-A done) | None | Ждёт TASK от оркестратора | Agent A |
+| Agent A | M5-R5-A | `main` | DONE | `8c29ba7` (M5-R5-A, 51/51 checks) | None | Ждёт следующего TASK | Agent A |
 | Agent B | Awaiting next TASK | — | IDLE | `14914fd` (M3-BF-S6 done) | PROCESS: всегда указывать "Агент: B" в первой строке отчёта | Ждёт TASK | Agent B |
 | Agent C | M5-R5-C | `agent-c/m5-r5-c` | DONE | `76d2e89` (M5-R5-C done, 47 checks) | None | Ждёт следующего TASK | Agent C |
 | Agent D | HOTFIX-BASE-PATH + M5-R5-D | `agent-d/hotfix-base-path` | DONE | `9a26f54` (HOTFIX), `ac37faa` (M5-R5-D) | Токены лобстеров NEEDS_VERCEL_ADD (добавить в Vercel после M5-R5-C) | Ждёт следующего TASK | Agent D |
@@ -66,7 +66,8 @@
 - M5-R5-C: DONE CERTIFIED (`76d2e89`) — `/api/telegram/agent-post` + AGENT_BOT_TOKENS (neuro_stepa/cat_bro/dev_bro_1) + Flow I 3 checks. Smoke baseline 47/47. Agent C
 - M5-R5-D: DONE (`ac37faa`) — LOBSTERS_RUNBOOK.md + OPS_SNAPSHOT §3 NEEDS_VERCEL_ADD + PROD_RELEASE_PLAYBOOK §5.3. Agent D
 - HOTFIX-BASE-PATH: DONE CRITICAL (`9a26f54`) — двойной путь vite.config.ts устранён. dist/RL-Guide-book/RL-Guide-book NOT EXISTS. Build verified. Agent D
-- **GitHub Pages push**: ожидается деплой. После — E-UX-AUDIT-M5-RECHECK (Opus).
+- M5-R5-A: DONE (`8c29ba7`) — delete_resolved() SQL + hasattr guard + Flow H+I. Smoke **51/51**. Agent A
+- **GitHub Pages push**: задеплоен (`c06eae6` → origin/main). Ждём E-UX-AUDIT-M5-RECHECK (Opus).
 
 ---
 
@@ -79,7 +80,9 @@
 | M5-R2-C (Flow E) | ~35 | ✅ |
 | M5-R3-A (Flow F) | 39/39 | ✅ |
 | M5-R3-C (Flow G) | 43/43 | ✅ |
-| M5-R4-C (G-3) | **44/44** | ✅ CURRENT |
+| M5-R4-C (G-3) | 44/44 | ✅ |
+| M5-R5-C (Flow I) | 47/47 | ✅ |
+| M5-R5-A (Flow H+I+fixes) | **51/51** | ✅ CURRENT |
 
 ---
 
