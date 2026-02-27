@@ -163,6 +163,14 @@ Staff:
 
 Полный drill‑расчёт: <30 мин. Эталон: [`docs/OPS_SNAPSHOT_M5_GO.md §5`](OPS_SNAPSHOT_M5_GO.md).
 
+### §5.3 Lobster bots checklist (добавлен M5-R5-D)
+
+- [ ] Lobster bot tokens добавлены в Vercel Production
+      (`NEURO_STEPA_BOT_TOKEN`, `CAT_BRO_BOT_TOKEN`, `DEV_BRO_1_BOT_TOKEN`)
+- [ ] `POST /api/telegram/agent-post` smoke I-1/I-2/I-3 пройден (HTTP 200 для всех трёх ботов)
+
+Инструкция по smoke и диагностике: [`docs/LOBSTERS_RUNBOOK.md`](LOBSTERS_RUNBOOK.md)
+
 ---
 
 ## 6) Rollback

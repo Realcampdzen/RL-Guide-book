@@ -36,7 +36,7 @@
 
 ## 3) Environment / secrets checklist
 
-**Last audit:** 2026-02-27 (M5-R4-D — final verification, updated with .env inspection)  
+**Last audit:** 2026-02-27 (M5-R5-D — lobster bot tokens added)  
 **Method:** observable side effects (read-only probes) + local .env inspection confirming key presence. No prod secrets recorded in this document. Legend: `VERIFIED` = confirmed set and functional. `VERIFIED_OPTIONAL` = key confirmed present and non-default; not smoke-tested end-to-end; not required for core flows.
 
 | Var | Scope | Required | Policy | Status (M5-R4-D final) | Evidence basis |
@@ -52,7 +52,11 @@
 | `TELEGRAM_CHANNEL_ID` | backend | optional | Required for notifications | **VERIFIED_OPTIONAL** | .env inspection (M5-R4-D): channel ID present (non-default numeric ID), confirmed in ops context. |
 | `VITE_BACKEND_URL` | GitHub Variable (frontend build) | yes | Set to `https://backend-murex-one-40.vercel.app` | **VERIFIED** | CLAIM_BOARD DEPLOY entry: "VITE_BACKEND_URL в GitHub Variable"; frontend builds confirmed |
 
-**Summary (M5-R4-D final):** All critical env vars (7/7) **VERIFIED**. Telegram env vars (2/2) **VERIFIED_OPTIONAL** — keys confirmed present and non-default. Env matrix is release-ready. No blockers.
+| `NEURO_STEPA_BOT_TOKEN` | backend | optional | Lobster orchestrator bot token | **NEEDS_VERCEL_ADD** | .env: token present (M5-R5-D). Not yet added to Vercel Production. Required for `POST /api/telegram/agent-post`. |
+| `CAT_BRO_BOT_TOKEN` | backend | optional | Lobster SMM/content bot token | **NEEDS_VERCEL_ADD** | .env: token present (M5-R5-D). Not yet added to Vercel Production. Required for `POST /api/telegram/agent-post`. |
+| `DEV_BRO_1_BOT_TOKEN` | backend | optional | Lobster developer bot token | **NEEDS_VERCEL_ADD** | .env: token present (M5-R5-D). Not yet added to Vercel Production. Required for `POST /api/telegram/agent-post`. |
+
+**Summary (M5-R5-D):** All critical env vars (7/7) **VERIFIED**. Telegram env vars (2/2) **VERIFIED_OPTIONAL**. Lobster bot tokens (3/3) **NEEDS_VERCEL_ADD** — present in .env, must be added to Vercel Production before lobster endpoint is live.
 
 ## 4) DB / migrations evidence
 
