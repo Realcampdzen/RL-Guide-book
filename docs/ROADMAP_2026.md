@@ -237,13 +237,54 @@
 ### 2026-02-27 - M5-R2-A (Backend Release Hardening)
 
 - Status: Done
+- Commit: `a995a1b` | Agent A | 6 files, 1142 insertions
 - Scope delivered:
-  - `backend/scripts/smoke_backend_critical.py` ? ?????????????? smoke (22 checks) ??? 3 critical flows: badge-request, parent-insights, council-initiatives. Verified: ALL 22 CHECKS PASSED.
-  - `docs/BACKEND_CONTRACT_GUARD.md` ? contract guard: mandatory/optional fields + breaking-change policy ??? 6 endpoint-?????.
-  - `docs/PROD_RELEASE_PLAYBOOK.md §5.3` ? ?????? Backend Critical Flows (automated, ~5 min).
+  - Automated smoke script `backend/scripts/smoke_backend_critical.py` ? 22 checks across 3 critical flows (Badge Request, Parent Insights, Council Initiatives) + health. All 22 PASS verified locally.
+  - Contract Guard doc `docs/BACKEND_CONTRACT_GUARD.md` ? mandatory/optional fields for 6 endpoint-groups, 12-type breaking change classification.
+  - Playbook §5.3 `docs/PROD_RELEASE_PLAYBOOK.md` ? "Backend Critical Flows (automated, ~5 min)" section with commands, flow table, FAIL interpretation.
+- Evidence:
+  - docs/PROD_ROADMAP_IMPL/reports/REPORT_A_M5_R2_A.md (handoff)
+
+### 2026-02-27 - E-VALIDATION-M5 (Opus Runtime Validation)
+
+- Status: Done ? CERTIFIED
+- Commit: `009a5d3` | Agent E (Opus) | Cloud browser validation
+- Scope delivered:
+  - Full participant flow verified: landing ? categories (14) ? badge detail ? profile cabin
+  - Auth/RBAC/JWT: ??? ???? ?????????, parent 403 confirmed
+  - Badge lifecycle E2E: request ? inbox ? approve ? pass
+  - Parent read-only: ???????????? ??? ??? staff-????????? ? confirmed
+  - Staff UI: ?????/??????/????????? ????? ? pass
+  - TypeScript: zero errors. Self-check: all pass. ESLint: 193 pre-existing (not M5)
+  - Verdict: VERIFIED, zero blockers for next cycle
+- Evidence:
+  - docs/PROD_ROADMAP_IMPL/reports/REPORT_E_VALIDATION_M5.md
+
+### 2026-02-27 - M5-R2-A (Backend Release Hardening)
+
+- Status: Done
+- Scope delivered:
+  - `backend/scripts/smoke_backend_critical.py` ? automated smoke (22 checks) for 3 critical flows: badge-request, parent-insights, council-initiatives. Verified: ALL 22 CHECKS PASSED.
+  - `docs/BACKEND_CONTRACT_GUARD.md` ? contract guard: mandatory/optional fields + breaking-change policy for 6 endpoint-groups.
+  - `docs/PROD_RELEASE_PLAYBOOK.md §5.3` ? backend Critical Flows (automated, ~5 min).
   - No RBAC changes, no migrations, no new features.
 - Evidence:
   - backend/scripts/smoke_backend_critical.py
   - docs/BACKEND_CONTRACT_GUARD.md
   - docs/PROD_RELEASE_PLAYBOOK.md (§5.3 added)
   - docs/PROD_ROADMAP_IMPL/reports/REPORT_A_M5_R2_A.md
+
+### 2026-02-27 - M5-R2-B (Badge Requests: Inbox Scoping + Mine Privacy)
+
+- Status: Done
+- Owner: Agent A
+- Scope delivered:
+  - `backend/app.py` ? inbox educator auto-scope (via `_resolve_membership_context`, consistent with counselor pattern). `/mine` endpoint: expanded roles to all 6 staff+participant roles, privacy projection strips `requestedBy.deviceId` from response.
+  - `backend/scripts/smoke_backend_critical.py` ? Flow D added (4 checks: list type, request found, status=approved, deviceId absent). Flow B fixed (correct endpoint `/api/parent-snapshot`). Total: **31 CHECKS PASSED**.
+  - `docs/BACKEND_CONTRACT_GUARD.md` ? /mine contract updated (privacy, roles), inbox auto-scope note, §3.2 Parent Snapshot actualized.
+  - No RBAC changes, no migrations, no structural changes to badge_requests.json.
+- Evidence:
+  - backend/app.py (inbox educator scope + mine privacy)
+  - backend/scripts/smoke_backend_critical.py (Flow D + 31 checks)
+  - docs/BACKEND_CONTRACT_GUARD.md (updated)
+  - docs/PROD_ROADMAP_IMPL/reports/REPORT_A_M5_R2_B.md

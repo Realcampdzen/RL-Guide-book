@@ -7,8 +7,9 @@ Smoke-check for backend critical API flows (M5-R2-A, M5-R2-C).
 
 Covers:
   Flow A — Badge Request: request → inbox → approve → mine
-  Flow B — Parent Insights: snapshot create → insights read → invalid-code 404
+  Flow B — Parent Snapshot: create → read by code → invalid-code 404
   Flow C — Council Initiatives: create → list
+  Flow D — Mine endpoint: privacy check + contract (M5-R2-B)
   Flow E — Image Generation: happy path (200|503), prompt truncation (not 500), missing-field guards (400)
 
 Usage:
@@ -356,7 +357,7 @@ class SmokeRunner:
     # -----------------------------------------------------------------------
 
     def run_flow_b(self) -> None:
-        print("\n[Flow B] Parent Insights: snapshot create -> insights read -> invalid 404")
+        print("\n[Flow B] Parent Snapshot: create -> read by code -> invalid 404")
         if not self.auth_secret:
             print("  SKIP  (no AUTH_SECRET — auth flows require it)")
             return
@@ -590,7 +591,7 @@ class SmokeRunner:
 
         if status_e3 is not None:
             self.check(
-                "POST /api/images/generate — E-3: missing mode → 400",
+                "POST /api/images/generate — E-3: missing mode -> 400",
                 status_e3 == 400,
                 f"expected 400, got {status_e3}: {body_e3}",
             )
@@ -609,7 +610,7 @@ class SmokeRunner:
 
         if status_e4 is not None:
             self.check(
-                "POST /api/images/generate — E-4: missing context → 400",
+                "POST /api/images/generate — E-4: missing context -> 400",
                 status_e4 == 400,
                 f"expected 400, got {status_e4}: {body_e4}",
             )

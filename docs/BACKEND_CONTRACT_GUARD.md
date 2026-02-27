@@ -2,7 +2,7 @@
 
 **Срез:** 2026-02-27  
 **Автор:** Agent A (Data/Backend contracts)  
-**Task:** M5-R2-A  
+**Tasks:** M5-R2-A, M5-R2-B  
 **Источник истины:** `backend/app.py`
 
 Этот документ фиксирует API-контракты для трёх критических endpoint-групп постпилотного контура. Цель — не допустить breaking-регрессий при будущих доработках backend'а.
@@ -16,8 +16,9 @@
 | Группа | Endpoints |
 |--------|-----------|
 | **Badge Requests** | `POST /api/badges/requests`, `GET /api/badges/requests/mine`, `GET /api/badges/requests/inbox`, `POST /api/badges/requests/{id}/approve`, `POST /api/badges/requests/{id}/reject` |
-| **Parent Insights** | `POST /api/parent-snapshot`, `GET /api/parent-snapshot`, `GET /api/parent-insights` |
+| **Parent Snapshot** | `POST /api/parent-snapshot`, `GET /api/parent-snapshot?code=` |
 | **Council Initiatives** | `GET /api/council/initiatives`, `POST /api/council/initiatives` |
+| **Image Generation** | `POST /api/images/generate` |
 
 ---
 
@@ -88,7 +89,7 @@
 
 #### `GET /api/badges/requests/mine`
 
-**Auth:** `participant | developer`  
+**Auth:** `participant | parent | educator | counselor | shift_leader | developer` (Bearer JWT)  
 **Response 200:**
 ```json
 {
@@ -99,7 +100,7 @@
       "levelId":    "string (mandatory)",
       "createdAt":  "string ISO8601 (mandatory)",
       "requestedBy": {
-        "deviceId": "string (mandatory)"
+        "nickname": "string | null (optional)"
       },
       "resolvedAt": "string ISO8601 | null (optional)",
       "resolvedBy": "object | null (optional)"
@@ -108,12 +109,15 @@
 }
 ```
 
-**Mandatory fields:** `requests` (array, may be empty), каждый объект: `id`, `status`, `levelId`, `createdAt`, `requestedBy.deviceId`  
+> **Privacy (M5-R2-B):** `requestedBy.deviceId` **не возвращается** в ответе /mine. Фильтрация происходит по `deviceId` из JWT, но идентификатор устройства не попадает в response.
+
+**Mandatory fields:** `requests` (array, may be empty), каждый объект: `id`, `status`, `levelId`, `createdAt`  
 **Sort:** newest-first (descending createdAt)
 
 **Breaking changes:**
 - Переименование `requests` → другое
 - Удаление статусного поля или изменение набора допустимых значений статуса (`pending|approved|rejected`)
+- Добавление `requestedBy.deviceId` в ответ (privacy regression)
 
 ---
 
@@ -124,9 +128,11 @@
 **Response 200:**
 ```json
 {
-  "requests": [ /* same shape as /mine */ ]
+  "requests": [ /* same shape as POST /api/badges/requests response */ ]
 }
 ```
+
+> **Auto-scope (M5-R2-B):** При отсутствии явных query-param `campId`/`squadId` роли `counselor` и `educator` автоматически ограничивают выдачу своим отрядом (через `_resolve_membership_context`). Роли `shift_leader`, `camp_director`, `developer` возвращают все заявки по умолчанию.
 
 **Mandatory fields:** `requests` (array)  
 **Sort:** pending-first, then newest-first within group
@@ -134,6 +140,7 @@
 **Breaking changes:**
 - Удаление фильтра `status`
 - Смена порядка сортировки без уведомления
+- Отключение auto-scope для counselor/educator без явного opt-out механизма
 
 ---
 
@@ -167,7 +174,7 @@
 
 ---
 
-### 3.2 Parent Insights
+### 3.2 Parent Snapshot
 
 #### `POST /api/parent-snapshot`
 
@@ -203,52 +210,27 @@
 
 ---
 
-#### `GET /api/parent-insights?code={code}`
+#### `GET /api/parent-snapshot?code={code}`
 
 **Auth:** Не требуется (публичный read-only по временному коду)  
-**Query params:** `code` (required для полного ответа)
+**Query params:** `code` (required)
 
-**Response 200 (без code или пустой code — placeholder):**
+**Response 200:**
 ```json
 {
-  "overallProgress": {
-    "percent": 0,
-    "stage":   "'start'",
-    "achieved": 0,
-    "total":    0
-  },
-  "weeklyTrend":  { "direction": "flat" },
-  "strengthsTop3": [],
-  "nextSteps":    []
-}
-```
-
-**Response 200 (с валидным code):**
-```json
-{
-  "overallProgress": {
-    "percent":  "int 0-100 (mandatory)",
-    "stage":    "'start' | 'steady' | 'high' (mandatory)",
-    "achieved": "int (mandatory)",
-    "total":    "int (mandatory)"
-  },
-  "weeklyTrend": {
-    "direction": "'up' | 'down' | 'flat' (mandatory)"
-  },
-  "strengthsTop3": [ { "categoryId": "str", "title": "str", "score": "int" } ],
-  "nextSteps":     [ { "title": "str", "hint": "str" } ],
-  "source":        "'parent_snapshot_code' (mandatory)"
+  "progress":   "object (mandatory) — map levelId → {achieved, achievedAt}",
+  "exportedAt": "string ISO8601 | '' (mandatory)",
+  "profile":    "object (optional) — {nickname, totalLevelsAchieved}"
 }
 ```
 
 **Response 404** — code не найден  
 **Response 410** — code истёк
 
-**Mandatory fields (с кодом):** `overallProgress` (объект), `overallProgress.percent` (int), `overallProgress.achieved` (int), `overallProgress.total` (int), `overallProgress.stage`, `weeklyTrend.direction`, `source`
+**Mandatory fields:** `progress` (object), `exportedAt`
 
 **Breaking changes:**
-- Удаление `overallProgress` или любого его обязательного subfield
-- Изменение `source` с `"parent_snapshot_code"` — фронт использует для определения типа ответа
+- Удаление `progress` из ответа
 - Замена 404/410 на другой статус для expired/missing кодов
 
 ---
@@ -413,7 +395,11 @@
 Контракты автоматически проверяются скриптом:
 
 ```bash
-# С AUTH_SECRET — полный прогон (~26 checks):
+# С AUTH_SECRET — полный прогон (31 check):
+# Windows (cp1251): запускать с -X utf8 для корректного вывода
+AUTH_SECRET=<secret> python -X utf8 backend/scripts/smoke_backend_critical.py --base-url http://localhost:4000
+
+# Linux/Mac:
 AUTH_SECRET=<secret> python backend/scripts/smoke_backend_critical.py --base-url http://localhost:4000
 
 # Без секрета — только /api/health:
@@ -425,11 +411,18 @@ python backend/scripts/smoke_backend_critical.py --base-url http://localhost:400
 | Flow | Endpoint-группа | Checks |
 |------|----------------|--------|
 | Health | `/api/health` | 1 |
-| A | Badge Requests (request → inbox → approve → mine) | ~10 |
-| B | Parent Insights (snapshot → insights → invalid-code 404) | ~5 |
-| C | Council Initiatives (create → list) | ~3 |
-| D | Mine privacy + contract | ~3 |
-| **E** | **Image Generation (happy path, truncation, missing mode, missing context)** | **4** |
+| A | Badge Requests (request → inbox → approve → mine) | 9 |
+| B | Parent Snapshot (create → read by code → invalid 404) | 6 |
+| C | Council Initiatives (create → list) | 6 |
+| D | Mine privacy + contract (M5-R2-B) | 4 |
+| E | Image Generation (happy path, truncation, missing fields) | 5 |
+| **Total** | | **31** |
+
+**Flow D** (M5-R2-B, `/api/badges/requests/mine`):
+- D-1: GET /mine → 200, requests is list
+- D-2: approved request found in list (reuses req_id from Flow A)
+- D-3: status=approved
+- D-4: `requestedBy.deviceId` отсутствует в ответе (privacy check)
 
 **Flow E** (M5-R2-C, `/api/images/generate`):
 - E-1: `mode=generate, context=passport` → 200 (`imageBase64` present) или 503 (нет ключа OpenAI) — оба допустимы
@@ -450,4 +443,4 @@ python backend/scripts/smoke_backend_critical.py --base-url http://localhost:400
 | Breaking change — согласовать с фронтом | NeuroStepa → Agent A + Agent B |
 | После обновления — перезапустить smoke | Agent A |
 
-*Последнее обновление: 2026-02-27 (M5-R2-C, Agent C — добавлен §3.4 Image Generation, §5 обновлён Flow E)*
+*Последнее обновление: 2026-02-27 (M5-R2-B, Agent A — /mine privacy + expanded roles, inbox educator auto-scope, smoke 31 checks, §3.2 Parent Snapshot актуализирован)*
