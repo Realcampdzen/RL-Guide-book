@@ -233,3 +233,17 @@
 - Evidence:
   - docs/PROD_ROADMAP_IMPL/reports/REPORT_M3_SC_S1_2026-02-27.md
   - docs/SQUAD_CORNER_READINESS.md
+
+### 2026-02-27 - M5-R2-A (Backend Release Hardening)
+
+- Status: Done
+- Scope delivered:
+  - `backend/scripts/smoke_backend_critical.py` ? ?????????????? smoke (22 checks) ??? 3 critical flows: badge-request, parent-insights, council-initiatives. Verified: ALL 22 CHECKS PASSED.
+  - `docs/BACKEND_CONTRACT_GUARD.md` ? contract guard: mandatory/optional fields + breaking-change policy ??? 6 endpoint-?????.
+  - `docs/PROD_RELEASE_PLAYBOOK.md §5.3` ? ?????? Backend Critical Flows (automated, ~5 min).
+  - No RBAC changes, no migrations, no new features.
+- Evidence:
+  - backend/scripts/smoke_backend_critical.py
+  - docs/BACKEND_CONTRACT_GUARD.md
+  - docs/PROD_RELEASE_PLAYBOOK.md (§5.3 added)
+  - docs/PROD_ROADMAP_IMPL/reports/REPORT_A_M5_R2_A.md

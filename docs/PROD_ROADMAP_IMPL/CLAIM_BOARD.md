@@ -68,6 +68,14 @@
 
 ---
 
+## Backend Hardening (M5-R2, 2026-02-27)
+
+| Агент | Task ID | Задача | Статус | Дата | Отчёт |
+|-------|---------|--------|--------|------|-------|
+| **Agent A** | M5-R2-A | Backend Release Hardening: smoke script (22 checks), contract guard doc, playbook §5.3 | ✅ done | 2026-02-27 | [REPORT_A_M5_R2_A.md](reports/REPORT_A_M5_R2_A.md) |
+
+---
+
 ## История выполненных задач (архив)
 
 | Агент | Task ID | Задача | Дата завершения | Отчёт |

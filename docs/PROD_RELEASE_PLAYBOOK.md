@@ -110,6 +110,45 @@ UI smoke (минимум руками):
 2. заявка на значок → inbox approve → синк → achieved
 3. parent snapshot: создать код/QR → открыть read‑only
 
+### §5.3 — Backend Critical Flows (автоматический, ~5 мин)
+
+**M5-R2-A smoke script** покрывает три критических flow одной командой:
+
+```bash
+# Полный прогон (22 checks) — требует AUTH_SECRET от backend-контура:
+AUTH_SECRET=<ваш_auth_secret> python backend/scripts/smoke_backend_critical.py \
+  --base-url https://backend-murex-one-40.vercel.app
+
+# Против локального backend:
+AUTH_SECRET=<secret> python backend/scripts/smoke_backend_critical.py \
+  --base-url http://localhost:4000
+
+# Health-only (без секрета):
+python backend/scripts/smoke_backend_critical.py --base-url https://backend-murex-one-40.vercel.app
+```
+
+**Что проверяет:**
+
+| Flow | Шаги | Checks |
+|------|------|--------|
+| **A — Badge Request** | request→inbox→approve→mine | 9 checks |
+| **B — Parent Insights** | snapshot→insights→invalid-404 | 6 checks |
+| **C — Council Initiatives** | create→list | 5 checks |
+| **Health** | /api/health | 1 check |
+
+**Ожидаемый вывод при успехе:**
+```
+RESULT: ALL 22 CHECKS PASSED
+```
+
+**Интерпретация провалов:**
+- `FAIL auth/verify-code` — AUTH_SECRET не совпадает с prod или backend недоступен
+- `FAIL POST /api/badges/requests` — 401/403: RBAC regression; 500: Supabase unavailable
+- `FAIL GET /api/parent-insights — overallProgress present` — breaking change в contract
+- `FAIL GET /api/council/initiatives — new initiative found in list` — storage layer failure
+
+Контракты (mandatory fields, breaking-change policy): [`docs/BACKEND_CONTRACT_GUARD.md`](BACKEND_CONTRACT_GUARD.md)
+
 ---
 
 ## 6) Rollback

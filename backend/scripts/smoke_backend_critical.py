@@ -1,0 +1,522 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+backend/scripts/smoke_backend_critical.py
+
+Smoke-check for backend critical API flows (M5-R2-A).
+
+Covers:
+  Flow A — Badge Request: request → inbox → approve → mine
+  Flow B — Parent Insights: snapshot create → insights read → invalid-code 404
+  Flow C — Council Initiatives: create → list
+
+Usage:
+  python backend/scripts/smoke_backend_critical.py
+  python backend/scripts/smoke_backend_critical.py --base-url http://localhost:4000
+  python backend/scripts/smoke_backend_critical.py --base-url http://localhost:4000 --auth-secret <secret>
+
+  AUTH_SECRET env var is used if --auth-secret is not provided.
+  If neither is set: auth flows are skipped, only /api/health is checked.
+
+Exit code:
+  0 — all checks pass
+  1 — one or more checks failed (failures listed at the end)
+"""
+
+from __future__ import annotations
+
+import argparse
+import base64
+import hashlib
+import hmac
+import json
+import os
+import sys
+import time
+import uuid
+from typing import Optional
+from urllib.error import HTTPError, URLError
+from urllib.request import Request, urlopen
+
+# ---------------------------------------------------------------------------
+# HMAC auth helpers (mirrors app.py logic exactly)
+# ---------------------------------------------------------------------------
+
+_AUTH_SLOT_SEC = 600
+
+
+def _compute_code(device_id: str, camp_id: str, role: str, secret: str) -> str:
+    slot = int(time.time() // _AUTH_SLOT_SEC)
+    payload = f"{device_id}|{camp_id}|{role}|{slot}"
+    raw = hmac.new(secret.encode("utf-8"), payload.encode("utf-8"), hashlib.sha256).digest()
+    b32 = base64.b32encode(raw).decode("ascii").rstrip("=").upper()
+    return b32[:8]
+
+
+# ---------------------------------------------------------------------------
+# HTTP helpers
+# ---------------------------------------------------------------------------
+
+class SmokeError(Exception):
+    pass
+
+
+def _http(
+    url: str,
+    method: str = "GET",
+    body: Optional[dict] = None,
+    headers: Optional[dict] = None,
+    expect_status: Optional[int] = None,
+) -> tuple[int, dict]:
+    """Return (status_code, json_body). Raises SmokeError on network failure."""
+    hdr = {"Accept": "application/json"}
+    if headers:
+        hdr.update(headers)
+    data = None
+    if body is not None:
+        data = json.dumps(body).encode("utf-8")
+        hdr["Content-Type"] = "application/json"
+
+    req = Request(url=url, method=method, data=data, headers=hdr)
+    try:
+        with urlopen(req, timeout=15) as resp:
+            raw = resp.read()
+            status = resp.status
+            payload = json.loads(raw.decode("utf-8")) if raw else {}
+    except HTTPError as exc:
+        status = exc.code
+        try:
+            payload = json.loads(exc.read().decode("utf-8"))
+        except Exception:
+            payload = {}
+
+    if expect_status is not None and status != expect_status:
+        raise SmokeError(
+            f"{method} {url} — expected HTTP {expect_status}, got {status}: {payload}"
+        )
+    return status, payload
+
+
+# ---------------------------------------------------------------------------
+# Smoke runner
+# ---------------------------------------------------------------------------
+
+class SmokeRunner:
+    def __init__(self, base_url: str, auth_secret: Optional[str]):
+        self.base = base_url.rstrip("/")
+        self.auth_secret = auth_secret
+        self.failures: list[str] = []
+        self.passed: int = 0
+
+    def _url(self, path: str) -> str:
+        return f"{self.base}{path}"
+
+    def ok(self, label: str) -> None:
+        print(f"  PASS  {label}")
+        self.passed += 1
+
+    def fail(self, label: str, reason: str) -> None:
+        msg = f"  FAIL  {label}: {reason}"
+        print(msg)
+        self.failures.append(msg)
+
+    def check(self, label: str, cond: bool, reason: str = "") -> None:
+        if cond:
+            self.ok(label)
+        else:
+            self.fail(label, reason or "assertion failed")
+
+    # -----------------------------------------------------------------------
+    # Auth helpers
+    # -----------------------------------------------------------------------
+
+    def _get_jwt(self, device_id: str, role: str) -> Optional[str]:
+        """Compute HMAC code + verify-code → return accessToken or None."""
+        if not self.auth_secret:
+            return None
+        code = _compute_code(device_id, "", role, self.auth_secret)
+        try:
+            _, body = _http(
+                self._url("/api/auth/verify-code"),
+                method="POST",
+                body={"code": code, "deviceId": device_id, "role": role},
+                expect_status=200,
+            )
+        except SmokeError as exc:
+            self.fail(f"auth/verify-code ({role})", str(exc))
+            return None
+        token = body.get("accessToken")
+        if not token:
+            self.fail(f"auth/verify-code ({role})", f"no accessToken in response: {body}")
+            return None
+        self.ok(f"auth/verify-code ({role})")
+        return token
+
+    def _bearer(self, token: str) -> dict:
+        return {"Authorization": f"Bearer {token}"}
+
+    # -----------------------------------------------------------------------
+    # Health check
+    # -----------------------------------------------------------------------
+
+    def run_health(self) -> bool:
+        print("\n[Health]")
+        try:
+            _, body = _http(self._url("/api/health"), expect_status=200)
+        except SmokeError as exc:
+            self.fail("/api/health", str(exc))
+            return False
+        status_ok = (body.get("status") or "").lower() in ("ok", "healthy")
+        self.check("/api/health status", status_ok, f"got: {body}")
+        return status_ok
+
+    # -----------------------------------------------------------------------
+    # Flow A — Badge Request
+    # -----------------------------------------------------------------------
+
+    def run_flow_a(self) -> None:
+        print("\n[Flow A] Badge Request: request -> inbox -> approve -> mine")
+        if not self.auth_secret:
+            print("  SKIP  (no AUTH_SECRET — auth flows require it)")
+            return
+
+        participant_device = f"smoke_p_{uuid.uuid4().hex[:8]}"
+        staff_device = f"smoke_s_{uuid.uuid4().hex[:8]}"
+
+        participant_token = self._get_jwt(participant_device, "participant")
+        staff_token = self._get_jwt(staff_device, "shift_leader")
+        if not participant_token or not staff_token:
+            return
+
+        # A1 — POST badge request
+        req_body = {
+            "levelId": "1.1.1",
+            "badgeTitle": "Smoke-Test Badge",
+            "nickname": "SmokeParticipant",
+            "evidence": {
+                "reflection": "Smoke test reflection",
+                "impact": "Smoke test impact",
+            },
+        }
+        try:
+            status, body = _http(
+                self._url("/api/badges/requests"),
+                method="POST",
+                body=req_body,
+                headers=self._bearer(participant_token),
+                expect_status=201,
+            )
+        except SmokeError as exc:
+            self.fail("POST /api/badges/requests", str(exc))
+            return
+
+        req_obj = body.get("request") or {}
+        req_id = req_obj.get("id")
+        self.check(
+            "POST /api/badges/requests — id present",
+            bool(req_id),
+            f"no id in: {body}",
+        )
+        self.check(
+            "POST /api/badges/requests — status=pending",
+            req_obj.get("status") == "pending",
+            f"status={req_obj.get('status')}",
+        )
+        if not req_id:
+            return
+
+        # A2 — GET inbox (staff)
+        try:
+            _, inbox_body = _http(
+                self._url("/api/badges/requests/inbox"),
+                headers=self._bearer(staff_token),
+                expect_status=200,
+            )
+        except SmokeError as exc:
+            self.fail("GET /api/badges/requests/inbox", str(exc))
+            return
+
+        inbox_ids = [r.get("id") for r in (inbox_body.get("requests") or [])]
+        self.check(
+            "GET /api/badges/requests/inbox — request present",
+            req_id in inbox_ids,
+            f"{req_id} not found in inbox ids: {inbox_ids[:5]}",
+        )
+
+        # A3 — POST approve
+        try:
+            _, approve_body = _http(
+                self._url(f"/api/badges/requests/{req_id}/approve"),
+                method="POST",
+                body={"note": "Smoke test approval"},
+                headers=self._bearer(staff_token),
+                expect_status=200,
+            )
+        except SmokeError as exc:
+            self.fail(f"POST /api/badges/requests/{req_id}/approve", str(exc))
+            return
+
+        approved_obj = approve_body.get("request") or {}
+        self.check(
+            "POST approve — status=approved",
+            approved_obj.get("status") == "approved",
+            f"status={approved_obj.get('status')}",
+        )
+        self.check(
+            "POST approve — resolvedAt present",
+            bool(approved_obj.get("resolvedAt")),
+            f"resolvedAt missing in: {approved_obj}",
+        )
+
+        # A4 — GET mine (participant)
+        try:
+            _, mine_body = _http(
+                self._url("/api/badges/requests/mine"),
+                headers=self._bearer(participant_token),
+                expect_status=200,
+            )
+        except SmokeError as exc:
+            self.fail("GET /api/badges/requests/mine", str(exc))
+            return
+
+        mine_map = {r.get("id"): r for r in (mine_body.get("requests") or [])}
+        my_req = mine_map.get(req_id)
+        self.check(
+            "GET /api/badges/requests/mine — request found",
+            my_req is not None,
+            f"{req_id} not in mine: {list(mine_map.keys())[:5]}",
+        )
+        if my_req:
+            self.check(
+                "GET /api/badges/requests/mine — status=approved",
+                my_req.get("status") == "approved",
+                f"status={my_req.get('status')}",
+            )
+
+    # -----------------------------------------------------------------------
+    # Flow B — Parent Insights (read-only path)
+    # -----------------------------------------------------------------------
+
+    def run_flow_b(self) -> None:
+        print("\n[Flow B] Parent Insights: snapshot create -> insights read -> invalid 404")
+        if not self.auth_secret:
+            print("  SKIP  (no AUTH_SECRET — auth flows require it)")
+            return
+
+        participant_device = f"smoke_pi_{uuid.uuid4().hex[:8]}"
+        participant_token = self._get_jwt(participant_device, "participant")
+        if not participant_token:
+            return
+
+        # B1 — POST parent-snapshot
+        snap_body = {
+            "progress": {
+                "1.1.1": {"achieved": True, "achievedAt": "2026-02-27T00:00:00Z"},
+                "1.2.1": {"achieved": True, "achievedAt": "2026-02-26T00:00:00Z"},
+            },
+            "profile": {
+                "nickname": "SmokeParent",
+                "totalLevelsAchieved": 2,
+            },
+        }
+        try:
+            _, snap_resp = _http(
+                self._url("/api/parent-snapshot"),
+                method="POST",
+                body=snap_body,
+                headers=self._bearer(participant_token),
+                expect_status=200,
+            )
+        except SmokeError as exc:
+            self.fail("POST /api/parent-snapshot", str(exc))
+            return
+
+        link_code = snap_resp.get("parentLinkCode")
+        self.check(
+            "POST /api/parent-snapshot — parentLinkCode present",
+            bool(link_code),
+            f"no parentLinkCode in: {snap_resp}",
+        )
+        if not link_code:
+            return
+
+        # B2 — GET parent-insights with valid code
+        try:
+            _, insights = _http(
+                self._url(f"/api/parent-insights?code={link_code}"),
+                expect_status=200,
+            )
+        except SmokeError as exc:
+            self.fail(f"GET /api/parent-insights?code={link_code}", str(exc))
+            return
+
+        overall = insights.get("overallProgress") or {}
+        self.check(
+            "GET /api/parent-insights — overallProgress present",
+            bool(overall),
+            f"overallProgress missing or empty: {insights}",
+        )
+        self.check(
+            "GET /api/parent-insights — overallProgress.percent is int",
+            isinstance(overall.get("percent"), int),
+            f"percent={overall.get('percent')}",
+        )
+        self.check(
+            "GET /api/parent-insights — overallProgress.achieved is int",
+            isinstance(overall.get("achieved"), int),
+            f"achieved={overall.get('achieved')}",
+        )
+
+        # B3 — GET parent-insights with invalid code → expect 404
+        try:
+            invalid_status, invalid_body = _http(
+                self._url("/api/parent-insights?code=INVALIDCODE00"),
+            )
+        except SmokeError as exc:
+            self.fail("GET /api/parent-insights?code=INVALID (expected 404)", str(exc))
+            return
+
+        self.check(
+            "GET /api/parent-insights?code=INVALID — 404",
+            invalid_status == 404,
+            f"expected 404, got {invalid_status}: {invalid_body}",
+        )
+
+    # -----------------------------------------------------------------------
+    # Flow C — Council Initiatives
+    # -----------------------------------------------------------------------
+
+    def run_flow_c(self) -> None:
+        print("\n[Flow C] Council Initiatives: create -> list")
+        if not self.auth_secret:
+            print("  SKIP  (no AUTH_SECRET — auth flows require it)")
+            return
+
+        staff_device = f"smoke_ci_{uuid.uuid4().hex[:8]}"
+        staff_token = self._get_jwt(staff_device, "shift_leader")
+        if not staff_token:
+            return
+
+        # C1 — POST initiative
+        init_body = {
+            "title": f"Smoke Initiative {uuid.uuid4().hex[:6]}",
+            "camp_id": "smoke_camp",
+        }
+        try:
+            _, init_resp = _http(
+                self._url("/api/council/initiatives"),
+                method="POST",
+                body=init_body,
+                headers=self._bearer(staff_token),
+                expect_status=201,
+            )
+        except SmokeError as exc:
+            self.fail("POST /api/council/initiatives", str(exc))
+            return
+
+        init_id = init_resp.get("id")
+        self.check(
+            "POST /api/council/initiatives — id present",
+            bool(init_id),
+            f"no id in: {init_resp}",
+        )
+        self.check(
+            "POST /api/council/initiatives — status=idea",
+            init_resp.get("status") == "idea",
+            f"status={init_resp.get('status')}",
+        )
+        self.check(
+            "POST /api/council/initiatives — title matches",
+            init_resp.get("title") == init_body["title"],
+            f"title={init_resp.get('title')}",
+        )
+
+        # C2 — GET initiatives list
+        try:
+            _, list_resp = _http(
+                self._url("/api/council/initiatives"),
+                headers=self._bearer(staff_token),
+                expect_status=200,
+            )
+        except SmokeError as exc:
+            self.fail("GET /api/council/initiatives", str(exc))
+            return
+
+        initiatives = list_resp.get("initiatives") or []
+        self.check(
+            "GET /api/council/initiatives — list returned",
+            isinstance(initiatives, list),
+            f"initiatives is not a list: {type(initiatives)}",
+        )
+        if init_id:
+            found = any(i.get("id") == init_id for i in initiatives)
+            self.check(
+                "GET /api/council/initiatives — new initiative found in list",
+                found,
+                f"{init_id} not in list of {len(initiatives)} initiatives",
+            )
+
+    # -----------------------------------------------------------------------
+    # Run all
+    # -----------------------------------------------------------------------
+
+    def run(self) -> int:
+        print(f"Smoke backend critical flows — {self.base}")
+        print("=" * 60)
+
+        healthy = self.run_health()
+        if not healthy:
+            print("\nERROR: backend not healthy, aborting auth flows")
+            self._print_summary()
+            return 1
+
+        self.run_flow_a()
+        self.run_flow_b()
+        self.run_flow_c()
+        return self._print_summary()
+
+    def _print_summary(self) -> int:
+        print("\n" + "=" * 60)
+        total = self.passed + len(self.failures)
+        if self.failures:
+            print(f"RESULT: {len(self.failures)} FAILED / {total} checks")
+            for f in self.failures:
+                print(f)
+            return 1
+        print(f"RESULT: ALL {total} CHECKS PASSED")
+        return 0
+
+
+# ---------------------------------------------------------------------------
+# Entry point
+# ---------------------------------------------------------------------------
+
+def main() -> int:
+    parser = argparse.ArgumentParser(
+        description="Smoke-check backend critical API flows (badge, parent-insights, council)."
+    )
+    parser.add_argument(
+        "--base-url",
+        default="http://localhost:4000",
+        help="Backend base URL (default: http://localhost:4000)",
+    )
+    parser.add_argument(
+        "--auth-secret",
+        default=os.environ.get("AUTH_SECRET", ""),
+        help="AUTH_SECRET for HMAC code generation (or set AUTH_SECRET env var)",
+    )
+    args = parser.parse_args()
+
+    auth_secret = (args.auth_secret or "").strip() or None
+    if not auth_secret:
+        print(
+            "WARNING: --auth-secret / AUTH_SECRET not set. "
+            "Auth flows (A, B, C) will be skipped. Only /api/health will be checked."
+        )
+
+    runner = SmokeRunner(base_url=args.base_url, auth_secret=auth_secret)
+    return runner.run()
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
