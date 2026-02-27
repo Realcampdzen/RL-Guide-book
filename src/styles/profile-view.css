@@ -3129,6 +3129,19 @@
   border: 1px solid rgba(255,255,255,0.2);
   background: rgba(12, 17, 29, 0.5);
 }
-.squad-corner-readiness-chip.tone-muted { border-color: rgba(255,255,255,0.2); }
-.squad-corner-readiness-chip.tone-warn { border-color: rgba(255, 196, 86, 0.52); }
-.squad-corner-readiness-chip.tone-success { border-color: rgba(90, 215, 140, 0.52); }
+.squad-corner-readiness-chip.tone-muted { border-color: rgba(255,255,255,0.2); color: rgba(255,255,255,0.55); }
+.squad-corner-readiness-chip.tone-warn { border-color: rgba(255, 196, 86, 0.52); color: rgba(255, 196, 86, 0.9); }
+.squad-corner-readiness-chip.tone-success { border-color: rgba(90, 215, 140, 0.52); color: rgba(90, 215, 140, 0.9); }
+
+.m3-status-chip {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 11px;
+  border: 1px solid rgba(255,255,255,0.2);
+  background: rgba(12, 17, 29, 0.5);
+}
+.badge-request-status-chip.tone-pending  { border-color: rgba(255, 196, 86, 0.52); color: rgba(255, 196, 86, 0.9); }
+.badge-request-status-chip.tone-approved { border-color: rgba(90, 215, 140, 0.52); color: rgba(90, 215, 140, 0.9); }
+.badge-request-status-chip.tone-rejected { border-color: rgba(255, 110, 110, 0.52); color: rgba(255, 110, 110, 0.9); }
