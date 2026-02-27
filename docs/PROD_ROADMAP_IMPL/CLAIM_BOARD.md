@@ -68,6 +68,7 @@
 | **Agent B** | M3-BF-S4 | Badge Request Status Panel: chip tones, empty state CTA, Sync CTA, M2 guard, scroll+hint after proof submit | done | 2026-02-27 | Closed: build clean, lint clean, M2 guard confirmed; commit e474174 | [REPORT_B_M3_BF_S4_2026-02-27.md](reports/REPORT_B_M3_BF_S4_2026-02-27.md) |
 | **Agent B** | M3-BF-S5 | Auto-sync approved levels on mount + celebration hint (startTutorial) + reject reason in «Мои заявки» | done | 2026-02-27 | Closed: build clean, lint clean, M2 guard confirmed; commit 44533b0 | [REPORT_B_M3_BF_S5_2026-02-27.md](reports/REPORT_B_M3_BF_S5_2026-02-27.md) |
 | **Agent B** | M3-BF-S6 | Staff inbox UX: локализация кнопок + inline reject form + optimistic UI + evidence accordion | done | 2026-02-27 | Closed: build clean, M2 guard confirmed | [REPORT_B_M3_BF_S6_2026-02-27.md](reports/REPORT_B_M3_BF_S6_2026-02-27.md) |
+| **Agent B** | M3-BF-S7 | ESLint HIGH fix (6 no-unused-expressions) + inbox squadId enrichment + pending counter | done | 2026-02-28 | Closed: build clean, lint 0 errors, commit fa05be9 | [REPORT_B_M3_BF_S7.md](reports/REPORT_B_M3_BF_S7.md) |
 
 ---
 
@@ -84,6 +85,7 @@
 | **Agent C** | M5-R4-C | Chat Quality+Safety: pending badges context injection, CHAT_MAX_MESSAGE_LEN validation (400), G-3 smoke check, BACKEND_CONTRACT_GUARD §3.5 update, 44 checks total | ✅ done (CERTIFIED) | 2026-02-27 | [REPORT_C_M5_R4_C_2026-02-27.md](reports/REPORT_C_M5_R4_C_2026-02-27.md) |
 | **Agent A** | M5-R4-A | Supabase GAP fix: requestedBy schema mismatch + load_inbox() SQL filtering. Smoke 39/39 | ✅ done | 2026-02-28 | [REPORT_A_M5_R4_A.md](reports/REPORT_A_M5_R4_A.md) |
 | **Agent D** | M5-R4-D | Env verification (SUPABASE_SERVICE_ROLE_KEY + CHAT_MESSAGES_PER_DAY VERIFIED, TELEGRAM_* VERIFIED_OPTIONAL), STAGING_BACKEND_SETUP.md, PROD_RELEASE_PLAYBOOK §4.1 Vercel Preview smoke | ✅ done | 2026-02-27 | [REPORT_D_M5_R4_2026-02-27.md](reports/REPORT_D_M5_R4_2026-02-27.md) |
+| **Agent D** | M5-R5-D | Lobster bots ops readiness: OPS_SNAPSHOT §3 (3 new NEEDS_VERCEL_ADD), LOBSTERS_RUNBOOK.md, PROD_RELEASE_PLAYBOOK §5.3 lobster checklist | ✅ done | 2026-02-27 | [REPORT_D_M5_R5_D.md](reports/REPORT_D_M5_R5_D.md) |
 
 ---
 
