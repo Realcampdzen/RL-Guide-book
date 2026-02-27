@@ -87,6 +87,8 @@
 || **Agent D** | TAILS_RECONCILE_D | Release ops consolidation: LKG/rollback/checklist links, OPS_SNAPSHOT_M5_GO.md created, known-risk matrix populated | ✅ done | 2026-02-27 | [REPORT_D_TAILS_RECONCILE_2026-02-27.md](reports/REPORT_D_TAILS_RECONCILE_2026-02-27.md) |
 || **Agent D** | M5-R5-D | Lobster bots ops readiness: OPS_SNAPSHOT §3 (NEEDS_VERCEL_ADD), LOBSTERS_RUNBOOK.md, PROD_RELEASE_PLAYBOOK §5.3 | ✅ done | 2026-02-27 | [REPORT_D_M5_R5_D.md](reports/REPORT_D_M5_R5_D.md) |
 || **Agent D** | HOTFIX-BASE-PATH | Fix vite.config.ts double-path bug: public/RL-Guide-book/ merged into dist/RL-Guide-book/ directly. Build verified: ai-data EXISTS, RL-Guide-book/RL-Guide-book NOT EXISTS | ✅ done | 2026-02-27 | [REPORT_D_HOTFIX_BASE_PATH.md](reports/REPORT_D_HOTFIX_BASE_PATH.md) |
+|| **Agent C** | M5-R5-C | `/api/telegram/agent-post`: AGENT_BOT_TOKENS map (neuro_stepa/cat_bro/dev_bro_1), auth developer/shift_leader, 400/404/409, smoke Flow I 3 checks, 47 checks total, BACKEND_CONTRACT_GUARD §3.6 | ✅ done (CERTIFIED) | 2026-02-28 | — |
+|| **Agent E (Opus)** | E-UX-AUDIT-M5-RECHECK | Повторный browser-аудит после HOTFIX-BASE-PATH — категории, изображения, логотип, role walkthrough на проде | 🔜 pending | — | Ждёт GitHub Pages deploy | — |
 
 ---
 
