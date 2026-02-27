@@ -234,80 +234,306 @@
   - docs/PROD_ROADMAP_IMPL/reports/REPORT_M3_SC_S1_2026-02-27.md
   - docs/SQUAD_CORNER_READINESS.md
 
+### 2026-02-27 - M3-CN-S1 (Council Deepening Slice 1)
+
+- Status: Done
+- Scope delivered:
+  - Introduced unified initiative read-status lifecycle (`new -> reviewing -> accepted|rejected|done`).
+  - Added legacy status mapper for old records and non-breaking `readStatus` in initiatives read-model.
+  - Added compact status chips + additive filters in Council camp-management view.
+  - Preserved default freshness sorting and existing create/staff/participant flows.
+- Evidence:
+  - docs/PROD_ROADMAP_IMPL/reports/REPORT_M3_CN_S1_2026-02-27.md
+  - docs/COUNCIL_STATUS_MODEL.md
+
+### 2026-02-28 - M3-STAB-1 (Cross-slice stabilization)
+
+- Status: Done
+- Scope delivered:
+  - API non-breaking/fallback audit with unified mini-spec for M3 read-models.
+  - UI consistency pass for status chips across Badge/Squad/Council surfaces.
+  - Regression smoke matrix pass for participant / parent-read-only / staff.
+  - Low-risk edge-case fixes only.
+- Evidence:
+  - docs/PROD_ROADMAP_IMPL/reports/REPORT_M3_STAB_1_2026-02-28.md
+  - docs/M3_READ_MODELS_MINI_SPEC.md
+
+### 2026-02-28 - M4-PARENT-INSIGHTS-S1
+
+- Status: Done
+- Scope delivered:
+  - Added read-only parent insights endpoint `/api/parent-insights` using existing snapshot code context.
+  - Added parent recommendations block in parent child-view: "что уже хорошо" + "что поддержать дальше".
+  - Added human-readable fallback texts for partial/empty data.
+  - Preserved M2 read-only guarantees and avoided RBAC/write-flow/migration changes.
+- Evidence:
+  - docs/PROD_ROADMAP_IMPL/reports/REPORT_M4_PARENT_INSIGHTS_S1_2026-02-28.md
+  - docs/PARENT_INSIGHTS_READ_MODEL.md
+
+### 2026-02-28 - M4-PARENT-INSIGHTS-S2
+
+- Status: Done
+- Scope delivered:
+  - Extended parent insights read-model with optional `weeklyTrend` and `dynamicSignals` (non-breaking).
+  - Added rule-based dynamic recommendations by trend (up/flat/down).
+  - Added weekly trend indicator in parent child-view.
+  - Kept strict read-only and no RBAC/migration/write-flow changes.
+- Evidence:
+  - docs/PROD_ROADMAP_IMPL/reports/REPORT_M4_PARENT_INSIGHTS_S2_2026-02-28.md
+  - docs/PARENT_INSIGHTS_READ_MODEL.md
+
+### 2026-02-28 - M4-PARENT-INSIGHTS-S3
+
+- Status: Done
+- Scope delivered:
+  - Added optional explainability fields (`whyThisSuggestion`, `basedOn`) to parent insights read-model.
+  - Added compact "Почему такая рекомендация" block in parent child-view.
+  - Unified recommendation tone for supportive parent-friendly wording.
+  - Preserved read-only and non-breaking constraints.
+- Evidence:
+  - docs/PROD_ROADMAP_IMPL/reports/REPORT_M4_PARENT_INSIGHTS_S3_2026-02-28.md
+  - docs/PARENT_INSIGHTS_READ_MODEL.md
+
+### 2026-02-28 - M4-STAB-1 (Parent Insights stabilization)
+
+- Status: Done
+- Scope delivered:
+  - Final non-breaking contract audit for Parent Insights S1/S2/S3 fields.
+  - Explainability consistency hardening (stable short why + compact basedOn).
+  - UI cleanup for parent-friendly trend/window wording and reduced noise.
+  - Docs sync and regression smoke pass.
+- Evidence:
+  - docs/PROD_ROADMAP_IMPL/reports/REPORT_M4_STAB_1_2026-02-28.md
+  - docs/PARENT_INSIGHTS_READ_MODEL.md
+
+### 2026-02-28 - M5-KICKOFF (Role/UX Harmonization + Release Readiness Baseline)
+
+- Status: Done
+- Scope delivered:
+  - Role-path UX wording audit and low-risk harmonization patch.
+  - Release-readiness baseline with smoke gates, API compatibility checks, rollback criteria, and known-risk matrix.
+  - Dedicated M2 parent read-only invariants block.
+  - Regression smoke pass for participant / parent-read-only / staff.
+- Evidence:
+  - docs/PROD_ROADMAP_IMPL/reports/REPORT_M5_KICKOFF_2026-02-28.md
+  - docs/RELEASE_READINESS_BASELINE_M5.md
+
+### 2026-02-28 - M5-R1 (Release Readiness Pass #1)
+
+- Status: Done
+- Scope delivered:
+  - End-to-end baseline readiness pass with pass/conditional/fail mapping.
+  - GO/NO-GO matrix and minimum must-fix list.
+  - Separate M2 parent read-only invariants verification block.
+  - Verdict: CONDITIONAL GO (no release-blocking defects found).
+- Evidence:
+  - docs/PROD_ROADMAP_IMPL/reports/REPORT_M5_R1_RELEASE_PASS_2026-02-28.md
+
+### 2026-02-28 - M5-R1.1 (Pre-release Conditional Fix Sprint)
+
+- Status: Done
+- Scope delivered:
+  - R1 conditional item #2 closed (LKG + executable rollback procedure documented).
+  - R1 conditional item #1 downgraded with explicit impact/trigger/owner/fix-window.
+  - Quick smoke re-check complete for participant / parent-read-only / staff.
+- Evidence:
+  - docs/PROD_ROADMAP_IMPL/reports/REPORT_M5_R1_1_ADDENDUM_2026-02-28.md
+  - docs/RELEASE_NOTE_M5_R1_1.md
+
+### 2026-02-28 - M5-R1.2 (Runtime Warnings Closure Pass)
+
+- Status: Done
+- Scope delivered:
+  - Runtime warnings triage + closure table completed.
+  - Unresolved runtime-path warnings reduced to 0.
+  - Critical role surfaces verified (participant / parent-read-only / staff).
+  - Final readiness verdict updated to GO.
+- Evidence:
+  - docs/PROD_ROADMAP_IMPL/reports/REPORT_M5_R1_2_RUNTIME_WARNINGS_2026-02-28.md
+
+### 2026-02-27 - TAILS_RECONCILE_A (Documentation & Proof Tail Closure)
+
+- Status: Done
+- Scope delivered:
+  - `002_council_initiatives.sql` prod-evidence documented; `SupabaseCouncilInitiativesStore` verified in SUPABASE_STORES.
+  - P1-02 Definition of Done updated (`backend/storage/` 5 storage providers + env.example).
+  - P1-03 status updated `open` -> `done`; all deps satisfied; E2E smoke verified.
+  - P1-09 blocker ("E2E via Supabase needs P1-03") resolved.
+  - Badge-flow E2E smoke (request -> inbox -> approve -> achieved): ALL PASS.
+  - Parent snapshot smoke (create -> read-only): PASS.
+  - Council initiatives smoke (create -> list): PASS.
+  - CLAIM_BOARD.md updated: all relevant tasks done.
+- Evidence:
+  - docs/PROD_ROADMAP_IMPL/TASKS.md (P1-02/P1-03/P1-09 updated)
+  - docs/PROD_ROADMAP_IMPL/reports/REPORT_A_TAILS_RECONCILE_A.md
+
 ### 2026-02-27 - M5-R2-A (Backend Release Hardening)
 
 - Status: Done
-- Commit: `a995a1b` | Agent A | 6 files, 1142 insertions
+- Owner: Agent A | Commit: `a995a1b`
 - Scope delivered:
-  - Automated smoke script `backend/scripts/smoke_backend_critical.py` ? 22 checks across 3 critical flows (Badge Request, Parent Insights, Council Initiatives) + health. All 22 PASS verified locally.
+  - Automated smoke script `backend/scripts/smoke_backend_critical.py` ? 22 checks across 3 critical flows (Badge Request, Parent Insights, Council Initiatives) + health. ALL 22 CHECKS PASSED.
   - Contract Guard doc `docs/BACKEND_CONTRACT_GUARD.md` ? mandatory/optional fields for 6 endpoint-groups, 12-type breaking change classification.
-  - Playbook §5.3 `docs/PROD_RELEASE_PLAYBOOK.md` ? "Backend Critical Flows (automated, ~5 min)" section with commands, flow table, FAIL interpretation.
+  - Playbook §5.3 `docs/PROD_RELEASE_PLAYBOOK.md` ? "Backend Critical Flows (automated, ~5 min)" section.
 - Evidence:
-  - docs/PROD_ROADMAP_IMPL/reports/REPORT_A_M5_R2_A.md (handoff)
+  - docs/PROD_ROADMAP_IMPL/reports/REPORT_A_M5_R2_A.md
 
 ### 2026-02-27 - E-VALIDATION-M5 (Opus Runtime Validation)
 
 - Status: Done ? CERTIFIED
-- Commit: `009a5d3` | Agent E (Opus) | Cloud browser validation
+- Owner: Agent E (Opus) | Commit: `009a5d3`
 - Scope delivered:
-  - Full participant flow verified: landing ? categories (14) ? badge detail ? profile cabin
-  - Auth/RBAC/JWT: ??? ???? ?????????, parent 403 confirmed
-  - Badge lifecycle E2E: request ? inbox ? approve ? pass
-  - Parent read-only: ???????????? ??? ??? staff-????????? ? confirmed
-  - Staff UI: ?????/??????/????????? ????? ? pass
-  - TypeScript: zero errors. Self-check: all pass. ESLint: 193 pre-existing (not M5)
-  - Verdict: VERIFIED, zero blockers for next cycle
+  - Full participant flow verified: landing -> categories (14) -> badge detail -> profile cabin.
+  - Auth/RBAC/JWT: all roles issue JWT, parent 403 confirmed.
+  - Badge lifecycle E2E: request -> inbox -> approve ? full pass.
+  - Parent read-only: limited view, no staff controls confirmed.
+  - Staff UI: extended access, shifts/squads, counselor squad access ? pass.
+  - TypeScript: zero errors. Self-check: all pass. ESLint: 193 pre-existing (not M5).
+  - Verdict: VERIFIED, zero blockers for next cycle.
 - Evidence:
   - docs/PROD_ROADMAP_IMPL/reports/REPORT_E_VALIDATION_M5.md
 
-### 2026-02-27 - M5-R2-A (Backend Release Hardening)
+### 2026-02-27 - TAILS_RECONCILE_B/C/D (UX + Transport + Release Ops)
 
 - Status: Done
 - Scope delivered:
-  - `backend/scripts/smoke_backend_critical.py` ? automated smoke (22 checks) for 3 critical flows: badge-request, parent-insights, council-initiatives. Verified: ALL 22 CHECKS PASSED.
-  - `docs/BACKEND_CONTRACT_GUARD.md` ? contract guard: mandatory/optional fields + breaking-change policy for 6 endpoint-groups.
-  - `docs/PROD_RELEASE_PLAYBOOK.md §5.3` ? backend Critical Flows (automated, ~5 min).
-  - No RBAC changes, no migrations, no new features.
+  - TAILS_RECONCILE_B (Agent B): chip color tokens + ImageSourceBlock process label consistency across 6 contexts.
+  - TAILS_RECONCILE_C (Agent C): thread transport certification, THREAD_TRANSPORT_STATUS.md, GAP-1 documented as non-blocking.
+  - TAILS_RECONCILE_D (Agent D): RELEASE_READINESS_BASELINE_M5 finalized GO verdict, RELEASE_NOTE_M5_FINAL, OPS_SNAPSHOT_M5_GO, risk matrix R1?R6.
 - Evidence:
-  - backend/scripts/smoke_backend_critical.py
-  - docs/BACKEND_CONTRACT_GUARD.md
-  - docs/PROD_RELEASE_PLAYBOOK.md (§5.3 added)
-  - docs/PROD_ROADMAP_IMPL/reports/REPORT_A_M5_R2_A.md
+  - docs/PROD_ROADMAP_IMPL/reports/REPORT_B_TAILS_RECONCILE_2026-02-27.md
+  - docs/PROD_ROADMAP_IMPL/reports/REPORT_C_TAILS_RECONCILE_C_2026-02-27.md
+  - docs/PROD_ROADMAP_IMPL/reports/REPORT_D_TAILS_RECONCILE_2026-02-27.md
 
 ### 2026-02-27 - M5-R2-B (Badge Requests: Inbox Scoping + Mine Privacy)
 
 - Status: Done
-- Owner: Agent A
+- Owner: Agent A | Commit: `debe941`
 - Scope delivered:
-  - `backend/app.py` ? inbox educator auto-scope (via `_resolve_membership_context`, consistent with counselor pattern). `/mine` endpoint: expanded roles to all 6 staff+participant roles, privacy projection strips `requestedBy.deviceId` from response.
-  - `backend/scripts/smoke_backend_critical.py` ? Flow D added (4 checks: list type, request found, status=approved, deviceId absent). Flow B fixed (correct endpoint `/api/parent-snapshot`). Total: **31 CHECKS PASSED**.
-  - `docs/BACKEND_CONTRACT_GUARD.md` ? /mine contract updated (privacy, roles), inbox auto-scope note, §3.2 Parent Snapshot actualized.
-  - No RBAC changes, no migrations, no structural changes to badge_requests.json.
+  - `backend/app.py` ? inbox educator auto-scope. `/mine` expanded to all 6 roles, privacy projection strips `requestedBy.deviceId`.
+  - Smoke Flow D added (4 checks). Total: 31 CHECKS PASSED.
+  - `docs/BACKEND_CONTRACT_GUARD.md` ? /mine contract, inbox auto-scope note, §3.2 actualized.
 - Evidence:
-  - backend/app.py (inbox educator scope + mine privacy)
-  - backend/scripts/smoke_backend_critical.py (Flow D + 31 checks)
-  - docs/BACKEND_CONTRACT_GUARD.md (updated)
   - docs/PROD_ROADMAP_IMPL/reports/REPORT_A_M5_R2_B.md
+
+### 2026-02-27 - M5-R2-C (Images Safety Hardening)
+
+- Status: Done ? CERTIFIED
+- Owner: Agent C | Commit: `0a307ee`
+- Scope delivered:
+  - Prompt sanitization (HTML strip, injection detection, truncation 300 chars).
+  - Per-camp daily quota (200/day, in-memory, auto-reset UTC midnight).
+  - `docs/BACKEND_CONTRACT_GUARD.md` §3.4 ? full /api/images/generate contract.
+  - Smoke Flow E (4 checks). Total: ~35 CHECKS PASSED.
+- Evidence:
+  - docs/PROD_ROADMAP_IMPL/reports/REPORT_C_M5_R2_C_2026-02-27.md
+
+### 2026-02-27 - M3-BF-S4 (Badge Request Status Panel)
+
+- Status: Done
+- Owner: Agent B | Commit: `e474174`
+- Scope delivered:
+  - Badge Request Status Panel with chip tones (pending/approved/rejected), empty state CTA, Sync CTA, M2 guard, scroll+hint after proof submit.
+  - Build clean, lint clean, M2 guard confirmed.
+- Evidence:
+  - docs/PROD_ROADMAP_IMPL/reports/REPORT_B_M3_BF_S4_2026-02-27.md
 
 ### 2026-02-27 - M5-R3-A (Badge Requests Cleanup + Teams Smoke)
 
 - Status: Done
-- Owner: Agent A
+- Owner: Agent A | Commit: `84ef633`
 - Scope delivered:
-  - `backend/app.py` ? `BADGE_REQUESTS_RESOLVED_TTL_DAYS` env const (default 30). `GET /api/badges/requests/inbox`: added `includeResolved` optional query param (default=false) + TTL filter for resolved records. `POST /api/badges/requests/cleanup`: new endpoint for shift_leader/developer, deletes resolved requests older than N days, logs `[BADGE_CLEANUP]`. Also applied M5-R2-B changes (`_project_mine_row`, mine expanded roles, inbox educator auto-scope) missing from this branch.
-  - `backend/scripts/smoke_backend_critical.py` ? Flow F (Teams lifecycle): create team, GET team, join, mine, leave x2. Total: **39 CHECKS PASSED**.
-  - `docs/BACKEND_CONTRACT_GUARD.md` ? inbox `includeResolved` param + TTL note, new cleanup endpoint contract §3.1, Flow F in smoke table (39 checks).
-  - No RBAC changes, no migrations, additive contract only.
+  - `GET /api/badges/requests/inbox` ? `includeResolved` optional param + TTL filter (default 30 days).
+  - `POST /api/badges/requests/cleanup` ? new endpoint for shift_leader/developer.
+  - Smoke Flow F (Teams lifecycle). Total: 39 CHECKS PASSED.
 - Evidence:
-  - backend/app.py (TTL filter + cleanup endpoint)
-  - backend/scripts/smoke_backend_critical.py (Flow F + 39 checks)
-  - docs/BACKEND_CONTRACT_GUARD.md (updated)
   - docs/PROD_ROADMAP_IMPL/reports/REPORT_A_M5_R3_A.md
+
+### 2026-02-27 - M3-BF-S5 (Auto-sync + Celebration + Reject Reason)
+
+- Status: Done
+- Owner: Agent B | Commit: `44533b0`
+- Scope delivered:
+  - `performApprovalSync(silent)` ? auto-sync on mount, "only new" filter, celebration tutorial.
+  - Rejection reason displayed under chip (max 100 chars with ellipsis).
+  - Build: 0 errors. Lint: 0 errors.
+- Evidence:
+  - docs/PROD_ROADMAP_IMPL/reports/REPORT_B_M3_BF_S5_2026-02-27.md
+
+### 2026-02-27 - M5-R3-C (Chat Context Enrichment)
+
+- Status: Done ? CERTIFIED
+- Owner: Agent C | Commit: `248e456`
+- Scope delivered:
+  - Enriched chat context with `nickname`, `squad_name`, `shift_name` from JWT+membership lookup.
+  - All 7 call sites of `get_system_prompt_with_context()` updated. Smoke Flow G (4 checks). Total: 43 CHECKS PASSED.
+- Evidence:
+  - docs/PROD_ROADMAP_IMPL/reports/REPORT_C_M5_R3_C_2026-02-27.md
+
+### 2026-02-27 - M5-R3-D (Staging Smoke + Env Audit)
+
+- Status: Done
+- Owner: Agent D | Commit: `131460b`
+- Scope delivered:
+  - STAGING_BACKEND_NOT_DEPLOYED confirmed (pult.staging.well-telecom.ru is ISP billing, not Flask).
+  - Prod baseline 4/4 PASS: health 200, dev-door 404, RBAC 401 gates confirmed.
+  - OPS_SNAPSHOT §3 env matrix: 5 VERIFIED, 4 UNVERIFIED with evidence basis.
+  - RELEASE_NOTE Known Issues: R5 Resolved, R6 Closed, R1?R4 Controlled.
+- Evidence:
+  - docs/PROD_ROADMAP_IMPL/reports/REPORT_D_STAGING_SMOKE_M5_2026-02-27.md
+
+### 2026-02-27 - M5-R4-C (Chat Quality + Safety)
+
+- Status: Done ? CERTIFIED
+- Owner: Agent C | Commit: `374fd3b`
+- Scope delivered:
+  - Pending badges context injection into chat (`pending_badge_count`, `pending_badge_titles`).
+  - `CHAT_MAX_MESSAGE_LEN` validation (400 chars).
+  - Smoke G-3 check added. Total: 44 CHECKS PASSED.
+- Evidence:
+  - docs/PROD_ROADMAP_IMPL/reports/REPORT_C_M5_R4_C_2026-02-27.md
+
+### 2026-02-27 - M3-BF-S6 (Staff Inbox UX)
+
+- Status: Done
+- Owner: Agent B | Commit: `14914fd`
+- Scope delivered:
+  - Localized Approve/Reject buttons.
+  - Inline reject form with `resolutionNote` field.
+  - Optimistic UI update after approve/reject.
+  - Evidence accordion (expandable proof preview).
+- Evidence:
+  - docs/PROD_ROADMAP_IMPL/reports/REPORT_B_M3_BF_S6_2026-02-27.md
+
+### 2026-02-27 - M5-R4-D (Env Verification + Release Ops Final)
+
+- Status: Done
+- Owner: Agent D | Commit: `d130639`
+- Scope delivered:
+  - All env variables verified (VERIFIED / VERIFIED_OPTIONAL).
+  - OPS_SNAPSHOT finalized.
+- Evidence:
+  - docs/PROD_ROADMAP_IMPL/reports/REPORT_D_M5_R4_D.md
 
 ### 2026-02-28 - M5-R4-A (Supabase Badge Gap: load_inbox + schema fix)
 
 - Status: Done
-- Owner: Agent A
-- Branch: agent-a/m5-r4-a
-- Scope: GAP FOUND AND FIXED. SupabaseBadgeRequestsStore.load_inbox() SQL-level filtering. Smoke 39/39.
-- Evidence: backend/storage/supabase_provider.py, docs/PROD_ROADMAP_IMPL/reports/REPORT_A_M5_R4_A.md
+- Owner: Agent A | Commit: `2f6139d` | Branch: `agent-a/m5-r4-a`
+- Scope delivered:
+  - GAP FOUND AND FIXED: `SupabaseBadgeRequestsStore.load_inbox()` SQL-level filtering added.
+  - `requestedBy` schema mismatch documented and fixed.
+  - Smoke 39/39 PASS.
+- Evidence:
+  - backend/storage/supabase_provider.py
+  - docs/PROD_ROADMAP_IMPL/reports/REPORT_A_M5_R4_A.md
+
+### 2026-02-27 - E-ESLINT-TRIAGE-M5 (ESLint Issues Triage)
+
+- Status: Done
+- Owner: Agent E (Opus) | Commit: `bc4627a`
+- Scope delivered:
+  - 193 ESLint issues triaged: CRITICAL=0, HIGH=24 (non-blocking), NOISE=169 (88%).
+  - Auth paths (authStorage.ts, AuthContext.tsx, aiService.ts) clean. Zero @ts-ignore in src/.
+  - Verdict: nothing blocks release.
+- Evidence:
+  - docs/PROD_ROADMAP_IMPL/reports/REPORT_E_ESLINT_TRIAGE_M5.md

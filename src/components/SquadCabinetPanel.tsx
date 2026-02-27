@@ -252,7 +252,7 @@ export const SquadCabinetPanel: React.FC<SquadCabinetPanelProps> = ({
 
       <div style={{ padding: 12, borderRadius: 12, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', alignItems: 'center', marginBottom: 8 }}>
-          <div style={{ fontSize: 13, fontWeight: 700 }}>Инфо отряда <span className={`squad-corner-readiness-chip tone-${getSquadCornerReadinessTone(cornerReadiness)}`} style={{ marginTop: 0, marginLeft: 8 }}>{getSquadCornerReadinessLabel(cornerReadiness)}</span></div>
+          <div style={{ fontSize: 13, fontWeight: 700 }}>Инфо отряда <span className={`m3-status-chip squad-corner-readiness-chip tone-${getSquadCornerReadinessTone(cornerReadiness)}`} style={{ marginTop: 0, marginLeft: 8 }}>{getSquadCornerReadinessLabel(cornerReadiness)}</span></div>
           {canEditCorner && onEditCorner && (
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               <button type="button" className="btn-secondary" style={{ padding: '6px 10px', fontSize: 12 }} onClick={() => onEditCorner('photos')}>
