@@ -78,6 +78,7 @@
 | **Agent C** | M5-R2-C | Images Safety Hardening: prompt sanitization + per-camp daily quota + BACKEND_CONTRACT_GUARD §3.4 + smoke Flow E | ✅ done (CERTIFIED) | 2026-02-27 | [REPORT_C_M5_R2_C_2026-02-27.md](reports/REPORT_C_M5_R2_C_2026-02-27.md) |
 | **Agent A** | M5-R2-B | Badge Requests: inbox educator auto-scope + /mine privacy + smoke Flow D (31 checks total) | ✅ done | 2026-02-27 | [REPORT_A_M5_R2_B.md](reports/REPORT_A_M5_R2_B.md) |
 | **Agent A** | M5-R3-A | Badge Requests Cleanup + Teams Smoke: inbox TTL filter (`includeResolved`), cleanup endpoint, smoke Flow F (Teams lifecycle), 39 checks total | ✅ done | 2026-02-27 | [REPORT_A_M5_R3_A.md](reports/REPORT_A_M5_R3_A.md) |
+| **Agent C** | M5-R3-C | Chat Context Enrichment: squad_name/shift_name/nickname в системный промпт + smoke Flow G + BACKEND_CONTRACT_GUARD §3.5, 43 checks total | ✅ done (CERTIFIED) | 2026-02-27 | [REPORT_C_M5_R3_C_2026-02-27.md](reports/REPORT_C_M5_R3_C_2026-02-27.md) |
 
 ---
 
