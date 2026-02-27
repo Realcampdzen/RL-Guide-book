@@ -292,8 +292,24 @@ const copyRLGuideBookPlugin = () => ({
         }
       }
       
-      copyDir('public', rlGuideBookDir)
-      
+      // Fix: public/RL-Guide-book/ must be merged INTO dist/RL-Guide-book/, not nested under it.
+      // Previously: copyDir('public', rlGuideBookDir) → dist/RL-Guide-book/RL-Guide-book/ (double path bug)
+      const rlSubDir = path.join('public', 'RL-Guide-book')
+      if (existsSync(rlSubDir)) {
+        copyDir(rlSubDir, rlGuideBookDir)  // public/RL-Guide-book/* → dist/RL-Guide-book/
+      }
+      const publicEntries = fs.readdirSync('public', { withFileTypes: true })
+      for (const entry of publicEntries) {
+        if (entry.name === 'RL-Guide-book') continue  // already handled above
+        const src = path.join('public', entry.name)
+        const dest = path.join(rlGuideBookDir, entry.name)
+        if (entry.isDirectory()) {
+          copyDir(src, dest)
+        } else {
+          copyFileWithRetry(src, dest)
+        }
+      }
+
       console.log(`✅ Копирование завершено:`)
       console.log(`   - Скопировано файлов: ${copiedFiles}`)
       console.log(`   - Создано директорий: ${copiedDirs}`)
