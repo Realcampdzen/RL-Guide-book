@@ -2,7 +2,7 @@
 
 **Срез:** 2026-02-28  
 **Автор:** Agent A (Data/Backend contracts)  
-**Tasks:** M5-R2-A, M5-R2-B, M5-R3-A, M5-R4-A  
+**Tasks:** M5-R2-A, M5-R2-B, M5-R3-A, M5-R4-A, M5-R5-C  
 **Источник истины:** `backend/app.py`, `backend/storage/supabase_provider.py`
 
 Этот документ фиксирует API-контракты для трёх критических endpoint-групп постпилотного контура. Цель — не допустить breaking-регрессий при будущих доработках backend'а.
@@ -478,6 +478,58 @@
 
 ---
 
+### 3.6 Telegram Agent-Post Endpoint
+
+#### `POST /api/telegram/agent-post`
+
+**Auth:** `developer | shift_leader` (Bearer JWT)  
+**Body (required fields):** `agent`, `text`, `root_message_id`  
+**Body (optional):** `chat_id` (fallback to `TELEGRAM_CHANNEL_ID` env var)
+
+```json
+{
+  "agent":           "neuro_stepa | cat_bro | dev_bro_1",
+  "text":            "string (required)",
+  "root_message_id": 123,
+  "chat_id":         -100123456789
+}
+```
+
+**Responses:**
+
+| Status | Meaning |
+|--------|---------|
+| 200 | `{ "ok": true, "message_id": N }` — message sent |
+| 400 | Missing `agent`, `text`, or `root_message_id` |
+| 401 | No/invalid JWT |
+| 403 | Insufficient role |
+| 404 | Unknown `agent` value |
+| 409 | Duplicate message blocked (dedup within 60 s) |
+| 502 | Telegram API returned error |
+| 500 | Internal server error |
+
+**Agent→Token mapping** (read from env at startup):
+
+| Agent key | Env variable |
+|-----------|-------------|
+| `neuro_stepa` | `NEURO_STEPA_BOT_TOKEN` |
+| `cat_bro` | `CAT_BRO_BOT_TOKEN` |
+| `dev_bro_1` | `DEV_BRO_1_BOT_TOKEN` |
+
+**Breaking changes:**
+- Renaming the `agent` field to a different name
+- Removing this endpoint
+- Changing auth roles to something more restrictive
+
+**Non-breaking changes:**
+- Adding new agent names (extending `AGENT_BOT_TOKENS`)
+- Adding new optional body fields
+- Adding new response fields to the 200 response
+
+**Known gap:** `blind-post` without `root_message_id` is explicitly rejected (400) per policy.
+
+---
+
 ## 4. Breaking vs Non-Breaking — Классификация
 
 | Тип изменения | Breaking? | Комментарий |
@@ -503,7 +555,7 @@
 Контракты автоматически проверяются скриптом:
 
 ```bash
-# С AUTH_SECRET — полный прогон (43 checks):
+# С AUTH_SECRET — полный прогон (47 checks):
 # Windows (cp1251): запускать с -X utf8 для корректного вывода
 AUTH_SECRET=<secret> python -X utf8 backend/scripts/smoke_backend_critical.py --base-url http://localhost:4000
 
@@ -526,7 +578,8 @@ python backend/scripts/smoke_backend_critical.py --base-url http://localhost:400
 | E | Image Generation (happy path, truncation, missing fields) | 5 |
 | F | Teams lifecycle (create → get → join → mine → leave x2) (M5-R3-A) | 8 |
 | G | Chat endpoint: valid JWT → 200+response, invalid token → 401, msg too long → 400 (M5-R3-C, M5-R4-C) | 5 |
-| **Total** | | **44** |
+| I | Telegram agent-post: no auth → 401, unknown agent → 404, missing root_message_id → 400 (M5-R5-C) | 3 |
+| **Total** | | **47** |
 
 **Flow D** (M5-R2-B, `/api/badges/requests/mine`):
 - D-1: GET /mine → 200, requests is list

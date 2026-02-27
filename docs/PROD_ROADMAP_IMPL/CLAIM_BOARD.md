@@ -84,6 +84,9 @@
 | **Agent C** | M5-R4-C | Chat Quality+Safety: pending badges context injection, CHAT_MAX_MESSAGE_LEN validation (400), G-3 smoke check, BACKEND_CONTRACT_GUARD §3.5 update, 44 checks total | ✅ done (CERTIFIED) | 2026-02-27 | [REPORT_C_M5_R4_C_2026-02-27.md](reports/REPORT_C_M5_R4_C_2026-02-27.md) |
 | **Agent A** | M5-R4-A | Supabase GAP fix: requestedBy schema mismatch + load_inbox() SQL filtering. Smoke 39/39 | ✅ done | 2026-02-28 | [REPORT_A_M5_R4_A.md](reports/REPORT_A_M5_R4_A.md) |
 | **Agent D** | M5-R4-D | Env verification (SUPABASE_SERVICE_ROLE_KEY + CHAT_MESSAGES_PER_DAY VERIFIED, TELEGRAM_* VERIFIED_OPTIONAL), STAGING_BACKEND_SETUP.md, PROD_RELEASE_PLAYBOOK §4.1 Vercel Preview smoke | ✅ done | 2026-02-27 | [REPORT_D_M5_R4_2026-02-27.md](reports/REPORT_D_M5_R4_2026-02-27.md) |
+|| **Agent D** | TAILS_RECONCILE_D | Release ops consolidation: LKG/rollback/checklist links, OPS_SNAPSHOT_M5_GO.md created, known-risk matrix populated | ✅ done | 2026-02-27 | [REPORT_D_TAILS_RECONCILE_2026-02-27.md](reports/REPORT_D_TAILS_RECONCILE_2026-02-27.md) |
+|| **Agent D** | M5-R5-D | Lobster bots ops readiness: OPS_SNAPSHOT §3 (NEEDS_VERCEL_ADD), LOBSTERS_RUNBOOK.md, PROD_RELEASE_PLAYBOOK §5.3 | ✅ done | 2026-02-27 | [REPORT_D_M5_R5_D.md](reports/REPORT_D_M5_R5_D.md) |
+|| **Agent D** | HOTFIX-BASE-PATH | Fix vite.config.ts double-path bug: public/RL-Guide-book/ merged into dist/RL-Guide-book/ directly. Build verified: ai-data EXISTS, RL-Guide-book/RL-Guide-book NOT EXISTS | ✅ done | 2026-02-27 | [REPORT_D_HOTFIX_BASE_PATH.md](reports/REPORT_D_HOTFIX_BASE_PATH.md) |
 
 ---
 
