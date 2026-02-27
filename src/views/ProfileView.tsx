@@ -548,6 +548,7 @@ export const ProfileView: React.FC<any> = (props) => {
   const [showParentCodeModal, setShowParentCodeModal] = useState(false);
   const [parentCodeResult, setParentCodeResult] = useState<{ parentLinkCode: string; expiresAt: number } | null>(null);
   const [parentCodeBusy, setParentCodeBusy] = useState(false);
+  const [parentSectionMode, setParentSectionMode] = useState<'home' | 'child'>('home');
   const isParentChildReadonlyView = isParentChildReadonlyMode({
     role,
     hasChildProgressSnapshot: showChildBadges || !!childProgressFromFile,
@@ -1350,6 +1351,10 @@ export const ProfileView: React.FC<any> = (props) => {
       })
       .catch(() => showHint({ title: 'Ошибка', content: 'Не удалось загрузить данные по коду.' }));
   }, [role, openCabinPanel]);
+
+  useEffect(() => {
+    if (isParentChildReadonlyView) setParentSectionMode('child');
+  }, [isParentChildReadonlyView]);
 
   const initialHashHandledRef = useRef(false);
   useEffect(() => {
@@ -4616,9 +4621,27 @@ export const ProfileView: React.FC<any> = (props) => {
           <div id="parents-section" className="profile-view-parents-section" style={{ marginTop: 24, display: 'flex', flexDirection: 'column', gap: 20 }}>
             <h2 style={{ fontSize: 20, fontWeight: 800, color: 'rgba(255,255,255,0.95)', margin: 0 }}>Для родителей</h2>
             <p style={{ margin: '4px 0 0', fontSize: 12, opacity: 0.75 }}>Режим ребёнка в этом разделе всегда read-only.</p>
-            {campFactsLoading && <p className="parents-section-block__text" style={{ margin: 0 }}>Данные загружаются…</p>}
-            {campFactsError && <p style={{ fontSize: 13, margin: 0, color: '#f59e0b' }}>Проверьте подключение. {campFactsError}</p>}
-            {!campFactsLoading && !campFactsError && campFacts && (
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={() => setParentSectionMode('home')}
+                style={{ opacity: parentSectionMode === 'home' ? 1 : 0.75 }}
+              >
+                Кабинет родителя
+              </button>
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={() => setParentSectionMode('child')}
+                style={{ opacity: parentSectionMode === 'child' ? 1 : 0.75 }}
+              >
+                Прогресс ребёнка (read-only)
+              </button>
+            </div>
+            {parentSectionMode === 'home' && campFactsLoading && <p className="parents-section-block__text" style={{ margin: 0 }}>Данные загружаются…</p>}
+            {parentSectionMode === 'home' && campFactsError && <p style={{ fontSize: 13, margin: 0, color: '#f59e0b' }}>Проверьте подключение. {campFactsError}</p>}
+            {parentSectionMode === 'home' && !campFactsLoading && !campFactsError && campFacts && (
               <>
                 <div className="parents-section-block">
                   <h3 className="parents-section-block__heading">Смена</h3>
@@ -4692,16 +4715,25 @@ export const ProfileView: React.FC<any> = (props) => {
                 )}
               </>
             )}
-            {!campFactsLoading && !campFactsError && !campFacts && (
+            {parentSectionMode === 'home' && !campFactsLoading && !campFactsError && !campFacts && (
               <p className="parents-section-block__text" style={{ margin: 0 }}>По вопросам документов и бронирования — контакты в разделе «О лагере».</p>
             )}
-            {typeof onNavigateToRegistrationForm === 'function' && (
+            {parentSectionMode === 'home' && typeof onNavigateToRegistrationForm === 'function' && (
               <button type="button" onClick={onNavigateToRegistrationForm} className="btn-primary-gold" style={{ alignSelf: 'flex-start', padding: '12px 24px' }}>
                 Забронировать путевку
               </button>
             )}
-            <h3 className="parents-section__program-title">Программа смены</h3>
-            <CampProgramByDays />
+            {parentSectionMode === 'home' && <h3 className="parents-section__program-title">Программа смены</h3>}
+            {parentSectionMode === 'home' && <CampProgramByDays />}
+            {parentSectionMode === 'child' && (
+              <div className="parents-section-block" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <h3 className="parents-section-block__heading" style={{ margin: 0 }}>Витрина прогресса ребёнка</h3>
+                <p className="parents-section-block__text" style={{ margin: 0 }}>Здесь только безопасный read-only просмотр. Изменять прогресс ребёнка нельзя.</p>
+                <button type="button" onClick={() => setShowChildBadges(true)} className="parents-section__btn-child" style={{ alignSelf: 'flex-start' }}>
+                  Открыть витрину достижений
+                </button>
+              </div>
+            )}
             {isParentChildReadonlyView && (
               <div style={{ alignSelf: 'flex-start', fontSize: 12, fontWeight: 700, letterSpacing: 0.2, padding: '6px 10px', borderRadius: 999, border: '1px solid rgba(255,255,255,0.32)', background: 'rgba(26,33,53,0.55)' }}>
                 {PARENT_READONLY_BADGE_TEXT}
@@ -4711,18 +4743,20 @@ export const ProfileView: React.FC<any> = (props) => {
               <button type="button" onClick={() => setShowChildBadges(true)} className="parents-section__btn-child">
                 Значки моего ребёнка
               </button>
-              <button
-                type="button"
-                onClick={() => {
-                  if (!canRunParentChildMutation({ role, hasChildProgressSnapshot: showChildBadges || !!childProgressFromFile })) return;
-                  setShowChildRouteForm(true);
-                }}
-                className="parents-section__btn-route"
-                disabled={!canRunParentChildMutation({ role, hasChildProgressSnapshot: showChildBadges || !!childProgressFromFile })}
-                title={isParentChildReadonlyView ? PARENT_READONLY_TOOLTIP : undefined}
-              >
-                Предложить маршрут развития для ребёнка
-              </button>
+              {parentSectionMode === 'home' && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!canRunParentChildMutation({ role, hasChildProgressSnapshot: showChildBadges || !!childProgressFromFile })) return;
+                    setShowChildRouteForm(true);
+                  }}
+                  className="parents-section__btn-route"
+                  disabled={!canRunParentChildMutation({ role, hasChildProgressSnapshot: showChildBadges || !!childProgressFromFile })}
+                  title={isParentChildReadonlyView ? PARENT_READONLY_TOOLTIP : undefined}
+                >
+                  Предложить маршрут развития для ребёнка
+                </button>
+              )}
               <p style={{ fontSize: 12, opacity: 0.7, margin: 0 }}>Предложить идею для лагеря — в блоке «Совет Лагеря» ниже.</p>
             </div>
           </div>
