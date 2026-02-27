@@ -19,7 +19,7 @@
 |---|---|---|---|---|---|---|---|
 | Agent A | M5-R3-A (badge TTL filter + cleanup endpoint + smoke Flow F teams 39/39) | `main` | вњ… DONE | `84ef633` | PROCESS NOTE: branch confusion fixed, M5-R2-B ported. РЎР»РµРґСѓСЋС‰РёРµ TASK вЂ” СЏРІРЅРѕ СѓРєР°Р·С‹РІР°С‚СЊ РІРµС‚РєСѓ. | Standby в†’ M5-R4-A | Agent A |
 | Agent B | M3-BF-S5 (performApprovalSync + auto-sync mount + reject reason) | `agentb/m3-bf-s5-auto-sync` | вњ… DONE | `44533b0` | PROCESS: РѕС‚С‡С‘С‚ Р±РµР· СѓРєР°Р·Р°РЅРёСЏ Р°РіРµРЅС‚Р° вЂ” РЅР°РїРѕРјРЅРёС‚СЊ С€Р°Р±Р»РѕРЅ | Standby в†’ M3-BF-S6 | Agent B |
-| Agent C | M5-R3-C (chat context enrichment: squad_name/shift_name/nickname + smoke Flow G) | `agentb/m3-bf-s5-auto-sync` | вњ… DONE CERTIFIED | `248e456` | None | Standby в†’ M5-R4-C | Agent C |
+| Agent C | M5-R4-C (chat quality: pending badges context, CHAT_MAX_MESSAGE_LEN validation, G-3 smoke) | `agentb/m3-bf-s5-auto-sync` | вњ… DONE CERTIFIED | `248e456` | None | Standby в†’ M5-R4-C | Agent C |
 | Agent D | M5-R3-D (staging smoke + env audit + RELEASE_NOTE Known Issues) | `agent-d/m5-r3-d` | IN PROGRESS | `4f3cebf` (prev) | None | Deliver DONE package | Agent D |
 | Agent E (Opus) | E-ESLINT-TRIAGE-M5 (ESLint 193 issues в†’ critical/high/noise triage) | `cloud/e-eslint-triage` | IN PROGRESS | `009a5d3` (prev) | РћРіСЂР°РЅРёС‡РµРЅРЅС‹Р№ СЂРµСЃСѓСЂСЃ вЂ” С‚РѕС‡РµС‡РЅР°СЏ Р·Р°РґР°С‡Р° | Deliver triage report | Opus |
 | Kot Bro | KOT_THREAD_TRANSPORT_FIX_V1.1 | n/a | вњ… CERTIFIED | `70ecd58` | GAP-1 non-blocking Р·Р°С„РёРєСЃРёСЂРѕРІР°РЅ | Closed | Kot Bro |
@@ -71,7 +71,8 @@
 ## Smoke Baseline
 
 | Version | Checks | Status |
-|---------|--------|--------|
+
+| 2026-02-27 | M5-R4-C | Agent C | Added pending badge context injection + CHAT_MAX_MESSAGE_LEN validation + G-3 smoke. Smoke baseline 43→44. Branch: agent-c/m5-r4-c from 566ef81 (M5-R3-C tip). ||---------|--------|--------|
 | M5-R2-A baseline | 22/22 | вњ… |
 | After M5-R2-B (Flow D) | 31/31 | вњ… |
 | After M5-R2-C (Flow E) | ~35 | вњ… |
