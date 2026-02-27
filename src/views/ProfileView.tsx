@@ -810,32 +810,64 @@ export const ProfileView: React.FC<any> = (props) => {
     return () => { cancelled = true; };
   }, [accessToken, canRequestApprovals, getLevelProgress, userData?.progress]);
 
-  const syncApprovedLevels = useCallback(async () => {
+  const performApprovalSync = useCallback(async (silent: boolean) => {
     if (!accessToken) {
-      setApprovalsSyncStatus('Сначала войдите по коду.');
+      if (!silent) setApprovalsSyncStatus('Сначала войдите по коду.');
       return;
     }
-    setApprovalsSyncBusy(true);
-    setApprovalsSyncStatus(null);
+    if (!silent) {
+      setApprovalsSyncBusy(true);
+      setApprovalsSyncStatus(null);
+    }
     try {
       const approvals = await loadMyApprovals(accessToken);
       let applied = 0;
+      const titles: string[] = [];
       approvals.forEach((item: BadgeApprovalItem) => {
         const levelId = String(item.levelId || '').trim();
         if (!levelId) return;
+        if (getLevelProgress(levelId)?.status === 'achieved') return;
         applyApprovedLevel(levelId, item.evidence || undefined);
         applied += 1;
+        if (item.badgeTitle) titles.push(item.badgeTitle);
       });
-      setApprovalsSyncStatus(applied > 0 ? `Синхронизировано одобрений: ${applied}.` : 'Одобренных заявок пока нет.');
+      if (!silent) {
+        setApprovalsSyncStatus(applied > 0
+          ? `Синхронизировано одобрений: ${applied}.`
+          : 'Одобренных заявок пока нет.');
+      }
       await loadBadgeApprovalsData();
       setPendingApprovalsCount(0);
-      if (applied > 0) showHint({ title: 'Прогресс обновлён', content: 'Одобрения вожатого добавлены в твой прогресс.' });
-    } catch (e) {
-      setApprovalsSyncStatus(e instanceof Error ? e.message : 'Не удалось синхронизировать одобрения.');
+      if (applied > 0) {
+        const celebrationContent = applied === 1
+          ? `${titles[0] || 'Уровень'} подтверждён вожатым. Загляни в коллекцию.`
+          : `Подтверждены уровни: ${applied}. Открой коллекцию.`;
+        startTutorial(
+          [{ title: 'Уровень получен!', content: celebrationContent }],
+          { onComplete: () => setActiveTab('collection') }
+        );
+      }
+    } catch {
+      if (!silent) {
+        setApprovalsSyncStatus('Не удалось синхронизировать одобрения.');
+      }
     } finally {
-      setApprovalsSyncBusy(false);
+      if (!silent) setApprovalsSyncBusy(false);
     }
-  }, [accessToken, applyApprovedLevel, loadBadgeApprovalsData, showHint]);
+  }, [accessToken, applyApprovedLevel, getLevelProgress, loadBadgeApprovalsData, startTutorial]);
+
+  const syncApprovedLevels = useCallback(
+    () => performApprovalSync(false),
+    [performApprovalSync]
+  );
+
+  const autoSyncDoneRef = useRef(false);
+  useEffect(() => {
+    if (autoSyncDoneRef.current) return;
+    if (!accessToken || !canRequestApprovals) return;
+    autoSyncDoneRef.current = true;
+    void performApprovalSync(true);
+  }, [accessToken, canRequestApprovals, performApprovalSync]);
 
   const loadMySquadInfo = useCallback(async () => {
     if (!accessToken || !expensiveActionsAllowed) {
@@ -5421,6 +5453,14 @@ export const ProfileView: React.FC<any> = (props) => {
                                   <span className={`m3-status-chip badge-request-status-chip tone-${statusTone}`}>{statusLabel}</span>
                                 </div>
                                 <div style={{ fontSize: 11, opacity: 0.6 }}>{new Date(req.createdAt).toLocaleString('ru-RU')}</div>
+                                {req.status === 'rejected' && req.resolutionNote && (
+                                  <div
+                                    style={{ fontSize: 11, opacity: 0.55, marginTop: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100%' }}
+                                    title={req.resolutionNote}
+                                  >
+                                    Причина: {req.resolutionNote.length > 100 ? req.resolutionNote.slice(0, 100) + '…' : req.resolutionNote}
+                                  </div>
+                                )}
                                 {req.status === 'approved' && (
                                   <button
                                     type="button"
