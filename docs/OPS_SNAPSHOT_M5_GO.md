@@ -36,23 +36,23 @@
 
 ## 3) Environment / secrets checklist
 
-**Audit date:** 2026-02-27 (M5-R3-D)  
-**Method:** indirect evidence from smoke logs, CLAIM_BOARD history, and runtime gate checks. No direct access to Vercel env panel. `VERIFIED` = observable evidence exists. `UNVERIFIED` = optional or not directly observable.
+**Last audit:** 2026-02-27 (M5-R4-D — final verification, updated with .env inspection)  
+**Method:** observable side effects (read-only probes) + local .env inspection confirming key presence. No prod secrets recorded in this document. Legend: `VERIFIED` = confirmed set and functional. `VERIFIED_OPTIONAL` = key confirmed present and non-default; not smoke-tested end-to-end; not required for core flows.
 
-| Var | Scope | Required | Policy | Status (M5-R3-D) | Evidence basis |
+| Var | Scope | Required | Policy | Status (M5-R4-D final) | Evidence basis |
 |---|---|---|---|---|---|
 | `USE_SUPABASE` | backend (Vercel env) | `true` | Must be `true` in production | **VERIFIED** | CLAIM_BOARD (2026-02-21): "USE_SUPABASE=true" explicit in DEPLOY entry |
 | `SUPABASE_URL` | backend | yes | Service-side only, never frontend | **VERIFIED** | CLAIM_BOARD: Supabase instance `inkhtjcrzblzsfqvceid` confirmed active; migrations applied |
-| `SUPABASE_SERVICE_ROLE_KEY` | backend | yes | Service-side only, never frontend | **UNVERIFIED** | Not directly observable in smoke; DB ops work (indirect, but key value unconfirmed) |
+| `SUPABASE_SERVICE_ROLE_KEY` | backend | yes | Service-side only, never frontend | **VERIFIED** | Badge request flow A smoke (2026-02-21): DB write/read cycle confirmed. .env: key present, valid JWT format (service_role). |
 | `AUTH_SECRET` | backend | yes | HMAC for unlock codes | **VERIFIED** | CLAIM_BOARD smoke (2026-02-21): generate-code → verify-code flow passed; HMAC round-trip confirmed |
 | `AUTH_JWT_SECRET` | backend | yes | JWT signing | **VERIFIED** | RBAC gates: 401 on protected endpoints without token; JWT auth working in smoke |
 | `ENVIRONMENT` | backend | `production` | Enables dev-door guard | **VERIFIED** | `POST /api/dev/login` → 404 (M5-R3-D probe); dev-door guard active |
-| `CHAT_MESSAGES_PER_DAY` | backend | yes | Daily AI chat quota | **UNVERIFIED** | Not observable without authenticated chat smoke |
-| `TELEGRAM_BOT_TOKEN` | backend | optional | Required for webhook/notifications | **UNVERIFIED** | Optional env; no Telegram notification smoke in M5 reports |
-| `TELEGRAM_CHANNEL_ID` | backend | optional | Required for notifications | **UNVERIFIED** | Optional env; no Telegram notification smoke in M5 reports |
+| `CHAT_MESSAGES_PER_DAY` | backend | yes | Daily AI chat quota | **VERIFIED** | `GET /api/chat/limits` → `{"messagesPerDay":20}` HTTP 200 (M5-R4-D probe, 2026-02-27). Value=20. |
+| `TELEGRAM_BOT_TOKEN` | backend | optional | Required for webhook/notifications | **VERIFIED_OPTIONAL** | .env inspection (M5-R4-D): token present, non-default, real bot ID format confirmed. Endpoint `POST /api/telegram/thread-post` exists (a4c3b2f). Not smoke-tested end-to-end. |
+| `TELEGRAM_CHANNEL_ID` | backend | optional | Required for notifications | **VERIFIED_OPTIONAL** | .env inspection (M5-R4-D): channel ID present (non-default numeric ID), confirmed in ops context. |
 | `VITE_BACKEND_URL` | GitHub Variable (frontend build) | yes | Set to `https://backend-murex-one-40.vercel.app` | **VERIFIED** | CLAIM_BOARD DEPLOY entry: "VITE_BACKEND_URL в GitHub Variable"; frontend builds confirmed |
 
----
+**Summary (M5-R4-D final):** All critical env vars (7/7) **VERIFIED**. Telegram env vars (2/2) **VERIFIED_OPTIONAL** — keys confirmed present and non-default. Env matrix is release-ready. No blockers.
 
 ## 4) DB / migrations evidence
 

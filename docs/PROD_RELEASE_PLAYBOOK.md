@@ -88,6 +88,37 @@ Supabase:
 4) **Персистентность**
 - Критичные домены (shifts/squads/memberships/corners/invites/messages/badge_requests/parent_snapshots) живут в Supabase.
 
+### §4.1 — Pre-release smoke via Vercel Preview (добавлен M5-R4-D)
+
+**Цель:** прогнать автоматический smoke перед merge в main, используя Vercel Preview deployment как staging-окружение.
+
+**Как получить Vercel Preview URL:**
+1. GitHub PR → секция "Checks" → "Vercel — Preview" → "Visit Preview".
+2. Или: Vercel Dashboard → Project `backend-murex-one-40` → Deployments → найти по ветке/PR.
+3. URL pattern: `https://backend-murex-one-40-<branch-slug>.vercel.app`
+
+**Команда запуска:**
+```bash
+AUTH_SECRET=<auth_secret> python backend/scripts/smoke_backend_critical.py \
+  --base-url https://backend-murex-one-40-<preview-hash>.vercel.app
+```
+
+**Ожидаемый результат:** `RESULT: ALL 43 CHECKS PASSED`
+
+**Что проверяется (43 checks):**
+
+| Flow | Description |
+|------|-------------|
+| Health | `/api/health` |
+| A — Badge Request | request → inbox → approve → mine (9 checks) |
+| B — Parent Insights | snapshot → insights → invalid-404 (4 checks) |
+| C — Council Initiatives | create → list (4 checks) |
+| D — Mine Privacy | privacy + contract (3 checks) |
+| E — Image Safety | prompt sanitization + quota (M5-R2-C) |
+| F — Teams | badge cleanup + teams smoke (M5-R3-A) |
+
+**Подробнее о staging-окружении:** [`docs/STAGING_BACKEND_SETUP.md`](STAGING_BACKEND_SETUP.md)
+
 ---
 
 ## 5) Pre‑release checklist (перед выкладкой)
