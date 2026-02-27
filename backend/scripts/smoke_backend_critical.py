@@ -815,6 +815,26 @@ class SmokeRunner:
                 f"expected 401, got {status_g2}: {body_g2}",
             )
 
+        # G-3: message too long → 400
+        long_msg = "x" * 2001
+        try:
+            status_g3, body_g3 = self._http(
+                self._url("/api/chat"),
+                method="POST",
+                body={"message": long_msg, "user_id": participant_device},
+                headers={"Authorization": f"Bearer {participant_token}"},
+            )
+        except SmokeError as exc:
+            self.fail("POST /api/chat — G-3 long message", str(exc))
+            status_g3, body_g3 = None, {}
+
+        if status_g3 is not None:
+            self.check(
+                "POST /api/chat — G-3: message > 2000 chars → 400",
+                status_g3 == 400,
+                f"expected 400, got {status_g3}: {body_g3}",
+            )
+
     # -----------------------------------------------------------------------
     # Run all
     # -----------------------------------------------------------------------

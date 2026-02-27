@@ -418,7 +418,7 @@
 **Body:**
 ```json
 {
-  "message":  "string (required)",
+  "message":  "string (required, max length: CHAT_MAX_MESSAGE_LEN chars, default 2000)",
   "user_id":  "string (required)",
   "context":  {
     "current_view":            "string (optional)",
@@ -436,6 +436,8 @@
 | `nickname` | JWT payload `nickname` | Никнейм участника |
 | `squad_name` | membership lookup → squads doc | Название отряда |
 | `shift_name` | membership lookup → shifts doc | Название смены |
+| `pending_badge_count` | badge_requests lookup (M5-R4-C) | Количество pending заявок участника |
+| `pending_badge_titles` | badge_requests lookup (M5-R4-C) | Названия значков из pending заявок (max 3) |
 
 Клиент **не обязан** передавать эти поля — они обогащаются автоматически на сервере из JWT и данных membership. Lookup выполняется только при наличии `deviceId` и memberships; любая ошибка lookup не блокирует ответ (try/except).
 
@@ -453,6 +455,7 @@
 | Статус | Условие |
 |--------|---------|
 | `200` | Успешный ответ бота |
+| `400` | Сообщение превышает `CHAT_MAX_MESSAGE_LEN` символов |
 | `401` | JWT отсутствует, невалиден или истёк |
 | `403` | Роль не в `CHAT_ALLOWED_ROLES` |
 | `429` | Превышен per-minute или daily лимит |
@@ -460,7 +463,7 @@
 | `503` | chatbot не инициализирован (OpenAI key absent) |
 
 **Rate Limits:**
-- Per-minute: `CHAT_MSG_RATE_LIMIT_PER_MIN` (default 10), per `deviceId`
+- Per-minute: `CHAT_MSG_RATE_LIMIT_PER_MIN` (default 15), per `deviceId`
 - Daily: `CHAT_DAILY_LIMIT` (default env-configured), per `deviceId`
 
 **Breaking changes:**
@@ -522,8 +525,8 @@ python backend/scripts/smoke_backend_critical.py --base-url http://localhost:400
 | D | Mine privacy + contract (M5-R2-B) | 4 |
 | E | Image Generation (happy path, truncation, missing fields) | 5 |
 | F | Teams lifecycle (create → get → join → mine → leave x2) (M5-R3-A) | 8 |
-| G | Chat endpoint: valid JWT → 200+response, invalid token → 401 (M5-R3-C) | 4 |
-| **Total** | | **43** |
+| G | Chat endpoint: valid JWT → 200+response, invalid token → 401, msg too long → 400 (M5-R3-C, M5-R4-C) | 5 |
+| **Total** | | **44** |
 
 **Flow D** (M5-R2-B, `/api/badges/requests/mine`):
 - D-1: GET /mine → 200, requests is list
@@ -545,10 +548,11 @@ python backend/scripts/smoke_backend_critical.py --base-url http://localhost:400
 - F-5: POST /api/teams/<id>/leave (joiner) → 200, status=success
 - F-6: POST /api/teams/<id>/leave (leader, last member) → 200, status=success (team deleted)
 
-**Flow G** (M5-R3-C, `/api/chat`):
+**Flow G** (M5-R3-C + M5-R4-C, `/api/chat`):
 - G-auth: `auth/verify-code (participant)` → 200, accessToken present
 - G-1: POST /api/chat с valid JWT → 200, `response` field present
 - G-2: POST /api/chat с invalid Bearer token → 401
+- G-3: POST /api/chat с message длиннее 2000 символов → 400 (`CHAT_MAX_MESSAGE_LEN`)
 
 При изменении любого контракта из §3 — обновить скрипт, запустить, убедиться в 0 failures.
 
@@ -563,4 +567,4 @@ python backend/scripts/smoke_backend_critical.py --base-url http://localhost:400
 | Breaking change — согласовать с фронтом | NeuroStepa → Agent A + Agent B |
 | После обновления — перезапустить smoke | Agent A |
 
-*Последнее обновление: 2026-02-27 (M5-R3-C, Agent C — /api/chat contract §3.5: nickname/squad_name/shift_name context enrichment, smoke Flow G Chat, 43 checks total)*
+*Последнее обновление: 2026-02-27 (M5-R4-C, Agent C — /api/chat: pending badges context, CHAT_MAX_MESSAGE_LEN validation (400), G-3 smoke check, 44 checks total)*

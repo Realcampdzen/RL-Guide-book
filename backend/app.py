@@ -80,6 +80,7 @@ SHIFTS_FILE = os.path.join(os.path.dirname(__file__), "data", "shifts.json")
 _SHIFTS_LOCK = threading.Lock()
 BADGE_REQUESTS_FILE = os.path.join(os.path.dirname(__file__), "data", "badge_requests.json")
 _BADGE_REQUESTS_LOCK = threading.Lock()
+BADGE_REQUESTS_RESOLVED_TTL_DAYS = int(os.getenv("BADGE_REQUESTS_RESOLVED_TTL_DAYS", "30"))
 MEMBERSHIPS_FILE = os.path.join(os.path.dirname(__file__), "data", "memberships.json")
 _MEMBERSHIPS_LOCK = threading.Lock()
 SQUAD_CORNERS_FILE = os.path.join(os.path.dirname(__file__), "data", "squad_corners.json")
@@ -114,6 +115,8 @@ CHAT_MSG_RATE_LIMIT_PER_MIN = int(os.getenv('CHAT_MSG_RATE_LIMIT_PER_MIN', '15')
 CHAT_MSG_RATE_WINDOW_SEC = 60
 _chat_per_min_times: dict = defaultdict(list)
 _chat_per_min_lock = threading.Lock()
+# M5-R4-C: Max message length for /api/chat (env: CHAT_MAX_MESSAGE_LEN, default 2000)
+CHAT_MAX_MESSAGE_LEN = int(os.getenv('CHAT_MAX_MESSAGE_LEN', '2000'))
 
 # URL filter regex — block links in squad messages
 _URL_RE = re.compile(
@@ -2980,18 +2983,37 @@ def badge_request_inbox():
         camp_filter = camp_self
         squad_filter = squad_self
 
-    bdoc = _badge_requests_load()
-    rows = []
-    for row in (bdoc.get("requests") or []):
-        if not isinstance(row, dict):
-            continue
-        if camp_filter and (row.get("campId") or "").strip() != camp_filter:
-            continue
-        if squad_filter and (row.get("squadId") or "").strip() != squad_filter:
-            continue
-        if status_filter and (row.get("status") or "").strip() != status_filter:
-            continue
-        rows.append(row)
+    include_resolved = (request.args.get("includeResolved") or "").lower() in ("true", "1", "yes")
+    cutoff_ts = time.time() - BADGE_REQUESTS_RESOLVED_TTL_DAYS * 86400
+
+    store = get_store("badge_requests")
+    if hasattr(store, "load_inbox"):
+        rows = store.load_inbox(
+            camp_id=camp_filter or None,
+            squad_id=squad_filter or None,
+            status_filter=status_filter or None,
+            include_resolved=include_resolved,
+            resolved_ttl_days=BADGE_REQUESTS_RESOLVED_TTL_DAYS,
+        )
+    else:
+        bdoc = _badge_requests_load()
+        rows = []
+        for row in (bdoc.get("requests") or []):
+            if not isinstance(row, dict):
+                continue
+            if camp_filter and (row.get("campId") or "").strip() != camp_filter:
+                continue
+            if squad_filter and (row.get("squadId") or "").strip() != squad_filter:
+                continue
+            row_status = (row.get("status") or "").strip()
+            if status_filter and row_status != status_filter:
+                continue
+            if not include_resolved and row_status != "pending":
+                resolved_at = row.get("resolvedAt") or ""
+                row_ts = _parse_iso_ts(resolved_at) if resolved_at else 0
+                if row_ts < cutoff_ts:
+                    continue
+            rows.append(row)
 
     rows.sort(
         key=lambda item: (
@@ -3069,6 +3091,51 @@ def badge_request_approve(request_id: str):
 @app.route('/api/badges/requests/<request_id>/reject', methods=['POST'])
 def badge_request_reject(request_id: str):
     return _badge_request_resolve(request_id, "rejected")
+
+
+@app.route('/api/badges/requests/cleanup', methods=['POST'])
+def badge_requests_cleanup():
+    """
+    POST /api/badges/requests/cleanup
+    Auth: shift_leader | developer
+    Body: { "olderThanDays": 30 }  // optional, default from BADGE_REQUESTS_RESOLVED_TTL_DAYS
+    Response: { "deleted": N }
+    Deletes approved/rejected requests older than N days. Logs [BADGE_CLEANUP].
+    """
+    payload, err = _require_roles(("shift_leader", "developer"), allow_localhost_dev=True)
+    if err is not None:
+        return err[0], err[1]
+    device_id = (payload.get("deviceId") or "").strip()
+    body = request.get_json() or {}
+    try:
+        older_than_days = int(body.get("olderThanDays") or BADGE_REQUESTS_RESOLVED_TTL_DAYS)
+    except (TypeError, ValueError):
+        return jsonify({"error": "olderThanDays must be an integer"}), 400
+    if older_than_days < 0:
+        return jsonify({"error": "olderThanDays must be non-negative"}), 400
+    cutoff_ts = time.time() - older_than_days * 86400
+
+    bdoc = _badge_requests_load()
+    before = len(bdoc.get("requests") or [])
+    kept = []
+    for row in (bdoc.get("requests") or []):
+        if not isinstance(row, dict):
+            continue
+        row_status = (row.get("status") or "").strip()
+        if row_status in ("approved", "rejected"):
+            resolved_at = row.get("resolvedAt") or ""
+            row_ts = _parse_iso_ts(resolved_at) if resolved_at else 0
+            if row_ts < cutoff_ts:
+                continue
+        kept.append(row)
+    deleted = before - len(kept)
+    bdoc["requests"] = kept
+    _badge_requests_save(bdoc)
+    hashed_device = hashlib.sha256(device_id.encode()).hexdigest()[:12] if device_id else "unknown"
+    app.logger.info(
+        f"[BADGE_CLEANUP] deleted={deleted} actor={hashed_device} ts={datetime.now(timezone.utc).isoformat()}"
+    )
+    return jsonify({"deleted": deleted})
 
 
 @app.route('/api/badges/approvals/mine', methods=['GET'])
@@ -3354,7 +3421,14 @@ def chat_with_bot():
                     "error": "Чат-бот не может быть инициализирован",
                     "message": "Проверьте настройки OpenAI API"
                 }), 503
-        
+
+        # M5-R4-C: Message length guard (before enrichment to avoid wasted work)
+        _raw_message = (data.get("message") or "") if data else ""
+        if len(_raw_message) > CHAT_MAX_MESSAGE_LEN:
+            app.logger.warning('[CHAT_SAFETY] message_too_long device=%s len=%d',
+                               _hash_key(device_id or 'anon'), len(_raw_message))
+            return jsonify({"error": "Сообщение слишком длинное", "maxLen": CHAT_MAX_MESSAGE_LEN}), 400
+
         # Обрабатываем веб-контекст (подмешиваем роль из JWT для персонализации ответов)
         context = data.get("context") or {}
         context = dict(context) if isinstance(context, dict) else {}
@@ -3380,6 +3454,24 @@ def chat_with_bot():
                                 break
             except Exception:
                 pass  # non-blocking: lookup failure must never block chat response
+
+        # M5-R4-C: Inject pending badge requests for personalization
+        try:
+            _bdoc = _badge_requests_load()
+            _pending = [
+                r for r in (_bdoc.get("requests") or [])
+                if isinstance(r, dict)
+                and (r.get("requestedBy") or {}).get("deviceId") == device_id
+                and r.get("status") == "pending"
+            ]
+            if _pending:
+                context["pending_badge_count"] = len(_pending)
+                context["pending_badge_titles"] = [
+                    r.get("badgeTitle") or r.get("levelId") or "?"
+                    for r in _pending[:3]
+                ]
+        except Exception:
+            pass  # non-blocking
 
         if context:
             chatbot_components['response_generator'].context_manager.update_web_context(

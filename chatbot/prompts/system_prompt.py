@@ -39,6 +39,8 @@ def get_system_prompt_with_context(
     nickname: Optional[str] = None,
     squad_name: Optional[str] = None,
     shift_name: Optional[str] = None,
+    pending_badge_count: Optional[int] = None,
+    pending_badge_titles: Optional[list] = None,
 ) -> str:
     """
     Получает системный промпт с дополнительным контекстом
@@ -73,6 +75,13 @@ def get_system_prompt_with_context(
     
     if shift_name:
         context_parts.append(f"Смена: {shift_name}")
+    
+    if pending_badge_count and pending_badge_count > 0:
+        titles_str = ", ".join(str(t) for t in (pending_badge_titles or []))
+        context_parts.append(
+            f"У пользователя есть заявки на проверке ({pending_badge_count} шт.): {titles_str}. "
+            "Если спрашивает про статус — скажи что вожатый рассматривает."
+        )
     
     if current_category:
         context_parts.append(f"Пользователь сейчас изучает категорию: {current_category}")

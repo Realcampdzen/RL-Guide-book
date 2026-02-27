@@ -292,6 +292,8 @@ class ResponseGenerator:
             nickname=context.session_data.get('nickname'),
             squad_name=context.session_data.get('squad_name'),
             shift_name=context.session_data.get('shift_name'),
+            pending_badge_count=context.session_data.get('pending_badge_count'),
+            pending_badge_titles=context.session_data.get('pending_badge_titles'),
         )
         return self.openai_client.generate_response(
             messages=[Message(role="user", content=prompt, metadata={})],
@@ -339,6 +341,8 @@ class ResponseGenerator:
             nickname=context.session_data.get('nickname'),
             squad_name=context.session_data.get('squad_name'),
             shift_name=context.session_data.get('shift_name'),
+            pending_badge_count=context.session_data.get('pending_badge_count'),
+            pending_badge_titles=context.session_data.get('pending_badge_titles'),
         )
         return self.openai_client.generate_response(
             messages=[Message(role="user", content=prompt, metadata={})],
@@ -411,6 +415,8 @@ class ResponseGenerator:
             nickname=context.session_data.get('nickname'),
             squad_name=context.session_data.get('squad_name'),
             shift_name=context.session_data.get('shift_name'),
+            pending_badge_count=context.session_data.get('pending_badge_count'),
+            pending_badge_titles=context.session_data.get('pending_badge_titles'),
         )
         return self.openai_client.generate_response(
             messages=[Message(role="user", content=prompt, metadata={})],
@@ -471,6 +477,8 @@ class ResponseGenerator:
             nickname=context.session_data.get('nickname'),
             squad_name=context.session_data.get('squad_name'),
             shift_name=context.session_data.get('shift_name'),
+            pending_badge_count=context.session_data.get('pending_badge_count'),
+            pending_badge_titles=context.session_data.get('pending_badge_titles'),
         )
         return self.openai_client.generate_response(
             messages=[Message(role="user", content=prompt, metadata={})],
@@ -566,6 +574,8 @@ class ResponseGenerator:
             nickname=context.session_data.get('nickname'),
             squad_name=context.session_data.get('squad_name'),
             shift_name=context.session_data.get('shift_name'),
+            pending_badge_count=context.session_data.get('pending_badge_count'),
+            pending_badge_titles=context.session_data.get('pending_badge_titles'),
         )
         return self.openai_client.generate_response(
             messages=[Message(role="user", content=prompt, metadata={})],
@@ -634,6 +644,8 @@ class ResponseGenerator:
             nickname=context.session_data.get('nickname'),
             squad_name=context.session_data.get('squad_name'),
             shift_name=context.session_data.get('shift_name'),
+            pending_badge_count=context.session_data.get('pending_badge_count'),
+            pending_badge_titles=context.session_data.get('pending_badge_titles'),
         )
         
         # Дополнительные указания по стилю даются в системном промпте; без жёстких ограничений длины здесь
