@@ -42,6 +42,11 @@ class WebContext(BaseModel):
     current_level: Optional[str] = Field(None, description="Текущий уровень значка")
     current_level_badge_title: Optional[str] = Field(None, description="Название конкретного уровня значка")
     user_role: Optional[str] = Field(None, description="Роль пользователя из JWT (participant, parent, counselor, shift_leader, organizer, developer)")
+    nickname: Optional[str] = Field(None, description="Никнейм участника из JWT")
+    squad_name: Optional[str] = Field(None, description="Название отряда (из membership lookup)")
+    shift_name: Optional[str] = Field(None, description="Название смены (из membership lookup)")
+    pending_badge_count: Optional[int] = Field(None, description="Количество заявок на значки в статусе pending")
+    pending_badge_titles: Optional[list] = Field(None, description="Названия значков из pending заявок (max 3)")
 
 
 class ChatRequest(BaseModel):

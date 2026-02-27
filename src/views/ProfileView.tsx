@@ -810,32 +810,64 @@ export const ProfileView: React.FC<any> = (props) => {
     return () => { cancelled = true; };
   }, [accessToken, canRequestApprovals, getLevelProgress, userData?.progress]);
 
-  const syncApprovedLevels = useCallback(async () => {
+  const performApprovalSync = useCallback(async (silent: boolean) => {
     if (!accessToken) {
-      setApprovalsSyncStatus('Сначала войдите по коду.');
+      if (!silent) setApprovalsSyncStatus('Сначала войдите по коду.');
       return;
     }
-    setApprovalsSyncBusy(true);
-    setApprovalsSyncStatus(null);
+    if (!silent) {
+      setApprovalsSyncBusy(true);
+      setApprovalsSyncStatus(null);
+    }
     try {
       const approvals = await loadMyApprovals(accessToken);
       let applied = 0;
+      const titles: string[] = [];
       approvals.forEach((item: BadgeApprovalItem) => {
         const levelId = String(item.levelId || '').trim();
         if (!levelId) return;
+        if (getLevelProgress(levelId)?.status === 'achieved') return;
         applyApprovedLevel(levelId, item.evidence || undefined);
         applied += 1;
+        if (item.badgeTitle) titles.push(item.badgeTitle);
       });
-      setApprovalsSyncStatus(applied > 0 ? `Синхронизировано одобрений: ${applied}.` : 'Одобренных заявок пока нет.');
+      if (!silent) {
+        setApprovalsSyncStatus(applied > 0
+          ? `Синхронизировано одобрений: ${applied}.`
+          : 'Одобренных заявок пока нет.');
+      }
       await loadBadgeApprovalsData();
       setPendingApprovalsCount(0);
-      if (applied > 0) showHint({ title: 'Прогресс обновлён', content: 'Одобрения вожатого добавлены в твой прогресс.' });
-    } catch (e) {
-      setApprovalsSyncStatus(e instanceof Error ? e.message : 'Не удалось синхронизировать одобрения.');
+      if (applied > 0) {
+        const celebrationContent = applied === 1
+          ? `${titles[0] || 'Уровень'} подтверждён вожатым. Загляни в коллекцию.`
+          : `Подтверждены уровни: ${applied}. Открой коллекцию.`;
+        startTutorial(
+          [{ title: 'Уровень получен!', content: celebrationContent }],
+          { onComplete: () => setActiveTab('collection') }
+        );
+      }
+    } catch {
+      if (!silent) {
+        setApprovalsSyncStatus('Не удалось синхронизировать одобрения.');
+      }
     } finally {
-      setApprovalsSyncBusy(false);
+      if (!silent) setApprovalsSyncBusy(false);
     }
-  }, [accessToken, applyApprovedLevel, loadBadgeApprovalsData, showHint]);
+  }, [accessToken, applyApprovedLevel, getLevelProgress, loadBadgeApprovalsData, startTutorial]);
+
+  const syncApprovedLevels = useCallback(
+    () => performApprovalSync(false),
+    [performApprovalSync]
+  );
+
+  const autoSyncDoneRef = useRef(false);
+  useEffect(() => {
+    if (autoSyncDoneRef.current) return;
+    if (!accessToken || !canRequestApprovals) return;
+    autoSyncDoneRef.current = true;
+    void performApprovalSync(true);
+  }, [accessToken, canRequestApprovals, performApprovalSync]);
 
   const loadMySquadInfo = useCallback(async () => {
     if (!accessToken || !expensiveActionsAllowed) {
@@ -5379,21 +5411,70 @@ export const ProfileView: React.FC<any> = (props) => {
                     )}
                   </div>
 
-                  {canRequestApprovals && (
-                    <div style={{ padding: 12, borderRadius: 12, background: 'rgba(0,0,0,0.32)', border: '1px solid rgba(255,255,255,0.06)' }}>
-                      <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 8, opacity: 0.9 }}>Мои заявки на подтверждение</div>
-                      {badgeRequestsMine.length === 0 ? (
-                        <div style={{ fontSize: 12, opacity: 0.8 }}>Заявок пока нет. Отправьте заявку из карточки уровня.</div>
+                  {canRequestApprovals && !isParentChildReadonlyView && (
+                    <div id="profile-badge-requests-mine" style={{ padding: 12, borderRadius: 12, background: 'rgba(0,0,0,0.32)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                      <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 8, opacity: 0.9 }}>Мои заявки</div>
+                      {badgeRequestsBusy ? (
+                        <div style={{ fontSize: 12, opacity: 0.7 }}>Загружаем заявки…</div>
+                      ) : badgeRequestsError ? (
+                        <div style={{ fontSize: 12 }}>
+                          <span style={{ opacity: 0.8 }}>{badgeRequestsError}</span>
+                          <button type="button" className="btn-secondary" style={{ marginLeft: 8, padding: '4px 10px', fontSize: 11 }} onClick={loadBadgeApprovalsData}>Повторить</button>
+                        </div>
+                      ) : badgeRequestsMine.length === 0 ? (
+                        <div style={{ fontSize: 12, opacity: 0.8 }}>
+                          Заявок пока нет. Подтверди уровень значка, чтобы отправить первую.{' '}
+                          <button
+                            type="button"
+                            className="btn-secondary"
+                            style={{ padding: '4px 10px', fontSize: 11, marginTop: 6 }}
+                            onClick={() => {
+                              setActiveTab('active');
+                              setTimeout(() => {
+                                document.getElementById('profile-tab-active')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                              }, 80);
+                            }}
+                          >
+                            К значкам «В пути»
+                          </button>
+                        </div>
                       ) : (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 220, overflowY: 'auto' }}>
-                          {badgeRequestsMine.map((req) => (
-                            <div key={req.id} style={{ padding: 8, borderRadius: 8, background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.08)' }}>
-                              <div style={{ fontSize: 12, fontWeight: 700 }}>{req.levelId} {req.badgeTitle ? `· ${req.badgeTitle}` : ''}</div>
-                              <div style={{ fontSize: 11, opacity: 0.75 }}>
-                                {new Date(req.createdAt).toLocaleString('ru-RU')} · {req.status}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 260, overflowY: 'auto' }}>
+                          {badgeRequestsMine.map((req) => {
+                            const statusTone = req.status === 'approved' ? 'approved' : req.status === 'rejected' ? 'rejected' : 'pending';
+                            const statusLabel = req.status === 'approved' ? 'Одобрено' : req.status === 'rejected' ? 'Отклонено' : 'На проверке';
+                            return (
+                              <div key={req.id} style={{ padding: 8, borderRadius: 8, background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8, flexWrap: 'wrap', marginBottom: 4 }}>
+                                  <div style={{ fontSize: 12, fontWeight: 700 }}>
+                                    {req.badgeTitle || req.levelId}
+                                    {req.badgeTitle && <span style={{ fontSize: 11, opacity: 0.6, fontWeight: 400, marginLeft: 4 }}>{req.levelId}</span>}
+                                  </div>
+                                  <span className={`m3-status-chip badge-request-status-chip tone-${statusTone}`}>{statusLabel}</span>
+                                </div>
+                                <div style={{ fontSize: 11, opacity: 0.6 }}>{new Date(req.createdAt).toLocaleString('ru-RU')}</div>
+                                {req.status === 'rejected' && req.resolutionNote && (
+                                  <div
+                                    style={{ fontSize: 11, opacity: 0.55, marginTop: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100%' }}
+                                    title={req.resolutionNote}
+                                  >
+                                    Причина: {req.resolutionNote.length > 100 ? req.resolutionNote.slice(0, 100) + '…' : req.resolutionNote}
+                                  </div>
+                                )}
+                                {req.status === 'approved' && (
+                                  <button
+                                    type="button"
+                                    className="btn-secondary"
+                                    style={{ marginTop: 8, padding: '5px 12px', fontSize: 11 }}
+                                    disabled={approvalsSyncBusy}
+                                    onClick={syncApprovedLevels}
+                                  >
+                                    {approvalsSyncBusy ? 'Синхронизируем…' : 'Синхронизировать'}
+                                  </button>
+                                )}
                               </div>
-                            </div>
-                          ))}
+                            );
+                          })}
                         </div>
                       )}
                     </div>
@@ -6168,6 +6249,12 @@ export const ProfileView: React.FC<any> = (props) => {
               setProofForm({ learned: '', impact: '', link: '' });
               setProofPhotoCount(0);
               proofPhotoInputRef.current && (proofPhotoInputRef.current.value = '');
+              if (canRequestApprovals) {
+                showHint({ title: 'Заявка отправлена', content: 'Вожатый рассмотрит её в ближайшее время.' });
+                setTimeout(() => {
+                  document.getElementById('profile-badge-requests-mine')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 300);
+              }
             }} className="btn-primary-gold" style={{ width: '100%', marginTop: 24 }}>Отправить в Telegram</button>
             <button onClick={() => { setProofBadge(null); setProofForm({ learned: '', impact: '', link: '' }); setProofPhotoCount(0); proofPhotoInputRef.current && (proofPhotoInputRef.current.value = ''); }} style={{ width: '100%', background: 'none', border: 'none', color: 'white', marginTop: 10, cursor: 'pointer', opacity: 0.5, fontSize: 13 }}>Отмена</button>
           </div>

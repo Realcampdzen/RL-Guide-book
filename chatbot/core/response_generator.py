@@ -288,7 +288,12 @@ class ResponseGenerator:
             current_view=context.session_data.get('current_view'),
             current_level=context.session_data.get('current_level'),
             current_level_badge_title=context.session_data.get('current_level_badge_title'),
-            user_role=context.session_data.get('user_role')
+            user_role=context.session_data.get('user_role'),
+            nickname=context.session_data.get('nickname'),
+            squad_name=context.session_data.get('squad_name'),
+            shift_name=context.session_data.get('shift_name'),
+            pending_badge_count=context.session_data.get('pending_badge_count'),
+            pending_badge_titles=context.session_data.get('pending_badge_titles'),
         )
         return self.openai_client.generate_response(
             messages=[Message(role="user", content=prompt, metadata={})],
@@ -332,7 +337,12 @@ class ResponseGenerator:
             current_view=context.session_data.get('current_view'),
             current_level=context.session_data.get('current_level'),
             current_level_badge_title=context.session_data.get('current_level_badge_title'),
-            user_role=context.session_data.get('user_role')
+            user_role=context.session_data.get('user_role'),
+            nickname=context.session_data.get('nickname'),
+            squad_name=context.session_data.get('squad_name'),
+            shift_name=context.session_data.get('shift_name'),
+            pending_badge_count=context.session_data.get('pending_badge_count'),
+            pending_badge_titles=context.session_data.get('pending_badge_titles'),
         )
         return self.openai_client.generate_response(
             messages=[Message(role="user", content=prompt, metadata={})],
@@ -401,7 +411,12 @@ class ResponseGenerator:
             current_view=context.session_data.get('current_view') or '',
             current_level=context.session_data.get('current_level'),
             current_level_badge_title=context.session_data.get('current_level_badge_title') or '',
-            user_role=context.session_data.get('user_role')
+            user_role=context.session_data.get('user_role'),
+            nickname=context.session_data.get('nickname'),
+            squad_name=context.session_data.get('squad_name'),
+            shift_name=context.session_data.get('shift_name'),
+            pending_badge_count=context.session_data.get('pending_badge_count'),
+            pending_badge_titles=context.session_data.get('pending_badge_titles'),
         )
         return self.openai_client.generate_response(
             messages=[Message(role="user", content=prompt, metadata={})],
@@ -458,7 +473,12 @@ class ResponseGenerator:
             current_view=context.session_data.get('current_view') or '',
             current_level=context.session_data.get('current_level'),
             current_level_badge_title=context.session_data.get('current_level_badge_title') or '',
-            user_role=context.session_data.get('user_role')
+            user_role=context.session_data.get('user_role'),
+            nickname=context.session_data.get('nickname'),
+            squad_name=context.session_data.get('squad_name'),
+            shift_name=context.session_data.get('shift_name'),
+            pending_badge_count=context.session_data.get('pending_badge_count'),
+            pending_badge_titles=context.session_data.get('pending_badge_titles'),
         )
         return self.openai_client.generate_response(
             messages=[Message(role="user", content=prompt, metadata={})],
@@ -482,7 +502,10 @@ class ResponseGenerator:
                     current_view=context.session_data.get('current_view', ''),
                     current_level=context.session_data.get('current_level', ''),
                     current_level_badge_title=context.session_data.get('current_level_badge_title', ''),
-                    user_role=context.session_data.get('user_role')
+                    user_role=context.session_data.get('user_role'),
+                    nickname=context.session_data.get('nickname'),
+                    squad_name=context.session_data.get('squad_name'),
+                    shift_name=context.session_data.get('shift_name'),
                 )
             )
         
@@ -511,7 +534,10 @@ class ResponseGenerator:
                 current_view=context.session_data.get('current_view') or '',
                 current_level=context.session_data.get('current_level'),
                 current_level_badge_title=context.session_data.get('current_level_badge_title') or '',
-                user_role=context.session_data.get('user_role')
+                user_role=context.session_data.get('user_role'),
+                nickname=context.session_data.get('nickname'),
+                squad_name=context.session_data.get('squad_name'),
+                shift_name=context.session_data.get('shift_name'),
             )
         )
     
@@ -544,7 +570,12 @@ class ResponseGenerator:
             current_view=context.session_data.get('current_view') or '',
             current_level=context.session_data.get('current_level'),
             current_level_badge_title=context.session_data.get('current_level_badge_title') or '',
-            user_role=context.session_data.get('user_role')
+            user_role=context.session_data.get('user_role'),
+            nickname=context.session_data.get('nickname'),
+            squad_name=context.session_data.get('squad_name'),
+            shift_name=context.session_data.get('shift_name'),
+            pending_badge_count=context.session_data.get('pending_badge_count'),
+            pending_badge_titles=context.session_data.get('pending_badge_titles'),
         )
         return self.openai_client.generate_response(
             messages=[Message(role="user", content=prompt, metadata={})],
@@ -609,7 +640,12 @@ class ResponseGenerator:
             user_interests=context.interests,
             current_view=context.session_data.get('current_view'),
             current_level=context.session_data.get('current_level'),
-            user_role=context.session_data.get('user_role')
+            user_role=context.session_data.get('user_role'),
+            nickname=context.session_data.get('nickname'),
+            squad_name=context.session_data.get('squad_name'),
+            shift_name=context.session_data.get('shift_name'),
+            pending_badge_count=context.session_data.get('pending_badge_count'),
+            pending_badge_titles=context.session_data.get('pending_badge_titles'),
         )
         
         # Дополнительные указания по стилю даются в системном промпте; без жёстких ограничений длины здесь
