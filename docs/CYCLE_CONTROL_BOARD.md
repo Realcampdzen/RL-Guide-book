@@ -19,12 +19,12 @@
 |---|---|---|---|---|---|---|---|
 | Agent A | Awaiting next TASK | — | IDLE | `2f6139d` (M5-R4-A done) | None | Ждёт TASK от оркестратора | Agent A |
 | Agent B | Awaiting next TASK | — | IDLE | `14914fd` (M3-BF-S6 done) | PROCESS: всегда указывать "Агент: B" в первой строке отчёта | Ждёт TASK | Agent B |
-| Agent C | Awaiting next TASK | — | IDLE | `374fd3b` (M5-R4-C done) | None | Ждёт TASK | Agent C |
-| Agent D | Awaiting next TASK | — | IDLE | `d130639` (M5-R4-D done) | None | Ждёт TASK | Agent D |
-| Agent E (Opus) | E-UX-AUDIT-M5 (full frontend UX + flow audit, browser, screenshots) | `cloud/e-validation-m5` | IN PROGRESS | `bc4627a` (prev) | Free tier — используем по максимуму | Deliver full UX audit report | Opus |
+| Agent C | M5-R5-C | `agent-c/m5-r5-c` | DONE | `76d2e89` (M5-R5-C done, 47 checks) | None | Ждёт следующего TASK | Agent C |
+| Agent D | HOTFIX-BASE-PATH + M5-R5-D | `agent-d/hotfix-base-path` | DONE | `9a26f54` (HOTFIX), `ac37faa` (M5-R5-D) | Токены лобстеров NEEDS_VERCEL_ADD (добавить в Vercel после M5-R5-C) | Ждёт следующего TASK | Agent D |
+| Agent E (Opus) | E-UX-AUDIT-M5-RECHECK | `cloud/e-validation-m5` | PENDING | `f603943` (E-UX-AUDIT-M5 done) | Ждёт GitHub Pages deploy хотфикса | Провести recheck после деплоя | Opus |
 | Kot Bro | KOT_THREAD_TRANSPORT_FIX_V1.1 | n/a | CERTIFIED | `70ecd58` | GAP-1 non-blocking | Closed | Kot Bro |
 | Fin Bro | Standby | n/a | STANDBY | — | None | По запросу | Fin Bro |
-| NeuroStepa | Orchestration + board sync | `main` | ACTIVE | `724eb8f` | None | Keep board updated | NeuroStepa |
+| NeuroStepa | Orchestration + board sync | `main` | ACTIVE | `1fa529c` | None | Keep board updated | NeuroStepa |
 
 ---
 
@@ -63,6 +63,10 @@
 - M5-R4-D: DONE (`d130639`) — env verification VERIFIED/VERIFIED_OPTIONAL + STAGING_BACKEND_SETUP.md. Agent D
 - E-ESLINT-TRIAGE-M5: DONE (`bc4627a`) — CRITICAL=0, HIGH=24 (non-blocking), NOISE=169 (88%). Opus
 - **GIT_DISCIPLINE_FIX**: main обновлён (`724eb8f`). Смержены: agent-c (13 commits), agent-b (2), agent-a (1), agent-d (cherry-pick M5-R4-D). Правила изоляции веток зафиксированы в ORCHESTRATOR_AGENT_BOOTSTRAP.md §8b.
+- M5-R5-C: DONE CERTIFIED (`76d2e89`) — `/api/telegram/agent-post` + AGENT_BOT_TOKENS (neuro_stepa/cat_bro/dev_bro_1) + Flow I 3 checks. Smoke baseline 47/47. Agent C
+- M5-R5-D: DONE (`ac37faa`) — LOBSTERS_RUNBOOK.md + OPS_SNAPSHOT §3 NEEDS_VERCEL_ADD + PROD_RELEASE_PLAYBOOK §5.3. Agent D
+- HOTFIX-BASE-PATH: DONE CRITICAL (`9a26f54`) — двойной путь vite.config.ts устранён. dist/RL-Guide-book/RL-Guide-book NOT EXISTS. Build verified. Agent D
+- **GitHub Pages push**: ожидается деплой. После — E-UX-AUDIT-M5-RECHECK (Opus).
 
 ---
 
