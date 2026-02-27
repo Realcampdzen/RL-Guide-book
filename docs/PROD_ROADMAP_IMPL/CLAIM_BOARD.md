@@ -57,13 +57,38 @@
 
 ---
 
-## Cloud Agent E — Validation & Audit
+## Текущий параллельный спринт (решение от 2026-02-25)
 
-| Агент | Task ID | Задача | Статус | Дата начала | Следующий шаг | Отчёт |
-|-------|---------|--------|--------|-------------|---------------|-------|
-| **Cloud Agent E** | E-VALIDATION-M5 | Runtime smoke: auth, badge lifecycle, roles | ✅ done | 2026-02-27 | — | [REPORT_E_VALIDATION_M5.md](reports/REPORT_E_VALIDATION_M5.md) |
-| **Cloud Agent E** | E-ESLINT-TRIAGE-M5 | ESLint 193 issues triage (0 CRITICAL) | ✅ done | 2026-02-27 | — | [REPORT_E_ESLINT_TRIAGE_M5.md](reports/REPORT_E_ESLINT_TRIAGE_M5.md) |
-| **Cloud Agent E** | E-UX-AUDIT-M5 | UX audit: prod + mobile + roles + chat | ✅ done | 2026-02-27 | Agent D fix base-path | [REPORT_E_UX_AUDIT_M5.md](reports/REPORT_E_UX_AUDIT_M5.md) |
+| Трек | ID | Задача | Статус | Дата старта | Следующий шаг | План |
+|------|----|--------|--------|-------------|---------------|------|
+| **Ops** | O1 | НейроСтёпа как операционный слой (SMM/FAQ/objections/runbook) | in_progress | 2026-02-25 | KPI-лог + 7-дневный цикл + ретро-патчи | [PLAN_O1_M1_2026-02-25.md](plans/PLAN_O1_M1_2026-02-25.md) |
+| **Mechanics** | M1 (Q1) | Scoped engines: `scope camp|shift|squad` + `shiftId/squadId` | done | 2026-02-25 | Closed: roadmap synced, evidence package attached | [PLAN_M1_SCOPED_ENGINES_TECHSPEC.md](plans/PLAN_M1_SCOPED_ENGINES_TECHSPEC.md); [PLAN_M1_UI_SMOKE_CHECKLIST.md](plans/PLAN_M1_UI_SMOKE_CHECKLIST.md); [REPORT_M1_Q1_SCOPE_SLICE_2026-02-25.md](reports/REPORT_M1_Q1_SCOPE_SLICE_2026-02-25.md); [REPORT_M1_Q1_SCOPE_SLICE2_2026-02-25.md](reports/REPORT_M1_Q1_SCOPE_SLICE2_2026-02-25.md); [REPORT_M1_Q1_SCOPE_SLICE3_2026-02-26.md](reports/REPORT_M1_Q1_SCOPE_SLICE3_2026-02-26.md); [REPORT_M1_Q1_STAGING_VALIDATION_DONE_2026-02-26.md](reports/REPORT_M1_Q1_STAGING_VALIDATION_DONE_2026-02-26.md); [REPORT_M1_UI_SMOKE_AUTOTEST_PREP_2026-02-26.md](reports/REPORT_M1_UI_SMOKE_AUTOTEST_PREP_2026-02-26.md); [REPORT_M1_UI_SMOKE_MANUAL_2026-02-26.md](reports/REPORT_M1_UI_SMOKE_MANUAL_2026-02-26.md); [REPORT_M1_Q1_CLOSEOUT_DRAFT_2026-02-26.md](reports/REPORT_M1_Q1_CLOSEOUT_DRAFT_2026-02-26.md) |
+| **Mechanics** | M2 (Q2) | Parent hybrid: свой ЛК + read-only витрина ребёнка | done | 2026-02-26 | Closed: parent-home vs child-view split delivered, read-only UX finalized | [PLAN_M2_Q2_PARENT_HYBRID_TECHSPEC.md](plans/PLAN_M2_Q2_PARENT_HYBRID_TECHSPEC.md); [REPORT_M2_Q2_KICKOFF_2026-02-26.md](reports/REPORT_M2_Q2_KICKOFF_2026-02-26.md); [REPORT_M2_Q2_PARENT_READONLY_SLICE2_3_2026-02-26.md](reports/REPORT_M2_Q2_PARENT_READONLY_SLICE2_3_2026-02-26.md); [REPORT_M2_Q2_PARENT_HYBRID_CLOSEOUT_2026-02-26.md](reports/REPORT_M2_Q2_PARENT_HYBRID_CLOSEOUT_2026-02-26.md) |
+| **Mechanics** | M3-SC-S1 | Squad Corner stabilized readiness slice | done | 2026-02-27 | Closed: readiness model + chip consistency + normalization | [REPORT_M3_SC_S1_2026-02-27.md](reports/REPORT_M3_SC_S1_2026-02-27.md) |
+| **Agent B** | M3-BF-S4 | Badge Request Status Panel: chip tones, empty state CTA, Sync CTA, M2 guard, scroll+hint after proof submit | done | 2026-02-27 | Closed: build clean, lint clean, M2 guard confirmed; commit e474174 | [REPORT_B_M3_BF_S4_2026-02-27.md](reports/REPORT_B_M3_BF_S4_2026-02-27.md) |
+| **Agent B** | M3-BF-S5 | Auto-sync approved levels on mount + celebration hint (startTutorial) + reject reason in «Мои заявки» | done | 2026-02-27 | Closed: build clean, lint clean, M2 guard confirmed; commit 44533b0 | [REPORT_B_M3_BF_S5_2026-02-27.md](reports/REPORT_B_M3_BF_S5_2026-02-27.md) |
+| **Agent B** | M3-BF-S6 | Staff inbox UX: локализация кнопок + inline reject form + optimistic UI + evidence accordion | done | 2026-02-27 | Closed: build clean, M2 guard confirmed | [REPORT_B_M3_BF_S6_2026-02-27.md](reports/REPORT_B_M3_BF_S6_2026-02-27.md) |
+
+---
+
+## Backend Hardening (M5-R2 / M5-R3, 2026-02-27)
+
+| Агент | Task ID | Задача | Статус | Дата | Отчёт |
+|-------|---------|--------|--------|------|-------|
+| **Agent A** | M5-R2-A | Backend Release Hardening: smoke script (22 checks), contract guard doc, playbook §5.3 | ✅ done | 2026-02-27 | [REPORT_A_M5_R2_A.md](reports/REPORT_A_M5_R2_A.md) |
+| **Agent C** | M5-R2-C | Images Safety Hardening: prompt sanitization + per-camp daily quota + BACKEND_CONTRACT_GUARD §3.4 + smoke Flow E | ✅ done (CERTIFIED) | 2026-02-27 | [REPORT_C_M5_R2_C_2026-02-27.md](reports/REPORT_C_M5_R2_C_2026-02-27.md) |
+| **Agent A** | M5-R2-B | Badge Requests: inbox educator auto-scope + /mine privacy + smoke Flow D (31 checks total) | ✅ done | 2026-02-27 | [REPORT_A_M5_R2_B.md](reports/REPORT_A_M5_R2_B.md) |
+| **Agent A** | M5-R3-A | Badge Requests Cleanup + Teams Smoke: inbox TTL filter (`includeResolved`), cleanup endpoint, smoke Flow F (Teams lifecycle), 39 checks total | ✅ done | 2026-02-27 | [REPORT_A_M5_R3_A.md](reports/REPORT_A_M5_R3_A.md) |
+| **Agent C** | M5-R3-C | Chat Context Enrichment: squad_name/shift_name/nickname в системный промпт + smoke Flow G + BACKEND_CONTRACT_GUARD §3.5, 43 checks total | ✅ done (CERTIFIED) | 2026-02-27 | [REPORT_C_M5_R3_C_2026-02-27.md](reports/REPORT_C_M5_R3_C_2026-02-27.md) |
+| **Agent D** | M5-R3-D | Staging smoke (STAGING_BACKEND_NOT_DEPLOYED), env matrix audit (VERIFIED/UNVERIFIED), RELEASE_NOTE Known Issues (R5→Resolved) | ✅ done | 2026-02-27 | [REPORT_D_STAGING_SMOKE_M5_2026-02-27.md](reports/REPORT_D_STAGING_SMOKE_M5_2026-02-27.md) |
+| **Agent C** | M5-R4-C | Chat Quality+Safety: pending badges context injection, CHAT_MAX_MESSAGE_LEN validation (400), G-3 smoke check, BACKEND_CONTRACT_GUARD §3.5 update, 44 checks total | ✅ done (CERTIFIED) | 2026-02-27 | [REPORT_C_M5_R4_C_2026-02-27.md](reports/REPORT_C_M5_R4_C_2026-02-27.md) |
+| **Agent A** | M5-R4-A | Supabase GAP fix: requestedBy schema mismatch + load_inbox() SQL filtering. Smoke 39/39 | ✅ done | 2026-02-28 | [REPORT_A_M5_R4_A.md](reports/REPORT_A_M5_R4_A.md) |
+| **Agent D** | M5-R4-D | Env verification (SUPABASE_SERVICE_ROLE_KEY + CHAT_MESSAGES_PER_DAY VERIFIED, TELEGRAM_* VERIFIED_OPTIONAL), STAGING_BACKEND_SETUP.md, PROD_RELEASE_PLAYBOOK §4.1 Vercel Preview smoke | ✅ done | 2026-02-27 | [REPORT_D_M5_R4_2026-02-27.md](reports/REPORT_D_M5_R4_2026-02-27.md) |
+|| **Agent D** | TAILS_RECONCILE_D | Release ops consolidation: LKG/rollback/checklist links, OPS_SNAPSHOT_M5_GO.md created, known-risk matrix populated | ✅ done | 2026-02-27 | [REPORT_D_TAILS_RECONCILE_2026-02-27.md](reports/REPORT_D_TAILS_RECONCILE_2026-02-27.md) |
+|| **Agent D** | M5-R5-D | Lobster bots ops readiness: OPS_SNAPSHOT §3 (NEEDS_VERCEL_ADD), LOBSTERS_RUNBOOK.md, PROD_RELEASE_PLAYBOOK §5.3 | ✅ done | 2026-02-27 | [REPORT_D_M5_R5_D.md](reports/REPORT_D_M5_R5_D.md) |
+|| **Agent D** | HOTFIX-BASE-PATH | Fix vite.config.ts double-path bug: public/RL-Guide-book/ merged into dist/RL-Guide-book/ directly. Build verified: ai-data EXISTS, RL-Guide-book/RL-Guide-book NOT EXISTS | ✅ done | 2026-02-27 | [REPORT_D_HOTFIX_BASE_PATH.md](reports/REPORT_D_HOTFIX_BASE_PATH.md) |
+|| **Agent C** | M5-R5-C | `/api/telegram/agent-post`: AGENT_BOT_TOKENS map (neuro_stepa/cat_bro/dev_bro_1), auth developer/shift_leader, 400/404/409, smoke Flow I 3 checks, 47 checks total, BACKEND_CONTRACT_GUARD §3.6 | ✅ done (CERTIFIED) | 2026-02-28 | — |
+|| **Agent E (Opus)** | E-UX-AUDIT-M5-RECHECK | Повторный browser-аудит после HOTFIX-BASE-PATH — категории, изображения, логотип, role walkthrough на проде | 🔜 pending | — | Ждёт GitHub Pages deploy | — |
 
 ---
 

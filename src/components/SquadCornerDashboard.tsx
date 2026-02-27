@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { ImageSourceBlock } from './ImageSourceBlock';
 import { requestImageGenerate } from '../utils/imageGenerateApi';
 import type { SquadCorner } from '../utils/badgeApprovalApi';
+import { getSquadCornerReadiness, getSquadCornerReadinessLabel, getSquadCornerReadinessTone } from '../utils/squadCornerReadiness';
 
 const ACCENT = '#d97706';
 const ACCENT_LIGHT = 'rgba(217, 119, 6, 0.25)';
@@ -235,6 +236,18 @@ export const SquadCornerDashboard: React.FC<SquadCornerDashboardProps> = ({
     return Math.min(100, Math.round(((squadScore + photosScore + gridScore(localPlanGridA) + gridScore(localPlanGridB)) / 4) * 100));
   }, [localSquadName, localSquadMotto, localSquadChants, localSquadGreeting, localSquadMemes, localPhotoCorner, localPhotoFlag, localPhotoSquad, localPhotoWithCounselors, localPlanGridA, localPlanGridB]);
 
+  const readiness = useMemo(() => getSquadCornerReadiness({
+    name: localSquadName,
+    motto: localSquadMotto,
+    chants: localSquadChants,
+    greeting: localSquadGreeting,
+    memes: localSquadMemes,
+    photoCorner: localPhotoCorner,
+    photoFlag: localPhotoFlag,
+    photoSquad: localPhotoSquad,
+    photoWithCounselors: localPhotoWithCounselors,
+  }), [localSquadName, localSquadMotto, localSquadChants, localSquadGreeting, localSquadMemes, localPhotoCorner, localPhotoFlag, localPhotoSquad, localPhotoWithCounselors]);
+
   const card: React.CSSProperties = { padding: 16, background: 'rgba(0,0,0,.15)', borderRadius: 16, border: '1px solid rgba(255,255,255,.06)' };
   const headerBtn: React.CSSProperties = { display: 'flex', justifyContent: 'space-between', width: '100%', background: 'none', border: 'none', color: ACCENT, fontSize: 13, fontWeight: 700, cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '.05em' };
   const sectionWrap = (open: boolean, content: React.ReactNode, title: string, onToggle: () => void) => (
@@ -396,7 +409,7 @@ export const SquadCornerDashboard: React.FC<SquadCornerDashboardProps> = ({
     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: variant === 'accordion' && isExpanded ? 20 : 12 }}>
       <div onClick={variant === 'accordion' ? () => setIsExpanded((v) => !v) : undefined} style={{ cursor: variant === 'accordion' ? 'pointer' : 'default', flex: 1, minWidth: 0 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, marginBottom: 10 }}>
-          <div style={{ minWidth: 0 }}><div style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', color: ACCENT, letterSpacing: '.1em', marginBottom: 4 }}>Отрядный уголок</div><h3 style={{ margin: 0, fontSize: 18 }}>{localSquadName.trim() || mySquadName || 'Отряд'}</h3></div>
+          <div style={{ minWidth: 0 }}><div style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', color: ACCENT, letterSpacing: '.1em', marginBottom: 4 }}>Отрядный уголок</div><h3 style={{ margin: 0, fontSize: 18 }}>{localSquadName.trim() || mySquadName || 'Отряд'}</h3><div className={`m3-status-chip squad-corner-readiness-chip tone-${getSquadCornerReadinessTone(readiness)}`}>{getSquadCornerReadinessLabel(readiness)}</div></div>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', maxWidth: 'min(42%, 360px)', alignSelf: 'flex-start', justifyContent: 'flex-end', flexShrink: 0 }}>{PHOTO_FIELDS.map(({ key }) => { const v = getPhoto(key); return isImageUrl(v) ? <div key={key} style={{ width: 'clamp(72px, 7vw, 96px)', height: 'clamp(72px, 7vw, 96px)', borderRadius: 12, overflow: 'hidden', border: `1px solid ${ACCENT_LIGHT}`, flex: '0 0 auto' }}><img src={v} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /></div> : null; })}</div>
         </div>
         <div style={{ maxWidth: 300 }}>

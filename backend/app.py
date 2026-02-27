@@ -47,6 +47,12 @@ if not _env_root.is_file() and not _env_backend.is_file():
 TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 TELEGRAM_CHANNEL_ID = os.getenv('TELEGRAM_CHANNEL_ID')
 TELEGRAM_WEBHOOK_SECRET = os.getenv('TELEGRAM_WEBHOOK_SECRET', '').strip()
+# M5-R5-C: Per-agent bot tokens for /api/telegram/agent-post
+AGENT_BOT_TOKENS = {
+    "neuro_stepa": os.getenv("NEURO_STEPA_BOT_TOKEN", ""),
+    "cat_bro":     os.getenv("CAT_BRO_BOT_TOKEN", ""),
+    "dev_bro_1":   os.getenv("DEV_BRO_1_BOT_TOKEN", ""),
+}
 
 VK_API_TOKEN = os.getenv('VK_API_TOKEN', '').strip()
 VK_CONFIRMATION_CODE = os.getenv('VK_CONFIRMATION_CODE', '').strip()
@@ -80,6 +86,7 @@ SHIFTS_FILE = os.path.join(os.path.dirname(__file__), "data", "shifts.json")
 _SHIFTS_LOCK = threading.Lock()
 BADGE_REQUESTS_FILE = os.path.join(os.path.dirname(__file__), "data", "badge_requests.json")
 _BADGE_REQUESTS_LOCK = threading.Lock()
+BADGE_REQUESTS_RESOLVED_TTL_DAYS = int(os.getenv("BADGE_REQUESTS_RESOLVED_TTL_DAYS", "30"))
 MEMBERSHIPS_FILE = os.path.join(os.path.dirname(__file__), "data", "memberships.json")
 _MEMBERSHIPS_LOCK = threading.Lock()
 SQUAD_CORNERS_FILE = os.path.join(os.path.dirname(__file__), "data", "squad_corners.json")
@@ -114,6 +121,8 @@ CHAT_MSG_RATE_LIMIT_PER_MIN = int(os.getenv('CHAT_MSG_RATE_LIMIT_PER_MIN', '15')
 CHAT_MSG_RATE_WINDOW_SEC = 60
 _chat_per_min_times: dict = defaultdict(list)
 _chat_per_min_lock = threading.Lock()
+# M5-R4-C: Max message length for /api/chat (env: CHAT_MAX_MESSAGE_LEN, default 2000)
+CHAT_MAX_MESSAGE_LEN = int(os.getenv('CHAT_MAX_MESSAGE_LEN', '2000'))
 
 # URL filter regex — block links in squad messages
 _URL_RE = re.compile(
@@ -266,7 +275,7 @@ def _require_chat_auth():
 def _require_parent_snapshot_auth():
     """
     Проверяет JWT в Authorization для создания снепшота для родителя.
-    Разрешены роли participant и parent.
+    Разрешена роль participant (родитель в M2 читает child-view в read-only).
     Returns: (payload, None) при успехе или (None, (response, status_code)) при ошибке.
     """
     auth_header = (request.headers.get('Authorization') or '').strip()
@@ -284,7 +293,7 @@ def _require_parent_snapshot_auth():
     except jwt.InvalidTokenError:
         return None, (jsonify({"error": "Invalid or expired token"}), 401)
     role = (payload.get("role") or "").strip()
-    if role not in ("participant", "parent"):
+    if role not in ("participant",):
         return None, (jsonify({"error": "Access denied for this role"}), 403)
     return payload, None
 
@@ -775,52 +784,117 @@ def send_vk_message(peer_id, text: str) -> bool:
         return False
 
 
-def send_telegram_message(text: str) -> bool:
-    """Отправить сообщение в Telegram-канал через Bot API. Возвращает True при успехе."""
+def send_telegram_message(text: str, root_message_id: Optional[int] = None) -> bool:
+    """Отправить сообщение в Telegram-канал через Bot API.
+
+    Args:
+        text: Текст сообщения (обрезается до 4096 символов).
+        root_message_id: Если задан — отправляет как reply (thread-comment) к этому message_id.
+            Без него — обычный пост в канал. Требуется для thread-транспорта.
+
+    Returns:
+        True при успехе (ok=True от Telegram API).
+    """
     if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHANNEL_ID:
         return False
     url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+    payload: dict = {
+        "chat_id": TELEGRAM_CHANNEL_ID,
+        "text": text[:4096],
+        "disable_web_page_preview": True,
+    }
+    if root_message_id is not None:
+        payload["reply_to_message_id"] = root_message_id
     try:
-        r = requests.post(url, json={
-            "chat_id": TELEGRAM_CHANNEL_ID,
-            "text": text[:4096],
-            "disable_web_page_preview": True,
-        }, timeout=10)
+        r = requests.post(url, json=payload, timeout=10)
         return r.status_code == 200 and (r.json() or {}).get("ok") is True
     except Exception:
         return False
 
 
-def send_telegram_to_chat(chat_id, text: str) -> bool:
-    """Отправить сообщение в указанный Telegram-чат (личка или группа)."""
+def send_telegram_to_chat(chat_id, text: str, root_message_id: Optional[int] = None) -> bool:
+    """Отправить сообщение в указанный Telegram-чат (личка или группа).
+
+    Args:
+        chat_id: ID чата/канала.
+        text: Текст сообщения.
+        root_message_id: Если задан — reply-to (thread anchor).
+    """
     if not TELEGRAM_BOT_TOKEN:
         return False
     url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+    payload: dict = {
+        "chat_id": chat_id,
+        "text": text[:4096],
+        "disable_web_page_preview": True,
+    }
+    if root_message_id is not None:
+        payload["reply_to_message_id"] = root_message_id
     try:
-        r = requests.post(url, json={
-            "chat_id": chat_id,
-            "text": text[:4096],
-            "disable_web_page_preview": True,
-        }, timeout=10)
+        r = requests.post(url, json=payload, timeout=10)
         return r.status_code == 200 and (r.json() or {}).get("ok") is True
     except Exception:
         return False
 
 
-def send_telegram_photo(photo_bytes: bytes, caption: str) -> bool:
-    """Отправить фото в Telegram-канал через Bot API sendPhoto. caption обрезается до 1024 символов."""
+def send_telegram_photo(photo_bytes: bytes, caption: str, root_message_id: Optional[int] = None) -> bool:
+    """Отправить фото в Telegram-канал через Bot API sendPhoto.
+
+    Args:
+        photo_bytes: Байты изображения.
+        caption: Подпись (обрезается до 1024 символов).
+        root_message_id: Если задан — reply-to (thread anchor).
+    """
     if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHANNEL_ID:
         return False
     url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendPhoto"
+    data: dict = {
+        "chat_id": TELEGRAM_CHANNEL_ID,
+        "caption": caption[:1024],
+    }
+    if root_message_id is not None:
+        data["reply_to_message_id"] = str(root_message_id)
     try:
         r = requests.post(
             url,
-            data={"chat_id": TELEGRAM_CHANNEL_ID, "caption": caption[:1024]},
+            data=data,
             files={"photo": ("creator_card.png", photo_bytes, "image/png")},
             timeout=15,
         )
         return r.status_code == 200 and (r.json() or {}).get("ok") is True
     except Exception:
+        return False
+
+
+# ---------------------------------------------------------------------------
+# Thread-transport: anti-duplicate guard (KOT_THREAD_TRANSPORT_FIX_V1.1)
+# Deduplication window: 60 seconds, keyed by (channel_id, content_hash).
+# ---------------------------------------------------------------------------
+_THREAD_DEDUP_WINDOW_SEC = 60
+_thread_dedup: dict = {}  # key → last_sent_ts
+_thread_dedup_lock = threading.Lock()
+
+
+def _thread_dedup_key(chat_id, text: str) -> str:
+    content_hash = hashlib.sha256(f"{chat_id}:{text[:512]}".encode()).hexdigest()[:16]
+    return content_hash
+
+
+def _is_thread_duplicate(chat_id, text: str) -> bool:
+    """Return True if the same content was sent to this chat within the dedup window."""
+    key = _thread_dedup_key(chat_id, text)
+    now = time.time()
+    with _thread_dedup_lock:
+        last_ts = _thread_dedup.get(key)
+        if last_ts is not None and (now - last_ts) < _THREAD_DEDUP_WINDOW_SEC:
+            return True
+        _thread_dedup[key] = now
+        # Prune expired entries periodically (keep dict bounded)
+        if len(_thread_dedup) > 2000:
+            cutoff = now - _THREAD_DEDUP_WINDOW_SEC
+            expired = [k for k, ts in _thread_dedup.items() if ts < cutoff]
+            for k in expired:
+                _thread_dedup.pop(k, None)
         return False
 
 
@@ -877,6 +951,71 @@ def _check_images_generate_rate_limit(key):
         if len(times) >= IMAGES_GENERATE_RATE_LIMIT:
             return False
         times.append(now)
+    return True
+
+
+# ---------------------------------------------------------------------------
+# Images safety: prompt sanitization (M5-R2-C)
+# ---------------------------------------------------------------------------
+IMAGES_USER_PROMPT_MAX_LEN = int(os.getenv('IMAGES_USER_PROMPT_MAX_LEN', '300'))
+
+_PROMPT_INJECTION_KEYWORDS = [
+    'ignore previous',
+    'forget instructions',
+    'jailbreak',
+    'disregard',
+    'override prompt',
+]
+_HTML_TAG_RE = re.compile(r'<[^>]+>')
+
+
+def _hash_key(k: str) -> str:
+    """Return first 8 hex chars of SHA-256(k) — safe to log, not reversible."""
+    return hashlib.sha256(k.encode('utf-8', errors='replace')).hexdigest()[:8]
+
+
+def _sanitize_user_prompt(text: str, device_key: str = '') -> str:
+    """Strip HTML, detect injection attempts, truncate to IMAGES_USER_PROMPT_MAX_LEN.
+
+    Returns sanitized prompt string. Returns empty string on injection detection.
+    """
+    cleaned = _HTML_TAG_RE.sub('', text)
+    lower = cleaned.lower()
+    for kw in _PROMPT_INJECTION_KEYWORDS:
+        if kw in lower:
+            app.logger.warning('[IMAGES_SAFETY] prompt_injection_attempt device=%s', _hash_key(device_key))
+            return ''
+    orig_len = len(cleaned)
+    if orig_len > IMAGES_USER_PROMPT_MAX_LEN:
+        cleaned = cleaned[:IMAGES_USER_PROMPT_MAX_LEN]
+        app.logger.info('[IMAGES_SANITIZE] prompt truncated device=%s len=%d', _hash_key(device_key), orig_len)
+    return cleaned
+
+
+# ---------------------------------------------------------------------------
+# Images safety: per-camp daily quota (M5-R2-C)
+# ---------------------------------------------------------------------------
+IMAGES_CAMP_DAILY_LIMIT = int(os.getenv('IMAGES_CAMP_DAILY_LIMIT', '200'))
+_images_camp_daily: dict = {}   # camp_key -> {'date': 'YYYY-MM-DD', 'count': int}
+_images_camp_daily_lock = threading.Lock()
+
+
+def _check_images_camp_daily_quota(camp_key: str) -> bool:
+    """Check and record one image generation against the per-camp daily limit.
+
+    Returns True if request is within quota, False if daily limit exceeded.
+    camp_key is campId from JWT or deviceId as graceful fallback.
+    Counters reset automatically at UTC midnight (date comparison).
+    """
+    today = datetime.utcnow().strftime('%Y-%m-%d')
+    with _images_camp_daily_lock:
+        entry = _images_camp_daily.get(camp_key)
+        if entry and entry['date'] == today:
+            if entry['count'] >= IMAGES_CAMP_DAILY_LIMIT:
+                return False
+            entry['count'] += 1
+        else:
+            _images_camp_daily[camp_key] = {'date': today, 'count': 1}
     return True
 
 def _validate_community_badge(data):
@@ -937,16 +1076,69 @@ def handle_bro_missions():
     except (json.JSONDecodeError, OSError):
         return jsonify([])
 
+def _normalize_team_scope(raw_scope: str) -> str:
+    scope = (raw_scope or '').strip().lower()
+    if scope in ('camp', 'shift', 'squad'):
+        return scope
+    return 'camp'
+
+
+def _normalize_team_doc(team_doc: dict) -> dict:
+    if not isinstance(team_doc, dict):
+        return {}
+    normalized = dict(team_doc)
+    normalized['scope'] = _normalize_team_scope(normalized.get('scope') or 'camp')
+    shift_id = (normalized.get('shiftId') or '').strip() or None
+    squad_id = (normalized.get('squadId') or '').strip() or None
+    if normalized['scope'] == 'camp':
+        shift_id = None
+        squad_id = None
+    elif normalized['scope'] == 'shift':
+        squad_id = None
+    normalized['shiftId'] = shift_id
+    normalized['squadId'] = squad_id
+    return normalized
+
+
+def _is_scope_slot_equal(a: dict, b: dict) -> bool:
+    """Same slot = same scope and same context identifiers."""
+    if _normalize_team_scope(a.get('scope')) != _normalize_team_scope(b.get('scope')):
+        return False
+    scope = _normalize_team_scope(a.get('scope'))
+    if scope == 'camp':
+        return True
+    if scope == 'shift':
+        return (a.get('shiftId') or '') == (b.get('shiftId') or '')
+    return (a.get('shiftId') or '') == (b.get('shiftId') or '') and (a.get('squadId') or '') == (b.get('squadId') or '')
+
+
+def _team_matches_context(team_doc: dict, scope: str = '', shift_id: str = '', squad_id: str = '') -> bool:
+    doc = _normalize_team_doc(team_doc)
+    if scope and doc.get('scope') != _normalize_team_scope(scope):
+        return False
+    if shift_id and (doc.get('shiftId') or '') != shift_id:
+        return False
+    if squad_id and (doc.get('squadId') or '') != squad_id:
+        return False
+    return True
+
+
 def _teams_load():
-    """Load teams.json; return dict. ensure_json_files already ensured it exists."""
-    with open(TEAMS_FILE, 'r', encoding='utf-8') as f:
-        raw = f.read()
-    return json.loads(raw) if raw.strip() else {}
+    """Load teams via StorageProvider (JSON local / Supabase prod)."""
+    data = get_store("teams").load()
+    if not isinstance(data, dict):
+        return {}
+    # backward compatibility for legacy docs without scope fields
+    normalized: dict = {}
+    for team_id, team_doc in data.items():
+        if not isinstance(team_doc, dict):
+            continue
+        normalized[team_id] = _normalize_team_doc(team_doc)
+    return normalized
 
 
 def _teams_save(teams):
-    with open(TEAMS_FILE, 'w', encoding='utf-8') as f:
-        json.dump(teams, f, ensure_ascii=False, indent=2)
+    get_store("teams").save(teams)
 
 
 def _find_team_by_member(teams, device_id):
@@ -956,8 +1148,19 @@ def _find_team_by_member(teams, device_id):
         members = doc.get('members') or []
         for m in members:
             if isinstance(m, dict) and (m.get('id') or '').strip() == device_id:
-                return doc
+                return _normalize_team_doc(doc)
     return None
+
+
+def _find_member_teams(teams, device_id):
+    found = []
+    for _, doc in teams.items():
+        if not isinstance(doc, dict):
+            continue
+        members = doc.get('members') or []
+        if any(isinstance(m, dict) and (m.get('id') or '').strip() == device_id for m in members):
+            found.append(_normalize_team_doc(doc))
+    return found
 
 
 def _sanitize_team_plan_grid(raw):
@@ -995,10 +1198,22 @@ def handle_teams():
             device_id = (payload.get('deviceId') or '').strip()
             if not device_id:
                 return jsonify({"error": "deviceId missing in token"}), 400
+
+            scope = _normalize_team_scope(data.get('scope') or 'camp')
+            shift_id = (data.get('shiftId') or '').strip() or None
+            squad_id = (data.get('squadId') or '').strip() or None
+            if scope == 'shift' and not shift_id:
+                return jsonify({"error": "shiftId required for scope=shift"}), 400
+            if scope == 'squad' and (not shift_id or not squad_id):
+                return jsonify({"error": "shiftId and squadId required for scope=squad"}), 400
+
             teams = _teams_load()
-            existing = _find_team_by_member(teams, device_id)
-            if existing is not None:
-                return jsonify({"error": "Already in a team", "teamId": existing.get('id')}), 409
+            existing_teams = _find_member_teams(teams, device_id)
+            requested_slot = _normalize_team_doc({"scope": scope, "shiftId": shift_id, "squadId": squad_id})
+            for existing in existing_teams:
+                if _is_scope_slot_equal(existing, requested_slot):
+                    return jsonify({"error": "Already in a team for this scope", "teamId": existing.get('id')}), 409
+
             new_id = 'T-' + ''.join(secrets.choice('ABCDEFGHJKLMNPQRSTUVWXYZ23456789') for _ in range(6))
             nickname = (data.get('nickname') or '').strip() or 'Искатель'
             avatar = (data.get('avatar') or '').strip() or ''
@@ -1013,10 +1228,14 @@ def handle_teams():
                 "logo": (data.get('logo') or '').strip() or '🚀',
                 "leaderId": device_id,
                 "members": [member],
+                "scope": scope,
+                "shiftId": shift_id,
+                "squadId": squad_id,
                 "createdAt": datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z'),
                 "achievements": data.get('achievements') if isinstance(data.get('achievements'), list) else [],
                 "goals": data.get('goals') if isinstance(data.get('goals'), list) else [],
             }
+            team_doc = _normalize_team_doc(team_doc)
             for opt in ('flagImage', 'gerbImage'):
                 if data.get(opt):
                     team_doc[opt] = (data.get(opt) or '').strip()
@@ -1027,15 +1246,18 @@ def handle_teams():
             teams[new_id] = team_doc
             _teams_save(teams)
             return jsonify(team_doc), 201
-        with open(TEAMS_FILE, 'r', encoding='utf-8') as f:
-            teams = json.load(f)
-        teams[team_id] = data
-        with open(TEAMS_FILE, 'w', encoding='utf-8') as f:
-            json.dump(teams, f, ensure_ascii=False, indent=2)
+
+        teams = _teams_load()
+        teams[team_id] = _normalize_team_doc(data)
+        _teams_save(teams)
         return jsonify({"status": "success"}), 201
 
-    with open(TEAMS_FILE, 'r', encoding='utf-8') as f:
-        teams = json.load(f)
+    teams = _teams_load()
+    scope = (request.args.get('scope') or '').strip()
+    shift_id = (request.args.get('shiftId') or '').strip()
+    squad_id = (request.args.get('squadId') or '').strip()
+    if scope or shift_id or squad_id:
+        teams = {tid: doc for tid, doc in teams.items() if _team_matches_context(doc, scope=scope, shift_id=shift_id, squad_id=squad_id)}
     return jsonify(teams)
 
 
@@ -1047,10 +1269,19 @@ def teams_mine():
         return err[0], err[1]
     device_id = (payload.get('deviceId') or '').strip()
     teams = _teams_load()
-    team = _find_team_by_member(teams, device_id)
-    if team is None:
+    my_teams = _find_member_teams(teams, device_id)
+
+    scope = (request.args.get('scope') or '').strip()
+    shift_id = (request.args.get('shiftId') or '').strip()
+    squad_id = (request.args.get('squadId') or '').strip()
+    if scope or shift_id or squad_id:
+        my_teams = [t for t in my_teams if _team_matches_context(t, scope=scope, shift_id=shift_id, squad_id=squad_id)]
+
+    if not my_teams:
         return jsonify({"error": "No team"}), 404
-    return jsonify(team)
+
+    # backward-compatible behavior: return one team object
+    return jsonify(my_teams[0])
 
 
 @app.route('/api/teams/<team_id>/join', methods=['POST'])
@@ -1061,14 +1292,16 @@ def teams_join(team_id):
         return err[0], err[1]
     device_id = (payload.get('deviceId') or '').strip()
     teams = _teams_load()
-    in_other = _find_team_by_member(teams, device_id)
-    if in_other is not None:
-        if (in_other.get('id') or '') == team_id:
-            return jsonify(in_other)
-        return jsonify({"error": "Already in another team", "teamId": in_other.get('id')}), 409
     if team_id not in teams:
         return jsonify({"error": "Team not found"}), 404
-    doc = teams[team_id]
+    doc = _normalize_team_doc(teams[team_id])
+    teams[team_id] = doc
+    in_teams = _find_member_teams(teams, device_id)
+    for in_other in in_teams:
+        if (in_other.get('id') or '') == team_id:
+            return jsonify(in_other)
+        if _is_scope_slot_equal(in_other, doc):
+            return jsonify({"error": "Already in another team for this scope", "teamId": in_other.get('id')}), 409
     if not isinstance(doc, dict):
         return jsonify({"error": "Team not found"}), 404
     members = list(doc.get('members') or [])
@@ -1143,10 +1376,22 @@ def images_generate():
             "error": "Слишком много запросов генерации. Подождите минуту.",
             "retryAfter": 60,
         }), 429
+    # Per-camp daily quota (M5-R2-C)
+    camp_id = (payload.get('campId') or '').strip()
+    camp_quota_key = camp_id or key
+    if not _check_images_camp_daily_quota(camp_quota_key):
+        app.logger.warning('[IMAGES_QUOTA] daily_limit_hit campId=%s ts=%s',
+                           _hash_key(camp_quota_key), datetime.utcnow().isoformat())
+        return jsonify({
+            "error": "Лимит генерации изображений для смены исчерпан",
+            "retryAfter": "tomorrow",
+        }), 429
     data = request.get_json() or {}
     mode = (data.get("mode") or "").strip().lower()
     context = (data.get("context") or "").strip()
     user_prompt = (data.get("prompt") or "").strip()
+    # Sanitize user_prompt: strip HTML, detect injection, truncate (M5-R2-C)
+    user_prompt = _sanitize_user_prompt(user_prompt, key)
     image_base64 = (data.get("imageBase64") or "").strip()
     team_name_hint = (data.get("teamName") or "").strip()
     captain_name_hint = (data.get("captainName") or "").strip()
@@ -1258,6 +1503,8 @@ def handle_team(team_id):
     doc = teams.get(team_id)
     if not doc or not isinstance(doc, dict):
         return jsonify({"error": "Team not found"}), 404
+    doc = _normalize_team_doc(doc)
+    teams[team_id] = doc
 
     if request.method == 'GET':
         return jsonify(doc)
@@ -1270,7 +1517,7 @@ def handle_team(team_id):
         if (doc.get('leaderId') or '').strip() != device_id:
             return jsonify({"error": "Only leader can update team"}), 403
         data = request.get_json() or {}
-        allowed = ('name', 'motto', 'logo', 'goals', 'achievements', 'flagImage', 'gerbImage', 'planGridA', 'planGridB')
+        allowed = ('name', 'motto', 'logo', 'goals', 'achievements', 'flagImage', 'gerbImage', 'planGridA', 'planGridB', 'scope', 'shiftId', 'squadId')
         for key in allowed:
             if key in data:
                 if key in ('goals', 'achievements') and isinstance(data[key], list):
@@ -1279,10 +1526,20 @@ def handle_team(team_id):
                     normalized_plan = _sanitize_team_plan_grid(data[key])
                     if normalized_plan is not None:
                         doc[key] = normalized_plan
+                elif key in ('scope', 'shiftId', 'squadId'):
+                    doc[key] = data[key]
                 elif isinstance(data[key], str):
                     doc[key] = data[key].strip() if key != 'logo' else (data[key].strip() or '🚀')
                 elif data[key] is None:
                     doc[key] = None
+
+        doc = _normalize_team_doc(doc)
+        if doc.get('scope') == 'shift' and not doc.get('shiftId'):
+            return jsonify({"error": "shiftId required for scope=shift"}), 400
+        if doc.get('scope') == 'squad' and (not doc.get('shiftId') or not doc.get('squadId')):
+            return jsonify({"error": "shiftId and squadId required for scope=squad"}), 400
+
+        teams[team_id] = doc
         _teams_save(teams)
         return jsonify(doc)
 
@@ -1387,6 +1644,57 @@ def telegram_webhook(secret_path):
         return '', 200
     except Exception:
         return '', 200  # всё равно 200, чтобы Telegram не повторял
+
+
+@app.route('/api/telegram/thread-post', methods=['POST'])
+def telegram_thread_post():
+    """Thread-transport endpoint (KOT_THREAD_TRANSPORT_FIX_V1.1).
+
+    Отправляет текстовый комментарий в Telegram-канал как reply к корневому посту.
+
+    Request JSON:
+        root_message_id (int, required): message_id корневого поста в канале (anchor).
+            Без него запрос отклоняется — blind-post запрещён.
+        text (str, required): текст комментария (до 4096 символов).
+        source (str, optional): идентификатор источника (для логирования).
+
+    Responses:
+        200 {"ok": true, "sent": true}
+        400 {"error": "root_message_id required"} — если rootId отсутствует
+        400 {"error": "text required"} — если текст пустой
+        409 {"error": "duplicate", "detail": "same message sent recently"} — dedup guard
+        503 {"error": "telegram_unavailable"} — Telegram API недоступен / не настроен
+    """
+    jwt_payload, auth_err = _require_chat_auth()
+    if auth_err is not None:
+        return auth_err
+
+    body = request.get_json(silent=True) or {}
+    root_message_id = body.get("root_message_id")
+    text = (body.get("text") or "").strip()
+    source = (body.get("source") or "").strip()[:64]
+
+    # Guard: без rootId отправка запрещена
+    if root_message_id is None:
+        return jsonify({"error": "root_message_id required", "detail": "blind-post is not allowed; provide root_message_id"}), 400
+
+    try:
+        root_message_id = int(root_message_id)
+    except (TypeError, ValueError):
+        return jsonify({"error": "root_message_id must be integer"}), 400
+
+    if not text:
+        return jsonify({"error": "text required"}), 400
+
+    # Anti-duplicate guard: same content to same channel within 60s → 409
+    dedup_chat = str(TELEGRAM_CHANNEL_ID or "")
+    if _is_thread_duplicate(dedup_chat, text):
+        return jsonify({"error": "duplicate", "detail": "same message sent recently"}), 409
+
+    ok = send_telegram_message(text, root_message_id=root_message_id)
+    if ok:
+        return jsonify({"ok": True, "sent": True, "root_message_id": root_message_id, "source": source})
+    return jsonify({"error": "telegram_unavailable", "detail": "Telegram API not configured or unreachable"}), 503
 
 
 def _handle_vk_webhook_payload(payload):
@@ -1532,6 +1840,62 @@ def telegram_notify_creator_card():
         return jsonify({"ok": False, "error": "Не удалось отправить в Telegram"}), 500
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
+
+
+@app.route('/api/telegram/agent-post', methods=['POST'])
+def telegram_agent_post():
+    """
+    POST /api/telegram/agent-post — send message as a named bot into a TG thread.
+    Auth: developer | shift_leader (Bearer JWT)
+    Body: { "agent": str, "text": str, "root_message_id": int, "chat_id": int? }
+    Response 200: { "ok": true, "message_id": N }
+    """
+    payload, err = _require_roles(("developer", "shift_leader"), allow_localhost_dev=True)
+    if err:
+        return err
+
+    data = request.get_json() or {}
+    agent   = (data.get("agent") or "").strip()
+    text    = (data.get("text") or "").strip()
+    root_id = data.get("root_message_id")
+    chat_id = data.get("chat_id") or TELEGRAM_CHANNEL_ID
+
+    if not agent:
+        return jsonify({"error": "agent is required"}), 400
+    if not text:
+        return jsonify({"error": "text is required"}), 400
+    if root_id is None:
+        return jsonify({"error": "root_message_id is required"}), 400
+
+    bot_token = AGENT_BOT_TOKENS.get(agent)
+    if not bot_token:
+        return jsonify({"error": f"unknown agent: {agent}"}), 404
+
+    # Dedup: same text to same thread within 60 s (non-blocking)
+    dedup_key = f"{agent}:{chat_id}:{root_id}"
+    if _is_thread_duplicate(dedup_key, text):
+        return jsonify({"error": "duplicate message blocked"}), 409
+
+    try:
+        tg_url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+        resp = requests.post(tg_url, json={
+            "chat_id": chat_id,
+            "text": text,
+            "reply_to_message_id": root_id,
+            "parse_mode": "HTML",
+        }, timeout=10)
+        result = resp.json()
+        if result.get("ok"):
+            msg_id = result["result"]["message_id"]
+            app.logger.info("[AGENT_POST] agent=%s chat=%s thread=%s msg=%s",
+                            agent, chat_id, root_id, msg_id)
+            return jsonify({"ok": True, "message_id": msg_id})
+        else:
+            app.logger.warning("[AGENT_POST] TG error agent=%s: %s", agent, result)
+            return jsonify({"error": result.get("description", "TG API error")}), 502
+    except Exception as exc:
+        app.logger.exception("[AGENT_POST] failed: %s", exc)
+        return jsonify({"error": "internal error"}), 500
 
 
 @app.route('/')
@@ -2681,10 +3045,10 @@ def squad_messages_get_or_post(squad_id: str):
 def badge_request_create():
     """
     POST /api/badges/requests
-    Auth: participant|parent|developer
+    Auth: participant|developer
     Body: { levelId, evidence?, badgeTitle? }
     """
-    payload, err = _require_roles(("participant", "parent", "developer"), allow_localhost_dev=True)
+    payload, err = _require_roles(("participant", "developer"), allow_localhost_dev=True)
     if err is not None:
         return err[0], err[1]
     device_id = (payload.get("deviceId") or "").strip()
@@ -2734,13 +3098,27 @@ def badge_request_create():
     return jsonify({"request": request_doc}), 201
 
 
+def _project_mine_row(row: dict) -> dict:
+    """Return badge request row without requestedBy.deviceId (privacy projection)."""
+    result = {k: v for k, v in row.items() if k != "requestedBy"}
+    req_by = row.get("requestedBy") or {}
+    if req_by:
+        result["requestedBy"] = {"nickname": req_by.get("nickname")}
+    return result
+
+
 @app.route('/api/badges/requests/mine', methods=['GET'])
 def badge_request_mine():
     """
     GET /api/badges/requests/mine
-    Auth: participant|parent|developer
+    Auth: participant|parent|educator|counselor|shift_leader|developer
+    Returns own badge requests (filtered by deviceId from JWT), newest-first.
+    Privacy: requestedBy.deviceId is stripped from response.
     """
-    payload, err = _require_roles(("participant", "parent", "developer"), allow_localhost_dev=True)
+    payload, err = _require_roles(
+        ("participant", "parent", "educator", "counselor", "shift_leader", "developer"),
+        allow_localhost_dev=True,
+    )
     if err is not None:
         return err[0], err[1]
     device_id = (payload.get("deviceId") or "").strip()
@@ -2749,7 +3127,8 @@ def badge_request_mine():
 
     bdoc = _badge_requests_load()
     rows = [
-        row for row in (bdoc.get("requests") or [])
+        _project_mine_row(row)
+        for row in (bdoc.get("requests") or [])
         if isinstance(row, dict) and (
             isinstance(row.get("requestedBy"), dict) and
             (row.get("requestedBy", {}).get("deviceId") or "").strip() == device_id
@@ -2777,23 +3156,42 @@ def badge_request_inbox():
     if status_filter and status_filter not in ("pending", "approved", "rejected"):
         return jsonify({"error": "Invalid status filter"}), 400
 
-    if actor_role == "counselor" and not camp_filter and not squad_filter:
+    if actor_role in ("counselor", "educator") and not camp_filter and not squad_filter:
         camp_self, squad_self = _resolve_membership_context(device_id)
         camp_filter = camp_self
         squad_filter = squad_self
 
-    bdoc = _badge_requests_load()
-    rows = []
-    for row in (bdoc.get("requests") or []):
-        if not isinstance(row, dict):
-            continue
-        if camp_filter and (row.get("campId") or "").strip() != camp_filter:
-            continue
-        if squad_filter and (row.get("squadId") or "").strip() != squad_filter:
-            continue
-        if status_filter and (row.get("status") or "").strip() != status_filter:
-            continue
-        rows.append(row)
+    include_resolved = (request.args.get("includeResolved") or "").lower() in ("true", "1", "yes")
+    cutoff_ts = time.time() - BADGE_REQUESTS_RESOLVED_TTL_DAYS * 86400
+
+    store = get_store("badge_requests")
+    if hasattr(store, "load_inbox"):
+        rows = store.load_inbox(
+            camp_id=camp_filter or None,
+            squad_id=squad_filter or None,
+            status_filter=status_filter or None,
+            include_resolved=include_resolved,
+            resolved_ttl_days=BADGE_REQUESTS_RESOLVED_TTL_DAYS,
+        )
+    else:
+        bdoc = _badge_requests_load()
+        rows = []
+        for row in (bdoc.get("requests") or []):
+            if not isinstance(row, dict):
+                continue
+            if camp_filter and (row.get("campId") or "").strip() != camp_filter:
+                continue
+            if squad_filter and (row.get("squadId") or "").strip() != squad_filter:
+                continue
+            row_status = (row.get("status") or "").strip()
+            if status_filter and row_status != status_filter:
+                continue
+            if not include_resolved and row_status != "pending":
+                resolved_at = row.get("resolvedAt") or ""
+                row_ts = _parse_iso_ts(resolved_at) if resolved_at else 0
+                if row_ts < cutoff_ts:
+                    continue
+            rows.append(row)
 
     rows.sort(
         key=lambda item: (
@@ -2873,13 +3271,58 @@ def badge_request_reject(request_id: str):
     return _badge_request_resolve(request_id, "rejected")
 
 
+@app.route('/api/badges/requests/cleanup', methods=['POST'])
+def badge_requests_cleanup():
+    """
+    POST /api/badges/requests/cleanup
+    Auth: shift_leader | developer
+    Body: { "olderThanDays": 30 }  // optional, default from BADGE_REQUESTS_RESOLVED_TTL_DAYS
+    Response: { "deleted": N }
+    Deletes approved/rejected requests older than N days. Logs [BADGE_CLEANUP].
+    """
+    payload, err = _require_roles(("shift_leader", "developer"), allow_localhost_dev=True)
+    if err is not None:
+        return err[0], err[1]
+    device_id = (payload.get("deviceId") or "").strip()
+    body = request.get_json() or {}
+    try:
+        older_than_days = int(body.get("olderThanDays") or BADGE_REQUESTS_RESOLVED_TTL_DAYS)
+    except (TypeError, ValueError):
+        return jsonify({"error": "olderThanDays must be an integer"}), 400
+    if older_than_days < 0:
+        return jsonify({"error": "olderThanDays must be non-negative"}), 400
+    cutoff_ts = time.time() - older_than_days * 86400
+
+    bdoc = _badge_requests_load()
+    before = len(bdoc.get("requests") or [])
+    kept = []
+    for row in (bdoc.get("requests") or []):
+        if not isinstance(row, dict):
+            continue
+        row_status = (row.get("status") or "").strip()
+        if row_status in ("approved", "rejected"):
+            resolved_at = row.get("resolvedAt") or ""
+            row_ts = _parse_iso_ts(resolved_at) if resolved_at else 0
+            if row_ts < cutoff_ts:
+                continue
+        kept.append(row)
+    deleted = before - len(kept)
+    bdoc["requests"] = kept
+    _badge_requests_save(bdoc)
+    hashed_device = hashlib.sha256(device_id.encode()).hexdigest()[:12] if device_id else "unknown"
+    app.logger.info(
+        f"[BADGE_CLEANUP] deleted={deleted} actor={hashed_device} ts={datetime.now(timezone.utc).isoformat()}"
+    )
+    return jsonify({"deleted": deleted})
+
+
 @app.route('/api/badges/approvals/mine', methods=['GET'])
 def badge_approvals_mine():
     """
     GET /api/badges/approvals/mine
-    Auth: participant|parent|developer
+    Auth: participant|developer
     """
-    payload, err = _require_roles(("participant", "parent", "developer"), allow_localhost_dev=True)
+    payload, err = _require_roles(("participant", "developer"), allow_localhost_dev=True)
     if err is not None:
         return err[0], err[1]
     device_id = (payload.get("deviceId") or "").strip()
@@ -2948,7 +3391,7 @@ def organizer_generate_code():
 def parent_snapshot_create():
     """
     POST /api/parent-snapshot
-    Header: Authorization: Bearer <accessToken> (role participant or parent).
+    Header: Authorization: Bearer <accessToken> (role participant).
     Body: { "progress": {...}, "profile": { "nickname": "...", "totalLevelsAchieved": N }, "exportedAt": "ISO" }
     Returns: { "parentLinkCode": "<code>", "expiresAt": <unix_ts> } or 400/401/403.
     """
@@ -2986,6 +3429,199 @@ def parent_snapshot_create():
         return jsonify({"error": "Storage error"}), 500
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+def _compute_parent_weekly_trend(progress: dict) -> tuple[dict, dict]:
+    """
+    Compare two windows: last 7 days vs previous 7 days.
+    Uses achievedAt timestamps from progress entries.
+    """
+    now_ts = int(time.time())
+    week_sec = 7 * 86400
+    cur_start = now_ts - week_sec
+    prev_start = now_ts - (2 * week_sec)
+    current_count = 0
+    previous_count = 0
+
+    for _, row in (progress or {}).items():
+        if not isinstance(row, dict):
+            continue
+        ts = _parse_iso_ts(str(row.get("achievedAt") or ""))
+        if ts <= 0:
+            continue
+        if ts >= cur_start:
+            current_count += 1
+        elif ts >= prev_start:
+            previous_count += 1
+
+    if current_count > previous_count:
+        direction = "up"
+        note = "За последнюю неделю прогресс ускорился — поддерживайте этот ритм короткими шагами."
+    elif current_count < previous_count:
+        direction = "down"
+        note = "Темп стал ниже, чем неделей раньше — поможет мягкий фокус на одном ближайшем шаге."
+    else:
+        direction = "flat"
+        note = "Темп стабильный — регулярная поддержка помогает удерживать движение."
+
+    if current_count == 0 and previous_count == 0:
+        direction = "flat"
+        note = "Прогресс только набирает историю — начните с одного посильного шага в ближайшие дни."
+
+    return ({"direction": direction, "note": note}, {
+        "windowDays": 7,
+        "currentWindowAchievements": current_count,
+        "previousWindowAchievements": previous_count,
+    })
+
+
+def _build_parent_explainability(weekly_trend: dict, strengths: list, weakest: list, dynamic_signals: dict) -> tuple[str, dict]:
+    trend = (weekly_trend.get("direction") or "flat").strip()
+    strong_titles = [str(x.get("title") or "").strip() for x in (strengths or [])[:2] if isinstance(x, dict) and str(x.get("title") or "").strip()]
+    weak_titles = [str(x.get("title") or "").strip() for x in (weakest or [])[:2] if isinstance(x, dict) and str(x.get("title") or "").strip()]
+    window_days = int(dynamic_signals.get("windowDays") or 7)
+
+    if trend == "up":
+        why = "Рекомендация поддерживает текущий положительный темп и помогает закрепить успех небольшими шагами."
+    elif trend == "down":
+        why = "Рекомендация сфокусирована на мягком восстановлении ритма, чтобы снизить нагрузку и вернуть стабильность."
+    else:
+        why = "Рекомендация помогает удерживать ровный темп и поддерживать устойчивый интерес ребёнка."
+
+    based_on = {
+        "trend": trend,
+        "strongestAreas": strong_titles,
+        "weakestAreas": weak_titles,
+        "activityWindow": f"последние {window_days} дней и предыдущие {window_days} дней",
+    }
+    return why, based_on
+
+
+def _compute_parent_insights(progress: dict) -> dict:
+    data = _load_data() if DATA_FILE and os.path.exists(DATA_FILE) else {"badges": [], "categories": []}
+    badges = data.get("badges") or []
+    categories = data.get("categories") or []
+
+    category_titles = {}
+    for c in categories:
+        if isinstance(c, dict):
+            category_titles[str(c.get("id") or "")] = str(c.get("title") or c.get("name") or "Категория")
+
+    levels = [b for b in badges if isinstance(b, dict) and _is_valid_level_id(str(b.get("id") or "")) and str(b.get("id") or "").count(".") >= 2]
+    total_levels = len(levels)
+
+    cat_stats = {}
+    achieved_total = 0
+    for level in levels:
+        lid = str(level.get("id") or "")
+        cid = str(level.get("category_id") or lid.split(".")[0] or "")
+        st = (progress.get(lid) or {}).get("status") if isinstance(progress.get(lid), dict) else None
+        status = (st or "locked").strip().lower()
+        bucket = cat_stats.setdefault(cid, {"total": 0, "achieved": 0, "in_progress": 0})
+        bucket["total"] += 1
+        if status == "achieved":
+            bucket["achieved"] += 1
+            achieved_total += 1
+        elif status == "in_progress":
+            bucket["in_progress"] += 1
+
+    percent = int(round((achieved_total / total_levels) * 100)) if total_levels > 0 else 0
+    if percent >= 80:
+        stage = "high"
+    elif percent >= 40:
+        stage = "steady"
+    else:
+        stage = "start"
+
+    strengths = []
+    for cid, s in cat_stats.items():
+        total = s["total"] or 1
+        score = (s["achieved"] * 2 + s["in_progress"]) / (total * 2)
+        strengths.append({
+            "categoryId": cid,
+            "title": category_titles.get(cid) or f"Категория {cid}",
+            "score": round(score, 4),
+            "achieved": s["achieved"],
+            "total": s["total"],
+        })
+    strengths.sort(key=lambda x: (x["score"], x["achieved"]), reverse=True)
+    strengths_top3 = strengths[:3]
+
+    weekly_trend, dynamic_signals = _compute_parent_weekly_trend(progress)
+
+    next_steps = []
+    weakest = sorted(strengths, key=lambda x: (x["score"], x["achieved"]))[:2]
+    for w in weakest:
+        if w["total"] <= 0:
+            continue
+        if weekly_trend.get("direction") == "up":
+            msg = f"В «{w['title']}» уже заметен прогресс — мягко поддержите ещё один небольшой шаг в ближайшие дни."
+        elif weekly_trend.get("direction") == "down":
+            msg = f"Для «{w['title']}» лучше выбрать один посильный шаг на неделю и поддержать спокойный ритм."
+        elif w["achieved"] == 0:
+            msg = f"В «{w['title']}» можно начать с простого шага: вместе обсудите понятный план на ближайший день."
+        else:
+            msg = f"В «{w['title']}» есть хорошая база — поддержите завершение следующего шага в комфортном темпе."
+        next_steps.append({"categoryId": w["categoryId"], "title": w["title"], "hint": msg})
+
+    if not strengths_top3:
+        strengths_top3 = [{"title": "Ребёнок уже в пути", "hint": "Отмечайте даже маленький прогресс — это укрепляет уверенность."}]
+    if not next_steps:
+        next_steps = [{"title": "Продолжайте в том же ритме", "hint": "Мягкая поддержка дома помогает закреплять лагерьные успехи."}]
+
+    why_this_suggestion, based_on = _build_parent_explainability(weekly_trend, strengths_top3, weakest, dynamic_signals)
+
+    return {
+        "overallProgress": {
+            "percent": percent,
+            "stage": stage,
+            "achieved": achieved_total,
+            "total": total_levels,
+        },
+        "weeklyTrend": weekly_trend,
+        "dynamicSignals": dynamic_signals,
+        "whyThisSuggestion": why_this_suggestion,
+        "basedOn": based_on,
+        "strengthsTop3": strengths_top3,
+        "nextSteps": next_steps[:2],
+    }
+
+
+@app.route('/api/parent-insights', methods=['GET'])
+def parent_insights_get():
+    """
+    GET /api/parent-insights?code=XXXX
+    Uses existing parent snapshot code context (no child_device_id needed).
+    Returns parent-friendly read-only progress insights.
+    """
+    code = (request.args.get("code") or "").strip()
+    if not code:
+        return jsonify({
+            "overallProgress": {"percent": 0, "stage": "start", "achieved": 0, "total": 0},
+            "weeklyTrend": {"direction": "flat", "note": "Подключите витрину ребёнка — и здесь появится еженедельная динамика."},
+            "strengthsTop3": [{"title": "Когда подключите витрину ребёнка, здесь появятся сильные стороны."}],
+            "nextSteps": [{"title": "Что поддержать дальше", "hint": "Откройте витрину достижений ребёнка по коду или ссылке."}],
+        })
+
+    snapshots = _parent_snapshots_load()
+    rec = snapshots.get(code)
+    if not rec:
+        return jsonify({"error": "Code not found"}), 404
+
+    try:
+        expires_at = int(rec.get("expiresAt") or 0)
+    except Exception:
+        expires_at = 0
+    if expires_at <= int(time.time()):
+        return jsonify({"error": "Code expired"}), 410
+
+    progress = rec.get("payload", {}).get("progress") or {}
+    if not isinstance(progress, dict):
+        progress = {}
+
+    insights = _compute_parent_insights(progress)
+    insights["source"] = "parent_snapshot_code"
+    return jsonify(insights)
 
 
 @app.route('/api/parent-snapshot', methods=['GET'])
@@ -3156,11 +3792,58 @@ def chat_with_bot():
                     "error": "Чат-бот не может быть инициализирован",
                     "message": "Проверьте настройки OpenAI API"
                 }), 503
-        
+
+        # M5-R4-C: Message length guard (before enrichment to avoid wasted work)
+        _raw_message = (data.get("message") or "") if data else ""
+        if len(_raw_message) > CHAT_MAX_MESSAGE_LEN:
+            app.logger.warning('[CHAT_SAFETY] message_too_long device=%s len=%d',
+                               _hash_key(device_id or 'anon'), len(_raw_message))
+            return jsonify({"error": "Сообщение слишком длинное", "maxLen": CHAT_MAX_MESSAGE_LEN}), 400
+
         # Обрабатываем веб-контекст (подмешиваем роль из JWT для персонализации ответов)
         context = data.get("context") or {}
         context = dict(context) if isinstance(context, dict) else {}
         context["user_role"] = payload.get("role")
+
+        # M5-R3-C: Enrich context with membership/identity data from JWT
+        context["nickname"] = (payload.get("nickname") or "").strip() or None
+
+        # Resolve squad/shift names via membership lookup (non-blocking, only when device_id known)
+        if device_id and not context.get("squad_name"):
+            try:
+                _camp, _squad = _resolve_membership_context(device_id)
+                if _squad:
+                    _shifts_doc = _shifts_load()
+                    _squad_obj  = _find_squad(_shifts_doc, _squad) or {}
+                    _sq_name = (_squad_obj.get("name") or "").strip() or None
+                    context["squad_name"] = _sq_name
+                    _shift_id = (_squad_obj.get("shiftId") or "").strip()
+                    if _shift_id:
+                        for _sh in (_shifts_doc.get("shifts") or []):
+                            if isinstance(_sh, dict) and _sh.get("id") == _shift_id:
+                                context["shift_name"] = (_sh.get("name") or "").strip() or None
+                                break
+            except Exception:
+                pass  # non-blocking: lookup failure must never block chat response
+
+        # M5-R4-C: Inject pending badge requests for personalization
+        try:
+            _bdoc = _badge_requests_load()
+            _pending = [
+                r for r in (_bdoc.get("requests") or [])
+                if isinstance(r, dict)
+                and (r.get("requestedBy") or {}).get("deviceId") == device_id
+                and r.get("status") == "pending"
+            ]
+            if _pending:
+                context["pending_badge_count"] = len(_pending)
+                context["pending_badge_titles"] = [
+                    r.get("badgeTitle") or r.get("levelId") or "?"
+                    for r in _pending[:3]
+                ]
+        except Exception:
+            pass  # non-blocking
+
         if context:
             chatbot_components['response_generator'].context_manager.update_web_context(
                 user_id=data.get("user_id", "web_user"),
@@ -3216,6 +3899,27 @@ def chat_with_bot():
 # Council Initiatives — GET + POST /api/council/initiatives
 # ---------------------------------------------------------------------------
 
+def _map_council_status_legacy(raw_status: str) -> str:
+    """Normalize legacy initiative statuses to unified lifecycle.
+    new -> reviewing -> accepted|rejected|done
+    """
+    s = (raw_status or "").strip().lower()
+    if s in ("new", "reviewing", "accepted", "rejected", "done"):
+        return s
+    # legacy aliases
+    if s in ("idea", "draft"):
+        return "new"
+    if s in ("discussion", "in_review", "under_review"):
+        return "reviewing"
+    if s in ("approved", "accepted_v1"):
+        return "accepted"
+    if s in ("declined", "denied"):
+        return "rejected"
+    if s in ("implemented", "completed"):
+        return "done"
+    return "new"
+
+
 @app.route('/api/council/initiatives', methods=['GET'])
 def council_initiatives_list():
     """
@@ -3234,8 +3938,20 @@ def council_initiatives_list():
     data = store.load()
     items = data.get("initiatives") or []
 
-    # Sort descending by created_at, keep last 100
-    items_sorted = sorted(items, key=lambda x: x.get("created_at", ""), reverse=True)[:100]
+    # Read-model normalization (non-breaking): add readStatus + createdAt fallback.
+    normalized = []
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        c_at = item.get("createdAt") or item.get("created_at") or ""
+        read_status = _map_council_status_legacy(item.get("status") or "")
+        x = dict(item)
+        x["createdAt"] = c_at
+        x["readStatus"] = read_status
+        normalized.append(x)
+
+    # Sort descending by createdAt, keep last 100
+    items_sorted = sorted(normalized, key=lambda x: x.get("createdAt", ""), reverse=True)[:100]
 
     if camp_id_filter:
         items_sorted = [i for i in items_sorted if i.get("campId") == camp_id_filter or i.get("camp_id") == camp_id_filter]

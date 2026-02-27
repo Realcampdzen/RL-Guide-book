@@ -11,6 +11,7 @@ import { canSeeOtradBlocks, showEventsPanelForRole, ROLE_ORDER, getRoleDisplay, 
 import type { UserRole } from '../types/authRole';
 import { getRank, buildParentReportPayload } from '../types/userProgress';
 import type { ParentReportPayload } from '../types/userProgress';
+import { canRunParentChildMutation, isParentChildReadonlyMode, PARENT_READONLY_BADGE_TEXT, PARENT_READONLY_TOOLTIP } from '../utils/parentReadonly';
 import { inspectorMissions, type InspectorTabId, INSPECTOR_TAB_IDS, INSPECTOR_TAB_BADGE_IDS } from '../types/inspector';
 import type { Badge } from '../types/guide';
 import { useHintOverlay, type HintStep } from '../context/HintOverlayContext';
@@ -274,6 +275,9 @@ export const ProfileView: React.FC<any> = (props) => {
   const [approvalsSyncStatus, setApprovalsSyncStatus] = useState<string | null>(null);
   const [pendingApprovalsCount, setPendingApprovalsCount] = useState(0);
   const [approvalsSyncPromptDismissed, setApprovalsSyncPromptDismissed] = useState(false);
+  const [rejectExpandedId, setRejectExpandedId] = useState<string | null>(null);
+  const [rejectNote, setRejectNote] = useState('');
+  const [evidenceExpandedId, setEvidenceExpandedId] = useState<string | null>(null);
   const [mySquadBusy, setMySquadBusy] = useState(false);
   const [mySquadError, setMySquadError] = useState<string | null>(null);
   const [mySquadInfo, setMySquadInfo] = useState<SquadMineResponse | null>(null);
@@ -547,6 +551,14 @@ export const ProfileView: React.FC<any> = (props) => {
   const [showParentCodeModal, setShowParentCodeModal] = useState(false);
   const [parentCodeResult, setParentCodeResult] = useState<{ parentLinkCode: string; expiresAt: number } | null>(null);
   const [parentCodeBusy, setParentCodeBusy] = useState(false);
+  const [parentSnapshotCode, setParentSnapshotCode] = useState('');
+  const [parentInsights, setParentInsights] = useState<{ overallProgress?: { percent?: number; stage?: string }; weeklyTrend?: { direction?: 'up' | 'flat' | 'down'; note?: string }; dynamicSignals?: { windowDays?: number; currentWindowAchievements?: number; previousWindowAchievements?: number }; whyThisSuggestion?: string; basedOn?: { trend?: string; strongestAreas?: string[]; weakestAreas?: string[]; activityWindow?: string }; strengthsTop3?: Array<{ title?: string }>; nextSteps?: Array<{ hint?: string }> } | null>(null);
+  const [parentInsightsLoading, setParentInsightsLoading] = useState(false);
+  const [parentSectionMode, setParentSectionMode] = useState<'home' | 'child'>('home');
+  const isParentChildReadonlyView = isParentChildReadonlyMode({
+    role,
+    hasChildProgressSnapshot: showChildBadges || !!childProgressFromFile,
+  });
   const [childRouteText, setChildRouteText] = useState('');
   const [campFacts, setCampFacts] = useState<{ address?: { campName?: string; base?: string; address?: string; route?: string }; contacts?: { phone?: string; email?: string; vk?: string; site?: string; telegram?: string; organizer?: string }; currentSeason?: { name?: string; dates?: string; price?: string; theme?: string }; documents?: string[] } | null>(null);
   const [campFactsLoading, setCampFactsLoading] = useState(false);
@@ -804,32 +816,64 @@ export const ProfileView: React.FC<any> = (props) => {
     return () => { cancelled = true; };
   }, [accessToken, canRequestApprovals, getLevelProgress, userData?.progress]);
 
-  const syncApprovedLevels = useCallback(async () => {
+  const performApprovalSync = useCallback(async (silent: boolean) => {
     if (!accessToken) {
-      setApprovalsSyncStatus('Сначала войдите по коду.');
+      if (!silent) setApprovalsSyncStatus('Сначала войдите по коду.');
       return;
     }
-    setApprovalsSyncBusy(true);
-    setApprovalsSyncStatus(null);
+    if (!silent) {
+      setApprovalsSyncBusy(true);
+      setApprovalsSyncStatus(null);
+    }
     try {
       const approvals = await loadMyApprovals(accessToken);
       let applied = 0;
+      const titles: string[] = [];
       approvals.forEach((item: BadgeApprovalItem) => {
         const levelId = String(item.levelId || '').trim();
         if (!levelId) return;
+        if (getLevelProgress(levelId)?.status === 'achieved') return;
         applyApprovedLevel(levelId, item.evidence || undefined);
         applied += 1;
+        if (item.badgeTitle) titles.push(item.badgeTitle);
       });
-      setApprovalsSyncStatus(applied > 0 ? `Синхронизировано одобрений: ${applied}.` : 'Одобренных заявок пока нет.');
+      if (!silent) {
+        setApprovalsSyncStatus(applied > 0
+          ? `Синхронизировано одобрений: ${applied}.`
+          : 'Одобренных заявок пока нет.');
+      }
       await loadBadgeApprovalsData();
       setPendingApprovalsCount(0);
-      if (applied > 0) showHint({ title: 'Прогресс обновлён', content: 'Одобрения вожатого добавлены в твой прогресс.' });
-    } catch (e) {
-      setApprovalsSyncStatus(e instanceof Error ? e.message : 'Не удалось синхронизировать одобрения.');
+      if (applied > 0) {
+        const celebrationContent = applied === 1
+          ? `${titles[0] || 'Уровень'} подтверждён вожатым. Загляни в коллекцию.`
+          : `Подтверждены уровни: ${applied}. Открой коллекцию.`;
+        startTutorial(
+          [{ title: 'Уровень получен!', content: celebrationContent }],
+          { onComplete: () => setActiveTab('collection') }
+        );
+      }
+    } catch {
+      if (!silent) {
+        setApprovalsSyncStatus('Не удалось синхронизировать одобрения.');
+      }
     } finally {
-      setApprovalsSyncBusy(false);
+      if (!silent) setApprovalsSyncBusy(false);
     }
-  }, [accessToken, applyApprovedLevel, loadBadgeApprovalsData, showHint]);
+  }, [accessToken, applyApprovedLevel, getLevelProgress, loadBadgeApprovalsData, startTutorial]);
+
+  const syncApprovedLevels = useCallback(
+    () => performApprovalSync(false),
+    [performApprovalSync]
+  );
+
+  const autoSyncDoneRef = useRef(false);
+  useEffect(() => {
+    if (autoSyncDoneRef.current) return;
+    if (!accessToken || !canRequestApprovals) return;
+    autoSyncDoneRef.current = true;
+    void performApprovalSync(true);
+  }, [accessToken, canRequestApprovals, performApprovalSync]);
 
   const loadMySquadInfo = useCallback(async () => {
     if (!accessToken || !expensiveActionsAllowed) {
@@ -1337,6 +1381,7 @@ export const ProfileView: React.FC<any> = (props) => {
         if (!data || typeof data.progress !== 'object') return;
         setChildProgressFromFile(data.progress);
         setChildReportMeta(data.profile?.nickname != null || data.exportedAt ? { nickname: data.profile?.nickname, exportedAt: data.exportedAt } : null);
+        setParentSnapshotCode(code.trim());
         setShowChildBadges(true);
         if (role === 'parent') openCabinPanel('parents', 'right');
         params.delete('parent_code');
@@ -1345,6 +1390,56 @@ export const ProfileView: React.FC<any> = (props) => {
       })
       .catch(() => showHint({ title: 'Ошибка', content: 'Не удалось загрузить данные по коду.' }));
   }, [role, openCabinPanel]);
+
+  useEffect(() => {
+    if (isParentChildReadonlyView) setParentSectionMode('child');
+  }, [isParentChildReadonlyView]);
+
+  const fallbackParentInsights = useMemo(() => {
+    if (!childProgressFromFile) return null;
+    const entries = Object.values(childProgressFromFile || {});
+    const total = entries.length;
+    const achieved = entries.filter((p) => p?.status === 'achieved').length;
+    const percent = total > 0 ? Math.round((achieved / total) * 100) : 0;
+    return {
+      overallProgress: { percent, stage: percent >= 80 ? 'high' : percent >= 40 ? 'steady' : 'start' },
+      weeklyTrend: { direction: 'flat', note: 'История прогресса только формируется — начните с одного посильного шага на этой неделе.' },
+      whyThisSuggestion: 'Рекомендация помогает поддерживать спокойный и устойчивый темп развития.',
+      basedOn: { trend: 'flat', strongestAreas: [], weakestAreas: [], activityWindow: 'последние 7 дней и предыдущие 7 дней' },
+      strengthsTop3: [
+        { title: percent >= 60 ? 'Ребёнок уверенно завершает начатые шаги' : 'Ребёнок включён в лагерный процесс' },
+        { title: 'Есть стабильный интерес к значкам и заданиям' },
+        { title: 'Прогресс можно усиливать регулярной поддержкой дома' },
+      ],
+      nextSteps: [
+        { hint: 'Обсудите один ближайший значок и мягко поддержите завершение следующего шага.' },
+        { hint: 'Хвалите конкретные усилия ребёнка — это ускоряет движение по маршруту.' },
+      ]
+    };
+  }, [childProgressFromFile]);
+
+  useEffect(() => {
+    if (role !== 'parent' || !parentSnapshotCode) return;
+    const hostname = typeof window !== 'undefined' ? window.location.hostname : '';
+    const useLocalApi = import.meta.env.DEV || hostname === 'localhost' || hostname === '127.0.0.1';
+    const apiUrl = useLocalApi ? '/api/parent-insights' : `${(import.meta.env.VITE_API_URL || '').replace(/\/$/, '')}/api/parent-insights`;
+    let cancelled = false;
+    setParentInsightsLoading(true);
+    fetch(`${apiUrl}?code=${encodeURIComponent(parentSnapshotCode)}`)
+      .then(async (res) => {
+        const data = await res.json().catch(() => ({}));
+        if (!cancelled) setParentInsights((data && typeof data === 'object') ? data : null);
+      })
+      .catch(() => {
+        if (!cancelled) setParentInsights(null);
+      })
+      .finally(() => {
+        if (!cancelled) setParentInsightsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [role, parentSnapshotCode]);
 
   const initialHashHandledRef = useRef(false);
   useEffect(() => {
@@ -2982,6 +3077,7 @@ export const ProfileView: React.FC<any> = (props) => {
       {panelActiveView === 'parents' && role === 'parent' && (
         <div id="parents-section" className="profile-view-parents-section">
           <h2 style={{ fontSize: 20, fontWeight: 800, color: 'rgba(255,255,255,0.95)', margin: 0 }}>Для родителей</h2>
+          <p style={{ margin: '4px 0 0', fontSize: 12, opacity: 0.75 }}>Режим ребёнка в этом разделе всегда read-only.</p>
           {campFactsLoading && <p className="parents-section-block__text" style={{ margin: 0 }}>Данные загружаются…</p>}
           {campFactsError && <p style={{ fontSize: 13, margin: 0, color: '#f59e0b' }}>{campFactsError}</p>}
           {!campFactsLoading && !campFactsError && campFacts && (
@@ -4609,9 +4705,28 @@ export const ProfileView: React.FC<any> = (props) => {
         {role === 'parent' && (
           <div id="parents-section" className="profile-view-parents-section" style={{ marginTop: 24, display: 'flex', flexDirection: 'column', gap: 20 }}>
             <h2 style={{ fontSize: 20, fontWeight: 800, color: 'rgba(255,255,255,0.95)', margin: 0 }}>Для родителей</h2>
-            {campFactsLoading && <p className="parents-section-block__text" style={{ margin: 0 }}>Данные загружаются…</p>}
-            {campFactsError && <p style={{ fontSize: 13, margin: 0, color: '#f59e0b' }}>Проверьте подключение. {campFactsError}</p>}
-            {!campFactsLoading && !campFactsError && campFacts && (
+            <p style={{ margin: '4px 0 0', fontSize: 12, opacity: 0.75 }}>Режим ребёнка в этом разделе всегда read-only.</p>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={() => setParentSectionMode('home')}
+                style={{ opacity: parentSectionMode === 'home' ? 1 : 0.75 }}
+              >
+                Кабинет родителя
+              </button>
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={() => setParentSectionMode('child')}
+                style={{ opacity: parentSectionMode === 'child' ? 1 : 0.75 }}
+              >
+                Прогресс ребёнка · read-only
+              </button>
+            </div>
+            {parentSectionMode === 'home' && campFactsLoading && <p className="parents-section-block__text" style={{ margin: 0 }}>Данные загружаются…</p>}
+            {parentSectionMode === 'home' && campFactsError && <p style={{ fontSize: 13, margin: 0, color: '#f59e0b' }}>Проверьте подключение. {campFactsError}</p>}
+            {parentSectionMode === 'home' && !campFactsLoading && !campFactsError && campFacts && (
               <>
                 <div className="parents-section-block">
                   <h3 className="parents-section-block__heading">Смена</h3>
@@ -4685,23 +4800,91 @@ export const ProfileView: React.FC<any> = (props) => {
                 )}
               </>
             )}
-            {!campFactsLoading && !campFactsError && !campFacts && (
+            {parentSectionMode === 'home' && !campFactsLoading && !campFactsError && !campFacts && (
               <p className="parents-section-block__text" style={{ margin: 0 }}>По вопросам документов и бронирования — контакты в разделе «О лагере».</p>
             )}
-            {typeof onNavigateToRegistrationForm === 'function' && (
+            {parentSectionMode === 'home' && typeof onNavigateToRegistrationForm === 'function' && (
               <button type="button" onClick={onNavigateToRegistrationForm} className="btn-primary-gold" style={{ alignSelf: 'flex-start', padding: '12px 24px' }}>
                 Забронировать путевку
               </button>
             )}
-            <h3 className="parents-section__program-title">Программа смены</h3>
-            <CampProgramByDays />
+            {parentSectionMode === 'home' && <h3 className="parents-section__program-title">Программа смены</h3>}
+            {parentSectionMode === 'home' && <CampProgramByDays />}
+            {parentSectionMode === 'child' && (
+              <>
+                <div className="parents-section-block" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  <h3 className="parents-section-block__heading" style={{ margin: 0 }}>Витрина прогресса ребёнка</h3>
+                  <p className="parents-section-block__text" style={{ margin: 0 }}>Здесь только безопасный read-only просмотр. Изменять прогресс ребёнка нельзя.</p>
+                  <button type="button" onClick={() => setShowChildBadges(true)} className="parents-section__btn-child" style={{ alignSelf: 'flex-start' }}>
+                    Открыть прогресс ребёнка (read-only)
+                  </button>
+                </div>
+                <div className="parents-section-block" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  <h3 className="parents-section-block__heading" style={{ margin: 0 }}>Рекомендации для поддержки ребёнка</h3>
+                  {parentInsightsLoading && <p className="parents-section-block__text" style={{ margin: 0 }}>Собираем понятную сводку прогресса и ближайших шагов…</p>}
+                  {!parentInsightsLoading && (
+                    <>
+                      <p className="parents-section-block__text" style={{ margin: 0 }}>
+                        Общий прогресс: <strong>{(parentInsights?.overallProgress?.percent ?? fallbackParentInsights?.overallProgress?.percent ?? 0)}%</strong>
+                      </p>
+                      <p className="parents-section-block__text" style={{ margin: 0 }}>
+                        Тренд недели: <strong>{(parentInsights?.weeklyTrend?.direction ?? fallbackParentInsights?.weeklyTrend?.direction ?? 'flat') === 'up' ? 'рост' : (parentInsights?.weeklyTrend?.direction ?? fallbackParentInsights?.weeklyTrend?.direction ?? 'flat') === 'down' ? 'снижение' : 'стабильно'}</strong>
+                        {' — '}
+                        {(parentInsights?.weeklyTrend?.note ?? fallbackParentInsights?.weeklyTrend?.note ?? 'Темп ровный, поддерживайте регулярный ритм.')}
+                      </p>
+                      <div>
+                        <div className="parents-section-block__label">Что уже хорошо</div>
+                        <ul style={{ margin: '6px 0 0 18px', padding: 0 }}>
+                          {(parentInsights?.strengthsTop3 || fallbackParentInsights?.strengthsTop3 || [{ title: 'Когда будет доступна витрина ребёнка, здесь появятся сильные стороны и достижения.' }]).slice(0, 3).map((s, idx) => (
+                            <li key={`pi-s-${idx}`} className="parents-section-block__text" style={{ margin: 0 }}>{s?.title}</li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div>
+                        <div className="parents-section-block__label">Что поддержать дальше</div>
+                        <ul style={{ margin: '6px 0 0 18px', padding: 0 }}>
+                          {(parentInsights?.nextSteps || fallbackParentInsights?.nextSteps || [{ hint: 'Откройте витрину достижений ребёнка по коду или ссылке, чтобы получить точные рекомендации.' }]).slice(0, 2).map((s, idx) => (
+                            <li key={`pi-n-${idx}`} className="parents-section-block__text" style={{ margin: 0 }}>{s?.hint}</li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div>
+                        <div className="parents-section-block__label">Почему такая рекомендация</div>
+                        <p className="parents-section-block__text" style={{ margin: '6px 0 0 0' }}>
+                          {parentInsights?.whyThisSuggestion || fallbackParentInsights?.whyThisSuggestion || 'Рекомендация собрана из текущего темпа и зон, где поддержка даст наибольший эффект.'}
+                        </p>
+                        <p className="parents-section-block__text" style={{ margin: '4px 0 0 0', opacity: 0.78 }}>
+                          Основа: тренд {((parentInsights?.basedOn?.trend || fallbackParentInsights?.basedOn?.trend || 'flat') === 'up' ? 'рост' : (parentInsights?.basedOn?.trend || fallbackParentInsights?.basedOn?.trend || 'flat') === 'down' ? 'снижение' : 'стабильно')} · окно {(parentInsights?.basedOn?.activityWindow || fallbackParentInsights?.basedOn?.activityWindow || 'последние 7 дней и предыдущие 7 дней')}
+                        </p>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </>
+            )}
+            {isParentChildReadonlyView && (
+              <div style={{ alignSelf: 'flex-start', fontSize: 12, fontWeight: 700, letterSpacing: 0.2, padding: '6px 10px', borderRadius: 999, border: '1px solid rgba(255,255,255,0.32)', background: 'rgba(26,33,53,0.55)' }}>
+                {PARENT_READONLY_BADGE_TEXT}
+              </div>
+            )}
             <div className="parents-section__actions">
               <button type="button" onClick={() => setShowChildBadges(true)} className="parents-section__btn-child">
                 Значки моего ребёнка
               </button>
-              <button type="button" onClick={() => setShowChildRouteForm(true)} className="parents-section__btn-route">
-                Предложить маршрут развития для ребёнка
-              </button>
+              {parentSectionMode === 'home' && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!canRunParentChildMutation({ role, hasChildProgressSnapshot: showChildBadges || !!childProgressFromFile })) return;
+                    setShowChildRouteForm(true);
+                  }}
+                  className="parents-section__btn-route"
+                  disabled={!canRunParentChildMutation({ role, hasChildProgressSnapshot: showChildBadges || !!childProgressFromFile })}
+                  title={isParentChildReadonlyView ? PARENT_READONLY_TOOLTIP : undefined}
+                >
+                  Предложить маршрут развития для ребёнка
+                </button>
+              )}
               <p style={{ fontSize: 12, opacity: 0.7, margin: 0 }}>Предложить идею для лагеря — в блоке «Совет Лагеря» ниже.</p>
             </div>
           </div>
@@ -5324,21 +5507,70 @@ export const ProfileView: React.FC<any> = (props) => {
                     )}
                   </div>
 
-                  {canRequestApprovals && (
-                    <div style={{ padding: 12, borderRadius: 12, background: 'rgba(0,0,0,0.32)', border: '1px solid rgba(255,255,255,0.06)' }}>
-                      <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 8, opacity: 0.9 }}>Мои заявки на подтверждение</div>
-                      {badgeRequestsMine.length === 0 ? (
-                        <div style={{ fontSize: 12, opacity: 0.8 }}>Заявок пока нет. Отправьте заявку из карточки уровня.</div>
+                  {canRequestApprovals && !isParentChildReadonlyView && (
+                    <div id="profile-badge-requests-mine" style={{ padding: 12, borderRadius: 12, background: 'rgba(0,0,0,0.32)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                      <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 8, opacity: 0.9 }}>Мои заявки</div>
+                      {badgeRequestsBusy ? (
+                        <div style={{ fontSize: 12, opacity: 0.7 }}>Загружаем заявки…</div>
+                      ) : badgeRequestsError ? (
+                        <div style={{ fontSize: 12 }}>
+                          <span style={{ opacity: 0.8 }}>{badgeRequestsError}</span>
+                          <button type="button" className="btn-secondary" style={{ marginLeft: 8, padding: '4px 10px', fontSize: 11 }} onClick={loadBadgeApprovalsData}>Повторить</button>
+                        </div>
+                      ) : badgeRequestsMine.length === 0 ? (
+                        <div style={{ fontSize: 12, opacity: 0.8 }}>
+                          Заявок пока нет. Подтверди уровень значка, чтобы отправить первую.{' '}
+                          <button
+                            type="button"
+                            className="btn-secondary"
+                            style={{ padding: '4px 10px', fontSize: 11, marginTop: 6 }}
+                            onClick={() => {
+                              setActiveTab('active');
+                              setTimeout(() => {
+                                document.getElementById('profile-tab-active')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                              }, 80);
+                            }}
+                          >
+                            К значкам «В пути»
+                          </button>
+                        </div>
                       ) : (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 220, overflowY: 'auto' }}>
-                          {badgeRequestsMine.map((req) => (
-                            <div key={req.id} style={{ padding: 8, borderRadius: 8, background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.08)' }}>
-                              <div style={{ fontSize: 12, fontWeight: 700 }}>{req.levelId} {req.badgeTitle ? `· ${req.badgeTitle}` : ''}</div>
-                              <div style={{ fontSize: 11, opacity: 0.75 }}>
-                                {new Date(req.createdAt).toLocaleString('ru-RU')} · {req.status}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 260, overflowY: 'auto' }}>
+                          {badgeRequestsMine.map((req) => {
+                            const statusTone = req.status === 'approved' ? 'approved' : req.status === 'rejected' ? 'rejected' : 'pending';
+                            const statusLabel = req.status === 'approved' ? 'Одобрено' : req.status === 'rejected' ? 'Отклонено' : 'На проверке';
+                            return (
+                              <div key={req.id} style={{ padding: 8, borderRadius: 8, background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8, flexWrap: 'wrap', marginBottom: 4 }}>
+                                  <div style={{ fontSize: 12, fontWeight: 700 }}>
+                                    {req.badgeTitle || req.levelId}
+                                    {req.badgeTitle && <span style={{ fontSize: 11, opacity: 0.6, fontWeight: 400, marginLeft: 4 }}>{req.levelId}</span>}
+                                  </div>
+                                  <span className={`m3-status-chip badge-request-status-chip tone-${statusTone}`}>{statusLabel}</span>
+                                </div>
+                                <div style={{ fontSize: 11, opacity: 0.6 }}>{new Date(req.createdAt).toLocaleString('ru-RU')}</div>
+                                {req.status === 'rejected' && req.resolutionNote && (
+                                  <div
+                                    style={{ fontSize: 11, opacity: 0.55, marginTop: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100%' }}
+                                    title={req.resolutionNote}
+                                  >
+                                    Причина: {req.resolutionNote.length > 100 ? req.resolutionNote.slice(0, 100) + '…' : req.resolutionNote}
+                                  </div>
+                                )}
+                                {req.status === 'approved' && (
+                                  <button
+                                    type="button"
+                                    className="btn-secondary"
+                                    style={{ marginTop: 8, padding: '5px 12px', fontSize: 11 }}
+                                    disabled={approvalsSyncBusy}
+                                    onClick={syncApprovedLevels}
+                                  >
+                                    {approvalsSyncBusy ? 'Синхронизируем…' : 'Синхронизировать'}
+                                  </button>
+                                )}
                               </div>
-                            </div>
-                          ))}
+                            );
+                          })}
                         </div>
                       )}
                     </div>
@@ -5350,57 +5582,112 @@ export const ProfileView: React.FC<any> = (props) => {
                       {badgeRequestsInbox.length === 0 ? (
                         <div style={{ fontSize: 12, opacity: 0.8 }}>Входящих заявок нет.</div>
                       ) : (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 260, overflowY: 'auto' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 360, overflowY: 'auto' }}>
                           {badgeRequestsInbox.map((req) => (
                             <div key={req.id} style={{ padding: 8, borderRadius: 8, background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.08)' }}>
                               <div style={{ fontSize: 12, fontWeight: 700 }}>{req.levelId} {req.badgeTitle ? `· ${req.badgeTitle}` : ''}</div>
                               <div style={{ fontSize: 11, opacity: 0.8 }}>
-                                {req.requestedBy?.nickname || req.requestedBy?.deviceId || '—'} · {req.status}
+                                {req.requestedBy?.nickname || req.requestedBy?.deviceId || '—'} · {new Date(req.createdAt).toLocaleString('ru-RU')}
                               </div>
-                              {req.evidence?.reflection && <div style={{ fontSize: 12, opacity: 0.9, marginTop: 4 }}>{req.evidence.reflection}</div>}
+                              {req.evidence && (req.evidence.reflection || req.evidence.impact || req.evidence.link) && (
+                                <>
+                                  <button
+                                    type="button"
+                                    onClick={() => setEvidenceExpandedId(evidenceExpandedId === req.id ? null : req.id)}
+                                    style={{ fontSize: 11, opacity: 0.6, background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', padding: 0, marginTop: 4 }}
+                                  >
+                                    {evidenceExpandedId === req.id ? 'Скрыть пруф ▲' : 'Показать пруф ▼'}
+                                  </button>
+                                  {evidenceExpandedId === req.id && (
+                                    <div style={{ fontSize: 11, opacity: 0.7, marginTop: 4, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                                      {req.evidence.reflection && <span>Рефлексия: {req.evidence.reflection}</span>}
+                                      {req.evidence.impact && <span>Результат: {req.evidence.impact}</span>}
+                                      {req.evidence.link && <a href={req.evidence.link} target="_blank" rel="noreferrer" style={{ color: 'inherit' }}>Ссылка</a>}
+                                    </div>
+                                  )}
+                                </>
+                              )}
                               {req.status === 'pending' && (
-                                <div style={{ marginTop: 8, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                                  <button
-                                    type="button"
-                                    className="btn-primary-gold"
-                                    style={{ padding: '6px 12px', fontSize: 12 }}
-                                    disabled={badgeRequestsBusy}
-                                    onClick={async () => {
-                                      setBadgeRequestsBusy(true);
-                                      setBadgeRequestsError(null);
-                                      try {
-                                        await approveBadgeRequest(accessToken || '', req.id);
-                                        await loadBadgeApprovalsData();
-                                      } catch (e) {
-                                        setBadgeRequestsError(e instanceof Error ? e.message : 'Не удалось подтвердить заявку.');
-                                      } finally {
-                                        setBadgeRequestsBusy(false);
-                                      }
-                                    }}
-                                  >
-                                    Approve
-                                  </button>
-                                  <button
-                                    type="button"
-                                    className="btn-secondary"
-                                    style={{ padding: '6px 12px', fontSize: 12 }}
-                                    disabled={badgeRequestsBusy}
-                                    onClick={async () => {
-                                      setBadgeRequestsBusy(true);
-                                      setBadgeRequestsError(null);
-                                      try {
-                                        await rejectBadgeRequest(accessToken || '', req.id);
-                                        await loadBadgeApprovalsData();
-                                      } catch (e) {
-                                        setBadgeRequestsError(e instanceof Error ? e.message : 'Не удалось отклонить заявку.');
-                                      } finally {
-                                        setBadgeRequestsBusy(false);
-                                      }
-                                    }}
-                                  >
-                                    Reject
-                                  </button>
-                                </div>
+                                <>
+                                  <div style={{ marginTop: 8, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                                    <button
+                                      type="button"
+                                      className="btn-primary-gold"
+                                      style={{ padding: '6px 12px', fontSize: 12 }}
+                                      disabled={badgeRequestsBusy}
+                                      onClick={async () => {
+                                        setBadgeRequestsBusy(true);
+                                        setBadgeRequestsError(null);
+                                        try {
+                                          await approveBadgeRequest(accessToken || '', req.id);
+                                          setBadgeRequestsInbox(prev => prev.filter(r => r.id !== req.id));
+                                          showHint({ title: 'Заявка обработана', content: 'Одобрение применено.' });
+                                          void loadBadgeApprovalsData();
+                                        } catch (e) {
+                                          setBadgeRequestsError(e instanceof Error ? e.message : 'Не удалось подтвердить заявку.');
+                                        } finally {
+                                          setBadgeRequestsBusy(false);
+                                        }
+                                      }}
+                                    >
+                                      Одобрить
+                                    </button>
+                                    <button
+                                      type="button"
+                                      className="btn-secondary"
+                                      style={{ padding: '6px 12px', fontSize: 12 }}
+                                      disabled={badgeRequestsBusy}
+                                      onClick={() => { setRejectExpandedId(req.id); setRejectNote(''); }}
+                                    >
+                                      Отклонить
+                                    </button>
+                                  </div>
+                                  {rejectExpandedId === req.id && (
+                                    <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                                      <textarea
+                                        placeholder="Причина отказа (необязательно)"
+                                        maxLength={200}
+                                        value={rejectNote}
+                                        onChange={e => setRejectNote(e.target.value)}
+                                        style={{ width: '100%', minHeight: 56, fontSize: 12, borderRadius: 8, padding: 6, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.15)', color: 'inherit', resize: 'vertical', boxSizing: 'border-box' }}
+                                      />
+                                      <div style={{ display: 'flex', gap: 8 }}>
+                                        <button
+                                          type="button"
+                                          className="btn-secondary"
+                                          style={{ padding: '6px 12px', fontSize: 12 }}
+                                          disabled={badgeRequestsBusy}
+                                          onClick={async () => {
+                                            setBadgeRequestsBusy(true);
+                                            setBadgeRequestsError(null);
+                                            try {
+                                              await rejectBadgeRequest(accessToken || '', req.id, rejectNote.trim() || undefined);
+                                              setBadgeRequestsInbox(prev => prev.filter(r => r.id !== req.id));
+                                              setRejectExpandedId(null);
+                                              setRejectNote('');
+                                              showHint({ title: 'Заявка обработана', content: 'Отклонено.' });
+                                              void loadBadgeApprovalsData();
+                                            } catch (e) {
+                                              setBadgeRequestsError(e instanceof Error ? e.message : 'Не удалось отклонить заявку.');
+                                            } finally {
+                                              setBadgeRequestsBusy(false);
+                                            }
+                                          }}
+                                        >
+                                          Отклонить
+                                        </button>
+                                        <button
+                                          type="button"
+                                          className="btn-secondary"
+                                          style={{ padding: '6px 12px', fontSize: 12 }}
+                                          onClick={() => { setRejectExpandedId(null); setRejectNote(''); }}
+                                        >
+                                          Отмена
+                                        </button>
+                                      </div>
+                                    </div>
+                                  )}
+                                </>
                               )}
                             </div>
                           ))}
@@ -5462,7 +5749,7 @@ export const ProfileView: React.FC<any> = (props) => {
               >
                 Создать отчёт для родителя
               </button>
-              {accessToken && (role === 'participant' || role === 'parent') && (
+              {accessToken && role === 'participant' && (
                 <button
                   type="button"
                   className="btn-secondary"
@@ -6113,6 +6400,12 @@ export const ProfileView: React.FC<any> = (props) => {
               setProofForm({ learned: '', impact: '', link: '' });
               setProofPhotoCount(0);
               proofPhotoInputRef.current && (proofPhotoInputRef.current.value = '');
+              if (canRequestApprovals) {
+                showHint({ title: 'Заявка отправлена', content: 'Вожатый рассмотрит её в ближайшее время.' });
+                setTimeout(() => {
+                  document.getElementById('profile-badge-requests-mine')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 300);
+              }
             }} className="btn-primary-gold" style={{ width: '100%', marginTop: 24 }}>Отправить в Telegram</button>
             <button onClick={() => { setProofBadge(null); setProofForm({ learned: '', impact: '', link: '' }); setProofPhotoCount(0); proofPhotoInputRef.current && (proofPhotoInputRef.current.value = ''); }} style={{ width: '100%', background: 'none', border: 'none', color: 'white', marginTop: 10, cursor: 'pointer', opacity: 0.5, fontSize: 13 }}>Отмена</button>
           </div>
@@ -6123,6 +6416,7 @@ export const ProfileView: React.FC<any> = (props) => {
         <div className="proof-modal-overlay" onClick={() => { setShowChildBadges(false); setChildProgressFromFile(null); setChildReportMeta(null); }}>
           <div className="proof-modal proof-modal--mobile-sheet proof-modal--wide fade-in" role="dialog" aria-modal="true" aria-labelledby="profile-modal-child-badges-title" onClick={e => e.stopPropagation()}>
             <h3 id="profile-modal-child-badges-title" style={{ marginTop: 0, marginBottom: 8 }}>Значки моего ребёнка</h3>
+            <p style={{ fontSize: 12, opacity: 0.78, marginTop: 0, marginBottom: 8 }}>{PARENT_READONLY_BADGE_TEXT}. Изменения прогресса ребёнка из этого режима недоступны.</p>
             <p style={{ fontSize: 13, opacity: 0.9, marginBottom: 12 }}>Ребёнок может создать отчёт по кнопке «Создать отчёт для родителя» в своём профиле и передать вам файл, ссылку или код.</p>
             <div style={{ marginBottom: 12 }}>
               <label style={{ display: 'block', fontSize: 12, opacity: 0.9, marginBottom: 4 }}>Ввести код от ребёнка</label>
@@ -6153,6 +6447,7 @@ export const ProfileView: React.FC<any> = (props) => {
                       if (data && typeof data.progress === 'object') {
                         setChildProgressFromFile(data.progress);
                         setChildReportMeta(data.profile?.nickname != null || data.exportedAt ? { nickname: data.profile?.nickname, exportedAt: data.exportedAt } : null);
+                        setParentSnapshotCode(code);
                         setParentCodeInput('');
                       }
                     } catch {

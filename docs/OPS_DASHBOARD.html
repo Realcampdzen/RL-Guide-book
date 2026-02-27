@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Путеводитель — Оркестраторский дашборд</title>
+  <style>
+    :root { --bg:#0b1020; --card:#121933; --muted:#94a3b8; --text:#e5e7eb; --ok:#22c55e; --warn:#f59e0b; --bad:#ef4444; --accent:#60a5fa; }
+    body { margin:0; font-family:Inter,Segoe UI,Arial,sans-serif; background:var(--bg); color:var(--text); }
+    .wrap{max-width:1200px;margin:24px auto;padding:0 16px}
+    h1{margin:0 0 6px;font-size:28px}
+    .muted{color:var(--muted)}
+    .grid{display:grid;gap:14px}
+    .g2{grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
+    .card{background:var(--card);border:1px solid #1f2a4d;border-radius:14px;padding:14px}
+    .badge{display:inline-block;padding:4px 8px;border-radius:999px;font-size:12px;font-weight:700}
+    .ok{background:rgba(34,197,94,.15);color:#86efac}
+    .warn{background:rgba(245,158,11,.15);color:#fcd34d}
+    .bad{background:rgba(239,68,68,.15);color:#fca5a5}
+    table{width:100%;border-collapse:collapse;font-size:14px}
+    th,td{padding:8px;border-bottom:1px solid #23315e;vertical-align:top}
+    th{text-align:left;color:#cbd5e1}
+    .progress{height:10px;background:#1f2a4d;border-radius:999px;overflow:hidden}
+    .bar{height:100%;background:linear-gradient(90deg,#60a5fa,#22c55e)}
+    ul{margin:8px 0 0 18px}
+    .kpi{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+    .kpi .chip{background:#1a2448;border:1px solid #2b3d76;border-radius:10px;padding:8px 10px;font-size:13px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Путеводитель — Командный дашборд</h1>
+    <div class="muted">Для управления не-программистом: roadmap, агенты, задачи, прогресс, блокеры</div>
+
+    <div class="grid g2" style="margin-top:14px">
+      <section class="card">
+        <h3 style="margin:0 0 8px">Roadmap (высокий уровень)</h3>
+        <table>
+          <tr><th>Трек</th><th>Статус</th><th>Прогресс</th></tr>
+          <tr><td>M2 Parent hybrid</td><td><span class="badge ok">DONE</span></td><td><div class="progress"><div class="bar" style="width:100%"></div></div></td></tr>
+          <tr><td>M3 Badge Flow</td><td><span class="badge ok">S1/S2/S3 DONE</span></td><td><div class="progress"><div class="bar" style="width:100%"></div></div></td></tr>
+          <tr><td>M3 Squad Corner S1</td><td><span class="badge warn">IN IMPLEMENT</span></td><td><div class="progress"><div class="bar" style="width:55%"></div></div></td></tr>
+          <tr><td>Kot Thread Transport v1.1</td><td><span class="badge bad">NOT CERTIFIED</span></td><td><div class="progress"><div class="bar" style="width:35%"></div></div></td></tr>
+        </table>
+      </section>
+
+      <section class="card">
+        <h3 style="margin:0 0 8px">Агенты и роли</h3>
+        <table>
+          <tr><th>Агент</th><th>Роль</th><th>Сейчас</th></tr>
+          <tr><td>НейроСтёпа</td><td>Оркестратор/архитектор</td><td>Управление циклом</td></tr>
+          <tr><td>Dev Bro 1</td><td>Lead Dev Executor</td><td>M3-SC-S1</td></tr>
+          <tr><td>Кот Бро</td><td>SMM + transport fix</td><td>KOT_THREAD_TRANSPORT_FIX_V1.1</td></tr>
+          <tr><td>Фин Бро</td><td>Финконтур</td><td>Standby</td></tr>
+        </table>
+        <div class="kpi">
+          <div class="chip">Открытых задач: 2</div>
+          <div class="chip">Закрыто в цикле: 3</div>
+          <div class="chip">Критичных блокеров: 1</div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h3 style="margin:0 0 8px">Текущие задачи (что ждать)</h3>
+        <ul>
+          <li><b>Dev Bro 1 / M3-SC-S1:</b> readiness model + chip + regression + report/handoff.</li>
+          <li><b>Кот Бро / V1.1:</b> webhook transport + rootId evidence + TEST A/B/C.</li>
+        </ul>
+      </section>
+
+      <section class="card">
+        <h3 style="margin:0 0 8px">Quality Gates</h3>
+        <ul>
+          <li>DONE только с commit hash + files + проверками.</li>
+          <li>M2 read-only нельзя ломать.</li>
+          <li>Kot сертификат только после 3/3 sent в правильный thread.</li>
+          <li>Без anchor — не отправлять.</li>
+        </ul>
+      </section>
+    </div>
+
+    <p class="muted" style="margin-top:14px">Источник данных (ручное обновление): docs/CYCLE_CONTROL_BOARD.md</p>
+  </div>
+</body>
+</html>

@@ -33,9 +33,9 @@ export function canUseExpensiveActions(role: UserRole): boolean {
   return role !== 'traveler';
 }
 
-/** Участник/родитель (и developer) может отправлять заявку на подтверждение уровня. */
+/** Отправка заявки на подтверждение уровня: участник (и developer). Родитель в M2 — read-only к прогрессу ребёнка. */
 export function canRequestBadgeApproval(role: UserRole): boolean {
-  return role === 'participant' || role === 'parent' || role === 'developer';
+  return role === 'participant' || role === 'developer';
 }
 
 /** Staff (или developer) может разбирать входящие заявки. */

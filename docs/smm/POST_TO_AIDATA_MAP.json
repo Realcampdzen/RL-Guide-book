@@ -1,0 +1,58 @@
+{
+  "version": 2,
+  "description": "Real mapping of post types to RL ai-data sources",
+  "aiDataSources": {
+    "masterIndex": "public/ai-data/MASTER_INDEX.json",
+    "campFacts": "public/ai-data/camp-facts.json",
+    "campProgramTemplate": "public/ai-data/camp-program-template.json",
+    "categoryIndexPattern": "public/ai-data/category-{id}/index.json",
+    "badgePattern": "public/ai-data/category-{id}/{badgeId}.json",
+    "categoryIntroPattern": "public/ai-data/category-{id}/introduction.md"
+  },
+  "coreCategoryHints": {
+    "ai": ["12"],
+    "softSkills": ["13", "14", "11"],
+    "teamwork": ["5", "8", "9"],
+    "campLife": ["4", "6", "10"],
+    "creativity": ["7", "3"],
+    "personalGrowth": ["1", "2"]
+  },
+  "postTypes": {
+    "camp_activity": {
+      "sourcePriority": ["badgePattern", "categoryIndexPattern", "categoryIntroPattern"],
+      "preferredCategories": ["4", "5", "6", "13", "14"],
+      "extractFields": ["title", "description", "importance", "skillTips", "levels[].criteria"],
+      "commentGoal": "show practical development value"
+    },
+    "program_explainer": {
+      "sourcePriority": ["campProgramTemplate", "categoryIntroPattern", "badgePattern"],
+      "preferredCategories": ["13", "12", "11", "14", "9"],
+      "extractFields": ["days[].theme", "days[].activities", "importance", "howToBecome"],
+      "commentGoal": "explain educational logic for parents"
+    },
+    "ai_creativity": {
+      "sourcePriority": ["badgePattern", "categoryIndexPattern", "campProgramTemplate"],
+      "preferredCategories": ["12", "7", "3", "13"],
+      "extractFields": ["nameExplanation", "skillTips", "levels[].criteria", "examples"],
+      "commentGoal": "position AI as skill amplifier"
+    },
+    "team_values": {
+      "sourcePriority": ["badgePattern", "categoryIntroPattern"],
+      "preferredCategories": ["5", "8", "9", "4", "14"],
+      "extractFields": ["importance", "philosophy", "howToBecome", "levels[].confirmation"],
+      "commentGoal": "connect camp culture to outcomes"
+    },
+    "case_result": {
+      "sourcePriority": ["badgePattern", "masterIndex"],
+      "preferredCategories": ["1", "2", "7", "13", "14"],
+      "extractFields": ["levels[].criteria", "levels[].confirmation", "skillTips", "howToBecome"],
+      "commentGoal": "show transformation trajectory"
+    },
+    "spring_shift_promo": {
+      "sourcePriority": ["campFacts", "campProgramTemplate", "categoryIntroPattern"],
+      "preferredCategories": ["12", "13", "14", "5", "9"],
+      "extractFields": ["currentSeason", "address", "contacts", "days[].theme"],
+      "commentGoal": "soft conversion to dialogue/application"
+    }
+  }
+}

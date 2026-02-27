@@ -8,6 +8,9 @@
 - Runbook смены: [`docs/CAMP_RUNBOOK.md`](CAMP_RUNBOOK.md)
 - Supabase схема/миграция: [`docs/SUPABASE_SCHEMA_AND_MIGRATION.md`](SUPABASE_SCHEMA_AND_MIGRATION.md)
 - Архитектура ресурсов (as‑is): [`docs/ARCHITECTURE_AND_RESOURCES.md`](ARCHITECTURE_AND_RESOURCES.md)
+- **M5 release readiness baseline:** [`docs/RELEASE_READINESS_BASELINE_M5.md`](RELEASE_READINESS_BASELINE_M5.md)
+- **M5 final release note (GO):** [`docs/RELEASE_NOTE_M5_FINAL.md`](RELEASE_NOTE_M5_FINAL.md)
+- **Ops snapshot (pre-release checklist):** [`docs/OPS_SNAPSHOT_M5_GO.md`](OPS_SNAPSHOT_M5_GO.md)
 
 ---
 
@@ -85,6 +88,37 @@ Supabase:
 4) **Персистентность**
 - Критичные домены (shifts/squads/memberships/corners/invites/messages/badge_requests/parent_snapshots) живут в Supabase.
 
+### §4.1 — Pre-release smoke via Vercel Preview (добавлен M5-R4-D)
+
+**Цель:** прогнать автоматический smoke перед merge в main, используя Vercel Preview deployment как staging-окружение.
+
+**Как получить Vercel Preview URL:**
+1. GitHub PR → секция "Checks" → "Vercel — Preview" → "Visit Preview".
+2. Или: Vercel Dashboard → Project `backend-murex-one-40` → Deployments → найти по ветке/PR.
+3. URL pattern: `https://backend-murex-one-40-<branch-slug>.vercel.app`
+
+**Команда запуска:**
+```bash
+AUTH_SECRET=<auth_secret> python backend/scripts/smoke_backend_critical.py \
+  --base-url https://backend-murex-one-40-<preview-hash>.vercel.app
+```
+
+**Ожидаемый результат:** `RESULT: ALL 43 CHECKS PASSED`
+
+**Что проверяется (43 checks):**
+
+| Flow | Description |
+|------|-------------|
+| Health | `/api/health` |
+| A — Badge Request | request → inbox → approve → mine (9 checks) |
+| B — Parent Insights | snapshot → insights → invalid-404 (4 checks) |
+| C — Council Initiatives | create → list (4 checks) |
+| D — Mine Privacy | privacy + contract (3 checks) |
+| E — Image Safety | prompt sanitization + quota (M5-R2-C) |
+| F — Teams | badge cleanup + teams smoke (M5-R3-A) |
+
+**Подробнее о staging-окружении:** [`docs/STAGING_BACKEND_SETUP.md`](STAGING_BACKEND_SETUP.md)
+
 ---
 
 ## 5) Pre‑release checklist (перед выкладкой)
@@ -110,16 +144,46 @@ UI smoke (минимум руками):
 2. заявка на значок → inbox approve → синк → achieved
 3. parent snapshot: создать код/QR → открыть read‑only
 
+### §5.2 Расширенный smoke‑checklist (M3/M4 surfaces — добавлен TAILS_RECONCILE_D)
+
+Участник:
+- Открыть Council Dashboard → список инициатив отображается → статус‑чипы (new/reviewing/accepted/done) корректны → additive‑фильтр работает.
+- Открыть Squad Corner → чип readiness (empty/partial/ready) виден → данные корректны.
+- Badge flow → статус‑чипы бейджей корректны (in‑progress/achieved) → без артефактов в UI.
+
+Родитель (read‑only):
+- Открыть child‑view по parent_code → режим read‑only активен → **нет мутирующих CTA** (кнопок «Отправить», «Изменить» и т.д.).
+- Блок Parent Insights → прогресс/тренд/рекомендации/explainability отображаются → fallback‑тексты читаемы (не технические placeholder'ы).
+- Открыть child‑view с частичными/пустыми данными → graceful fallback, не ошибка.
+
+Staff:
+- Панель approvals → inbox badge requests с фильтром статуса → approve/reject работает.
+- Squad Corner как counselor → readiness chip обновляется при сохранении данных.
+- Educator Cabinet (если educator role) → 3 вкладки доступны.
+
+Полный drill‑расчёт: <30 мин. Эталон: [`docs/OPS_SNAPSHOT_M5_GO.md §5`](OPS_SNAPSHOT_M5_GO.md).
+
+### §5.3 Lobster bots checklist (добавлен M5-R5-D)
+
+- [ ] Lobster bot tokens добавлены в Vercel Production
+      (`NEURO_STEPA_BOT_TOKEN`, `CAT_BRO_BOT_TOKEN`, `DEV_BRO_1_BOT_TOKEN`)
+- [ ] `POST /api/telegram/agent-post` smoke I-1/I-2/I-3 пройден (HTTP 200 для всех трёх ботов)
+
+Инструкция по smoke и диагностике: [`docs/LOBSTERS_RUNBOOK.md`](LOBSTERS_RUNBOOK.md)
+
 ---
 
 ## 6) Rollback
 
 Frontend/back:
-- Откатить деплой в Vercel на предыдущий успешный build (быстрое восстановление UI/API).
+- **Fast rollback:** Vercel Dashboard → Deployments → “Promote to Production” на предыдущий успешный build.
+- **Git‑based rollback:** см. полную процедуру в [\docs/RELEASE_NOTE_M5_FINAL.md §Rollback\](RELEASE_NOTE_M5_FINAL.md).
+- **LKG:** \008797\ (GO), anchor 8f8bd5\ (stable pre‑R1.2).
 
 DB:
 - Для пилота предпочитать “forward‑only migrations”.
-- Перед релизом иметь точку восстановления (backup) и отдельный staging для проверки миграций.
+- M5 track: **нет новых миграций** — откат DB не требуется.
+- Перед новым релизным треком иметь точку восстановления (backup) и отдельный staging для проверки миграций.
 
 ---
 

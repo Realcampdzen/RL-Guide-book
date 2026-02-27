@@ -13,7 +13,7 @@ from .base import (
     ShiftsStore, MembershipsStore, SquadCornersStore,
     SquadInvitesStore, SquadMessagesStore,
     BadgeRequestsStore, ParentSnapshotsStore, ChatDailyUsageStore,
-    CouncilInitiativesStore,
+    CouncilInitiativesStore, TeamsStore,
 )
 
 _DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
@@ -27,6 +27,8 @@ _BADGE_REQUESTS_FILE = os.path.join(_DATA_DIR, "badge_requests.json")
 _PARENT_SNAPSHOTS_FILE = os.path.join(_DATA_DIR, "parent_snapshots.json")
 _CHAT_DAILY_USAGE_FILE = os.path.join(_DATA_DIR, "chat_daily_usage.json")
 _COUNCIL_INITIATIVES_FILE = os.path.join(_DATA_DIR, "council_initiatives.json")
+# Teams historically live in backend/teams.json (not backend/data/teams.json)
+_TEAMS_FILE = os.path.join(os.path.dirname(__file__), "..", "teams.json")
 
 _SHIFTS_LOCK         = threading.Lock()
 _MEMBERSHIPS_LOCK    = threading.Lock()
@@ -37,6 +39,7 @@ _BADGE_REQUESTS_LOCK = threading.Lock()
 _PARENT_SNAPSHOTS_LOCK = threading.Lock()
 _CHAT_DAILY_LOCK     = threading.Lock()
 _COUNCIL_INITIATIVES_LOCK = threading.Lock()
+_TEAMS_LOCK          = threading.Lock()
 
 
 def _ensure_data_dir():
@@ -251,6 +254,25 @@ class JsonCouncilInitiativesStore(CouncilInitiativesStore):
 
 
 # ---------------------------------------------------------------------------
+# TeamsStore
+# ---------------------------------------------------------------------------
+
+class JsonTeamsStore(TeamsStore):
+    def load(self) -> dict:
+        _ensure_data_dir()
+        with _TEAMS_LOCK:
+            data = _read_json(_TEAMS_FILE, {})
+            if not isinstance(data, dict):
+                data = {}
+            return data
+
+    def save(self, data: dict) -> None:
+        _ensure_data_dir()
+        with _TEAMS_LOCK:
+            _write_json(_TEAMS_FILE, data if isinstance(data, dict) else {})
+
+
+# ---------------------------------------------------------------------------
 # Реестр экземпляров
 # ---------------------------------------------------------------------------
 
@@ -264,4 +286,5 @@ JSON_STORES = {
     "parent_snapshots": JsonParentSnapshotsStore(),
     "chat_daily_usage": JsonChatDailyUsageStore(),
     "council_initiatives": JsonCouncilInitiativesStore(),
+    "teams":           JsonTeamsStore(),
 }

@@ -1,32 +1,23 @@
 #!/usr/bin/env python3
 """
-apply_migration.py — применяет 001_schema_v1.sql к Supabase.
+apply_migration.py — применяет SQL-миграции к Supabase.
 
-Способы применения (в порядке приоритета):
+Поддерживает:
+- выбор файла миграции через --file (relative to backend/migrations)
+- запуск через Management API token (предпочтительно)
+- запуск через прямое PostgreSQL подключение (psycopg2)
 
-1. Через Management API Token (рекомендуется):
-   - Получить: https://supabase.com/dashboard/account/tokens
-   - Добавить в .env: SUPABASE_ACCESS_TOKEN=<token>
-   - Запуск: python backend/migrations/apply_migration.py
-
-2. Через прямое PostgreSQL подключение (psycopg2):
-   - Пароль БД: Supabase Dashboard → Project Settings → Database
-   - Добавить в .env: SUPABASE_DB_PASSWORD=<password>
-   - Или: DATABASE_URL=postgresql://postgres:<password>@db.<ref>.supabase.co:5432/postgres
-   - pip install psycopg2-binary
-   - Запуск: python backend/migrations/apply_migration.py
-
-3. Вручную через SQL Editor:
-   - https://supabase.com/dashboard/project/<ref>/sql/new
-   - Вставить backend/migrations/001_schema_v1.sql и нажать Run
+Примеры:
+  python backend/migrations/apply_migration.py
+  python backend/migrations/apply_migration.py --file 003_teams_scope.sql
 """
 
+import argparse
 import os
 import sys
-import re
 from pathlib import Path
 
-# Загружаем .env
+# Load .env from repo root/backend
 try:
     from dotenv import load_dotenv
     root = Path(__file__).resolve().parent.parent.parent
@@ -39,19 +30,29 @@ SUPABASE_URL = os.environ.get("SUPABASE_URL", "").strip()
 SUPABASE_ACCESS_TOKEN = os.environ.get("SUPABASE_ACCESS_TOKEN", "").strip()
 DATABASE_URL = os.environ.get("DATABASE_URL", "").strip()
 SUPABASE_DB_PASSWORD = os.environ.get("SUPABASE_DB_PASSWORD", "").strip()
+SERVICE_ROLE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "").strip()
 
-if not DATABASE_URL and SUPABASE_URL and SUPABASE_DB_PASSWORD:
-    ref = SUPABASE_URL.replace("https://", "").split(".")[0]
-    DATABASE_URL = f"postgresql://postgres:{SUPABASE_DB_PASSWORD}@db.{ref}.supabase.co:5432/postgres"
 
-sql_file = Path(__file__).parent / "001_schema_v1.sql"
-sql = sql_file.read_text(encoding="utf-8")
+def _parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--file",
+        default="001_schema_v1.sql",
+        help="migration SQL file in backend/migrations (default: 001_schema_v1.sql)",
+    )
+    return parser.parse_args()
 
-# -----------------------------------------------------------------------
-# Способ 1: Supabase Management API Token
-# -----------------------------------------------------------------------
-if SUPABASE_ACCESS_TOKEN and SUPABASE_URL:
+
+def _resolve_sql_file(filename: str) -> Path:
+    p = Path(__file__).parent / filename
+    if not p.exists():
+        raise FileNotFoundError(f"Migration file not found: {p}")
+    return p
+
+
+def _apply_via_management_api(sql: str) -> int:
     import requests as _req
+
     ref = SUPABASE_URL.replace("https://", "").split(".")[0]
     print(f"Applying via Management API (project: {ref})...")
     r = _req.post(
@@ -61,109 +62,92 @@ if SUPABASE_ACCESS_TOKEN and SUPABASE_URL:
             "Content-Type": "application/json",
         },
         json={"query": sql},
-        timeout=30,
+        timeout=60,
     )
-    if r.status_code in (200, 201):
-        print("✅ Migration applied via Management API!")
-    else:
-        print(f"❌ Management API error {r.status_code}: {r.text[:300]}")
-        sys.exit(1)
+    if r.status_code not in (200, 201):
+        print(f"❌ Management API error {r.status_code}: {r.text[:400]}")
+        return 1
 
-    # Проверка
-    r2 = _req.get(
-        f"{SUPABASE_URL}/rest/v1/shifts?select=id&limit=1",
-        headers={
-            "apikey": os.environ.get("SUPABASE_SERVICE_ROLE_KEY", ""),
-            "Authorization": f"Bearer {os.environ.get('SUPABASE_SERVICE_ROLE_KEY', '')}",
-        },
-        timeout=10,
-    )
-    if r2.status_code == 200:
-        print("✅ shifts table verified via REST API!")
-    else:
-        print(f"⚠️  Verification returned {r2.status_code}: {r2.text[:100]}")
-    sys.exit(0)
+    print("✅ Migration applied via Management API!")
 
-# -----------------------------------------------------------------------
-# Способ 2: прямое psycopg2 подключение
-# -----------------------------------------------------------------------
-if not DATABASE_URL:
-    ref = SUPABASE_URL.replace("https://", "").split(".")[0] if SUPABASE_URL else "<ref>"
-    print("=" * 60)
-    print("ИНСТРУКЦИЯ: как применить миграцию")
-    print("=" * 60)
-    print()
-    print("Вариант A — Management API Token (проще):")
-    print("  1. https://supabase.com/dashboard/account/tokens → Create token")
-    print("  2. Добавить в .env: SUPABASE_ACCESS_TOKEN=<token>")
-    print("  3. Снова запустить: python backend/migrations/apply_migration.py")
-    print()
-    print("Вариант B — Вручную через SQL Editor:")
-    print(f"  1. Открыть: https://supabase.com/dashboard/project/{ref}/sql/new")
-    print("  2. Вставить содержимое backend/migrations/001_schema_v1.sql")
-    print("  3. Нажать Run")
-    print()
-    print("Вариант C — прямое PG подключение:")
-    print("  1. Supabase Dashboard → Project Settings → Database → пароль")
-    print("  2. Добавить в .env: SUPABASE_DB_PASSWORD=<password>")
-    print("  3. pip install psycopg2-binary")
-    print("  4. Снова запустить этот скрипт")
-    sys.exit(0)
-
-try:
-    import psycopg2
-except ImportError:
-    print("Installing psycopg2-binary...")
-    os.system(f"{sys.executable} -m pip install psycopg2-binary -q")
-    import psycopg2
-
-print(f"Connecting to Supabase...")
-masked = DATABASE_URL.replace(DATABASE_URL.split("@")[0].split("//")[1], "postgres:***")
-print(f"  URL: {masked}")
-
-try:
-    conn = psycopg2.connect(DATABASE_URL, connect_timeout=15)
-    conn.autocommit = True
-    cur = conn.cursor()
-
-    print("Applying 001_schema_v1.sql...")
-    cur.execute(sql)
-    print("✅ Migration applied successfully!")
-
-    # Проверяем таблицы
-    cur.execute("""
-        SELECT table_name FROM information_schema.tables
-        WHERE table_schema = 'public'
-        AND table_name IN (
-            'shifts','squads','memberships','squad_corners',
-            'squad_invite_codes','squad_messages',
-            'badge_requests','parent_snapshots','chat_daily_usage'
+    # Optional basic verification via REST (if service key present)
+    if SERVICE_ROLE_KEY:
+        r2 = _req.get(
+            f"{SUPABASE_URL}/rest/v1/teams?select=id&limit=1",
+            headers={
+                "apikey": SERVICE_ROLE_KEY,
+                "Authorization": f"Bearer {SERVICE_ROLE_KEY}",
+            },
+            timeout=20,
         )
-        ORDER BY table_name;
-    """)
-    tables = [r[0] for r in cur.fetchall()]
-    print(f"\nCreated tables ({len(tables)}/9):")
-    for t in tables:
-        print(f"  ✅ {t}")
+        if r2.status_code == 200:
+            print("✅ teams endpoint reachable via REST API")
+        else:
+            print(f"⚠️ Verification returned {r2.status_code}: {r2.text[:200]}")
+    return 0
 
-    missing = {
-        'shifts','squads','memberships','squad_corners',
-        'squad_invite_codes','squad_messages',
-        'badge_requests','parent_snapshots','chat_daily_usage'
-    } - set(tables)
-    if missing:
-        print(f"\n⚠️  Missing tables: {missing}")
-    else:
-        print("\n✅ All 9 tables present!")
 
-    cur.close()
-    conn.close()
+def _apply_via_postgres(sql: str) -> int:
+    db_url = DATABASE_URL
+    if not db_url and SUPABASE_URL and SUPABASE_DB_PASSWORD:
+        ref = SUPABASE_URL.replace("https://", "").split(".")[0]
+        db_url = f"postgresql://postgres:{SUPABASE_DB_PASSWORD}@db.{ref}.supabase.co:5432/postgres"
 
-except psycopg2.OperationalError as e:
-    print(f"\n❌ Connection failed: {e}")
-    print("\nCheck your DB password in:")
-    print("  Supabase Dashboard → Project Settings → Database")
-    sys.exit(1)
-except Exception as e:
-    print(f"\n❌ Migration failed: {e}")
-    sys.exit(1)
+    if not db_url:
+        ref = SUPABASE_URL.replace("https://", "").split(".")[0] if SUPABASE_URL else "<ref>"
+        print("=" * 60)
+        print("ИНСТРУКЦИЯ: как применить миграцию")
+        print("=" * 60)
+        print("Вариант A — Management API Token:")
+        print("  1. https://supabase.com/dashboard/account/tokens")
+        print("  2. Добавь SUPABASE_ACCESS_TOKEN в .env")
+        print("  3. Перезапусти этот скрипт")
+        print()
+        print("Вариант B — SQL Editor:")
+        print(f"  https://supabase.com/dashboard/project/{ref}/sql/new")
+        print("  Вставь SQL миграции и нажми Run")
+        print()
+        print("Вариант C — PostgreSQL:")
+        print("  DATABASE_URL=postgresql://...")
+        return 2
+
+    try:
+        import psycopg2
+    except ImportError:
+        print("Installing psycopg2-binary...")
+        os.system(f"{sys.executable} -m pip install psycopg2-binary -q")
+        import psycopg2
+
+    try:
+        conn = psycopg2.connect(db_url, connect_timeout=20)
+        conn.autocommit = True
+        cur = conn.cursor()
+        cur.execute(sql)
+        print("✅ Migration applied via PostgreSQL")
+        cur.close()
+        conn.close()
+        return 0
+    except Exception as e:
+        print(f"❌ PostgreSQL migration failed: {e}")
+        return 1
+
+
+def main() -> int:
+    args = _parse_args()
+    try:
+        sql_path = _resolve_sql_file(args.file)
+    except FileNotFoundError as e:
+        print(str(e))
+        return 1
+
+    sql = sql_path.read_text(encoding="utf-8")
+    print(f"Using migration file: {sql_path.name}")
+
+    if SUPABASE_ACCESS_TOKEN and SUPABASE_URL:
+        return _apply_via_management_api(sql)
+
+    return _apply_via_postgres(sql)
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
