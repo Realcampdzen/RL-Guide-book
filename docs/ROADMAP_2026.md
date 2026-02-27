@@ -303,3 +303,11 @@
   - backend/scripts/smoke_backend_critical.py (Flow F + 39 checks)
   - docs/BACKEND_CONTRACT_GUARD.md (updated)
   - docs/PROD_ROADMAP_IMPL/reports/REPORT_A_M5_R3_A.md
+
+### 2026-02-28 - M5-R4-A (Supabase Badge Gap: load_inbox + schema fix)
+
+- Status: Done
+- Owner: Agent A
+- Branch: agent-a/m5-r4-a
+- Scope: GAP FOUND AND FIXED. SupabaseBadgeRequestsStore.load_inbox() SQL-level filtering. Smoke 39/39.
+- Evidence: backend/storage/supabase_provider.py, docs/PROD_ROADMAP_IMPL/reports/REPORT_A_M5_R4_A.md

@@ -1,9 +1,9 @@
 # Backend Contract Guard — Critical API Endpoints
 
-**Срез:** 2026-02-27  
+**Срез:** 2026-02-28  
 **Автор:** Agent A (Data/Backend contracts)  
-**Tasks:** M5-R2-A, M5-R2-B, M5-R3-A  
-**Источник истины:** `backend/app.py`
+**Tasks:** M5-R2-A, M5-R2-B, M5-R3-A, M5-R4-A  
+**Источник истины:** `backend/app.py`, `backend/storage/supabase_provider.py`
 
 Этот документ фиксирует API-контракты для трёх критических endpoint-групп постпилотного контура. Цель — не допустить breaking-регрессий при будущих доработках backend'а.
 
@@ -567,4 +567,18 @@ python backend/scripts/smoke_backend_critical.py --base-url http://localhost:400
 | Breaking change — согласовать с фронтом | NeuroStepa → Agent A + Agent B |
 | После обновления — перезапустить smoke | Agent A |
 
-*Последнее обновление: 2026-02-27 (M5-R4-C, Agent C — /api/chat: pending badges context, CHAT_MAX_MESSAGE_LEN validation (400), G-3 smoke check, 44 checks total)*
+*Последнее обновление: 2026-02-28 (M5-R4-A, Agent A — Supabase GAP fix: requestedBy nested dict, load_inbox() SQL filtering. Prior: M5-R4-C, Agent C — /api/chat pending badges context, CHAT_MAX_MESSAGE_LEN 400, 44 checks)*
+
+---
+
+## 5.1 Supabase Provider Coverage (M5-R4-A audit)
+
+**Audit result: GAP FOUND AND FIXED (2026-02-28)**
+
+`SupabaseBadgeRequestsStore._row_to_badge_request()` previously returned flat keys (`requestedByDeviceId`, etc.) while `app.py` expected nested `requestedBy: {deviceId, nickname}`. In prod (USE_SUPABASE=true) this caused `requested_by_device_id` to be written as empty string, `/mine` filtering always returning empty, and approve logic failing.
+
+Fixed: nested dicts returned by `_row_to_badge_request()`, flat-key fallback in `_badge_request_to_row()`.
+
+Added: `SupabaseBadgeRequestsStore.load_inbox()` — SQL-level filtering by camp_id, squad_id, status, TTL. `badge_request_inbox()` uses it via `hasattr()`.
+
+Smoke 39/39 PASSED (baseline unchanged).

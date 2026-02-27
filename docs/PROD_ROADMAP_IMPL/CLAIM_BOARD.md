@@ -80,6 +80,7 @@
 | **Agent A** | M5-R3-A | Badge Requests Cleanup + Teams Smoke: inbox TTL filter (`includeResolved`), cleanup endpoint, smoke Flow F (Teams lifecycle), 39 checks total | ✅ done | 2026-02-27 | [REPORT_A_M5_R3_A.md](reports/REPORT_A_M5_R3_A.md) |
 | **Agent C** | M5-R3-C | Chat Context Enrichment: squad_name/shift_name/nickname в системный промпт + smoke Flow G + BACKEND_CONTRACT_GUARD §3.5, 43 checks total | ✅ done (CERTIFIED) | 2026-02-27 | [REPORT_C_M5_R3_C_2026-02-27.md](reports/REPORT_C_M5_R3_C_2026-02-27.md) |
 | **Agent C** | M5-R4-C | Chat Quality+Safety: pending badges context injection, CHAT_MAX_MESSAGE_LEN validation (400), G-3 smoke check, BACKEND_CONTRACT_GUARD §3.5 update, 44 checks total | ✅ done (CERTIFIED) | 2026-02-27 | [REPORT_C_M5_R4_C_2026-02-27.md](reports/REPORT_C_M5_R4_C_2026-02-27.md) |
+| **Agent A** | M5-R4-A | Supabase GAP fix: requestedBy schema mismatch + load_inbox() SQL filtering. Smoke 39/39 | ✅ done | 2026-02-28 | [REPORT_A_M5_R4_A.md](reports/REPORT_A_M5_R4_A.md) |
 
 ---
 
