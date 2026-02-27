@@ -9,7 +9,7 @@
 - Cycle ID: 2026-02-27-A
 - Mode: Execution
 - Orchestrator: NeuroStepa
-- Updated at: 2026-02-27
+- Updated at: 2026-02-27 (M5-R2-A accepted)
 
 ---
 
@@ -17,10 +17,15 @@
 
 | Agent | Current Task | Branch | Status | Last Commit | Risks/Blockers | Next Action | Owner |
 |---|---|---|---|---|---|---|---|
-| Dev Bro 1 | M3-SC-S1 (Squad Corner — Stabilized Slice 1) | `devbro/m3-squad-corner-s1` | IN IMPLEMENT | `35609d9` | Risk: readiness criteria drift without explicit contract | Deliver DONE package (commit/files/regression/report/handoff) | Dev Bro 1 |
-| Kot Bro | KOT_THREAD_TRANSPORT_FIX_V1.1 | n/a (service scope) | IN IMPLEMENT (NOT CERTIFIED) | `ad2ceff` + `1130811` | Blocker: no stable public webhook transport/rootId | Implement transport hook + rootId runtime evidence + TEST#A/B/C | Kot Bro |
+| Agent A | M5-R2-B (badge inbox squad filter + /mine endpoint + smoke update) | `main` | IN PROGRESS | — | R5-RESOLVED: uncommitted changes = M5-R2-B work in progress, NOT KOT-transport | Deliver DONE package + commit | Agent A |
+| Agent B | TAILS_RECONCILE_B (chip color tokens + ImageSourceBlock process labels) | `main` | ✅ DONE | `9e7ab96` | None | Standby — ждёт следующей задачи | Agent B |
+| Agent D | TAILS_RECONCILE_D (release readiness baseline + GO note + ops snapshot + risk matrix) | `main` | ✅ DONE | `4f3cebf` | R5 mis-identified (KOT vs M5-R2-B) — resolved | Standby — ждёт следующей задачи | Agent D |
+| Dev Bro 1 | M3-SC-S1 (Squad Corner — Stabilized Slice 1) | `devbro/m3-squad-corner-s1` | ✅ DONE | `35609d9` | None | Standby | Dev Bro 1 |
+| Agent C | M5-R2-C (images safety: prompt sanitization + per-camp quota + contract + smoke) | `agentb/m3-bf-s4-badge-request-status` | ✅ DONE CERTIFIED | `0a307ee` | None — no breaking changes, guardrails respected | Standby — ждёт следующей задачи | Agent C |
+| Kot Bro | KOT_THREAD_TRANSPORT_FIX_V1.1 | n/a (service scope) | ✅ CERTIFIED via TAILS_RECONCILE_C | `ad2ceff` + `1130811` + `70ecd58` | GAP-1 зафиксирован, non-blocking | Closed — cf-api self-contained, backend ready | Kot Bro |
+| Agent E (Opus) | E-VALIDATION-M5 (runtime browser validation: auth/RBAC/badge lifecycle/parent/staff UI) | `cloud/e-validation-m5` | ✅ CERTIFIED | `009a5d3` | ESLint 193 pre-existing (не M5) — non-blocking | Standby — ограниченный ресурс, использовать точечно | Opus |
 | Fin Bro | Standby release-risk audit | n/a | STANDBY | — | None | Prepare fast risk template on demand | Fin Bro |
-| NeuroStepa | CYCLE_CONTROL_BOARD setup and orchestration quality gate | `main` | DONE | `pending` | None | Keep board updated every major status change | NeuroStepa |
+| NeuroStepa | Orchestration + board sync | `main` | ACTIVE | — | None | Keep board updated every major status change | NeuroStepa |
 
 ---
 
@@ -45,8 +50,16 @@
 - M3-BF-S1: DONE (`9d99bc8`)
 - M3-BF-S2: DONE (`8fcbac5`)
 - M3-BF-S3: DONE (`35609d9`)
-- M3-SC-S1: START AUTHORIZED, PLAN APPROVED, IN IMPLEMENT
-- Kot transport fix v1.1: START AUTHORIZED, IN IMPLEMENT, NOT CERTIFIED
+- M3-SC-S1: DONE (`35609d9`) — readiness model + chip + normalization
+- M5-R2-A: DONE (`a995a1b`) — smoke 22/22 + BACKEND_CONTRACT_GUARD.md + playbook §5.3 [2026-02-27]
+- TAILS_RECONCILE_B: DONE (`9e7ab96`) — chip color tokens + ImageSourceBlock process labels, M2 boundary safe [2026-02-27]
+- M5-R2-B: STARTED — Agent A, badge inbox squad filter + /mine endpoint + smoke update
+- Kot transport fix v1.1: CERTIFIED via TAILS_RECONCILE_C (`70ecd58`) — cf-api self-contained, backend ready, GAP-1 non-blocking [2026-02-27]
+- TAILS_RECONCILE_C: DONE CERTIFIED (`70ecd58`) — dual-layer transport analysis, strict policy, operator checklist [2026-02-27]
+- TAILS_RECONCILE_D: DONE (`4f3cebf`) — release readiness finalized, GO note + ops snapshot + risk matrix R1–R6. R5 clarified: uncommitted backend/app.py = M5-R2-B work in progress (NOT KOT-transport) [2026-02-27]
+- E-VALIDATION-M5: CERTIFIED (`009a5d3`) — Opus runtime validation: auth/RBAC/badge E2E/parent read-only/staff UI — VERIFIED, zero blockers [2026-02-27]
+- M5-R2-B: IN PROGRESS — Agent A, badge inbox squad filter + /mine endpoint + smoke update
+- M5-R2-C: DONE CERTIFIED (`0a307ee`) — images safety: prompt sanitization (HTML/injection/truncation) + per-camp daily quota 200/day + BACKEND_CONTRACT_GUARD §3.4 + smoke Flow E (4 checks). Agent C [2026-02-27]
 
 ---
 
