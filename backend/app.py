@@ -3293,22 +3293,28 @@ def badge_requests_cleanup():
         return jsonify({"error": "olderThanDays must be non-negative"}), 400
     cutoff_ts = time.time() - older_than_days * 86400
 
-    bdoc = _badge_requests_load()
-    before = len(bdoc.get("requests") or [])
-    kept = []
-    for row in (bdoc.get("requests") or []):
-        if not isinstance(row, dict):
-            continue
-        row_status = (row.get("status") or "").strip()
-        if row_status in ("approved", "rejected"):
-            resolved_at = row.get("resolvedAt") or ""
-            row_ts = _parse_iso_ts(resolved_at) if resolved_at else 0
-            if row_ts < cutoff_ts:
+    store = get_store("badge_requests")
+    if hasattr(store, 'delete_resolved'):
+        # Supabase path: SQL DELETE — efficient, no full table load (M5-R5-A)
+        deleted = store.delete_resolved(older_than_days)
+    else:
+        # JSON fallback: in-memory filter + rewrite
+        bdoc = _badge_requests_load()
+        before = len(bdoc.get("requests") or [])
+        kept = []
+        for row in (bdoc.get("requests") or []):
+            if not isinstance(row, dict):
                 continue
-        kept.append(row)
-    deleted = before - len(kept)
-    bdoc["requests"] = kept
-    _badge_requests_save(bdoc)
+            row_status = (row.get("status") or "").strip()
+            if row_status in ("approved", "rejected"):
+                resolved_at = row.get("resolvedAt") or ""
+                row_ts = _parse_iso_ts(resolved_at) if resolved_at else 0
+                if row_ts < cutoff_ts:
+                    continue
+            kept.append(row)
+        deleted = before - len(kept)
+        bdoc["requests"] = kept
+        _badge_requests_save(bdoc)
     hashed_device = hashlib.sha256(device_id.encode()).hexdigest()[:12] if device_id else "unknown"
     app.logger.info(
         f"[BADGE_CLEANUP] deleted={deleted} actor={hashed_device} ts={datetime.now(timezone.utc).isoformat()}"

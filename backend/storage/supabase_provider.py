@@ -340,6 +340,19 @@ class SupabaseBadgeRequestsStore(BadgeRequestsStore):
             rows = q.order("created_at", desc=False).execute().data or []
         return [_row_to_badge_request(r) for r in rows]
 
+    def delete_resolved(self, older_than_days: int) -> int:
+        """SQL DELETE resolved badge_requests older than N days. Returns deleted count. Added M5-R5-A."""
+        import datetime
+        sb = _client()
+        cutoff = (datetime.datetime.now(datetime.timezone.utc)
+                  - datetime.timedelta(days=older_than_days)).isoformat()
+        result = (sb.table("badge_requests")
+                    .delete()
+                    .in_("status", ["approved", "rejected"])
+                    .lt("resolved_at", cutoff)
+                    .execute())
+        return len(result.data or [])
+
 
 def _row_to_badge_request(r: dict) -> dict:
     """Convert DB row to nested requestedBy/resolvedBy dict. Fixed in M5-R4-A."""
