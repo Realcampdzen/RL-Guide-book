@@ -275,6 +275,9 @@ export const ProfileView: React.FC<any> = (props) => {
   const [approvalsSyncStatus, setApprovalsSyncStatus] = useState<string | null>(null);
   const [pendingApprovalsCount, setPendingApprovalsCount] = useState(0);
   const [approvalsSyncPromptDismissed, setApprovalsSyncPromptDismissed] = useState(false);
+  const [rejectExpandedId, setRejectExpandedId] = useState<string | null>(null);
+  const [rejectNote, setRejectNote] = useState('');
+  const [evidenceExpandedId, setEvidenceExpandedId] = useState<string | null>(null);
   const [mySquadBusy, setMySquadBusy] = useState(false);
   const [mySquadError, setMySquadError] = useState<string | null>(null);
   const [mySquadInfo, setMySquadInfo] = useState<SquadMineResponse | null>(null);
@@ -5405,57 +5408,112 @@ export const ProfileView: React.FC<any> = (props) => {
                       {badgeRequestsInbox.length === 0 ? (
                         <div style={{ fontSize: 12, opacity: 0.8 }}>Входящих заявок нет.</div>
                       ) : (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 260, overflowY: 'auto' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 360, overflowY: 'auto' }}>
                           {badgeRequestsInbox.map((req) => (
                             <div key={req.id} style={{ padding: 8, borderRadius: 8, background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.08)' }}>
                               <div style={{ fontSize: 12, fontWeight: 700 }}>{req.levelId} {req.badgeTitle ? `· ${req.badgeTitle}` : ''}</div>
                               <div style={{ fontSize: 11, opacity: 0.8 }}>
-                                {req.requestedBy?.nickname || req.requestedBy?.deviceId || '—'} · {req.status}
+                                {req.requestedBy?.nickname || req.requestedBy?.deviceId || '—'} · {new Date(req.createdAt).toLocaleString('ru-RU')}
                               </div>
-                              {req.evidence?.reflection && <div style={{ fontSize: 12, opacity: 0.9, marginTop: 4 }}>{req.evidence.reflection}</div>}
+                              {req.evidence && (req.evidence.reflection || req.evidence.impact || req.evidence.link) && (
+                                <>
+                                  <button
+                                    type="button"
+                                    onClick={() => setEvidenceExpandedId(evidenceExpandedId === req.id ? null : req.id)}
+                                    style={{ fontSize: 11, opacity: 0.6, background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', padding: 0, marginTop: 4 }}
+                                  >
+                                    {evidenceExpandedId === req.id ? 'Скрыть пруф ▲' : 'Показать пруф ▼'}
+                                  </button>
+                                  {evidenceExpandedId === req.id && (
+                                    <div style={{ fontSize: 11, opacity: 0.7, marginTop: 4, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                                      {req.evidence.reflection && <span>Рефлексия: {req.evidence.reflection}</span>}
+                                      {req.evidence.impact && <span>Результат: {req.evidence.impact}</span>}
+                                      {req.evidence.link && <a href={req.evidence.link} target="_blank" rel="noreferrer" style={{ color: 'inherit' }}>Ссылка</a>}
+                                    </div>
+                                  )}
+                                </>
+                              )}
                               {req.status === 'pending' && (
-                                <div style={{ marginTop: 8, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                                  <button
-                                    type="button"
-                                    className="btn-primary-gold"
-                                    style={{ padding: '6px 12px', fontSize: 12 }}
-                                    disabled={badgeRequestsBusy}
-                                    onClick={async () => {
-                                      setBadgeRequestsBusy(true);
-                                      setBadgeRequestsError(null);
-                                      try {
-                                        await approveBadgeRequest(accessToken || '', req.id);
-                                        await loadBadgeApprovalsData();
-                                      } catch (e) {
-                                        setBadgeRequestsError(e instanceof Error ? e.message : 'Не удалось подтвердить заявку.');
-                                      } finally {
-                                        setBadgeRequestsBusy(false);
-                                      }
-                                    }}
-                                  >
-                                    Approve
-                                  </button>
-                                  <button
-                                    type="button"
-                                    className="btn-secondary"
-                                    style={{ padding: '6px 12px', fontSize: 12 }}
-                                    disabled={badgeRequestsBusy}
-                                    onClick={async () => {
-                                      setBadgeRequestsBusy(true);
-                                      setBadgeRequestsError(null);
-                                      try {
-                                        await rejectBadgeRequest(accessToken || '', req.id);
-                                        await loadBadgeApprovalsData();
-                                      } catch (e) {
-                                        setBadgeRequestsError(e instanceof Error ? e.message : 'Не удалось отклонить заявку.');
-                                      } finally {
-                                        setBadgeRequestsBusy(false);
-                                      }
-                                    }}
-                                  >
-                                    Reject
-                                  </button>
-                                </div>
+                                <>
+                                  <div style={{ marginTop: 8, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                                    <button
+                                      type="button"
+                                      className="btn-primary-gold"
+                                      style={{ padding: '6px 12px', fontSize: 12 }}
+                                      disabled={badgeRequestsBusy}
+                                      onClick={async () => {
+                                        setBadgeRequestsBusy(true);
+                                        setBadgeRequestsError(null);
+                                        try {
+                                          await approveBadgeRequest(accessToken || '', req.id);
+                                          setBadgeRequestsInbox(prev => prev.filter(r => r.id !== req.id));
+                                          showHint({ title: 'Заявка обработана', content: 'Одобрение применено.' });
+                                          void loadBadgeApprovalsData();
+                                        } catch (e) {
+                                          setBadgeRequestsError(e instanceof Error ? e.message : 'Не удалось подтвердить заявку.');
+                                        } finally {
+                                          setBadgeRequestsBusy(false);
+                                        }
+                                      }}
+                                    >
+                                      Одобрить
+                                    </button>
+                                    <button
+                                      type="button"
+                                      className="btn-secondary"
+                                      style={{ padding: '6px 12px', fontSize: 12 }}
+                                      disabled={badgeRequestsBusy}
+                                      onClick={() => { setRejectExpandedId(req.id); setRejectNote(''); }}
+                                    >
+                                      Отклонить
+                                    </button>
+                                  </div>
+                                  {rejectExpandedId === req.id && (
+                                    <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                                      <textarea
+                                        placeholder="Причина отказа (необязательно)"
+                                        maxLength={200}
+                                        value={rejectNote}
+                                        onChange={e => setRejectNote(e.target.value)}
+                                        style={{ width: '100%', minHeight: 56, fontSize: 12, borderRadius: 8, padding: 6, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.15)', color: 'inherit', resize: 'vertical', boxSizing: 'border-box' }}
+                                      />
+                                      <div style={{ display: 'flex', gap: 8 }}>
+                                        <button
+                                          type="button"
+                                          className="btn-secondary"
+                                          style={{ padding: '6px 12px', fontSize: 12 }}
+                                          disabled={badgeRequestsBusy}
+                                          onClick={async () => {
+                                            setBadgeRequestsBusy(true);
+                                            setBadgeRequestsError(null);
+                                            try {
+                                              await rejectBadgeRequest(accessToken || '', req.id, rejectNote.trim() || undefined);
+                                              setBadgeRequestsInbox(prev => prev.filter(r => r.id !== req.id));
+                                              setRejectExpandedId(null);
+                                              setRejectNote('');
+                                              showHint({ title: 'Заявка обработана', content: 'Отклонено.' });
+                                              void loadBadgeApprovalsData();
+                                            } catch (e) {
+                                              setBadgeRequestsError(e instanceof Error ? e.message : 'Не удалось отклонить заявку.');
+                                            } finally {
+                                              setBadgeRequestsBusy(false);
+                                            }
+                                          }}
+                                        >
+                                          Отклонить
+                                        </button>
+                                        <button
+                                          type="button"
+                                          className="btn-secondary"
+                                          style={{ padding: '6px 12px', fontSize: 12 }}
+                                          onClick={() => { setRejectExpandedId(null); setRejectNote(''); }}
+                                        >
+                                          Отмена
+                                        </button>
+                                      </div>
+                                    </div>
+                                  )}
+                                </>
                               )}
                             </div>
                           ))}
