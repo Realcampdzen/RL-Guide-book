@@ -57,6 +57,16 @@
 
 ---
 
+## Cloud Agent E — Validation & Audit
+
+| Агент | Task ID | Задача | Статус | Дата начала | Следующий шаг | Отчёт |
+|-------|---------|--------|--------|-------------|---------------|-------|
+| **Cloud Agent E** | E-VALIDATION-M5 | Runtime smoke: auth, badge lifecycle, roles | ✅ done | 2026-02-27 | — | [REPORT_E_VALIDATION_M5.md](reports/REPORT_E_VALIDATION_M5.md) |
+| **Cloud Agent E** | E-ESLINT-TRIAGE-M5 | ESLint 193 issues triage (0 CRITICAL) | ✅ done | 2026-02-27 | — | [REPORT_E_ESLINT_TRIAGE_M5.md](reports/REPORT_E_ESLINT_TRIAGE_M5.md) |
+| **Cloud Agent E** | E-UX-AUDIT-M5 | UX audit: prod + mobile + roles + chat | ✅ done | 2026-02-27 | Agent D fix base-path | [REPORT_E_UX_AUDIT_M5.md](reports/REPORT_E_UX_AUDIT_M5.md) |
+
+---
+
 ## История выполненных задач (архив)
 
 | Агент | Task ID | Задача | Дата завершения | Отчёт |
