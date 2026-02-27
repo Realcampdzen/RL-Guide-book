@@ -221,3 +221,15 @@
   - docs/PROD_ROADMAP_IMPL/reports/REPORT_M2_Q2_KICKOFF_2026-02-26.md
   - docs/PROD_ROADMAP_IMPL/reports/REPORT_M2_Q2_PARENT_READONLY_SLICE2_3_2026-02-26.md
   - docs/PROD_ROADMAP_IMPL/reports/REPORT_M2_Q2_PARENT_HYBRID_CLOSEOUT_2026-02-26.md
+
+### 2026-02-27 - M3-SC-S1 (Squad Corner Stabilized Slice 1)
+
+- Status: Done
+- Scope delivered:
+  - Added unified readiness read-model (`empty|partial|ready`) with explicit normalization.
+  - Added compact readiness chip in SquadCornerDashboard and SquadCabinetPanel.
+  - Kept backward compatibility with current corner save/upload/local draft and staff flow.
+  - No RBAC or DB migration changes.
+- Evidence:
+  - docs/PROD_ROADMAP_IMPL/reports/REPORT_M3_SC_S1_2026-02-27.md
+  - docs/SQUAD_CORNER_READINESS.md
