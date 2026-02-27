@@ -315,6 +315,79 @@
 
 ---
 
+### 3.4 Image Generation
+
+#### `POST /api/images/generate`
+
+**Auth:** Bearer JWT — роли `participant | counselor | educator | shift_leader | camp_director | developer` (same as teams auth, `traveler` excluded)
+
+**Body:**
+```json
+{
+  "mode":         "string (required) — 'generate' | 'process'",
+  "context":      "string (required) — e.g. 'passport', 'gerb', 'squad_corner', 'badge_skins', ...",
+  "prompt":       "string (optional, max 300 chars after sanitization)",
+  "imageBase64":  "string (required if mode='process')",
+  "teamId":       "string (optional)",
+  "style":        "string (optional) — 'cosmos' | 'cyberpunk' | 'realism' (default: 'cosmos')",
+  "teamName":     "string (optional, hint for gerb context)",
+  "captainName":  "string (optional, hint for gerb context)"
+}
+```
+
+**Response 200:**
+```json
+{
+  "imageBase64": "string (mandatory) — base64-encoded image"
+}
+```
+
+**Response 4xx/5xx:**
+```json
+{ "error": "string (mandatory)" }
+```
+
+**HTTP-статусы:**
+
+| Код | Условие |
+|-----|---------|
+| 200 | Успех — изображение сгенерировано / обработано |
+| 400 | Отсутствует обязательный параметр (`mode`, `context`) или `imageBase64` для process mode |
+| 401 | Нет JWT или токен невалиден |
+| 403 | Роль не разрешена (`traveler`) |
+| 429 | Превышен per-device rate limit (10/мин) ИЛИ per-camp daily quota (200/день) |
+| 501 | process mode не поддерживается текущим провайдером |
+| 503 | OpenAI API не настроен или недоступен |
+
+**Mandatory request fields:** `mode`, `context`  
+**Mandatory response fields (200):** `imageBase64`
+
+**Rate limits:**
+- Per-device: `IMAGES_GENERATE_RATE_LIMIT` (default 10) запросов за 60 сек, ключ = `deviceId` из JWT или IP
+- Per-camp daily: `IMAGES_CAMP_DAILY_LIMIT` (default 200) генераций в сутки (UTC), ключ = `campId` из JWT, fallback = `deviceId`
+- При превышении per-camp: `{"error": "Лимит генерации изображений для смены исчерпан", "retryAfter": "tomorrow"}`
+
+**Safety (prompt sanitization, M5-R2-C):**
+- HTML/script-теги удаляются из `prompt` до передачи в OpenAI
+- При обнаружении injection-паттернов (`ignore previous`, `forget instructions`, `jailbreak`, `disregard`, `override prompt`) — `prompt` отбрасывается полностью, используется только базовый контекстный промпт
+- `prompt` обрезается до `IMAGES_USER_PROMPT_MAX_LEN` символов (default 300) — non-breaking, т.к. лишние символы молча обрезаются
+- Все события логируются: `[IMAGES_SAFETY]`, `[IMAGES_SANITIZE]`, `[IMAGES_QUOTA]`
+
+**Breaking changes:**
+- Изменение набора допустимых значений `mode` (`generate | process`)
+- Удаление `imageBase64` из 200-ответа
+- Изменение HTTP-статуса 200 на успехе
+- Добавление обязательного поля в body без default
+
+**Non-breaking changes:**
+- Добавление нового опционального поля в body (с разумным default)
+- Добавление нового поля в 200-ответ
+- Расширение `IMAGES_CAMP_DAILY_LIMIT` или `IMAGES_GENERATE_RATE_LIMIT`
+- Расширение `IMAGES_USER_PROMPT_MAX_LEN`
+- Добавление новых значений `context`
+
+---
+
 ## 4. Breaking vs Non-Breaking — Классификация
 
 | Тип изменения | Breaking? | Комментарий |
@@ -340,7 +413,7 @@
 Контракты автоматически проверяются скриптом:
 
 ```bash
-# С AUTH_SECRET — полный прогон (22 checks):
+# С AUTH_SECRET — полный прогон (~26 checks):
 AUTH_SECRET=<secret> python backend/scripts/smoke_backend_critical.py --base-url http://localhost:4000
 
 # Без секрета — только /api/health:
@@ -348,9 +421,21 @@ python backend/scripts/smoke_backend_critical.py --base-url http://localhost:400
 ```
 
 Скрипт проверяет:
-- Наличие всех mandatory полей в response
-- HTTP-статусы (201/200/404/410)
-- Корректность flow (request → approve → статус=approved в /mine)
+
+| Flow | Endpoint-группа | Checks |
+|------|----------------|--------|
+| Health | `/api/health` | 1 |
+| A | Badge Requests (request → inbox → approve → mine) | ~10 |
+| B | Parent Insights (snapshot → insights → invalid-code 404) | ~5 |
+| C | Council Initiatives (create → list) | ~3 |
+| D | Mine privacy + contract | ~3 |
+| **E** | **Image Generation (happy path, truncation, missing mode, missing context)** | **4** |
+
+**Flow E** (M5-R2-C, `/api/images/generate`):
+- E-1: `mode=generate, context=passport` → 200 (`imageBase64` present) или 503 (нет ключа OpenAI) — оба допустимы
+- E-2: `prompt` длиной > 300 символов → не 500 (200 или 503, sanitization отработала)
+- E-3: без `mode` → 400
+- E-4: без `context` → 400
 
 При изменении любого контракта из §3 — обновить скрипт, запустить, убедиться в 0 failures.
 
@@ -365,4 +450,4 @@ python backend/scripts/smoke_backend_critical.py --base-url http://localhost:400
 | Breaking change — согласовать с фронтом | NeuroStepa → Agent A + Agent B |
 | После обновления — перезапустить smoke | Agent A |
 
-*Последнее обновление: 2026-02-27 (M5-R2-A, Agent A)*
+*Последнее обновление: 2026-02-27 (M5-R2-C, Agent C — добавлен §3.4 Image Generation, §5 обновлён Flow E)*

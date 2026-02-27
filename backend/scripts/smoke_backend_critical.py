@@ -3,12 +3,13 @@
 """
 backend/scripts/smoke_backend_critical.py
 
-Smoke-check for backend critical API flows (M5-R2-A).
+Smoke-check for backend critical API flows (M5-R2-A, M5-R2-C).
 
 Covers:
   Flow A — Badge Request: request → inbox → approve → mine
   Flow B — Parent Insights: snapshot create → insights read → invalid-code 404
   Flow C — Council Initiatives: create → list
+  Flow E — Image Generation: happy path (200|503), prompt truncation (not 500), missing-field guards (400)
 
 Usage:
   python backend/scripts/smoke_backend_critical.py
@@ -174,11 +175,12 @@ class SmokeRunner:
     # Flow A — Badge Request
     # -----------------------------------------------------------------------
 
-    def run_flow_a(self) -> None:
+    def run_flow_a(self) -> tuple:
+        """Run badge request flow. Returns (req_id, participant_token) for use in Flow D, or (None, None) on failure."""
         print("\n[Flow A] Badge Request: request -> inbox -> approve -> mine")
         if not self.auth_secret:
             print("  SKIP  (no AUTH_SECRET — auth flows require it)")
-            return
+            return None, None
 
         participant_device = f"smoke_p_{uuid.uuid4().hex[:8]}"
         staff_device = f"smoke_s_{uuid.uuid4().hex[:8]}"
@@ -186,7 +188,7 @@ class SmokeRunner:
         participant_token = self._get_jwt(participant_device, "participant")
         staff_token = self._get_jwt(staff_device, "shift_leader")
         if not participant_token or not staff_token:
-            return
+            return None, None
 
         # A1 — POST badge request
         req_body = {
@@ -208,7 +210,7 @@ class SmokeRunner:
             )
         except SmokeError as exc:
             self.fail("POST /api/badges/requests", str(exc))
-            return
+            return None, None
 
         req_obj = body.get("request") or {}
         req_id = req_obj.get("id")
@@ -223,7 +225,7 @@ class SmokeRunner:
             f"status={req_obj.get('status')}",
         )
         if not req_id:
-            return
+            return None, None
 
         # A2 — GET inbox (staff)
         try:
@@ -234,7 +236,7 @@ class SmokeRunner:
             )
         except SmokeError as exc:
             self.fail("GET /api/badges/requests/inbox", str(exc))
-            return
+            return None, None
 
         inbox_ids = [r.get("id") for r in (inbox_body.get("requests") or [])]
         self.check(
@@ -254,7 +256,7 @@ class SmokeRunner:
             )
         except SmokeError as exc:
             self.fail(f"POST /api/badges/requests/{req_id}/approve", str(exc))
-            return
+            return None, None
 
         approved_obj = approve_body.get("request") or {}
         self.check(
@@ -268,7 +270,7 @@ class SmokeRunner:
             f"resolvedAt missing in: {approved_obj}",
         )
 
-        # A4 — GET mine (participant)
+        # A4 — GET mine (participant) — basic check
         try:
             _, mine_body = _http(
                 self._url("/api/badges/requests/mine"),
@@ -277,7 +279,7 @@ class SmokeRunner:
             )
         except SmokeError as exc:
             self.fail("GET /api/badges/requests/mine", str(exc))
-            return
+            return None, None
 
         mine_map = {r.get("id"): r for r in (mine_body.get("requests") or [])}
         my_req = mine_map.get(req_id)
@@ -292,6 +294,62 @@ class SmokeRunner:
                 my_req.get("status") == "approved",
                 f"status={my_req.get('status')}",
             )
+
+        return req_id, participant_token
+
+    # -----------------------------------------------------------------------
+    # Flow D — Mine Endpoint (privacy + contract checks)
+    # -----------------------------------------------------------------------
+
+    def run_flow_d(self, req_id: Optional[str], participant_token: Optional[str]) -> None:
+        print("\n[Flow D] Mine endpoint: privacy + contract checks")
+        if not self.auth_secret:
+            print("  SKIP  (no AUTH_SECRET — auth flows require it)")
+            return
+        if not req_id or not participant_token:
+            print("  SKIP  (Flow A did not complete — no req_id available)")
+            return
+
+        try:
+            _, mine_body = _http(
+                self._url("/api/badges/requests/mine"),
+                headers=self._bearer(participant_token),
+                expect_status=200,
+            )
+        except SmokeError as exc:
+            self.fail("GET /api/badges/requests/mine (Flow D)", str(exc))
+            return
+
+        requests_list = mine_body.get("requests")
+        self.check(
+            "GET /api/badges/requests/mine — requests is list",
+            isinstance(requests_list, list),
+            f"requests is not a list: {type(requests_list)}",
+        )
+
+        mine_map = {r.get("id"): r for r in (requests_list or [])}
+        my_req = mine_map.get(req_id)
+        self.check(
+            "GET /api/badges/requests/mine — approved request found",
+            my_req is not None,
+            f"{req_id} not in mine ids: {list(mine_map.keys())[:5]}",
+        )
+        if my_req is None:
+            return
+
+        self.check(
+            "GET /api/badges/requests/mine — status=approved",
+            my_req.get("status") == "approved",
+            f"status={my_req.get('status')}",
+        )
+
+        # Privacy check: requestedBy.deviceId must NOT be present
+        req_by = my_req.get("requestedBy") or {}
+        self.check(
+            "GET /api/badges/requests/mine — requestedBy.deviceId absent (privacy)",
+            "deviceId" not in req_by,
+            f"requestedBy.deviceId present in response: {req_by}",
+        )
 
     # -----------------------------------------------------------------------
     # Flow B — Parent Insights (read-only path)
@@ -340,44 +398,44 @@ class SmokeRunner:
         if not link_code:
             return
 
-        # B2 — GET parent-insights with valid code
+        # B2 — GET parent-snapshot with valid code (read-only parent view)
         try:
             _, insights = _http(
-                self._url(f"/api/parent-insights?code={link_code}"),
+                self._url(f"/api/parent-snapshot?code={link_code}"),
                 expect_status=200,
             )
         except SmokeError as exc:
-            self.fail(f"GET /api/parent-insights?code={link_code}", str(exc))
+            self.fail(f"GET /api/parent-snapshot?code={link_code}", str(exc))
             return
 
-        overall = insights.get("overallProgress") or {}
+        progress = insights.get("progress") or {}
         self.check(
-            "GET /api/parent-insights — overallProgress present",
-            bool(overall),
-            f"overallProgress missing or empty: {insights}",
+            "GET /api/parent-snapshot — progress present",
+            bool(progress),
+            f"progress missing or empty: {insights}",
         )
         self.check(
-            "GET /api/parent-insights — overallProgress.percent is int",
-            isinstance(overall.get("percent"), int),
-            f"percent={overall.get('percent')}",
+            "GET /api/parent-snapshot — exportedAt present",
+            "exportedAt" in insights,
+            f"exportedAt missing in: {list(insights.keys())}",
         )
         self.check(
-            "GET /api/parent-insights — overallProgress.achieved is int",
-            isinstance(overall.get("achieved"), int),
-            f"achieved={overall.get('achieved')}",
+            "GET /api/parent-snapshot — progress has entries",
+            isinstance(progress, dict) and len(progress) > 0,
+            f"progress is empty: {progress}",
         )
 
-        # B3 — GET parent-insights with invalid code → expect 404
+        # B3 — GET parent-snapshot with invalid code → expect 404
         try:
             invalid_status, invalid_body = _http(
-                self._url("/api/parent-insights?code=INVALIDCODE00"),
+                self._url("/api/parent-snapshot?code=INVALIDCODE00"),
             )
         except SmokeError as exc:
-            self.fail("GET /api/parent-insights?code=INVALID (expected 404)", str(exc))
+            self.fail("GET /api/parent-snapshot?code=INVALID (expected 404)", str(exc))
             return
 
         self.check(
-            "GET /api/parent-insights?code=INVALID — 404",
+            "GET /api/parent-snapshot?code=INVALID — 404",
             invalid_status == 404,
             f"expected 404, got {invalid_status}: {invalid_body}",
         )
@@ -457,6 +515,106 @@ class SmokeRunner:
             )
 
     # -----------------------------------------------------------------------
+    # Flow E — Image Generation safety & contract (M5-R2-C)
+    # -----------------------------------------------------------------------
+
+    def run_flow_e(self) -> None:
+        """Flow E: POST /api/images/generate — happy path, truncation, missing-field guards."""
+        print("\n[Flow E] Image Generation: happy path, prompt truncation, missing fields")
+        if not self.auth_secret:
+            print("  SKIP  (no AUTH_SECRET — auth flows require it)")
+            return
+
+        participant_device = f"smoke_img_{uuid.uuid4().hex[:8]}"
+        participant_token = self._get_jwt(participant_device, "participant")
+        if not participant_token:
+            return
+
+        # E-1: happy path — 200 (imageBase64 present) or 503 (no OpenAI key); both acceptable
+        try:
+            status_e1, body_e1 = _http(
+                self._url("/api/images/generate"),
+                method="POST",
+                body={"mode": "generate", "context": "passport"},
+                headers=self._bearer(participant_token),
+            )
+        except SmokeError as exc:
+            self.fail("POST /api/images/generate — happy path (E-1)", str(exc))
+            status_e1, body_e1 = None, {}
+
+        if status_e1 == 200:
+            self.check(
+                "POST /api/images/generate — E-1: 200 imageBase64 present",
+                bool(body_e1.get("imageBase64")),
+                f"imageBase64 missing in 200 response: {body_e1}",
+            )
+        elif status_e1 == 503:
+            self.ok("POST /api/images/generate — E-1: 503 (OpenAI not configured, acceptable)")
+        elif status_e1 is not None:
+            self.fail(
+                "POST /api/images/generate — E-1: unexpected status",
+                f"expected 200 or 503, got {status_e1}: {body_e1}",
+            )
+
+        # E-2: long prompt (>300 chars) — must NOT return 500 (sanitization must absorb it)
+        long_prompt = "x" * 400
+        try:
+            status_e2, body_e2 = _http(
+                self._url("/api/images/generate"),
+                method="POST",
+                body={"mode": "generate", "context": "passport", "prompt": long_prompt},
+                headers=self._bearer(participant_token),
+            )
+        except SmokeError as exc:
+            self.fail("POST /api/images/generate — E-2 prompt truncation", str(exc))
+            status_e2, body_e2 = None, {}
+
+        if status_e2 is not None:
+            self.check(
+                "POST /api/images/generate — E-2: long prompt not 500",
+                status_e2 != 500,
+                f"got 500 — sanitization did not absorb long prompt: {body_e2}",
+            )
+
+        # E-3: missing mode → 400
+        try:
+            status_e3, body_e3 = _http(
+                self._url("/api/images/generate"),
+                method="POST",
+                body={"context": "passport"},
+                headers=self._bearer(participant_token),
+            )
+        except SmokeError as exc:
+            self.fail("POST /api/images/generate — E-3 missing mode", str(exc))
+            status_e3, body_e3 = None, {}
+
+        if status_e3 is not None:
+            self.check(
+                "POST /api/images/generate — E-3: missing mode → 400",
+                status_e3 == 400,
+                f"expected 400, got {status_e3}: {body_e3}",
+            )
+
+        # E-4: missing context → 400
+        try:
+            status_e4, body_e4 = _http(
+                self._url("/api/images/generate"),
+                method="POST",
+                body={"mode": "generate"},
+                headers=self._bearer(participant_token),
+            )
+        except SmokeError as exc:
+            self.fail("POST /api/images/generate — E-4 missing context", str(exc))
+            status_e4, body_e4 = None, {}
+
+        if status_e4 is not None:
+            self.check(
+                "POST /api/images/generate — E-4: missing context → 400",
+                status_e4 == 400,
+                f"expected 400, got {status_e4}: {body_e4}",
+            )
+
+    # -----------------------------------------------------------------------
     # Run all
     # -----------------------------------------------------------------------
 
@@ -470,9 +628,11 @@ class SmokeRunner:
             self._print_summary()
             return 1
 
-        self.run_flow_a()
+        req_id, participant_token = self.run_flow_a()
         self.run_flow_b()
         self.run_flow_c()
+        self.run_flow_d(req_id, participant_token)
+        self.run_flow_e()
         return self._print_summary()
 
     def _print_summary(self) -> int:
@@ -511,7 +671,7 @@ def main() -> int:
     if not auth_secret:
         print(
             "WARNING: --auth-secret / AUTH_SECRET not set. "
-            "Auth flows (A, B, C) will be skipped. Only /api/health will be checked."
+            "Auth flows (A, B, C, D, E) will be skipped. Only /api/health will be checked."
         )
 
     runner = SmokeRunner(base_url=args.base_url, auth_secret=auth_secret)

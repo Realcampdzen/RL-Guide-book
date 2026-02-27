@@ -879,6 +879,71 @@ def _check_images_generate_rate_limit(key):
         times.append(now)
     return True
 
+
+# ---------------------------------------------------------------------------
+# Images safety: prompt sanitization (M5-R2-C)
+# ---------------------------------------------------------------------------
+IMAGES_USER_PROMPT_MAX_LEN = int(os.getenv('IMAGES_USER_PROMPT_MAX_LEN', '300'))
+
+_PROMPT_INJECTION_KEYWORDS = [
+    'ignore previous',
+    'forget instructions',
+    'jailbreak',
+    'disregard',
+    'override prompt',
+]
+_HTML_TAG_RE = re.compile(r'<[^>]+>')
+
+
+def _hash_key(k: str) -> str:
+    """Return first 8 hex chars of SHA-256(k) — safe to log, not reversible."""
+    return hashlib.sha256(k.encode('utf-8', errors='replace')).hexdigest()[:8]
+
+
+def _sanitize_user_prompt(text: str, device_key: str = '') -> str:
+    """Strip HTML, detect injection attempts, truncate to IMAGES_USER_PROMPT_MAX_LEN.
+
+    Returns sanitized prompt string. Returns empty string on injection detection.
+    """
+    cleaned = _HTML_TAG_RE.sub('', text)
+    lower = cleaned.lower()
+    for kw in _PROMPT_INJECTION_KEYWORDS:
+        if kw in lower:
+            app.logger.warning('[IMAGES_SAFETY] prompt_injection_attempt device=%s', _hash_key(device_key))
+            return ''
+    orig_len = len(cleaned)
+    if orig_len > IMAGES_USER_PROMPT_MAX_LEN:
+        cleaned = cleaned[:IMAGES_USER_PROMPT_MAX_LEN]
+        app.logger.info('[IMAGES_SANITIZE] prompt truncated device=%s len=%d', _hash_key(device_key), orig_len)
+    return cleaned
+
+
+# ---------------------------------------------------------------------------
+# Images safety: per-camp daily quota (M5-R2-C)
+# ---------------------------------------------------------------------------
+IMAGES_CAMP_DAILY_LIMIT = int(os.getenv('IMAGES_CAMP_DAILY_LIMIT', '200'))
+_images_camp_daily: dict = {}   # camp_key -> {'date': 'YYYY-MM-DD', 'count': int}
+_images_camp_daily_lock = threading.Lock()
+
+
+def _check_images_camp_daily_quota(camp_key: str) -> bool:
+    """Check and record one image generation against the per-camp daily limit.
+
+    Returns True if request is within quota, False if daily limit exceeded.
+    camp_key is campId from JWT or deviceId as graceful fallback.
+    Counters reset automatically at UTC midnight (date comparison).
+    """
+    today = datetime.utcnow().strftime('%Y-%m-%d')
+    with _images_camp_daily_lock:
+        entry = _images_camp_daily.get(camp_key)
+        if entry and entry['date'] == today:
+            if entry['count'] >= IMAGES_CAMP_DAILY_LIMIT:
+                return False
+            entry['count'] += 1
+        else:
+            _images_camp_daily[camp_key] = {'date': today, 'count': 1}
+    return True
+
 def _validate_community_badge(data):
     """Validate and sanitize POST body. Returns (sanitized_dict, error_message)."""
     if not data or not isinstance(data, dict):
@@ -1237,10 +1302,22 @@ def images_generate():
             "error": "Слишком много запросов генерации. Подождите минуту.",
             "retryAfter": 60,
         }), 429
+    # Per-camp daily quota (M5-R2-C)
+    camp_id = (payload.get('campId') or '').strip()
+    camp_quota_key = camp_id or key
+    if not _check_images_camp_daily_quota(camp_quota_key):
+        app.logger.warning('[IMAGES_QUOTA] daily_limit_hit campId=%s ts=%s',
+                           _hash_key(camp_quota_key), datetime.utcnow().isoformat())
+        return jsonify({
+            "error": "Лимит генерации изображений для смены исчерпан",
+            "retryAfter": "tomorrow",
+        }), 429
     data = request.get_json() or {}
     mode = (data.get("mode") or "").strip().lower()
     context = (data.get("context") or "").strip()
     user_prompt = (data.get("prompt") or "").strip()
+    # Sanitize user_prompt: strip HTML, detect injection, truncate (M5-R2-C)
+    user_prompt = _sanitize_user_prompt(user_prompt, key)
     image_base64 = (data.get("imageBase64") or "").strip()
     team_name_hint = (data.get("teamName") or "").strip()
     captain_name_hint = (data.get("captainName") or "").strip()
@@ -2840,13 +2917,27 @@ def badge_request_create():
     return jsonify({"request": request_doc}), 201
 
 
+def _project_mine_row(row: dict) -> dict:
+    """Return badge request row without requestedBy.deviceId (privacy projection)."""
+    result = {k: v for k, v in row.items() if k != "requestedBy"}
+    req_by = row.get("requestedBy") or {}
+    if req_by:
+        result["requestedBy"] = {"nickname": req_by.get("nickname")}
+    return result
+
+
 @app.route('/api/badges/requests/mine', methods=['GET'])
 def badge_request_mine():
     """
     GET /api/badges/requests/mine
-    Auth: participant|developer
+    Auth: participant|parent|educator|counselor|shift_leader|developer
+    Returns own badge requests (filtered by deviceId from JWT), newest-first.
+    Privacy: requestedBy.deviceId is stripped from response.
     """
-    payload, err = _require_roles(("participant", "developer"), allow_localhost_dev=True)
+    payload, err = _require_roles(
+        ("participant", "parent", "educator", "counselor", "shift_leader", "developer"),
+        allow_localhost_dev=True,
+    )
     if err is not None:
         return err[0], err[1]
     device_id = (payload.get("deviceId") or "").strip()
@@ -2855,7 +2946,8 @@ def badge_request_mine():
 
     bdoc = _badge_requests_load()
     rows = [
-        row for row in (bdoc.get("requests") or [])
+        _project_mine_row(row)
+        for row in (bdoc.get("requests") or [])
         if isinstance(row, dict) and (
             isinstance(row.get("requestedBy"), dict) and
             (row.get("requestedBy", {}).get("deviceId") or "").strip() == device_id
@@ -2883,7 +2975,7 @@ def badge_request_inbox():
     if status_filter and status_filter not in ("pending", "approved", "rejected"):
         return jsonify({"error": "Invalid status filter"}), 400
 
-    if actor_role == "counselor" and not camp_filter and not squad_filter:
+    if actor_role in ("counselor", "educator") and not camp_filter and not squad_filter:
         camp_self, squad_self = _resolve_membership_context(device_id)
         camp_filter = camp_self
         squad_filter = squad_self
