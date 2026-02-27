@@ -47,6 +47,12 @@ if not _env_root.is_file() and not _env_backend.is_file():
 TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 TELEGRAM_CHANNEL_ID = os.getenv('TELEGRAM_CHANNEL_ID')
 TELEGRAM_WEBHOOK_SECRET = os.getenv('TELEGRAM_WEBHOOK_SECRET', '').strip()
+# M5-R5-C: Per-agent bot tokens for /api/telegram/agent-post
+AGENT_BOT_TOKENS = {
+    "neuro_stepa": os.getenv("NEURO_STEPA_BOT_TOKEN", ""),
+    "cat_bro":     os.getenv("CAT_BRO_BOT_TOKEN", ""),
+    "dev_bro_1":   os.getenv("DEV_BRO_1_BOT_TOKEN", ""),
+}
 
 VK_API_TOKEN = os.getenv('VK_API_TOKEN', '').strip()
 VK_CONFIRMATION_CODE = os.getenv('VK_CONFIRMATION_CODE', '').strip()
@@ -1834,6 +1840,62 @@ def telegram_notify_creator_card():
         return jsonify({"ok": False, "error": "Не удалось отправить в Telegram"}), 500
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
+
+
+@app.route('/api/telegram/agent-post', methods=['POST'])
+def telegram_agent_post():
+    """
+    POST /api/telegram/agent-post — send message as a named bot into a TG thread.
+    Auth: developer | shift_leader (Bearer JWT)
+    Body: { "agent": str, "text": str, "root_message_id": int, "chat_id": int? }
+    Response 200: { "ok": true, "message_id": N }
+    """
+    payload, err = _require_roles(("developer", "shift_leader"), allow_localhost_dev=True)
+    if err:
+        return err
+
+    data = request.get_json() or {}
+    agent   = (data.get("agent") or "").strip()
+    text    = (data.get("text") or "").strip()
+    root_id = data.get("root_message_id")
+    chat_id = data.get("chat_id") or TELEGRAM_CHANNEL_ID
+
+    if not agent:
+        return jsonify({"error": "agent is required"}), 400
+    if not text:
+        return jsonify({"error": "text is required"}), 400
+    if root_id is None:
+        return jsonify({"error": "root_message_id is required"}), 400
+
+    bot_token = AGENT_BOT_TOKENS.get(agent)
+    if not bot_token:
+        return jsonify({"error": f"unknown agent: {agent}"}), 404
+
+    # Dedup: same text to same thread within 60 s (non-blocking)
+    dedup_key = f"{agent}:{chat_id}:{root_id}"
+    if _is_thread_duplicate(dedup_key, text):
+        return jsonify({"error": "duplicate message blocked"}), 409
+
+    try:
+        tg_url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+        resp = requests.post(tg_url, json={
+            "chat_id": chat_id,
+            "text": text,
+            "reply_to_message_id": root_id,
+            "parse_mode": "HTML",
+        }, timeout=10)
+        result = resp.json()
+        if result.get("ok"):
+            msg_id = result["result"]["message_id"]
+            app.logger.info("[AGENT_POST] agent=%s chat=%s thread=%s msg=%s",
+                            agent, chat_id, root_id, msg_id)
+            return jsonify({"ok": True, "message_id": msg_id})
+        else:
+            app.logger.warning("[AGENT_POST] TG error agent=%s: %s", agent, result)
+            return jsonify({"error": result.get("description", "TG API error")}), 502
+    except Exception as exc:
+        app.logger.exception("[AGENT_POST] failed: %s", exc)
+        return jsonify({"error": "internal error"}), 500
 
 
 @app.route('/')
