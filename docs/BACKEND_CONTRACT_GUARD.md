@@ -153,7 +153,7 @@
 
 ---
 
-#### `POST /api/badges/requests/cleanup` *(M5-R3-A)*
+#### `POST /api/badges/requests/cleanup` *(M5-R3-A, M5-R5-A, M6-HARDENING-A)*
 
 **Auth:** `shift_leader | developer` (Bearer JWT)  
 **Body:**
@@ -171,11 +171,26 @@
 }
 ```
 
-**Поведение:** Удаляет из `badge_requests.json` все записи со статусом `approved` или `rejected`, у которых `resolvedAt` старше `olderThanDays` дней. Логирует удаление: `[BADGE_CLEANUP] deleted=N actor=<sha256[:12]> ts=<ISO>`.
+**Response 429:**
+```json
+{
+  "error": "Rate limit: try again in 58s"
+}
+```
+
+**Поведение:** Удаляет записи со статусом `approved` или `rejected`, у которых `resolvedAt` старше `olderThanDays` дней.
+
+- `USE_SUPABASE=true`: выполняется SQL `DELETE` напрямую в Supabase (эффективно, без загрузки всей таблицы).
+- `USE_SUPABASE=false` (JSON-режим): загрузка всего файла в память, фильтрация в Python, перезапись.
+
+**Rate limit:** не более 1 вызова в `CLEANUP_COOLDOWN_SEC` секунд (env, default 60) per-camp (`campId` из JWT; fallback — `deviceId` или `"global"`). При превышении — `429` с сообщением `"Rate limit: try again in Xs"`. Счётчик in-memory, сбрасывается при перезапуске сервера.
+
+**Лог:** `[BADGE_CLEANUP] deleted=N camp_id=<campId> actor=<sha256[:12]> ts=<ISO>`
 
 **Errors:**
 - `400` — `olderThanDays` не является числом или < 0
 - `401/403` — неавторизован или недостаточно прав
+- `429` — rate limit: повторный вызов раньше `CLEANUP_COOLDOWN_SEC` секунд (default 60)
 
 **Mandatory response fields:** `deleted` (int ≥ 0)
 
@@ -183,6 +198,7 @@
 - Удаление поля `deleted` из ответа
 - Изменение набора разрешённых ролей (расширение на `participant` — security regression)
 - Смена семантики (например, начать удалять pending-заявки)
+- Снижение `CLEANUP_COOLDOWN_SEC` до 0 без согласования
 
 ---
 
@@ -555,7 +571,7 @@
 Контракты автоматически проверяются скриптом:
 
 ```bash
-# С AUTH_SECRET — полный прогон (47 checks):
+# С AUTH_SECRET — полный прогон (52 checks):
 # Windows (cp1251): запускать с -X utf8 для корректного вывода
 AUTH_SECRET=<secret> python -X utf8 backend/scripts/smoke_backend_critical.py --base-url http://localhost:4000
 
@@ -577,9 +593,9 @@ python backend/scripts/smoke_backend_critical.py --base-url http://localhost:400
 | D | Mine privacy + contract (M5-R2-B) | 4 |
 | E | Image Generation (happy path, truncation, missing fields) | 5 |
 | F | Teams lifecycle (create → get → join → mine → leave x2) (M5-R3-A) | 8 |
-| G | Chat endpoint: valid JWT → 200+response, invalid token → 401, msg too long → 400 (M5-R3-C, M5-R4-C) | 5 |
+| G | Chat endpoint: valid JWT → 200+response, invalid token → 401, msg too long → 400, not 500 guard (M5-R3-C, M5-R4-C, M6-CHAT-CONTEXT-C) | 6 |
 | I | Telegram agent-post: no auth → 401, unknown agent → 404, missing root_message_id → 400 (M5-R5-C) | 3 |
-| **Total** | | **47** |
+| **Total** | | **52** |
 
 **Flow D** (M5-R2-B, `/api/badges/requests/mine`):
 - D-1: GET /mine → 200, requests is list
@@ -601,11 +617,12 @@ python backend/scripts/smoke_backend_critical.py --base-url http://localhost:400
 - F-5: POST /api/teams/<id>/leave (joiner) → 200, status=success
 - F-6: POST /api/teams/<id>/leave (leader, last member) → 200, status=success (team deleted)
 
-**Flow G** (M5-R3-C + M5-R4-C, `/api/chat`):
+**Flow G** (M5-R3-C + M5-R4-C + M6-CHAT-CONTEXT-C, `/api/chat`):
 - G-auth: `auth/verify-code (participant)` → 200, accessToken present
 - G-1: POST /api/chat с valid JWT → 200, `response` field present
 - G-2: POST /api/chat с invalid Bearer token → 401
 - G-3: POST /api/chat с message длиннее 2000 символов → 400 (`CHAT_MAX_MESSAGE_LEN`)
+- G-4: POST /api/chat с valid JWT, простое сообщение → не 500 (server error guard)
 
 При изменении любого контракта из §3 — обновить скрипт, запустить, убедиться в 0 failures.
 

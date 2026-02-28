@@ -77,10 +77,10 @@ def get_system_prompt_with_context(
         context_parts.append(f"Смена: {shift_name}")
     
     if pending_badge_count and pending_badge_count > 0:
-        titles_str = ", ".join(str(t) for t in (pending_badge_titles or []))
+        titles_str = ", ".join(str(t) for t in (pending_badge_titles or [])[:3])
         context_parts.append(
-            f"У пользователя есть заявки на проверке ({pending_badge_count} шт.): {titles_str}. "
-            "Если спрашивает про статус — скажи что вожатый рассматривает."
+            f"У участника сейчас {pending_badge_count} заявок на значки «в пути»: {titles_str}. "
+            "Можешь поздравить с прогрессом или спросить как идёт."
         )
     
     if current_category:

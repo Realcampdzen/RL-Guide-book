@@ -760,7 +760,7 @@ class SmokeRunner:
     # -----------------------------------------------------------------------
 
     def run_flow_g(self) -> None:
-        """Flow G: POST /api/chat — 200+response present, 401 with invalid token."""
+        """Flow G: POST /api/chat — 200+response, 401 invalid token, 400 msg too long, not 500 guard (G-4)."""
         print("\n[Flow G] Chat: valid JWT → 200+response, invalid token → 401")
         if not self.auth_secret:
             print("  SKIP  (no AUTH_SECRET — auth flows require it)")
@@ -819,10 +819,10 @@ class SmokeRunner:
                 f"expected 401, got {status_g2}: {body_g2}",
             )
 
-        # G-3: message too long → 400
+        # G-3: message too long → 400 (or 503 if OpenAI not configured)
         long_msg = "x" * 2001
         try:
-            status_g3, body_g3 = self._http(
+            status_g3, body_g3 = _http(
                 self._url("/api/chat"),
                 method="POST",
                 body={"message": long_msg, "user_id": participant_device},
@@ -834,9 +834,28 @@ class SmokeRunner:
 
         if status_g3 is not None:
             self.check(
-                "POST /api/chat — G-3: message > 2000 chars → 400",
-                status_g3 == 400,
-                f"expected 400, got {status_g3}: {body_g3}",
+                "POST /api/chat — G-3: message > 2000 chars → 400 or 503(no OpenAI)",
+                status_g3 in (400, 503),
+                f"expected 400 or 503, got {status_g3}: {body_g3}",
+            )
+
+        # G-4: valid JWT, simple message → not 500 (server error guard)
+        try:
+            status_g4, body_g4 = _http(
+                self._url("/api/chat"),
+                method="POST",
+                body={"message": "Привет!", "user_id": participant_device},
+                headers=self._bearer(participant_token),
+            )
+        except SmokeError as exc:
+            self.fail("POST /api/chat — G-4 server error guard", str(exc))
+            status_g4, body_g4 = None, {}
+
+        if status_g4 is not None:
+            self.check(
+                "POST /api/chat — G-4: valid JWT → not 500",
+                status_g4 != 500,
+                f"got 500 (server error): {body_g4}",
             )
 
     # -----------------------------------------------------------------------
@@ -897,6 +916,25 @@ class SmokeRunner:
                     isinstance(body_h2.get("deleted"), int),
                     f"deleted={body_h2.get('deleted')!r}",
                 )
+
+        # H-3: immediate repeat call → 429 (rate limit, M6-HARDENING-A)
+        try:
+            status_h3, body_h3 = _http(
+                self._url("/api/badges/requests/cleanup"),
+                method="POST",
+                body={"olderThanDays": 0},
+                headers=self._bearer(sl_token),
+            )
+        except SmokeError as exc:
+            self.fail("POST /api/badges/requests/cleanup — H-3 rate limit", str(exc))
+            status_h3, body_h3 = None, {}
+
+        if status_h3 is not None:
+            self.check(
+                "POST /api/badges/requests/cleanup — H-3: repeat call → 429",
+                status_h3 == 429,
+                f"expected 429 (rate limit), got {status_h3}: {body_h3}",
+            )
 
     # -----------------------------------------------------------------------
     # Flow I — Telegram agent-post contract checks (M5-R4-D)
