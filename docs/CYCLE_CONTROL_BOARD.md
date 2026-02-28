@@ -75,7 +75,9 @@
 - M6-BACKEND-HARDENING-A: DONE (`6ec335a`) — cleanup rate limit 429 + camp_id log + H-3 check. Smoke **52/52**. Agent A
 - **GitHub Pages**: нужен новый push с M6-IMG-FIX для проверки Опусом.
 - M6-CHAT-CONTEXT-C: DONE CERTIFIED — living-language pending badges prompt, [:3] confirmed, smoke G-4 (not 500 guard). Smoke **52/52**. Agent C
-- GIT-SIZE-REDUCTION: DONE (`5e43f0a`, merge `57f0729`) — JPG/orig убраны из git tracking (583 files); badgeImages.ts + badgeImageMap.ts: .jpg → .webp; artifact 2.2GB → ~250MB. Пуш в main → деплой запущен. Opus recheck разблокирован. Agent D
+- GIT-SIZE-REDUCTION: DONE (`5e43f0a`, merge `57f0729`) — JPG/orig убраны из git tracking (583 files); badgeImages.ts + badgeImageMap.ts: .jpg → .webp; artifact 2.2GB → ~250MB. Agent D
+- E-FIX-DEPLOY-PATH: DONE CRITICAL (`aefcedd`, merge `e99a579`) — настоящий корень 404: public/ копировался в dist/RL-Guide-book/ вместо dist/. vite.config.ts упрощён. dist/ = 752MB. Agent E (Opus)
+- E-FIX-CURSOR: DONE (`2c22669`, cherry-pick `300d26a`) — cursor ghost-line artifact: will-change + backface-visibility + isolation:isolate на hover. GPU-промоушн без изменения визуала. Agent E (Opus)
 
 ---
 
