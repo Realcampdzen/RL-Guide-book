@@ -305,6 +305,9 @@ export const useCustomCursor = () => {
     };
 
     // Update cursor animation
+    let cachedTargets: NodeListOf<HTMLElement> | null = null;
+    let lastTargetQueryTime = 0;
+    let collisionFrameCount = 0;
     const updateCursor = () => {
       if (!cursorOutline) return;
 
@@ -322,21 +325,31 @@ export const useCustomCursor = () => {
         cursorReactor.style.top = `${reactorYRef.current}px`;
       }
 
-      // Check collision with hover targets
+      // Check collision with hover targets (throttled for performance)
       // В hero секции реагируем на span элементы внутри .hero-title (буквы текста)
       // В marquee секции реагируем на .marquee-item с классом hover-target
       // В остальных секциях реагируем на обычные элементы
-      const allHoverTargets = document.querySelectorAll<HTMLElement>(
-        '.hover-target, p, h1, h2, h3, h4, h5, h6, span, a, li, .subtitle-text, .manifesto-statement, .feature-card h3, .feature-card p'
-      );
+
+      // Cache hover targets — refresh list every 500ms instead of every frame
+      if (!cachedTargets || Date.now() - lastTargetQueryTime > 500) {
+        cachedTargets = document.querySelectorAll<HTMLElement>(
+          '.hover-target, p, h1, h2, h3, h4, h5, h6, span, a, li, .subtitle-text, .manifesto-statement, .feature-card h3, .feature-card p'
+        );
+        lastTargetQueryTime = Date.now();
+      }
+
+      // Run collision detection every 3rd frame for performance
+      collisionFrameCount++;
+      if (collisionFrameCount % 3 !== 0) {
+        animationFrameRef.current = requestAnimationFrame(updateCursor);
+        return;
+      }
 
       let foundTarget: HTMLElement | null = null;
-      allHoverTargets.forEach((target) => {
-        const style = window.getComputedStyle(target);
+      cachedTargets.forEach((target) => {
+        // Fast visibility check without getComputedStyle
         if (
-          style.display === 'none' ||
-          style.visibility === 'hidden' ||
-          style.pointerEvents === 'none' ||
+          !target.offsetParent && target.tagName !== 'BODY' && target.tagName !== 'HTML' ||
           target.offsetWidth === 0 ||
           target.offsetHeight === 0
         ) {
