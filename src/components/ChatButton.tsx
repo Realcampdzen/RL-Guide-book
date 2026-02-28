@@ -247,7 +247,7 @@ const ChatButton: React.FC<ChatButtonProps> = ({ onClick, isOpen = false, classN
             }}
           />
           <img
-            src="/RL-Guide-book/Валюша.jpg"
+            src={`${import.meta.env.BASE_URL}Валюша.jpg`}
             alt="НейроВалюша"
             draggable={false}
             onContextMenu={(e) => e.preventDefault()}

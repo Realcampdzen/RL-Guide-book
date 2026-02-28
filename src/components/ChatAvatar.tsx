@@ -8,7 +8,7 @@ interface ChatAvatarProps {
 }
 
 const ChatAvatar: React.FC<ChatAvatarProps> = ({ onClick, isOpen = false }) => {
-  const avatarJpg = '/RL-Guide-book/Валюша.jpg';
+  const avatarJpg = `${import.meta.env.BASE_URL}Валюша.jpg`;
   const avatarWebp = toSiblingImageUrl(avatarJpg, 'webp');
 
   return (

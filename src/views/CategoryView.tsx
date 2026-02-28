@@ -510,7 +510,7 @@ const CategoryView: React.FC<CategoryViewProps> = ({
             aria-label={isChatOpen ? 'Закрыть чат' : 'Открыть чат'}
             aria-pressed={isChatOpen}
           >
-            <img src="/RL-Guide-book/Валюша.jpg" alt="НейроВалюша" />
+            <img src={`${import.meta.env.BASE_URL}Валюша.jpg`} alt="НейроВалюша" />
           </button>
         </div>
       </header>

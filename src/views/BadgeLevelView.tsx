@@ -857,8 +857,8 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
             aria-pressed={isChatOpen}
           >
             <picture>
-              <source type="image/webp" srcSet="/RL-Guide-book/Валюша.webp" />
-              <img src="/RL-Guide-book/Валюша.jpg" alt="НейроВалюша" decoding="async" fetchpriority="high" />
+              <source type="image/webp" srcSet={`${import.meta.env.BASE_URL}Валюша.webp`} />
+              <img src={`${import.meta.env.BASE_URL}Валюша.jpg`} alt="НейроВалюша" decoding="async" fetchpriority="high" />
             </picture>
           </button>
         </div>
