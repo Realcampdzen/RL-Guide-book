@@ -6,10 +6,10 @@
 
 ## Cycle
 
-- Cycle ID: 2026-02-28-E
+- Cycle ID: 2026-02-28-F
 - Mode: Execution
 - Orchestrator: NeuroStepa
-- Updated at: 2026-02-28 (GIT-SIZE-REDUCTION done — JPG убраны из git, WebP only, deploy artifact ~250MB)
+- Updated at: 2026-02-28 (E-FIX-DEPLOY-PATH CRITICAL — настоящая причина 404 устранена — JPG убраны из git, WebP only, deploy artifact ~250MB)
 
 ---
 
