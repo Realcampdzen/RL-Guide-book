@@ -68,7 +68,6 @@
 | **Agent B** | M3-BF-S4 | Badge Request Status Panel: chip tones, empty state CTA, Sync CTA, M2 guard, scroll+hint after proof submit | done | 2026-02-27 | Closed: build clean, lint clean, M2 guard confirmed; commit e474174 | [REPORT_B_M3_BF_S4_2026-02-27.md](reports/REPORT_B_M3_BF_S4_2026-02-27.md) |
 | **Agent B** | M3-BF-S5 | Auto-sync approved levels on mount + celebration hint (startTutorial) + reject reason in «Мои заявки» | done | 2026-02-27 | Closed: build clean, lint clean, M2 guard confirmed; commit 44533b0 | [REPORT_B_M3_BF_S5_2026-02-27.md](reports/REPORT_B_M3_BF_S5_2026-02-27.md) |
 | **Agent B** | M3-BF-S6 | Staff inbox UX: локализация кнопок + inline reject form + optimistic UI + evidence accordion | done | 2026-02-27 | Closed: build clean, M2 guard confirmed | [REPORT_B_M3_BF_S6_2026-02-27.md](reports/REPORT_B_M3_BF_S6_2026-02-27.md) |
-| **Agent B** | M3-BF-S7 | ESLint HIGH fix (6 no-unused-expressions) + inbox squadId enrichment + pending counter | done | 2026-02-28 | Closed: build clean, lint 0 errors, commit fa05be9 | [REPORT_B_M3_BF_S7.md](reports/REPORT_B_M3_BF_S7.md) |
 
 ---
 
@@ -94,6 +93,7 @@
 || **Agent E (Opus)** | E-UX-AUDIT-M5-RECHECK | Повторный browser-аудит после HOTFIX-BASE-PATH — категории, изображения, логотип, role walkthrough на проде | 🔜 pending | — | Ждёт GitHub Pages deploy | — |
 || **Agent D** | M6-VERCEL-LOBSTERS | Lobster tokens added to Vercel Production (3/3 VERIFIED_OPTIONAL), redeploy READY, smoke I-1 401 ✅ | ✅ done | 2026-02-28 | [REPORT_D_M6_VERCEL_LOBSTERS.md](reports/REPORT_D_M6_VERCEL_LOBSTERS.md) |
 || **Agent B** | M6-IMG-FIX | Replace hardcoded /RL-Guide-book/ img paths with import.meta.env.BASE_URL in 9 TSX components (26 occurrences). Build clean. | ✅ done | 2026-02-27 | commit 482973d | [REPORT_B_M6_IMG_FIX.md](reports/REPORT_B_M6_IMG_FIX.md) |
+||| **Agent A** | M6-BACKEND-HARDENING-A | Rate limit (1/60s per-camp) на `POST /api/badges/requests/cleanup` + `camp_id` в лог-строку + H-3 smoke check (429). Smoke 52/52 PASSED | ✅ done | 2026-02-28 | [REPORT_A_M6_HARDENING_A.md](reports/REPORT_A_M6_HARDENING_A.md) |
 
 ---
 
