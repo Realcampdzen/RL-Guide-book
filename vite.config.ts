@@ -198,31 +198,27 @@ const rlGuideBookDevPlugin = (): Plugin => ({
   }
 })
 
-// Плагин для копирования файлов в RL-Guide-book для совместимости с путями в коде
+// Плагин для копирования public/ в dist/ (замена отключённого copyPublicDir).
+// copyPublicDir: false из-за Windows EBUSY/ENOTEMPTY с кириллическими путями.
+// GitHub Pages для repo RL-Guide-book уже добавляет prefix /RL-Guide-book/ к URL,
+// поэтому файлы должны лежать в dist/ (корень артефакта), а НЕ в dist/RL-Guide-book/.
 const copyRLGuideBookPlugin = () => ({
   name: 'copy-rl-guide-book',
   writeBundle() {
     const fs = require('fs')
     const path = require('path')
     
-    console.log('📦 Начинаем копирование файлов из public в dist/RL-Guide-book...')
+    // Целевая директория — корень dist, т.к. GitHub Pages уже добавляет /RL-Guide-book/ prefix
+    const targetDir = 'dist'
     
-    // Создаем папку RL-Guide-book в dist
-    const rlGuideBookDir = 'dist/RL-Guide-book'
-    if (!existsSync(rlGuideBookDir)) {
-      mkdirSync(rlGuideBookDir, { recursive: true })
-    }
+    console.log('📦 Копирование public/ → dist/ ...')
     
-    // Копируем все файлы из public в dist/RL-Guide-book
     if (existsSync('public')) {
       let copiedFiles = 0
       let copiedDirs = 0
       let skippedFiles = 0
 
-      // Windows can sporadically throw EBUSY/EPERM while copying lots of files (AV scan, explorer previews, etc).
-      // We retry a few times to keep production builds stable.
       const sleepSync = (ms: number) => {
-        // eslint-disable-next-line no-undef
         Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms)
       }
       const copyFileWithRetry = (srcPath: string, destPath: string) => {
@@ -256,15 +252,12 @@ const copyRLGuideBookPlugin = () => ({
             const destPath = path.join(dest, entry.name)
             
             if (entry.isDirectory()) {
-              // Пропускаем node_modules и другие служебные папки
               if (entry.name !== 'node_modules' && !entry.name.startsWith('.')) {
                 copyDir(srcPath, destPath)
               }
             } else {
-              // Копируем все статические файлы (изображения, JSON, CSS, HTML, MD и т.д.)
               const ext = path.extname(entry.name).toLowerCase()
               const allowedExts = ['.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp', '.json', '.css', '.html', '.md', '.js', '.txt', '.ico']
-              // Raw sources are not needed at runtime and can cause Windows copy flakiness.
               if (entry.name.toLowerCase().includes('.orig.')) {
                 skippedFiles++
                 continue
@@ -274,11 +267,6 @@ const copyRLGuideBookPlugin = () => ({
                 try {
                   copyFileWithRetry(srcPath, destPath)
                   copiedFiles++
-                   
-                  // Логируем копирование изображений значков для отладки
-                  if (srcPath.includes('Новые значки') && ['.jpg', '.jpeg', '.png'].includes(ext)) {
-                    console.log(`  ✅ Скопировано: ${path.relative('public', srcPath)}`)
-                  }
                 } catch (error) {
                   console.error(`  ❌ Ошибка копирования ${srcPath}:`, error?.message || error)
                 }
@@ -292,25 +280,9 @@ const copyRLGuideBookPlugin = () => ({
         }
       }
       
-      // Fix: public/RL-Guide-book/ must be merged INTO dist/RL-Guide-book/, not nested under it.
-      // Previously: copyDir('public', rlGuideBookDir) → dist/RL-Guide-book/RL-Guide-book/ (double path bug)
-      const rlSubDir = path.join('public', 'RL-Guide-book')
-      if (existsSync(rlSubDir)) {
-        copyDir(rlSubDir, rlGuideBookDir)  // public/RL-Guide-book/* → dist/RL-Guide-book/
-      }
-      const publicEntries = fs.readdirSync('public', { withFileTypes: true })
-      for (const entry of publicEntries) {
-        if (entry.name === 'RL-Guide-book') continue  // already handled above
-        const src = path.join('public', entry.name)
-        const dest = path.join(rlGuideBookDir, entry.name)
-        if (entry.isDirectory()) {
-          copyDir(src, dest)
-        } else {
-          copyFileWithRetry(src, dest)
-        }
-      }
+      copyDir('public', targetDir)
 
-      console.log(`✅ Копирование завершено:`)
+      console.log(`✅ public/ → dist/ завершено:`)
       console.log(`   - Скопировано файлов: ${copiedFiles}`)
       console.log(`   - Создано директорий: ${copiedDirs}`)
       if (skippedFiles > 0) {
