@@ -387,6 +387,8 @@
   border: 1px solid rgba(255, 255, 255, 0.12);
   background: linear-gradient(135deg, rgba(12, 9, 27, 0.92) 0%, rgba(22, 14, 38, 0.88) 100%);
   padding: 12px;
+  transform: translateZ(0);
+  will-change: transform;
 }
 
 .badge-status-panel__head {
@@ -1065,6 +1067,10 @@
   padding: 2rem;
   margin-bottom: 2rem;
   transition: all 0.3s var(--easing);
+  /* GPU layer promotion: replaces the implicit layer that backdrop-filter created.
+     Without this, cursor mix-blend-mode falls back to CPU compositing = lag */
+  transform: translateZ(0);
+  will-change: transform;
 }
 
 .content-block:hover {
