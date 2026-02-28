@@ -3548,7 +3548,7 @@ export const ProfileView: React.FC<any> = (props) => {
                               </div>
                               <div className="path-card__actions">
                                 <button type="button" onClick={(e) => { e.stopPropagation(); setPlanFormBadge({ id, title: displayTitle, level: levelBadge?.level, criteria: levelBadge?.criteria || levelBadge?.howToBecome, nameExplanation: levelBadge?.nameExplanation, skillTips: levelBadge?.skillTips, confirmation: levelBadge?.confirmation }); setPlanForm({ currentDay: Math.min(21, Math.max(1, userData?.diaryProgress?.currentDay ?? 1)), shiftLength: 21, squadProgramGrid: '', squadPlan3d: '', campProgram3d: '', priority: 'both', myPlanDraft: '' }); setPlanResult(null); setPlanError(null); setPlanStep('context'); setPlanChecklistItems([]); }} className="btn-pill btn-pill--secondary">Составить план</button>
-                                <button type="button" onClick={(e) => { e.stopPropagation(); setProofForm({ learned: '', impact: '', link: '' }); setProofPhotoCount(0); proofPhotoInputRef.current && (proofPhotoInputRef.current.value = ''); setProofBadge({ id, title: displayTitle }); }} className="btn-pill btn-pill--primary">Подтвердить <Icons.Send /></button>
+                                <button type="button" onClick={(e) => { e.stopPropagation(); setProofForm({ learned: '', impact: '', link: '' }); setProofPhotoCount(0); if (proofPhotoInputRef.current) proofPhotoInputRef.current.value = ''; setProofBadge({ id, title: displayTitle }); }} className="btn-pill btn-pill--primary">Подтвердить <Icons.Send /></button>
                               </div>
                               <div className="path-card__footer">
                                 <button type="button" onClick={(e) => { e.stopPropagation(); if(confirm("Удалить?")) removeRoute(baseId); }} className="btn-action-round trash" aria-label="Удалить из пути"><Icons.Trash /></button>
@@ -3583,7 +3583,7 @@ export const ProfileView: React.FC<any> = (props) => {
                               </div>
                               <div className="path-card__actions">
                                 <button type="button" onClick={(e) => { e.stopPropagation(); setPlanFormBadge({ id, title: displayTitle, level: levelBadge?.level, criteria: levelBadge?.criteria || levelBadge?.howToBecome, nameExplanation: levelBadge?.nameExplanation, skillTips: levelBadge?.skillTips, confirmation: levelBadge?.confirmation }); setPlanForm({ currentDay: Math.min(21, Math.max(1, userData?.diaryProgress?.currentDay ?? 1)), shiftLength: 21, squadProgramGrid: '', squadPlan3d: '', campProgram3d: '', priority: 'both', myPlanDraft: '' }); setPlanResult(null); setPlanError(null); setPlanStep('context'); setPlanChecklistItems([]); }} className="btn-pill btn-pill--secondary">Составить план</button>
-                                <button type="button" onClick={(e) => { e.stopPropagation(); setProofForm({ learned: '', impact: '', link: '' }); setProofPhotoCount(0); proofPhotoInputRef.current && (proofPhotoInputRef.current.value = ''); setProofBadge({ id, title: displayTitle }); }} className="btn-pill btn-pill--primary">Подтвердить <Icons.Send /></button>
+                                <button type="button" onClick={(e) => { e.stopPropagation(); setProofForm({ learned: '', impact: '', link: '' }); setProofPhotoCount(0); if (proofPhotoInputRef.current) proofPhotoInputRef.current.value = ''; setProofBadge({ id, title: displayTitle }); }} className="btn-pill btn-pill--primary">Подтвердить <Icons.Send /></button>
                               </div>
                               <div className="path-card__footer">
                                 <button type="button" onClick={(e) => { e.stopPropagation(); if(confirm("Удалить?")) removeRoute(baseId); }} className="btn-action-round trash" aria-label="Удалить из пути"><Icons.Trash /></button>
@@ -3622,7 +3622,7 @@ export const ProfileView: React.FC<any> = (props) => {
               <div key={id} style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'flex-start', borderLeft: '2px solid rgba(255,255,255,0.1)', paddingLeft: '20px', paddingBottom: '24px', position: 'relative' }}>
                 <div style={{ position: 'absolute', left: '-7px', top: '0', width: '12px', height: '12px', borderRadius: '50%', background: '#8B00FF' }} />
                 <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: '11px', opacity: 0.5 }}>{new Date(p.achievedAt || '').toLocaleDateString()}</div><div style={{ fontWeight: 700 }}>{badgeLookupMap.get(getBaseId(id))?.title || id}</div>{p.reflection && <div style={{ fontSize: '13px', fontStyle: 'italic', opacity: 0.8 }}>"{p.reflection}"</div>}</div>
-                <button type="button" onClick={() => { setProofForm({ learned: p.reflection || p.evidence?.find((e: { type: string }) => e.type === 'text')?.value || '', impact: '', link: p.evidence?.find((e: { type: string }) => e.type === 'link')?.value || '' }); setProofPhotoCount(0); proofPhotoInputRef.current && (proofPhotoInputRef.current.value = ''); setProofBadge({ id, title: badgeLookupMap.get(getBaseId(id))?.title || id }); }} className="btn-confirm-main" style={{ flexShrink: 0, fontSize: 12 }}>Отправить в Telegram <Icons.Send /></button>
+                <button type="button" onClick={() => { setProofForm({ learned: p.reflection || p.evidence?.find((e: { type: string }) => e.type === 'text')?.value || '', impact: '', link: p.evidence?.find((e: { type: string }) => e.type === 'link')?.value || '' }); setProofPhotoCount(0); if (proofPhotoInputRef.current) proofPhotoInputRef.current.value = ''; setProofBadge({ id, title: badgeLookupMap.get(getBaseId(id))?.title || id }); }} className="btn-confirm-main" style={{ flexShrink: 0, fontSize: 12 }}>Отправить в Telegram <Icons.Send /></button>
               </div>
             ))}
           </div>
@@ -5578,7 +5578,9 @@ export const ProfileView: React.FC<any> = (props) => {
 
                   {canModerateApprovals && (
                     <div style={{ padding: 12, borderRadius: 12, background: 'rgba(0,0,0,0.32)', border: '1px solid rgba(255,255,255,0.06)' }}>
-                      <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 8, opacity: 0.9 }}>Inbox подтверждений значков</div>
+                      <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 8, opacity: 0.9 }}>
+                        Входящие заявки{badgeRequestsInbox.filter(r => r.status === 'pending').length > 0 ? ` (${badgeRequestsInbox.filter(r => r.status === 'pending').length})` : ''}
+                      </div>
                       {badgeRequestsInbox.length === 0 ? (
                         <div style={{ fontSize: 12, opacity: 0.8 }}>Входящих заявок нет.</div>
                       ) : (
@@ -5587,7 +5589,9 @@ export const ProfileView: React.FC<any> = (props) => {
                             <div key={req.id} style={{ padding: 8, borderRadius: 8, background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.08)' }}>
                               <div style={{ fontSize: 12, fontWeight: 700 }}>{req.levelId} {req.badgeTitle ? `· ${req.badgeTitle}` : ''}</div>
                               <div style={{ fontSize: 11, opacity: 0.8 }}>
-                                {req.requestedBy?.nickname || req.requestedBy?.deviceId || '—'} · {new Date(req.createdAt).toLocaleString('ru-RU')}
+                                {req.requestedBy?.nickname || req.requestedBy?.deviceId || '—'}
+                                {req.squadId && <span style={{ opacity: 0.6 }}> · отряд {req.squadId}</span>}
+                                <span style={{ opacity: 0.6 }}> · {new Date(req.createdAt).toLocaleString('ru-RU')}</span>
                               </div>
                               {req.evidence && (req.evidence.reflection || req.evidence.impact || req.evidence.link) && (
                                 <>
@@ -6333,7 +6337,7 @@ export const ProfileView: React.FC<any> = (props) => {
       )}
 
       {proofBadge && (
-        <div className="proof-modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) { setProofBadge(null); setProofForm({ learned: '', impact: '', link: '' }); setProofPhotoCount(0); proofPhotoInputRef.current && (proofPhotoInputRef.current.value = ''); } }}>
+        <div className="proof-modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) { setProofBadge(null); setProofForm({ learned: '', impact: '', link: '' }); setProofPhotoCount(0); if (proofPhotoInputRef.current) proofPhotoInputRef.current.value = ''; } }}>
           <div className="proof-modal fade-in" role="dialog" aria-modal="true" aria-labelledby="profile-modal-proof-title" onClick={e => e.stopPropagation()}>
             <h3 id="profile-modal-proof-title" style={{ marginTop: 0, marginBottom: 4 }}>Подтверждение: {proofBadge.title}</h3>
             <p style={{ fontSize: 12, opacity: 0.75, marginBottom: 20, lineHeight: 1.5 }}>Опыт и рефлексия помогают зафиксировать достижение. Вожатый получит твою заявку в Telegram.</p>
@@ -6399,7 +6403,7 @@ export const ProfileView: React.FC<any> = (props) => {
               setProofBadge(null);
               setProofForm({ learned: '', impact: '', link: '' });
               setProofPhotoCount(0);
-              proofPhotoInputRef.current && (proofPhotoInputRef.current.value = '');
+              if (proofPhotoInputRef.current) proofPhotoInputRef.current.value = '';
               if (canRequestApprovals) {
                 showHint({ title: 'Заявка отправлена', content: 'Вожатый рассмотрит её в ближайшее время.' });
                 setTimeout(() => {
@@ -6407,7 +6411,7 @@ export const ProfileView: React.FC<any> = (props) => {
                 }, 300);
               }
             }} className="btn-primary-gold" style={{ width: '100%', marginTop: 24 }}>Отправить в Telegram</button>
-            <button onClick={() => { setProofBadge(null); setProofForm({ learned: '', impact: '', link: '' }); setProofPhotoCount(0); proofPhotoInputRef.current && (proofPhotoInputRef.current.value = ''); }} style={{ width: '100%', background: 'none', border: 'none', color: 'white', marginTop: 10, cursor: 'pointer', opacity: 0.5, fontSize: 13 }}>Отмена</button>
+            <button onClick={() => { setProofBadge(null); setProofForm({ learned: '', impact: '', link: '' }); setProofPhotoCount(0); if (proofPhotoInputRef.current) proofPhotoInputRef.current.value = ''; }} style={{ width: '100%', background: 'none', border: 'none', color: 'white', marginTop: 10, cursor: 'pointer', opacity: 0.5, fontSize: 13 }}>Отмена</button>
           </div>
         </div>
       )}

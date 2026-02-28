@@ -1,4 +1,4 @@
-# CLAIM_BOARD — Живая доска задач (PROD_ROADMAP_IMPL)
+﻿# CLAIM_BOARD — Живая доска задач (PROD_ROADMAP_IMPL)
 
 **Назначение:** единая точка координации 4 агентов. Перед взятием задачи — обязательно проверить этот файл.  
 **Полный список задач:** [`TASKS.md`](TASKS.md)  
@@ -68,6 +68,7 @@
 | **Agent B** | M3-BF-S4 | Badge Request Status Panel: chip tones, empty state CTA, Sync CTA, M2 guard, scroll+hint after proof submit | done | 2026-02-27 | Closed: build clean, lint clean, M2 guard confirmed; commit e474174 | [REPORT_B_M3_BF_S4_2026-02-27.md](reports/REPORT_B_M3_BF_S4_2026-02-27.md) |
 | **Agent B** | M3-BF-S5 | Auto-sync approved levels on mount + celebration hint (startTutorial) + reject reason in «Мои заявки» | done | 2026-02-27 | Closed: build clean, lint clean, M2 guard confirmed; commit 44533b0 | [REPORT_B_M3_BF_S5_2026-02-27.md](reports/REPORT_B_M3_BF_S5_2026-02-27.md) |
 | **Agent B** | M3-BF-S6 | Staff inbox UX: локализация кнопок + inline reject form + optimistic UI + evidence accordion | done | 2026-02-27 | Closed: build clean, M2 guard confirmed | [REPORT_B_M3_BF_S6_2026-02-27.md](reports/REPORT_B_M3_BF_S6_2026-02-27.md) |
+| **Agent B** | M3-BF-S7 | ESLint HIGH fix (6 no-unused-expressions) + inbox squadId enrichment + pending counter | done | 2026-02-28 | Closed: build clean, lint 0 errors, commit fa05be9 | [REPORT_B_M3_BF_S7.md](reports/REPORT_B_M3_BF_S7.md) |
 
 ---
 
