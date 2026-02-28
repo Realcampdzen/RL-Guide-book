@@ -35,7 +35,7 @@
 3. **Report identity** — первая строка: `Агент: X (роль)`. Без этого — REWORK.
 4. **M3 Badge Flow gate** — no RBAC changes, no DB migrations, no breaking changes.
 5. **M2 Parent read-only gate** — any impact requires NEEDS_REVIEW.
-6. **Smoke gate** — baseline **44/44**. Регрессия = REWORK.
+6. **Smoke gate** — baseline **52/52**. Регрессия = REWORK.
 7. **No cross-branch git restore** — запрещён `git restore --source=<чужая-ветка>`. Синхронизация только через `main`.
 
 ---
@@ -68,6 +68,7 @@
 - HOTFIX-BASE-PATH: DONE CRITICAL (`9a26f54`) — двойной путь vite.config.ts устранён. dist/RL-Guide-book/RL-Guide-book NOT EXISTS. Build verified. Agent D
 - M5-R5-A: DONE (`8c29ba7`) — delete_resolved() SQL + hasattr guard + Flow H+I. Smoke **51/51**. Agent A
 - **GitHub Pages push**: задеплоен (`c06eae6` → origin/main). Ждём E-UX-AUDIT-M5-RECHECK (Opus).
+- M6-CHAT-CONTEXT-C: DONE CERTIFIED — living-language pending badges prompt, [:3] confirmed, smoke G-4 (not 500 guard). Smoke **52/52**. Agent C
 
 ---
 
@@ -82,7 +83,8 @@
 | M5-R3-C (Flow G) | 43/43 | ✅ |
 | M5-R4-C (G-3) | 44/44 | ✅ |
 | M5-R5-C (Flow I) | 47/47 | ✅ |
-| M5-R5-A (Flow H+I+fixes) | **51/51** | ✅ CURRENT |
+| M5-R5-A (Flow H+I+fixes) | **51/51** | ✅ |
+| M6-CHAT-CONTEXT-C (G-4) | **52/52** | ✅ CURRENT |
 
 ---
 
