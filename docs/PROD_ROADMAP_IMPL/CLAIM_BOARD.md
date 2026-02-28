@@ -89,7 +89,10 @@
 || **Agent D** | M5-R5-D | Lobster bots ops readiness: OPS_SNAPSHOT §3 (NEEDS_VERCEL_ADD), LOBSTERS_RUNBOOK.md, PROD_RELEASE_PLAYBOOK §5.3 | ✅ done | 2026-02-27 | [REPORT_D_M5_R5_D.md](reports/REPORT_D_M5_R5_D.md) |
 || **Agent D** | HOTFIX-BASE-PATH | Fix vite.config.ts double-path bug: public/RL-Guide-book/ merged into dist/RL-Guide-book/ directly. Build verified: ai-data EXISTS, RL-Guide-book/RL-Guide-book NOT EXISTS | ✅ done | 2026-02-27 | [REPORT_D_HOTFIX_BASE_PATH.md](reports/REPORT_D_HOTFIX_BASE_PATH.md) |
 || **Agent C** | M5-R5-C | `/api/telegram/agent-post`: AGENT_BOT_TOKENS map (neuro_stepa/cat_bro/dev_bro_1), auth developer/shift_leader, 400/404/409, smoke Flow I 3 checks, 47 checks total, BACKEND_CONTRACT_GUARD §3.6 | ✅ done (CERTIFIED) | 2026-02-28 | — |
+|| **Agent A** | M5-R5-A | Badge requests cleanup SQL delete + hasattr guard. Smoke Flow H (2 checks), 51 checks total | ✅ done (CERTIFIED) | 2026-02-28 | [REPORT_A_M5_R5_A.md](reports/REPORT_A_M5_R5_A.md) |
+|| **Agent C** | M6-CHAT-CONTEXT-C | Chat context: living-language pending badges prompt, [:3] limit confirmed, smoke G-4 (not 500 guard), 52 checks total, BACKEND_CONTRACT_GUARD §G updated | ✅ done (CERTIFIED) | 2026-02-28 | [REPORT_C_M6_CHAT_CONTEXT_C.md](reports/REPORT_C_M6_CHAT_CONTEXT_C.md) |
 || **Agent E (Opus)** | E-UX-AUDIT-M5-RECHECK | Повторный browser-аудит после HOTFIX-BASE-PATH — категории, изображения, логотип, role walkthrough на проде | 🔜 pending | — | Ждёт GitHub Pages deploy | — |
+|| **Agent B** | M6-IMG-FIX | Replace hardcoded /RL-Guide-book/ img paths with import.meta.env.BASE_URL in 9 TSX components (26 occurrences). Build clean. | ✅ done | 2026-02-27 | commit 482973d | [REPORT_B_M6_IMG_FIX.md](reports/REPORT_B_M6_IMG_FIX.md) |
 
 ---
 

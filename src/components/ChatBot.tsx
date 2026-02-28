@@ -699,7 +699,7 @@ const ChatBot: React.FC<ChatBotProps> = ({
               <div className="chatbot-header-info" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <div className="chatbot-avatar" style={{ position: 'relative' }}>
                   <img
-                    src="/RL-Guide-book/Валюша.jpg"
+                    src={`${import.meta.env.BASE_URL}Валюша.jpg`}
                     alt="НейроВалюша"
                     draggable={false}
                     onContextMenu={(e) => e.preventDefault()}
@@ -913,7 +913,7 @@ const ChatBot: React.FC<ChatBotProps> = ({
                 <div style={{ textAlign: 'center', color: '#a0aec0', padding: '30px 0' }}>
                   <div className="chatbot-welcome-avatar" style={{ position: 'relative', display: 'inline-block', marginBottom: '20px' }}>
                     <img
-                      src="/RL-Guide-book/Валюша.jpg"
+                      src={`${import.meta.env.BASE_URL}Валюша.jpg`}
                       alt="НейроВалюша"
                       draggable={false}
                       onContextMenu={(e) => e.preventDefault()}
