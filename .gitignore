@@ -171,6 +171,11 @@ test_data.json
 # Keep only essential images
 !public/Валюша.jpg
 
+# Badge images — only WebP tracked; JPG/orig stay local only
+public/Новые значки/**/*.jpg
+public/Новые значки/**/*.jpeg
+public/Новые значки/**/*.orig.*
+
 # Batch files (Windows specific)
 *.bat
 

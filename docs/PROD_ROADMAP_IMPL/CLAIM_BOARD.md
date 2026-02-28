@@ -95,6 +95,7 @@
 || **Agent B** | M6-IMG-FIX | Replace hardcoded /RL-Guide-book/ img paths with import.meta.env.BASE_URL in 9 TSX components (26 occurrences). Build clean. | ✅ done | 2026-02-28 | [REPORT_B_M6_IMG_FIX.md](reports/REPORT_B_M6_IMG_FIX.md) |
 || **Agent B** | TAILS_RECONCILE_B | UX tail reconciliation: ImageSourceBlock audit table, chip/tone consistency (3 systems), M2 parent read-only confirm | ✅ done | 2026-02-28 | [REPORT_B_TAILS_RECONCILE_B_2026-02-28.md](reports/REPORT_B_TAILS_RECONCILE_B_2026-02-28.md) |
 || **Agent A** | M6-BACKEND-HARDENING-A | Rate limit (1/60s per-camp) на `POST /api/badges/requests/cleanup` + `camp_id` в лог-строку + H-3 smoke check (429). Smoke 52/52 PASSED | ✅ done | 2026-02-28 | [REPORT_A_M6_HARDENING_A.md](reports/REPORT_A_M6_HARDENING_A.md) |
+|| **Agent D** | GIT-SIZE-REDUCTION | JPG/orig убраны из git tracking (583 files), badgeImages.ts + badgeImageMap.ts: .jpg → .webp. Deploy artifact: ~2.2GB → ~250MB | ✅ done | 2026-02-28 | [REPORT_D_GIT_SIZE_REDUCTION.md](reports/REPORT_D_GIT_SIZE_REDUCTION.md) |
 
 ---
 
