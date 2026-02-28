@@ -1,4 +1,4 @@
-﻿# CLAIM_BOARD — Живая доска задач (PROD_ROADMAP_IMPL)
+# CLAIM_BOARD — Живая доска задач (PROD_ROADMAP_IMPL)
 
 **Назначение:** единая точка координации 4 агентов. Перед взятием задачи — обязательно проверить этот файл.  
 **Полный список задач:** [`TASKS.md`](TASKS.md)  
@@ -92,6 +92,8 @@
 || **Agent A** | M5-R5-A | Badge requests cleanup SQL delete + hasattr guard. Smoke Flow H (2 checks), 51 checks total | ✅ done (CERTIFIED) | 2026-02-28 | [REPORT_A_M5_R5_A.md](reports/REPORT_A_M5_R5_A.md) |
 || **Agent C** | M6-CHAT-CONTEXT-C | Chat context: living-language pending badges prompt, [:3] limit confirmed, smoke G-4 (not 500 guard), 52 checks total, BACKEND_CONTRACT_GUARD §G updated | ✅ done (CERTIFIED) | 2026-02-28 | [REPORT_C_M6_CHAT_CONTEXT_C.md](reports/REPORT_C_M6_CHAT_CONTEXT_C.md) |
 || **Agent E (Opus)** | E-UX-AUDIT-M5-RECHECK | Повторный browser-аудит после HOTFIX-BASE-PATH — категории, изображения, логотип, role walkthrough на проде | 🔜 pending | — | Ждёт GitHub Pages deploy | — |
+|| **Agent B** | M6-IMG-FIX | Fix hardcoded /RL-Guide-book/ img paths: replace with import.meta.env.BASE_URL in 9 TSX/TS files | ✅ done | 2026-02-28 | commit 482973d → merged e8f2182 | [REPORT_B_M6_IMG_FIX.md](reports/REPORT_B_M6_IMG_FIX.md) |
+|| **Agent B** | TAILS_RECONCILE_B | UX tail reconciliation: ImageSourceBlock audit table, chip/tone consistency (3 systems), M2 parent read-only confirm | ✅ done | 2026-02-28 | branch agent-b/tails-reconcile-b | [REPORT_B_TAILS_RECONCILE_B_2026-02-28.md](reports/REPORT_B_TAILS_RECONCILE_B_2026-02-28.md) |
 || **Agent B** | M6-IMG-FIX | Replace hardcoded /RL-Guide-book/ img paths with import.meta.env.BASE_URL in 9 TSX components (26 occurrences). Build clean. | ✅ done | 2026-02-27 | commit 482973d | [REPORT_B_M6_IMG_FIX.md](reports/REPORT_B_M6_IMG_FIX.md) |
 
 ---
