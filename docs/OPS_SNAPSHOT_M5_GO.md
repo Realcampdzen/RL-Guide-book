@@ -36,7 +36,7 @@
 
 ## 3) Environment / secrets checklist
 
-**Last audit:** 2026-02-27 (M5-R5-D — lobster bot tokens added)  
+**Last audit:** 2026-02-28 (M6-VERCEL-LOBSTERS — lobster tokens added to Vercel Production)  
 **Method:** observable side effects (read-only probes) + local .env inspection confirming key presence. No prod secrets recorded in this document. Legend: `VERIFIED` = confirmed set and functional. `VERIFIED_OPTIONAL` = key confirmed present and non-default; not smoke-tested end-to-end; not required for core flows.
 
 | Var | Scope | Required | Policy | Status (M5-R4-D final) | Evidence basis |
@@ -52,11 +52,11 @@
 | `TELEGRAM_CHANNEL_ID` | backend | optional | Required for notifications | **VERIFIED_OPTIONAL** | .env inspection (M5-R4-D): channel ID present (non-default numeric ID), confirmed in ops context. |
 | `VITE_BACKEND_URL` | GitHub Variable (frontend build) | yes | Set to `https://backend-murex-one-40.vercel.app` | **VERIFIED** | CLAIM_BOARD DEPLOY entry: "VITE_BACKEND_URL в GitHub Variable"; frontend builds confirmed |
 
-| `NEURO_STEPA_BOT_TOKEN` | backend | optional | Lobster orchestrator bot token | **NEEDS_VERCEL_ADD** | .env: token present (M5-R5-D). Not yet added to Vercel Production. Required for `POST /api/telegram/agent-post`. |
-| `CAT_BRO_BOT_TOKEN` | backend | optional | Lobster SMM/content bot token | **NEEDS_VERCEL_ADD** | .env: token present (M5-R5-D). Not yet added to Vercel Production. Required for `POST /api/telegram/agent-post`. |
-| `DEV_BRO_1_BOT_TOKEN` | backend | optional | Lobster developer bot token | **NEEDS_VERCEL_ADD** | .env: token present (M5-R5-D). Not yet added to Vercel Production. Required for `POST /api/telegram/agent-post`. |
+| `NEURO_STEPA_BOT_TOKEN` | backend | optional | Lobster orchestrator bot token | **VERIFIED_OPTIONAL** | M6-VERCEL-LOBSTERS (2026-02-28): added to Vercel Production (ID: EHHkQrok1aX5tdxO), redeploy READY. Smoke I-1: 401 ✅ confirms auth guard active. |
+| `CAT_BRO_BOT_TOKEN` | backend | optional | Lobster SMM/content bot token | **VERIFIED_OPTIONAL** | M6-VERCEL-LOBSTERS (2026-02-28): added to Vercel Production (ID: mibVmKMsHcJn23eU), redeploy READY. |
+| `DEV_BRO_1_BOT_TOKEN` | backend | optional | Lobster developer bot token | **VERIFIED_OPTIONAL** | M6-VERCEL-LOBSTERS (2026-02-28): added to Vercel Production (ID: AHfNaf4pDynHsLBA), redeploy READY. |
 
-**Summary (M5-R5-D):** All critical env vars (7/7) **VERIFIED**. Telegram env vars (2/2) **VERIFIED_OPTIONAL**. Lobster bot tokens (3/3) **NEEDS_VERCEL_ADD** — present in .env, must be added to Vercel Production before lobster endpoint is live.
+**Summary (M6-VERCEL-LOBSTERS):** All critical env vars (7/7) **VERIFIED**. Telegram env vars (2/2) **VERIFIED_OPTIONAL**. Lobster bot tokens (3/3) **VERIFIED_OPTIONAL** — added to Vercel Production (2026-02-28), redeploy READY, smoke I-1 401 confirmed.
 
 ## 4) DB / migrations evidence
 
