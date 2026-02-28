@@ -2,7 +2,7 @@
 
 **Автор:** Agent D (Infra/Release/Operations)  
 **Дата:** 2026-02-27 (M5-R5-D)  
-**Статус:** operational
+**Статус:** operational (все токены в Vercel Production, M6-VERCEL-LOBSTERS 2026-02-28)
 
 ---
 
@@ -10,12 +10,11 @@
 
 | Bot | Handle | Роль | Env var | Vercel status |
 |-----|--------|------|---------|---------------|
-| NeuroStepa | @NeuroStepa_bot | Оркестратор | `NEURO_STEPA_BOT_TOKEN` | NEEDS_VERCEL_ADD |
-| Cat Bro | @Cat_Bro_bot | СММ/контент | `CAT_BRO_BOT_TOKEN` | NEEDS_VERCEL_ADD |
-| Dev Bro 1 | @Dev_Bro_1_bot | Разработчик | `DEV_BRO_1_BOT_TOKEN` | NEEDS_VERCEL_ADD |
+| NeuroStepa | @NeuroStepa_bot | Оркестратор | `NEURO_STEPA_BOT_TOKEN` | VERIFIED_OPTIONAL |
+| Cat Bro | @Cat_Bro_bot | СММ/контент | `CAT_BRO_BOT_TOKEN` | VERIFIED_OPTIONAL |
+| Dev Bro 1 | @Dev_Bro_1_bot | Разработчик | `DEV_BRO_1_BOT_TOKEN` | VERIFIED_OPTIONAL |
 
-> **Важно:** все три токена присутствуют в `.env` (подтверждено M5-R5-D).  
-> До добавления в Vercel Production endpoint `/api/telegram/agent-post` не будет работать в prod.
+> **Статус:** все три токена добавлены в Vercel Production (M6-VERCEL-LOBSTERS, 2026-02-28). Smoke I-1: 401 ✅. Endpoint активен.
 
 ---
 
