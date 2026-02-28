@@ -17,14 +17,14 @@
 
 | Agent | Current Task | Branch | Status | Last Commit | Risks/Blockers | Next Action | Owner |
 |---|---|---|---|---|---|---|---|
-| Agent A | M5-R5-A | `main` | DONE | `8c29ba7` (M5-R5-A, 51/51 checks) | None | Ждёт следующего TASK | Agent A |
-| Agent B | Awaiting next TASK | — | IDLE | `14914fd` (M3-BF-S6 done) | PROCESS: всегда указывать "Агент: B" в первой строке отчёта | Ждёт TASK | Agent B |
-| Agent C | M5-R5-C | `agent-c/m5-r5-c` | DONE | `76d2e89` (M5-R5-C done, 47 checks) | None | Ждёт следующего TASK | Agent C |
-| Agent D | HOTFIX-BASE-PATH + M5-R5-D | `agent-d/hotfix-base-path` | DONE | `9a26f54` (HOTFIX), `ac37faa` (M5-R5-D) | Токены лобстеров NEEDS_VERCEL_ADD (добавить в Vercel после M5-R5-C) | Ждёт следующего TASK | Agent D |
-| Agent E (Opus) | E-UX-AUDIT-M5-RECHECK | `cloud/e-validation-m5` | PENDING | `f603943` (E-UX-AUDIT-M5 done) | Ждёт GitHub Pages deploy хотфикса | Провести recheck после деплоя | Opus |
+| Agent A | M6-BACKEND-HARDENING-A | `agent-a/m6-hardening-a` | DONE | `6ec335a` (52/52, rate limit + H-3) | PROCESS: коммитил stash на main — нарушение branch discipline | Ждёт следующего TASK | Agent A |
+| Agent B | M6-IMG-FIX + TAILS_RECONCILE_B | `agent-b/m6-img-fix`, `tails-reconcile-b` | DONE | `6d37b0c` (img fix), `b3d38e8` (tails) | None | Ждёт следующего TASK | Agent B |
+| Agent C | M6-CHAT-CONTEXT-C | `agent-c/m6-chat-context-c` | DONE | `acf77f7` (living-language prompt, 52/52) | None | Ждёт следующего TASK | Agent C |
+| Agent D | M6-VERCEL-LOBSTERS | `agent-d/m6-vercel-lobsters` | DONE | `c981b5f` (lobsters VERIFIED_OPTIONAL) | None | Ждёт следующего TASK | Agent D |
+| Agent E (Opus) | E-UX-AUDIT-M5-RECHECK | `cloud/e-validation-m5` | PENDING | `f603943` (E-UX-AUDIT-M5 done) | Ждёт GitHub Pages deploy с M6-IMG-FIX | Провести recheck после деплоя | Opus |
 | Kot Bro | KOT_THREAD_TRANSPORT_FIX_V1.1 | n/a | CERTIFIED | `70ecd58` | GAP-1 non-blocking | Closed | Kot Bro |
 | Fin Bro | Standby | n/a | STANDBY | — | None | По запросу | Fin Bro |
-| NeuroStepa | Orchestration + board sync | `main` | ACTIVE | `1fa529c` | None | Keep board updated | NeuroStepa |
+| NeuroStepa | Orchestration + board sync | `main` | ACTIVE | `daabf89` | None | Keep board updated | NeuroStepa |
 
 ---
 
@@ -66,8 +66,14 @@
 - M5-R5-C: DONE CERTIFIED (`76d2e89`) — `/api/telegram/agent-post` + AGENT_BOT_TOKENS (neuro_stepa/cat_bro/dev_bro_1) + Flow I 3 checks. Smoke baseline 47/47. Agent C
 - M5-R5-D: DONE (`ac37faa`) — LOBSTERS_RUNBOOK.md + OPS_SNAPSHOT §3 NEEDS_VERCEL_ADD + PROD_RELEASE_PLAYBOOK §5.3. Agent D
 - HOTFIX-BASE-PATH: DONE CRITICAL (`9a26f54`) — двойной путь vite.config.ts устранён. dist/RL-Guide-book/RL-Guide-book NOT EXISTS. Build verified. Agent D
-- M5-R5-A: DONE (`8c29ba7`) — delete_resolved() SQL + hasattr guard + Flow H+I. Smoke **51/51**. Agent A
-- **GitHub Pages push**: задеплоен (`c06eae6` → origin/main). Ждём E-UX-AUDIT-M5-RECHECK (Opus).
+- M5-R5-A: DONE (`8c29ba7`) — delete_resolved() SQL + hasattr guard + Flow H+I. Smoke 51/51. Agent A
+- M6-IMG-FIX: DONE (`482973d`) — 26 хардкод /RL-Guide-book/ → BASE_URL в 9 файлах. Build clean. Agent B
+- M3-BF-S7: DONE (`fa05be9`) — ESLint HIGH fix + inbox squadId + pending counter. Agent B
+- TAILS_RECONCILE_B: DONE (`b3d38e8`) — ImageSourceBlock audit, chip/tone consistency (3 systems), M2 confirmed. Agent B
+- M6-CHAT-CONTEXT-C: DONE CERTIFIED (`acf77f7`) — living-language pending badges prompt + G-4 smoke. Agent C
+- M6-VERCEL-LOBSTERS: DONE (`c981b5f`) — lobsters VERIFIED_OPTIONAL, smoke I-1 401 confirmed. Agent D
+- M6-BACKEND-HARDENING-A: DONE (`6ec335a`) — cleanup rate limit 429 + camp_id log + H-3 check. Smoke **52/52**. Agent A
+- **GitHub Pages**: нужен новый push с M6-IMG-FIX для проверки Опусом.
 - M6-CHAT-CONTEXT-C: DONE CERTIFIED — living-language pending badges prompt, [:3] confirmed, smoke G-4 (not 500 guard). Smoke **52/52**. Agent C
 
 ---
@@ -84,7 +90,8 @@
 | M5-R4-C (G-3) | 44/44 | ✅ |
 | M5-R5-C (Flow I) | 47/47 | ✅ |
 | M5-R5-A (Flow H+I+fixes) | **51/51** | ✅ |
-| M6-CHAT-CONTEXT-C (G-4) | **52/52** | ✅ CURRENT |
+| M6-CHAT-CONTEXT-C (G-4) | 52/52 | ✅ |
+| M6-HARDENING-A (H-3 rate limit) | **52/52** | ✅ CURRENT |
 
 ---
 
