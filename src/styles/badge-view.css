@@ -1066,7 +1066,7 @@
   border-radius: 24px;
   padding: 2rem;
   margin-bottom: 2rem;
-  transition: all 0.3s var(--easing);
+  transition: border-color 0.3s var(--easing), background 0.3s var(--easing), box-shadow 0.3s var(--easing);
   /* GPU layer promotion: replaces the implicit layer that backdrop-filter created.
      Without this, cursor mix-blend-mode falls back to CPU compositing = lag */
   transform: translateZ(0);
