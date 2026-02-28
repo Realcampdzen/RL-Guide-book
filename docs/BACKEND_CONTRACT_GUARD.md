@@ -153,7 +153,7 @@
 
 ---
 
-#### `POST /api/badges/requests/cleanup` *(M5-R3-A)*
+#### `POST /api/badges/requests/cleanup` *(M5-R3-A, M5-R5-A, M6-HARDENING-A)*
 
 **Auth:** `shift_leader | developer` (Bearer JWT)  
 **Body:**
@@ -171,11 +171,26 @@
 }
 ```
 
-**Поведение:** Удаляет из `badge_requests.json` все записи со статусом `approved` или `rejected`, у которых `resolvedAt` старше `olderThanDays` дней. Логирует удаление: `[BADGE_CLEANUP] deleted=N actor=<sha256[:12]> ts=<ISO>`.
+**Response 429:**
+```json
+{
+  "error": "Rate limit: try again in 58s"
+}
+```
+
+**Поведение:** Удаляет записи со статусом `approved` или `rejected`, у которых `resolvedAt` старше `olderThanDays` дней.
+
+- `USE_SUPABASE=true`: выполняется SQL `DELETE` напрямую в Supabase (эффективно, без загрузки всей таблицы).
+- `USE_SUPABASE=false` (JSON-режим): загрузка всего файла в память, фильтрация в Python, перезапись.
+
+**Rate limit:** не более 1 вызова в `CLEANUP_COOLDOWN_SEC` секунд (env, default 60) per-camp (`campId` из JWT; fallback — `deviceId` или `"global"`). При превышении — `429` с сообщением `"Rate limit: try again in Xs"`. Счётчик in-memory, сбрасывается при перезапуске сервера.
+
+**Лог:** `[BADGE_CLEANUP] deleted=N camp_id=<campId> actor=<sha256[:12]> ts=<ISO>`
 
 **Errors:**
 - `400` — `olderThanDays` не является числом или < 0
 - `401/403` — неавторизован или недостаточно прав
+- `429` — rate limit: повторный вызов раньше `CLEANUP_COOLDOWN_SEC` секунд (default 60)
 
 **Mandatory response fields:** `deleted` (int ≥ 0)
 
@@ -183,6 +198,7 @@
 - Удаление поля `deleted` из ответа
 - Изменение набора разрешённых ролей (расширение на `participant` — security regression)
 - Смена семантики (например, начать удалять pending-заявки)
+- Снижение `CLEANUP_COOLDOWN_SEC` до 0 без согласования
 
 ---
 

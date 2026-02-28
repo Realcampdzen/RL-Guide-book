@@ -999,6 +999,11 @@ IMAGES_CAMP_DAILY_LIMIT = int(os.getenv('IMAGES_CAMP_DAILY_LIMIT', '200'))
 _images_camp_daily: dict = {}   # camp_key -> {'date': 'YYYY-MM-DD', 'count': int}
 _images_camp_daily_lock = threading.Lock()
 
+# Per-camp cooldown for /api/badges/requests/cleanup (M6-HARDENING-A)
+CLEANUP_COOLDOWN_SEC = int(os.getenv('CLEANUP_COOLDOWN_SEC', '60'))
+_cleanup_last_call: dict = {}   # camp_key -> float (last call unix timestamp)
+_cleanup_last_call_lock = threading.Lock()
+
 
 def _check_images_camp_daily_quota(camp_key: str) -> bool:
     """Check and record one image generation against the per-camp daily limit.
@@ -3284,6 +3289,18 @@ def badge_requests_cleanup():
     if err is not None:
         return err[0], err[1]
     device_id = (payload.get("deviceId") or "").strip()
+    camp_id = (payload.get("campId") or "").strip()
+    camp_key = camp_id or device_id or "global"
+
+    # Rate limit: no more than 1 call per CLEANUP_COOLDOWN_SEC per camp (M6-HARDENING-A)
+    _now = time.time()
+    with _cleanup_last_call_lock:
+        _last = _cleanup_last_call.get(camp_key, 0.0)
+        if _now - _last < CLEANUP_COOLDOWN_SEC:
+            _remaining = int(CLEANUP_COOLDOWN_SEC - (_now - _last))
+            return jsonify({"error": f"Rate limit: try again in {_remaining}s"}), 429
+        _cleanup_last_call[camp_key] = _now
+
     body = request.get_json() or {}
     try:
         older_than_days = int(body.get("olderThanDays") or BADGE_REQUESTS_RESOLVED_TTL_DAYS)
@@ -3317,7 +3334,7 @@ def badge_requests_cleanup():
         _badge_requests_save(bdoc)
     hashed_device = hashlib.sha256(device_id.encode()).hexdigest()[:12] if device_id else "unknown"
     app.logger.info(
-        f"[BADGE_CLEANUP] deleted={deleted} actor={hashed_device} ts={datetime.now(timezone.utc).isoformat()}"
+        f"[BADGE_CLEANUP] deleted={deleted} camp_id={camp_id or 'unknown'} actor={hashed_device} ts={datetime.now(timezone.utc).isoformat()}"
     )
     return jsonify({"deleted": deleted})
 

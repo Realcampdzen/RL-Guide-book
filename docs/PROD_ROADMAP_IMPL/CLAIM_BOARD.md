@@ -93,6 +93,7 @@
 || **Agent E (Opus)** | E-UX-AUDIT-M5-RECHECK | Повторный browser-аудит после HOTFIX-BASE-PATH — категории, изображения, логотип, role walkthrough на проде | 🔜 pending | — | Ждёт GitHub Pages deploy | — |
 || **Agent D** | M6-VERCEL-LOBSTERS | Lobster tokens added to Vercel Production (3/3 VERIFIED_OPTIONAL), redeploy READY, smoke I-1 401 ✅ | ✅ done | 2026-02-28 | [REPORT_D_M6_VERCEL_LOBSTERS.md](reports/REPORT_D_M6_VERCEL_LOBSTERS.md) |
 || **Agent B** | M6-IMG-FIX | Replace hardcoded /RL-Guide-book/ img paths with import.meta.env.BASE_URL in 9 TSX components (26 occurrences). Build clean. | ✅ done | 2026-02-27 | commit 482973d | [REPORT_B_M6_IMG_FIX.md](reports/REPORT_B_M6_IMG_FIX.md) |
+||| **Agent A** | M6-BACKEND-HARDENING-A | Rate limit (1/60s per-camp) на `POST /api/badges/requests/cleanup` + `camp_id` в лог-строку + H-3 smoke check (429). Smoke 52/52 PASSED | ✅ done | 2026-02-28 | [REPORT_A_M6_HARDENING_A.md](reports/REPORT_A_M6_HARDENING_A.md) |
 
 ---
 
