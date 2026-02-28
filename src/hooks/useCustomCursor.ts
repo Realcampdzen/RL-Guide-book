@@ -16,7 +16,7 @@ export const useCustomCursor = () => {
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    
+
     // Enable custom cursor only when the device actually has a fine pointer (mouse/trackpad).
     // IMPORTANT: Hybrid devices (touch + mouse) must still enable the cursor when a fine pointer exists.
     const canUseFinePointer = (() => {
@@ -65,6 +65,13 @@ export const useCustomCursor = () => {
     const setCursorActive = (active: boolean) => {
       if (active) {
         document.documentElement.dataset.cursor = 'on';
+        // Force Chrome to re-evaluate cursor style after autoscroll exit.
+        // Chrome internally resets cursor appearance when exiting autoscroll,
+        // ignoring CSS cursor:none until a repaint is triggered.
+        document.documentElement.style.cursor = 'none';
+        requestAnimationFrame(() => {
+          document.documentElement.style.cursor = '';
+        });
       } else if (document.documentElement.dataset.cursor === 'on') {
         document.documentElement.removeAttribute('data-cursor');
       }
@@ -83,7 +90,7 @@ export const useCustomCursor = () => {
     // Function to check collision between circle and element
     const checkCollision = (circleX: number, circleY: number, circleRadius: number, element: HTMLElement): boolean => {
       const rect = element.getBoundingClientRect();
-      
+
       // Special case for hero title spans (keep precise text detection)
       const isInHeroTitle = element.closest('.hero-title') !== null;
       if (isInHeroTitle && element.tagName === 'SPAN') {
@@ -125,14 +132,14 @@ export const useCustomCursor = () => {
             if (!isInElement) {
               return false;
             }
-            
+
             // Check if range is not collapsed (meaning there's actual text)
             // Also check if we're not in whitespace between text nodes
             const textNode = range.startContainer;
             if (textNode.nodeType === Node.TEXT_NODE) {
               const text = textNode.textContent || '';
               const offset = range.startOffset;
-              
+
               // Check if the character at this position is not whitespace
               if (offset < text.length && text[offset] && text[offset].trim().length > 0) {
                 return true;
@@ -146,7 +153,7 @@ export const useCustomCursor = () => {
                 return true;
               }
             }
-            
+
             // If range is not collapsed, there's text selected
             if (!range.collapsed) {
               return true;
@@ -160,33 +167,33 @@ export const useCustomCursor = () => {
       // For block-level elements (like .hero-title span), calculate actual text width
       const rect = element.getBoundingClientRect();
       const style = window.getComputedStyle(element);
-      
+
       // Check if element is block-level (like .hero-title span)
       const isBlockLevel = style.display === 'block' || style.display === 'flex';
-      
+
       if (isBlockLevel) {
         // Use Range API to get exact text boundaries - same logic as checkCollision
         try {
           const range = document.createRange();
           // Select all text content of the element
           range.selectNodeContents(element);
-          
+
           // Get the bounding rect of the actual text (not the element)
           const textRects = range.getClientRects();
-          
+
           if (textRects.length > 0) {
             // Use the first (and usually only) text rectangle
             const textRect = textRects[0];
-            
+
             // For elements with -webkit-text-stroke, account for stroke width
             const computedStyle = window.getComputedStyle(element);
-            const textStroke = (style as any).webkitTextStroke || 
-                              computedStyle.getPropertyValue('-webkit-text-stroke') || 
-                              style.getPropertyValue('-webkit-text-stroke') || '';
-            
+            const textStroke = (style as any).webkitTextStroke ||
+              computedStyle.getPropertyValue('-webkit-text-stroke') ||
+              style.getPropertyValue('-webkit-text-stroke') || '';
+
             let textStart = textRect.left;
             let textEnd = textRect.right;
-            
+
             // For elements with -webkit-text-stroke, add stroke width to boundaries
             if (textStroke && textStroke !== 'none' && textStroke !== '0px' && textStroke.trim() !== '') {
               const strokeMatch = textStroke.match(/(\d+(?:\.\d+)?)px/);
@@ -197,18 +204,18 @@ export const useCustomCursor = () => {
                 textEnd += strokeWidth;
               }
             }
-            
+
             // Check if cursor is within the actual text area horizontally and vertically
             if (x >= textStart && x <= textEnd && y >= textRect.top && y <= textRect.bottom) {
               return true;
             }
-            
+
             return false;
           }
         } catch (e) {
           // Fallback to canvas measurement if Range API fails
         }
-        
+
         // Fallback: Calculate actual text width using canvas
         const canvas = document.createElement('canvas');
         const context = canvas.getContext('2d');
@@ -219,19 +226,19 @@ export const useCustomCursor = () => {
           const fontFamily = computedStyle.getPropertyValue('font-family') || style.fontFamily || 'inherit';
           const fontWeight = computedStyle.getPropertyValue('font-weight') || style.fontWeight || 'normal';
           const fontStyle = computedStyle.getPropertyValue('font-style') || style.fontStyle || 'normal';
-          
+
           context.font = `${fontStyle} ${fontWeight} ${fontSize} ${fontFamily}`;
-          
+
           // Measure text width - use trimmed text content (same as checkCollision)
           const textContent = (element.textContent || '').trim();
           let textWidth = context.measureText(textContent).width;
-          
+
           // For elements with -webkit-text-stroke (like .highlight), add stroke width to measurement
           // Use same logic as checkCollision
-          const textStroke = (style as any).webkitTextStroke || 
-                            computedStyle.getPropertyValue('-webkit-text-stroke') || 
-                            style.getPropertyValue('-webkit-text-stroke') || '';
-          
+          const textStroke = (style as any).webkitTextStroke ||
+            computedStyle.getPropertyValue('-webkit-text-stroke') ||
+            style.getPropertyValue('-webkit-text-stroke') || '';
+
           if (textStroke && textStroke !== 'none' && textStroke !== '0px' && textStroke.trim() !== '') {
             // Parse stroke width (format: "2px color" or just "2px")
             const strokeMatch = textStroke.match(/(\d+(?:\.\d+)?)px/);
@@ -241,11 +248,11 @@ export const useCustomCursor = () => {
               textWidth += strokeWidth * 2;
             }
           }
-          
+
           // Get text alignment - use same logic as checkCollision
           const textAlign = computedStyle.getPropertyValue('text-align') || style.textAlign || 'left';
           let textStart: number;
-          
+
           if (textAlign === 'center') {
             textStart = rect.left + (rect.width - textWidth) / 2;
           } else if (textAlign === 'right') {
@@ -255,19 +262,19 @@ export const useCustomCursor = () => {
             const paddingLeft = parseFloat(computedStyle.getPropertyValue('padding-left')) || parseFloat(style.paddingLeft) || 0;
             textStart = rect.left + paddingLeft;
           }
-          
+
           const textEnd = textStart + textWidth;
-          
+
           // Check if cursor is within the actual text area horizontally and vertically
           const lineHeight = parseFloat(computedStyle.getPropertyValue('line-height')) || parseFloat(style.lineHeight) || parseFloat(fontSize);
           const paddingTop = parseFloat(computedStyle.getPropertyValue('padding-top')) || parseFloat(style.paddingTop) || 0;
           const textTop = rect.top + paddingTop;
           const textBottom = textTop + lineHeight;
-          
+
           if (x >= textStart && x <= textEnd && y >= textTop && y <= textBottom) {
             return true;
           }
-          
+
           return false;
         }
       }
@@ -402,9 +409,25 @@ export const useCustomCursor = () => {
 
     const handleMouseDown = (event: MouseEvent) => {
       if (event.button === 1) {
-        setAutoscrollActive(!autoscrollActive);
+        // Middle click: browser enters autoscroll mode.
+        // Hide custom cursor while autoscroll is active.
+        if (!autoscrollActive) {
+          setAutoscrollActive(true);
+        } else {
+          // User clicked middle button again to exit autoscroll
+          setAutoscrollActive(false);
+        }
         return;
       }
+      // Any other click while autoscroll is active: Chrome exits autoscroll
+      if (autoscrollActive) {
+        setAutoscrollActive(false);
+      }
+    };
+
+    // When Chrome exits autoscroll on its own (via scroll, etc.),
+    // the next mouse move should restore the custom cursor.
+    const handleMouseMoveRestore = () => {
       if (autoscrollActive) {
         setAutoscrollActive(false);
       }
@@ -424,6 +447,7 @@ export const useCustomCursor = () => {
     const handleMouseMoveRaf = rafThrottle(handleMouseMove);
     window.addEventListener('mousemove', handleMouseMoveRaf, { passive: true } as AddEventListenerOptions);
     window.addEventListener('mousedown', handleMouseDown, true);
+    window.addEventListener('mouseup', handleMouseMoveRestore);
     window.addEventListener('blur', handleWindowBlur);
     window.addEventListener('keydown', handleKeyDown);
     updateCursor();
@@ -431,6 +455,7 @@ export const useCustomCursor = () => {
     return () => {
       window.removeEventListener('mousemove', handleMouseMoveRaf as unknown as EventListener);
       window.removeEventListener('mousedown', handleMouseDown, true);
+      window.removeEventListener('mouseup', handleMouseMoveRestore);
       window.removeEventListener('blur', handleWindowBlur);
       window.removeEventListener('keydown', handleKeyDown);
       if (animationFrameRef.current !== null) {
