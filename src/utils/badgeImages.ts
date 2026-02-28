@@ -1,6 +1,6 @@
 /**
  * Утилиты для работы с изображениями значков
- * Структура: public/Новые значки/[Название категории]/[Название значка]/[Номер] [Название уровня].jpg
+ * Структура: public/Новые значки/[Название категории]/[Название значка]/[Номер] [Название уровня].webp
  */
 import { badgeImagePathOverrides } from './badgeImageMap';
 
@@ -153,13 +153,13 @@ export const getBadgeImagePath = (
     if (levelNumber) {
       // File names in assets use spaces more often than hyphens.
       let levelFileName = normalizeFolderName(levelTitle.replace(/-/g, ' '));
-      fileName = `${levelNumber} ${levelFileName}.jpg`;
+      fileName = `${levelNumber} ${levelFileName}.webp`;
     }
   } else {
     // Базовый уровень
     // Category 4.4: base icon should be the first level ("Шерлок"), not "Д.А.Р.Л."
     if (badgeId === '4.4') {
-      fileName = '1 шерлок.jpg';
+      fileName = '1 шерлок.webp';
     } else {
       let baseLevelTitle = badgeTitle;
       if (!baseLevelTitle) baseLevelTitle = getBadgeFolderName(badgeTitle, badgeId, levelTitle);
@@ -167,7 +167,7 @@ export const getBadgeImagePath = (
       if (baseLevelTitle.includes('\n')) baseLevelTitle = baseLevelTitle.split('\n')[0].trim();
 
       let baseLevelName = normalizeFolderName(baseLevelTitle.replace(/-/g, ' '));
-      fileName = `1 ${baseLevelName}.jpg`;
+      fileName = `1 ${baseLevelName}.webp`;
     }
   }
 
