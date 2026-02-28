@@ -28,6 +28,11 @@ html[data-cursor="on"] .cursor-reactor {
   pointer-events: none;
   /* Must be above top/bottom nav overlays (which can reach ~12000). */
   z-index: 20050;
+  /* GPU layer promotion: prevents subpixel rendering artifacts
+     from mix-blend-mode at large scales (ghost vertical line on badge pages). */
+  will-change: transform, opacity;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
 }
 
 html[data-cursor="on"] .cursor-dot {
@@ -49,6 +54,8 @@ html[data-cursor="on"] .cursor-hover {
   background: var(--c-warm);
   border: none;
   mix-blend-mode: difference;
+  /* Isolate compositing to prevent blend-mode artifacts leaking into adjacent layers */
+  isolation: isolate;
 }
 
 html[data-cursor="on"] .cursor-reactor {
