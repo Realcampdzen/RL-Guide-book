@@ -6,10 +6,10 @@
 
 ## Cycle
 
-- Cycle ID: 2026-02-27-D
+- Cycle ID: 2026-02-28-E
 - Mode: Execution
 - Orchestrator: NeuroStepa
-- Updated at: 2026-02-27 (GIT_DISCIPLINE_FIX — main обновлён, все ветки смержены)
+- Updated at: 2026-02-28 (GIT-SIZE-REDUCTION done — JPG убраны из git, WebP only, deploy artifact ~250MB)
 
 ---
 
@@ -20,11 +20,11 @@
 | Agent A | M6-BACKEND-HARDENING-A | `agent-a/m6-hardening-a` | DONE | `6ec335a` (52/52, rate limit + H-3) | PROCESS: коммитил stash на main — нарушение branch discipline | Ждёт следующего TASK | Agent A |
 | Agent B | M6-IMG-FIX + TAILS_RECONCILE_B | `agent-b/m6-img-fix`, `tails-reconcile-b` | DONE | `6d37b0c` (img fix), `b3d38e8` (tails) | None | Ждёт следующего TASK | Agent B |
 | Agent C | M6-CHAT-CONTEXT-C | `agent-c/m6-chat-context-c` | DONE | `acf77f7` (living-language prompt, 52/52) | None | Ждёт следующего TASK | Agent C |
-| Agent D | M6-VERCEL-LOBSTERS | `agent-d/m6-vercel-lobsters` | DONE | `c981b5f` (lobsters VERIFIED_OPTIONAL) | None | Ждёт следующего TASK | Agent D |
-| Agent E (Opus) | E-UX-AUDIT-M5-RECHECK | `cloud/e-validation-m5` | PENDING | `f603943` (E-UX-AUDIT-M5 done) | Ждёт GitHub Pages deploy с M6-IMG-FIX | Провести recheck после деплоя | Opus |
+| Agent D | GIT-SIZE-REDUCTION | `agent-d/git-size-reduction` | DONE | `5e43f0a` (JPG->WebP, artifact 2.2GB->250MB) | None | Ждёт следующего TASK | Agent D |
+| Agent E (Opus) | E-UX-AUDIT-M5-RECHECK | `cloud/e-validation-m5` | PENDING | `f603943` (E-UX-AUDIT-M5 done) | Ждёт GitHub Pages deploy с GIT-SIZE-REDUCTION | Провести recheck после деплоя | Opus |
 | Kot Bro | KOT_THREAD_TRANSPORT_FIX_V1.1 | n/a | CERTIFIED | `70ecd58` | GAP-1 non-blocking | Closed | Kot Bro |
 | Fin Bro | Standby | n/a | STANDBY | — | None | По запросу | Fin Bro |
-| NeuroStepa | Orchestration + board sync | `main` | ACTIVE | `daabf89` | None | Keep board updated | NeuroStepa |
+| NeuroStepa | Orchestration + board sync | `main` | ACTIVE | `57f0729` | None | Keep board updated | NeuroStepa |
 
 ---
 
@@ -75,6 +75,7 @@
 - M6-BACKEND-HARDENING-A: DONE (`6ec335a`) — cleanup rate limit 429 + camp_id log + H-3 check. Smoke **52/52**. Agent A
 - **GitHub Pages**: нужен новый push с M6-IMG-FIX для проверки Опусом.
 - M6-CHAT-CONTEXT-C: DONE CERTIFIED — living-language pending badges prompt, [:3] confirmed, smoke G-4 (not 500 guard). Smoke **52/52**. Agent C
+- GIT-SIZE-REDUCTION: DONE (`5e43f0a`, merge `57f0729`) — JPG/orig убраны из git tracking (583 files); badgeImages.ts + badgeImageMap.ts: .jpg → .webp; artifact 2.2GB → ~250MB. Пуш в main → деплой запущен. Opus recheck разблокирован. Agent D
 
 ---
 
