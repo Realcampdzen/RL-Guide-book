@@ -17,7 +17,7 @@
 
 | Agent | Current Task | Branch | Status | Last Commit | Risks/Blockers | Next Action | Owner |
 |---|---|---|---|---|---|---|---|
-| Agent A | M7-PLAN-WORKFLOW-A | `main` (direct) | DONE | Endpoints verified | None | Ждёт M7-EDUCATOR-RBAC-A (после B) | Agent A |
+| Agent A | M7-EDUCATOR-RBAC-A | `main` (direct) | DONE | 9 RBAC + Flow K | None | Sprint M7 complete | Agent A |
 | Agent B | M7-PLAN-UI-B + M7-SHARE-TRIGGERS-B | `main` (direct) | DONE | tsc clean | None | Ждёт следующего TASK | Agent B |
 | Agent C | M7-REQUIRESAPPROVAL-C | `main` (direct) | DONE CERTIFIED | tsc clean | None | Ждёт следующего TASK | Agent C |
 | Agent D | — | — | STANDBY | `00d320a` | None | Standby this sprint | Agent D |

@@ -1097,6 +1097,56 @@ class SmokeRunner:
         )
 
     # -----------------------------------------------------------------------
+    # Flow K — Educator RBAC smoke (M7-EDUCATOR-RBAC-A)
+    # -----------------------------------------------------------------------
+
+    def run_flow_k(self) -> None:
+        """Flow K: educator JWT accepted by inbox endpoints."""
+        print("\n[Flow K] Educator RBAC: educator JWT → inbox 200")
+        if not self.auth_secret:
+            print("  SKIP  (no AUTH_SECRET — auth flows require it)")
+            return
+
+        educator_device = f"smoke_edu_{uuid.uuid4().hex[:8]}"
+        educator_token = self._get_jwt(educator_device, "educator")
+        if not educator_token:
+            return
+
+        # K-1: educator → GET /api/badges/requests/inbox → 200
+        try:
+            status_k1, _ = _http(
+                self._url("/api/badges/requests/inbox"),
+                headers=self._bearer(educator_token),
+            )
+        except SmokeError as exc:
+            self.fail("GET /api/badges/requests/inbox (educator)", str(exc))
+            status_k1 = None
+
+        if status_k1 is not None:
+            self.check(
+                "GET /api/badges/requests/inbox — educator → 200",
+                status_k1 == 200,
+                f"expected 200, got {status_k1}",
+            )
+
+        # K-2: educator → GET /api/badges/plans/inbox → 200
+        try:
+            status_k2, _ = _http(
+                self._url("/api/badges/plans/inbox"),
+                headers=self._bearer(educator_token),
+            )
+        except SmokeError as exc:
+            self.fail("GET /api/badges/plans/inbox (educator)", str(exc))
+            status_k2 = None
+
+        if status_k2 is not None:
+            self.check(
+                "GET /api/badges/plans/inbox — educator → 200",
+                status_k2 == 200,
+                f"expected 200, got {status_k2}",
+            )
+
+    # -----------------------------------------------------------------------
     # Run all
     # -----------------------------------------------------------------------
 
@@ -1114,12 +1164,16 @@ class SmokeRunner:
         self.run_flow_b()
         self.run_flow_c()
         self.run_flow_d(req_id, participant_token)
-        self.run_flow_e()
+        try:
+            self.run_flow_e()
+        except Exception as exc:
+            self.fail("Flow E (Image Generation)", f"unhandled exception: {exc}")
         self.run_flow_f()
         self.run_flow_g()
         self.run_flow_h()
         self.run_flow_i()
         self.run_flow_j()
+        self.run_flow_k()
         return self._print_summary()
 
     def _print_summary(self) -> int:

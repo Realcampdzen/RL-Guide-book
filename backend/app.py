@@ -2409,7 +2409,7 @@ def squads_create(shift_id: str):
 
     Counselor is allowed to create squads only inside their own shift (campId match).
     """
-    payload, err = _require_roles(("counselor", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
+    payload, err = _require_roles(("counselor", "educator", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
     if err is not None:
         return err[0], err[1]
     sid = (shift_id or "").strip()
@@ -2654,7 +2654,7 @@ def squad_corner_get_or_patch(squad_id: str):
     Auth: participant|parent|counselor|shift_leader|camp_director|developer (GET), counselor|shift_leader|camp_director|developer (PATCH).
     """
     if request.method == 'PATCH':
-        payload, err = _require_roles(("counselor", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
+        payload, err = _require_roles(("counselor", "educator", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
     else:
         payload, err = _require_roles(("participant", "counselor", "educator", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
     if err is not None:
@@ -2746,7 +2746,7 @@ def squad_invite_code_create(squad_id: str):
     POST /api/squads/<squadId>/invite-code — create invite code for joining the squad.
     Auth: counselor|shift_leader|camp_director|developer
     """
-    payload, err = _require_roles(("counselor", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
+    payload, err = _require_roles(("counselor", "educator", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
     if err is not None:
         return err[0], err[1]
     sid = (squad_id or "").strip()
@@ -2838,7 +2838,7 @@ def squad_invite_code_resolve():
     """
     Legacy alias for code resolving.
     """
-    payload, err = _require_roles(("participant", "counselor", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
+    payload, err = _require_roles(("participant", "counselor", "educator", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
     if err is not None:
         return err[0], err[1]
     return _resolve_invite_code_response(request.args.get("code") or "")
@@ -2850,7 +2850,7 @@ def squad_invite_code_resolve_v2():
     GET /api/squads/by-invite-code?code=XXXXXX — resolve invite code to squad meta.
     Auth: participant|counselor|shift_leader|camp_director|developer
     """
-    payload, err = _require_roles(("participant", "counselor", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
+    payload, err = _require_roles(("participant", "counselor", "educator", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
     if err is not None:
         return err[0], err[1]
     return _resolve_invite_code_response(request.args.get("code") or "")
@@ -2862,7 +2862,7 @@ def squad_preview(squad_id: str):
     GET /api/squads/<squadId>/preview — minimal squad info for join modal.
     Auth required.
     """
-    payload, err = _require_roles(("participant", "counselor", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
+    payload, err = _require_roles(("participant", "counselor", "educator", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
     if err is not None:
         return err[0], err[1]
     sid = (squad_id or "").strip()
@@ -2887,7 +2887,7 @@ def squad_leave(squad_id: str):
     POST /api/squads/<squadId>/leave — leave the squad.
     Auth: participant|parent|counselor|shift_leader|camp_director|developer
     """
-    payload, err = _require_roles(("participant", "parent", "counselor", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
+    payload, err = _require_roles(("participant", "parent", "counselor", "educator", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
     if err is not None:
         return err[0], err[1]
     device_id = (payload.get("deviceId") or "").strip()
@@ -2953,7 +2953,7 @@ def squad_kick_member_delete(squad_id: str, target_device_id: str):
     DELETE /api/squads/<squadId>/members/<deviceId> — remove member from squad.
     Auth: counselor|shift_leader|camp_director|developer
     """
-    payload, err = _require_roles(("counselor", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
+    payload, err = _require_roles(("counselor", "educator", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
     if err is not None:
         return err[0], err[1]
     return _kick_member_impl(payload, squad_id, target_device_id)
@@ -2966,7 +2966,7 @@ def squad_kick_member(squad_id: str):
     Auth: counselor|shift_leader|camp_director|developer
     Body: { deviceId: string }
     """
-    payload, err = _require_roles(("counselor", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
+    payload, err = _require_roles(("counselor", "educator", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
     if err is not None:
         return err[0], err[1]
     body = request.get_json() or {}

@@ -677,7 +677,7 @@
 Контракты автоматически проверяются скриптом:
 
 ```bash
-# С AUTH_SECRET — полный прогон (56 checks):
+# С AUTH_SECRET — полный прогон (58 checks):
 # Windows (cp1251): запускать с -X utf8 для корректного вывода
 AUTH_SECRET=<secret> python -X utf8 backend/scripts/smoke_backend_critical.py --base-url http://localhost:4000
 
@@ -702,7 +702,8 @@ python backend/scripts/smoke_backend_critical.py --base-url http://localhost:400
 | G | Chat endpoint: valid JWT → 200+response, invalid token → 401, msg too long → 400, not 500 guard (M5-R3-C, M5-R4-C, M6-CHAT-CONTEXT-C) | 6 |
 | I | Telegram agent-post: no auth → 401, unknown agent → 404, missing root_message_id → 400 (M5-R5-C) | 3 |
 | J | Badge Plans (submit → inbox → approve → mine) (M7-PLAN-WORKFLOW-A) | 4 |
-| **Total** | | **56** |
+| K | Educator RBAC: educator JWT → requests inbox 200, plans inbox 200 (M7-EDUCATOR-RBAC-A) | 2 |
+| **Total** | | **58** |
 
 **Flow D** (M5-R2-B, `/api/badges/requests/mine`):
 - D-1: GET /mine → 200, requests is list
