@@ -6,10 +6,10 @@
 
 ## Cycle
 
-- Cycle ID: 2026-02-28-F
-- Mode: Execution
+- Cycle ID: 2026-03-01-M7
+- Mode: Execution — Sprint M7 «Partial mechanics completion»
 - Orchestrator: NeuroStepa
-- Updated at: 2026-02-28 (E-FIX-DEPLOY-PATH CRITICAL — настоящая причина 404 устранена — JPG убраны из git, WebP only, deploy artifact ~250MB)
+- Updated at: 2026-03-01 (M7 sprint kickoff — 5 tasks: plan workflow, plan UI, educator RBAC, requiresApproval, share triggers)
 
 ---
 
@@ -17,14 +17,14 @@
 
 | Agent | Current Task | Branch | Status | Last Commit | Risks/Blockers | Next Action | Owner |
 |---|---|---|---|---|---|---|---|
-| Agent A | M6-BACKEND-HARDENING-A | `agent-a/m6-hardening-a` | DONE | `6ec335a` (52/52, rate limit + H-3) | PROCESS: коммитил stash на main — нарушение branch discipline | Ждёт следующего TASK | Agent A |
-| Agent B | M6-IMG-FIX + TAILS_RECONCILE_B | `agent-b/m6-img-fix`, `tails-reconcile-b` | DONE | `6d37b0c` (img fix), `b3d38e8` (tails) | None | Ждёт следующего TASK | Agent B |
-| Agent C | M6-CHAT-CONTEXT-C | `agent-c/m6-chat-context-c` | DONE | `acf77f7` (living-language prompt, 52/52) | None | Ждёт следующего TASK | Agent C |
-| Agent D | GIT-SIZE-REDUCTION | `agent-d/git-size-reduction` | DONE | `5e43f0a` (JPG->WebP, artifact 2.2GB->250MB) | None | Ждёт следующего TASK | Agent D |
-| Agent E (Opus) | E-UX-AUDIT-M5-RECHECK | `cloud/e-validation-m5` | PENDING | `f603943` (E-UX-AUDIT-M5 done) | Ждёт GitHub Pages deploy с GIT-SIZE-REDUCTION | Провести recheck после деплоя | Opus |
+| Agent A | M7-PLAN-WORKFLOW-A | `main` (direct) | DONE | Endpoints verified | None | Ждёт M7-EDUCATOR-RBAC-A (после B) | Agent A |
+| Agent B | M7-PLAN-UI-B + M7-SHARE-TRIGGERS-B | `main` (direct) | DONE | tsc clean | None | Ждёт следующего TASK | Agent B |
+| Agent C | M7-REQUIRESAPPROVAL-C | `main` (direct) | DONE CERTIFIED | tsc clean | None | Ждёт следующего TASK | Agent C |
+| Agent D | — | — | STANDBY | `00d320a` | None | Standby this sprint | Agent D |
+| Agent E (Opus) | E-UX-AUDIT-M5-RECHECK | `cloud/e-validation-m5` | PENDING | `f603943` | Ждёт GitHub Pages deploy | Провести recheck после деплоя | Opus |
 | Kot Bro | KOT_THREAD_TRANSPORT_FIX_V1.1 | n/a | CERTIFIED | `70ecd58` | GAP-1 non-blocking | Closed | Kot Bro |
 | Fin Bro | Standby | n/a | STANDBY | — | None | По запросу | Fin Bro |
-| NeuroStepa | Orchestration + board sync | `main` | ACTIVE | `57f0729` | None | Keep board updated | NeuroStepa |
+| NeuroStepa | Orchestration + board sync | `main` | ACTIVE | `00d320a` | None | Выдать TASK Agent A + Agent C | NeuroStepa |
 
 ---
 

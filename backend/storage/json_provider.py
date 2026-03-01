@@ -12,8 +12,8 @@ import threading
 from .base import (
     ShiftsStore, MembershipsStore, SquadCornersStore,
     SquadInvitesStore, SquadMessagesStore,
-    BadgeRequestsStore, ParentSnapshotsStore, ChatDailyUsageStore,
-    CouncilInitiativesStore, TeamsStore,
+    BadgeRequestsStore, BadgePlansStore, ParentSnapshotsStore,
+    ChatDailyUsageStore, CouncilInitiativesStore, TeamsStore,
 )
 
 _DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
@@ -24,6 +24,7 @@ _SQUAD_CORNERS_FILE  = os.path.join(_DATA_DIR, "squad_corners.json")
 _SQUAD_INVITES_FILE  = os.path.join(_DATA_DIR, "squad_invites.json")
 _SQUAD_MESSAGES_FILE = os.path.join(_DATA_DIR, "squad_messages.json")
 _BADGE_REQUESTS_FILE = os.path.join(_DATA_DIR, "badge_requests.json")
+_BADGE_PLANS_FILE    = os.path.join(_DATA_DIR, "badge_plans.json")
 _PARENT_SNAPSHOTS_FILE = os.path.join(_DATA_DIR, "parent_snapshots.json")
 _CHAT_DAILY_USAGE_FILE = os.path.join(_DATA_DIR, "chat_daily_usage.json")
 _COUNCIL_INITIATIVES_FILE = os.path.join(_DATA_DIR, "council_initiatives.json")
@@ -36,6 +37,7 @@ _SQUAD_CORNERS_LOCK  = threading.Lock()
 _SQUAD_INVITES_LOCK  = threading.Lock()
 _SQUAD_MESSAGES_LOCK = threading.Lock()
 _BADGE_REQUESTS_LOCK = threading.Lock()
+_BADGE_PLANS_LOCK    = threading.Lock()
 _PARENT_SNAPSHOTS_LOCK = threading.Lock()
 _CHAT_DAILY_LOCK     = threading.Lock()
 _COUNCIL_INITIATIVES_LOCK = threading.Lock()
@@ -195,6 +197,27 @@ class JsonBadgeRequestsStore(BadgeRequestsStore):
 
 
 # ---------------------------------------------------------------------------
+# BadgePlansStore
+# ---------------------------------------------------------------------------
+
+class JsonBadgePlansStore(BadgePlansStore):
+    def load(self) -> dict:
+        _ensure_data_dir()
+        with _BADGE_PLANS_LOCK:
+            data = _read_json(_BADGE_PLANS_FILE, {"plans": []})
+            if not isinstance(data, dict):
+                data = {"plans": []}
+            if not isinstance(data.get("plans"), list):
+                data["plans"] = []
+            return data
+
+    def save(self, data: dict) -> None:
+        _ensure_data_dir()
+        with _BADGE_PLANS_LOCK:
+            _write_json(_BADGE_PLANS_FILE, data)
+
+
+# ---------------------------------------------------------------------------
 # ParentSnapshotsStore
 # ---------------------------------------------------------------------------
 
@@ -283,6 +306,7 @@ JSON_STORES = {
     "squad_invites":   JsonSquadInvitesStore(),
     "squad_messages":  JsonSquadMessagesStore(),
     "badge_requests":  JsonBadgeRequestsStore(),
+    "badge_plans":     JsonBadgePlansStore(),
     "parent_snapshots": JsonParentSnapshotsStore(),
     "chat_daily_usage": JsonChatDailyUsageStore(),
     "council_initiatives": JsonCouncilInitiativesStore(),

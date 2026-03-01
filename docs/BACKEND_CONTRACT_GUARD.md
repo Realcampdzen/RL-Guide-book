@@ -16,6 +16,7 @@
 | Группа | Endpoints |
 |--------|-----------|
 | **Badge Requests** | `POST /api/badges/requests`, `GET /api/badges/requests/mine`, `GET /api/badges/requests/inbox`, `POST /api/badges/requests/{id}/approve`, `POST /api/badges/requests/{id}/reject`, `POST /api/badges/requests/cleanup` |
+| **Badge Plans** | `POST /api/badges/plans`, `GET /api/badges/plans/mine`, `GET /api/badges/plans/inbox`, `PATCH /api/badges/plans/{id}/review` |
 | **Parent Snapshot** | `POST /api/parent-snapshot`, `GET /api/parent-snapshot?code=` |
 | **Council Initiatives** | `GET /api/council/initiatives`, `POST /api/council/initiatives` |
 | **Image Generation** | `POST /api/images/generate` |
@@ -546,6 +547,111 @@
 
 ---
 
+### 3.7 Badge Plans (M7-PLAN-WORKFLOW-A)
+
+#### `POST /api/badges/plans`
+
+**Auth:** `participant | parent | developer` (Bearer JWT)  
+**Body:**
+```json
+{
+  "badgeId":   "string (required)",
+  "levelId":   "string (optional)",
+  "planText":  "string (optional, max 4000 chars)",
+  "checklist": [{"text": "string", "done": false}],
+  "submit":    true
+}
+```
+
+**Upsert logic:** If plan with same `device_id + badge_id` exists → update (200). Otherwise → create (201).
+
+**Response 201 / 200:**
+```json
+{
+  "plan": {
+    "id":            "string (mandatory) — формат BP-XXXXXXXXXX",
+    "deviceId":      "string (mandatory)",
+    "badgeId":       "string (mandatory)",
+    "levelId":       "string (optional)",
+    "campId":        "string (optional)",
+    "planText":      "string (mandatory)",
+    "checklist":     "array (mandatory)",
+    "status":        "'draft' | 'submitted' (mandatory)",
+    "counselorNote": "null (mandatory at create)",
+    "createdAt":     "string ISO8601 (mandatory)",
+    "updatedAt":     "string ISO8601 (mandatory)"
+  }
+}
+```
+
+**Mandatory fields:** `plan.id`, `plan.status`, `plan.badgeId`, `plan.createdAt`
+
+---
+
+#### `GET /api/badges/plans/mine`
+
+**Auth:** `participant | parent | developer`  
+**Query params:** `status` (optional: `draft | submitted | approved | rejected`)  
+**Response 200:**
+```json
+{
+  "plans": [ /* same shape as POST response plan object */ ]
+}
+```
+
+**Mandatory fields:** `plans` (array, may be empty)  
+**Sort:** newest-first (descending updatedAt)
+
+---
+
+#### `GET /api/badges/plans/inbox`
+
+**Auth:** `counselor | educator | shift_leader | camp_director | developer`  
+**Query params:** `campId` (optional)  
+**Response 200:**
+```json
+{
+  "plans": [ /* plans with status=submitted */ ]
+}
+```
+
+> **Auto-scope:** counselor/educator auto-scoped to their camp (via `_resolve_membership_context`).
+
+**Mandatory fields:** `plans` (array)  
+**Sort:** newest-first (descending updatedAt)
+
+---
+
+#### `PATCH /api/badges/plans/{id}/review`
+
+**Auth:** `counselor | educator | shift_leader | camp_director | developer`  
+**Body:**
+```json
+{
+  "status":        "'approved' | 'rejected' (required)",
+  "counselorNote": "string (optional, max 2000 chars)"
+}
+```
+
+**Response 200:**
+```json
+{
+  "plan": {
+    "id":            "string (mandatory)",
+    "status":        "'approved' | 'rejected' (mandatory)",
+    "counselorNote": "string | null (optional)",
+    "updatedAt":     "string ISO8601 (mandatory)"
+  }
+}
+```
+
+**HTTP 409** если план уже resolved (approved/rejected).  
+**HTTP 404** если план не найден.
+
+**Mandatory fields:** `plan.id`, `plan.status`, `plan.updatedAt`
+
+---
+
 ## 4. Breaking vs Non-Breaking — Классификация
 
 | Тип изменения | Breaking? | Комментарий |
@@ -571,7 +677,7 @@
 Контракты автоматически проверяются скриптом:
 
 ```bash
-# С AUTH_SECRET — полный прогон (52 checks):
+# С AUTH_SECRET — полный прогон (56 checks):
 # Windows (cp1251): запускать с -X utf8 для корректного вывода
 AUTH_SECRET=<secret> python -X utf8 backend/scripts/smoke_backend_critical.py --base-url http://localhost:4000
 
@@ -595,7 +701,8 @@ python backend/scripts/smoke_backend_critical.py --base-url http://localhost:400
 | F | Teams lifecycle (create → get → join → mine → leave x2) (M5-R3-A) | 8 |
 | G | Chat endpoint: valid JWT → 200+response, invalid token → 401, msg too long → 400, not 500 guard (M5-R3-C, M5-R4-C, M6-CHAT-CONTEXT-C) | 6 |
 | I | Telegram agent-post: no auth → 401, unknown agent → 404, missing root_message_id → 400 (M5-R5-C) | 3 |
-| **Total** | | **52** |
+| J | Badge Plans (submit → inbox → approve → mine) (M7-PLAN-WORKFLOW-A) | 4 |
+| **Total** | | **56** |
 
 **Flow D** (M5-R2-B, `/api/badges/requests/mine`):
 - D-1: GET /mine → 200, requests is list

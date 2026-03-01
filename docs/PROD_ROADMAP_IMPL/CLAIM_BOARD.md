@@ -99,6 +99,25 @@
 
 ---
 
+## Спринт M7 — Доводка Partial-механик (с 2026-03-01)
+
+| Агент | Task ID | Задача | Статус | Дата начала | Зависимость | Отчёт |
+|-------|---------|--------|--------|-------------|-------------|-------|
+| **Agent A** | M7-PLAN-WORKFLOW-A | BadgePlansStore + API (create/inbox/review) + Supabase migration + Smoke Flow J (4 checks) | ✅ done | 2026-03-01 | None | 8 files, 4 endpoints, migration 003, Flow J |
+| **Agent B** | M7-PLAN-UI-B | UI подтверждения плана: кнопка «Отправить план», статус-чипы, inbox «Планы» таб | ✅ done | 2026-03-02 | None | badgePlanApi.ts + ProfileView + userProgress |
+| **Agent A** | M7-EDUCATOR-RBAC-A | Educator в inbox/plans/squads endpoints + smoke educator JWT | 🔜 pending | — | Ждёт M7-PLAN-UI-B | — |
+| **Agent C** | M7-REQUIRESAPPROVAL-C | `requiresApproval` флаг в ai-data JSON + chatbot prompt update | ✅ done (CERTIFIED) | 2026-03-01 | None | 13 JSON + guide.ts + useDataLoader.ts + system_prompt |
+| **Agent B** | M7-SHARE-TRIGGERS-B | Шеринг in-moment: триггеры при rank-up, 100% diary, key unlock | ✅ done | 2026-03-02 | None | ProfileView + RealDiaryDashboard |
+
+**Зависимости M7:**
+```
+M7-PLAN-WORKFLOW-A ──► M7-PLAN-UI-B ──► M7-EDUCATOR-RBAC-A
+M7-REQUIRESAPPROVAL-C ──► M7-SHARE-TRIGGERS-B
+(A и C стартуют параллельно)
+```
+
+---
+
 ## История выполненных задач (архив)
 
 | Агент | Task ID | Задача | Дата завершения | Отчёт |

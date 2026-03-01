@@ -55,6 +55,7 @@ type AiBadge = {
     emoji?: string;
     criteria?: string | string[];
     confirmation?: string | string[];
+    requiresApproval?: boolean;
   }>;
 };
 
@@ -197,6 +198,7 @@ const buildBadgeEntries = (aiCategory: MasterCategory, aiBadge: AiBadge): Badge[
         description: aiBadge.description,
         criteria: criteriaText,
         confirmation: confirmationText,
+        ...(level.requiresApproval != null && { requiresApproval: level.requiresApproval }),
         nameExplanation: aiBadge.nameExplanation,
         skillTips: aiBadge.skillTips,
         examples: aiBadge.examples,
@@ -521,11 +523,11 @@ export const useDataLoader = () => {
         prev.map((c) =>
           c.id === categoryId
             ? {
-                ...c,
-                badge_count: badgeCount,
-                expected_badges: badgeCount,
-                additional_materials: catIndex.additional_materials,
-              }
+              ...c,
+              badge_count: badgeCount,
+              expected_badges: badgeCount,
+              additional_materials: catIndex.additional_materials,
+            }
             : c
         )
       );

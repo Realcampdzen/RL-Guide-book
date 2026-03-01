@@ -49,6 +49,7 @@ export interface Badge {
   description?: string;
   criteria?: string;
   confirmation?: string;
+  requiresApproval?: boolean;
   nameExplanation?: string;
   skillTips?: string;
   examples?: string;

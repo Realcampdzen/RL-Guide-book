@@ -16,8 +16,8 @@ from typing import Optional
 from .base import (
     ShiftsStore, MembershipsStore, SquadCornersStore,
     SquadInvitesStore, SquadMessagesStore,
-    BadgeRequestsStore, ParentSnapshotsStore, ChatDailyUsageStore,
-    CouncilInitiativesStore, TeamsStore,
+    BadgeRequestsStore, BadgePlansStore, ParentSnapshotsStore,
+    ChatDailyUsageStore, CouncilInitiativesStore, TeamsStore,
 )
 
 _sb_client = None
@@ -410,6 +410,65 @@ def _badge_request_to_row(req: dict) -> dict:
 
 
 # ---------------------------------------------------------------------------
+# BadgePlansStore — таблица badge_plans
+# ---------------------------------------------------------------------------
+
+class SupabaseBadgePlansStore(BadgePlansStore):
+    """
+    Формат load(): {'plans': [...]}
+    """
+
+    def load(self) -> dict:
+        sb = _client()
+        rows = sb.table("badge_plans").select("*").order("created_at", desc=False).execute().data or []
+        plans = [_row_to_badge_plan(r) for r in rows]
+        return {"plans": plans}
+
+    def save(self, data: dict) -> None:
+        sb = _client()
+        for plan in (data.get("plans") or []):
+            if not isinstance(plan, dict):
+                continue
+            sb.table("badge_plans").upsert(_badge_plan_to_row(plan)).execute()
+
+
+def _row_to_badge_plan(r: dict) -> dict:
+    return {
+        "id": str(r.get("id", "")),
+        "deviceId": r.get("device_id", ""),
+        "campId": r.get("camp_id") or "",
+        "badgeId": r.get("badge_id", ""),
+        "levelId": r.get("level_id") or "",
+        "planText": r.get("plan_text") or "",
+        "checklist": r.get("checklist") or [],
+        "status": r.get("status", "draft"),
+        "counselorNote": r.get("counselor_note") or None,
+        "createdAt": _ts(r.get("created_at")),
+        "updatedAt": _ts(r.get("updated_at")),
+    }
+
+
+def _badge_plan_to_row(plan: dict) -> dict:
+    row = {
+        "id": plan.get("id") or str(uuid.uuid4()),
+        "device_id": plan.get("deviceId", ""),
+        "badge_id": plan.get("badgeId", ""),
+        "status": plan.get("status", "draft"),
+        "plan_text": plan.get("planText") or "",
+        "checklist": plan.get("checklist") or [],
+    }
+    if plan.get("campId"):
+        row["camp_id"] = plan["campId"]
+    if plan.get("levelId"):
+        row["level_id"] = plan["levelId"]
+    if plan.get("counselorNote"):
+        row["counselor_note"] = plan["counselorNote"]
+    if plan.get("updatedAt"):
+        row["updated_at"] = plan["updatedAt"]
+    return row
+
+
+# ---------------------------------------------------------------------------
 # ParentSnapshotsStore — таблица parent_snapshots
 # ---------------------------------------------------------------------------
 
@@ -633,6 +692,7 @@ SUPABASE_STORES = {
     "squad_invites":    SupabaseSquadInvitesStore(),
     "squad_messages":   SupabaseSquadMessagesStore(),
     "badge_requests":   SupabaseBadgeRequestsStore(),
+    "badge_plans":      SupabaseBadgePlansStore(),
     "parent_snapshots": SupabaseParentSnapshotsStore(),
     "chat_daily_usage": SupabaseChatDailyUsageStore(),
     "council_initiatives": SupabaseCouncilInitiativesStore(),

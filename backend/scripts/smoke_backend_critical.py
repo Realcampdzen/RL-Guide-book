@@ -991,6 +991,112 @@ class SmokeRunner:
             )
 
     # -----------------------------------------------------------------------
+    # Flow J — Badge Plans workflow (M7-PLAN-WORKFLOW-A)
+    # -----------------------------------------------------------------------
+
+    def run_flow_j(self) -> None:
+        """Flow J: Badge Plans: submit → inbox → approve → mine."""
+        print("\n[Flow J] Badge Plans: submit → inbox → approve → mine")
+        if not self.auth_secret:
+            print("  SKIP  (no AUTH_SECRET — auth flows require it)")
+            return
+
+        participant_device = f"smoke_bp_{uuid.uuid4().hex[:8]}"
+        staff_device = f"smoke_bs_{uuid.uuid4().hex[:8]}"
+
+        participant_token = self._get_jwt(participant_device, "participant")
+        staff_token = self._get_jwt(staff_device, "shift_leader")
+        if not participant_token or not staff_token:
+            return
+
+        # J-1 — POST badge plan (submit=true)
+        plan_body = {
+            "badgeId": "1.1",
+            "levelId": "1.1.1",
+            "planText": "Smoke test plan text",
+            "checklist": [{"text": "Step 1", "done": False}],
+            "submit": True,
+        }
+        try:
+            status_j1, body_j1 = _http(
+                self._url("/api/badges/plans"),
+                method="POST",
+                body=plan_body,
+                headers=self._bearer(participant_token),
+                expect_status=201,
+            )
+        except SmokeError as exc:
+            self.fail("POST /api/badges/plans", str(exc))
+            return
+
+        plan_obj = body_j1.get("plan") or {}
+        plan_id = plan_obj.get("id")
+        self.check(
+            "POST /api/badges/plans — id present + status=submitted",
+            bool(plan_id) and plan_obj.get("status") == "submitted",
+            f"id={plan_id}, status={plan_obj.get('status')}",
+        )
+        if not plan_id:
+            return
+
+        # J-2 — GET inbox (staff)
+        try:
+            _, inbox_body = _http(
+                self._url("/api/badges/plans/inbox"),
+                headers=self._bearer(staff_token),
+                expect_status=200,
+            )
+        except SmokeError as exc:
+            self.fail("GET /api/badges/plans/inbox", str(exc))
+            return
+
+        inbox_ids = [p.get("id") for p in (inbox_body.get("plans") or [])]
+        self.check(
+            "GET /api/badges/plans/inbox — plan present",
+            plan_id in inbox_ids,
+            f"{plan_id} not found in inbox ids: {inbox_ids[:5]}",
+        )
+
+        # J-3 — PATCH review (approve)
+        try:
+            _, review_body = _http(
+                self._url(f"/api/badges/plans/{plan_id}/review"),
+                method="PATCH",
+                body={"status": "approved", "counselorNote": "Smoke approval"},
+                headers=self._bearer(staff_token),
+                expect_status=200,
+            )
+        except SmokeError as exc:
+            self.fail(f"PATCH /api/badges/plans/{plan_id}/review", str(exc))
+            return
+
+        reviewed = review_body.get("plan") or {}
+        self.check(
+            "PATCH review — status=approved",
+            reviewed.get("status") == "approved",
+            f"status={reviewed.get('status')}",
+        )
+
+        # J-4 — GET mine (participant)
+        try:
+            _, mine_body = _http(
+                self._url("/api/badges/plans/mine"),
+                headers=self._bearer(participant_token),
+                expect_status=200,
+            )
+        except SmokeError as exc:
+            self.fail("GET /api/badges/plans/mine", str(exc))
+            return
+
+        mine_map = {p.get("id"): p for p in (mine_body.get("plans") or [])}
+        my_plan = mine_map.get(plan_id)
+        self.check(
+            "GET /api/badges/plans/mine — plan found + status=approved",
+            my_plan is not None and (my_plan or {}).get("status") == "approved",
+            f"{plan_id} not in mine or status != approved: {list(mine_map.keys())[:5]}",
+        )
+
+    # -----------------------------------------------------------------------
     # Run all
     # -----------------------------------------------------------------------
 
@@ -1013,6 +1119,7 @@ class SmokeRunner:
         self.run_flow_g()
         self.run_flow_h()
         self.run_flow_i()
+        self.run_flow_j()
         return self._print_summary()
 
     def _print_summary(self) -> int:

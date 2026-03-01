@@ -84,6 +84,19 @@ class BadgeRequestsStore(ABC):
     def save(self, data: dict) -> None: ...
 
 
+class BadgePlansStore(ABC):
+    """
+    Хранилище планов получения значков.
+    Формат: {'plans': [...]}
+    Статусы: draft | submitted | approved | rejected.
+    """
+    @abstractmethod
+    def load(self) -> dict: ...
+
+    @abstractmethod
+    def save(self, data: dict) -> None: ...
+
+
 class ParentSnapshotsStore(ABC):
     """
     Хранилище снапшотов прогресса для родителей (TTL 7 дней).

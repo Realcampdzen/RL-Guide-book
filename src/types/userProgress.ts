@@ -47,7 +47,7 @@ export interface IUserProfile {
 }
 
 /** План получения значка (персонализированный проект) */
-export type BadgePlanStatus = 'draft' | 'pending_approval' | 'approved' | 'in_progress' | 'completed';
+export type BadgePlanStatus = 'draft' | 'pending_approval' | 'approved' | 'rejected' | 'in_progress' | 'completed';
 
 export interface IBadgePlan {
   badgeId: string;

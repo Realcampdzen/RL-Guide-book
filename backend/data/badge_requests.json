@@ -1,3 +1,27 @@
 {
-  "requests": []
+  "requests": [
+    {
+      "id": "BR-4B90245345",
+      "createdAt": "2026-03-01T20:48:08.558712+00:00",
+      "status": "approved",
+      "levelId": "1.1.1",
+      "badgeTitle": "Smoke-Test Badge",
+      "requestedBy": {
+        "deviceId": "smoke_p_5578f62f",
+        "nickname": "SmokeParticipant"
+      },
+      "campId": "",
+      "squadId": null,
+      "evidence": {
+        "reflection": "Smoke test reflection",
+        "impact": "Smoke test impact"
+      },
+      "resolvedAt": "2026-03-01T20:48:12.669419+00:00",
+      "resolvedBy": {
+        "deviceId": "smoke_s_ae733903",
+        "role": "shift_leader"
+      },
+      "resolutionNote": "Smoke test approval"
+    }
+  ]
 }

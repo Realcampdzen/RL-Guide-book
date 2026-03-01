@@ -17,6 +17,7 @@ backend/storage/__init__.py — фабрика get_store().
     'squad_invites'       — SquadInvitesStore
     'squad_messages'      — SquadMessagesStore
     'badge_requests'      — BadgeRequestsStore
+    'badge_plans'         — BadgePlansStore
     'parent_snapshots'    — ParentSnapshotsStore
     'chat_daily_usage'    — ChatDailyUsageStore
     'council_initiatives' — CouncilInitiativesStore
@@ -44,7 +45,7 @@ def get_store(name: str):
         raise KeyError(
             f"Unknown store name: {name!r}. "
             f"Valid names: shifts, memberships, squad_corners, squad_invites, "
-            f"squad_messages, badge_requests, parent_snapshots, chat_daily_usage, "
+            f"squad_messages, badge_requests, badge_plans, parent_snapshots, chat_daily_usage, "
             f"council_initiatives, teams"
         )
     return store

@@ -467,6 +467,15 @@ def _badge_requests_save(data: dict):
     get_store("badge_requests").save(data)
 
 
+def _badge_plans_load() -> dict:
+    """Load badge plans via StorageProvider."""
+    return get_store("badge_plans").load()
+
+
+def _badge_plans_save(data: dict):
+    get_store("badge_plans").save(data)
+
+
 def _memberships_load() -> dict:
     """Load memberships via StorageProvider."""
     return get_store("memberships").load()
@@ -3373,6 +3382,205 @@ def badge_approvals_mine():
         })
     approvals.sort(key=lambda item: _parse_iso_ts(item.get("approvedAt") or ""), reverse=True)
     return jsonify({"approvals": approvals})
+
+
+@app.route('/api/badges/plans', methods=['POST'])
+def badge_plan_create():
+    """
+    POST /api/badges/plans
+    Auth: participant|parent|developer
+    Body: { badgeId, levelId?, planText, checklist?, submit? }
+    Upsert by device_id + badge_id. Returns 201 (created) or 200 (updated).
+    """
+    payload, err = _require_roles(("participant", "parent", "developer"), allow_localhost_dev=True)
+    if err is not None:
+        return err[0], err[1]
+    device_id = (payload.get("deviceId") or "").strip()
+    if not device_id:
+        return jsonify({"error": "deviceId missing in token"}), 400
+
+    body = request.get_json() or {}
+    badge_id = (body.get("badgeId") or "").strip()
+    if not badge_id:
+        return jsonify({"error": "badgeId required"}), 400
+
+    level_id = (body.get("levelId") or "").strip() or None
+    plan_text = (body.get("planText") or "").strip()[:4000]
+    checklist_in = body.get("checklist") if isinstance(body.get("checklist"), list) else []
+    checklist = []
+    for item in checklist_in[:50]:
+        if isinstance(item, dict):
+            checklist.append({
+                "text": str(item.get("text") or "").strip()[:500],
+                "done": bool(item.get("done")),
+            })
+
+    do_submit = body.get("submit") is True
+    camp_from_token = (payload.get("campId") or "").strip()
+    camp_from_membership, _ = _resolve_membership_context(device_id)
+    camp_id = camp_from_membership or camp_from_token or ""
+
+    now_iso = datetime.now(timezone.utc).isoformat()
+
+    doc = _badge_plans_load()
+    plans = doc.get("plans") or []
+
+    # Upsert: find existing plan by device_id + badge_id
+    found_idx = -1
+    for idx, p in enumerate(plans):
+        if not isinstance(p, dict):
+            continue
+        if (p.get("deviceId") or "").strip() == device_id and (p.get("badgeId") or "").strip() == badge_id:
+            found_idx = idx
+            break
+
+    if found_idx >= 0:
+        # Update existing
+        plan_doc = plans[found_idx]
+        plan_doc["planText"] = plan_text
+        plan_doc["checklist"] = checklist
+        plan_doc["updatedAt"] = now_iso
+        if level_id:
+            plan_doc["levelId"] = level_id
+        if camp_id:
+            plan_doc["campId"] = camp_id
+        if do_submit and (plan_doc.get("status") or "") == "draft":
+            plan_doc["status"] = "submitted"
+        plans[found_idx] = plan_doc
+        doc["plans"] = plans
+        _badge_plans_save(doc)
+        return jsonify({"plan": plan_doc}), 200
+    else:
+        # Create new
+        plan_doc = {
+            "id": f"BP-{uuid.uuid4().hex[:10].upper()}",
+            "deviceId": device_id,
+            "campId": camp_id,
+            "badgeId": badge_id,
+            "levelId": level_id or "",
+            "planText": plan_text,
+            "checklist": checklist,
+            "status": "submitted" if do_submit else "draft",
+            "counselorNote": None,
+            "createdAt": now_iso,
+            "updatedAt": now_iso,
+        }
+        plans.append(plan_doc)
+        doc["plans"] = plans
+        _badge_plans_save(doc)
+        return jsonify({"plan": plan_doc}), 201
+
+
+@app.route('/api/badges/plans/mine', methods=['GET'])
+def badge_plan_mine():
+    """
+    GET /api/badges/plans/mine?status=
+    Auth: participant|parent|developer
+    Returns own badge plans (filtered by deviceId from JWT), newest-first.
+    """
+    payload, err = _require_roles(("participant", "parent", "developer"), allow_localhost_dev=True)
+    if err is not None:
+        return err[0], err[1]
+    device_id = (payload.get("deviceId") or "").strip()
+    if not device_id:
+        return jsonify({"error": "deviceId missing in token"}), 400
+
+    status_filter = (request.args.get("status") or "").strip()
+    if status_filter and status_filter not in ("draft", "submitted", "approved", "rejected"):
+        return jsonify({"error": "Invalid status filter"}), 400
+
+    doc = _badge_plans_load()
+    rows = []
+    for p in (doc.get("plans") or []):
+        if not isinstance(p, dict):
+            continue
+        if (p.get("deviceId") or "").strip() != device_id:
+            continue
+        if status_filter and (p.get("status") or "") != status_filter:
+            continue
+        rows.append(p)
+    rows.sort(key=lambda item: _parse_iso_ts(item.get("updatedAt") or item.get("createdAt") or ""), reverse=True)
+    return jsonify({"plans": rows})
+
+
+@app.route('/api/badges/plans/inbox', methods=['GET'])
+def badge_plan_inbox():
+    """
+    GET /api/badges/plans/inbox
+    Auth: counselor|educator|shift_leader|camp_director|developer
+    Returns submitted badge plans for review. Auto-scope for counselor/educator.
+    """
+    payload, err = _require_roles(("counselor", "educator", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
+    if err is not None:
+        return err[0], err[1]
+
+    device_id = (payload.get("deviceId") or "").strip()
+    actor_role = _normalize_role((payload.get("role") or "").strip())
+    camp_filter = (request.args.get("campId") or "").strip()
+
+    if actor_role in ("counselor", "educator") and not camp_filter:
+        camp_self, _ = _resolve_membership_context(device_id)
+        camp_filter = camp_self
+
+    doc = _badge_plans_load()
+    rows = []
+    for p in (doc.get("plans") or []):
+        if not isinstance(p, dict):
+            continue
+        if (p.get("status") or "") != "submitted":
+            continue
+        if camp_filter and (p.get("campId") or "").strip() != camp_filter:
+            continue
+        rows.append(p)
+    rows.sort(key=lambda item: _parse_iso_ts(item.get("updatedAt") or item.get("createdAt") or ""), reverse=True)
+    return jsonify({"plans": rows})
+
+
+@app.route('/api/badges/plans/<plan_id>/review', methods=['PATCH'])
+def badge_plan_review(plan_id: str):
+    """
+    PATCH /api/badges/plans/<id>/review
+    Auth: counselor|educator|shift_leader|camp_director|developer
+    Body: { status: "approved"|"rejected", counselorNote? }
+    """
+    payload, err = _require_roles(("counselor", "educator", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
+    if err is not None:
+        return err[0], err[1]
+    pid = (plan_id or "").strip()
+    if not pid:
+        return jsonify({"error": "plan id required"}), 400
+
+    body = request.get_json() or {}
+    next_status = (body.get("status") or "").strip()
+    if next_status not in ("approved", "rejected"):
+        return jsonify({"error": "status must be 'approved' or 'rejected'"}), 400
+    counselor_note = (body.get("counselorNote") or "").strip()[:2000] or None
+    now_iso = datetime.now(timezone.utc).isoformat()
+
+    doc = _badge_plans_load()
+    plans = doc.get("plans") or []
+    found_idx = -1
+    for idx, p in enumerate(plans):
+        if not isinstance(p, dict):
+            continue
+        if (p.get("id") or "").strip().lower() == pid.lower():
+            found_idx = idx
+            break
+    if found_idx < 0:
+        return jsonify({"error": "Plan not found"}), 404
+
+    plan = plans[found_idx]
+    current_status = (plan.get("status") or "").strip()
+    if current_status in ("approved", "rejected"):
+        return jsonify({"error": f"Plan already resolved: {current_status}"}), 409
+
+    plan["status"] = next_status
+    plan["counselorNote"] = counselor_note
+    plan["updatedAt"] = now_iso
+    plans[found_idx] = plan
+    doc["plans"] = plans
+    _badge_plans_save(doc)
+    return jsonify({"plan": plan})
 
 
 @app.route('/api/organizer/generate-code', methods=['POST'])

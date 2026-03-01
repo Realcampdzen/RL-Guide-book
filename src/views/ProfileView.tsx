@@ -57,23 +57,30 @@ import {
   type SquadCorner,
   type SquadMineResponse
 } from '../utils/badgeApprovalApi';
+import {
+  submitBadgePlan,
+  fetchMyPlans,
+  fetchPlansInbox,
+  reviewPlan,
+  type BadgePlanItem
+} from '../utils/badgePlanApi';
 import { VOZHATIFIKATOR_CHECKLIST_ITEMS } from '../data/vozhatifikatorChecklist';
 import { QRCodeSVG } from 'qrcode.react';
 import '../styles/profile-view.css';
 
 // --- ICONS ---
 const Icons = {
-  Star: ({ filled }: { filled?: boolean }) => <svg width="18" height="18" viewBox="0 0 24 24" fill={filled ? "#FFD700" : "none"} stroke={filled ? "#FFD700" : "currentColor"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 12.27 17 17.14 18.18 21.02 12 17.77 5.82 21.02 7 17.14 2 12.27 8.91 8.26 12 2"/></svg>,
-  Trash: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>,
-  Send: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>,
-  Close: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>,
-  Clip: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>,
-  XCircle: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none"><circle cx="12" cy="12" r="10" opacity="0.3"/><path d="M15 9l-6 6M9 9l6 6" stroke="white" strokeWidth="2" strokeLinecap="round"/></svg>,
-  Heart: ({ filled }: { filled?: boolean }) => <svg width="18" height="18" viewBox="0 0 24 24" fill={filled ? "#e74c3c" : "none"} stroke={filled ? "#e74c3c" : "currentColor"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>,
-  ArrowRight: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>,
-  ArrowLeft: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>,
-  ArrowUp: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>,
-  ArrowDown: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+  Star: ({ filled }: { filled?: boolean }) => <svg width="18" height="18" viewBox="0 0 24 24" fill={filled ? "#FFD700" : "none"} stroke={filled ? "#FFD700" : "currentColor"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 12.27 17 17.14 18.18 21.02 12 17.77 5.82 21.02 7 17.14 2 12.27 8.91 8.26 12 2" /></svg>,
+  Trash: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg>,
+  Send: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" /></svg>,
+  Close: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>,
+  Clip: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" /></svg>,
+  XCircle: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none"><circle cx="12" cy="12" r="10" opacity="0.3" /><path d="M15 9l-6 6M9 9l6 6" stroke="white" strokeWidth="2" strokeLinecap="round" /></svg>,
+  Heart: ({ filled }: { filled?: boolean }) => <svg width="18" height="18" viewBox="0 0 24 24" fill={filled ? "#e74c3c" : "none"} stroke={filled ? "#e74c3c" : "currentColor"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg>,
+  ArrowRight: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7" /></svg>,
+  ArrowLeft: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7" /></svg>,
+  ArrowUp: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19V5M5 12l7-7 7 7" /></svg>,
+  ArrowDown: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12l7 7 7-7" /></svg>
 };
 
 const getBaseId = (rawId: string) => {
@@ -266,7 +273,12 @@ export const ProfileView: React.FC<any> = (props) => {
   const [eventsBusy, setEventsBusy] = useState(false);
   const [eventsError, setEventsError] = useState<string | null>(null);
   const [eventsHasLoaded, setEventsHasLoaded] = useState(false);
-  const [eventsTab, setEventsTab] = useState<'legacy' | 'approvals'>('approvals');
+  const [eventsTab, setEventsTab] = useState<'legacy' | 'approvals' | 'plans'>('approvals');
+  const [plansInbox, setPlansInbox] = useState<BadgePlanItem[]>([]);
+  const [plansInboxBusy, setPlansInboxBusy] = useState(false);
+  const [plansInboxError, setPlansInboxError] = useState<string | null>(null);
+  const [planRejectExpandedId, setPlanRejectExpandedId] = useState<string | null>(null);
+  const [planRejectNote, setPlanRejectNote] = useState('');
   const [badgeRequestsMine, setBadgeRequestsMine] = useState<BadgeRequestItem[]>([]);
   const [badgeRequestsInbox, setBadgeRequestsInbox] = useState<BadgeRequestItem[]>([]);
   const [badgeRequestsBusy, setBadgeRequestsBusy] = useState(false);
@@ -693,18 +705,18 @@ export const ProfileView: React.FC<any> = (props) => {
   const broProgressPercent = Math.min(
     100,
     (userData?.broProgress?.hasPassport ? 18 : 0) +
-      (userData?.broProgress?.isBro ? 22 : 0) +
-      Math.min(60, broCompletedDeedsCount * 8)
+    (userData?.broProgress?.isBro ? 22 : 0) +
+    Math.min(60, broCompletedDeedsCount * 8)
   );
 
   const teamProgressPercent = myTeam
     ? Math.min(
-        100,
-        25 +
-          Math.min(35, (myTeam.members?.length ?? 0) * 7) +
-          Math.min(20, (myTeam.goals?.length ?? 0) * 6) +
-          Math.min(20, (myTeam.achievements?.length ?? 0) * 8)
-      )
+      100,
+      25 +
+      Math.min(35, (myTeam.members?.length ?? 0) * 7) +
+      Math.min(20, (myTeam.goals?.length ?? 0) * 6) +
+      Math.min(20, (myTeam.achievements?.length ?? 0) * 8)
+    )
     : 0;
 
   const councilProgressPercent = myTeam
@@ -875,6 +887,26 @@ export const ProfileView: React.FC<any> = (props) => {
     void performApprovalSync(true);
   }, [accessToken, canRequestApprovals, performApprovalSync]);
 
+  // Sync badge plan statuses from server on mount
+  const autoPlanSyncRef = useRef(false);
+  useEffect(() => {
+    if (autoPlanSyncRef.current) return;
+    if (!accessToken) return;
+    autoPlanSyncRef.current = true;
+    fetchMyPlans(accessToken).then(plans => {
+      for (const sp of plans) {
+        const localPlan = userData.badgePlans?.[sp.badgeId];
+        if (!localPlan) continue;
+        // Server has approved/rejected → update local
+        if (sp.status === 'approved' && localPlan.status !== 'approved') {
+          updateBadgePlanStatus(sp.badgeId, 'approved');
+        } else if (sp.status === 'rejected' && localPlan.status !== 'rejected') {
+          updateBadgePlanStatus(sp.badgeId, 'rejected');
+        }
+      }
+    }).catch(() => { /* silent */ });
+  }, [accessToken, userData.badgePlans, updateBadgePlanStatus]);
+
   const loadMySquadInfo = useCallback(async () => {
     if (!accessToken || !expensiveActionsAllowed) {
       setMySquadInfo(null);
@@ -1030,9 +1062,9 @@ export const ProfileView: React.FC<any> = (props) => {
     // 4) Refresh and open cabinet
     await Promise.all([loadMySquadInfo(), loadOrganizerData(), loadBadgeApprovalsData()]);
     setActiveTab('active');
-     setSquadCornerActiveTab('squad');
-     setSquadCornerReturnToOrganizer(false);
-     openCabinPanel('squad-corner', 'left');
+    setSquadCornerActiveTab('squad');
+    setSquadCornerReturnToOrganizer(false);
+    openCabinPanel('squad-corner', 'left');
   }, [accessToken, resolveShiftIdForCornerCreate, organizerApiBase, getOrganizerHeaders, profile.nickname, loadMySquadInfo, loadOrganizerData, loadBadgeApprovalsData, openCabinPanel]);
 
   const openSquadFromOrganizer = useCallback(async (squad: { id: string; name: string }) => {
@@ -1465,14 +1497,14 @@ export const ProfileView: React.FC<any> = (props) => {
       if (hasOpenWorkshopFlag) {
         if (initialHashHandledRef.current) return;
         initialHashHandledRef.current = true;
-        try { sessionStorage.removeItem('rl_open_workshop'); } catch {}
+        try { sessionStorage.removeItem('rl_open_workshop'); } catch { }
         setActiveTab('workshop');
         openCabinPanel('workshop', 'right');
       } else {
         try {
           const url = window.location.pathname + window.location.search;
           window.history.replaceState(null, '', url);
-        } catch {}
+        } catch { }
       }
     }
   }, [openCabinPanel]);
@@ -2044,169 +2076,169 @@ export const ProfileView: React.FC<any> = (props) => {
     if (!organizerShiftFormOpen && !organizerSquadFormOpen && !organizerCodeModalOpen) return null;
     return createPortal(
       <div className="profile-organizer-modals-root" aria-live="polite">
-      {organizerShiftFormOpen && (
-        <div className="profile-utility-panel-overlay profile-utility-panel-overlay--organizer" onClick={() => setOrganizerShiftFormOpen(false)} aria-hidden="true" />
-      )}
-      {organizerShiftFormOpen && (
-        <div className="profile-utility-panel profile-utility-panel--organizer-modal" role="dialog" aria-modal="true" aria-labelledby="organizer-modal-shift-title" onClick={e => e.stopPropagation()}>
-          <div className="profile-utility-panel-header">
-            <span id="organizer-modal-shift-title">Создать смену</span>
-            <button type="button" className="profile-utility-panel-close" onClick={() => setOrganizerShiftFormOpen(false)} aria-label="Закрыть"><Icons.Close /></button>
-          </div>
-          <div className="profile-utility-panel-body">
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <div>
-                <label htmlFor="organizer-shift-name" style={{ fontSize: 12, opacity: 0.8 }}>Название смены</label>
-                <input id="organizer-shift-name" value={organizerShiftForm.name} onChange={e => setOrganizerShiftForm(f => ({ ...f, name: e.target.value }))} placeholder="Название смены" style={{ display: 'block', width: '100%', padding: 8, borderRadius: 8, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.2)', color: '#fff' }} />
-              </div>
-              <div>
-                <label htmlFor="organizer-shift-start" style={{ fontSize: 12, opacity: 0.8 }}>Дата начала</label>
-                <input id="organizer-shift-start" type="date" value={organizerShiftForm.startDate} onChange={e => setOrganizerShiftForm(f => ({ ...f, startDate: e.target.value }))} style={{ display: 'block', width: '100%', padding: 8, borderRadius: 8, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.2)', color: '#fff' }} />
-              </div>
-              <div>
-                <label htmlFor="organizer-shift-end" style={{ fontSize: 12, opacity: 0.8 }}>Дата окончания</label>
-                <input id="organizer-shift-end" type="date" value={organizerShiftForm.endDate} onChange={e => setOrganizerShiftForm(f => ({ ...f, endDate: e.target.value }))} style={{ display: 'block', width: '100%', padding: 8, borderRadius: 8, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.2)', color: '#fff' }} />
-              </div>
-              <button type="button" className="btn-primary-gold" aria-label="Создать смену" disabled={!organizerShiftForm.name.trim() || organizerLoading || !canUseOrganizerApiForManage} onClick={async () => {
-                if (!canUseOrganizerApiForManage) {
-                  setOrganizerError('Для управления сменами войдите по коду (или используйте локальный режим разработчика).');
-                  return;
-                }
-                setOrganizerLoading(true);
-                setOrganizerError(null);
-                try {
-                  const res = await fetch(`${organizerApiBase}/api/shifts`, {
-                    method: 'POST',
-                    headers: getOrganizerHeaders(true),
-                    body: JSON.stringify({ name: organizerShiftForm.name.trim(), startDate: organizerShiftForm.startDate, endDate: organizerShiftForm.endDate }),
-                  });
-                  const data = await res.json().catch(() => ({})) as { shift?: { id: string; name: string; startDate: string; endDate: string; createdAt: string; createdBy?: string }; error?: string; reason?: string };
-                  if (res.status === 401) { setOrganizerError('Сессия истекла. Войдите снова.'); fireOn401(); return; }
-                  if (!res.ok) { setOrganizerError(formatOrganizerHttpError(res.status, data, 'Создание смены')); return; }
-                  if (data.shift) setOrganizerShifts(prev => [...prev, data.shift!]);
-                  setOrganizerShiftFormOpen(false);
-                  await loadOrganizerData();
-                } finally {
-                  setOrganizerLoading(false);
-                }
-              }}>Создать</button>
+        {organizerShiftFormOpen && (
+          <div className="profile-utility-panel-overlay profile-utility-panel-overlay--organizer" onClick={() => setOrganizerShiftFormOpen(false)} aria-hidden="true" />
+        )}
+        {organizerShiftFormOpen && (
+          <div className="profile-utility-panel profile-utility-panel--organizer-modal" role="dialog" aria-modal="true" aria-labelledby="organizer-modal-shift-title" onClick={e => e.stopPropagation()}>
+            <div className="profile-utility-panel-header">
+              <span id="organizer-modal-shift-title">Создать смену</span>
+              <button type="button" className="profile-utility-panel-close" onClick={() => setOrganizerShiftFormOpen(false)} aria-label="Закрыть"><Icons.Close /></button>
             </div>
-          </div>
-        </div>
-      )}
-
-      {organizerSquadFormOpen && (
-        <div className="profile-utility-panel-overlay profile-utility-panel-overlay--organizer" onClick={() => setOrganizerSquadFormOpen(false)} aria-hidden="true" />
-      )}
-      {organizerSquadFormOpen && (
-        <div className="profile-utility-panel profile-utility-panel--organizer-modal" role="dialog" aria-modal="true" aria-labelledby="organizer-modal-squad-title" onClick={e => e.stopPropagation()}>
-          <div className="profile-utility-panel-header">
-            <span id="organizer-modal-squad-title">Добавить отряд</span>
-            <button type="button" className="profile-utility-panel-close" onClick={() => setOrganizerSquadFormOpen(false)} aria-label="Закрыть"><Icons.Close /></button>
-          </div>
-          <div className="profile-utility-panel-body">
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <div>
-                <label htmlFor="organizer-squad-name" style={{ fontSize: 12, opacity: 0.8 }}>Название отряда</label>
-                <input id="organizer-squad-name" value={organizerSquadFormName} onChange={e => setOrganizerSquadFormName(e.target.value)} placeholder="Название отряда" style={{ display: 'block', width: '100%', padding: 8, borderRadius: 8, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.2)', color: '#fff' }} />
-              </div>
-              <button type="button" className="btn-primary-gold" aria-label="Добавить отряд" disabled={!organizerSquadFormName.trim() || organizerLoading || !canUseOrganizerApiForManage} onClick={async () => {
-                if (!organizerSquadFormShiftId) return;
-                if (!canUseOrganizerApiForManage) {
-                  setOrganizerError('Для управления сменами войдите по коду (или используйте локальный режим разработчика).');
-                  return;
-                }
-                setOrganizerLoading(true);
-                setOrganizerError(null);
-                try {
-                  const res = await fetch(`${organizerApiBase}/api/shifts/${organizerSquadFormShiftId}/squads`, {
-                    method: 'POST',
-                    headers: getOrganizerHeaders(true),
-                    body: JSON.stringify({ name: organizerSquadFormName.trim() }),
-                  });
-                  const data = await res.json().catch(() => ({})) as { squad?: { id: string; shiftId: string; name: string; createdAt: string; avatarUrl?: string | null }; error?: string; reason?: string };
-                  if (res.status === 401) { setOrganizerError('Сессия истекла. Войдите снова.'); fireOn401(); return; }
-                  if (!res.ok) { setOrganizerError(formatOrganizerHttpError(res.status, data, 'Создание отряда')); return; }
-                  if (data.squad) {
-                    setOrganizerSquadsMap(prev => ({ ...prev, [organizerSquadFormShiftId]: [...(prev[organizerSquadFormShiftId] || []), data.squad!] }));
-                  }
-                  setOrganizerSquadFormOpen(false);
-                  await loadOrganizerData();
-                } finally {
-                  setOrganizerLoading(false);
-                }
-              }}>Добавить</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {organizerCodeModalOpen && (
-        <div className="profile-utility-panel-overlay profile-utility-panel-overlay--organizer" onClick={() => { setOrganizerCodeModalOpen(false); setOrganizerCodeResult(null); }} aria-hidden="true" />
-      )}
-      {organizerCodeModalOpen && (
-        <div className="profile-utility-panel profile-utility-panel--organizer-modal" role="dialog" aria-modal="true" aria-labelledby="organizer-modal-code-title" onClick={e => e.stopPropagation()}>
-          <div className="profile-utility-panel-header">
-            <span id="organizer-modal-code-title">Выдать код</span>
-            <button type="button" className="profile-utility-panel-close" onClick={() => { setOrganizerCodeModalOpen(false); setOrganizerCodeResult(null); }} aria-label="Закрыть"><Icons.Close /></button>
-          </div>
-          <div className="profile-utility-panel-body">
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <div>
-                <label style={{ fontSize: 12, opacity: 0.8 }}>deviceId</label>
-                <p style={{ margin: '0 0 4px', fontSize: 11, opacity: 0.75 }}>Идентификатор устройства участника, к которому привязывается код (обычно подставляется автоматически).</p>
-                <input value={organizerCodeForm.deviceId} onChange={e => setOrganizerCodeForm(f => ({ ...f, deviceId: e.target.value }))} placeholder="UUID устройства" style={{ display: 'block', width: '100%', padding: 8, borderRadius: 8, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.2)', color: '#fff', fontSize: 13 }} />
-              </div>
-              <div>
-                <label style={{ fontSize: 12, opacity: 0.8 }}>Роль</label>
-                <select value={organizerCodeForm.role} onChange={e => setOrganizerCodeForm(f => ({ ...f, role: e.target.value as UserRole }))} style={{ display: 'block', width: '100%', padding: 8, borderRadius: 8, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.2)', color: '#fff', fontSize: 13 }}>
-                  {(['participant', 'parent', 'counselor', 'shift_leader', 'camp_director', 'developer'] as const).map((r) => (
-                    <option key={r} value={r}>{ROLE_LABELS[r]}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label style={{ fontSize: 12, opacity: 0.8 }}>Смена (опционально)</label>
-                <select value={organizerCodeForm.shiftId} onChange={e => setOrganizerCodeForm(f => ({ ...f, shiftId: e.target.value }))} style={{ display: 'block', width: '100%', padding: 8, borderRadius: 8, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.2)', color: '#fff', fontSize: 13 }}>
-                  <option value="">— без смены —</option>
-                  {organizerShifts.map((s) => (
-                    <option key={s.id} value={s.id}>{s.name}</option>
-                  ))}
-                </select>
-              </div>
-              <button type="button" className="btn-primary-gold" aria-label="Сгенерировать код верификации" disabled={!organizerCodeForm.deviceId.trim() || organizerLoading || !canUseOrganizerApiForManage} onClick={async () => {
-                if (!canUseOrganizerApiForManage) {
-                  setOrganizerError('Для управления сменами войдите по коду (или используйте локальный режим разработчика).');
-                  return;
-                }
-                setOrganizerLoading(true);
-                setOrganizerError(null);
-                setOrganizerCodeResult(null);
-                try {
-                  const res = await fetch(`${organizerApiBase}/api/organizer/generate-code`, {
-                    method: 'POST',
-                    headers: getOrganizerHeaders(true),
-                    body: JSON.stringify({ deviceId: organizerCodeForm.deviceId.trim(), role: organizerCodeForm.role, shiftId: organizerCodeForm.shiftId || undefined }),
-                  });
-                  const data = await res.json().catch(() => ({})) as { error?: string; reason?: string; code?: string };
-                  if (res.status === 401) { setOrganizerError('Сессия истекла. Войдите снова.'); fireOn401(); return; }
-                  if (!res.ok) { setOrganizerError(formatOrganizerHttpError(res.status, data, 'Код верификации')); return; }
-                  setOrganizerCodeResult(data.code || '');
-                } finally {
-                  setOrganizerLoading(false);
-                }
-              }}>Сгенерировать код</button>
-              {organizerCodeResult && (
-                <div style={{ marginTop: 8, padding: 12, background: 'rgba(0,0,0,0.3)', borderRadius: 8 }}>
-                  <p style={{ margin: '0 0 8px', fontSize: 12, opacity: 0.8 }}>Код:</p>
-                  <p style={{ margin: 0, fontSize: 24, fontWeight: 700, letterSpacing: 2, fontFamily: 'monospace' }}>{organizerCodeResult}</p>
-                  <button type="button" onClick={() => { navigator.clipboard?.writeText(organizerCodeResult).then(() => showHint({ title: 'Скопировано', content: 'Код скопирован в буфер обмена' })); }} className="btn-secondary" style={{ marginTop: 8, padding: '8px 16px' }}>Копировать</button>
+            <div className="profile-utility-panel-body">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <div>
+                  <label htmlFor="organizer-shift-name" style={{ fontSize: 12, opacity: 0.8 }}>Название смены</label>
+                  <input id="organizer-shift-name" value={organizerShiftForm.name} onChange={e => setOrganizerShiftForm(f => ({ ...f, name: e.target.value }))} placeholder="Название смены" style={{ display: 'block', width: '100%', padding: 8, borderRadius: 8, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.2)', color: '#fff' }} />
                 </div>
-              )}
+                <div>
+                  <label htmlFor="organizer-shift-start" style={{ fontSize: 12, opacity: 0.8 }}>Дата начала</label>
+                  <input id="organizer-shift-start" type="date" value={organizerShiftForm.startDate} onChange={e => setOrganizerShiftForm(f => ({ ...f, startDate: e.target.value }))} style={{ display: 'block', width: '100%', padding: 8, borderRadius: 8, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.2)', color: '#fff' }} />
+                </div>
+                <div>
+                  <label htmlFor="organizer-shift-end" style={{ fontSize: 12, opacity: 0.8 }}>Дата окончания</label>
+                  <input id="organizer-shift-end" type="date" value={organizerShiftForm.endDate} onChange={e => setOrganizerShiftForm(f => ({ ...f, endDate: e.target.value }))} style={{ display: 'block', width: '100%', padding: 8, borderRadius: 8, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.2)', color: '#fff' }} />
+                </div>
+                <button type="button" className="btn-primary-gold" aria-label="Создать смену" disabled={!organizerShiftForm.name.trim() || organizerLoading || !canUseOrganizerApiForManage} onClick={async () => {
+                  if (!canUseOrganizerApiForManage) {
+                    setOrganizerError('Для управления сменами войдите по коду (или используйте локальный режим разработчика).');
+                    return;
+                  }
+                  setOrganizerLoading(true);
+                  setOrganizerError(null);
+                  try {
+                    const res = await fetch(`${organizerApiBase}/api/shifts`, {
+                      method: 'POST',
+                      headers: getOrganizerHeaders(true),
+                      body: JSON.stringify({ name: organizerShiftForm.name.trim(), startDate: organizerShiftForm.startDate, endDate: organizerShiftForm.endDate }),
+                    });
+                    const data = await res.json().catch(() => ({})) as { shift?: { id: string; name: string; startDate: string; endDate: string; createdAt: string; createdBy?: string }; error?: string; reason?: string };
+                    if (res.status === 401) { setOrganizerError('Сессия истекла. Войдите снова.'); fireOn401(); return; }
+                    if (!res.ok) { setOrganizerError(formatOrganizerHttpError(res.status, data, 'Создание смены')); return; }
+                    if (data.shift) setOrganizerShifts(prev => [...prev, data.shift!]);
+                    setOrganizerShiftFormOpen(false);
+                    await loadOrganizerData();
+                  } finally {
+                    setOrganizerLoading(false);
+                  }
+                }}>Создать</button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+
+        {organizerSquadFormOpen && (
+          <div className="profile-utility-panel-overlay profile-utility-panel-overlay--organizer" onClick={() => setOrganizerSquadFormOpen(false)} aria-hidden="true" />
+        )}
+        {organizerSquadFormOpen && (
+          <div className="profile-utility-panel profile-utility-panel--organizer-modal" role="dialog" aria-modal="true" aria-labelledby="organizer-modal-squad-title" onClick={e => e.stopPropagation()}>
+            <div className="profile-utility-panel-header">
+              <span id="organizer-modal-squad-title">Добавить отряд</span>
+              <button type="button" className="profile-utility-panel-close" onClick={() => setOrganizerSquadFormOpen(false)} aria-label="Закрыть"><Icons.Close /></button>
+            </div>
+            <div className="profile-utility-panel-body">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <div>
+                  <label htmlFor="organizer-squad-name" style={{ fontSize: 12, opacity: 0.8 }}>Название отряда</label>
+                  <input id="organizer-squad-name" value={organizerSquadFormName} onChange={e => setOrganizerSquadFormName(e.target.value)} placeholder="Название отряда" style={{ display: 'block', width: '100%', padding: 8, borderRadius: 8, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.2)', color: '#fff' }} />
+                </div>
+                <button type="button" className="btn-primary-gold" aria-label="Добавить отряд" disabled={!organizerSquadFormName.trim() || organizerLoading || !canUseOrganizerApiForManage} onClick={async () => {
+                  if (!organizerSquadFormShiftId) return;
+                  if (!canUseOrganizerApiForManage) {
+                    setOrganizerError('Для управления сменами войдите по коду (или используйте локальный режим разработчика).');
+                    return;
+                  }
+                  setOrganizerLoading(true);
+                  setOrganizerError(null);
+                  try {
+                    const res = await fetch(`${organizerApiBase}/api/shifts/${organizerSquadFormShiftId}/squads`, {
+                      method: 'POST',
+                      headers: getOrganizerHeaders(true),
+                      body: JSON.stringify({ name: organizerSquadFormName.trim() }),
+                    });
+                    const data = await res.json().catch(() => ({})) as { squad?: { id: string; shiftId: string; name: string; createdAt: string; avatarUrl?: string | null }; error?: string; reason?: string };
+                    if (res.status === 401) { setOrganizerError('Сессия истекла. Войдите снова.'); fireOn401(); return; }
+                    if (!res.ok) { setOrganizerError(formatOrganizerHttpError(res.status, data, 'Создание отряда')); return; }
+                    if (data.squad) {
+                      setOrganizerSquadsMap(prev => ({ ...prev, [organizerSquadFormShiftId]: [...(prev[organizerSquadFormShiftId] || []), data.squad!] }));
+                    }
+                    setOrganizerSquadFormOpen(false);
+                    await loadOrganizerData();
+                  } finally {
+                    setOrganizerLoading(false);
+                  }
+                }}>Добавить</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {organizerCodeModalOpen && (
+          <div className="profile-utility-panel-overlay profile-utility-panel-overlay--organizer" onClick={() => { setOrganizerCodeModalOpen(false); setOrganizerCodeResult(null); }} aria-hidden="true" />
+        )}
+        {organizerCodeModalOpen && (
+          <div className="profile-utility-panel profile-utility-panel--organizer-modal" role="dialog" aria-modal="true" aria-labelledby="organizer-modal-code-title" onClick={e => e.stopPropagation()}>
+            <div className="profile-utility-panel-header">
+              <span id="organizer-modal-code-title">Выдать код</span>
+              <button type="button" className="profile-utility-panel-close" onClick={() => { setOrganizerCodeModalOpen(false); setOrganizerCodeResult(null); }} aria-label="Закрыть"><Icons.Close /></button>
+            </div>
+            <div className="profile-utility-panel-body">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <div>
+                  <label style={{ fontSize: 12, opacity: 0.8 }}>deviceId</label>
+                  <p style={{ margin: '0 0 4px', fontSize: 11, opacity: 0.75 }}>Идентификатор устройства участника, к которому привязывается код (обычно подставляется автоматически).</p>
+                  <input value={organizerCodeForm.deviceId} onChange={e => setOrganizerCodeForm(f => ({ ...f, deviceId: e.target.value }))} placeholder="UUID устройства" style={{ display: 'block', width: '100%', padding: 8, borderRadius: 8, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.2)', color: '#fff', fontSize: 13 }} />
+                </div>
+                <div>
+                  <label style={{ fontSize: 12, opacity: 0.8 }}>Роль</label>
+                  <select value={organizerCodeForm.role} onChange={e => setOrganizerCodeForm(f => ({ ...f, role: e.target.value as UserRole }))} style={{ display: 'block', width: '100%', padding: 8, borderRadius: 8, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.2)', color: '#fff', fontSize: 13 }}>
+                    {(['participant', 'parent', 'counselor', 'shift_leader', 'camp_director', 'developer'] as const).map((r) => (
+                      <option key={r} value={r}>{ROLE_LABELS[r]}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label style={{ fontSize: 12, opacity: 0.8 }}>Смена (опционально)</label>
+                  <select value={organizerCodeForm.shiftId} onChange={e => setOrganizerCodeForm(f => ({ ...f, shiftId: e.target.value }))} style={{ display: 'block', width: '100%', padding: 8, borderRadius: 8, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.2)', color: '#fff', fontSize: 13 }}>
+                    <option value="">— без смены —</option>
+                    {organizerShifts.map((s) => (
+                      <option key={s.id} value={s.id}>{s.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <button type="button" className="btn-primary-gold" aria-label="Сгенерировать код верификации" disabled={!organizerCodeForm.deviceId.trim() || organizerLoading || !canUseOrganizerApiForManage} onClick={async () => {
+                  if (!canUseOrganizerApiForManage) {
+                    setOrganizerError('Для управления сменами войдите по коду (или используйте локальный режим разработчика).');
+                    return;
+                  }
+                  setOrganizerLoading(true);
+                  setOrganizerError(null);
+                  setOrganizerCodeResult(null);
+                  try {
+                    const res = await fetch(`${organizerApiBase}/api/organizer/generate-code`, {
+                      method: 'POST',
+                      headers: getOrganizerHeaders(true),
+                      body: JSON.stringify({ deviceId: organizerCodeForm.deviceId.trim(), role: organizerCodeForm.role, shiftId: organizerCodeForm.shiftId || undefined }),
+                    });
+                    const data = await res.json().catch(() => ({})) as { error?: string; reason?: string; code?: string };
+                    if (res.status === 401) { setOrganizerError('Сессия истекла. Войдите снова.'); fireOn401(); return; }
+                    if (!res.ok) { setOrganizerError(formatOrganizerHttpError(res.status, data, 'Код верификации')); return; }
+                    setOrganizerCodeResult(data.code || '');
+                  } finally {
+                    setOrganizerLoading(false);
+                  }
+                }}>Сгенерировать код</button>
+                {organizerCodeResult && (
+                  <div style={{ marginTop: 8, padding: 12, background: 'rgba(0,0,0,0.3)', borderRadius: 8 }}>
+                    <p style={{ margin: '0 0 8px', fontSize: 12, opacity: 0.8 }}>Код:</p>
+                    <p style={{ margin: 0, fontSize: 24, fontWeight: 700, letterSpacing: 2, fontFamily: 'monospace' }}>{organizerCodeResult}</p>
+                    <button type="button" onClick={() => { navigator.clipboard?.writeText(organizerCodeResult).then(() => showHint({ title: 'Скопировано', content: 'Код скопирован в буфер обмена' })); }} className="btn-secondary" style={{ marginTop: 8, padding: '8px 16px' }}>Копировать</button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </div>,
       document.body
     );
@@ -2237,9 +2269,9 @@ export const ProfileView: React.FC<any> = (props) => {
                       </button>
                     ) : <span />}
                     {canEditSquadCorner && (
-                    <button type="button" className="btn-secondary" style={{ padding: '8px 12px' }} onClick={() => setSquadCornerActiveTab('photos')}>
-                      Редактировать уголок
-                    </button>
+                      <button type="button" className="btn-secondary" style={{ padding: '8px 12px' }} onClick={() => setSquadCornerActiveTab('photos')}>
+                        Редактировать уголок
+                      </button>
                     )}
                   </div>
                 )}
@@ -2255,24 +2287,24 @@ export const ProfileView: React.FC<any> = (props) => {
                 />
               </div>
             ) : isSpaceshipMode ? (
-            <SquadCornerDashboard
-              variant="cabin"
-              activeTab={squadCornerActiveTab}
-              onTabChange={setSquadCornerActiveTab}
-              onNavigateToBadge={onNavigateToBadge}
-              hasSquadMembership={hasSquadMembership}
-              mySquadName={mySquadInfo?.squad?.name || undefined}
-              canEditCorner={canEditSquadCorner}
-              canCreateSquadFromCorner={canEditSquadCorner}
-              onOpenCabinet={() => setSquadCornerActiveTab('squad')}
-              onOpenShiftsAndSquads={() => {
-                setActiveTab('squads');
-                openCabinPanel(null, null);
-                setTimeout(() => document.getElementById('organizer-shifts-tab-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
-              }}
-              onPersistCorner={(payload: Partial<SquadCorner>) => persistSquadCorner(payload)}
-              onCreateSquadFromCorner={(payload: Partial<SquadCorner>) => createSquadFromCorner(payload)}
-            />
+              <SquadCornerDashboard
+                variant="cabin"
+                activeTab={squadCornerActiveTab}
+                onTabChange={setSquadCornerActiveTab}
+                onNavigateToBadge={onNavigateToBadge}
+                hasSquadMembership={hasSquadMembership}
+                mySquadName={mySquadInfo?.squad?.name || undefined}
+                canEditCorner={canEditSquadCorner}
+                canCreateSquadFromCorner={canEditSquadCorner}
+                onOpenCabinet={() => setSquadCornerActiveTab('squad')}
+                onOpenShiftsAndSquads={() => {
+                  setActiveTab('squads');
+                  openCabinPanel(null, null);
+                  setTimeout(() => document.getElementById('organizer-shifts-tab-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
+                }}
+                onPersistCorner={(payload: Partial<SquadCorner>) => persistSquadCorner(payload)}
+                onCreateSquadFromCorner={(payload: Partial<SquadCorner>) => createSquadFromCorner(payload)}
+              />
             ) : (
               <SquadCornerDashboard
                 onNavigateToBadge={onNavigateToBadge}
@@ -2312,9 +2344,9 @@ export const ProfileView: React.FC<any> = (props) => {
                     </button>
                   ) : <span />}
                   {canEditSquadCorner && (
-                  <button type="button" className="btn-secondary" style={{ padding: '8px 12px' }} onClick={() => setSquadCornerActiveTab('photos')}>
-                    Редактировать уголок
-                  </button>
+                    <button type="button" className="btn-secondary" style={{ padding: '8px 12px' }} onClick={() => setSquadCornerActiveTab('photos')}>
+                      Редактировать уголок
+                    </button>
                   )}
                 </div>
               )}
@@ -2737,9 +2769,9 @@ export const ProfileView: React.FC<any> = (props) => {
                   <h3 style={{ color: '#FFD700', marginTop: 0 }}>Кузница Смыслов ⚒️</h3>
                   <p style={{ fontSize: 12, opacity: 0.8, marginTop: -4, marginBottom: 12 }}>Значок будет предложен в выбранную категорию (из ссылки или по умолчанию).</p>
                   <label htmlFor="workshop-form-title" className="sr-only">Название значка</label>
-                  <input id="workshop-form-title" value={workshopForm.title} onChange={e => setWorkshopForm({...workshopForm, title: e.target.value})} placeholder="Название значка" className="w-input" aria-label="Название значка" />
+                  <input id="workshop-form-title" value={workshopForm.title} onChange={e => setWorkshopForm({ ...workshopForm, title: e.target.value })} placeholder="Название значка" className="w-input" aria-label="Название значка" />
                   <label htmlFor="workshop-form-description" className="sr-only">Опиши суть</label>
-                  <textarea id="workshop-form-description" placeholder="Опиши суть..." className="w-input" style={{ minHeight: 80 }} value={workshopForm.description} onChange={e => setWorkshopForm({...workshopForm, description: e.target.value})} aria-label="Опиши суть" />
+                  <textarea id="workshop-form-description" placeholder="Опиши суть..." className="w-input" style={{ minHeight: 80 }} value={workshopForm.description} onChange={e => setWorkshopForm({ ...workshopForm, description: e.target.value })} aria-label="Опиши суть" />
                   <div style={{ marginBottom: 12 }}>
                     <ImageSourceBlock
                       context="workshop_badge"
@@ -2893,110 +2925,110 @@ export const ProfileView: React.FC<any> = (props) => {
                 </button>
 
                 <div className="vozhatifikator-panel vozhatifikator-panel--spotlight">
-                <aside className="vozhatifikator-toc" aria-label="Навигация Вожатификатора">
-                  <div className="vozhatifikator-badge-block">
-                    {getBadgeImagePath('9.10', 'Вожатификатор', '9', undefined, undefined) && (
-                      <button
-                        type="button"
-                        className="vozhatifikator-badge-block__img-btn"
-                        onClick={() => onNavigateToBadge('9.10')}
-                        aria-label="Открыть значок Вожатификатор"
-                      >
-                        <img src={getBadgeImagePath('9.10', 'Вожатификатор', '9', undefined, undefined)!} alt="" className="vozhatifikator-badge-block__img" />
-                      </button>
-                    )}
-                    <a href="#" className="vozhatifikator-badge-block__link" onClick={(e) => { e.preventDefault(); onNavigateToBadge('9.10'); }}>
-                      Значок «Вожатификатор» в каталоге
-                    </a>
-                  </div>
-
-                  <div className="vozhatifikator-tabs" role="tablist" aria-label="Разделы Вожатификатора">
-                    <button
-                      id="vozhatifikator-tab-book"
-                      type="button"
-                      role="tab"
-                      aria-selected={vozhatifikatorSubView === 'book'}
-                      aria-controls="vozhatifikator-tabpanel-book"
-                      className={`vozhatifikator-tab ${vozhatifikatorSubView === 'book' ? 'vozhatifikator-tab--active' : ''}`}
-                      onClick={() => setVozhatifikatorSubView('book')}
-                    >
-                      Вожатификатор
-                    </button>
-                    <button
-                      id="vozhatifikator-tab-lights"
-                      type="button"
-                      role="tab"
-                      aria-selected={vozhatifikatorSubView === 'lights'}
-                      aria-controls="vozhatifikator-tabpanel-lights"
-                      className={`vozhatifikator-tab ${vozhatifikatorSubView === 'lights' ? 'vozhatifikator-tab--active' : ''}`}
-                      onClick={() => setVozhatifikatorSubView('lights')}
-                    >
-                      Путеводные огни
-                    </button>
-                  </div>
-
-                  {vozhatifikatorSubView === 'book' && (
-                    <>
-                      <div className="vozhatifikator-downloads">
-                        <a
-                          href={VOZHATIFIKATOR_DOCX_URL}
-                          download={VOZHATIFIKATOR_DOCX_FILE}
-                          className="vozhatifikator-download vozhatifikator-download--docx"
-                          title="Редактируемая версия (Word)"
+                  <aside className="vozhatifikator-toc" aria-label="Навигация Вожатификатора">
+                    <div className="vozhatifikator-badge-block">
+                      {getBadgeImagePath('9.10', 'Вожатификатор', '9', undefined, undefined) && (
+                        <button
+                          type="button"
+                          className="vozhatifikator-badge-block__img-btn"
+                          onClick={() => onNavigateToBadge('9.10')}
+                          aria-label="Открыть значок Вожатификатор"
                         >
-                          Скачать
-                        </a>
-                      </div>
-                      <nav className="vozhatifikator-toc-nav" aria-label="Оглавление книги">
-                        {vozhatifikatorToc.map((item) => (
-                          <a
-                            key={item.id}
-                            href={`#${item.id}`}
-                            className="vozhatifikator-toc-item"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              vozhatifikatorBookRef.current?.querySelector(`#${CSS.escape(item.id)}`)?.scrollIntoView({ behavior: 'smooth' });
-                            }}
-                          >
-                            <span className="vozhatifikator-toc-item-title">{item.title}</span>
-                          </a>
-                        ))}
-                      </nav>
-                    </>
-                  )}
-                </aside>
-
-                {vozhatifikatorSubView === 'book' ? (
-                  <div
-                    id="vozhatifikator-tabpanel-book"
-                    role="tabpanel"
-                    aria-labelledby="vozhatifikator-tab-book"
-                    className="vozhatifikator-viewer"
-                  >
-                    <div ref={vozhatifikatorBookRef} className="vozhatifikator-book">
-                      {vozhatifikatorLoading && <p className="vozhatifikator-book__loading">Загрузка книги…</p>}
-                      {vozhatifikatorError && <p className="vozhatifikator-book__error">{vozhatifikatorError}</p>}
-                      {!vozhatifikatorLoading && !vozhatifikatorError && vozhatifikatorHtml && (
-                        <div className="vozhatifikator-book__content" dangerouslySetInnerHTML={{ __html: vozhatifikatorHtml }} />
+                          <img src={getBadgeImagePath('9.10', 'Вожатификатор', '9', undefined, undefined)!} alt="" className="vozhatifikator-badge-block__img" />
+                        </button>
                       )}
+                      <a href="#" className="vozhatifikator-badge-block__link" onClick={(e) => { e.preventDefault(); onNavigateToBadge('9.10'); }}>
+                        Значок «Вожатификатор» в каталоге
+                      </a>
                     </div>
-                  </div>
-                ) : (
-                  <div
-                    id="vozhatifikator-tabpanel-lights"
-                    role="tabpanel"
-                    aria-labelledby="vozhatifikator-tab-lights"
-                    className="vozhatifikator-viewer vozhatifikator-lights-panel"
-                  >
-                    <VozhatifikatorChecklist
-                      completedIds={userData.vozhatifikatorChecklist?.completedIds ?? []}
-                      onToggle={updateVozhatifikatorChecklist}
-                    />
-                  </div>
-                )}
+
+                    <div className="vozhatifikator-tabs" role="tablist" aria-label="Разделы Вожатификатора">
+                      <button
+                        id="vozhatifikator-tab-book"
+                        type="button"
+                        role="tab"
+                        aria-selected={vozhatifikatorSubView === 'book'}
+                        aria-controls="vozhatifikator-tabpanel-book"
+                        className={`vozhatifikator-tab ${vozhatifikatorSubView === 'book' ? 'vozhatifikator-tab--active' : ''}`}
+                        onClick={() => setVozhatifikatorSubView('book')}
+                      >
+                        Вожатификатор
+                      </button>
+                      <button
+                        id="vozhatifikator-tab-lights"
+                        type="button"
+                        role="tab"
+                        aria-selected={vozhatifikatorSubView === 'lights'}
+                        aria-controls="vozhatifikator-tabpanel-lights"
+                        className={`vozhatifikator-tab ${vozhatifikatorSubView === 'lights' ? 'vozhatifikator-tab--active' : ''}`}
+                        onClick={() => setVozhatifikatorSubView('lights')}
+                      >
+                        Путеводные огни
+                      </button>
+                    </div>
+
+                    {vozhatifikatorSubView === 'book' && (
+                      <>
+                        <div className="vozhatifikator-downloads">
+                          <a
+                            href={VOZHATIFIKATOR_DOCX_URL}
+                            download={VOZHATIFIKATOR_DOCX_FILE}
+                            className="vozhatifikator-download vozhatifikator-download--docx"
+                            title="Редактируемая версия (Word)"
+                          >
+                            Скачать
+                          </a>
+                        </div>
+                        <nav className="vozhatifikator-toc-nav" aria-label="Оглавление книги">
+                          {vozhatifikatorToc.map((item) => (
+                            <a
+                              key={item.id}
+                              href={`#${item.id}`}
+                              className="vozhatifikator-toc-item"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                vozhatifikatorBookRef.current?.querySelector(`#${CSS.escape(item.id)}`)?.scrollIntoView({ behavior: 'smooth' });
+                              }}
+                            >
+                              <span className="vozhatifikator-toc-item-title">{item.title}</span>
+                            </a>
+                          ))}
+                        </nav>
+                      </>
+                    )}
+                  </aside>
+
+                  {vozhatifikatorSubView === 'book' ? (
+                    <div
+                      id="vozhatifikator-tabpanel-book"
+                      role="tabpanel"
+                      aria-labelledby="vozhatifikator-tab-book"
+                      className="vozhatifikator-viewer"
+                    >
+                      <div ref={vozhatifikatorBookRef} className="vozhatifikator-book">
+                        {vozhatifikatorLoading && <p className="vozhatifikator-book__loading">Загрузка книги…</p>}
+                        {vozhatifikatorError && <p className="vozhatifikator-book__error">{vozhatifikatorError}</p>}
+                        {!vozhatifikatorLoading && !vozhatifikatorError && vozhatifikatorHtml && (
+                          <div className="vozhatifikator-book__content" dangerouslySetInnerHTML={{ __html: vozhatifikatorHtml }} />
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <div
+                      id="vozhatifikator-tabpanel-lights"
+                      role="tabpanel"
+                      aria-labelledby="vozhatifikator-tab-lights"
+                      className="vozhatifikator-viewer vozhatifikator-lights-panel"
+                    >
+                      <VozhatifikatorChecklist
+                        completedIds={userData.vozhatifikatorChecklist?.completedIds ?? []}
+                        onToggle={updateVozhatifikatorChecklist}
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          </div>,
+            </div>,
             document.body
           )
         ) : (
@@ -3491,23 +3523,23 @@ export const ProfileView: React.FC<any> = (props) => {
               </div>
             </div>
           ) : (
-          <div className="shelf-carousel shelf-carousel--cylinder">
-            <button type="button" className="shelf-carousel__btn shelf-carousel__btn--prev" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setCarouselRotationSteps((s) => s - 1); }} aria-label="Вращать влево"><Icons.ArrowLeft /></button>
-            <div className="shelf-viewport shelf-viewport--cylinder">
-              <div className="shelf-track shelf-track--cylinder" style={{ ['--carousel-rotation-steps' as string]: carouselRotationSteps, ['--step-deg' as string]: `${360 / Math.max(1, favorites.length)}deg`, ['--radius' as string]: `${(128 + 16) / (2 * Math.sin(Math.PI / Math.max(1, favorites.length)))}px` }}>
-                {favorites.map((id, slotIndex) => {
-                  const baseId = getBaseId(id);
-                  return (
-                    <div key={`shelf-${slotIndex}-${baseId}`} className="shelf-item shelf-item--cylinder" style={{ ['--slot-offset' as string]: slotIndex }}>
-                      <div role="button" tabIndex={0} onClick={(e) => { e.stopPropagation(); onNavigateToBadge(baseId); }} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onNavigateToBadge(baseId); } }}><BadgeIcon badgeId={baseId} badgeTitle="" categoryId={(badgeLookupMap.get(baseId)?.category_id || baseId.split('.')[0] || '1')} emoji={badgeLookupMap.get(baseId)?.emoji || '🏆'} size="small" /></div>
-                      <button className="btn-shelf-remove" onClick={(e) => { e.stopPropagation(); toggleFavorite(baseId); }}><Icons.XCircle /></button>
-                    </div>
-                  );
-                })}
+            <div className="shelf-carousel shelf-carousel--cylinder">
+              <button type="button" className="shelf-carousel__btn shelf-carousel__btn--prev" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setCarouselRotationSteps((s) => s - 1); }} aria-label="Вращать влево"><Icons.ArrowLeft /></button>
+              <div className="shelf-viewport shelf-viewport--cylinder">
+                <div className="shelf-track shelf-track--cylinder" style={{ ['--carousel-rotation-steps' as string]: carouselRotationSteps, ['--step-deg' as string]: `${360 / Math.max(1, favorites.length)}deg`, ['--radius' as string]: `${(128 + 16) / (2 * Math.sin(Math.PI / Math.max(1, favorites.length)))}px` }}>
+                  {favorites.map((id, slotIndex) => {
+                    const baseId = getBaseId(id);
+                    return (
+                      <div key={`shelf-${slotIndex}-${baseId}`} className="shelf-item shelf-item--cylinder" style={{ ['--slot-offset' as string]: slotIndex }}>
+                        <div role="button" tabIndex={0} onClick={(e) => { e.stopPropagation(); onNavigateToBadge(baseId); }} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onNavigateToBadge(baseId); } }}><BadgeIcon badgeId={baseId} badgeTitle="" categoryId={(badgeLookupMap.get(baseId)?.category_id || baseId.split('.')[0] || '1')} emoji={badgeLookupMap.get(baseId)?.emoji || '🏆'} size="small" /></div>
+                        <button className="btn-shelf-remove" onClick={(e) => { e.stopPropagation(); toggleFavorite(baseId); }}><Icons.XCircle /></button>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
+              <button type="button" className="shelf-carousel__btn shelf-carousel__btn--next" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setCarouselRotationSteps((s) => s + 1); }} aria-label="Вращать вправо"><Icons.ArrowRight /></button>
             </div>
-            <button type="button" className="shelf-carousel__btn shelf-carousel__btn--next" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setCarouselRotationSteps((s) => s + 1); }} aria-label="Вращать вправо"><Icons.ArrowRight /></button>
-          </div>
           )
         ) : (
           <div className="profile-empty-state profile-empty-state--hub">
@@ -3523,440 +3555,440 @@ export const ProfileView: React.FC<any> = (props) => {
       <div className={`profile-view-tabs-shell${options?.hideNav ? ' profile-view-tabs-shell--no-nav' : ''}`}>
         {!options?.hideNav && renderTabsNav()}
         <div className="tab-pane" role="tabpanel" id="profile-tabpanel" aria-labelledby={`profile-tab-${activeTab}`}>
-        <div key="hub" style={{ minHeight: '1px' }}>
-        {activeTab === 'active' && (
-          <div className="active-tab-content fade-in">
-            <div className="active-tab-content__badges-list">
-              {pathItems.length > 0 ? (
-                pathItems.length <= CAROUSEL_STATIC_MAX ? (
-                  <div className="path-carousel path-carousel--static" aria-label="Значки в пути">
-                    <div className="path-carousel__static-track">
-                      {pathItems.map(({ baseId, levelId: id }, slotIndex) => {
-                        const levelBadge = badgeLookupMap.get(id) || badgeLookupMap.get(baseId);
-                        const titleFromFind = badges?.find((b: Badge) => String(b.id) === id || String(b.id) === baseId || String(b.id).startsWith(baseId + '.'))?.title;
-                        const displayTitle = levelBadge?.title || titleFromFind || (id && id.includes('.') ? `Значок ${baseId}` : id);
-                        const badgeTitleForImage = levelBadge?.title || titleFromFind || '';
-                        const isFav = isFavorite(baseId);
-                        const hubAnchorId = slotIndex === 0 ? `hub-badge-${id.replace(/\./g, '-')}` : undefined;
-                        return (
-                          <div key={`path-slot-${slotIndex}-${baseId}`} id={hubAnchorId} className="path-carousel__item path-carousel__item--static">
-                            <div className="path-card path-card--vertical">
-                              <div className="path-card__avatar-wrap">
-                                <div className="path-card__avatar" onClick={() => onNavigateToBadge(baseId)}>
-                                  <BadgeIcon badgeId={baseId} badgeTitle={badgeTitleForImage} categoryId={levelBadge?.category_id || baseId.split('.')[0] || '1'} emoji={levelBadge?.emoji || '🏆'} size="responsive" levelId={id !== baseId ? id : undefined} levelTitle={id !== baseId ? (levelBadge?.level || undefined) : undefined} />
+          <div key="hub" style={{ minHeight: '1px' }}>
+            {activeTab === 'active' && (
+              <div className="active-tab-content fade-in">
+                <div className="active-tab-content__badges-list">
+                  {pathItems.length > 0 ? (
+                    pathItems.length <= CAROUSEL_STATIC_MAX ? (
+                      <div className="path-carousel path-carousel--static" aria-label="Значки в пути">
+                        <div className="path-carousel__static-track">
+                          {pathItems.map(({ baseId, levelId: id }, slotIndex) => {
+                            const levelBadge = badgeLookupMap.get(id) || badgeLookupMap.get(baseId);
+                            const titleFromFind = badges?.find((b: Badge) => String(b.id) === id || String(b.id) === baseId || String(b.id).startsWith(baseId + '.'))?.title;
+                            const displayTitle = levelBadge?.title || titleFromFind || (id && id.includes('.') ? `Значок ${baseId}` : id);
+                            const badgeTitleForImage = levelBadge?.title || titleFromFind || '';
+                            const isFav = isFavorite(baseId);
+                            const hubAnchorId = slotIndex === 0 ? `hub-badge-${id.replace(/\./g, '-')}` : undefined;
+                            return (
+                              <div key={`path-slot-${slotIndex}-${baseId}`} id={hubAnchorId} className="path-carousel__item path-carousel__item--static">
+                                <div className="path-card path-card--vertical">
+                                  <div className="path-card__avatar-wrap">
+                                    <div className="path-card__avatar" onClick={() => onNavigateToBadge(baseId)}>
+                                      <BadgeIcon badgeId={baseId} badgeTitle={badgeTitleForImage} categoryId={levelBadge?.category_id || baseId.split('.')[0] || '1'} emoji={levelBadge?.emoji || '🏆'} size="responsive" levelId={id !== baseId ? id : undefined} levelTitle={id !== baseId ? (levelBadge?.level || undefined) : undefined} />
+                                    </div>
+                                  </div>
+                                  <div className="path-card__actions">
+                                    <button type="button" onClick={(e) => { e.stopPropagation(); setPlanFormBadge({ id, title: displayTitle, level: levelBadge?.level, criteria: levelBadge?.criteria || levelBadge?.howToBecome, nameExplanation: levelBadge?.nameExplanation, skillTips: levelBadge?.skillTips, confirmation: levelBadge?.confirmation }); setPlanForm({ currentDay: Math.min(21, Math.max(1, userData?.diaryProgress?.currentDay ?? 1)), shiftLength: 21, squadProgramGrid: '', squadPlan3d: '', campProgram3d: '', priority: 'both', myPlanDraft: '' }); setPlanResult(null); setPlanError(null); setPlanStep('context'); setPlanChecklistItems([]); }} className="btn-pill btn-pill--secondary">Составить план</button>
+                                    <button type="button" onClick={(e) => { e.stopPropagation(); setProofForm({ learned: '', impact: '', link: '' }); setProofPhotoCount(0); if (proofPhotoInputRef.current) proofPhotoInputRef.current.value = ''; setProofBadge({ id, title: displayTitle }); }} className="btn-pill btn-pill--primary">Подтвердить <Icons.Send /></button>
+                                  </div>
+                                  <div className="path-card__footer">
+                                    <button type="button" onClick={(e) => { e.stopPropagation(); if (confirm("Удалить?")) removeRoute(baseId); }} className="btn-action-round trash" aria-label="Удалить из пути"><Icons.Trash /></button>
+                                    <button type="button" onClick={(e) => { e.stopPropagation(); toggleFavorite(baseId); }} className={`path-card__star ${isFav ? 'fav' : ''}`} aria-label={isFav ? 'Убрать из избранного' : 'В избранное'}><Icons.Star filled={isFav} /></button>
+                                    <button type="button" className="btn-action-round btn-go-badge" onClick={(e) => { e.stopPropagation(); onNavigateToBadge(baseId); }} title="Перейти к значку" aria-label="Перейти к значку"><Icons.ArrowRight /></button>
+                                  </div>
                                 </div>
                               </div>
-                              <div className="path-card__actions">
-                                <button type="button" onClick={(e) => { e.stopPropagation(); setPlanFormBadge({ id, title: displayTitle, level: levelBadge?.level, criteria: levelBadge?.criteria || levelBadge?.howToBecome, nameExplanation: levelBadge?.nameExplanation, skillTips: levelBadge?.skillTips, confirmation: levelBadge?.confirmation }); setPlanForm({ currentDay: Math.min(21, Math.max(1, userData?.diaryProgress?.currentDay ?? 1)), shiftLength: 21, squadProgramGrid: '', squadPlan3d: '', campProgram3d: '', priority: 'both', myPlanDraft: '' }); setPlanResult(null); setPlanError(null); setPlanStep('context'); setPlanChecklistItems([]); }} className="btn-pill btn-pill--secondary">Составить план</button>
-                                <button type="button" onClick={(e) => { e.stopPropagation(); setProofForm({ learned: '', impact: '', link: '' }); setProofPhotoCount(0); if (proofPhotoInputRef.current) proofPhotoInputRef.current.value = ''; setProofBadge({ id, title: displayTitle }); }} className="btn-pill btn-pill--primary">Подтвердить <Icons.Send /></button>
-                              </div>
-                              <div className="path-card__footer">
-                                <button type="button" onClick={(e) => { e.stopPropagation(); if(confirm("Удалить?")) removeRoute(baseId); }} className="btn-action-round trash" aria-label="Удалить из пути"><Icons.Trash /></button>
-                                <button type="button" onClick={(e) => { e.stopPropagation(); toggleFavorite(baseId); }} className={`path-card__star ${isFav ? 'fav' : ''}`} aria-label={isFav ? 'Убрать из избранного' : 'В избранное'}><Icons.Star filled={isFav} /></button>
-                                <button type="button" className="btn-action-round btn-go-badge" onClick={(e) => { e.stopPropagation(); onNavigateToBadge(baseId); }} title="Перейти к значку" aria-label="Перейти к значку"><Icons.ArrowRight /></button>
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ) : (
-                <div className="path-carousel path-carousel--cylinder">
-                  <button type="button" className="path-carousel__btn path-carousel__btn--prev" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setPathCarouselRotationSteps((s) => s - 1); }} aria-label="Вращать влево"><Icons.ArrowLeft /></button>
-                  <div className="path-carousel__viewport path-carousel__viewport--cylinder">
-                    <div className="path-carousel__track path-carousel__track--cylinder" style={{ ['--path-rotation-steps' as string]: pathCarouselRotationSteps, ['--step-deg' as string]: `${360 / Math.max(1, pathItems.length)}deg`, ['--radius' as string]: `${(144 + 20) / (2 * Math.sin(Math.PI / Math.max(1, pathItems.length)))}px` }}>
-                      {pathItems.map(({ baseId, levelId: id }, slotIndex) => {
-                        const levelBadge = badgeLookupMap.get(id) || badgeLookupMap.get(baseId);
-                        const titleFromFind = badges?.find((b: Badge) => String(b.id) === id || String(b.id) === baseId || String(b.id).startsWith(baseId + '.'))?.title;
-                        const displayTitle = levelBadge?.title || titleFromFind || (id && id.includes('.') ? `Значок ${baseId}` : id);
-                        const badgeTitleForImage = levelBadge?.title || titleFromFind || '';
-                        const isFav = isFavorite(baseId);
-                        const hubAnchorId = slotIndex === 0 ? `hub-badge-${id.replace(/\./g, '-')}` : undefined;
-                        return (
-                          <div key={`path-slot-${slotIndex}-${baseId}`} id={hubAnchorId} className="path-carousel__item path-carousel__item--cylinder" style={{ ['--slot-offset' as string]: slotIndex }}>
-                            <div className="path-card path-card--vertical">
-                              <div className="path-card__avatar-wrap">
-                                <div className="path-card__avatar" onClick={() => onNavigateToBadge(baseId)}>
-                                  <BadgeIcon badgeId={baseId} badgeTitle={badgeTitleForImage} categoryId={levelBadge?.category_id || baseId.split('.')[0] || '1'} emoji={levelBadge?.emoji || '🏆'} size="responsive" levelId={id !== baseId ? id : undefined} levelTitle={id !== baseId ? (levelBadge?.level || undefined) : undefined} />
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="path-carousel path-carousel--cylinder">
+                        <button type="button" className="path-carousel__btn path-carousel__btn--prev" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setPathCarouselRotationSteps((s) => s - 1); }} aria-label="Вращать влево"><Icons.ArrowLeft /></button>
+                        <div className="path-carousel__viewport path-carousel__viewport--cylinder">
+                          <div className="path-carousel__track path-carousel__track--cylinder" style={{ ['--path-rotation-steps' as string]: pathCarouselRotationSteps, ['--step-deg' as string]: `${360 / Math.max(1, pathItems.length)}deg`, ['--radius' as string]: `${(144 + 20) / (2 * Math.sin(Math.PI / Math.max(1, pathItems.length)))}px` }}>
+                            {pathItems.map(({ baseId, levelId: id }, slotIndex) => {
+                              const levelBadge = badgeLookupMap.get(id) || badgeLookupMap.get(baseId);
+                              const titleFromFind = badges?.find((b: Badge) => String(b.id) === id || String(b.id) === baseId || String(b.id).startsWith(baseId + '.'))?.title;
+                              const displayTitle = levelBadge?.title || titleFromFind || (id && id.includes('.') ? `Значок ${baseId}` : id);
+                              const badgeTitleForImage = levelBadge?.title || titleFromFind || '';
+                              const isFav = isFavorite(baseId);
+                              const hubAnchorId = slotIndex === 0 ? `hub-badge-${id.replace(/\./g, '-')}` : undefined;
+                              return (
+                                <div key={`path-slot-${slotIndex}-${baseId}`} id={hubAnchorId} className="path-carousel__item path-carousel__item--cylinder" style={{ ['--slot-offset' as string]: slotIndex }}>
+                                  <div className="path-card path-card--vertical">
+                                    <div className="path-card__avatar-wrap">
+                                      <div className="path-card__avatar" onClick={() => onNavigateToBadge(baseId)}>
+                                        <BadgeIcon badgeId={baseId} badgeTitle={badgeTitleForImage} categoryId={levelBadge?.category_id || baseId.split('.')[0] || '1'} emoji={levelBadge?.emoji || '🏆'} size="responsive" levelId={id !== baseId ? id : undefined} levelTitle={id !== baseId ? (levelBadge?.level || undefined) : undefined} />
+                                      </div>
+                                    </div>
+                                    <div className="path-card__actions">
+                                      <button type="button" onClick={(e) => { e.stopPropagation(); setPlanFormBadge({ id, title: displayTitle, level: levelBadge?.level, criteria: levelBadge?.criteria || levelBadge?.howToBecome, nameExplanation: levelBadge?.nameExplanation, skillTips: levelBadge?.skillTips, confirmation: levelBadge?.confirmation }); setPlanForm({ currentDay: Math.min(21, Math.max(1, userData?.diaryProgress?.currentDay ?? 1)), shiftLength: 21, squadProgramGrid: '', squadPlan3d: '', campProgram3d: '', priority: 'both', myPlanDraft: '' }); setPlanResult(null); setPlanError(null); setPlanStep('context'); setPlanChecklistItems([]); }} className="btn-pill btn-pill--secondary">Составить план</button>
+                                      <button type="button" onClick={(e) => { e.stopPropagation(); setProofForm({ learned: '', impact: '', link: '' }); setProofPhotoCount(0); if (proofPhotoInputRef.current) proofPhotoInputRef.current.value = ''; setProofBadge({ id, title: displayTitle }); }} className="btn-pill btn-pill--primary">Подтвердить <Icons.Send /></button>
+                                    </div>
+                                    <div className="path-card__footer">
+                                      <button type="button" onClick={(e) => { e.stopPropagation(); if (confirm("Удалить?")) removeRoute(baseId); }} className="btn-action-round trash" aria-label="Удалить из пути"><Icons.Trash /></button>
+                                      <button type="button" onClick={(e) => { e.stopPropagation(); toggleFavorite(baseId); }} className={`path-card__star ${isFav ? 'fav' : ''}`} aria-label={isFav ? 'Убрать из избранного' : 'В избранное'}><Icons.Star filled={isFav} /></button>
+                                      <button type="button" className="btn-action-round btn-go-badge" onClick={(e) => { e.stopPropagation(); onNavigateToBadge(baseId); }} title="Перейти к значку" aria-label="Перейти к значку"><Icons.ArrowRight /></button>
+                                    </div>
+                                  </div>
                                 </div>
-                              </div>
-                              <div className="path-card__actions">
-                                <button type="button" onClick={(e) => { e.stopPropagation(); setPlanFormBadge({ id, title: displayTitle, level: levelBadge?.level, criteria: levelBadge?.criteria || levelBadge?.howToBecome, nameExplanation: levelBadge?.nameExplanation, skillTips: levelBadge?.skillTips, confirmation: levelBadge?.confirmation }); setPlanForm({ currentDay: Math.min(21, Math.max(1, userData?.diaryProgress?.currentDay ?? 1)), shiftLength: 21, squadProgramGrid: '', squadPlan3d: '', campProgram3d: '', priority: 'both', myPlanDraft: '' }); setPlanResult(null); setPlanError(null); setPlanStep('context'); setPlanChecklistItems([]); }} className="btn-pill btn-pill--secondary">Составить план</button>
-                                <button type="button" onClick={(e) => { e.stopPropagation(); setProofForm({ learned: '', impact: '', link: '' }); setProofPhotoCount(0); if (proofPhotoInputRef.current) proofPhotoInputRef.current.value = ''; setProofBadge({ id, title: displayTitle }); }} className="btn-pill btn-pill--primary">Подтвердить <Icons.Send /></button>
-                              </div>
-                              <div className="path-card__footer">
-                                <button type="button" onClick={(e) => { e.stopPropagation(); if(confirm("Удалить?")) removeRoute(baseId); }} className="btn-action-round trash" aria-label="Удалить из пути"><Icons.Trash /></button>
-                                <button type="button" onClick={(e) => { e.stopPropagation(); toggleFavorite(baseId); }} className={`path-card__star ${isFav ? 'fav' : ''}`} aria-label={isFav ? 'Убрать из избранного' : 'В избранное'}><Icons.Star filled={isFav} /></button>
-                                <button type="button" className="btn-action-round btn-go-badge" onClick={(e) => { e.stopPropagation(); onNavigateToBadge(baseId); }} title="Перейти к значку" aria-label="Перейти к значку"><Icons.ArrowRight /></button>
-                              </div>
-                            </div>
+                              );
+                            })}
                           </div>
-                        );
-                      })}
+                        </div>
+                        <button type="button" className="path-carousel__btn path-carousel__btn--next" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setPathCarouselRotationSteps((s) => s + 1); }} aria-label="Вращать вправо"><Icons.ArrowRight /></button>
+                      </div>
+                    )
+                  ) : (
+                    <div className="profile-empty-state profile-empty-state--hub">
+                      <p className="profile-empty-state__text">Здесь будут значки, которые ты взял в путь. Открой любой значок в каталоге и нажми «В путь» — или добавь в избранное, чтобы быстро возвращаться к ним.</p>
                     </div>
+                  )}
+                </div>
+              </div>
+            )}
+            {activeTab === 'favorites' && (
+              <div className="favorites-view fade-in">
+                {renderFavoritesShelf()}
+              </div>
+            )}
+            {activeTab === 'journal' && (
+              <div className="journal-view fade-in">
+                {achievedSorted.length === 0 ? (
+                  <div className="profile-empty-state profile-empty-state--hub">
+                    <p className="profile-empty-state__text">Здесь будет история твоих подтверждений. После того как ты подтвердишь уровень значка, запись с датой и размышлением появится в журнале.</p>
                   </div>
-                  <button type="button" className="path-carousel__btn path-carousel__btn--next" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setPathCarouselRotationSteps((s) => s + 1); }} aria-label="Вращать вправо"><Icons.ArrowRight /></button>
-                </div>
-                )
-              ) : (
-                <div className="profile-empty-state profile-empty-state--hub">
-                  <p className="profile-empty-state__text">Здесь будут значки, которые ты взял в путь. Открой любой значок в каталоге и нажми «В путь» — или добавь в избранное, чтобы быстро возвращаться к ним.</p>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-        {activeTab === 'favorites' && (
-          <div className="favorites-view fade-in">
-            {renderFavoritesShelf()}
-          </div>
-        )}
-        {activeTab === 'journal' && (
-          <div className="journal-view fade-in">
-            {achievedSorted.length === 0 ? (
-              <div className="profile-empty-state profile-empty-state--hub">
-                <p className="profile-empty-state__text">Здесь будет история твоих подтверждений. После того как ты подтвердишь уровень значка, запись с датой и размышлением появится в журнале.</p>
+                ) : achievedSorted.map(([id, p]) => (
+                  <div key={id} style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'flex-start', borderLeft: '2px solid rgba(255,255,255,0.1)', paddingLeft: '20px', paddingBottom: '24px', position: 'relative' }}>
+                    <div style={{ position: 'absolute', left: '-7px', top: '0', width: '12px', height: '12px', borderRadius: '50%', background: '#8B00FF' }} />
+                    <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: '11px', opacity: 0.5 }}>{new Date(p.achievedAt || '').toLocaleDateString()}</div><div style={{ fontWeight: 700 }}>{badgeLookupMap.get(getBaseId(id))?.title || id}</div>{p.reflection && <div style={{ fontSize: '13px', fontStyle: 'italic', opacity: 0.8 }}>"{p.reflection}"</div>}</div>
+                    <button type="button" onClick={() => { setProofForm({ learned: p.reflection || p.evidence?.find((e: { type: string }) => e.type === 'text')?.value || '', impact: '', link: p.evidence?.find((e: { type: string }) => e.type === 'link')?.value || '' }); setProofPhotoCount(0); if (proofPhotoInputRef.current) proofPhotoInputRef.current.value = ''; setProofBadge({ id, title: badgeLookupMap.get(getBaseId(id))?.title || id }); }} className="btn-confirm-main" style={{ flexShrink: 0, fontSize: 12 }}>Отправить в Telegram <Icons.Send /></button>
+                  </div>
+                ))}
               </div>
-            ) : achievedSorted.map(([id, p]) => (
-              <div key={id} style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'flex-start', borderLeft: '2px solid rgba(255,255,255,0.1)', paddingLeft: '20px', paddingBottom: '24px', position: 'relative' }}>
-                <div style={{ position: 'absolute', left: '-7px', top: '0', width: '12px', height: '12px', borderRadius: '50%', background: '#8B00FF' }} />
-                <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: '11px', opacity: 0.5 }}>{new Date(p.achievedAt || '').toLocaleDateString()}</div><div style={{ fontWeight: 700 }}>{badgeLookupMap.get(getBaseId(id))?.title || id}</div>{p.reflection && <div style={{ fontSize: '13px', fontStyle: 'italic', opacity: 0.8 }}>"{p.reflection}"</div>}</div>
-                <button type="button" onClick={() => { setProofForm({ learned: p.reflection || p.evidence?.find((e: { type: string }) => e.type === 'text')?.value || '', impact: '', link: p.evidence?.find((e: { type: string }) => e.type === 'link')?.value || '' }); setProofPhotoCount(0); if (proofPhotoInputRef.current) proofPhotoInputRef.current.value = ''; setProofBadge({ id, title: badgeLookupMap.get(getBaseId(id))?.title || id }); }} className="btn-confirm-main" style={{ flexShrink: 0, fontSize: 12 }}>Отправить в Telegram <Icons.Send /></button>
+            )}
+            {activeTab === 'collection' && (
+              <div className="collection-view fade-in">
+                {achievedSorted.length === 0 ? (
+                  <div className="profile-empty-state profile-empty-state--hub">
+                    <p className="profile-empty-state__text">Здесь будут все подтверждённые значки и уровни. Пройди условия значка и подтверди достижение — он появится в коллекции.</p>
+                  </div>
+                ) : achievedSorted.map(([id, p]) => (
+                  <div
+                    key={id}
+                    role="button"
+                    tabIndex={0}
+                    style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 0', borderBottom: '1px solid rgba(255,255,255,0.06)', cursor: 'pointer' }}
+                    onClick={() => onNavigateToBadge(getBaseId(id))}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onNavigateToBadge(getBaseId(id)); } }}
+                    aria-label={`Перейти к значку ${badgeLookupMap.get(getBaseId(id))?.title || id}`}
+                  >
+                    <BadgeIcon badgeId={getBaseId(id)} badgeTitle={badgeLookupMap.get(getBaseId(id))?.title || id} categoryId={badgeLookupMap.get(getBaseId(id))?.category_id || getBaseId(id).split('.')[0] || '1'} emoji={badgeLookupMap.get(getBaseId(id))?.emoji || '🏆'} size="small" />
+                    <div style={{ flex: 1 }}><div style={{ fontWeight: 700 }}>{badgeLookupMap.get(getBaseId(id))?.title || id}</div><div style={{ fontSize: '11px', opacity: 0.5 }}>{new Date(p.achievedAt || '').toLocaleDateString()}</div></div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        )}
-        {activeTab === 'collection' && (
-          <div className="collection-view fade-in">
-            {achievedSorted.length === 0 ? (
-              <div className="profile-empty-state profile-empty-state--hub">
-                <p className="profile-empty-state__text">Здесь будут все подтверждённые значки и уровни. Пройди условия значка и подтверди достижение — он появится в коллекции.</p>
+            )}
+            {activeTab === 'squads' && showOrganizerPanel && (
+              <div className="squad-view fade-in">
+                {renderOrganizerShiftsSection()}
               </div>
-            ) : achievedSorted.map(([id, p]) => (
-              <div
-                key={id}
-                role="button"
-                tabIndex={0}
-                style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 0', borderBottom: '1px solid rgba(255,255,255,0.06)', cursor: 'pointer' }}
-                onClick={() => onNavigateToBadge(getBaseId(id))}
-                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onNavigateToBadge(getBaseId(id)); } }}
-                aria-label={`Перейти к значку ${badgeLookupMap.get(getBaseId(id))?.title || id}`}
-              >
-                <BadgeIcon badgeId={getBaseId(id)} badgeTitle={badgeLookupMap.get(getBaseId(id))?.title || id} categoryId={badgeLookupMap.get(getBaseId(id))?.category_id || getBaseId(id).split('.')[0] || '1'} emoji={badgeLookupMap.get(getBaseId(id))?.emoji || '🏆'} size="small" />
-                <div style={{ flex: 1 }}><div style={{ fontWeight: 700 }}>{badgeLookupMap.get(getBaseId(id))?.title || id}</div><div style={{ fontSize: '11px', opacity: 0.5 }}>{new Date(p.achievedAt || '').toLocaleDateString()}</div></div>
-              </div>
-            ))}
+            )}
           </div>
-        )}
-        {activeTab === 'squads' && showOrganizerPanel && (
-          <div className="squad-view fade-in">
-            {renderOrganizerShiftsSection()}
-          </div>
-        )}
         </div>
-      </div>
       </div>
     </div>
   );
 
   const profileOuterContent = isSpaceshipMode ? (
-          <>
-          {seeOtradBlocksInView && (
-            <div className="profile-view-cabin-top-inspector-page profile-view-cabin-top-inspector-page--desktop-only">
-              <button
-                type="button"
-                className={`profile-view-cabin-top-inspector profile-view-cabin-top-inspector--curved ${panelActiveView === 'inspector' ? 'profile-view-cabin-top-inspector--active' : ''}`}
-                onClick={() => openCabinPanel('inspector', 'top')}
-                aria-label="Инспектор Пользы"
-                aria-pressed={panelActiveView === 'inspector'}
-              >
-                <InspectorMonitorCurve curve={false} strips={20} sag={14} className="profile-view-cabin-inspector-monitor">
-                  <span className="profile-view-cabin-top-inspector__title">Инспектор Пользы</span>
-                  <span className="profile-view-cabin-top-inspector__subtitle">Игровая система полезных дел. Прокачивает 4К и культуру заботы.</span>
-                  <div className="profile-view-cabin-top-inspector__progress" aria-hidden="true">
-                    <div
-                      className="profile-view-cabin-top-inspector__progress-bar"
-                      style={{ width: `${inspectorProgressPercent}%` }}
-                    />
-                  </div>
-                </InspectorMonitorCurve>
-              </button>
-            </div>
-          )}
-          <div className="profile-view-cabin-layout">
-            {cabinNavExpanded && (
-              <div className="profile-view-cabin-nav-overlay" aria-hidden="true">
+    <>
+      {seeOtradBlocksInView && (
+        <div className="profile-view-cabin-top-inspector-page profile-view-cabin-top-inspector-page--desktop-only">
+          <button
+            type="button"
+            className={`profile-view-cabin-top-inspector profile-view-cabin-top-inspector--curved ${panelActiveView === 'inspector' ? 'profile-view-cabin-top-inspector--active' : ''}`}
+            onClick={() => openCabinPanel('inspector', 'top')}
+            aria-label="Инспектор Пользы"
+            aria-pressed={panelActiveView === 'inspector'}
+          >
+            <InspectorMonitorCurve curve={false} strips={20} sag={14} className="profile-view-cabin-inspector-monitor">
+              <span className="profile-view-cabin-top-inspector__title">Инспектор Пользы</span>
+              <span className="profile-view-cabin-top-inspector__subtitle">Игровая система полезных дел. Прокачивает 4К и культуру заботы.</span>
+              <div className="profile-view-cabin-top-inspector__progress" aria-hidden="true">
                 <div
-                  className="profile-view-cabin-nav-overlay__backdrop"
-                  onClick={() => setCabinNavExpanded(false)}
-                  onKeyDown={(e) => e.key === 'Escape' && setCabinNavExpanded(false)}
-                  role="button"
-                  tabIndex={0}
-                  aria-label="Свернуть навигацию"
+                  className="profile-view-cabin-top-inspector__progress-bar"
+                  style={{ width: `${inspectorProgressPercent}%` }}
                 />
               </div>
-            )}
-            <div className={`profile-view-cabin-left ${isCabinProfileExpanded ? 'profile-view-cabin-left--profile-expanded' : 'profile-view-cabin-left--profile-collapsed'}`}>
-                <div className="profile-view-cabin-header-content">
-                <div className="profile-view-cabin-avatar-col" style={{ position: 'relative' }}>
-                  <div className="profile-view-cabin-avatar-shell" style={{ position: 'relative' }}>
-                    <button
-                      type="button"
-                      ref={avatarWrapRef}
-                      className={`profile-view-cabin-avatar-wrap profile-view-cabin-avatar-wrap--hero ${panelActiveView === 'passport' ? 'profile-view-cabin-nav-btn--active' : ''}`}
-                      onClick={() => openCabinPanel('passport', 'left')}
-                      aria-label="Паспорт"
-                    >
-                      {isImageAvatar(profile.avatar)
-                        ? <img src={profile.avatar} alt="" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover', display: 'block' }} />
-                        : <span className="profile-view-cabin-avatar-emoji" style={{ fontSize: 44 }}>{profile.avatar || '🧑‍🚀'}</span>}
-                    </button>
-                    <button
-                      type="button"
-                      className="profile-view-cabin-avatar-upload profile-view-cabin-avatar-upload--desktop"
-                      aria-label="Загрузить аватар"
-                      title="Загрузить аватар"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        setShowAvatarUploadConfirm(true);
-                      }}
-                    >
-                      +
-                    </button>
-                    <button
-                      type="button"
-                      className="profile-view-cabin-avatar-gear profile-view-cabin-avatar-gear--desktop"
-                      aria-label="Открыть настройки профиля"
-                      title="Настройки профиля"
-                      style={{
-                        position: 'absolute',
-                        right: -26,
-                        bottom: 10,
-                        width: 30,
-                        height: 30,
-                        borderRadius: 9999,
-                        border: '1px solid rgba(112, 195, 235, 0.55)',
-                        background: 'linear-gradient(145deg, rgba(10, 28, 48, 0.92), rgba(4, 12, 26, 0.92))',
-                        boxShadow: '0 10px 20px rgba(1, 6, 14, 0.48), 0 0 16px rgba(112, 195, 235, 0.18)',
-                        color: 'rgba(238, 248, 255, 0.98)',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        cursor: 'pointer',
-                        zIndex: 2,
-                        padding: 0
-                      }}
-                      onClick={() => {
-                        openCabinPanel('passport', 'left');
-                        setShowProfileEditor(true);
-                      }}
-                    >
-                      <span
-                        className="profile-view-cabin-avatar-gear-icon profile-view-cabin-avatar-gear-icon--vertical-dots"
-                        aria-hidden="true"
-                        style={{
-                          position: 'absolute',
-                          inset: 0,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          pointerEvents: 'none'
-                        }}
-                      >
-                        <svg width="10" height="16" viewBox="0 0 10 16" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ display: 'block' }}>
-                          <circle cx="5" cy="3" r="1.5" fill="currentColor" opacity={0.95} />
-                          <circle cx="5" cy="8" r="1.5" fill="currentColor" opacity={0.95} />
-                          <circle cx="5" cy="13" r="1.5" fill="currentColor" opacity={0.95} />
-                        </svg>
-                      </span>
-                    </button>
-                    <input
-                      ref={avatarUploadInputRef}
-                      type="file"
-                      accept="image/*"
-                      style={{ display: 'none' }}
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (!file) return;
-                        const reader = new FileReader();
-                        reader.onload = () => {
-                          const result = typeof reader.result === 'string' ? reader.result : null;
-                          if (!result) return;
-                          setAvatar(result);
-                          setAvatarInput(result);
-                        };
-                        reader.readAsDataURL(file);
-                        e.target.value = '';
-                      }}
-                    />
-                  </div>
-                  <div
-                    className="profile-view-cabin-profile-chips"
+            </InspectorMonitorCurve>
+          </button>
+        </div>
+      )}
+      <div className="profile-view-cabin-layout">
+        {cabinNavExpanded && (
+          <div className="profile-view-cabin-nav-overlay" aria-hidden="true">
+            <div
+              className="profile-view-cabin-nav-overlay__backdrop"
+              onClick={() => setCabinNavExpanded(false)}
+              onKeyDown={(e) => e.key === 'Escape' && setCabinNavExpanded(false)}
+              role="button"
+              tabIndex={0}
+              aria-label="Свернуть навигацию"
+            />
+          </div>
+        )}
+        <div className={`profile-view-cabin-left ${isCabinProfileExpanded ? 'profile-view-cabin-left--profile-expanded' : 'profile-view-cabin-left--profile-collapsed'}`}>
+          <div className="profile-view-cabin-header-content">
+            <div className="profile-view-cabin-avatar-col" style={{ position: 'relative' }}>
+              <div className="profile-view-cabin-avatar-shell" style={{ position: 'relative' }}>
+                <button
+                  type="button"
+                  ref={avatarWrapRef}
+                  className={`profile-view-cabin-avatar-wrap profile-view-cabin-avatar-wrap--hero ${panelActiveView === 'passport' ? 'profile-view-cabin-nav-btn--active' : ''}`}
+                  onClick={() => openCabinPanel('passport', 'left')}
+                  aria-label="Паспорт"
+                >
+                  {isImageAvatar(profile.avatar)
+                    ? <img src={profile.avatar} alt="" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover', display: 'block' }} />
+                    : <span className="profile-view-cabin-avatar-emoji" style={{ fontSize: 44 }}>{profile.avatar || '🧑‍🚀'}</span>}
+                </button>
+                <button
+                  type="button"
+                  className="profile-view-cabin-avatar-upload profile-view-cabin-avatar-upload--desktop"
+                  aria-label="Загрузить аватар"
+                  title="Загрузить аватар"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setShowAvatarUploadConfirm(true);
+                  }}
+                >
+                  +
+                </button>
+                <button
+                  type="button"
+                  className="profile-view-cabin-avatar-gear profile-view-cabin-avatar-gear--desktop"
+                  aria-label="Открыть настройки профиля"
+                  title="Настройки профиля"
+                  style={{
+                    position: 'absolute',
+                    right: -26,
+                    bottom: 10,
+                    width: 30,
+                    height: 30,
+                    borderRadius: 9999,
+                    border: '1px solid rgba(112, 195, 235, 0.55)',
+                    background: 'linear-gradient(145deg, rgba(10, 28, 48, 0.92), rgba(4, 12, 26, 0.92))',
+                    boxShadow: '0 10px 20px rgba(1, 6, 14, 0.48), 0 0 16px rgba(112, 195, 235, 0.18)',
+                    color: 'rgba(238, 248, 255, 0.98)',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    zIndex: 2,
+                    padding: 0
+                  }}
+                  onClick={() => {
+                    openCabinPanel('passport', 'left');
+                    setShowProfileEditor(true);
+                  }}
+                >
+                  <span
+                    className="profile-view-cabin-avatar-gear-icon profile-view-cabin-avatar-gear-icon--vertical-dots"
+                    aria-hidden="true"
                     style={{
                       position: 'absolute',
-                      left: 54,
-                      top: -20,
-                      zIndex: 2,
-                      pointerEvents: 'none',
+                      inset: 0,
                       display: 'flex',
-                      flexDirection: 'column',
-                      gap: 2,
-                      alignItems: 'flex-start',
-                      lineHeight: 1.2,
-                      maxWidth: 160
-                    }}
-                  >
-                    {/* Десктоп: роль/ранг + уровень */}
-                    <div className="profile-view-cabin-profile--desktop-only">
-                      <div className={`profile-view-cabin-profile-rank ${rank.includes('Легенда') ? 'profile-view-cabin-profile-rank--legendary' : ''}`}>
-                        {role ? ROLE_LABELS[role] : rank}
-                      </div>
-                      <div className="profile-view-cabin-profile-level-row">
-                        <span>Уровень {currentLevels}</span>
-                      </div>
-                    </div>
-                    {/* Мобильная: никнейм + статус + био */}
-                    <div className="profile-view-cabin-profile--mobile-only">
-                      <div className={`profile-view-cabin-profile-rank ${rank.includes('Легенда') ? 'profile-view-cabin-profile-rank--legendary' : ''}`}>
-                        {cabinDisplayName}
-                      </div>
-                      <div className="profile-view-cabin-profile-level-row">
-                        {cabinStatusText}
-                      </div>
-                      <div className="profile-view-cabin-profile-bio-line">
-                        {cabinBioText}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="profile-view-cabin-card-progress-wrap profile-view-cabin-card-progress-wrap--thick" style={{ transform: 'translate(60px, -65px)' }}>
-                    <div className="profile-view-cabin-card-progress" style={{ width: `${xpPercent}%` }} />
-                  </div>
-                </div>
-                <div className="profile-view-cabin-profile-meta" style={{ transform: 'translate(-150px, 30px)' }}>
-                  {/* Десктоп: никнейм + статус + био */}
-                  <div className="profile-view-cabin-profile--desktop-only">
-                    <div className="profile-view-cabin-profile-primary">
-                      <div
-                        className="profile-view-cabin-profile-name-wrap"
-                        title={cabinDisplayName}
-                        data-full-name={cabinDisplayName}
-                        aria-label={cabinDisplayName}
-                        tabIndex={0}
-                      >
-                        <h2 className="profile-view-cabin-profile-nickname profile-autofit">{cabinDisplayName}</h2>
-                      </div>
-                      <p
-                        className="profile-view-cabin-profile-status"
-                        title={cabinStatusText}
-                        role="button"
-                        tabIndex={0}
-                        onClick={openCabinProfileEditor}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' || e.key === ' ') openCabinProfileEditor();
-                        }}
-                      >
-                        {cabinStatusText}
-                      </p>
-                    </div>
-                    <div className="profile-view-cabin-profile-secondary">
-                      <p className="profile-view-cabin-profile-bio">{cabinBioText}</p>
-                    </div>
-                  </div>
-                  {/* Мобильная: роль + уровень */}
-                  <div className="profile-view-cabin-profile--mobile-only">
-                    <div className="profile-view-cabin-profile-primary">
-                      <div
-                        className="profile-view-cabin-profile-name-wrap"
-                        title={role ? ROLE_LABELS[role] : rank}
-                        data-full-name={role ? ROLE_LABELS[role] : rank}
-                        aria-label={role ? ROLE_LABELS[role] : rank}
-                        tabIndex={0}
-                      >
-                        <h2 className="profile-view-cabin-profile-nickname profile-autofit">{role ? ROLE_LABELS[role] : rank}</h2>
-                      </div>
-                      <p
-                        className="profile-view-cabin-profile-status"
-                        title={`Уровень ${currentLevels}`}
-                        role="button"
-                        tabIndex={0}
-                        onClick={openCabinProfileEditor}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' || e.key === ' ') openCabinProfileEditor();
-                        }}
-                      >
-                        Уровень {currentLevels}
-                      </p>
-                    </div>
-                    <div className="profile-view-cabin-profile-secondary">
-                      <p className="profile-view-cabin-profile-bio" style={{ display: 'none' }} />
-                    </div>
-                  </div>
-                </div>
-                </div>
-                <div className="profile-view-cabin-header-actions">
-                  <button
-                    type="button"
-                    className="profile-view-cabin-avatar-gear"
-                    aria-label="Открыть настройки профиля"
-                    title="Настройки профиля"
-                    style={{
-                      position: 'relative',
-                      width: 30,
-                      height: 30,
-                      borderRadius: 9999,
-                      border: '1px solid rgba(112, 195, 235, 0.55)',
-                      background: 'linear-gradient(145deg, rgba(10, 28, 48, 0.92), rgba(4, 12, 26, 0.92))',
-                      boxShadow: '0 10px 20px rgba(1, 6, 14, 0.48), 0 0 16px rgba(112, 195, 235, 0.18)',
-                      color: 'rgba(238, 248, 255, 0.98)',
-                      display: 'inline-flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      cursor: 'pointer',
-                      zIndex: 2,
-                      padding: 0
-                    }}
-                    onClick={() => {
-                      openCabinPanel('passport', 'left');
-                      setShowProfileEditor(true);
+                      pointerEvents: 'none'
                     }}
                   >
-                    <span
-                      className="profile-view-cabin-avatar-gear-icon profile-view-cabin-avatar-gear-icon--vertical-dots"
-                      aria-hidden="true"
-                      style={{
-                        position: 'absolute',
-                        inset: 0,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        pointerEvents: 'none'
-                      }}
-                    >
-                      <svg width="10" height="16" viewBox="0 0 10 16" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ display: 'block' }}>
-                        <circle cx="5" cy="3" r="1.5" fill="currentColor" opacity={0.95} />
-                        <circle cx="5" cy="8" r="1.5" fill="currentColor" opacity={0.95} />
-                        <circle cx="5" cy="13" r="1.5" fill="currentColor" opacity={0.95} />
-                      </svg>
-                    </span>
-                  </button>
+                    <svg width="10" height="16" viewBox="0 0 10 16" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ display: 'block' }}>
+                      <circle cx="5" cy="3" r="1.5" fill="currentColor" opacity={0.95} />
+                      <circle cx="5" cy="8" r="1.5" fill="currentColor" opacity={0.95} />
+                      <circle cx="5" cy="13" r="1.5" fill="currentColor" opacity={0.95} />
+                    </svg>
+                  </span>
+                </button>
+                <input
+                  ref={avatarUploadInputRef}
+                  type="file"
+                  accept="image/*"
+                  style={{ display: 'none' }}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                      const result = typeof reader.result === 'string' ? reader.result : null;
+                      if (!result) return;
+                      setAvatar(result);
+                      setAvatarInput(result);
+                    };
+                    reader.readAsDataURL(file);
+                    e.target.value = '';
+                  }}
+                />
+              </div>
+              <div
+                className="profile-view-cabin-profile-chips"
+                style={{
+                  position: 'absolute',
+                  left: 54,
+                  top: -20,
+                  zIndex: 2,
+                  pointerEvents: 'none',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 2,
+                  alignItems: 'flex-start',
+                  lineHeight: 1.2,
+                  maxWidth: 160
+                }}
+              >
+                {/* Десктоп: роль/ранг + уровень */}
+                <div className="profile-view-cabin-profile--desktop-only">
+                  <div className={`profile-view-cabin-profile-rank ${rank.includes('Легенда') ? 'profile-view-cabin-profile-rank--legendary' : ''}`}>
+                    {role ? ROLE_LABELS[role] : rank}
+                  </div>
+                  <div className="profile-view-cabin-profile-level-row">
+                    <span>Уровень {currentLevels}</span>
+                  </div>
                 </div>
+                {/* Мобильная: никнейм + статус + био */}
+                <div className="profile-view-cabin-profile--mobile-only">
+                  <div className={`profile-view-cabin-profile-rank ${rank.includes('Легенда') ? 'profile-view-cabin-profile-rank--legendary' : ''}`}>
+                    {cabinDisplayName}
+                  </div>
+                  <div className="profile-view-cabin-profile-level-row">
+                    {cabinStatusText}
+                  </div>
+                  <div className="profile-view-cabin-profile-bio-line">
+                    {cabinBioText}
+                  </div>
+                </div>
+              </div>
+              <div className="profile-view-cabin-card-progress-wrap profile-view-cabin-card-progress-wrap--thick" style={{ transform: 'translate(60px, -65px)' }}>
+                <div className="profile-view-cabin-card-progress" style={{ width: `${xpPercent}%` }} />
+              </div>
             </div>
-            <div className="profile-view-cabin-center-wrap">
-            <div
-              className={`profile-view-cabin-center profile-view-cabin-center--offset ${panelActiveView === null ? 'profile-view-cabin-center--hub' : ''} ${panelActiveView === 'squad-corner' ? 'profile-view-cabin-center--squad-corner' : ''} ${panelActiveView === 'real-diary' ? 'profile-view-cabin-center--real-diary' : ''} ${panelActiveView === 'profile4k' ? 'profile-view-cabin-center--profile4k' : ''} ${panelActiveView === 'team' ? 'profile-view-cabin-center--team' : ''} ${panelActiveView === 'council' ? 'profile-view-cabin-center--council' : ''} ${panelActiveView === 'bro' ? 'profile-view-cabin-center--bro' : ''} ${panelActiveView === 'vozhatifikator' ? 'profile-view-cabin-center--vozhatifikator' : ''} ${panelActiveView === 'counselor-squad' ? 'profile-view-cabin-center--counselor-squad' : ''} ${panelActiveView === 'share' ? 'profile-view-cabin-center--share' : ''} ${panelActiveView === 'workshop' ? 'profile-view-cabin-center--workshop' : ''} ${panelActiveView === 'inspector' ? 'profile-view-cabin-center--inspector' : ''}`}
+            <div className="profile-view-cabin-profile-meta" style={{ transform: 'translate(-150px, 30px)' }}>
+              {/* Десктоп: никнейм + статус + био */}
+              <div className="profile-view-cabin-profile--desktop-only">
+                <div className="profile-view-cabin-profile-primary">
+                  <div
+                    className="profile-view-cabin-profile-name-wrap"
+                    title={cabinDisplayName}
+                    data-full-name={cabinDisplayName}
+                    aria-label={cabinDisplayName}
+                    tabIndex={0}
+                  >
+                    <h2 className="profile-view-cabin-profile-nickname profile-autofit">{cabinDisplayName}</h2>
+                  </div>
+                  <p
+                    className="profile-view-cabin-profile-status"
+                    title={cabinStatusText}
+                    role="button"
+                    tabIndex={0}
+                    onClick={openCabinProfileEditor}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') openCabinProfileEditor();
+                    }}
+                  >
+                    {cabinStatusText}
+                  </p>
+                </div>
+                <div className="profile-view-cabin-profile-secondary">
+                  <p className="profile-view-cabin-profile-bio">{cabinBioText}</p>
+                </div>
+              </div>
+              {/* Мобильная: роль + уровень */}
+              <div className="profile-view-cabin-profile--mobile-only">
+                <div className="profile-view-cabin-profile-primary">
+                  <div
+                    className="profile-view-cabin-profile-name-wrap"
+                    title={role ? ROLE_LABELS[role] : rank}
+                    data-full-name={role ? ROLE_LABELS[role] : rank}
+                    aria-label={role ? ROLE_LABELS[role] : rank}
+                    tabIndex={0}
+                  >
+                    <h2 className="profile-view-cabin-profile-nickname profile-autofit">{role ? ROLE_LABELS[role] : rank}</h2>
+                  </div>
+                  <p
+                    className="profile-view-cabin-profile-status"
+                    title={`Уровень ${currentLevels}`}
+                    role="button"
+                    tabIndex={0}
+                    onClick={openCabinProfileEditor}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') openCabinProfileEditor();
+                    }}
+                  >
+                    Уровень {currentLevels}
+                  </p>
+                </div>
+                <div className="profile-view-cabin-profile-secondary">
+                  <p className="profile-view-cabin-profile-bio" style={{ display: 'none' }} />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="profile-view-cabin-header-actions">
+            <button
+              type="button"
+              className="profile-view-cabin-avatar-gear"
+              aria-label="Открыть настройки профиля"
+              title="Настройки профиля"
+              style={{
+                position: 'relative',
+                width: 30,
+                height: 30,
+                borderRadius: 9999,
+                border: '1px solid rgba(112, 195, 235, 0.55)',
+                background: 'linear-gradient(145deg, rgba(10, 28, 48, 0.92), rgba(4, 12, 26, 0.92))',
+                boxShadow: '0 10px 20px rgba(1, 6, 14, 0.48), 0 0 16px rgba(112, 195, 235, 0.18)',
+                color: 'rgba(238, 248, 255, 0.98)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                zIndex: 2,
+                padding: 0
+              }}
+              onClick={() => {
+                openCabinPanel('passport', 'left');
+                setShowProfileEditor(true);
+              }}
             >
-              {(panelActiveView === null || panelActiveView === 'squad-corner' || panelActiveView === 'real-diary' || panelActiveView === 'profile4k' || panelActiveView === 'team' || panelActiveView === 'council' || panelActiveView === 'bro' || panelActiveView === 'vozhatifikator' || panelActiveView === 'counselor-squad' || panelActiveView === 'share' || panelActiveView === 'workshop' || panelActiveView === 'inspector') && (
-                <div className="profile-view-cabin-tabs-docked">
-                  {panelActiveView === null
-                    ? renderTabsNav('profile-tabs-nav profile-tabs-nav--docked')
-                    : panelActiveView === 'squad-corner'
-                      ? renderSquadCornerTabsNav('profile-tabs-nav profile-tabs-nav--docked profile-tabs-nav--squad-corner')
-                      : panelActiveView === 'real-diary'
-                        ? renderRealDiaryTabsNav('profile-tabs-nav profile-tabs-nav--docked profile-tabs-nav--real-diary')
-                        : panelActiveView === 'profile4k'
-                          ? renderProfile4kTabsNav('profile-tabs-nav profile-tabs-nav--docked profile-tabs-nav--profile4k')
+              <span
+                className="profile-view-cabin-avatar-gear-icon profile-view-cabin-avatar-gear-icon--vertical-dots"
+                aria-hidden="true"
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  pointerEvents: 'none'
+                }}
+              >
+                <svg width="10" height="16" viewBox="0 0 10 16" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ display: 'block' }}>
+                  <circle cx="5" cy="3" r="1.5" fill="currentColor" opacity={0.95} />
+                  <circle cx="5" cy="8" r="1.5" fill="currentColor" opacity={0.95} />
+                  <circle cx="5" cy="13" r="1.5" fill="currentColor" opacity={0.95} />
+                </svg>
+              </span>
+            </button>
+          </div>
+        </div>
+        <div className="profile-view-cabin-center-wrap">
+          <div
+            className={`profile-view-cabin-center profile-view-cabin-center--offset ${panelActiveView === null ? 'profile-view-cabin-center--hub' : ''} ${panelActiveView === 'squad-corner' ? 'profile-view-cabin-center--squad-corner' : ''} ${panelActiveView === 'real-diary' ? 'profile-view-cabin-center--real-diary' : ''} ${panelActiveView === 'profile4k' ? 'profile-view-cabin-center--profile4k' : ''} ${panelActiveView === 'team' ? 'profile-view-cabin-center--team' : ''} ${panelActiveView === 'council' ? 'profile-view-cabin-center--council' : ''} ${panelActiveView === 'bro' ? 'profile-view-cabin-center--bro' : ''} ${panelActiveView === 'vozhatifikator' ? 'profile-view-cabin-center--vozhatifikator' : ''} ${panelActiveView === 'counselor-squad' ? 'profile-view-cabin-center--counselor-squad' : ''} ${panelActiveView === 'share' ? 'profile-view-cabin-center--share' : ''} ${panelActiveView === 'workshop' ? 'profile-view-cabin-center--workshop' : ''} ${panelActiveView === 'inspector' ? 'profile-view-cabin-center--inspector' : ''}`}
+          >
+            {(panelActiveView === null || panelActiveView === 'squad-corner' || panelActiveView === 'real-diary' || panelActiveView === 'profile4k' || panelActiveView === 'team' || panelActiveView === 'council' || panelActiveView === 'bro' || panelActiveView === 'vozhatifikator' || panelActiveView === 'counselor-squad' || panelActiveView === 'share' || panelActiveView === 'workshop' || panelActiveView === 'inspector') && (
+              <div className="profile-view-cabin-tabs-docked">
+                {panelActiveView === null
+                  ? renderTabsNav('profile-tabs-nav profile-tabs-nav--docked')
+                  : panelActiveView === 'squad-corner'
+                    ? renderSquadCornerTabsNav('profile-tabs-nav profile-tabs-nav--docked profile-tabs-nav--squad-corner')
+                    : panelActiveView === 'real-diary'
+                      ? renderRealDiaryTabsNav('profile-tabs-nav profile-tabs-nav--docked profile-tabs-nav--real-diary')
+                      : panelActiveView === 'profile4k'
+                        ? renderProfile4kTabsNav('profile-tabs-nav profile-tabs-nav--docked profile-tabs-nav--profile4k')
                         : panelActiveView === 'team'
                           ? renderTeamTabsNav('profile-tabs-nav profile-tabs-nav--docked profile-tabs-nav--team')
                           : panelActiveView === 'council'
@@ -3968,485 +4000,485 @@ export const ProfileView: React.FC<any> = (props) => {
                                 : panelActiveView === 'counselor-squad'
                                   ? renderCounselorSquadTabsNav('profile-tabs-nav profile-tabs-nav--docked profile-tabs-nav--counselor-squad')
                                   : panelActiveView === 'share'
-                                      ? renderShareTabsNav('profile-tabs-nav profile-tabs-nav--docked profile-tabs-nav--share')
-                                      : panelActiveView === 'workshop'
-                                          ? renderWorkshopTabsNav('profile-tabs-nav profile-tabs-nav--docked profile-tabs-nav--workshop')
-                                          : panelActiveView === 'inspector'
-                                            ? renderInspectorTabsNav('profile-tabs-nav profile-tabs-nav--docked profile-tabs-nav--inspector')
-                                          : null}
-                </div>
-              )}
-              <div className={`profile-view-cabin-center-shell ${panelCompanions ? 'profile-view-cabin-center-shell--companions' : ''}`} style={{ background: 'transparent' }}>
-                {panelCompanions?.left && (
-                  <aside className="profile-view-cabin-side-screen profile-view-cabin-side-screen--left">
-                    <p className="profile-view-cabin-side-screen__label">Ветка раздела</p>
-                    <button type="button" className="profile-view-cabin-side-screen__btn" onClick={panelCompanions.left.action}>
-                      <span>{panelCompanions.left.title}</span>
-                      <small>{panelCompanions.left.subtitle}</small>
-                    </button>
-                    <div className="profile-view-cabin-card-progress-wrap">
-                      <div className="profile-view-cabin-card-progress" style={{ width: `${panelCompanions.left.progress}%` }} />
-                    </div>
-                  </aside>
-                )}
-                <div
-                  ref={centerScrollRef}
-                  className={`profile-view-cabin-center-scroll profile-view-scroll-container profile-view-panel-scroll${panelActiveView === null && (activeTab === 'active' || activeTab === 'favorites') ? ' profile-view-cabin-center-scroll--locked' : ''}${panelActiveView === 'passport' ? ' profile-view-cabin-center-scroll--no-scroll' : ''}${panelActiveView === 'squad-corner' || panelActiveView === 'real-diary' || panelActiveView === 'profile4k' || panelActiveView === 'team' || panelActiveView === 'council' || panelActiveView === 'bro' || panelActiveView === 'vozhatifikator' || panelActiveView === 'counselor-squad' || panelActiveView === 'share' || panelActiveView === 'workshop' || panelActiveView === 'inspector' ? ' profile-view-cabin-center-scroll--content-fit' : ''}`}
-                  style={{ background: 'transparent' }}
-                >
-                    {pendingApprovalsCount > 0 && !approvalsSyncPromptDismissed && canRequestApprovals && (
-                      <div className="profile-approvals-sync-banner" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10, padding: '10px 14px', marginBottom: 12, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 10 }}>
-                        <span style={{ fontSize: 13, opacity: 0.95 }}>
-                          Вожатый подтвердил {pendingApprovalsCount} {pluralizeRu(pendingApprovalsCount, ['уровень', 'уровня', 'уровней'])}. Синхронизировать прогресс?
-                        </span>
-                        <div style={{ display: 'flex', gap: 8 }}>
-                          <button type="button" className="btn-primary-gold" style={{ padding: '6px 14px', fontSize: 12 }} disabled={approvalsSyncBusy} onClick={() => void syncApprovedLevels()}>
-                            {approvalsSyncBusy ? 'Синхронизация...' : 'Синхронизировать'}
-                          </button>
-                          <button type="button" className="btn-secondary" style={{ padding: '6px 14px', fontSize: 12 }} onClick={() => setApprovalsSyncPromptDismissed(true)}>
-                            Позже
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                    {panelActiveView ? (
-                      <div key={panelActiveView} className={`profile-view-cabin-content profile-view-cabin-content--from-${panelOrigin || 'left'}`}>
-                        {panelActiveView !== 'passport' &&
-                          panelActiveView !== 'squad-corner' &&
-                          panelActiveView !== 'real-diary' &&
-                          panelActiveView !== 'profile4k' &&
-                          panelActiveView !== 'team' &&
-                          panelActiveView !== 'council' &&
-                          panelActiveView !== 'bro' &&
-                          panelActiveView !== 'vozhatifikator' &&
-                          panelActiveView !== 'counselor-squad' &&
-                          panelActiveView !== 'share' &&
-                          panelActiveView !== 'workshop' &&
-                          panelActiveView !== 'inspector' && (
-                          <header className="profile-view-cabin-panel-header">
-                            <button type="button" className="profile-view-cabin-panel-header__back" onClick={() => { setActiveTab('active'); openCabinPanel(null, null); }} aria-label="В путь (стартовый экран)">
-                              В пути
-                            </button>
-                            <span className="profile-view-cabin-panel-header__title">{panelTitleMap[panelActiveView]}</span>
-                          </header>
-                        )}
-                        {renderPanelContent()}
-                      </div>
-                    ) : (
-                      <div className="profile-view-cabin-content profile-view-cabin-content--from-top profile-view-cabin-content--hub">
-                        <div className="profile-view-cabin-progress-hub">
-                          {renderTabsPanel({ hideNav: true })}
-                        </div>
-                      </div>
-                    )}
-                    {showOrganizerPanel && renderOrganizerModals()}
-                </div>
-                {panelCompanions?.right && (
-                  <aside className="profile-view-cabin-side-screen profile-view-cabin-side-screen--right">
-                    <p className="profile-view-cabin-side-screen__label">Ветка раздела</p>
-                    <button type="button" className="profile-view-cabin-side-screen__btn" onClick={panelCompanions.right.action}>
-                      <span>{panelCompanions.right.title}</span>
-                      <small>{panelCompanions.right.subtitle}</small>
-                    </button>
-                    <div className="profile-view-cabin-card-progress-wrap">
-                      <div className="profile-view-cabin-card-progress" style={{ width: `${panelCompanions.right.progress}%` }} />
-                    </div>
-                  </aside>
-                )}
+                                    ? renderShareTabsNav('profile-tabs-nav profile-tabs-nav--docked profile-tabs-nav--share')
+                                    : panelActiveView === 'workshop'
+                                      ? renderWorkshopTabsNav('profile-tabs-nav profile-tabs-nav--docked profile-tabs-nav--workshop')
+                                      : panelActiveView === 'inspector'
+                                        ? renderInspectorTabsNav('profile-tabs-nav profile-tabs-nav--docked profile-tabs-nav--inspector')
+                                        : null}
               </div>
-            </div>
-              {onNavigateHome && onNavigateCategories && onNavigateAboutCamp && onTelegramContact && (
-                <ProfileTabletNav
-                  onHome={onNavigateHome}
-                  onCategories={onNavigateCategories}
-                  onAboutCamp={onNavigateAboutCamp}
-                  onTelegramContact={onTelegramContact}
-                  onProfile={() => {}}
-                  onOpenVk={onOpenVk}
-                />
-              )}
-            </div>
-            <div className={`profile-view-cabin-right profile-view-cabin-right--raised-sections${cabinNavExpanded ? ' profile-view-cabin-right--nav-expanded' : ''}`}>
-              <div className="profile-view-cabin-nav-item profile-view-cabin-nav-item--wide">
-                <div
-                  className="profile-view-cabin-right-rail-progress profile-view-cabin-right-rail-progress--cyan"
-                  style={{ ['--progress-value' as string]: panelActiveView === null ? '100%' : '0%' }}
-                  aria-hidden="true"
-                >
-                  <div className="profile-view-cabin-right-rail-progress__fill" />
-                </div>
-                <button type="button" className={`profile-view-cabin-nav-btn profile-view-cabin-nav-btn--wide profile-view-cabin-card profile-view-cabin-card--hub ${panelActiveView === null ? 'profile-view-cabin-nav-btn--active' : ''}`} onClick={() => { setActiveTab('active'); openCabinPanel(null, null); }} aria-label="Главный экран">
-                  <span className="profile-view-cabin-nav-icon" aria-hidden>🏠</span>
-                  <span className="profile-view-cabin-card-subtitle">Главный экран</span>
-                </button>
-              </div>
-              {seeOtradBlocksInView && (
-                <div className="profile-view-cabin-nav-item profile-view-cabin-nav-item--wide profile-view-cabin-nav-item--inspector">
-                  <div
-                    className="profile-view-cabin-right-rail-progress profile-view-cabin-right-rail-progress--cyan"
-                    style={{ ['--progress-value' as string]: `${inspectorProgressPercent}%` }}
-                    aria-hidden="true"
-                  >
-                    <div className="profile-view-cabin-right-rail-progress__fill" />
-                  </div>
-                  <button type="button" className={`profile-view-cabin-nav-btn profile-view-cabin-nav-btn--wide profile-view-cabin-card profile-view-cabin-card--inspector ${panelActiveView === 'inspector' ? 'profile-view-cabin-nav-btn--active' : ''}`} onClick={() => openCabinPanel('inspector', 'top')} aria-label="Инспектор Пользы">
-                    <span className="profile-view-cabin-nav-icon" aria-hidden>📋</span>
-                    <span className="profile-view-cabin-card-subtitle">Инспектор</span>
+            )}
+            <div className={`profile-view-cabin-center-shell ${panelCompanions ? 'profile-view-cabin-center-shell--companions' : ''}`} style={{ background: 'transparent' }}>
+              {panelCompanions?.left && (
+                <aside className="profile-view-cabin-side-screen profile-view-cabin-side-screen--left">
+                  <p className="profile-view-cabin-side-screen__label">Ветка раздела</p>
+                  <button type="button" className="profile-view-cabin-side-screen__btn" onClick={panelCompanions.left.action}>
+                    <span>{panelCompanions.left.title}</span>
+                    <small>{panelCompanions.left.subtitle}</small>
                   </button>
-                </div>
+                  <div className="profile-view-cabin-card-progress-wrap">
+                    <div className="profile-view-cabin-card-progress" style={{ width: `${panelCompanions.left.progress}%` }} />
+                  </div>
+                </aside>
               )}
-              <div className="profile-view-cabin-nav-item profile-view-cabin-nav-item--wide">
-                <div
-                  className="profile-view-cabin-right-rail-progress profile-view-cabin-right-rail-progress--cyan"
-                  style={{ ['--progress-value' as string]: `${profile4kProgressPercent}%` }}
-                  aria-hidden="true"
-                >
-                  <div className="profile-view-cabin-right-rail-progress__fill" />
-                </div>
-                <button type="button" className={`profile-view-cabin-nav-btn profile-view-cabin-nav-btn--wide profile-view-cabin-card ${panelActiveView === 'profile4k' ? 'profile-view-cabin-nav-btn--active' : ''}`} onClick={() => openCabinPanel('profile4k', 'right')} aria-label="4К">
-                  <span className="profile-view-cabin-nav-icon" aria-hidden>4К</span>
-                  <span className="profile-view-cabin-card-subtitle">Навыки и рост</span>
-                  <div className="profile-view-cabin-card-progress-wrap profile-view-cabin-card-progress-wrap--vertical">
-                    <div
-                      className="profile-view-cabin-card-progress profile-view-cabin-card-progress--vertical"
-                      style={{ width: `${profile4kProgressPercent}%`, '--progress-value': `${profile4kProgressPercent}%` } as React.CSSProperties}
-                    />
+              <div
+                ref={centerScrollRef}
+                className={`profile-view-cabin-center-scroll profile-view-scroll-container profile-view-panel-scroll${panelActiveView === null && (activeTab === 'active' || activeTab === 'favorites') ? ' profile-view-cabin-center-scroll--locked' : ''}${panelActiveView === 'passport' ? ' profile-view-cabin-center-scroll--no-scroll' : ''}${panelActiveView === 'squad-corner' || panelActiveView === 'real-diary' || panelActiveView === 'profile4k' || panelActiveView === 'team' || panelActiveView === 'council' || panelActiveView === 'bro' || panelActiveView === 'vozhatifikator' || panelActiveView === 'counselor-squad' || panelActiveView === 'share' || panelActiveView === 'workshop' || panelActiveView === 'inspector' ? ' profile-view-cabin-center-scroll--content-fit' : ''}`}
+                style={{ background: 'transparent' }}
+              >
+                {pendingApprovalsCount > 0 && !approvalsSyncPromptDismissed && canRequestApprovals && (
+                  <div className="profile-approvals-sync-banner" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10, padding: '10px 14px', marginBottom: 12, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 10 }}>
+                    <span style={{ fontSize: 13, opacity: 0.95 }}>
+                      Вожатый подтвердил {pendingApprovalsCount} {pluralizeRu(pendingApprovalsCount, ['уровень', 'уровня', 'уровней'])}. Синхронизировать прогресс?
+                    </span>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <button type="button" className="btn-primary-gold" style={{ padding: '6px 14px', fontSize: 12 }} disabled={approvalsSyncBusy} onClick={() => void syncApprovedLevels()}>
+                        {approvalsSyncBusy ? 'Синхронизация...' : 'Синхронизировать'}
+                      </button>
+                      <button type="button" className="btn-secondary" style={{ padding: '6px 14px', fontSize: 12 }} onClick={() => setApprovalsSyncPromptDismissed(true)}>
+                        Позже
+                      </button>
+                    </div>
                   </div>
-                  <span className="profile-view-cabin-card-hint">{badgeTitlesInPath.length} значков в пути</span>
-                </button>
-              </div>
-              <div className="profile-view-cabin-nav-item profile-view-cabin-nav-item--wide">
-                <div
-                  className="profile-view-cabin-right-rail-progress profile-view-cabin-right-rail-progress--magenta"
-                  style={{ ['--progress-value' as string]: `${vozhProgressPercent}%` }}
-                  aria-hidden="true"
-                >
-                  <div className="profile-view-cabin-right-rail-progress__fill" />
-                </div>
-                <button type="button" className={`profile-view-cabin-nav-btn profile-view-cabin-nav-btn--wide profile-view-cabin-card profile-view-cabin-card--vozhatifikator ${panelActiveView === 'vozhatifikator' ? 'profile-view-cabin-nav-btn--active' : ''}`} onClick={() => openCabinPanel('vozhatifikator', 'right')} aria-label="Вожатификатор">
-                  <span className="profile-view-cabin-card__img-bg">
-                    <img
-                      src={vozhatifikatorCardImageUrl}
-                      alt=""
-                      onError={(e) => {
-                        const el = e.target as HTMLImageElement;
-                        if (el.src.includes('-card')) {
-                          el.src = `${(import.meta.env.BASE_URL || '/').replace(/\/?$/, '/')}вжтфктр%202.jpg`;
-                        }
-                      }}
-                    />
-                  </span>
-                  <div className="profile-view-cabin-card-progress-wrap profile-view-cabin-card-progress-wrap--vertical">
-                    <div
-                      className="profile-view-cabin-card-progress profile-view-cabin-card-progress--vertical"
-                      style={{ width: `${vozhProgressPercent}%`, '--progress-value': `${vozhProgressPercent}%` } as React.CSSProperties}
-                    />
+                )}
+                {panelActiveView ? (
+                  <div key={panelActiveView} className={`profile-view-cabin-content profile-view-cabin-content--from-${panelOrigin || 'left'}`}>
+                    {panelActiveView !== 'passport' &&
+                      panelActiveView !== 'squad-corner' &&
+                      panelActiveView !== 'real-diary' &&
+                      panelActiveView !== 'profile4k' &&
+                      panelActiveView !== 'team' &&
+                      panelActiveView !== 'council' &&
+                      panelActiveView !== 'bro' &&
+                      panelActiveView !== 'vozhatifikator' &&
+                      panelActiveView !== 'counselor-squad' &&
+                      panelActiveView !== 'share' &&
+                      panelActiveView !== 'workshop' &&
+                      panelActiveView !== 'inspector' && (
+                        <header className="profile-view-cabin-panel-header">
+                          <button type="button" className="profile-view-cabin-panel-header__back" onClick={() => { setActiveTab('active'); openCabinPanel(null, null); }} aria-label="В путь (стартовый экран)">
+                            В пути
+                          </button>
+                          <span className="profile-view-cabin-panel-header__title">{panelTitleMap[panelActiveView]}</span>
+                        </header>
+                      )}
+                    {renderPanelContent()}
                   </div>
-                  <span className="profile-view-cabin-card-hint">{vozhCompletedCount}/{VOZHATIFIKATOR_CHECKLIST_ITEMS.length} легендарность</span>
-                </button>
-              </div>
-              <div className="profile-view-cabin-nav-item profile-view-cabin-nav-item--wide">
-                <div
-                  className="profile-view-cabin-right-rail-progress profile-view-cabin-right-rail-progress--purple"
-                  style={{ ['--progress-value' as string]: `${counselorSquadProgressPercent}%` }}
-                  aria-hidden="true"
-                >
-                  <div className="profile-view-cabin-right-rail-progress__fill" />
-                </div>
-                <button
-                  type="button"
-                  className={`profile-view-cabin-nav-btn profile-view-cabin-nav-btn--wide profile-view-cabin-card ${panelActiveView === 'counselor-squad' ? 'profile-view-cabin-nav-btn--active' : ''}`}
-                  onClick={() => openCabinPanel('counselor-squad', 'right')}
-                  aria-label="Вожатский отряд"
-                >
-                  <span className="profile-view-cabin-nav-icon" aria-hidden>👥</span>
-                  <span className="profile-view-cabin-card-subtitle">Вожатский отряд</span>
-                  <div className="profile-view-cabin-card-progress-wrap profile-view-cabin-card-progress-wrap--vertical">
-                    <div
-                      className="profile-view-cabin-card-progress profile-view-cabin-card-progress--vertical"
-                      style={{ width: `${counselorSquadProgressPercent}%`, '--progress-value': `${counselorSquadProgressPercent}%` } as React.CSSProperties}
-                    />
+                ) : (
+                  <div className="profile-view-cabin-content profile-view-cabin-content--from-top profile-view-cabin-content--hub">
+                    <div className="profile-view-cabin-progress-hub">
+                      {renderTabsPanel({ hideNav: true })}
+                    </div>
                   </div>
-                  <span className="profile-view-cabin-card-hint">{counselorSquadNavHint}</span>
-                </button>
+                )}
+                {showOrganizerPanel && renderOrganizerModals()}
               </div>
-              <div className="profile-view-cabin-nav-item profile-view-cabin-nav-item--wide">
-                <div
-                  className="profile-view-cabin-right-rail-progress profile-view-cabin-right-rail-progress--orange"
-                  style={{ ['--progress-value' as string]: `${shareProgressPercent}%` }}
-                  aria-hidden="true"
-                >
-                  <div className="profile-view-cabin-right-rail-progress__fill" />
-                </div>
-                <button type="button" className={`profile-view-cabin-nav-btn profile-view-cabin-nav-btn--wide profile-view-cabin-card ${panelActiveView === 'share' ? 'profile-view-cabin-nav-btn--active' : ''}`} onClick={() => openCabinPanel('share', 'right')} aria-label="Шеринг">
-                  <span className="profile-view-cabin-nav-icon" aria-hidden>📤</span>
-                  <span className="profile-view-cabin-card-subtitle">Карточки прогресса</span>
-                  <div className="profile-view-cabin-card-progress-wrap profile-view-cabin-card-progress-wrap--vertical">
-                    <div
-                      className="profile-view-cabin-card-progress profile-view-cabin-card-progress--vertical"
-                      style={{ width: `${shareProgressPercent}%`, '--progress-value': `${shareProgressPercent}%` } as React.CSSProperties}
-                    />
-                  </div>
-                  <span className="profile-view-cabin-card-hint">{shareStoryResult || shareWideResult ? 'Готов к публикации' : 'Собираем материалы'}</span>
-                </button>
-              </div>
-              {role === 'parent' && (
-                <div className="profile-view-cabin-nav-item profile-view-cabin-nav-item--wide">
-                  <button type="button" className={`profile-view-cabin-nav-btn profile-view-cabin-nav-btn--wide ${panelActiveView === 'parents' ? 'profile-view-cabin-nav-btn--active' : ''}`} onClick={() => openCabinPanel('parents', 'right')} aria-label="Для родителей">
-                    <span className="profile-view-cabin-nav-icon" aria-hidden>👨‍👩‍👧</span>
-                    <span className="profile-view-cabin-card-subtitle">Родительский кабинет</span>
+              {panelCompanions?.right && (
+                <aside className="profile-view-cabin-side-screen profile-view-cabin-side-screen--right">
+                  <p className="profile-view-cabin-side-screen__label">Ветка раздела</p>
+                  <button type="button" className="profile-view-cabin-side-screen__btn" onClick={panelCompanions.right.action}>
+                    <span>{panelCompanions.right.title}</span>
+                    <small>{panelCompanions.right.subtitle}</small>
                   </button>
-                </div>
+                  <div className="profile-view-cabin-card-progress-wrap">
+                    <div className="profile-view-cabin-card-progress" style={{ width: `${panelCompanions.right.progress}%` }} />
+                  </div>
+                </aside>
               )}
             </div>
           </div>
-          {isCabinProfileExpanded && (
-            <div className="profile-view-cabin-profile-modal" role="dialog" aria-modal="true" aria-labelledby="profile-cabin-editor-title">
-              <button
-                type="button"
-                className="profile-view-cabin-profile-modal__backdrop"
-                onClick={closeCabinProfileEditor}
-                aria-label="Закрыть редактирование профиля"
-              />
-              <section className="profile-view-cabin-profile-modal__window">
-                <header className="profile-view-cabin-profile-modal__header">
-                  <h3 id="profile-cabin-editor-title">Редактирование профиля</h3>
-                  <button type="button" className="profile-view-cabin-profile-modal__close" onClick={closeCabinProfileEditor} aria-label="Закрыть окно">
-                    <Icons.Close />
-                  </button>
-                </header>
-                <p className="profile-view-cabin-profile-modal__hint">Измени статус и описание экипажа. После сохранения карточка останется свёрнутой.</p>
-                <label className="profile-view-cabin-profile-field">
-                  <span>Статус экипажа</span>
-                  <input
-                    type="text"
-                    value={statusInput}
-                    maxLength={80}
-                    onChange={(e) => setStatusInput(e.target.value)}
-                    placeholder="Например: на смене, в поиске идей"
-                  />
-                </label>
-                <label className="profile-view-cabin-profile-field">
-                  <span>Пара слов о себе</span>
-                  <textarea
-                    value={bioInput}
-                    maxLength={220}
-                    rows={4}
-                    onChange={(e) => setBioInput(e.target.value)}
-                    placeholder="Чем живёшь в лагере, что развиваешь, что важно."
-                  />
-                </label>
-                <div className="profile-view-cabin-profile-modal__actions">
-                  <button type="button" className="btn-secondary" onClick={closeCabinProfileEditor}>
-                    Отмена
-                  </button>
-                  <button type="button" className="btn-secondary" disabled={!hasCabinProfileDraftChanges} onClick={saveCabinProfileText}>
-                    Сохранить
-                  </button>
-                </div>
-              </section>
+          {onNavigateHome && onNavigateCategories && onNavigateAboutCamp && onTelegramContact && (
+            <ProfileTabletNav
+              onHome={onNavigateHome}
+              onCategories={onNavigateCategories}
+              onAboutCamp={onNavigateAboutCamp}
+              onTelegramContact={onTelegramContact}
+              onProfile={() => { }}
+              onOpenVk={onOpenVk}
+            />
+          )}
+        </div>
+        <div className={`profile-view-cabin-right profile-view-cabin-right--raised-sections${cabinNavExpanded ? ' profile-view-cabin-right--nav-expanded' : ''}`}>
+          <div className="profile-view-cabin-nav-item profile-view-cabin-nav-item--wide">
+            <div
+              className="profile-view-cabin-right-rail-progress profile-view-cabin-right-rail-progress--cyan"
+              style={{ ['--progress-value' as string]: panelActiveView === null ? '100%' : '0%' }}
+              aria-hidden="true"
+            >
+              <div className="profile-view-cabin-right-rail-progress__fill" />
+            </div>
+            <button type="button" className={`profile-view-cabin-nav-btn profile-view-cabin-nav-btn--wide profile-view-cabin-card profile-view-cabin-card--hub ${panelActiveView === null ? 'profile-view-cabin-nav-btn--active' : ''}`} onClick={() => { setActiveTab('active'); openCabinPanel(null, null); }} aria-label="Главный экран">
+              <span className="profile-view-cabin-nav-icon" aria-hidden>🏠</span>
+              <span className="profile-view-cabin-card-subtitle">Главный экран</span>
+            </button>
+          </div>
+          {seeOtradBlocksInView && (
+            <div className="profile-view-cabin-nav-item profile-view-cabin-nav-item--wide profile-view-cabin-nav-item--inspector">
+              <div
+                className="profile-view-cabin-right-rail-progress profile-view-cabin-right-rail-progress--cyan"
+                style={{ ['--progress-value' as string]: `${inspectorProgressPercent}%` }}
+                aria-hidden="true"
+              >
+                <div className="profile-view-cabin-right-rail-progress__fill" />
+              </div>
+              <button type="button" className={`profile-view-cabin-nav-btn profile-view-cabin-nav-btn--wide profile-view-cabin-card profile-view-cabin-card--inspector ${panelActiveView === 'inspector' ? 'profile-view-cabin-nav-btn--active' : ''}`} onClick={() => openCabinPanel('inspector', 'top')} aria-label="Инспектор Пользы">
+                <span className="profile-view-cabin-nav-icon" aria-hidden>📋</span>
+                <span className="profile-view-cabin-card-subtitle">Инспектор</span>
+              </button>
             </div>
           )}
-          <div className={`profile-view-console${mobileConsoleExpanded ? ' profile-view-console--mobile-expanded' : ''}`} aria-label="Пульт навигации">
-            <div className="console-cluster console-cluster--left">
-              <div className="console-btn-wrap">
-                <button
-                  type="button"
-                  className={`console-btn ${panelActiveView === 'squad-corner' ? 'console-btn--active' : ''}`}
-                  data-console-section="squad-corner"
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    handleSquadCornerConsoleClick();
+          <div className="profile-view-cabin-nav-item profile-view-cabin-nav-item--wide">
+            <div
+              className="profile-view-cabin-right-rail-progress profile-view-cabin-right-rail-progress--cyan"
+              style={{ ['--progress-value' as string]: `${profile4kProgressPercent}%` }}
+              aria-hidden="true"
+            >
+              <div className="profile-view-cabin-right-rail-progress__fill" />
+            </div>
+            <button type="button" className={`profile-view-cabin-nav-btn profile-view-cabin-nav-btn--wide profile-view-cabin-card ${panelActiveView === 'profile4k' ? 'profile-view-cabin-nav-btn--active' : ''}`} onClick={() => openCabinPanel('profile4k', 'right')} aria-label="4К">
+              <span className="profile-view-cabin-nav-icon" aria-hidden>4К</span>
+              <span className="profile-view-cabin-card-subtitle">Навыки и рост</span>
+              <div className="profile-view-cabin-card-progress-wrap profile-view-cabin-card-progress-wrap--vertical">
+                <div
+                  className="profile-view-cabin-card-progress profile-view-cabin-card-progress--vertical"
+                  style={{ width: `${profile4kProgressPercent}%`, '--progress-value': `${profile4kProgressPercent}%` } as React.CSSProperties}
+                />
+              </div>
+              <span className="profile-view-cabin-card-hint">{badgeTitlesInPath.length} значков в пути</span>
+            </button>
+          </div>
+          <div className="profile-view-cabin-nav-item profile-view-cabin-nav-item--wide">
+            <div
+              className="profile-view-cabin-right-rail-progress profile-view-cabin-right-rail-progress--magenta"
+              style={{ ['--progress-value' as string]: `${vozhProgressPercent}%` }}
+              aria-hidden="true"
+            >
+              <div className="profile-view-cabin-right-rail-progress__fill" />
+            </div>
+            <button type="button" className={`profile-view-cabin-nav-btn profile-view-cabin-nav-btn--wide profile-view-cabin-card profile-view-cabin-card--vozhatifikator ${panelActiveView === 'vozhatifikator' ? 'profile-view-cabin-nav-btn--active' : ''}`} onClick={() => openCabinPanel('vozhatifikator', 'right')} aria-label="Вожатификатор">
+              <span className="profile-view-cabin-card__img-bg">
+                <img
+                  src={vozhatifikatorCardImageUrl}
+                  alt=""
+                  onError={(e) => {
+                    const el = e.target as HTMLImageElement;
+                    if (el.src.includes('-card')) {
+                      el.src = `${(import.meta.env.BASE_URL || '/').replace(/\/?$/, '/')}вжтфктр%202.jpg`;
+                    }
                   }}
-                  title="Отрядный уголок"
-                >
-                  <img src={`${baseUrl}${encodeURI(CONSOLE_SECTION_IMAGES['squad-corner'])}`} alt="" className="console-btn-icon-img" />
-                  <span className="console-btn-bubble-label" aria-hidden>ОТРЯДНЫЙ УГОЛОК</span>
-                  <span className="console-btn-icon">🏕️</span>
-                  <span className="console-btn-label">Отрядный уголок</span>
-                </button>
-                <div className="console-btn-meter console-btn-meter--vertical">
-                  <span style={{ width: `${squadCornerProgressPercent}%`, '--progress-value': `${squadCornerProgressPercent}%` } as React.CSSProperties} />
-                </div>
-              </div>
-              <div className="console-btn-wrap">
-                <button type="button" className={`console-btn ${panelActiveView === 'real-diary' ? 'console-btn--active' : ''}`} data-console-section="real-diary" onClick={() => openCabinPanel('real-diary', 'left')} title="Реальный Дневник">
-                  <img src={`${baseUrl}${encodeURI(CONSOLE_SECTION_IMAGES['real-diary'])}`} alt="" className="console-btn-icon-img" />
-                  <span className="console-btn-bubble-label" aria-hidden>РЕАЛЬНЫЙ ДНЕВНИК</span>
-                  <span className="console-btn-icon">📖</span>
-                  <span className="console-btn-label">Реальный Дневник</span>
-                </button>
-                <div className="console-btn-meter console-btn-meter--vertical">
-                  <span style={{ width: `${diaryProgressPercent}%`, '--progress-value': `${diaryProgressPercent}%` } as React.CSSProperties} />
-                </div>
-              </div>
-              <div className="console-btn-wrap">
-                {isTabletOrMobile ? (
-                  <button type="button" className={`console-btn ${panelActiveView === 'council' ? 'console-btn--active' : ''}`} data-console-section="council" onClick={() => openCabinPanel('council', 'left')} title="Совет Лагеря">
-                    <img src={`${baseUrl}${encodeURI(CONSOLE_SECTION_IMAGES.council)}`} alt="" className="console-btn-icon-img" />
-                    <span className="console-btn-bubble-label" aria-hidden>СОВЕТ ЛАГЕРЯ</span>
-                    <span className="console-btn-icon">🏛️</span>
-                    <span className="console-btn-label">Совет Лагеря</span>
-                  </button>
-                ) : (
-                  <button type="button" className={`console-btn ${panelActiveView === 'team' ? 'console-btn--active' : ''}`} data-console-section="team" onClick={() => openCabinPanel('team', 'left')} title="Движок">
-                    <img src={`${baseUrl}${encodeURI(CONSOLE_SECTION_IMAGES.team)}`} alt="" className="console-btn-icon-img" />
-                    <span className="console-btn-bubble-label" aria-hidden>ДВИЖОК</span>
-                    <span className="console-btn-icon">🚀</span>
-                    <span className="console-btn-label">Движок</span>
-                  </button>
-                )}
-                <div className="console-btn-meter console-btn-meter--vertical">
-                  <span style={{ width: `${isTabletOrMobile ? councilProgressPercent : teamProgressPercent}%`, '--progress-value': `${isTabletOrMobile ? councilProgressPercent : teamProgressPercent}%` } as React.CSSProperties} />
-                </div>
-              </div>
-            </div>
-            <div className="console-terminal" aria-live="polite">
-              <div className="console-terminal__title">{consoleCopy.title}</div>
-              <div className="console-terminal__meta">{consoleCopy.meta}</div>
-            </div>
-            <div className="console-cluster console-cluster--right">
-              <div className="console-btn-wrap">
-                {isTabletOrMobile ? (
-                  <button type="button" className={`console-btn ${panelActiveView === 'team' ? 'console-btn--active' : ''}`} data-console-section="team" onClick={() => openCabinPanel('team', 'right')} title="Движок">
-                    <img src={`${baseUrl}${encodeURI(CONSOLE_SECTION_IMAGES.team)}`} alt="" className="console-btn-icon-img" />
-                    <span className="console-btn-bubble-label" aria-hidden>ДВИЖОК</span>
-                    <span className="console-btn-icon">🚀</span>
-                    <span className="console-btn-label">Движок</span>
-                  </button>
-                ) : (
-                  <button type="button" className={`console-btn ${panelActiveView === 'council' ? 'console-btn--active' : ''}`} data-console-section="council" onClick={() => openCabinPanel('council', 'right')} title="Совет Лагеря">
-                    <img src={`${baseUrl}${encodeURI(CONSOLE_SECTION_IMAGES.council)}`} alt="" className="console-btn-icon-img" />
-                    <span className="console-btn-bubble-label" aria-hidden>СОВЕТ ЛАГЕРЯ</span>
-                    <span className="console-btn-icon">🏛️</span>
-                    <span className="console-btn-label">Совет Лагеря</span>
-                  </button>
-                )}
-                <div className="console-btn-meter console-btn-meter--vertical">
-                  <span style={{ width: `${isTabletOrMobile ? teamProgressPercent : councilProgressPercent}%`, '--progress-value': `${isTabletOrMobile ? teamProgressPercent : councilProgressPercent}%` } as React.CSSProperties} />
-                </div>
-              </div>
-              <div className="console-btn-wrap">
-                <button type="button" className={`console-btn ${panelActiveView === 'bro' ? 'console-btn--active' : ''}`} data-console-section="bro" onClick={() => openCabinPanel('bro', 'right')} title="БРО">
-                  <img src={`${baseUrl}${encodeURI(CONSOLE_SECTION_IMAGES.bro)}`} alt="" className="console-btn-icon-img" />
-                  <span className="console-btn-bubble-label" aria-hidden>БРО</span>
-                  <span className="console-btn-icon">🎖️</span>
-                  <span className="console-btn-label">БРО</span>
-                </button>
-                <div className="console-btn-meter console-btn-meter--vertical">
-                  <span style={{ width: `${broProgressPercent}%`, '--progress-value': `${broProgressPercent}%` } as React.CSSProperties} />
-                </div>
-              </div>
-              <div className="console-btn-wrap">
-                <button type="button" className={`console-btn ${panelActiveView === 'workshop' ? 'console-btn--active' : ''}`} data-console-section="workshop" onClick={() => openCabinPanel('workshop', 'right')} title="Мастерская">
-                  <img src={`${baseUrl}${encodeURI(CONSOLE_SECTION_IMAGES.workshop)}`} alt="" className="console-btn-icon-img" />
-                  <span className="console-btn-bubble-label" aria-hidden>МАСТЕРСКАЯ</span>
-                  <span className="console-btn-icon">⚒️</span>
-                  <span className="console-btn-label">Мастерская</span>
-                </button>
-                <div className="console-btn-meter console-btn-meter--vertical">
-                  <span style={{ width: `${workshopProgressPercent}%`, '--progress-value': `${workshopProgressPercent}%` } as React.CSSProperties} />
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="profile-view-mobile-where-panel" aria-live="polite">
-            {consoleCopy.title}
-          </div>
-          </>
-        ) : panelActiveView ? (
-          <>
-            <div className="profile-view-panel-header" style={{ flexShrink: 0, display: 'flex', alignItems: 'center', padding: '12px 16px', gap: 8, borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-              <button type="button" className="btn-secondary" onClick={() => openCabinPanel(null, null)}>Назад</button>
-              <span style={{ fontSize: 14, fontWeight: 700, opacity: 0.95 }}>
-                {panelActiveView === 'passport' && 'Паспорт'}
-                {panelActiveView === 'inspector' && 'Инспектор'}
-                {panelActiveView === 'profile4k' && '4К'}
-                {panelActiveView === 'counselor-squad' && 'Вожатский отряд'}
-                {panelActiveView === 'squad-corner' && 'Отрядный уголок'}
-                {panelActiveView === 'real-diary' && 'Реальный Дневник'}
-                {panelActiveView === 'team' && 'Движок'}
-                {panelActiveView === 'council' && 'Совет Лагеря'}
-                {panelActiveView === 'bro' && 'БРО'}
-                {panelActiveView === 'workshop' && 'Мастерская'}
-                {panelActiveView === 'share' && 'Шеринг'}
-                {panelActiveView === 'vozhatifikator' && 'Вожатификатор'}
-                {panelActiveView === 'parents' && 'Для родителей'}
+                />
               </span>
+              <div className="profile-view-cabin-card-progress-wrap profile-view-cabin-card-progress-wrap--vertical">
+                <div
+                  className="profile-view-cabin-card-progress profile-view-cabin-card-progress--vertical"
+                  style={{ width: `${vozhProgressPercent}%`, '--progress-value': `${vozhProgressPercent}%` } as React.CSSProperties}
+                />
+              </div>
+              <span className="profile-view-cabin-card-hint">{vozhCompletedCount}/{VOZHATIFIKATOR_CHECKLIST_ITEMS.length} легендарность</span>
+            </button>
+          </div>
+          <div className="profile-view-cabin-nav-item profile-view-cabin-nav-item--wide">
+            <div
+              className="profile-view-cabin-right-rail-progress profile-view-cabin-right-rail-progress--purple"
+              style={{ ['--progress-value' as string]: `${counselorSquadProgressPercent}%` }}
+              aria-hidden="true"
+            >
+              <div className="profile-view-cabin-right-rail-progress__fill" />
             </div>
-            <div className="profile-view-scroll-container profile-view-panel-scroll" style={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
-              {renderPanelContent()}
+            <button
+              type="button"
+              className={`profile-view-cabin-nav-btn profile-view-cabin-nav-btn--wide profile-view-cabin-card ${panelActiveView === 'counselor-squad' ? 'profile-view-cabin-nav-btn--active' : ''}`}
+              onClick={() => openCabinPanel('counselor-squad', 'right')}
+              aria-label="Вожатский отряд"
+            >
+              <span className="profile-view-cabin-nav-icon" aria-hidden>👥</span>
+              <span className="profile-view-cabin-card-subtitle">Вожатский отряд</span>
+              <div className="profile-view-cabin-card-progress-wrap profile-view-cabin-card-progress-wrap--vertical">
+                <div
+                  className="profile-view-cabin-card-progress profile-view-cabin-card-progress--vertical"
+                  style={{ width: `${counselorSquadProgressPercent}%`, '--progress-value': `${counselorSquadProgressPercent}%` } as React.CSSProperties}
+                />
+              </div>
+              <span className="profile-view-cabin-card-hint">{counselorSquadNavHint}</span>
+            </button>
+          </div>
+          <div className="profile-view-cabin-nav-item profile-view-cabin-nav-item--wide">
+            <div
+              className="profile-view-cabin-right-rail-progress profile-view-cabin-right-rail-progress--orange"
+              style={{ ['--progress-value' as string]: `${shareProgressPercent}%` }}
+              aria-hidden="true"
+            >
+              <div className="profile-view-cabin-right-rail-progress__fill" />
             </div>
-          </>
-        ) : (
-        <div className="profile-view-content-wrapper">
-        <div className="profile-view-top-bar" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', flexWrap: 'wrap', gap: '8px', flexShrink: 0 }}>
-          <button onClick={onBack} className="btn-secondary">Назад</button>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            {userData?.meta?.hasCompletedTutorial && (
-              <button type="button" onClick={() => startProfileTutorial(false)} className="btn-secondary">Показать подсказки</button>
+            <button type="button" className={`profile-view-cabin-nav-btn profile-view-cabin-nav-btn--wide profile-view-cabin-card ${panelActiveView === 'share' ? 'profile-view-cabin-nav-btn--active' : ''}`} onClick={() => openCabinPanel('share', 'right')} aria-label="Шеринг">
+              <span className="profile-view-cabin-nav-icon" aria-hidden>📤</span>
+              <span className="profile-view-cabin-card-subtitle">Карточки прогресса</span>
+              <div className="profile-view-cabin-card-progress-wrap profile-view-cabin-card-progress-wrap--vertical">
+                <div
+                  className="profile-view-cabin-card-progress profile-view-cabin-card-progress--vertical"
+                  style={{ width: `${shareProgressPercent}%`, '--progress-value': `${shareProgressPercent}%` } as React.CSSProperties}
+                />
+              </div>
+              <span className="profile-view-cabin-card-hint">{shareStoryResult || shareWideResult ? 'Готов к публикации' : 'Собираем материалы'}</span>
+            </button>
+          </div>
+          {role === 'parent' && (
+            <div className="profile-view-cabin-nav-item profile-view-cabin-nav-item--wide">
+              <button type="button" className={`profile-view-cabin-nav-btn profile-view-cabin-nav-btn--wide ${panelActiveView === 'parents' ? 'profile-view-cabin-nav-btn--active' : ''}`} onClick={() => openCabinPanel('parents', 'right')} aria-label="Для родителей">
+                <span className="profile-view-cabin-nav-icon" aria-hidden>👨‍👩‍👧</span>
+                <span className="profile-view-cabin-card-subtitle">Родительский кабинет</span>
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+      {isCabinProfileExpanded && (
+        <div className="profile-view-cabin-profile-modal" role="dialog" aria-modal="true" aria-labelledby="profile-cabin-editor-title">
+          <button
+            type="button"
+            className="profile-view-cabin-profile-modal__backdrop"
+            onClick={closeCabinProfileEditor}
+            aria-label="Закрыть редактирование профиля"
+          />
+          <section className="profile-view-cabin-profile-modal__window">
+            <header className="profile-view-cabin-profile-modal__header">
+              <h3 id="profile-cabin-editor-title">Редактирование профиля</h3>
+              <button type="button" className="profile-view-cabin-profile-modal__close" onClick={closeCabinProfileEditor} aria-label="Закрыть окно">
+                <Icons.Close />
+              </button>
+            </header>
+            <p className="profile-view-cabin-profile-modal__hint">Измени статус и описание экипажа. После сохранения карточка останется свёрнутой.</p>
+            <label className="profile-view-cabin-profile-field">
+              <span>Статус экипажа</span>
+              <input
+                type="text"
+                value={statusInput}
+                maxLength={80}
+                onChange={(e) => setStatusInput(e.target.value)}
+                placeholder="Например: на смене, в поиске идей"
+              />
+            </label>
+            <label className="profile-view-cabin-profile-field">
+              <span>Пара слов о себе</span>
+              <textarea
+                value={bioInput}
+                maxLength={220}
+                rows={4}
+                onChange={(e) => setBioInput(e.target.value)}
+                placeholder="Чем живёшь в лагере, что развиваешь, что важно."
+              />
+            </label>
+            <div className="profile-view-cabin-profile-modal__actions">
+              <button type="button" className="btn-secondary" onClick={closeCabinProfileEditor}>
+                Отмена
+              </button>
+              <button type="button" className="btn-secondary" disabled={!hasCabinProfileDraftChanges} onClick={saveCabinProfileText}>
+                Сохранить
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
+      <div className={`profile-view-console${mobileConsoleExpanded ? ' profile-view-console--mobile-expanded' : ''}`} aria-label="Пульт навигации">
+        <div className="console-cluster console-cluster--left">
+          <div className="console-btn-wrap">
+            <button
+              type="button"
+              className={`console-btn ${panelActiveView === 'squad-corner' ? 'console-btn--active' : ''}`}
+              data-console-section="squad-corner"
+              onClick={(event) => {
+                event.stopPropagation();
+                handleSquadCornerConsoleClick();
+              }}
+              title="Отрядный уголок"
+            >
+              <img src={`${baseUrl}${encodeURI(CONSOLE_SECTION_IMAGES['squad-corner'])}`} alt="" className="console-btn-icon-img" />
+              <span className="console-btn-bubble-label" aria-hidden>ОТРЯДНЫЙ УГОЛОК</span>
+              <span className="console-btn-icon">🏕️</span>
+              <span className="console-btn-label">Отрядный уголок</span>
+            </button>
+            <div className="console-btn-meter console-btn-meter--vertical">
+              <span style={{ width: `${squadCornerProgressPercent}%`, '--progress-value': `${squadCornerProgressPercent}%` } as React.CSSProperties} />
+            </div>
+          </div>
+          <div className="console-btn-wrap">
+            <button type="button" className={`console-btn ${panelActiveView === 'real-diary' ? 'console-btn--active' : ''}`} data-console-section="real-diary" onClick={() => openCabinPanel('real-diary', 'left')} title="Реальный Дневник">
+              <img src={`${baseUrl}${encodeURI(CONSOLE_SECTION_IMAGES['real-diary'])}`} alt="" className="console-btn-icon-img" />
+              <span className="console-btn-bubble-label" aria-hidden>РЕАЛЬНЫЙ ДНЕВНИК</span>
+              <span className="console-btn-icon">📖</span>
+              <span className="console-btn-label">Реальный Дневник</span>
+            </button>
+            <div className="console-btn-meter console-btn-meter--vertical">
+              <span style={{ width: `${diaryProgressPercent}%`, '--progress-value': `${diaryProgressPercent}%` } as React.CSSProperties} />
+            </div>
+          </div>
+          <div className="console-btn-wrap">
+            {isTabletOrMobile ? (
+              <button type="button" className={`console-btn ${panelActiveView === 'council' ? 'console-btn--active' : ''}`} data-console-section="council" onClick={() => openCabinPanel('council', 'left')} title="Совет Лагеря">
+                <img src={`${baseUrl}${encodeURI(CONSOLE_SECTION_IMAGES.council)}`} alt="" className="console-btn-icon-img" />
+                <span className="console-btn-bubble-label" aria-hidden>СОВЕТ ЛАГЕРЯ</span>
+                <span className="console-btn-icon">🏛️</span>
+                <span className="console-btn-label">Совет Лагеря</span>
+              </button>
+            ) : (
+              <button type="button" className={`console-btn ${panelActiveView === 'team' ? 'console-btn--active' : ''}`} data-console-section="team" onClick={() => openCabinPanel('team', 'left')} title="Движок">
+                <img src={`${baseUrl}${encodeURI(CONSOLE_SECTION_IMAGES.team)}`} alt="" className="console-btn-icon-img" />
+                <span className="console-btn-bubble-label" aria-hidden>ДВИЖОК</span>
+                <span className="console-btn-icon">🚀</span>
+                <span className="console-btn-label">Движок</span>
+              </button>
             )}
-            <button onClick={() => setShowProfileEditor(!showProfileEditor)} className="btn-secondary">{showProfileEditor ? 'Закрыть' : 'Редактировать'}</button>
+            <div className="console-btn-meter console-btn-meter--vertical">
+              <span style={{ width: `${isTabletOrMobile ? councilProgressPercent : teamProgressPercent}%`, '--progress-value': `${isTabletOrMobile ? councilProgressPercent : teamProgressPercent}%` } as React.CSSProperties} />
+            </div>
           </div>
         </div>
-
-        {showSandbox && !isSpaceshipMode && (
-          <div className="profile-sandbox-role" role="group" aria-label="Роль для теста">
-            <div className="profile-sandbox-role__row">
-              <span className="profile-sandbox-role__label">Песочница: роль для теста —</span>
-              <div className="profile-sandbox-role__dropdown-wrap" ref={roleDropdownRef}>
-                <button
-                  type="button"
-                  className="profile-sandbox-role__trigger"
-                  onClick={() => setRoleDropdownOpen(!roleDropdownOpen)}
-                  aria-expanded={roleDropdownOpen}
-                  aria-haspopup="listbox"
-                  aria-label="Выбор роли"
-                  id="profile-sandbox-role-trigger"
-                >
-                  <span className="profile-sandbox-role__trigger-text">{ROLE_LABELS[role]}</span>
-                  <span className={`profile-sandbox-role__trigger-chevron ${roleDropdownOpen ? 'is-open' : ''}`} aria-hidden>
-                    <svg width="12" height="12" viewBox="0 0 12 12"><path fill="currentColor" d="M6 8L1 3h10z"/></svg>
-                  </span>
-                </button>
-                <ul
-                  className={`profile-sandbox-role__menu ${roleDropdownOpen ? 'is-open' : ''}`}
-                  role="listbox"
-                  aria-labelledby="profile-sandbox-role-trigger"
-                  tabIndex={-1}
-                >
-                  {ROLE_ORDER.map((r) => (
-                    <li
-                      key={r}
-                      role="option"
-                      aria-selected={r === role}
-                      className={`profile-sandbox-role__option ${r === role ? 'is-selected' : ''}`}
-                      onClick={() => { setSandboxRole(r); setRoleDropdownOpen(false); }}
-                    >
-                      {ROLE_LABELS[r]}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-            <div className="profile-sandbox-role__current" aria-live="polite" aria-atomic="true">
-              <div className="profile-sandbox-role__current-label">Сейчас:</div>
-              {(() => {
-                const { title, subtitle } = getRoleDisplay(role);
-                return subtitle ? (
-                  <>
-                    <div className="profile-sandbox-role__title">{title}</div>
-                    <div className="profile-sandbox-role__subtitle">{subtitle}</div>
-                  </>
-                ) : (
-                  <span className="profile-sandbox-role__title">{title}</span>
-                );
-              })()}
+        <div className="console-terminal" aria-live="polite">
+          <div className="console-terminal__title">{consoleCopy.title}</div>
+          <div className="console-terminal__meta">{consoleCopy.meta}</div>
+        </div>
+        <div className="console-cluster console-cluster--right">
+          <div className="console-btn-wrap">
+            {isTabletOrMobile ? (
+              <button type="button" className={`console-btn ${panelActiveView === 'team' ? 'console-btn--active' : ''}`} data-console-section="team" onClick={() => openCabinPanel('team', 'right')} title="Движок">
+                <img src={`${baseUrl}${encodeURI(CONSOLE_SECTION_IMAGES.team)}`} alt="" className="console-btn-icon-img" />
+                <span className="console-btn-bubble-label" aria-hidden>ДВИЖОК</span>
+                <span className="console-btn-icon">🚀</span>
+                <span className="console-btn-label">Движок</span>
+              </button>
+            ) : (
+              <button type="button" className={`console-btn ${panelActiveView === 'council' ? 'console-btn--active' : ''}`} data-console-section="council" onClick={() => openCabinPanel('council', 'right')} title="Совет Лагеря">
+                <img src={`${baseUrl}${encodeURI(CONSOLE_SECTION_IMAGES.council)}`} alt="" className="console-btn-icon-img" />
+                <span className="console-btn-bubble-label" aria-hidden>СОВЕТ ЛАГЕРЯ</span>
+                <span className="console-btn-icon">🏛️</span>
+                <span className="console-btn-label">Совет Лагеря</span>
+              </button>
+            )}
+            <div className="console-btn-meter console-btn-meter--vertical">
+              <span style={{ width: `${isTabletOrMobile ? teamProgressPercent : councilProgressPercent}%`, '--progress-value': `${isTabletOrMobile ? teamProgressPercent : councilProgressPercent}%` } as React.CSSProperties} />
             </div>
           </div>
-        )}
+          <div className="console-btn-wrap">
+            <button type="button" className={`console-btn ${panelActiveView === 'bro' ? 'console-btn--active' : ''}`} data-console-section="bro" onClick={() => openCabinPanel('bro', 'right')} title="БРО">
+              <img src={`${baseUrl}${encodeURI(CONSOLE_SECTION_IMAGES.bro)}`} alt="" className="console-btn-icon-img" />
+              <span className="console-btn-bubble-label" aria-hidden>БРО</span>
+              <span className="console-btn-icon">🎖️</span>
+              <span className="console-btn-label">БРО</span>
+            </button>
+            <div className="console-btn-meter console-btn-meter--vertical">
+              <span style={{ width: `${broProgressPercent}%`, '--progress-value': `${broProgressPercent}%` } as React.CSSProperties} />
+            </div>
+          </div>
+          <div className="console-btn-wrap">
+            <button type="button" className={`console-btn ${panelActiveView === 'workshop' ? 'console-btn--active' : ''}`} data-console-section="workshop" onClick={() => openCabinPanel('workshop', 'right')} title="Мастерская">
+              <img src={`${baseUrl}${encodeURI(CONSOLE_SECTION_IMAGES.workshop)}`} alt="" className="console-btn-icon-img" />
+              <span className="console-btn-bubble-label" aria-hidden>МАСТЕРСКАЯ</span>
+              <span className="console-btn-icon">⚒️</span>
+              <span className="console-btn-label">Мастерская</span>
+            </button>
+            <div className="console-btn-meter console-btn-meter--vertical">
+              <span style={{ width: `${workshopProgressPercent}%`, '--progress-value': `${workshopProgressPercent}%` } as React.CSSProperties} />
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="profile-view-mobile-where-panel" aria-live="polite">
+        {consoleCopy.title}
+      </div>
+    </>
+  ) : panelActiveView ? (
+    <>
+      <div className="profile-view-panel-header" style={{ flexShrink: 0, display: 'flex', alignItems: 'center', padding: '12px 16px', gap: 8, borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+        <button type="button" className="btn-secondary" onClick={() => openCabinPanel(null, null)}>Назад</button>
+        <span style={{ fontSize: 14, fontWeight: 700, opacity: 0.95 }}>
+          {panelActiveView === 'passport' && 'Паспорт'}
+          {panelActiveView === 'inspector' && 'Инспектор'}
+          {panelActiveView === 'profile4k' && '4К'}
+          {panelActiveView === 'counselor-squad' && 'Вожатский отряд'}
+          {panelActiveView === 'squad-corner' && 'Отрядный уголок'}
+          {panelActiveView === 'real-diary' && 'Реальный Дневник'}
+          {panelActiveView === 'team' && 'Движок'}
+          {panelActiveView === 'council' && 'Совет Лагеря'}
+          {panelActiveView === 'bro' && 'БРО'}
+          {panelActiveView === 'workshop' && 'Мастерская'}
+          {panelActiveView === 'share' && 'Шеринг'}
+          {panelActiveView === 'vozhatifikator' && 'Вожатификатор'}
+          {panelActiveView === 'parents' && 'Для родителей'}
+        </span>
+      </div>
+      <div className="profile-view-scroll-container profile-view-panel-scroll" style={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
+        {renderPanelContent()}
+      </div>
+    </>
+  ) : (
+    <div className="profile-view-content-wrapper">
+      <div className="profile-view-top-bar" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', flexWrap: 'wrap', gap: '8px', flexShrink: 0 }}>
+        <button onClick={onBack} className="btn-secondary">Назад</button>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          {userData?.meta?.hasCompletedTutorial && (
+            <button type="button" onClick={() => startProfileTutorial(false)} className="btn-secondary">Показать подсказки</button>
+          )}
+          <button onClick={() => setShowProfileEditor(!showProfileEditor)} className="btn-secondary">{showProfileEditor ? 'Закрыть' : 'Редактировать'}</button>
+        </div>
+      </div>
 
-        <div className="profile-view-backup-strip">
+      {showSandbox && !isSpaceshipMode && (
+        <div className="profile-sandbox-role" role="group" aria-label="Роль для теста">
+          <div className="profile-sandbox-role__row">
+            <span className="profile-sandbox-role__label">Песочница: роль для теста —</span>
+            <div className="profile-sandbox-role__dropdown-wrap" ref={roleDropdownRef}>
+              <button
+                type="button"
+                className="profile-sandbox-role__trigger"
+                onClick={() => setRoleDropdownOpen(!roleDropdownOpen)}
+                aria-expanded={roleDropdownOpen}
+                aria-haspopup="listbox"
+                aria-label="Выбор роли"
+                id="profile-sandbox-role-trigger"
+              >
+                <span className="profile-sandbox-role__trigger-text">{ROLE_LABELS[role]}</span>
+                <span className={`profile-sandbox-role__trigger-chevron ${roleDropdownOpen ? 'is-open' : ''}`} aria-hidden>
+                  <svg width="12" height="12" viewBox="0 0 12 12"><path fill="currentColor" d="M6 8L1 3h10z" /></svg>
+                </span>
+              </button>
+              <ul
+                className={`profile-sandbox-role__menu ${roleDropdownOpen ? 'is-open' : ''}`}
+                role="listbox"
+                aria-labelledby="profile-sandbox-role-trigger"
+                tabIndex={-1}
+              >
+                {ROLE_ORDER.map((r) => (
+                  <li
+                    key={r}
+                    role="option"
+                    aria-selected={r === role}
+                    className={`profile-sandbox-role__option ${r === role ? 'is-selected' : ''}`}
+                    onClick={() => { setSandboxRole(r); setRoleDropdownOpen(false); }}
+                  >
+                    {ROLE_LABELS[r]}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+          <div className="profile-sandbox-role__current" aria-live="polite" aria-atomic="true">
+            <div className="profile-sandbox-role__current-label">Сейчас:</div>
+            {(() => {
+              const { title, subtitle } = getRoleDisplay(role);
+              return subtitle ? (
+                <>
+                  <div className="profile-sandbox-role__title">{title}</div>
+                  <div className="profile-sandbox-role__subtitle">{subtitle}</div>
+                </>
+              ) : (
+                <span className="profile-sandbox-role__title">{title}</span>
+              );
+            })()}
+          </div>
+        </div>
+      )}
+
+      <div className="profile-view-backup-strip">
         {showSandbox && (() => {
           const levelsToApprove = Object.entries(progress || {}).filter(
             ([_, p]) => p && p.status === 'in_progress' && Array.isArray(p.evidence) && p.evidence.length > 0
@@ -4569,498 +4601,498 @@ export const ProfileView: React.FC<any> = (props) => {
           }
           e.target.value = '';
         }} />
-        </div>
+      </div>
 
-        <div className="profile-view-main">
+      <div className="profile-view-main">
         <div className="profile-view-scroll-container">
-        <div className="profile-view-passport-column">
-        <div id="profile-passport-card" className="profile-view-passport-two-col">
-          <div className="profile-view-passport-avatar">
-            <div className="avatar-circle">
-              {isImageAvatar(showProfileEditor ? avatarInput : profile.avatar) ? (
-                <img src={(showProfileEditor ? avatarInput : profile.avatar) as string} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              ) : (
-                <span style={{ fontSize: '44px' }}>{(showProfileEditor ? avatarInput : profile.avatar) || '🧑‍🚀'}</span>
-              )}
-            </div>
-            {showProfileEditor && (
-              <div className="profile-view-passport-avatar-buttons">
-                <ImageSourceBlock
-                  context="passport_avatar"
-                  value={typeof avatarInput === 'string' && (avatarInput.startsWith('data:') || avatarInput.startsWith('http')) ? avatarInput : null}
-                  onChange={setAvatarInput}
-                  aspect="square"
-                  hidePreview
-                  buttonLayout="column"
-                  onGenerate={async (opts) =>
-                    requestImageGenerate({ mode: 'generate', context: 'passport', prompt: opts.prompt ?? '' }, accessToken ?? null)
-                  }
-                  onProcess={async (imageBase64, opts) =>
-                    requestImageGenerate({ mode: 'process', context: 'passport', imageBase64, prompt: opts?.prompt ?? '' }, accessToken ?? null)
-                  }
-                  onUnlockRequest={openUnlockByCode}
-                />
-              </div>
-            )}
-          </div>
-          <div className="profile-view-passport-settings">
-            <h2 className="profile-view-passport-title">Профиль</h2>
-            {showProfileEditor ? (
-              <>
-                <div className="profile-view-passport-row">
-                  <label className="profile-view-passport-label">
-                    Ник
-                    <input value={nicknameInput} onChange={e => setNicknameInput(e.target.value)} placeholder="Никнейм" className="w-input" />
-                  </label>
-                  <label className="profile-view-passport-label">
-                    Направление
-                    <input value={statusInput} maxLength={80} onChange={e => setStatusInput(e.target.value)} placeholder="Направление" className="w-input" />
-                  </label>
-                </div>
-                <div className="profile-view-passport-divider" />
-                <label className="profile-view-passport-label profile-view-passport-label--full">
-                  Сейчас делаю
-                  <textarea value={bioInput} maxLength={160} onChange={e => setBioInput(e.target.value)} placeholder="Коротко. Одна мысль." className="w-input" style={{ minHeight: 80, resize: 'vertical' }} />
-                </label>
-                <p className="profile-view-passport-hint">Коротко. Одна мысль. Можно без точки. ({bioInput.length}/160)</p>
-              </>
-            ) : (
-              <>
-                <div className="profile-view-passport-row">
-                  <div className="profile-view-passport-label">
-                    Ник
-                    <div className="profile-view-passport-value">{profile.nickname}</div>
-                  </div>
-                  <div className="profile-view-passport-label">
-                    Направление
-                    <div className="profile-view-passport-value">{profile?.status || '—'}</div>
-                  </div>
-                </div>
-                <div className="profile-view-passport-divider" />
-                <div className="profile-view-passport-label profile-view-passport-label--full">
-                  Сейчас делаю
-                  <div className="profile-view-passport-value">{profile?.bio || '—'}</div>
-                </div>
-                {['counselor', 'educator', 'shift_leader', 'camp_director', 'developer'].includes(role) && (() => {
-                  const { title, subtitle } = getRoleDisplay(role);
-                  return (
-                    <div style={{ marginTop: 8, fontSize: 11, color: 'rgba(255,255,255,0.75)' }}>
-                      {title}
-                      {subtitle && <div style={{ fontSize: 10, opacity: 0.85 }}>{subtitle}</div>}
-                    </div>
-                  );
-                })()}
-              </>
-            )}
-            <div className="profile-view-passport-divider" />
-            <div className="profile-view-passport-label profile-view-passport-label--full">Ранг</div>
-            <div className="profile-view-passport-rank-row">
-              <span>Уровень {currentLevels}</span>
-              <span>{xpPercent >= 100 ? 'Цель выполнена' : `Цель: ${nextRankAt} ур.`}</span>
-            </div>
-            <div style={{ width: '100%', height: '6px', background: 'rgba(255,255,255,0.1)', borderRadius: '3px', overflow: 'hidden' }}>
-              <div style={{ width: `${xpPercent}%`, height: '100%', background: 'linear-gradient(90deg, #8B00FF, #FFD700)', borderRadius: '3px', transition: 'width 0.3s ease' }} />
-            </div>
-            <div className="profile-view-passport-divider profile-view-passport-divider--short" />
-            <div className="profile-view-passport-actions">
-              {showProfileEditor ? (
-                <>
-                  <button
-                    type="button"
-                    className="btn-secondary"
-                    onClick={() => {
-                      setNicknameInput(profile.nickname || '');
-                      setAvatarInput(profile.avatar || '🧑‍🚀');
-                      setStatusInput(profile?.status || '');
-                      setBioInput(profile?.bio || '');
-                      setShowProfileEditor(false);
-                    }}
-                  >
-                    Отмена
-                  </button>
-                  <button
-                    type="button"
-                    className="btn-primary-gold"
-                    onClick={() => {
-                      setNickname(nicknameInput);
-                      setAvatar(avatarInput);
-                      setProfileStatus(statusInput);
-                      setProfileBio(bioInput.trim().slice(0, 160));
-                      setShowProfileEditor(false);
-                    }}
-                  >
-                    Сохранить
-                  </button>
-                </>
-              ) : (
-                <button type="button" className="btn-primary-gold" onClick={() => setShowProfileEditor(true)}>
-                  Редактировать
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-        </div>
-
-        {role === 'parent' && (
-          <div id="parents-section" className="profile-view-parents-section" style={{ marginTop: 24, display: 'flex', flexDirection: 'column', gap: 20 }}>
-            <h2 style={{ fontSize: 20, fontWeight: 800, color: 'rgba(255,255,255,0.95)', margin: 0 }}>Для родителей</h2>
-            <p style={{ margin: '4px 0 0', fontSize: 12, opacity: 0.75 }}>Режим ребёнка в этом разделе всегда read-only.</p>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              <button
-                type="button"
-                className="btn-secondary"
-                onClick={() => setParentSectionMode('home')}
-                style={{ opacity: parentSectionMode === 'home' ? 1 : 0.75 }}
-              >
-                Кабинет родителя
-              </button>
-              <button
-                type="button"
-                className="btn-secondary"
-                onClick={() => setParentSectionMode('child')}
-                style={{ opacity: parentSectionMode === 'child' ? 1 : 0.75 }}
-              >
-                Прогресс ребёнка · read-only
-              </button>
-            </div>
-            {parentSectionMode === 'home' && campFactsLoading && <p className="parents-section-block__text" style={{ margin: 0 }}>Данные загружаются…</p>}
-            {parentSectionMode === 'home' && campFactsError && <p style={{ fontSize: 13, margin: 0, color: '#f59e0b' }}>Проверьте подключение. {campFactsError}</p>}
-            {parentSectionMode === 'home' && !campFactsLoading && !campFactsError && campFacts && (
-              <>
-                <div className="parents-section-block">
-                  <h3 className="parents-section-block__heading">Смена</h3>
-                  {(campFacts.currentSeason?.name || campFacts.currentSeason?.theme) && (
-                    <div>
-                      {campFacts.currentSeason?.name && <p className="parents-section-block__text" style={{ margin: 0, fontWeight: 600 }}>{campFacts.currentSeason.name}</p>}
-                      {campFacts.currentSeason?.theme && <p style={{ fontSize: 12, margin: '4px 0 0' }}>{campFacts.currentSeason.theme}</p>}
-                    </div>
-                  )}
-                  {campFacts.currentSeason?.dates && (
-                    <div>
-                      <span className="parents-section-block__label">Даты смен</span>
-                      <p className="parents-section-block__text">{campFacts.currentSeason.dates}</p>
-                    </div>
-                  )}
-                  {campFacts.currentSeason?.price && (
-                    <div>
-                      <span className="parents-section-block__label">Стоимость</span>
-                      <p className="parents-section-block__text">{campFacts.currentSeason.price}</p>
-                    </div>
-                  )}
-                </div>
-                <div className="parents-section-block">
-                  <h3 className="parents-section-block__heading">Документы</h3>
-                  {campFacts.documents && campFacts.documents.length > 0 ? (
-                    <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13, opacity: 0.9 }}>
-                      {campFacts.documents.map((doc, i) => (
-                        <li key={i}>{doc}</li>
-                      ))}
-                    </ul>
+          <div className="profile-view-passport-column">
+            <div id="profile-passport-card" className="profile-view-passport-two-col">
+              <div className="profile-view-passport-avatar">
+                <div className="avatar-circle">
+                  {isImageAvatar(showProfileEditor ? avatarInput : profile.avatar) ? (
+                    <img src={(showProfileEditor ? avatarInput : profile.avatar) as string} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   ) : (
-                    <p className="parents-section-block__text">Уточняйте у организаторов.</p>
+                    <span style={{ fontSize: '44px' }}>{(showProfileEditor ? avatarInput : profile.avatar) || '🧑‍🚀'}</span>
                   )}
                 </div>
-                {campFacts.address && (campFacts.address.campName || campFacts.address.base || campFacts.address.address || campFacts.address.route) && (
-                  <div className="parents-section-block">
-                    <h3 className="parents-section-block__heading">Адрес и как добраться</h3>
-                    <div style={{ fontSize: 13, opacity: 0.9 }}>
-                      {(campFacts.address.campName || campFacts.address.base) && (
-                        <p style={{ margin: 0 }}>{[campFacts.address.campName, campFacts.address.base].filter(Boolean).join(', ')}</p>
-                      )}
-                      {campFacts.address.address && <p style={{ margin: '4px 0 0' }}>{campFacts.address.address}</p>}
-                      {campFacts.address.route && <p style={{ margin: '4px 0 0' }}>Как добраться: {campFacts.address.route}</p>}
-                    </div>
+                {showProfileEditor && (
+                  <div className="profile-view-passport-avatar-buttons">
+                    <ImageSourceBlock
+                      context="passport_avatar"
+                      value={typeof avatarInput === 'string' && (avatarInput.startsWith('data:') || avatarInput.startsWith('http')) ? avatarInput : null}
+                      onChange={setAvatarInput}
+                      aspect="square"
+                      hidePreview
+                      buttonLayout="column"
+                      onGenerate={async (opts) =>
+                        requestImageGenerate({ mode: 'generate', context: 'passport', prompt: opts.prompt ?? '' }, accessToken ?? null)
+                      }
+                      onProcess={async (imageBase64, opts) =>
+                        requestImageGenerate({ mode: 'process', context: 'passport', imageBase64, prompt: opts?.prompt ?? '' }, accessToken ?? null)
+                      }
+                      onUnlockRequest={openUnlockByCode}
+                    />
                   </div>
                 )}
-                {campFacts.contacts && (
-                  <div className="parents-section-block">
-                    <h3 className="parents-section-block__heading">Контакты</h3>
-                    <div className="parents-section__contacts">
-                      {campFacts.contacts.phone && (
-                        <a href={`tel:${campFacts.contacts.phone.replace(/\s/g, '')}`}>{campFacts.contacts.phone}</a>
-                      )}
-                      {campFacts.contacts.email && (
-                        <a href={`mailto:${campFacts.contacts.email}`}>{campFacts.contacts.email}</a>
-                      )}
-                      {campFacts.contacts.telegram && (
-                        <a href={campFacts.contacts.telegram} target="_blank" rel="noopener noreferrer">Telegram</a>
-                      )}
-                      {campFacts.contacts.site && (
-                        <a href={campFacts.contacts.site} target="_blank" rel="noopener noreferrer">Сайт</a>
-                      )}
-                      {campFacts.contacts.vk && (
-                        <a href={campFacts.contacts.vk} target="_blank" rel="noopener noreferrer">ВКонтакте</a>
-                      )}
-                      {campFacts.contacts.organizer && (
-                        <a href={campFacts.contacts.organizer} target="_blank" rel="noopener noreferrer">Организатор (Telegram)</a>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </>
-            )}
-            {parentSectionMode === 'home' && !campFactsLoading && !campFactsError && !campFacts && (
-              <p className="parents-section-block__text" style={{ margin: 0 }}>По вопросам документов и бронирования — контакты в разделе «О лагере».</p>
-            )}
-            {parentSectionMode === 'home' && typeof onNavigateToRegistrationForm === 'function' && (
-              <button type="button" onClick={onNavigateToRegistrationForm} className="btn-primary-gold" style={{ alignSelf: 'flex-start', padding: '12px 24px' }}>
-                Забронировать путевку
-              </button>
-            )}
-            {parentSectionMode === 'home' && <h3 className="parents-section__program-title">Программа смены</h3>}
-            {parentSectionMode === 'home' && <CampProgramByDays />}
-            {parentSectionMode === 'child' && (
-              <>
-                <div className="parents-section-block" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                  <h3 className="parents-section-block__heading" style={{ margin: 0 }}>Витрина прогресса ребёнка</h3>
-                  <p className="parents-section-block__text" style={{ margin: 0 }}>Здесь только безопасный read-only просмотр. Изменять прогресс ребёнка нельзя.</p>
-                  <button type="button" onClick={() => setShowChildBadges(true)} className="parents-section__btn-child" style={{ alignSelf: 'flex-start' }}>
-                    Открыть прогресс ребёнка (read-only)
-                  </button>
-                </div>
-                <div className="parents-section-block" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                  <h3 className="parents-section-block__heading" style={{ margin: 0 }}>Рекомендации для поддержки ребёнка</h3>
-                  {parentInsightsLoading && <p className="parents-section-block__text" style={{ margin: 0 }}>Собираем понятную сводку прогресса и ближайших шагов…</p>}
-                  {!parentInsightsLoading && (
-                    <>
-                      <p className="parents-section-block__text" style={{ margin: 0 }}>
-                        Общий прогресс: <strong>{(parentInsights?.overallProgress?.percent ?? fallbackParentInsights?.overallProgress?.percent ?? 0)}%</strong>
-                      </p>
-                      <p className="parents-section-block__text" style={{ margin: 0 }}>
-                        Тренд недели: <strong>{(parentInsights?.weeklyTrend?.direction ?? fallbackParentInsights?.weeklyTrend?.direction ?? 'flat') === 'up' ? 'рост' : (parentInsights?.weeklyTrend?.direction ?? fallbackParentInsights?.weeklyTrend?.direction ?? 'flat') === 'down' ? 'снижение' : 'стабильно'}</strong>
-                        {' — '}
-                        {(parentInsights?.weeklyTrend?.note ?? fallbackParentInsights?.weeklyTrend?.note ?? 'Темп ровный, поддерживайте регулярный ритм.')}
-                      </p>
-                      <div>
-                        <div className="parents-section-block__label">Что уже хорошо</div>
-                        <ul style={{ margin: '6px 0 0 18px', padding: 0 }}>
-                          {(parentInsights?.strengthsTop3 || fallbackParentInsights?.strengthsTop3 || [{ title: 'Когда будет доступна витрина ребёнка, здесь появятся сильные стороны и достижения.' }]).slice(0, 3).map((s, idx) => (
-                            <li key={`pi-s-${idx}`} className="parents-section-block__text" style={{ margin: 0 }}>{s?.title}</li>
-                          ))}
-                        </ul>
-                      </div>
-                      <div>
-                        <div className="parents-section-block__label">Что поддержать дальше</div>
-                        <ul style={{ margin: '6px 0 0 18px', padding: 0 }}>
-                          {(parentInsights?.nextSteps || fallbackParentInsights?.nextSteps || [{ hint: 'Откройте витрину достижений ребёнка по коду или ссылке, чтобы получить точные рекомендации.' }]).slice(0, 2).map((s, idx) => (
-                            <li key={`pi-n-${idx}`} className="parents-section-block__text" style={{ margin: 0 }}>{s?.hint}</li>
-                          ))}
-                        </ul>
-                      </div>
-                      <div>
-                        <div className="parents-section-block__label">Почему такая рекомендация</div>
-                        <p className="parents-section-block__text" style={{ margin: '6px 0 0 0' }}>
-                          {parentInsights?.whyThisSuggestion || fallbackParentInsights?.whyThisSuggestion || 'Рекомендация собрана из текущего темпа и зон, где поддержка даст наибольший эффект.'}
-                        </p>
-                        <p className="parents-section-block__text" style={{ margin: '4px 0 0 0', opacity: 0.78 }}>
-                          Основа: тренд {((parentInsights?.basedOn?.trend || fallbackParentInsights?.basedOn?.trend || 'flat') === 'up' ? 'рост' : (parentInsights?.basedOn?.trend || fallbackParentInsights?.basedOn?.trend || 'flat') === 'down' ? 'снижение' : 'стабильно')} · окно {(parentInsights?.basedOn?.activityWindow || fallbackParentInsights?.basedOn?.activityWindow || 'последние 7 дней и предыдущие 7 дней')}
-                        </p>
-                      </div>
-                    </>
-                  )}
-                </div>
-              </>
-            )}
-            {isParentChildReadonlyView && (
-              <div style={{ alignSelf: 'flex-start', fontSize: 12, fontWeight: 700, letterSpacing: 0.2, padding: '6px 10px', borderRadius: 999, border: '1px solid rgba(255,255,255,0.32)', background: 'rgba(26,33,53,0.55)' }}>
-                {PARENT_READONLY_BADGE_TEXT}
               </div>
-            )}
-            <div className="parents-section__actions">
-              <button type="button" onClick={() => setShowChildBadges(true)} className="parents-section__btn-child">
-                Значки моего ребёнка
-              </button>
-              {parentSectionMode === 'home' && (
+              <div className="profile-view-passport-settings">
+                <h2 className="profile-view-passport-title">Профиль</h2>
+                {showProfileEditor ? (
+                  <>
+                    <div className="profile-view-passport-row">
+                      <label className="profile-view-passport-label">
+                        Ник
+                        <input value={nicknameInput} onChange={e => setNicknameInput(e.target.value)} placeholder="Никнейм" className="w-input" />
+                      </label>
+                      <label className="profile-view-passport-label">
+                        Направление
+                        <input value={statusInput} maxLength={80} onChange={e => setStatusInput(e.target.value)} placeholder="Направление" className="w-input" />
+                      </label>
+                    </div>
+                    <div className="profile-view-passport-divider" />
+                    <label className="profile-view-passport-label profile-view-passport-label--full">
+                      Сейчас делаю
+                      <textarea value={bioInput} maxLength={160} onChange={e => setBioInput(e.target.value)} placeholder="Коротко. Одна мысль." className="w-input" style={{ minHeight: 80, resize: 'vertical' }} />
+                    </label>
+                    <p className="profile-view-passport-hint">Коротко. Одна мысль. Можно без точки. ({bioInput.length}/160)</p>
+                  </>
+                ) : (
+                  <>
+                    <div className="profile-view-passport-row">
+                      <div className="profile-view-passport-label">
+                        Ник
+                        <div className="profile-view-passport-value">{profile.nickname}</div>
+                      </div>
+                      <div className="profile-view-passport-label">
+                        Направление
+                        <div className="profile-view-passport-value">{profile?.status || '—'}</div>
+                      </div>
+                    </div>
+                    <div className="profile-view-passport-divider" />
+                    <div className="profile-view-passport-label profile-view-passport-label--full">
+                      Сейчас делаю
+                      <div className="profile-view-passport-value">{profile?.bio || '—'}</div>
+                    </div>
+                    {['counselor', 'educator', 'shift_leader', 'camp_director', 'developer'].includes(role) && (() => {
+                      const { title, subtitle } = getRoleDisplay(role);
+                      return (
+                        <div style={{ marginTop: 8, fontSize: 11, color: 'rgba(255,255,255,0.75)' }}>
+                          {title}
+                          {subtitle && <div style={{ fontSize: 10, opacity: 0.85 }}>{subtitle}</div>}
+                        </div>
+                      );
+                    })()}
+                  </>
+                )}
+                <div className="profile-view-passport-divider" />
+                <div className="profile-view-passport-label profile-view-passport-label--full">Ранг</div>
+                <div className="profile-view-passport-rank-row">
+                  <span>Уровень {currentLevels}</span>
+                  <span>{xpPercent >= 100 ? 'Цель выполнена' : `Цель: ${nextRankAt} ур.`}</span>
+                </div>
+                <div style={{ width: '100%', height: '6px', background: 'rgba(255,255,255,0.1)', borderRadius: '3px', overflow: 'hidden' }}>
+                  <div style={{ width: `${xpPercent}%`, height: '100%', background: 'linear-gradient(90deg, #8B00FF, #FFD700)', borderRadius: '3px', transition: 'width 0.3s ease' }} />
+                </div>
+                <div className="profile-view-passport-divider profile-view-passport-divider--short" />
+                <div className="profile-view-passport-actions">
+                  {showProfileEditor ? (
+                    <>
+                      <button
+                        type="button"
+                        className="btn-secondary"
+                        onClick={() => {
+                          setNicknameInput(profile.nickname || '');
+                          setAvatarInput(profile.avatar || '🧑‍🚀');
+                          setStatusInput(profile?.status || '');
+                          setBioInput(profile?.bio || '');
+                          setShowProfileEditor(false);
+                        }}
+                      >
+                        Отмена
+                      </button>
+                      <button
+                        type="button"
+                        className="btn-primary-gold"
+                        onClick={() => {
+                          setNickname(nicknameInput);
+                          setAvatar(avatarInput);
+                          setProfileStatus(statusInput);
+                          setProfileBio(bioInput.trim().slice(0, 160));
+                          setShowProfileEditor(false);
+                        }}
+                      >
+                        Сохранить
+                      </button>
+                    </>
+                  ) : (
+                    <button type="button" className="btn-primary-gold" onClick={() => setShowProfileEditor(true)}>
+                      Редактировать
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {role === 'parent' && (
+            <div id="parents-section" className="profile-view-parents-section" style={{ marginTop: 24, display: 'flex', flexDirection: 'column', gap: 20 }}>
+              <h2 style={{ fontSize: 20, fontWeight: 800, color: 'rgba(255,255,255,0.95)', margin: 0 }}>Для родителей</h2>
+              <p style={{ margin: '4px 0 0', fontSize: 12, opacity: 0.75 }}>Режим ребёнка в этом разделе всегда read-only.</p>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 <button
                   type="button"
-                  onClick={() => {
-                    if (!canRunParentChildMutation({ role, hasChildProgressSnapshot: showChildBadges || !!childProgressFromFile })) return;
-                    setShowChildRouteForm(true);
-                  }}
-                  className="parents-section__btn-route"
-                  disabled={!canRunParentChildMutation({ role, hasChildProgressSnapshot: showChildBadges || !!childProgressFromFile })}
-                  title={isParentChildReadonlyView ? PARENT_READONLY_TOOLTIP : undefined}
+                  className="btn-secondary"
+                  onClick={() => setParentSectionMode('home')}
+                  style={{ opacity: parentSectionMode === 'home' ? 1 : 0.75 }}
                 >
-                  Предложить маршрут развития для ребёнка
+                  Кабинет родителя
+                </button>
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={() => setParentSectionMode('child')}
+                  style={{ opacity: parentSectionMode === 'child' ? 1 : 0.75 }}
+                >
+                  Прогресс ребёнка · read-only
+                </button>
+              </div>
+              {parentSectionMode === 'home' && campFactsLoading && <p className="parents-section-block__text" style={{ margin: 0 }}>Данные загружаются…</p>}
+              {parentSectionMode === 'home' && campFactsError && <p style={{ fontSize: 13, margin: 0, color: '#f59e0b' }}>Проверьте подключение. {campFactsError}</p>}
+              {parentSectionMode === 'home' && !campFactsLoading && !campFactsError && campFacts && (
+                <>
+                  <div className="parents-section-block">
+                    <h3 className="parents-section-block__heading">Смена</h3>
+                    {(campFacts.currentSeason?.name || campFacts.currentSeason?.theme) && (
+                      <div>
+                        {campFacts.currentSeason?.name && <p className="parents-section-block__text" style={{ margin: 0, fontWeight: 600 }}>{campFacts.currentSeason.name}</p>}
+                        {campFacts.currentSeason?.theme && <p style={{ fontSize: 12, margin: '4px 0 0' }}>{campFacts.currentSeason.theme}</p>}
+                      </div>
+                    )}
+                    {campFacts.currentSeason?.dates && (
+                      <div>
+                        <span className="parents-section-block__label">Даты смен</span>
+                        <p className="parents-section-block__text">{campFacts.currentSeason.dates}</p>
+                      </div>
+                    )}
+                    {campFacts.currentSeason?.price && (
+                      <div>
+                        <span className="parents-section-block__label">Стоимость</span>
+                        <p className="parents-section-block__text">{campFacts.currentSeason.price}</p>
+                      </div>
+                    )}
+                  </div>
+                  <div className="parents-section-block">
+                    <h3 className="parents-section-block__heading">Документы</h3>
+                    {campFacts.documents && campFacts.documents.length > 0 ? (
+                      <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13, opacity: 0.9 }}>
+                        {campFacts.documents.map((doc, i) => (
+                          <li key={i}>{doc}</li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="parents-section-block__text">Уточняйте у организаторов.</p>
+                    )}
+                  </div>
+                  {campFacts.address && (campFacts.address.campName || campFacts.address.base || campFacts.address.address || campFacts.address.route) && (
+                    <div className="parents-section-block">
+                      <h3 className="parents-section-block__heading">Адрес и как добраться</h3>
+                      <div style={{ fontSize: 13, opacity: 0.9 }}>
+                        {(campFacts.address.campName || campFacts.address.base) && (
+                          <p style={{ margin: 0 }}>{[campFacts.address.campName, campFacts.address.base].filter(Boolean).join(', ')}</p>
+                        )}
+                        {campFacts.address.address && <p style={{ margin: '4px 0 0' }}>{campFacts.address.address}</p>}
+                        {campFacts.address.route && <p style={{ margin: '4px 0 0' }}>Как добраться: {campFacts.address.route}</p>}
+                      </div>
+                    </div>
+                  )}
+                  {campFacts.contacts && (
+                    <div className="parents-section-block">
+                      <h3 className="parents-section-block__heading">Контакты</h3>
+                      <div className="parents-section__contacts">
+                        {campFacts.contacts.phone && (
+                          <a href={`tel:${campFacts.contacts.phone.replace(/\s/g, '')}`}>{campFacts.contacts.phone}</a>
+                        )}
+                        {campFacts.contacts.email && (
+                          <a href={`mailto:${campFacts.contacts.email}`}>{campFacts.contacts.email}</a>
+                        )}
+                        {campFacts.contacts.telegram && (
+                          <a href={campFacts.contacts.telegram} target="_blank" rel="noopener noreferrer">Telegram</a>
+                        )}
+                        {campFacts.contacts.site && (
+                          <a href={campFacts.contacts.site} target="_blank" rel="noopener noreferrer">Сайт</a>
+                        )}
+                        {campFacts.contacts.vk && (
+                          <a href={campFacts.contacts.vk} target="_blank" rel="noopener noreferrer">ВКонтакте</a>
+                        )}
+                        {campFacts.contacts.organizer && (
+                          <a href={campFacts.contacts.organizer} target="_blank" rel="noopener noreferrer">Организатор (Telegram)</a>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+              {parentSectionMode === 'home' && !campFactsLoading && !campFactsError && !campFacts && (
+                <p className="parents-section-block__text" style={{ margin: 0 }}>По вопросам документов и бронирования — контакты в разделе «О лагере».</p>
+              )}
+              {parentSectionMode === 'home' && typeof onNavigateToRegistrationForm === 'function' && (
+                <button type="button" onClick={onNavigateToRegistrationForm} className="btn-primary-gold" style={{ alignSelf: 'flex-start', padding: '12px 24px' }}>
+                  Забронировать путевку
                 </button>
               )}
-              <p style={{ fontSize: 12, opacity: 0.7, margin: 0 }}>Предложить идею для лагеря — в блоке «Совет Лагеря» ниже.</p>
-            </div>
-          </div>
-        )}
-
-        {showOrganizerPanel && renderOrganizerShiftsSection()}
-
-        <div className="profile-view-dashboards-grid">
-        <div className="dashboards-stack" style={{ marginTop: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-           {seeOtradBlocksInView && <InspectorDashboard onOpenDiary={() => openCabinPanel('real-diary', 'left')} />}
-           <Profile4KDashboard
-             userData={userData}
-             badges={badges}
-             badgeTitlesInPath={badgeTitlesInPath}
-             favoriteBadgeTitles={favoriteBadgeTitles}
-             rank={rank}
-             nickname={profile.nickname}
-           />
-           {!isSpaceshipMode && (
-             travelerMode ? (
-               <FeatureGate allowed={false} reason={travelerGateReason} ctaLabel="Разблокировать по коду" onCta={openUnlockByCode}>
-                 <TeamDashboard
-                  onSuggestInitiative={seeOtradBlocksInView ? () => {
-                    setInitiativeForm({
-                      topicDraft: '',
-                      currentDay: Math.min(21, Math.max(1, userData?.diaryProgress?.currentDay ?? 1)),
-                      shiftLength: 21,
-                      campProgram3d: ''
-                    });
-                    setInitiativeResult(null);
-                    setInitiativeError(null);
-                    setInitiativeModalOpen(true);
-                  } : undefined}
-                />
-               </FeatureGate>
-             ) : (
-               <TeamDashboard
-                onSuggestInitiative={seeOtradBlocksInView ? () => {
-                  setInitiativeForm({
-                    topicDraft: '',
-                    currentDay: Math.min(21, Math.max(1, userData?.diaryProgress?.currentDay ?? 1)),
-                    shiftLength: 21,
-                    campProgram3d: ''
-                  });
-                  setInitiativeResult(null);
-                  setInitiativeError(null);
-                  setInitiativeModalOpen(true);
-                } : undefined}
-              />
-             )
-           )}
-
-           {seeOtradBlocksInView && (
-             <div id="wing-dashboard">
-              {travelerMode ? (
-                <FeatureGate allowed={false} reason={travelerGateReason} ctaLabel="Разблокировать по коду" onCta={openUnlockByCode}>
-                  <WingDashboard
-                    onSuggestInitiative={() => {
-                      setInitiativeForm({
-                        topicDraft: '',
-                        currentDay: Math.min(21, Math.max(1, userData?.diaryProgress?.currentDay ?? 1)),
-                        shiftLength: 21,
-                        campProgram3d: ''
-                      });
-                      setInitiativeResult(null);
-                      setInitiativeError(null);
-                      setInitiativeModalOpen(true);
-                    }}
-                  />
-                </FeatureGate>
-              ) : (
-                <FeatureGate
-                  allowed={Boolean(userData?.broProgress?.isBro)}
-                  reason="Крылья и роли БРО открываются после 100% Бропаспорта и подтверждения Бросвящения у вожатого."
-                  ctaLabel="К Бропаспорту"
-                  onCta={() => document.getElementById('bro-section-passport')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-                  mode="replace"
-                >
-                  <WingDashboard
-                    onSuggestInitiative={() => {
-                      setInitiativeForm({
-                        topicDraft: '',
-                        currentDay: Math.min(21, Math.max(1, userData?.diaryProgress?.currentDay ?? 1)),
-                        shiftLength: 21,
-                        campProgram3d: ''
-                      });
-                      setInitiativeResult(null);
-                      setInitiativeError(null);
-                      setInitiativeModalOpen(true);
-                    }}
-                  />
-                </FeatureGate>
+              {parentSectionMode === 'home' && <h3 className="parents-section__program-title">Программа смены</h3>}
+              {parentSectionMode === 'home' && <CampProgramByDays />}
+              {parentSectionMode === 'child' && (
+                <>
+                  <div className="parents-section-block" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    <h3 className="parents-section-block__heading" style={{ margin: 0 }}>Витрина прогресса ребёнка</h3>
+                    <p className="parents-section-block__text" style={{ margin: 0 }}>Здесь только безопасный read-only просмотр. Изменять прогресс ребёнка нельзя.</p>
+                    <button type="button" onClick={() => setShowChildBadges(true)} className="parents-section__btn-child" style={{ alignSelf: 'flex-start' }}>
+                      Открыть прогресс ребёнка (read-only)
+                    </button>
+                  </div>
+                  <div className="parents-section-block" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    <h3 className="parents-section-block__heading" style={{ margin: 0 }}>Рекомендации для поддержки ребёнка</h3>
+                    {parentInsightsLoading && <p className="parents-section-block__text" style={{ margin: 0 }}>Собираем понятную сводку прогресса и ближайших шагов…</p>}
+                    {!parentInsightsLoading && (
+                      <>
+                        <p className="parents-section-block__text" style={{ margin: 0 }}>
+                          Общий прогресс: <strong>{(parentInsights?.overallProgress?.percent ?? fallbackParentInsights?.overallProgress?.percent ?? 0)}%</strong>
+                        </p>
+                        <p className="parents-section-block__text" style={{ margin: 0 }}>
+                          Тренд недели: <strong>{(parentInsights?.weeklyTrend?.direction ?? fallbackParentInsights?.weeklyTrend?.direction ?? 'flat') === 'up' ? 'рост' : (parentInsights?.weeklyTrend?.direction ?? fallbackParentInsights?.weeklyTrend?.direction ?? 'flat') === 'down' ? 'снижение' : 'стабильно'}</strong>
+                          {' — '}
+                          {(parentInsights?.weeklyTrend?.note ?? fallbackParentInsights?.weeklyTrend?.note ?? 'Темп ровный, поддерживайте регулярный ритм.')}
+                        </p>
+                        <div>
+                          <div className="parents-section-block__label">Что уже хорошо</div>
+                          <ul style={{ margin: '6px 0 0 18px', padding: 0 }}>
+                            {(parentInsights?.strengthsTop3 || fallbackParentInsights?.strengthsTop3 || [{ title: 'Когда будет доступна витрина ребёнка, здесь появятся сильные стороны и достижения.' }]).slice(0, 3).map((s, idx) => (
+                              <li key={`pi-s-${idx}`} className="parents-section-block__text" style={{ margin: 0 }}>{s?.title}</li>
+                            ))}
+                          </ul>
+                        </div>
+                        <div>
+                          <div className="parents-section-block__label">Что поддержать дальше</div>
+                          <ul style={{ margin: '6px 0 0 18px', padding: 0 }}>
+                            {(parentInsights?.nextSteps || fallbackParentInsights?.nextSteps || [{ hint: 'Откройте витрину достижений ребёнка по коду или ссылке, чтобы получить точные рекомендации.' }]).slice(0, 2).map((s, idx) => (
+                              <li key={`pi-n-${idx}`} className="parents-section-block__text" style={{ margin: 0 }}>{s?.hint}</li>
+                            ))}
+                          </ul>
+                        </div>
+                        <div>
+                          <div className="parents-section-block__label">Почему такая рекомендация</div>
+                          <p className="parents-section-block__text" style={{ margin: '6px 0 0 0' }}>
+                            {parentInsights?.whyThisSuggestion || fallbackParentInsights?.whyThisSuggestion || 'Рекомендация собрана из текущего темпа и зон, где поддержка даст наибольший эффект.'}
+                          </p>
+                          <p className="parents-section-block__text" style={{ margin: '4px 0 0 0', opacity: 0.78 }}>
+                            Основа: тренд {((parentInsights?.basedOn?.trend || fallbackParentInsights?.basedOn?.trend || 'flat') === 'up' ? 'рост' : (parentInsights?.basedOn?.trend || fallbackParentInsights?.basedOn?.trend || 'flat') === 'down' ? 'снижение' : 'стабильно')} · окно {(parentInsights?.basedOn?.activityWindow || fallbackParentInsights?.basedOn?.activityWindow || 'последние 7 дней и предыдущие 7 дней')}
+                          </p>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </>
               )}
-             </div>
-           )}
-        </div>
-        </div>
-
-        {renderTabsPanel()}
-
-        <div className="profile-view-share-row" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-        <div style={{ marginTop: '24px', padding: '20px', background: 'rgba(77, 172, 255, 0.08)', borderRadius: '24px', border: '1px solid rgba(77, 172, 255, 0.2)', textAlign: 'center' }}>
-          <div style={{ fontSize: '32px', marginBottom: '12px' }}>🤝</div>
-          <h3 style={{ margin: '0 0 8px 0', fontSize: '18px' }}>Пригласить друзей</h3>
-          <p style={{ fontSize: '13px', opacity: 0.8, marginBottom: '12px' }}>{myTeam ? 'Скопируй ссылку и отправь участникам Движка.' : 'Создай Движок в блоке выше и приглашай друзей по ссылке.'}</p>
-          <button type="button" onClick={() => { const url = generateInviteUrl(); navigator.clipboard.writeText(url).then(() => alert('Ссылка приглашения скопирована в буфер обмена!')); }} style={{ padding: '12px', background: 'linear-gradient(90deg, #4dacff, #8b00ff)', border: 'none', borderRadius: '12px', color: 'white', fontWeight: 800, cursor: 'pointer', fontSize: '13px' }}>🔗 Пригласить друзей</button>
-        </div>
-
-        <div id="profile-share-center" className="share-center-v2">
-          <div style={{ fontSize: '32px', marginBottom: '12px' }}>📤</div>
-          <h3>Шеринг достижений</h3>
-          <label className="share-center-toggle">
-            <input type="checkbox" className="share-center-toggle-input" checked={shareHideNickname} onChange={e => setShareHideNickname(e.target.checked)} />
-            <span className="share-center-toggle-track" aria-hidden />
-            <span>Скрыть ник</span>
-          </label>
-          <button onClick={async () => {
-            if (shareStoryUrl) URL.revokeObjectURL(shareStoryUrl);
-            if (shareWideUrl) URL.revokeObjectURL(shareWideUrl);
-            setShareStoryUrl(null);
-            setShareWideUrl(null);
-            setShareStoryResult(null);
-            setShareWideResult(null);
-            setShareBusy(true);
-            setShareStatus('Генерируем слоган…');
-            try {
-              const raw = await fetchAiSlogan({ kind: 'progress_summary', nickname: profile.nickname, rank, totalLevelsAchieved: profile?.stats?.totalLevelsAchieved, totalBadgesStarted: profile?.stats?.totalBadgesStarted, badgeTitlesInPath, favoriteBadgeTitles });
-              const slogan = raw == null ? null : typeof raw === 'string' ? raw : raw.slogan;
-              setShareStatus('Генерируем характеристику 4К…');
-              const pedagogy4kLine = await fetchPedagogy4k({ badgeTitlesInPath, favoriteBadgeTitles, rank, nickname: profile.nickname ?? undefined });
-              setShareStatus('Генерируем мем для сторис…');
-              const storiesMemeRaw = await fetchAiSlogan({ kind: 'stories_reels_meme', nickname: profile.nickname ?? undefined, rank, totalLevelsAchieved: profile?.stats?.totalLevelsAchieved, totalBadgesStarted: profile?.stats?.totalBadgesStarted });
-              const customStoriesLine = typeof storiesMemeRaw === 'string' && storiesMemeRaw.trim() ? storiesMemeRaw.trim() : undefined;
-              setShareStatus('Генерируем вайб-чек…');
-              const vibeRaw = await fetchVibeCheck({ variant: 'profile', rank, nickname: profile.nickname ?? undefined, totalLevelsAchieved: profile?.stats?.totalLevelsAchieved, totalBadgesStarted: profile?.stats?.totalBadgesStarted, badgeTitlesInPath, favoriteBadgeTitles });
-              const vibeCheck = vibeRaw ? { memeHeader: vibeRaw.meme_header, memeText: vibeRaw.meme_text, statBuff: vibeRaw.stat_buff } : undefined;
-              const createdAt = new Date().toISOString();
-              const profilePayload = { nickname: profile.nickname ?? undefined, avatar: profile.avatar ?? '', rank, totalLevelsAchieved: profile?.stats?.totalLevelsAchieved, totalBadgesStarted: profile?.stats?.totalBadgesStarted };
-              const storyRes = await generateSocialCard({ kind: 'progress_summary', profile: profilePayload, format: 'story', hideNickname: shareHideNickname, customCaption: slogan ?? undefined, customCallout: pedagogy4kLine ?? undefined, customStoriesLine, vibeCheck, badgeCarouselItems, createdAt });
-              const wideRes = await generateSocialCard({ kind: 'progress_summary', profile: profilePayload, format: 'wide', hideNickname: shareHideNickname, customCaption: slogan ?? undefined, customCallout: pedagogy4kLine ?? undefined, customStoriesLine, vibeCheck, badgeCarouselItems, createdAt });
-              setShareStoryResult(storyRes);
-              setShareWideResult(wideRes);
-              setShareStoryUrl(URL.createObjectURL(storyRes.blob));
-              setShareWideUrl(URL.createObjectURL(wideRes.blob));
-              setShareStatus('Карточки готовы: 9:16 и 16:9.');
-            } catch (e) {
-              console.error(e);
-              setShareStatus('Не удалось сгенерировать карточки. Попробуй ещё раз.');
-            } finally { setShareBusy(false); }
-          }} disabled={shareBusy} className="btn-generate">{shareBusy ? 'Генерируем…' : 'Создать карточку'}</button>
-          {(shareStoryUrl || shareWideUrl) && (
-            <div className="share-center-results">
-              {shareStatus && <div style={{ fontSize: '13px', opacity: 0.9 }}>{shareStatus}</div>}
-              {shareStoryUrl && shareStoryResult && (
-                <div>
-                  <div style={{ fontSize: '12px', opacity: 0.7, marginBottom: '8px' }}>Сторис 9:16</div>
-                  <img src={shareStoryUrl} alt="Сторис" style={{ width: '100%', maxWidth: '280px', borderRadius: '20px', display: 'block' }} />
-                  <button type="button" onClick={() => shareOrDownloadSocialCard(shareStoryResult)} className="btn-secondary" style={{ marginTop: '8px' }}>Поделиться / скачать</button>
+              {isParentChildReadonlyView && (
+                <div style={{ alignSelf: 'flex-start', fontSize: 12, fontWeight: 700, letterSpacing: 0.2, padding: '6px 10px', borderRadius: 999, border: '1px solid rgba(255,255,255,0.32)', background: 'rgba(26,33,53,0.55)' }}>
+                  {PARENT_READONLY_BADGE_TEXT}
                 </div>
               )}
-              {shareWideUrl && shareWideResult && (
-                <div>
-                  <div style={{ fontSize: '12px', opacity: 0.7, marginBottom: '8px' }}>Пост 16:9</div>
-                  <img src={shareWideUrl} alt="Пост" style={{ width: '100%', borderRadius: '20px', display: 'block' }} />
-                  <button type="button" onClick={() => shareOrDownloadSocialCard(shareWideResult)} className="btn-secondary" style={{ marginTop: '8px' }}>Поделиться / скачать</button>
-                </div>
-              )}
+              <div className="parents-section__actions">
+                <button type="button" onClick={() => setShowChildBadges(true)} className="parents-section__btn-child">
+                  Значки моего ребёнка
+                </button>
+                {parentSectionMode === 'home' && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!canRunParentChildMutation({ role, hasChildProgressSnapshot: showChildBadges || !!childProgressFromFile })) return;
+                      setShowChildRouteForm(true);
+                    }}
+                    className="parents-section__btn-route"
+                    disabled={!canRunParentChildMutation({ role, hasChildProgressSnapshot: showChildBadges || !!childProgressFromFile })}
+                    title={isParentChildReadonlyView ? PARENT_READONLY_TOOLTIP : undefined}
+                  >
+                    Предложить маршрут развития для ребёнка
+                  </button>
+                )}
+                <p style={{ fontSize: 12, opacity: 0.7, margin: 0 }}>Предложить идею для лагеря — в блоке «Совет Лагеря» ниже.</p>
+              </div>
             </div>
           )}
-        </div>
-        </div>
+
+          {showOrganizerPanel && renderOrganizerShiftsSection()}
+
+          <div className="profile-view-dashboards-grid">
+            <div className="dashboards-stack" style={{ marginTop: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {seeOtradBlocksInView && <InspectorDashboard onOpenDiary={() => openCabinPanel('real-diary', 'left')} />}
+              <Profile4KDashboard
+                userData={userData}
+                badges={badges}
+                badgeTitlesInPath={badgeTitlesInPath}
+                favoriteBadgeTitles={favoriteBadgeTitles}
+                rank={rank}
+                nickname={profile.nickname}
+              />
+              {!isSpaceshipMode && (
+                travelerMode ? (
+                  <FeatureGate allowed={false} reason={travelerGateReason} ctaLabel="Разблокировать по коду" onCta={openUnlockByCode}>
+                    <TeamDashboard
+                      onSuggestInitiative={seeOtradBlocksInView ? () => {
+                        setInitiativeForm({
+                          topicDraft: '',
+                          currentDay: Math.min(21, Math.max(1, userData?.diaryProgress?.currentDay ?? 1)),
+                          shiftLength: 21,
+                          campProgram3d: ''
+                        });
+                        setInitiativeResult(null);
+                        setInitiativeError(null);
+                        setInitiativeModalOpen(true);
+                      } : undefined}
+                    />
+                  </FeatureGate>
+                ) : (
+                  <TeamDashboard
+                    onSuggestInitiative={seeOtradBlocksInView ? () => {
+                      setInitiativeForm({
+                        topicDraft: '',
+                        currentDay: Math.min(21, Math.max(1, userData?.diaryProgress?.currentDay ?? 1)),
+                        shiftLength: 21,
+                        campProgram3d: ''
+                      });
+                      setInitiativeResult(null);
+                      setInitiativeError(null);
+                      setInitiativeModalOpen(true);
+                    } : undefined}
+                  />
+                )
+              )}
+
+              {seeOtradBlocksInView && (
+                <div id="wing-dashboard">
+                  {travelerMode ? (
+                    <FeatureGate allowed={false} reason={travelerGateReason} ctaLabel="Разблокировать по коду" onCta={openUnlockByCode}>
+                      <WingDashboard
+                        onSuggestInitiative={() => {
+                          setInitiativeForm({
+                            topicDraft: '',
+                            currentDay: Math.min(21, Math.max(1, userData?.diaryProgress?.currentDay ?? 1)),
+                            shiftLength: 21,
+                            campProgram3d: ''
+                          });
+                          setInitiativeResult(null);
+                          setInitiativeError(null);
+                          setInitiativeModalOpen(true);
+                        }}
+                      />
+                    </FeatureGate>
+                  ) : (
+                    <FeatureGate
+                      allowed={Boolean(userData?.broProgress?.isBro)}
+                      reason="Крылья и роли БРО открываются после 100% Бропаспорта и подтверждения Бросвящения у вожатого."
+                      ctaLabel="К Бропаспорту"
+                      onCta={() => document.getElementById('bro-section-passport')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                      mode="replace"
+                    >
+                      <WingDashboard
+                        onSuggestInitiative={() => {
+                          setInitiativeForm({
+                            topicDraft: '',
+                            currentDay: Math.min(21, Math.max(1, userData?.diaryProgress?.currentDay ?? 1)),
+                            shiftLength: 21,
+                            campProgram3d: ''
+                          });
+                          setInitiativeResult(null);
+                          setInitiativeError(null);
+                          setInitiativeModalOpen(true);
+                        }}
+                      />
+                    </FeatureGate>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {renderTabsPanel()}
+
+          <div className="profile-view-share-row" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div style={{ marginTop: '24px', padding: '20px', background: 'rgba(77, 172, 255, 0.08)', borderRadius: '24px', border: '1px solid rgba(77, 172, 255, 0.2)', textAlign: 'center' }}>
+              <div style={{ fontSize: '32px', marginBottom: '12px' }}>🤝</div>
+              <h3 style={{ margin: '0 0 8px 0', fontSize: '18px' }}>Пригласить друзей</h3>
+              <p style={{ fontSize: '13px', opacity: 0.8, marginBottom: '12px' }}>{myTeam ? 'Скопируй ссылку и отправь участникам Движка.' : 'Создай Движок в блоке выше и приглашай друзей по ссылке.'}</p>
+              <button type="button" onClick={() => { const url = generateInviteUrl(); navigator.clipboard.writeText(url).then(() => alert('Ссылка приглашения скопирована в буфер обмена!')); }} style={{ padding: '12px', background: 'linear-gradient(90deg, #4dacff, #8b00ff)', border: 'none', borderRadius: '12px', color: 'white', fontWeight: 800, cursor: 'pointer', fontSize: '13px' }}>🔗 Пригласить друзей</button>
+            </div>
+
+            <div id="profile-share-center" className="share-center-v2">
+              <div style={{ fontSize: '32px', marginBottom: '12px' }}>📤</div>
+              <h3>Шеринг достижений</h3>
+              <label className="share-center-toggle">
+                <input type="checkbox" className="share-center-toggle-input" checked={shareHideNickname} onChange={e => setShareHideNickname(e.target.checked)} />
+                <span className="share-center-toggle-track" aria-hidden />
+                <span>Скрыть ник</span>
+              </label>
+              <button onClick={async () => {
+                if (shareStoryUrl) URL.revokeObjectURL(shareStoryUrl);
+                if (shareWideUrl) URL.revokeObjectURL(shareWideUrl);
+                setShareStoryUrl(null);
+                setShareWideUrl(null);
+                setShareStoryResult(null);
+                setShareWideResult(null);
+                setShareBusy(true);
+                setShareStatus('Генерируем слоган…');
+                try {
+                  const raw = await fetchAiSlogan({ kind: 'progress_summary', nickname: profile.nickname, rank, totalLevelsAchieved: profile?.stats?.totalLevelsAchieved, totalBadgesStarted: profile?.stats?.totalBadgesStarted, badgeTitlesInPath, favoriteBadgeTitles });
+                  const slogan = raw == null ? null : typeof raw === 'string' ? raw : raw.slogan;
+                  setShareStatus('Генерируем характеристику 4К…');
+                  const pedagogy4kLine = await fetchPedagogy4k({ badgeTitlesInPath, favoriteBadgeTitles, rank, nickname: profile.nickname ?? undefined });
+                  setShareStatus('Генерируем мем для сторис…');
+                  const storiesMemeRaw = await fetchAiSlogan({ kind: 'stories_reels_meme', nickname: profile.nickname ?? undefined, rank, totalLevelsAchieved: profile?.stats?.totalLevelsAchieved, totalBadgesStarted: profile?.stats?.totalBadgesStarted });
+                  const customStoriesLine = typeof storiesMemeRaw === 'string' && storiesMemeRaw.trim() ? storiesMemeRaw.trim() : undefined;
+                  setShareStatus('Генерируем вайб-чек…');
+                  const vibeRaw = await fetchVibeCheck({ variant: 'profile', rank, nickname: profile.nickname ?? undefined, totalLevelsAchieved: profile?.stats?.totalLevelsAchieved, totalBadgesStarted: profile?.stats?.totalBadgesStarted, badgeTitlesInPath, favoriteBadgeTitles });
+                  const vibeCheck = vibeRaw ? { memeHeader: vibeRaw.meme_header, memeText: vibeRaw.meme_text, statBuff: vibeRaw.stat_buff } : undefined;
+                  const createdAt = new Date().toISOString();
+                  const profilePayload = { nickname: profile.nickname ?? undefined, avatar: profile.avatar ?? '', rank, totalLevelsAchieved: profile?.stats?.totalLevelsAchieved, totalBadgesStarted: profile?.stats?.totalBadgesStarted };
+                  const storyRes = await generateSocialCard({ kind: 'progress_summary', profile: profilePayload, format: 'story', hideNickname: shareHideNickname, customCaption: slogan ?? undefined, customCallout: pedagogy4kLine ?? undefined, customStoriesLine, vibeCheck, badgeCarouselItems, createdAt });
+                  const wideRes = await generateSocialCard({ kind: 'progress_summary', profile: profilePayload, format: 'wide', hideNickname: shareHideNickname, customCaption: slogan ?? undefined, customCallout: pedagogy4kLine ?? undefined, customStoriesLine, vibeCheck, badgeCarouselItems, createdAt });
+                  setShareStoryResult(storyRes);
+                  setShareWideResult(wideRes);
+                  setShareStoryUrl(URL.createObjectURL(storyRes.blob));
+                  setShareWideUrl(URL.createObjectURL(wideRes.blob));
+                  setShareStatus('Карточки готовы: 9:16 и 16:9.');
+                } catch (e) {
+                  console.error(e);
+                  setShareStatus('Не удалось сгенерировать карточки. Попробуй ещё раз.');
+                } finally { setShareBusy(false); }
+              }} disabled={shareBusy} className="btn-generate">{shareBusy ? 'Генерируем…' : 'Создать карточку'}</button>
+              {(shareStoryUrl || shareWideUrl) && (
+                <div className="share-center-results">
+                  {shareStatus && <div style={{ fontSize: '13px', opacity: 0.9 }}>{shareStatus}</div>}
+                  {shareStoryUrl && shareStoryResult && (
+                    <div>
+                      <div style={{ fontSize: '12px', opacity: 0.7, marginBottom: '8px' }}>Сторис 9:16</div>
+                      <img src={shareStoryUrl} alt="Сторис" style={{ width: '100%', maxWidth: '280px', borderRadius: '20px', display: 'block' }} />
+                      <button type="button" onClick={() => shareOrDownloadSocialCard(shareStoryResult)} className="btn-secondary" style={{ marginTop: '8px' }}>Поделиться / скачать</button>
+                    </div>
+                  )}
+                  {shareWideUrl && shareWideResult && (
+                    <div>
+                      <div style={{ fontSize: '12px', opacity: 0.7, marginBottom: '8px' }}>Пост 16:9</div>
+                      <img src={shareWideUrl} alt="Пост" style={{ width: '100%', borderRadius: '20px', display: 'block' }} />
+                      <button type="button" onClick={() => shareOrDownloadSocialCard(shareWideResult)} className="btn-secondary" style={{ marginTop: '8px' }}>Поделиться / скачать</button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
 
         </div>
-        </div>
-        </div>
-        );
+      </div>
+    </div>
+  );
 
   return (
     <section className={`profile-view profile-view--one-screen profile-view--mobile-scope${cabinNavExpanded ? ' profile-view--cabin-nav-expanded' : ''}`}>
@@ -5078,7 +5110,7 @@ export const ProfileView: React.FC<any> = (props) => {
                     role="tab"
                     className="profile-role-selector__tab"
                     onClick={() => {
-                      try { localStorage.setItem('rl_profile_role_selector_seen', '1'); } catch {}
+                      try { localStorage.setItem('rl_profile_role_selector_seen', '1'); } catch { }
                       setSandboxRole(r);
                       setShowRoleSelector(false);
                     }}
@@ -5336,6 +5368,21 @@ export const ProfileView: React.FC<any> = (props) => {
               <button type="button" className="btn-secondary" style={{ padding: '6px 12px', opacity: eventsTab === 'legacy' ? 1 : 0.7 }} onClick={() => setEventsTab('legacy')}>
                 События webhook
               </button>
+              {canModerateApprovals && (
+                <button type="button" className="btn-secondary" style={{ padding: '6px 12px', opacity: eventsTab === 'plans' ? 1 : 0.7 }} onClick={() => {
+                  setEventsTab('plans');
+                  if (plansInbox.length === 0 && !plansInboxBusy && accessToken) {
+                    setPlansInboxBusy(true);
+                    setPlansInboxError(null);
+                    fetchPlansInbox(accessToken)
+                      .then(plans => setPlansInbox(plans))
+                      .catch(e => setPlansInboxError(e instanceof Error ? e.message : 'Ошибка загрузки планов'))
+                      .finally(() => setPlansInboxBusy(false));
+                  }
+                }}>
+                  Планы{plansInbox.filter(p => p.status === 'submitted').length > 0 ? ` (${plansInbox.filter(p => p.status === 'submitted').length})` : ''}
+                </button>
+              )}
             </div>
 
             {eventsTab === 'legacy' && (
@@ -5702,6 +5749,147 @@ export const ProfileView: React.FC<any> = (props) => {
                 </div>
               )
             )}
+
+            {eventsTab === 'plans' && canModerateApprovals && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                  <button type="button" className="btn-secondary" style={{ padding: '8px 14px' }} disabled={plansInboxBusy} onClick={async () => {
+                    if (!accessToken) return;
+                    setPlansInboxBusy(true);
+                    setPlansInboxError(null);
+                    try {
+                      setPlansInbox(await fetchPlansInbox(accessToken));
+                    } catch (e) {
+                      setPlansInboxError(e instanceof Error ? e.message : 'Ошибка загрузки планов');
+                    } finally {
+                      setPlansInboxBusy(false);
+                    }
+                  }}>
+                    {plansInboxBusy ? 'Загрузка…' : 'Обновить'}
+                  </button>
+                </div>
+                {plansInboxError && <div className="profile-error profile-error--not-found">{plansInboxError}</div>}
+
+                {plansInboxBusy ? (
+                  <div style={{ fontSize: 12, opacity: 0.7 }}>Загружаем планы…</div>
+                ) : plansInbox.length === 0 ? (
+                  <div style={{ fontSize: 12, opacity: 0.8 }}>Планов на проверку нет.</div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 400, overflowY: 'auto' }}>
+                    {plansInbox.map(plan => (
+                      <div key={plan.id} style={{ padding: 10, borderRadius: 10, background: 'rgba(0,0,0,0.25)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8, marginBottom: 6 }}>
+                          <div style={{ fontSize: 13, fontWeight: 700 }}>
+                            Значок {plan.badgeId}{plan.levelId ? ` · ${plan.levelId}` : ''}
+                          </div>
+                          <span className={`m3-status-chip badge-request-status-chip tone-${plan.status === 'approved' ? 'approved' : plan.status === 'rejected' ? 'rejected' : 'pending'}`}>
+                            {plan.status === 'approved' ? 'Одобрен' : plan.status === 'rejected' ? 'Отклонён' : 'На проверке'}
+                          </span>
+                        </div>
+                        <div style={{ fontSize: 11, opacity: 0.6, marginBottom: 6 }}>
+                          {plan.deviceId ? `Участник: ${plan.deviceId.slice(0, 8)}…` : ''}
+                          {plan.campId ? ` · смена ${plan.campId}` : ''}
+                          <span style={{ opacity: 0.6 }}> · {new Date(plan.updatedAt || plan.createdAt).toLocaleString('ru-RU')}</span>
+                        </div>
+                        {plan.planText && (
+                          <div style={{ fontSize: 12, opacity: 0.85, marginBottom: 6, maxHeight: 80, overflow: 'hidden', whiteSpace: 'pre-wrap', lineHeight: 1.4 }}>
+                            {plan.planText.length > 200 ? plan.planText.slice(0, 200) + '…' : plan.planText}
+                          </div>
+                        )}
+                        {plan.checklist && plan.checklist.length > 0 && (
+                          <div style={{ fontSize: 11, opacity: 0.7, marginBottom: 6 }}>
+                            Шаги: {plan.checklist.map((item, i) => `${i + 1}. ${item.text}${item.done ? ' ✓' : ''}`).join('; ').slice(0, 160)}{plan.checklist.length > 3 ? '…' : ''}
+                          </div>
+                        )}
+                        {plan.status === 'submitted' && (
+                          <>
+                            <div style={{ marginTop: 8, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                              <button
+                                type="button"
+                                className="btn-primary-gold"
+                                style={{ padding: '6px 12px', fontSize: 12 }}
+                                disabled={plansInboxBusy}
+                                onClick={async () => {
+                                  setPlansInboxBusy(true);
+                                  setPlansInboxError(null);
+                                  try {
+                                    await reviewPlan(accessToken || '', plan.id, 'approved');
+                                    setPlansInbox(prev => prev.filter(p => p.id !== plan.id));
+                                    showHint({ title: 'План одобрен', content: 'Одобрение применено.' });
+                                  } catch (e) {
+                                    setPlansInboxError(e instanceof Error ? e.message : 'Ошибка одобрения плана.');
+                                  } finally {
+                                    setPlansInboxBusy(false);
+                                  }
+                                }}
+                              >
+                                Одобрить
+                              </button>
+                              <button
+                                type="button"
+                                className="btn-secondary"
+                                style={{ padding: '6px 12px', fontSize: 12 }}
+                                disabled={plansInboxBusy}
+                                onClick={() => { setPlanRejectExpandedId(plan.id); setPlanRejectNote(''); }}
+                              >
+                                Отклонить
+                              </button>
+                            </div>
+                            {planRejectExpandedId === plan.id && (
+                              <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                                <textarea
+                                  placeholder="Комментарий (необязательно)"
+                                  maxLength={200}
+                                  value={planRejectNote}
+                                  onChange={e => setPlanRejectNote(e.target.value)}
+                                  style={{ width: '100%', minHeight: 56, fontSize: 12, borderRadius: 8, padding: 6, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.15)', color: 'inherit', resize: 'vertical', boxSizing: 'border-box' }}
+                                />
+                                <div style={{ display: 'flex', gap: 8 }}>
+                                  <button
+                                    type="button"
+                                    className="btn-secondary"
+                                    style={{ padding: '6px 12px', fontSize: 12 }}
+                                    disabled={plansInboxBusy}
+                                    onClick={async () => {
+                                      setPlansInboxBusy(true);
+                                      setPlansInboxError(null);
+                                      try {
+                                        await reviewPlan(accessToken || '', plan.id, 'rejected', planRejectNote.trim() || undefined);
+                                        setPlansInbox(prev => prev.filter(p => p.id !== plan.id));
+                                        setPlanRejectExpandedId(null);
+                                        setPlanRejectNote('');
+                                        showHint({ title: 'План отклонён', content: 'Отклонение применено.' });
+                                      } catch (e) {
+                                        setPlansInboxError(e instanceof Error ? e.message : 'Ошибка отклонения плана.');
+                                      } finally {
+                                        setPlansInboxBusy(false);
+                                      }
+                                    }}
+                                  >
+                                    Отклонить
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="btn-secondary"
+                                    style={{ padding: '6px 12px', fontSize: 12 }}
+                                    onClick={() => { setPlanRejectExpandedId(null); setPlanRejectNote(''); }}
+                                  >
+                                    Отмена
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+                          </>
+                        )}
+                        {plan.counselorNote && (
+                          <div style={{ fontSize: 11, opacity: 0.55, marginTop: 4 }}>Комментарий: {plan.counselorNote}</div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -5820,7 +6008,7 @@ export const ProfileView: React.FC<any> = (props) => {
                   >
                     <span className="profile-sandbox-role__trigger-text">{ROLE_LABELS[role]}</span>
                     <span className={`profile-sandbox-role__trigger-chevron ${roleDropdownOpen ? 'is-open' : ''}`} aria-hidden>
-                      <svg width="12" height="12" viewBox="0 0 12 12"><path fill="currentColor" d="M6 8L1 3h10z"/></svg>
+                      <svg width="12" height="12" viewBox="0 0 12 12"><path fill="currentColor" d="M6 8L1 3h10z" /></svg>
                     </span>
                   </button>
                   <ul
@@ -5835,12 +6023,12 @@ export const ProfileView: React.FC<any> = (props) => {
                         role="option"
                         aria-selected={r === role}
                         className={`profile-sandbox-role__option ${r === role ? 'is-selected' : ''}`}
-                      onClick={() => { setSandboxRole(r); setRoleDropdownOpen(false); }}
-                    >
-                      {ROLE_LABELS[r]}
-                    </li>
-                  ))}
-                </ul>
+                        onClick={() => { setSandboxRole(r); setRoleDropdownOpen(false); }}
+                      >
+                        {ROLE_LABELS[r]}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               </div>
               <div className="profile-sandbox-role__current" aria-live="polite" aria-atomic="true">
@@ -5929,7 +6117,23 @@ export const ProfileView: React.FC<any> = (props) => {
             <div style={{ fontSize: '48px', marginBottom: '16px' }}>🎉</div>
             <div style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.1em', opacity: 0.8, marginBottom: '8px' }}>Новый ранг</div>
             <h3 id="profile-modal-rank-up-title" className={rank.includes('Легенда') ? 'profile-view-rank--legendary' : ''} style={{ margin: '0 0 24px', color: rank.includes('Легенда') ? 'var(--legendary-accent, #b088c8)' : '#FFD700', fontSize: '22px' }}>{rank}</h3>
-            <button type="button" onClick={() => markRankUpSeen(currentLevels)} className="btn-primary-gold" style={{ width: '100%' }}>Круто!</button>
+            <button type="button" onClick={() => {
+              markRankUpSeen(currentLevels);
+              // Sharing trigger: offer to create a social card for the new rank
+              const toastKey = `rl_rank_share_toast_${currentLevels}`;
+              if (typeof window !== 'undefined' && !localStorage.getItem(toastKey)) {
+                localStorage.setItem(toastKey, '1');
+                setTimeout(() => {
+                  showHint({
+                    title: `🎉 Новый ранг: ${rank}!`,
+                    content: 'Создай карточку и поделись достижением с друзьями!',
+                  });
+                  if (isSpaceshipMode && typeof openCabinPanel === 'function') {
+                    openCabinPanel('share', 'right');
+                  }
+                }, 400);
+              }
+            }} className="btn-primary-gold" style={{ width: '100%' }}>Круто!</button>
           </div>
         </div>
       )}
@@ -5984,23 +6188,55 @@ export const ProfileView: React.FC<any> = (props) => {
                     showHint({ title: 'Ошибка API', content: 'Не удалось дополнить план. Запусти backend: npm run start:backend' });
                   } finally { setPlanBusy(false); }
                 }} disabled={planBusy} className="btn-secondary" style={{ width: '100%', marginBottom: 8 }} title="Доработать план с учётом программы отряда, дня смены и мероприятий">{planBusy ? 'Дополняем…' : 'Дополнить с учётом программы'}</button>
-                <button onClick={() => {
-                  if (!planFormBadge) return;
-                  const plan: import('../types/userProgress').IBadgePlan = {
-                    badgeId: planFormBadge.id,
-                    status: 'pending_approval',
-                    context: { currentDay: planForm.currentDay, shiftLength: planForm.shiftLength, squadProgramGrid: planForm.squadProgramGrid || undefined, squadPlan3d: planForm.squadPlan3d || undefined, campProgram3d: planForm.campProgram3d || undefined, priority: planForm.priority },
-                    planText: planResult.planText,
-                    checklistItems: planResult.checklistItems,
-                    completedItems: [],
-                    createdAt: new Date().toISOString(),
-                    myPlanDraft: planForm.myPlanDraft?.trim() || undefined
-                  };
-                  saveBadgePlan(plan);
-                  const text = `📋 План получения значка «${planFormBadge.title}»\n\n${planResult.planText}\n\nШаги:\n${planResult.checklistItems.map((s, i) => `${i + 1}. ${s}`).join('\n')}`;
-                  window.open(`https://t.me/Stivanovv?text=${encodeURIComponent(text)}`, '_blank', 'noopener,noreferrer');
-                  showHint({ title: 'Отправлено', content: 'План открыт в Telegram. После подтверждения вожатым нажми «Вожатый утвердил».' });
-                }} className="btn-primary-gold" style={{ width: '100%', marginBottom: 8 }}>Отправить на утверждение вожатому</button>
+                <button onClick={async () => {
+                  if (!planFormBadge || !planResult) return;
+                  if (accessToken) {
+                    // Server API submit
+                    setPlanBusy(true);
+                    try {
+                      await submitBadgePlan(accessToken, {
+                        badgeId: planFormBadge.id,
+                        planText: planResult.planText,
+                        checklist: planResult.checklistItems.map(s => ({ text: s, done: false })),
+                        submit: true,
+                      });
+                      const localPlan: import('../types/userProgress').IBadgePlan = {
+                        badgeId: planFormBadge.id,
+                        status: 'pending_approval',
+                        context: { currentDay: planForm.currentDay, shiftLength: planForm.shiftLength, squadProgramGrid: planForm.squadProgramGrid || undefined, squadPlan3d: planForm.squadPlan3d || undefined, campProgram3d: planForm.campProgram3d || undefined, priority: planForm.priority },
+                        planText: planResult.planText,
+                        checklistItems: planResult.checklistItems,
+                        completedItems: [],
+                        createdAt: new Date().toISOString(),
+                        sentForApprovalAt: new Date().toISOString(),
+                        myPlanDraft: planForm.myPlanDraft?.trim() || undefined
+                      };
+                      saveBadgePlan(localPlan);
+                      showHint({ title: 'План отправлен!', content: 'План отправлен вожатому на проверку. Статус отобразится в карточке.' });
+                    } catch (e) {
+                      console.error('submitBadgePlan:', e);
+                      showHint({ title: 'Ошибка отправки', content: e instanceof Error ? e.message : 'Не удалось отправить план. Проверьте подключение.' });
+                    } finally {
+                      setPlanBusy(false);
+                    }
+                  } else {
+                    // Fallback: Telegram submit for traveler/no-token
+                    const localPlan: import('../types/userProgress').IBadgePlan = {
+                      badgeId: planFormBadge.id,
+                      status: 'pending_approval',
+                      context: { currentDay: planForm.currentDay, shiftLength: planForm.shiftLength, squadProgramGrid: planForm.squadProgramGrid || undefined, squadPlan3d: planForm.squadPlan3d || undefined, campProgram3d: planForm.campProgram3d || undefined, priority: planForm.priority },
+                      planText: planResult.planText,
+                      checklistItems: planResult.checklistItems,
+                      completedItems: [],
+                      createdAt: new Date().toISOString(),
+                      myPlanDraft: planForm.myPlanDraft?.trim() || undefined
+                    };
+                    saveBadgePlan(localPlan);
+                    const text = `📋 План получения значка «${planFormBadge.title}»\n\n${planResult.planText}\n\nШаги:\n${planResult.checklistItems.map((s, i) => `${i + 1}. ${s}`).join('\n')}`;
+                    window.open(`https://t.me/Stivanovv?text=${encodeURIComponent(text)}`, '_blank', 'noopener,noreferrer');
+                    showHint({ title: 'Отправлено', content: 'План открыт в Telegram. После подтверждения вожатым нажми «Вожатый утвердил».' });
+                  }
+                }} disabled={planBusy} className="btn-primary-gold" style={{ width: '100%', marginBottom: 8 }}>{planBusy ? 'Отправляем…' : 'Отправить план вожатому'}</button>
                 <button onClick={() => {
                   if (!planFormBadge) return;
                   const plan: import('../types/userProgress').IBadgePlan = {

@@ -50,6 +50,7 @@ export const RealDiaryDashboard: React.FC<RealDiaryDashboardProps> = ({ variant 
   const [copyToast, setCopyToast] = useState(false);
   const [telegramToast, setTelegramToast] = useState(false);
   const [scheduleSavedToast, setScheduleSavedToast] = useState(false);
+  const [diaryShareToast, setDiaryShareToast] = useState(false);
 
   const [localMain, setLocalMain] = useState(currentEntry.mainMoments ?? '');
   const [localFriends, setLocalFriends] = useState(currentEntry.friends ?? '');
@@ -110,19 +111,31 @@ export const RealDiaryDashboard: React.FC<RealDiaryDashboardProps> = ({ variant 
     return Array.from({ length: max }, (_, i) => i + 1);
   }, [entries, currentDay]);
 
-  const saveDiary = () => updateDiaryEntry(currentDay, {
-    mainMoments: text(localMain) || undefined,
-    friends: text(localFriends) || undefined,
-    conclusions: text(localConclusions) || undefined,
-    morningText: text(localMorningText) || undefined,
-    morningEmoji: text(localMorningEmoji) || undefined,
-    dayText: text(localDayText) || undefined,
-    dayEmoji: text(localDayEmoji) || undefined,
-    eveningText: text(localEveningText) || undefined,
-    eveningEmoji: text(localEveningEmoji) || undefined,
-    memorableText: text(localMemorableText) || undefined,
-    memorableEmoji: text(localMemorableEmoji) || undefined
-  });
+  const saveDiary = () => {
+    updateDiaryEntry(currentDay, {
+      mainMoments: text(localMain) || undefined,
+      friends: text(localFriends) || undefined,
+      conclusions: text(localConclusions) || undefined,
+      morningText: text(localMorningText) || undefined,
+      morningEmoji: text(localMorningEmoji) || undefined,
+      dayText: text(localDayText) || undefined,
+      dayEmoji: text(localDayEmoji) || undefined,
+      eveningText: text(localEveningText) || undefined,
+      eveningEmoji: text(localEveningEmoji) || undefined,
+      memorableText: text(localMemorableText) || undefined,
+      memorableEmoji: text(localMemorableEmoji) || undefined
+    });
+    // Sharing trigger: all 3 time-of-day entries filled → offer to share
+    const allFilled = text(localMorningText) && text(localDayText) && text(localEveningText);
+    if (allFilled && typeof window !== 'undefined') {
+      const toastKey = `rl_diary_100_toast_day_${currentDay}`;
+      if (!localStorage.getItem(toastKey)) {
+        localStorage.setItem(toastKey, '1');
+        setDiaryShareToast(true);
+        setTimeout(() => setDiaryShareToast(false), 5000);
+      }
+    }
+  };
 
   const saveShift = () => {
     updateDiaryShiftTemplates({ shiftSchedule: localShift });
@@ -440,6 +453,12 @@ export const RealDiaryDashboard: React.FC<RealDiaryDashboardProps> = ({ variant 
         {dayKeys.map((d) => <button key={d} type="button" onClick={() => setDiaryDay(d)} className="btn-secondary" style={{ border: currentDay === d ? `1px solid ${DIARY_ACCENT}` : undefined }}>День {d}</button>)}
         <button type="button" className="btn-secondary" onClick={() => setDiaryDay((dayKeys.length ? Math.max(...dayKeys) : 0) + 1)}>+ День</button>
       </div>
+      {diaryShareToast && (
+        <div style={{ marginTop: 10, padding: '10px 14px', borderRadius: 10, background: 'rgba(245, 158, 11, 0.18)', border: '1px solid rgba(245, 158, 11, 0.5)', fontSize: 13, lineHeight: 1.5, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+          <span>📓 Дневник дня заполнен! Поделись карточкой с друзьями</span>
+          <button type="button" className="btn-secondary" style={{ padding: '4px 10px', fontSize: 11 }} onClick={() => setDiaryShareToast(false)}>✕</button>
+        </div>
+      )}
     </div>
   );
 
