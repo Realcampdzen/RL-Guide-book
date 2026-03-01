@@ -64,3 +64,15 @@ export const normalizeTextField = (v: unknown): string => {
   }
   return typeof v === 'string' ? v : '';
 };
+
+// Helper to strip exactly matching or similarly phrased duplicate headings at the start of text blocks
+export const stripDuplicateHeading = (text: string, heading: string): string => {
+  if (!text || !heading) return text;
+  
+  const cleanHeading = heading.replace(/[?!.:]+$/, '').trim();
+  const escapedHeading = cleanHeading.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  
+  // Case-insensitive match at the beginning, potentially followed by punctuation
+  const regex = new RegExp(`^\\s*${escapedHeading}[?!.:\\s]*`, 'i');
+  return text.replace(regex, '').trim();
+};

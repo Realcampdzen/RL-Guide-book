@@ -263,7 +263,7 @@
 - Status: Done
 - Scope delivered:
   - Added read-only parent insights endpoint `/api/parent-insights` using existing snapshot code context.
-  - Added parent recommendations block in parent child-view: "что уже хорошо" + "что поддержать дальше".
+  - Added parent recommendations block in parent child-view: "пїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ" + "пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ".
   - Added human-readable fallback texts for partial/empty data.
   - Preserved M2 read-only guarantees and avoided RBAC/write-flow/migration changes.
 - Evidence:
@@ -287,7 +287,7 @@
 - Status: Done
 - Scope delivered:
   - Added optional explainability fields (`whyThisSuggestion`, `basedOn`) to parent insights read-model.
-  - Added compact "Почему такая рекомендация" block in parent child-view.
+  - Added compact "пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ" block in parent child-view.
   - Unified recommendation tone for supportive parent-friendly wording.
   - Preserved read-only and non-breaking constraints.
 - Evidence:
@@ -374,7 +374,7 @@
 - Scope delivered:
   - Automated smoke script `backend/scripts/smoke_backend_critical.py` ? 22 checks across 3 critical flows (Badge Request, Parent Insights, Council Initiatives) + health. ALL 22 CHECKS PASSED.
   - Contract Guard doc `docs/BACKEND_CONTRACT_GUARD.md` ? mandatory/optional fields for 6 endpoint-groups, 12-type breaking change classification.
-  - Playbook §5.3 `docs/PROD_RELEASE_PLAYBOOK.md` ? "Backend Critical Flows (automated, ~5 min)" section.
+  - Playbook пїЅ5.3 `docs/PROD_RELEASE_PLAYBOOK.md` ? "Backend Critical Flows (automated, ~5 min)" section.
 - Evidence:
   - docs/PROD_ROADMAP_IMPL/reports/REPORT_A_M5_R2_A.md
 
@@ -412,7 +412,7 @@
 - Scope delivered:
   - `backend/app.py` ? inbox educator auto-scope. `/mine` expanded to all 6 roles, privacy projection strips `requestedBy.deviceId`.
   - Smoke Flow D added (4 checks). Total: 31 CHECKS PASSED.
-  - `docs/BACKEND_CONTRACT_GUARD.md` ? /mine contract, inbox auto-scope note, §3.2 actualized.
+  - `docs/BACKEND_CONTRACT_GUARD.md` ? /mine contract, inbox auto-scope note, пїЅ3.2 actualized.
 - Evidence:
   - docs/PROD_ROADMAP_IMPL/reports/REPORT_A_M5_R2_B.md
 
@@ -423,7 +423,7 @@
 - Scope delivered:
   - Prompt sanitization (HTML strip, injection detection, truncation 300 chars).
   - Per-camp daily quota (200/day, in-memory, auto-reset UTC midnight).
-  - `docs/BACKEND_CONTRACT_GUARD.md` §3.4 ? full /api/images/generate contract.
+  - `docs/BACKEND_CONTRACT_GUARD.md` пїЅ3.4 ? full /api/images/generate contract.
   - Smoke Flow E (4 checks). Total: ~35 CHECKS PASSED.
 - Evidence:
   - docs/PROD_ROADMAP_IMPL/reports/REPORT_C_M5_R2_C_2026-02-27.md
@@ -477,7 +477,7 @@
 - Scope delivered:
   - STAGING_BACKEND_NOT_DEPLOYED confirmed (pult.staging.well-telecom.ru is ISP billing, not Flask).
   - Prod baseline 4/4 PASS: health 200, dev-door 404, RBAC 401 gates confirmed.
-  - OPS_SNAPSHOT §3 env matrix: 5 VERIFIED, 4 UNVERIFIED with evidence basis.
+  - OPS_SNAPSHOT пїЅ3 env matrix: 5 VERIFIED, 4 UNVERIFIED with evidence basis.
   - RELEASE_NOTE Known Issues: R5 Resolved, R6 Closed, R1?R4 Controlled.
 - Evidence:
   - docs/PROD_ROADMAP_IMPL/reports/REPORT_D_STAGING_SMOKE_M5_2026-02-27.md

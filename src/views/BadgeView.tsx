@@ -3,7 +3,8 @@ import {
   fixDescriptionFormatting,
   fixCriteriaFormatting,
   extractEvidenceSection,
-  shouldApplyFormatting
+  shouldApplyFormatting,
+  stripDuplicateHeading
 } from '../utils/textFormatting';
 import BadgeIcon from '../components/BadgeIcon';
 import BadgeSkinPanel from '../components/BadgeSkinPanel';
@@ -41,11 +42,11 @@ interface BadgeViewProps {
   onBackToIntro: () => void;
 }
 
-const BadgeView: React.FC<BadgeViewProps> = ({ 
-  category, 
-  badge, 
-  badges, 
-  onBack, 
+const BadgeView: React.FC<BadgeViewProps> = ({
+  category,
+  badge,
+  badges,
+  onBack,
   onLevelSelect,
   onBadgeClick: _onBadgeClick,
   onChatToggle,
@@ -77,7 +78,7 @@ const BadgeView: React.FC<BadgeViewProps> = ({
   }, [userData.favorites, baseBadgeId]);
 
   const handleToggleFavorite = () => {
-    toggleFavorite(baseBadgeId, { onAdded: () => {}, onLimit: () => {} });
+    toggleFavorite(baseBadgeId, { onAdded: () => { }, onLimit: () => { } });
   };
 
   const hasTeam = Boolean(
@@ -177,9 +178,9 @@ const BadgeView: React.FC<BadgeViewProps> = ({
 
     const base = isMulti
       ? (effectiveLevels.find((b) => String(b.level || '').toLowerCase().includes('баз')) ||
-         effectiveLevels.find((b) => String(b.level || '').toLowerCase().includes('одноуровнев')) ||
-         effectiveLevels[0] ||
-         badge)
+        effectiveLevels.find((b) => String(b.level || '').toLowerCase().includes('одноуровнев')) ||
+        effectiveLevels[0] ||
+        badge)
       : badge;
 
     const others = (isMulti ? effectiveLevels : effectiveLevels).filter((b) => {
@@ -195,9 +196,9 @@ const BadgeView: React.FC<BadgeViewProps> = ({
   const { baseCriteria, evidenceText, mainDescription } = useMemo(() => {
     let evidenceText: string | null = null;
     let baseCriteria: string[] = [];
-    
+
     const sourceBadge = baseLevelBadge || badge;
-    
+
     let descriptionText = sourceBadge.description || '';
     // Fix: Remove duplicate text if present
     descriptionText = descriptionText.replace(/Объяснение ценности значка:\s*$/, '').trim();
@@ -206,12 +207,12 @@ const BadgeView: React.FC<BadgeViewProps> = ({
       if (sourceBadge.confirmation) {
         evidenceText = sourceBadge.confirmation;
       }
-      
+
       if (sourceBadge.criteria) {
         const raw = sourceBadge.criteria.replace(/^Как получить значок «[^»]+»:\s*/, '');
         const shouldFormat = shouldApplyFormatting(sourceBadge.id);
         const processedRaw = shouldFormat ? fixCriteriaFormatting(raw) : raw;
-        
+
         if (sourceBadge.confirmation) {
           const { mainText, evidenceText: extracted } = extractEvidenceSection(processedRaw);
           evidenceText = extracted || sourceBadge.confirmation;
@@ -235,7 +236,7 @@ const BadgeView: React.FC<BadgeViewProps> = ({
     const shouldFormatDesc = shouldApplyFormatting(sourceBadge.id);
     const processedDesc = shouldFormatDesc ? fixDescriptionFormatting(descriptionText) : descriptionText;
     const { mainText: descMain, evidenceText: descEvidence } = extractEvidenceSection(processedDesc);
-    
+
     // If evidence wasn't found in criteria, maybe it's in description
     if (!evidenceText && descEvidence) {
       evidenceText = descEvidence;
@@ -261,7 +262,7 @@ const BadgeView: React.FC<BadgeViewProps> = ({
       isTieredLevel ? String(b.id) : undefined,
       isTieredLevel ? b.title : undefined
     );
-    
+
     if (isImageBadge) {
       // Используем ту же логику, что и в BadgeLevelView.tsx
       // Для каждого уровня передаем его собственный id и title
@@ -278,7 +279,7 @@ const BadgeView: React.FC<BadgeViewProps> = ({
         />
       );
     }
-    return <div className={className} style={{fontSize: size === 'xlarge' ? '5rem' : '4rem'}}>{b.emoji || '🏆'}</div>;
+    return <div className={className} style={{ fontSize: size === 'xlarge' ? '5rem' : '4rem' }}>{b.emoji || '🏆'}</div>;
   };
 
   const badgeHeroImageUrl = useMemo(() => {
@@ -375,7 +376,7 @@ const BadgeView: React.FC<BadgeViewProps> = ({
         setStartShareStatus(null);
         setStartShareOpen(true);
       },
-      onLimit: () => {},
+      onLimit: () => { },
     });
   };
 
@@ -759,6 +760,25 @@ const BadgeView: React.FC<BadgeViewProps> = ({
           </section>
         )}
 
+        {/* Other Levels (Moved Higher) */}
+        {otherLevels.length > 0 && (
+          <div className="levels-dock reveal-on-scroll" style={{ marginBottom: '2rem' }}>
+            {otherLevels.map(level => (
+              <div
+                key={level.id}
+                className="level-bubble hover-target"
+                onClick={() => onLevelSelect(String(level.level))}
+              >
+                <div className="level-bubble-icon">
+                  {renderIcon(level, 'xlarge', '')}
+                </div>
+                <div className="level-bubble-title">{level.title}</div>
+                <div className="level-bubble-subtitle">{String(level.level)}</div>
+              </div>
+            ))}
+          </div>
+        )}
+
         {/* Content Grid */}
         <div className="badge-content-grid">
           {/* Left Column */}
@@ -770,42 +790,42 @@ const BadgeView: React.FC<BadgeViewProps> = ({
               {baseLevelBadge?.nameExplanation && (
                 <>
                   <h4>Объяснение названия и ценности</h4>
-                  <p className="content-text">{baseLevelBadge.nameExplanation}</p>
+                  <p className="content-text">{stripDuplicateHeading(baseLevelBadge.nameExplanation, 'Объяснение названия и ценности')}</p>
                 </>
               )}
 
               {baseLevelBadge?.skillTips && (
                 <>
                   <h4>Как прокачать навык</h4>
-                  <p className="content-text" dangerouslySetInnerHTML={{__html: baseLevelBadge.skillTips.replace(/\n/g, '<br>')}}></p>
+                  <p className="content-text" dangerouslySetInnerHTML={{ __html: stripDuplicateHeading(baseLevelBadge.skillTips, 'Как прокачать навык').replace(/\n/g, '<br>') }}></p>
                 </>
               )}
 
               {baseLevelBadge?.importance && (
                 <>
                   <h4>Почему этот значок важен</h4>
-                  <p className="content-text">{baseLevelBadge.importance}</p>
+                  <p className="content-text">{stripDuplicateHeading(baseLevelBadge.importance, 'Почему этот значок важен')}</p>
                 </>
               )}
 
               {baseLevelBadge?.examples && (
                 <>
                   <h4>Примеры</h4>
-                  <p className="content-text" dangerouslySetInnerHTML={{__html: baseLevelBadge.examples.replace(/\n/g, '<br>')}}></p>
+                  <p className="content-text" dangerouslySetInnerHTML={{ __html: stripDuplicateHeading(baseLevelBadge.examples, 'Примеры').replace(/\n/g, '<br>') }}></p>
                 </>
               )}
 
               {baseLevelBadge?.philosophy && (
                 <>
                   <h4>Философия значка</h4>
-                  <p className="content-text">{baseLevelBadge.philosophy}</p>
+                  <p className="content-text">{stripDuplicateHeading(baseLevelBadge.philosophy, 'Философия значка')}</p>
                 </>
               )}
 
               {showHowToBecome && (
                 <>
                   <h4>Как получить</h4>
-                  <p className="content-text" dangerouslySetInnerHTML={{__html: howToBecomeText.replace(/\n/g, '<br>')}}></p>
+                  <p className="content-text" dangerouslySetInnerHTML={{ __html: howToBecomeText.replace(/\n/g, '<br>') }}></p>
                 </>
               )}
 
@@ -845,7 +865,7 @@ const BadgeView: React.FC<BadgeViewProps> = ({
           <div className="badge-right-col reveal-on-scroll" style={{ transitionDelay: '0.1s' }}>
             <div className="content-block">
               <h3>{isMultiLevel ? 'Как получить базовый уровень' : 'Как получить значок'}</h3>
-              
+
               {baseCriteria.length > 0 ? (
                 <ul className="criteria-list">
                   {baseCriteria.map((criterion, index) => (
@@ -866,24 +886,6 @@ const BadgeView: React.FC<BadgeViewProps> = ({
               )}
             </div>
 
-            {/* Other Levels */}
-            {otherLevels.length > 0 && (
-              <div className="levels-dock">
-                {otherLevels.map(level => (
-                  <div 
-                    key={level.id} 
-                    className="level-bubble hover-target"
-                    onClick={() => onLevelSelect(String(level.level))}
-                  >
-                    <div className="level-bubble-icon">
-                      {renderIcon(level, 'xlarge', '')}
-                    </div>
-                    <div className="level-bubble-title">{level.title}</div>
-                    <div className="level-bubble-subtitle">{String(level.level)}</div>
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
         </div>
       </main>
@@ -891,9 +893,9 @@ const BadgeView: React.FC<BadgeViewProps> = ({
       {/* ChatBot and ChatAvatar */}
       <Suspense fallback={null}>
         <ChatAvatar onClick={onChatToggle} isOpen={isChatOpen} />
-        <ChatBot 
-          isOpen={isChatOpen} 
-          onClose={onChatClose} 
+        <ChatBot
+          isOpen={isChatOpen}
+          onClose={onChatClose}
           currentView="badge"
           currentCategory={category}
           currentBadge={{

@@ -3,7 +3,8 @@ import {
   fixDescriptionFormatting,
   fixCriteriaFormatting,
   extractEvidenceSection,
-  shouldApplyFormatting
+  shouldApplyFormatting,
+  stripDuplicateHeading
 } from '../utils/textFormatting';
 import { useScrollReveal } from '../hooks/useScrollReveal';
 import BadgeIcon from '../components/BadgeIcon';
@@ -72,7 +73,7 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isHeroLoaded, setIsHeroLoaded] = useState(false);
   const [useHeroWebp, setUseHeroWebp] = useState(true);
-  
+
   // State for completion form
   const [reflection, setReflection] = useState('');
   const [showConfetti, setShowConfetti] = useState(false);
@@ -501,7 +502,7 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
           setFavoriteShareStatus(null);
           setFavoriteShareOpen(true);
         },
-        onLimit: () => {},
+        onLimit: () => { },
       });
     }
   };
@@ -549,7 +550,7 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
           addFlagBadgeRequest(levelBaseBadgeId);
         }
       },
-      onLimit: () => {},
+      onLimit: () => { },
     });
   };
 
@@ -722,7 +723,7 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
         />
       );
     }
-    return <div className={className} style={{fontSize: size === 'xlarge' ? '5rem' : '4rem'}}>{b.emoji || '🏆'}</div>;
+    return <div className={className} style={{ fontSize: size === 'xlarge' ? '5rem' : '4rem' }}>{b.emoji || '🏆'}</div>;
   };
 
   const levelHeroImageUrl = useMemo(() => {
@@ -1020,6 +1021,25 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
           </section>
         )}
 
+        {/* Other Levels (Moved Higher) */}
+        {otherLevels.length > 0 && (
+          <div className="levels-dock reveal-on-scroll" style={{ marginBottom: '2rem' }}>
+            {otherLevels.map(lvl => (
+              <div
+                key={lvl.id}
+                className="level-bubble hover-target"
+                onClick={() => onChangeLevel(String(lvl.level))}
+              >
+                <div className="level-bubble-icon">
+                  {renderIcon(lvl, 'xlarge', '')}
+                </div>
+                <div className="level-bubble-title">{lvl.title}</div>
+                <div className="level-bubble-subtitle">{String(lvl.level)}</div>
+              </div>
+            ))}
+          </div>
+        )}
+
         {/* Content Grid */}
         <div className="badge-content-grid">
           {/* Left Column */}
@@ -1031,21 +1051,21 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
               {levelBadge.nameExplanation && (
                 <>
                   <h4>Объяснение названия и ценности</h4>
-                  <p className="content-text">{levelBadge.nameExplanation}</p>
+                  <p className="content-text">{stripDuplicateHeading(levelBadge.nameExplanation, 'Объяснение названия и ценности')}</p>
                 </>
               )}
 
               {levelBadge.skillTips && (
                 <>
                   <h4>Как прокачать навык</h4>
-                  <p className="content-text" dangerouslySetInnerHTML={{__html: levelBadge.skillTips.replace(/\n/g, '<br>')}}></p>
+                  <p className="content-text" dangerouslySetInnerHTML={{ __html: stripDuplicateHeading(levelBadge.skillTips, 'Как прокачать навык').replace(/\n/g, '<br>') }}></p>
                 </>
               )}
 
               {levelBadge.examples && (
                 <>
                   <h4>Примеры</h4>
-                  <p className="content-text" dangerouslySetInnerHTML={{__html: levelBadge.examples.replace(/\n/g, '<br>')}}></p>
+                  <p className="content-text" dangerouslySetInnerHTML={{ __html: levelBadge.examples.replace(/\n/g, '<br>') }}></p>
                 </>
               )}
 
@@ -1066,7 +1086,7 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
               {showHowToBecome && (
                 <>
                   <h4>Как получить</h4>
-                  <p className="content-text" dangerouslySetInnerHTML={{__html: howToBecomeText.replace(/\n/g, '<br>')}}></p>
+                  <p className="content-text" dangerouslySetInnerHTML={{ __html: howToBecomeText.replace(/\n/g, '<br>') }}></p>
                 </>
               )}
 
@@ -1094,9 +1114,9 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
               <div className="content-block" style={{ borderLeft: isCompleted ? '4px solid #4caf50' : '4px solid transparent' }}>
                 <div style={{ display: 'flex', alignItems: 'center', marginBottom: '15px' }}>
                   <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', fontSize: '18px', fontWeight: 'bold' }}>
-                    <input 
-                      type="checkbox" 
-                      checked={isCompleted} 
+                    <input
+                      type="checkbox"
+                      checked={isCompleted}
                       onChange={handleToggleComplete}
                       disabled={mechanicLocked}
                       style={{ width: '24px', height: '24px', marginRight: '10px', accentColor: '#4caf50' }}
@@ -1104,116 +1124,116 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
                     {isCompleted ? 'Уровень выполнен! 🎉' : 'Отметить выполнение'}
                   </label>
                 </div>
-              
-              {!isCompleted && (
-                <div style={{ marginBottom: '15px' }}>
-                  <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', opacity: 0.8 }}>
-                    Рефлексия (обязательно): Что я сделал(а) и чему научился(ась)?
-                  </label>
-                  <textarea
-                    value={reflection}
-                    onChange={(e) => setReflection(e.target.value)}
-                    disabled={mechanicLocked}
-                    placeholder="Кратко опиши свой опыт..."
-                    style={{
-                      width: '100%',
-                      minHeight: '80px',
-                      padding: '10px',
-                      borderRadius: '8px',
-                      border: '1px solid rgba(255,255,255,0.2)',
-                      background: 'rgba(0,0,0,0.2)',
-                      color: 'white',
-                      fontFamily: 'inherit'
-                    }}
-                  />
-                  <button
-                    onClick={handleToggleComplete}
-                    disabled={mechanicLocked || reflection.length < 5}
-                    style={{
-                      marginTop: '10px',
-                      padding: '8px 16px',
-                      background: !mechanicLocked && reflection.length >= 5 ? '#4caf50' : 'rgba(255,255,255,0.1)',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '20px',
-                      cursor: !mechanicLocked && reflection.length >= 5 ? 'pointer' : 'not-allowed',
-                      opacity: !mechanicLocked && reflection.length >= 5 ? 1 : 0.5,
-                      fontWeight: 'bold'
-                    }}
-                  >
-                    Сохранить прогресс
-                  </button>
-                  {canSendBadgeRequest && (
+
+                {!isCompleted && (
+                  <div style={{ marginBottom: '15px' }}>
+                    <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', opacity: 0.8 }}>
+                      Рефлексия (обязательно): Что я сделал(а) и чему научился(ась)?
+                    </label>
+                    <textarea
+                      value={reflection}
+                      onChange={(e) => setReflection(e.target.value)}
+                      disabled={mechanicLocked}
+                      placeholder="Кратко опиши свой опыт..."
+                      style={{
+                        width: '100%',
+                        minHeight: '80px',
+                        padding: '10px',
+                        borderRadius: '8px',
+                        border: '1px solid rgba(255,255,255,0.2)',
+                        background: 'rgba(0,0,0,0.2)',
+                        color: 'white',
+                        fontFamily: 'inherit'
+                      }}
+                    />
                     <button
-                      type="button"
-                      onClick={() => void handleSendBadgeRequest()}
-                      disabled={mechanicLocked || badgeRequestBusy}
+                      onClick={handleToggleComplete}
+                      disabled={mechanicLocked || reflection.length < 5}
                       style={{
                         marginTop: '10px',
-                        marginLeft: '10px',
                         padding: '8px 16px',
-                        background: 'rgba(255, 215, 0, 0.18)',
-                        color: '#FFD700',
-                        border: '1px solid rgba(255, 215, 0, 0.45)',
+                        background: !mechanicLocked && reflection.length >= 5 ? '#4caf50' : 'rgba(255,255,255,0.1)',
+                        color: 'white',
+                        border: 'none',
                         borderRadius: '20px',
-                        cursor: badgeRequestBusy ? 'not-allowed' : 'pointer',
-                        opacity: badgeRequestBusy ? 0.6 : 1,
+                        cursor: !mechanicLocked && reflection.length >= 5 ? 'pointer' : 'not-allowed',
+                        opacity: !mechanicLocked && reflection.length >= 5 ? 1 : 0.5,
                         fontWeight: 'bold'
                       }}
                     >
-                      {badgeRequestBusy ? 'Отправка...' : 'Отправить на подтверждение вожатому'}
+                      Сохранить прогресс
                     </button>
-                  )}
-                </div>
-              )}
-              {badgeRequestStatus && (
-                <div style={{ marginTop: 8, fontSize: 12, opacity: 0.86 }}>{badgeRequestStatus}</div>
-              )}
+                    {canSendBadgeRequest && (
+                      <button
+                        type="button"
+                        onClick={() => void handleSendBadgeRequest()}
+                        disabled={mechanicLocked || badgeRequestBusy}
+                        style={{
+                          marginTop: '10px',
+                          marginLeft: '10px',
+                          padding: '8px 16px',
+                          background: 'rgba(255, 215, 0, 0.18)',
+                          color: '#FFD700',
+                          border: '1px solid rgba(255, 215, 0, 0.45)',
+                          borderRadius: '20px',
+                          cursor: badgeRequestBusy ? 'not-allowed' : 'pointer',
+                          opacity: badgeRequestBusy ? 0.6 : 1,
+                          fontWeight: 'bold'
+                        }}
+                      >
+                        {badgeRequestBusy ? 'Отправка...' : 'Отправить на подтверждение вожатому'}
+                      </button>
+                    )}
+                  </div>
+                )}
+                {badgeRequestStatus && (
+                  <div style={{ marginTop: 8, fontSize: 12, opacity: 0.86 }}>{badgeRequestStatus}</div>
+                )}
 
-              {isCompleted && currentProgress?.reflection && (
-                <div style={{ 
-                  background: 'rgba(76, 175, 80, 0.1)', 
-                  padding: '10px', 
-                  borderRadius: '8px', 
-                  fontSize: '14px',
-                  fontStyle: 'italic',
-                  marginTop: '10px'
-                }}>
-                  "{currentProgress.reflection}"
-                </div>
-              )}
+                {isCompleted && currentProgress?.reflection && (
+                  <div style={{
+                    background: 'rgba(76, 175, 80, 0.1)',
+                    padding: '10px',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    fontStyle: 'italic',
+                    marginTop: '10px'
+                  }}>
+                    "{currentProgress.reflection}"
+                  </div>
+                )}
 
-              {isCompleted && (
-                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '12px' }}>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShareModalOpen(true);
-                      if (!shareStory || !shareWide) {
-                        void handleGenerateAchievementShareCards();
-                      }
-                    }}
-                    style={{
-                      padding: '12px 20px',
-                      borderRadius: '14px',
-                      border: 'none',
-                      background: 'linear-gradient(90deg, #8b00ff, #4dacff)',
-                      color: 'white',
-                      cursor: 'pointer',
-                      fontSize: '13px',
-                      fontWeight: 800,
-                      letterSpacing: '0.5px',
-                      textTransform: 'uppercase',
-                      boxShadow: '0 4px 15px rgba(139, 0, 255, 0.3)',
-                      transition: 'transform 0.2s'
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
-                    onMouseLeave={(e) => e.currentTarget.style.transform = 'none'}
-                  >
-                    🚀 Поделиться успехом
-                  </button>
-                </div>
-              )}
+                {isCompleted && (
+                  <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '12px' }}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShareModalOpen(true);
+                        if (!shareStory || !shareWide) {
+                          void handleGenerateAchievementShareCards();
+                        }
+                      }}
+                      style={{
+                        padding: '12px 20px',
+                        borderRadius: '14px',
+                        border: 'none',
+                        background: 'linear-gradient(90deg, #8b00ff, #4dacff)',
+                        color: 'white',
+                        cursor: 'pointer',
+                        fontSize: '13px',
+                        fontWeight: 800,
+                        letterSpacing: '0.5px',
+                        textTransform: 'uppercase',
+                        boxShadow: '0 4px 15px rgba(139, 0, 255, 0.3)',
+                        transition: 'transform 0.2s'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+                      onMouseLeave={(e) => e.currentTarget.style.transform = 'none'}
+                    >
+                      🚀 Поделиться успехом
+                    </button>
+                  </div>
+                )}
               </div>
             </FeatureGate>
 
@@ -1240,25 +1260,6 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
                 </>
               )}
             </div>
-
-            {/* Other Levels */}
-            {otherLevels.length > 0 && (
-              <div className="levels-dock">
-                {otherLevels.map(lvl => (
-                  <div
-                    key={lvl.id}
-                    className="level-bubble hover-target"
-                    onClick={() => onChangeLevel(String(lvl.level))}
-                  >
-                    <div className="level-bubble-icon">
-                      {renderIcon(lvl, 'xlarge', '')}
-                    </div>
-                    <div className="level-bubble-title">{lvl.title}</div>
-                    <div className="level-bubble-subtitle">{String(lvl.level)}</div>
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
         </div>
       </main>

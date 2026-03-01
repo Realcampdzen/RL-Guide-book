@@ -194,6 +194,18 @@ dev-debug.log
 *.sw?
 # OS specific
 
+# Smoke test logs (dev-only)
+backend/.smoke_app_err.txt
+backend/.smoke_app_log.txt
+tsc-errors.txt
+
+# Test workspaces
+badge-test-prototype/
+
+# Agent patch scripts (development only)
+_patch_*.py
+_m6_*.py
+
 # Task files
 # tasks.json
 # tasks/ 
