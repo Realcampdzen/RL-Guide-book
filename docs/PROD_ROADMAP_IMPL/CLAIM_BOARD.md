@@ -118,6 +118,26 @@ M7-REQUIRESAPPROVAL-C ──► M7-SHARE-TRIGGERS-B
 
 ---
 
+## Спринт M8 — Staff Ops + Council + Counselor Squad (с 2026-03-02)
+
+| Агент | Task ID | Задача | Статус | Дата начала | Зависимость | Отчёт |
+|-------|---------|--------|--------|-------------|-------------|-------|
+| **Agent A** | M8-COUNCIL-INITIATIVES-A | Совет Лагеря: CRUD инициатив + голосование + migration 004 + Smoke L | ✅ done | 2026-03-02 | None | PATCH+vote + Flow L (3 checks) |
+| **Agent A** | M8-COUNSELOR-SQUAD-A | Отряд вожатых: Squad kind=staff, фильтрация, migration 005 + Smoke M | ✅ done | 2026-03-02 | None | kind field + Flow M (2 checks) |
+| **Agent B** | M8-COUNCIL-UI-B | Совет: UI инициатив (список/создание/голосование/статусы) | 🔜 pending | — | Ждёт M8-COUNCIL-INITIATIVES-A | — |
+| **Agent B** | M8-STAFF-DASHBOARD-B | Staff dashboard: счётчики, участники, быстрые действия | ✅ done | 2026-03-02 | None | StaffDashboardPanel.tsx + ProfileView |
+| **Agent C** | M8-EDUCATOR-CABINET-C | Кабинет педагога v2: задания, проверки, промпт | ✅ done | 2026-03-02 | None | EducatorTask + workshop tabs + prompt |
+
+**Зависимости M8:**
+```
+M8-COUNCIL-INITIATIVES-A ──► M8-COUNCIL-UI-B
+M8-COUNSELOR-SQUAD-A (параллельно)
+M8-STAFF-DASHBOARD-B (параллельно)
+M8-EDUCATOR-CABINET-C (параллельно)
+```
+
+---
+
 ## История выполненных задач (архив)
 
 | Агент | Task ID | Задача | Дата завершения | Отчёт |

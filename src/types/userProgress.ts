@@ -90,6 +90,18 @@ export type WingPlanGridData = {
   days: Record<string, { morning?: string; quietHour?: string; day?: string; evening?: string; night?: string }>;
 };
 
+/** Задание педагога (Educator Cabinet v2) */
+export interface EducatorTask {
+  id: string;
+  title: string;
+  description: string;
+  badgeId?: string;        // связь с значком
+  assignedTo: string[];    // device_ids участников
+  dueDate?: string;
+  status: 'draft' | 'assigned' | 'completed';
+  createdAt: string;
+}
+
 export interface IUserData {
   profile: IUserProfile;
   progress: Record<BadgeLevelId, ILevelProgress>; // The main progress map
@@ -180,6 +192,8 @@ export interface IUserData {
   badgePlans?: Record<string, IBadgePlan>;
   /** Чек-лист «Путеводные огни» (Вожатификатор): отмеченные пункты по id */
   vozhatifikatorChecklist?: { completedIds: string[] };
+  /** Задания педагога (educator cabinet v2) */
+  educatorTasks?: EducatorTask[];
 }
 
 /** Payload for "parent report" — only achieved progress + minimal profile, for viewing by parent (file or ?parent_view= link). */

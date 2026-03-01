@@ -652,6 +652,68 @@
 
 ---
 
+### 3.8 Council Initiatives Extended (M8-COUNCIL-INITIATIVES-A)
+
+#### `PATCH /api/council/initiatives/{id}`
+
+**Auth:** `counselor | educator | shift_leader | camp_director | developer`  
+**Body:**
+```json
+{
+  "status":      "string (optional: idea|proposed|discussed|approved|in_progress|done)",
+  "teamId":      "string | null (optional)",
+  "description": "string (optional, max 2000 chars)"
+}
+```
+
+**Response 200:**
+```json
+{
+  "initiative": {
+    "id":       "string (mandatory)",
+    "status":   "string (mandatory)",
+    "updatedAt": "string ISO8601 (mandatory)"
+  }
+}
+```
+
+**HTTP 404** если инициатива не найдена.
+
+---
+
+#### `POST /api/council/initiatives/{id}/vote`
+
+**Auth:** `CHAT_ALLOWED_ROLES` (participant+staff)  
+**Body:** empty or `{}`  
+**Response 200:**
+```json
+{
+  "initiative": {
+    "id":      "string (mandatory)",
+    "votesUp": "integer (mandatory)",
+    "voters":  "array (mandatory)"
+  },
+  "voted": "boolean (mandatory) — true если голос поставлен, false если снят"
+}
+```
+
+Тоггл: повторный вызов снимает голос.
+
+---
+
+### 3.9 Squad Kind (M8-COUNSELOR-SQUAD-A)
+
+**Расширение `POST /api/shifts/{shiftId}/squads`:**
+- Новое поле в body: `kind` (optional, default `"participant"`, values: `"participant" | "staff"`)
+- `kind=staff` может создать только shift_leader/camp_director/developer → 403 для counselor/educator
+- Поле `kind` возвращается в response squad object
+
+**Расширение `GET /api/shifts/{shiftId}/squads`:**
+- Новый query param: `?kind=participant|staff` (optional)
+- Без фильтра → все отряды (обратная совместимость)
+
+---
+
 ## 4. Breaking vs Non-Breaking — Классификация
 
 | Тип изменения | Breaking? | Комментарий |
@@ -677,7 +739,7 @@
 Контракты автоматически проверяются скриптом:
 
 ```bash
-# С AUTH_SECRET — полный прогон (58 checks):
+# С AUTH_SECRET — полный прогон (63 checks):
 # Windows (cp1251): запускать с -X utf8 для корректного вывода
 AUTH_SECRET=<secret> python -X utf8 backend/scripts/smoke_backend_critical.py --base-url http://localhost:4000
 
@@ -703,7 +765,9 @@ python backend/scripts/smoke_backend_critical.py --base-url http://localhost:400
 | I | Telegram agent-post: no auth → 401, unknown agent → 404, missing root_message_id → 400 (M5-R5-C) | 3 |
 | J | Badge Plans (submit → inbox → approve → mine) (M7-PLAN-WORKFLOW-A) | 4 |
 | K | Educator RBAC: educator JWT → requests inbox 200, plans inbox 200 (M7-EDUCATOR-RBAC-A) | 2 |
-| **Total** | | **58** |
+| L | Council Initiatives extended: create → list → PATCH status (M8-COUNCIL-INITIATIVES-A) | 3 |
+| M | Staff Squad: create kind=staff → filter ?kind=staff (M8-COUNSELOR-SQUAD-A) | 2 |
+| **Total** | | **63** |
 
 **Flow D** (M5-R2-B, `/api/badges/requests/mine`):
 - D-1: GET /mine → 200, requests is list

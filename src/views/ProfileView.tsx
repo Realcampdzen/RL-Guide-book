@@ -64,6 +64,7 @@ import {
   reviewPlan,
   type BadgePlanItem
 } from '../utils/badgePlanApi';
+import { StaffDashboardPanel } from '../components/StaffDashboardPanel';
 import { VOZHATIFIKATOR_CHECKLIST_ITEMS } from '../data/vozhatifikatorChecklist';
 import { QRCodeSVG } from 'qrcode.react';
 import '../styles/profile-view.css';
@@ -109,7 +110,7 @@ type Tab = 'active' | 'favorites' | 'collection' | 'journal' | 'workshop' | 'squ
 type SquadCornerTabId = 'squad' | 'photos' | 'planner' | 'flag-badges';
 type BroTabId = 'initiation' | 'wing';
 type ShareTabId = 'create-card' | 'invite';
-type WorkshopTabId = 'architect' | 'forge' | 'ideas' | 'my';
+type WorkshopTabId = 'architect' | 'forge' | 'ideas' | 'my' | 'tasks' | 'reviews';
 
 type PanelViewId = 'passport' | 'inspector' | 'profile4k' | 'counselor-squad' | 'wing' | 'squad-corner' | 'real-diary' | 'team' | 'council' | 'bro' | 'workshop' | 'share' | 'vozhatifikator' | 'parents';
 const DEFAULT_SHIFT_NAME = 'Реальный Лагерь 2026';
@@ -206,6 +207,11 @@ export const ProfileView: React.FC<any> = (props) => {
   const [proofPhotoCount, setProofPhotoCount] = useState(0);
   const proofPhotoInputRef = useRef<HTMLInputElement | null>(null);
   const [workshopForm, setWorkshopForm] = useState({ title: '', description: '', skill: 'critical', level1: '', level2: '', image: null as string | null });
+  // Educator cabinet state
+  const [eduTaskForm, setEduTaskForm] = useState({ title: '', description: '', badgeId: '' });
+  const [eduPlansInbox, setEduPlansInbox] = useState<BadgePlanItem[]>([]);
+  const [eduPlansLoading, setEduPlansLoading] = useState(false);
+  const [eduReviewBusy, setEduReviewBusy] = useState<string | null>(null);
   const importInputRef = useRef<HTMLInputElement | null>(null);
   const avatarUploadInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -417,11 +423,11 @@ export const ProfileView: React.FC<any> = (props) => {
     void loadOrganizerData();
   }, [showOrganizerPanel, loadOrganizerData]);
 
-  const [openBubble, setOpenBubble] = useState<'bot' | 'events' | 'backup' | 'code' | 'role' | null>(null);
+  const [openBubble, setOpenBubble] = useState<'bot' | 'events' | 'backup' | 'code' | 'role' | 'staff-dashboard' | null>(null);
   const [utilityBubblesExpanded, setUtilityBubblesExpanded] = useState(false);
   useEffect(() => {
     if (utilityBubblesExpanded) return;
-    if (openBubble === 'events' || openBubble === 'backup' || openBubble === 'role') {
+    if (openBubble === 'events' || openBubble === 'backup' || openBubble === 'role' || openBubble === 'staff-dashboard') {
       setOpenBubble(null);
     }
   }, [utilityBubblesExpanded, openBubble]);
@@ -2866,6 +2872,177 @@ export const ProfileView: React.FC<any> = (props) => {
               )}
             </section>
           )}
+          {workshopActiveTab === 'tasks' && canModerateApprovals && (() => {
+            const tasks = userData?.educatorTasks || [];
+            return (
+              <section id="workshop-section-tasks" className="workshop-view__section">
+                <div className="workshop-form workshop-form--card">
+                  <h3 style={{ color: '#FFD700', marginTop: 0 }}>📝 Задания педагога</h3>
+                  <p style={{ fontSize: 12, opacity: 0.8, marginTop: -4, marginBottom: 12 }}>Создайте задание для участников. Можно привязать к значку.</p>
+                  <input
+                    value={eduTaskForm.title}
+                    onChange={e => setEduTaskForm(prev => ({ ...prev, title: e.target.value }))}
+                    placeholder="Название задания"
+                    className="w-input"
+                    style={{ marginBottom: 8 }}
+                  />
+                  <textarea
+                    value={eduTaskForm.description}
+                    onChange={e => setEduTaskForm(prev => ({ ...prev, description: e.target.value }))}
+                    placeholder="Описание задания..."
+                    className="w-input"
+                    style={{ minHeight: 80, marginBottom: 8 }}
+                  />
+                  <input
+                    value={eduTaskForm.badgeId}
+                    onChange={e => setEduTaskForm(prev => ({ ...prev, badgeId: e.target.value }))}
+                    placeholder="ID значка (опционально, например 1.1)"
+                    className="w-input"
+                    style={{ marginBottom: 12 }}
+                  />
+                  <button
+                    type="button"
+                    className="btn-primary-gold"
+                    style={{ width: '100%' }}
+                    disabled={!eduTaskForm.title.trim()}
+                    onClick={() => {
+                      if (!eduTaskForm.title.trim()) return;
+                      const newTask = {
+                        id: `edu-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+                        title: eduTaskForm.title.trim(),
+                        description: eduTaskForm.description.trim(),
+                        badgeId: eduTaskForm.badgeId.trim() || undefined,
+                        assignedTo: [] as string[],
+                        status: 'draft' as const,
+                        createdAt: new Date().toISOString(),
+                      };
+                      try {
+                        const raw = localStorage.getItem('rl_guide_progress_v1');
+                        const data = raw ? JSON.parse(raw) : {};
+                        data.educatorTasks = [...(data.educatorTasks || []), newTask];
+                        localStorage.setItem('rl_guide_progress_v1', JSON.stringify(data));
+                      } catch (_) { /* ignore */ }
+                      setEduTaskForm({ title: '', description: '', badgeId: '' });
+                      showHint({ title: 'Задание создано', content: `«${newTask.title}» добавлено в черновики.` });
+                    }}
+                  >
+                    Создать задание
+                  </button>
+                </div>
+                <div className="workshop-my-proposals workshop-my-proposals--card" style={{ marginTop: 16 }}>
+                  <h3 style={{ color: 'rgba(255,255,255,0.9)', marginTop: 0, fontSize: '16px' }}>Мои задания ({tasks.length})</h3>
+                  {tasks.length === 0 ? (
+                    <p style={{ margin: 0, fontSize: '14px', opacity: 0.7 }}>Пока нет заданий. Создайте первое выше.</p>
+                  ) : (
+                    <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                      {tasks.map((t) => (
+                        <li key={t.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '12px 0', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontWeight: 600, fontSize: 14 }}>{t.title}</div>
+                            {t.description && <div style={{ fontSize: 12, opacity: 0.75, marginTop: 2 }}>{t.description.slice(0, 80)}{t.description.length > 80 ? '…' : ''}</div>}
+                            <div style={{ fontSize: 11, opacity: 0.6, marginTop: 4 }}>
+                              {t.status === 'draft' ? '⬜ Черновик' : t.status === 'assigned' ? '📤 Назначено' : '✅ Завершено'}
+                              {t.badgeId && <span> · Значок {t.badgeId}</span>}
+                            </div>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </section>
+            );
+          })()}
+          {workshopActiveTab === 'reviews' && canModerateApprovals && (() => {
+            const loadInbox = async () => {
+              if (!accessToken) return;
+              setEduPlansLoading(true);
+              try {
+                const plans = await fetchPlansInbox(accessToken);
+                setEduPlansInbox(plans);
+              } catch (e) {
+                console.error('Failed to load plans inbox:', e);
+              } finally {
+                setEduPlansLoading(false);
+              }
+            };
+            return (
+              <section id="workshop-section-reviews" className="workshop-view__section">
+                <div className="workshop-my-proposals workshop-my-proposals--card">
+                  <h3 style={{ color: '#FFD700', marginTop: 0 }}>✅ Проверки планов</h3>
+                  <p style={{ fontSize: 12, opacity: 0.8, marginTop: -4, marginBottom: 12 }}>Планы участников, ожидающие проверки.</p>
+                  <button type="button" className="btn-secondary" style={{ marginBottom: 16 }} onClick={loadInbox} disabled={eduPlansLoading}>
+                    {eduPlansLoading ? 'Загрузка…' : 'Обновить'}
+                  </button>
+                  {eduPlansInbox.length === 0 && !eduPlansLoading && (
+                    <p style={{ margin: 0, fontSize: 14, opacity: 0.7 }}>Нет планов на проверку. Нажмите «Обновить» для загрузки.</p>
+                  )}
+                  {eduPlansInbox.length > 0 && (
+                    <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                      {eduPlansInbox.map((plan) => (
+                        <li key={plan.id} style={{ padding: '14px 0', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                          <div style={{ fontWeight: 600, fontSize: 14 }}>Значок {plan.badgeId}{plan.levelId ? ` · Уровень ${plan.levelId}` : ''}</div>
+                          <div style={{ fontSize: 13, opacity: 0.85, marginTop: 4, whiteSpace: 'pre-wrap' }}>{plan.planText.slice(0, 200)}{plan.planText.length > 200 ? '…' : ''}</div>
+                          {plan.checklist && plan.checklist.length > 0 && (
+                            <div style={{ fontSize: 12, opacity: 0.7, marginTop: 4 }}>
+                              Чек-лист: {plan.checklist.filter(c => c.done).length}/{plan.checklist.length} выполнено
+                            </div>
+                          )}
+                          <div style={{ fontSize: 11, opacity: 0.6, marginTop: 4 }}>Статус: {plan.status} · {new Date(plan.createdAt).toLocaleDateString()}</div>
+                          {plan.status === 'submitted' && (
+                            <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+                              <button
+                                type="button"
+                                className="btn-confirm-main"
+                                style={{ fontSize: 12, padding: '6px 14px' }}
+                                disabled={eduReviewBusy === plan.id}
+                                onClick={async () => {
+                                  if (!accessToken) return;
+                                  setEduReviewBusy(plan.id);
+                                  try {
+                                    await reviewPlan(accessToken, plan.id, 'approved');
+                                    setEduPlansInbox(prev => prev.map(p => p.id === plan.id ? { ...p, status: 'approved' as const } : p));
+                                    showHint({ title: 'Одобрено', content: `План для значка ${plan.badgeId} одобрен.` });
+                                  } catch (e) {
+                                    showHint({ title: 'Ошибка', content: 'Не удалось одобрить план.' });
+                                  } finally {
+                                    setEduReviewBusy(null);
+                                  }
+                                }}
+                              >
+                                Одобрить
+                              </button>
+                              <button
+                                type="button"
+                                className="btn-secondary"
+                                style={{ fontSize: 12, padding: '6px 14px' }}
+                                disabled={eduReviewBusy === plan.id}
+                                onClick={async () => {
+                                  if (!accessToken) return;
+                                  setEduReviewBusy(plan.id);
+                                  try {
+                                    await reviewPlan(accessToken, plan.id, 'rejected');
+                                    setEduPlansInbox(prev => prev.map(p => p.id === plan.id ? { ...p, status: 'rejected' as const } : p));
+                                    showHint({ title: 'Отклонено', content: `План для значка ${plan.badgeId} отклонён.` });
+                                  } catch (e) {
+                                    showHint({ title: 'Ошибка', content: 'Не удалось отклонить план.' });
+                                  } finally {
+                                    setEduReviewBusy(null);
+                                  }
+                                }}
+                              >
+                                Отклонить
+                              </button>
+                            </div>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </section>
+            );
+          })()}
         </div>
       )}
       {panelActiveView === 'share' && (
@@ -3152,12 +3329,16 @@ export const ProfileView: React.FC<any> = (props) => {
     { id: 'invite' as const, label: 'Пригласить друзей', icon: '🤝' },
   ] satisfies Array<{ id: ShareTabId; label: string; icon: string }>;
 
-  const workshopTabItems = [
+  const workshopTabItems: Array<{ id: WorkshopTabId; label: string; icon: string }> = [
     { id: 'architect' as const, label: 'Архитектор отряда', icon: '🏛️' },
     { id: 'forge' as const, label: 'Кузница смыслов', icon: '⚒️' },
     { id: 'ideas' as const, label: 'Идеи отряда', icon: '💡' },
     { id: 'my' as const, label: 'Мои предложения', icon: '📋' },
-  ] satisfies Array<{ id: WorkshopTabId; label: string; icon: string }>;
+    ...(canModerateApprovals ? [
+      { id: 'tasks' as const, label: 'Задания', icon: '📝' },
+      { id: 'reviews' as const, label: 'Проверки', icon: '✅' },
+    ] : []),
+  ];
 
   const inspectorTabItems = [
     { id: 'friendship' as const, label: 'Инспектор Дружбы', icon: '🤝' },
@@ -5147,6 +5328,11 @@ export const ProfileView: React.FC<any> = (props) => {
             Бэкап
           </button>
         )}
+        {canModerateApprovals && utilityBubblesExpanded && (
+          <button type="button" className="profile-utility-bubble profile-utility-bubble--events" onClick={() => setOpenBubble(openBubble === 'staff-dashboard' ? null : 'staff-dashboard')} title="Панель staff">
+            Staff
+          </button>
+        )}
         {showSandbox && utilityBubblesExpanded && (
           <button type="button" className="profile-utility-bubble profile-utility-bubble--role" onClick={() => setOpenBubble(openBubble === 'role' ? null : 'role')} title="Роль для теста">
             Роль
@@ -5983,6 +6169,31 @@ export const ProfileView: React.FC<any> = (props) => {
                 </button>
               )}
             </div>
+          </div>
+        </div>
+      )}
+      {openBubble === 'staff-dashboard' && canModerateApprovals && (
+        <div id="profile-staff-dashboard-panel" className="profile-utility-panel" role="dialog" aria-modal="true" aria-labelledby="profile-panel-staff-dashboard-title" onClick={e => e.stopPropagation()}>
+          <div className="profile-utility-panel-header">
+            <span id="profile-panel-staff-dashboard-title">Панель staff</span>
+            <button type="button" className="profile-utility-panel-close" onClick={() => setOpenBubble(null)} aria-label="Закрыть"><Icons.Close /></button>
+          </div>
+          <div className="profile-utility-panel-body">
+            <StaffDashboardPanel
+              pendingRequests={badgeRequestsInbox.filter(r => r.status === 'pending').length}
+              pendingPlans={plansInbox.filter(p => p.status === 'submitted').length}
+              approvedToday={badgeRequestsInbox.filter(r => {
+                if (r.status !== 'approved' || !r.resolvedAt) return false;
+                const d = new Date(r.resolvedAt);
+                const now = new Date();
+                return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
+              }).length}
+              squadMembers={(mySquadInfo?.members || mySquadInfo?.participants || []).map(m => ({ deviceId: m.deviceId, nickname: m.nickname, role: ('role' in m ? (m as { role?: string }).role : undefined) }))}
+              onOpenRequestsInbox={() => { setOpenBubble('events'); setEventsTab('approvals'); }}
+              onOpenPlansInbox={() => { setOpenBubble('events'); setEventsTab('plans'); if (plansInbox.length === 0 && !plansInboxBusy && accessToken) { setPlansInboxBusy(true); setPlansInboxError(null); fetchPlansInbox(accessToken).then(plans => setPlansInbox(plans)).catch(e => setPlansInboxError(e instanceof Error ? e.message : 'Ошибка')).finally(() => setPlansInboxBusy(false)); } }}
+              onRefresh={async () => { if (!accessToken) return; await loadBadgeApprovalsData(); await loadMySquadInfo(); if (canModerateApprovals) { setPlansInboxBusy(true); fetchPlansInbox(accessToken).then(plans => setPlansInbox(plans)).catch(() => { }).finally(() => setPlansInboxBusy(false)); } }}
+              busy={badgeRequestsBusy || plansInboxBusy || mySquadBusy}
+            />
           </div>
         </div>
       )}

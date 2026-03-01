@@ -68,6 +68,75 @@
         "role": "shift_leader"
       },
       "resolutionNote": "Smoke test approval"
+    },
+    {
+      "id": "BR-DC41DF27A7",
+      "createdAt": "2026-03-01T23:28:06.757420+00:00",
+      "status": "approved",
+      "levelId": "1.1.1",
+      "badgeTitle": "Smoke-Test Badge",
+      "requestedBy": {
+        "deviceId": "smoke_p_79af8765",
+        "nickname": "SmokeParticipant"
+      },
+      "campId": "",
+      "squadId": null,
+      "evidence": {
+        "reflection": "Smoke test reflection",
+        "impact": "Smoke test impact"
+      },
+      "resolvedAt": "2026-03-01T23:28:10.867368+00:00",
+      "resolvedBy": {
+        "deviceId": "smoke_s_4ca7ee0e",
+        "role": "shift_leader"
+      },
+      "resolutionNote": "Smoke test approval"
+    },
+    {
+      "id": "BR-0CCA8F7640",
+      "createdAt": "2026-03-01T23:44:58.419266+00:00",
+      "status": "approved",
+      "levelId": "1.1.1",
+      "badgeTitle": "Smoke-Test Badge",
+      "requestedBy": {
+        "deviceId": "smoke_p_30139fbe",
+        "nickname": "SmokeParticipant"
+      },
+      "campId": "",
+      "squadId": null,
+      "evidence": {
+        "reflection": "Smoke test reflection",
+        "impact": "Smoke test impact"
+      },
+      "resolvedAt": "2026-03-01T23:45:02.533812+00:00",
+      "resolvedBy": {
+        "deviceId": "smoke_s_0ae71303",
+        "role": "shift_leader"
+      },
+      "resolutionNote": "Smoke test approval"
+    },
+    {
+      "id": "BR-49976E96FB",
+      "createdAt": "2026-03-01T23:49:41.129153+00:00",
+      "status": "approved",
+      "levelId": "1.1.1",
+      "badgeTitle": "Smoke-Test Badge",
+      "requestedBy": {
+        "deviceId": "smoke_p_46ac0e1e",
+        "nickname": "SmokeParticipant"
+      },
+      "campId": "",
+      "squadId": null,
+      "evidence": {
+        "reflection": "Smoke test reflection",
+        "impact": "Smoke test impact"
+      },
+      "resolvedAt": "2026-03-01T23:49:45.250966+00:00",
+      "resolvedBy": {
+        "deviceId": "smoke_s_6976fda6",
+        "role": "shift_leader"
+      },
+      "resolutionNote": "Smoke test approval"
     }
   ]
 }

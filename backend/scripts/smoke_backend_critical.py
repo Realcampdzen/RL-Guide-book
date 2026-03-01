@@ -1147,6 +1147,127 @@ class SmokeRunner:
             )
 
     # -----------------------------------------------------------------------
+    # Flow L — Council Initiatives extended (M8-COUNCIL-INITIATIVES-A)
+    # -----------------------------------------------------------------------
+
+    def run_flow_l(self) -> None:
+        """Flow L: council initiative PATCH status."""
+        print("\n[Flow L] Council Initiatives: create → GET → PATCH status")
+        if not self.auth_secret:
+            print("  SKIP  (no AUTH_SECRET)")
+            return
+
+        participant_device = f"smoke_cl_{uuid.uuid4().hex[:8]}"
+        participant_token = self._get_jwt(participant_device, "participant")
+        if not participant_token:
+            return
+        staff_device = f"smoke_cls_{uuid.uuid4().hex[:8]}"
+        staff_token = self._get_jwt(staff_device, "shift_leader")
+        if not staff_token:
+            return
+
+        # L-1: POST initiative → 201
+        try:
+            status_l1, body_l1 = _http(
+                self._url("/api/council/initiatives"),
+                method="POST",
+                body={"title": "Smoke L test initiative", "description": "Auto-test"},
+                headers=self._bearer(participant_token),
+            )
+        except SmokeError as exc:
+            self.fail("POST /api/council/initiatives (L-1)", str(exc))
+            return
+        ci_id = body_l1.get("id", "")
+        self.check("POST /api/council/initiatives — L-1: 201 + id", status_l1 == 201 and bool(ci_id), f"status={status_l1}, id={ci_id}")
+
+        # L-2: GET list → contains created
+        try:
+            status_l2, body_l2 = _http(
+                self._url("/api/council/initiatives"),
+                headers=self._bearer(participant_token),
+            )
+        except SmokeError as exc:
+            self.fail("GET /api/council/initiatives (L-2)", str(exc))
+            return
+        found = any(i.get("id") == ci_id for i in body_l2.get("initiatives", []))
+        self.check("GET /api/council/initiatives — L-2: initiative in list", found, f"id={ci_id} not in list")
+
+        # L-3: PATCH status → 200
+        try:
+            status_l3, body_l3 = _http(
+                self._url(f"/api/council/initiatives/{ci_id}"),
+                method="PATCH",
+                body={"status": "approved"},
+                headers=self._bearer(staff_token),
+            )
+        except SmokeError as exc:
+            self.fail(f"PATCH /api/council/initiatives/{ci_id} (L-3)", str(exc))
+            return
+        patched_status = body_l3.get("initiative", {}).get("status", "")
+        self.check("PATCH initiative — L-3: status=approved", status_l3 == 200 and patched_status == "approved", f"status={status_l3}, got={patched_status}")
+
+    # -----------------------------------------------------------------------
+    # Flow M — Staff Squad kind (M8-COUNSELOR-SQUAD-A)
+    # -----------------------------------------------------------------------
+
+    def run_flow_m(self) -> None:
+        """Flow M: create staff-squad + filter by kind."""
+        print("\n[Flow M] Staff Squad: create kind=staff → filter")
+        if not self.auth_secret:
+            print("  SKIP  (no AUTH_SECRET)")
+            return
+
+        staff_device = f"smoke_ms_{uuid.uuid4().hex[:8]}"
+        staff_token = self._get_jwt(staff_device, "shift_leader")
+        if not staff_token:
+            return
+
+        # Get first shift id
+        try:
+            _, shifts_body = _http(
+                self._url("/api/shifts"),
+                headers=self._bearer(staff_token),
+            )
+        except SmokeError as exc:
+            self.fail("GET /api/shifts (Flow M setup)", str(exc))
+            return
+        shifts = shifts_body.get("shifts", [])
+        if not shifts:
+            self.fail("Flow M setup", "no shifts found")
+            return
+        shift_id = shifts[0].get("id", "")
+
+        # M-1: create staff-squad → 201 with kind=staff
+        try:
+            status_m1, body_m1 = _http(
+                self._url(f"/api/shifts/{shift_id}/squads"),
+                method="POST",
+                body={"name": f"Staff Squad Smoke {uuid.uuid4().hex[:4]}", "kind": "staff"},
+                headers=self._bearer(staff_token),
+            )
+        except SmokeError as exc:
+            self.fail("POST staff squad (M-1)", str(exc))
+            return
+        sq = body_m1.get("squad", {})
+        sq_id = sq.get("id", "")
+        sq_kind = sq.get("kind", "")
+        self.check("POST staff squad — M-1: 201 + kind=staff", status_m1 == 200 and sq_kind == "staff", f"status={status_m1}, kind={sq_kind}")
+
+        # M-2: GET squads?kind=staff → contains only staff
+        try:
+            status_m2, body_m2 = _http(
+                self._url(f"/api/shifts/{shift_id}/squads?kind=staff"),
+                headers=self._bearer(staff_token),
+            )
+        except SmokeError as exc:
+            self.fail("GET squads?kind=staff (M-2)", str(exc))
+            return
+        staff_squads = body_m2.get("squads", [])
+        all_staff = all(s.get("kind", "participant") == "staff" for s in staff_squads)
+        has_ours = any(s.get("id") == sq_id for s in staff_squads)
+        self.check("GET squads?kind=staff — M-2: only staff + ours found", all_staff and has_ours, f"all_staff={all_staff} has_ours={has_ours}")
+
+    # -----------------------------------------------------------------------
     # Run all
     # -----------------------------------------------------------------------
 
@@ -1174,6 +1295,8 @@ class SmokeRunner:
         self.run_flow_i()
         self.run_flow_j()
         self.run_flow_k()
+        self.run_flow_l()
+        self.run_flow_m()
         return self._print_summary()
 
     def _print_summary(self) -> int:

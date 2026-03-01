@@ -2381,10 +2381,13 @@ def squads_list(shift_id: str):
         if not isinstance(corners, dict):
             corners = {}
         squads = []
+        kind_filter = (request.args.get("kind") or "").strip()
         for s in (data.get("squads") or []):
             if not isinstance(s, dict):
                 continue
             if (s.get("shiftId") or "").strip() != sid:
+                continue
+            if kind_filter and (s.get("kind") or "participant") != kind_filter:
                 continue
             squad = dict(s)
             squad["avatarUrl"] = _pick_squad_avatar(corners.get((s.get("id") or "").strip()))
@@ -2420,6 +2423,9 @@ def squads_create(shift_id: str):
         name = (body.get("name") or "").strip()
         if not name:
             return jsonify({"error": "name required"}), 400
+        kind = (body.get("kind") or "participant").strip()
+        if kind not in ("participant", "staff"):
+            return jsonify({"error": "kind must be 'participant' or 'staff'"}), 400
         doc = _shifts_load()
         shift = _find_shift(doc, sid)
         if not shift:
@@ -2427,6 +2433,11 @@ def squads_create(shift_id: str):
 
         actor_role = _normalize_role((payload.get("role") or "").strip())
         token_camp_id = (payload.get("campId") or "").strip()
+
+        # Staff squads can only be created by shift_leader/camp_director/developer
+        if kind == "staff" and actor_role not in ("shift_leader", "camp_director", "developer"):
+            return jsonify({"error": "Only shift_leader/camp_director/developer can create staff squads"}), 403
+
         if actor_role == "counselor":
             # Counselor can only create squads within their shift.
             # Dev-local sandbox can omit campId; allow only for the seeded default shift.
@@ -2441,6 +2452,7 @@ def squads_create(shift_id: str):
             "id": squad_id,
             "shiftId": sid,
             "name": name,
+            "kind": kind,
             "createdAt": created_at,
         }
         if created_by:
@@ -4194,7 +4206,9 @@ def council_initiatives_list():
 def council_initiatives_create():
     """
     POST /api/council/initiatives — создать инициативу Совета Лагеря.
-    Body: {"title": "...", "camp_id": "..."} — title обязателен (max 200 символов).
+    Body: {"title": "...", "description"?: "...", "camp_id"?: "...",
+           "teamId"?: "...", "squadId"?: "...", "authorNickname"?: "..."}
+    title обязателен (max 200 символов), description max 2000.
     Auth: CHAT_ALLOWED_ROLES
     """
     payload, err = _require_roles(CHAT_ALLOWED_ROLES, allow_localhost_dev=True)
@@ -4203,15 +4217,21 @@ def council_initiatives_create():
 
     body = request.get_json() or {}
     title = (body.get("title") or "").strip()
+    description = (body.get("description") or "").strip()
     camp_id = (body.get("camp_id") or body.get("campId") or "").strip()
+    team_id = (body.get("teamId") or body.get("team_id") or "").strip() or None
+    squad_id = (body.get("squadId") or body.get("squad_id") or "").strip() or None
+    author_nickname = (body.get("authorNickname") or body.get("author_nickname") or "").strip()
 
     if not title:
         return jsonify({"error": "title обязателен"}), 400
     if len(title) > 200:
         return jsonify({"error": "title не должен превышать 200 символов"}), 400
+    if len(description) > 2000:
+        return jsonify({"error": "description не должен превышать 2000 символов"}), 400
 
     device_id = (payload.get("deviceId") or "").strip()
-    nickname = (payload.get("nickname") or "").strip()
+    nickname = author_nickname or (payload.get("nickname") or "").strip()
 
     import secrets as _secrets
     initiative_id = f"CI-{_secrets.token_hex(5)}"
@@ -4221,9 +4241,16 @@ def council_initiatives_create():
         "id": initiative_id,
         "campId": camp_id,
         "title": title,
+        "description": description,
         "status": "idea",
+        "teamId": team_id,
+        "squadId": squad_id,
+        "authorNickname": nickname,
+        "votesUp": 0,
+        "voters": [],
         "created_at": created_at,
         "createdAt": created_at,
+        "updatedAt": created_at,
         "createdBy": device_id,
         "createdByNickname": nickname,
     }
@@ -4236,6 +4263,108 @@ def council_initiatives_create():
     store.save(data)
 
     return jsonify(new_item), 201
+
+
+@app.route('/api/council/initiatives/<initiative_id>', methods=['PATCH'])
+def council_initiative_update(initiative_id: str):
+    """
+    PATCH /api/council/initiatives/<id> — обновить статус/привязку инициативы.
+    Body: { "status"?: "proposed|discussed|approved|in_progress|done",
+            "teamId"?: string, "description"?: string }
+    Auth: counselor|educator|shift_leader|camp_director|developer
+    """
+    payload, err = _require_roles(("counselor", "educator", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
+    if err is not None:
+        return err[0], err[1]
+
+    iid = (initiative_id or "").strip()
+    if not iid:
+        return jsonify({"error": "initiative id required"}), 400
+
+    body = request.get_json() or {}
+    new_status = (body.get("status") or "").strip()
+    new_team_id = body.get("teamId")
+    new_description = body.get("description")
+
+    VALID_STATUSES = ("idea", "proposed", "discussed", "approved", "in_progress", "done",
+                      "new", "reviewing", "accepted", "rejected")
+    if new_status and new_status not in VALID_STATUSES:
+        return jsonify({"error": f"invalid status, expected one of: {', '.join(VALID_STATUSES)}"}), 400
+
+    store = get_store("council_initiatives")
+    data = store.load()
+    items = data.get("initiatives") or []
+
+    target = None
+    for item in items:
+        if isinstance(item, dict) and item.get("id") == iid:
+            target = item
+            break
+
+    if target is None:
+        return jsonify({"error": "Initiative not found"}), 404
+
+    now_iso = datetime.now(timezone.utc).isoformat()
+    if new_status:
+        target["status"] = new_status
+    if new_team_id is not None:
+        target["teamId"] = new_team_id if new_team_id else None
+    if new_description is not None:
+        target["description"] = new_description.strip()[:2000]
+    target["updatedAt"] = now_iso
+
+    store.save(data)
+    return jsonify({"initiative": target})
+
+
+@app.route('/api/council/initiatives/<initiative_id>/vote', methods=['POST'])
+def council_initiative_vote(initiative_id: str):
+    """
+    POST /api/council/initiatives/<id>/vote — голос «за» инициативу.
+    Один голос на device_id. Повторный вызов — отмена голоса (toggle).
+    Auth: CHAT_ALLOWED_ROLES
+    """
+    payload, err = _require_roles(CHAT_ALLOWED_ROLES, allow_localhost_dev=True)
+    if err is not None:
+        return err[0], err[1]
+
+    iid = (initiative_id or "").strip()
+    if not iid:
+        return jsonify({"error": "initiative id required"}), 400
+
+    device_id = (payload.get("deviceId") or "").strip()
+    if not device_id:
+        return jsonify({"error": "deviceId missing"}), 400
+
+    store = get_store("council_initiatives")
+    data = store.load()
+    items = data.get("initiatives") or []
+
+    target = None
+    for item in items:
+        if isinstance(item, dict) and item.get("id") == iid:
+            target = item
+            break
+
+    if target is None:
+        return jsonify({"error": "Initiative not found"}), 404
+
+    voters = target.get("voters") or []
+    if not isinstance(voters, list):
+        voters = []
+
+    voted_already = device_id in voters
+    if voted_already:
+        voters.remove(device_id)
+    else:
+        voters.append(device_id)
+
+    target["voters"] = voters
+    target["votesUp"] = len(voters)
+    target["updatedAt"] = datetime.now(timezone.utc).isoformat()
+
+    store.save(data)
+    return jsonify({"initiative": target, "voted": not voted_already})
 
 
 # Для Vercel
