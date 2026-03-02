@@ -238,3 +238,15 @@ class ShiftScheduleStore(ABC):
 
     @abstractmethod
     def save(self, data: dict) -> None: ...
+
+
+class WorkshopsStore(ABC):
+    """
+    Хранилище Мастерских педагога.
+    Формат: {'workshops': [...], 'participants': [...], 'badges': [...], 'confirmations': [...]}
+    """
+    @abstractmethod
+    def load(self) -> dict: ...
+
+    @abstractmethod
+    def save(self, data: dict) -> None: ...

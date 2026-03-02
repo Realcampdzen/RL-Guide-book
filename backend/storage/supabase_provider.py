@@ -22,6 +22,7 @@ from .base import (
     BadgeArtsStore, EnginesStore, EngineMembersStore,
     InspectorProgressStore,
     BroEventsStore, BroPassportsStore, ShiftScheduleStore,
+    WorkshopsStore,
 )
 
 _sb_client = None
@@ -975,6 +976,108 @@ class SupabaseShiftScheduleStore(ShiftScheduleStore):
 
 
 # ---------------------------------------------------------------------------
+# SupabaseWorkshopsStore (M13-EDUCATOR-WORKSHOP-A)
+# ---------------------------------------------------------------------------
+
+class SupabaseWorkshopsStore(WorkshopsStore):
+    """Supabase-провайдер для 4 таблиц workshops/participants/badges/confirmations."""
+
+    def _row_to_workshop(self, r: dict) -> dict:
+        return {
+            "id": r.get("id", ""),
+            "educatorId": r.get("educator_id", ""),
+            "title": r.get("title", ""),
+            "direction": r.get("direction", ""),
+            "createdAt": r.get("created_at", ""),
+        }
+
+    def _row_to_participant(self, r: dict) -> dict:
+        return {
+            "id": r.get("id", ""),
+            "workshopId": r.get("workshop_id", ""),
+            "deviceId": r.get("device_id", ""),
+            "nickname": r.get("nickname", ""),
+            "joinedAt": r.get("joined_at", ""),
+        }
+
+    def _row_to_badge(self, r: dict) -> dict:
+        return {
+            "id": r.get("id", ""),
+            "workshopId": r.get("workshop_id", ""),
+            "badgeId": r.get("badge_id", ""),
+            "addedBy": r.get("added_by", ""),
+        }
+
+    def _row_to_confirmation(self, r: dict) -> dict:
+        return {
+            "id": r.get("id", ""),
+            "workshopBadgeId": r.get("workshop_badge_id", ""),
+            "deviceId": r.get("device_id", ""),
+            "status": r.get("status", "pending"),
+            "confirmedAt": r.get("confirmed_at"),
+            "confirmedBy": r.get("confirmed_by"),
+        }
+
+    def load(self) -> dict:
+        sb = _get_sb()
+        w_rows = sb.table("workshops").select("*").execute().data or []
+        p_rows = sb.table("workshop_participants").select("*").execute().data or []
+        b_rows = sb.table("workshop_badges").select("*").execute().data or []
+        c_rows = sb.table("workshop_badge_confirmations").select("*").execute().data or []
+        return {
+            "workshops": [self._row_to_workshop(r) for r in w_rows],
+            "participants": [self._row_to_participant(r) for r in p_rows],
+            "badges": [self._row_to_badge(r) for r in b_rows],
+            "confirmations": [self._row_to_confirmation(r) for r in c_rows],
+        }
+
+    def save(self, data: dict) -> None:
+        sb = _get_sb()
+        for w in (data.get("workshops") or []):
+            if not isinstance(w, dict):
+                continue
+            row = {
+                "id": w.get("id") or str(uuid.uuid4()),
+                "educator_id": w.get("educatorId", ""),
+                "title": w.get("title", ""),
+                "direction": w.get("direction", ""),
+            }
+            sb.table("workshops").upsert(row).execute()
+        for p in (data.get("participants") or []):
+            if not isinstance(p, dict):
+                continue
+            row = {
+                "id": p.get("id") or str(uuid.uuid4()),
+                "workshop_id": p.get("workshopId", ""),
+                "device_id": p.get("deviceId", ""),
+                "nickname": p.get("nickname", ""),
+            }
+            sb.table("workshop_participants").upsert(row).execute()
+        for b in (data.get("badges") or []):
+            if not isinstance(b, dict):
+                continue
+            row = {
+                "id": b.get("id") or str(uuid.uuid4()),
+                "workshop_id": b.get("workshopId", ""),
+                "badge_id": b.get("badgeId", ""),
+                "added_by": b.get("addedBy", ""),
+            }
+            sb.table("workshop_badges").upsert(row).execute()
+        for c in (data.get("confirmations") or []):
+            if not isinstance(c, dict):
+                continue
+            row = {
+                "id": c.get("id") or str(uuid.uuid4()),
+                "workshop_badge_id": c.get("workshopBadgeId", ""),
+                "device_id": c.get("deviceId", ""),
+                "status": c.get("status", "pending"),
+                "confirmed_at": c.get("confirmedAt"),
+                "confirmed_by": c.get("confirmedBy"),
+            }
+            sb.table("workshop_badge_confirmations").upsert(row).execute()
+
+
+# ---------------------------------------------------------------------------
 # Реестр экземпляров
 # ---------------------------------------------------------------------------
 
@@ -997,5 +1100,6 @@ SUPABASE_STORES = {
     "bro_events":        SupabaseBroEventsStore(),
     "bro_passports":     SupabaseBroPassportsStore(),
     "shift_schedule":    SupabaseShiftScheduleStore(),
+    "workshops":         SupabaseWorkshopsStore(),
 }
 

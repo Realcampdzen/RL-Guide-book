@@ -1,0 +1,531 @@
+{
+    "meta": {
+        "version": "1.0",
+        "skills": [
+            "collaboration",
+            "critical_thinking",
+            "creativity",
+            "communication"
+        ],
+        "skill_labels": {
+            "collaboration": "Коллаборация",
+            "critical_thinking": "Критическое мышление",
+            "creativity": "Креативность",
+            "communication": "Коммуникация"
+        },
+        "skill_emoji": {
+            "collaboration": "🤝",
+            "critical_thinking": "🧠",
+            "creativity": "🎨",
+            "communication": "💬"
+        }
+    },
+    "category_defaults": {
+        "1": {
+            "skills": [
+                "creativity",
+                "critical_thinking"
+            ],
+            "weights": [
+                0.6,
+                0.4
+            ],
+            "label": "За личные достижения"
+        },
+        "2": {
+            "skills": [
+                "creativity",
+                "communication"
+            ],
+            "weights": [
+                0.6,
+                0.4
+            ],
+            "label": "За легендарные дела"
+        },
+        "3": {
+            "skills": [
+                "creativity",
+                "communication"
+            ],
+            "weights": [
+                0.5,
+                0.5
+            ],
+            "label": "Медиа значки"
+        },
+        "4": {
+            "skills": [
+                "collaboration",
+                "communication"
+            ],
+            "weights": [
+                0.7,
+                0.3
+            ],
+            "label": "За лагерные дела"
+        },
+        "5": {
+            "skills": [
+                "collaboration",
+                "communication"
+            ],
+            "weights": [
+                0.5,
+                0.5
+            ],
+            "label": "За отрядные дела"
+        },
+        "6": {
+            "skills": [
+                "critical_thinking",
+                "collaboration"
+            ],
+            "weights": [
+                0.7,
+                0.3
+            ],
+            "label": "Гармония и порядок"
+        },
+        "7": {
+            "skills": [
+                "creativity"
+            ],
+            "weights": [
+                1.0
+            ],
+            "label": "За творческие достижения"
+        },
+        "8": {
+            "skills": [
+                "collaboration",
+                "communication"
+            ],
+            "weights": [
+                0.5,
+                0.5
+            ],
+            "label": "Движки"
+        },
+        "9": {
+            "skills": [
+                "communication",
+                "collaboration"
+            ],
+            "weights": [
+                0.6,
+                0.4
+            ],
+            "label": "Бро"
+        },
+        "10": {
+            "skills": [
+                "collaboration",
+                "communication"
+            ],
+            "weights": [
+                0.6,
+                0.4
+            ],
+            "label": "Флаг отряда"
+        },
+        "11": {
+            "skills": [
+                "critical_thinking"
+            ],
+            "weights": [
+                1.0
+            ],
+            "label": "Осознанность"
+        },
+        "12": {
+            "skills": [
+                "creativity",
+                "critical_thinking"
+            ],
+            "weights": [
+                0.6,
+                0.4
+            ],
+            "label": "ИИ: Нейросети"
+        },
+        "13": {
+            "skills": [
+                "collaboration",
+                "critical_thinking",
+                "creativity",
+                "communication"
+            ],
+            "weights": [
+                0.25,
+                0.25,
+                0.25,
+                0.25
+            ],
+            "label": "Софт-скиллз"
+        },
+        "14": {
+            "skills": [
+                "collaboration",
+                "communication"
+            ],
+            "weights": [
+                0.6,
+                0.4
+            ],
+            "label": "Инспектор Пользы"
+        }
+    },
+    "badge_mappings": {
+        "1.1": {
+            "skills": [
+                "creativity"
+            ],
+            "weights": [
+                1.0
+            ],
+            "label": "Самоделкин"
+        },
+        "1.2": {
+            "skills": [
+                "creativity",
+                "critical_thinking"
+            ],
+            "weights": [
+                0.7,
+                0.3
+            ],
+            "label": "Мастер рукоделия"
+        },
+        "1.5": {
+            "skills": [
+                "critical_thinking"
+            ],
+            "weights": [
+                1.0
+            ],
+            "label": "Читатель"
+        },
+        "1.7": {
+            "skills": [
+                "creativity",
+                "communication"
+            ],
+            "weights": [
+                0.5,
+                0.5
+            ],
+            "label": "Гитарист"
+        },
+        "1.10": {
+            "skills": [
+                "critical_thinking",
+                "creativity"
+            ],
+            "weights": [
+                0.6,
+                0.4
+            ],
+            "label": "Натуралист"
+        },
+        "2.1": {
+            "skills": [
+                "communication",
+                "collaboration"
+            ],
+            "weights": [
+                0.6,
+                0.4
+            ],
+            "label": "Легенда лагеря"
+        },
+        "2.3": {
+            "skills": [
+                "creativity",
+                "communication"
+            ],
+            "weights": [
+                0.5,
+                0.5
+            ],
+            "label": "Вдохновитель"
+        },
+        "3.1": {
+            "skills": [
+                "creativity",
+                "communication"
+            ],
+            "weights": [
+                0.6,
+                0.4
+            ],
+            "label": "Фотограф"
+        },
+        "3.2": {
+            "skills": [
+                "creativity",
+                "communication"
+            ],
+            "weights": [
+                0.5,
+                0.5
+            ],
+            "label": "Видеограф"
+        },
+        "5.1": {
+            "skills": [
+                "collaboration",
+                "communication"
+            ],
+            "weights": [
+                0.6,
+                0.4
+            ],
+            "label": "Хранитель отряда"
+        },
+        "5.5": {
+            "skills": [
+                "collaboration"
+            ],
+            "weights": [
+                1.0
+            ],
+            "label": "Командный игрок"
+        },
+        "5.7": {
+            "skills": [
+                "communication",
+                "collaboration"
+            ],
+            "weights": [
+                0.7,
+                0.3
+            ],
+            "label": "Оратор отряда"
+        },
+        "7.1": {
+            "skills": [
+                "creativity"
+            ],
+            "weights": [
+                1.0
+            ],
+            "label": "Актёр"
+        },
+        "7.3": {
+            "skills": [
+                "creativity",
+                "communication"
+            ],
+            "weights": [
+                0.7,
+                0.3
+            ],
+            "label": "Ведущий"
+        },
+        "7.5": {
+            "skills": [
+                "creativity"
+            ],
+            "weights": [
+                1.0
+            ],
+            "label": "Художник"
+        },
+        "8.1": {
+            "skills": [
+                "collaboration",
+                "communication"
+            ],
+            "weights": [
+                0.6,
+                0.4
+            ],
+            "label": "Вожатификатор"
+        },
+        "9.1": {
+            "skills": [
+                "communication",
+                "collaboration"
+            ],
+            "weights": [
+                0.5,
+                0.5
+            ],
+            "label": "Бро-мастер"
+        },
+        "11.1": {
+            "skills": [
+                "critical_thinking"
+            ],
+            "weights": [
+                1.0
+            ],
+            "label": "Осознанный наблюдатель"
+        },
+        "12.1": {
+            "skills": [
+                "creativity",
+                "critical_thinking"
+            ],
+            "weights": [
+                0.7,
+                0.3
+            ],
+            "label": "Промпт-инженер"
+        },
+        "12.3": {
+            "skills": [
+                "creativity",
+                "critical_thinking"
+            ],
+            "weights": [
+                0.5,
+                0.5
+            ],
+            "label": "AI-художник"
+        },
+        "13.1": {
+            "skills": [
+                "communication",
+                "collaboration"
+            ],
+            "weights": [
+                0.5,
+                0.5
+            ],
+            "label": "Коммуникатор"
+        },
+        "13.5": {
+            "skills": [
+                "collaboration",
+                "communication"
+            ],
+            "weights": [
+                0.6,
+                0.4
+            ],
+            "label": "Командообразователь"
+        },
+        "13.8": {
+            "skills": [
+                "critical_thinking",
+                "creativity"
+            ],
+            "weights": [
+                0.6,
+                0.4
+            ],
+            "label": "Аналитик"
+        },
+        "14.1": {
+            "skills": [
+                "collaboration",
+                "communication"
+            ],
+            "weights": [
+                0.7,
+                0.3
+            ],
+            "label": "Инспектор Дружбы"
+        }
+    },
+    "activity_bonuses": {
+        "council_initiative": {
+            "skills": [
+                "cooperation",
+                "communication"
+            ],
+            "bonus": 5,
+            "label": "Инициатива в Совете"
+        },
+        "engine_created": {
+            "skills": [
+                "cooperation",
+                "creativity"
+            ],
+            "bonus": 10,
+            "label": "Создал Движок"
+        },
+        "engine_joined": {
+            "skills": [
+                "cooperation"
+            ],
+            "bonus": 3,
+            "label": "Присоединился к Движку"
+        },
+        "inspector_day_completed": {
+            "skills": [
+                "cooperation",
+                "communication"
+            ],
+            "bonus": 3,
+            "label": "День Инспектора выполнен"
+        },
+        "bro_passport_completed": {
+            "skills": [
+                "cooperation",
+                "communication"
+            ],
+            "bonus": 8,
+            "label": "Бро-паспорт завершён"
+        }
+    },
+    "programs": {
+        "4k_skills": {
+            "label": "4К soft-skills интенсив",
+            "emoji": "🎯",
+            "description": "Базовая программа — сумма по всем 4 навыкам",
+            "category_ids": [
+                "1",
+                "2",
+                "3",
+                "4",
+                "5",
+                "6",
+                "7",
+                "8",
+                "9",
+                "10",
+                "11",
+                "12",
+                "13",
+                "14"
+            ]
+        },
+        "ai_creativity": {
+            "label": "Нейросети для обучения и творчества",
+            "emoji": "🤖",
+            "description": "Значки из категорий AI и творчества",
+            "category_ids": [
+                "12"
+            ]
+        },
+        "counseling": {
+            "label": "Вожатское мастерство",
+            "emoji": "👑",
+            "description": "Значки из БРО, Вожатификатор, Флаг отряда, Инспектор",
+            "category_ids": [
+                "8",
+                "9",
+                "10",
+                "14"
+            ]
+        },
+        "self_governance": {
+            "label": "Соуправление",
+            "emoji": "⚡",
+            "description": "Движки, Совет, инициативы",
+            "category_ids": [
+                "4",
+                "5",
+                "8"
+            ],
+            "activity_keys": [
+                "council_initiative",
+                "engine_created",
+                "engine_joined"
+            ]
+        }
+    }
+}

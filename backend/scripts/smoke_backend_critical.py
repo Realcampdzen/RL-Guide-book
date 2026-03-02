@@ -1748,6 +1748,120 @@ class SmokeRunner:
             self.skip("PATCH schedule (S-3)", "no event_id")
 
     # -----------------------------------------------------------------------
+    # Flow T: Workshop endpoints (M13-EDUCATOR-WORKSHOP-A)
+    # -----------------------------------------------------------------------
+
+    def run_flow_t(self):
+        """T — Workshop create + badge link + badge confirm."""
+        print("\n--- Flow T: Workshop endpoints ---")
+
+        workshop_id = ""
+        badge_link_id = ""
+
+        if self.auth_secret:
+            e_token = self._get_jwt(f"smoke_edu_{uuid.uuid4().hex[:8]}", "educator")
+            if e_token:
+                # T-1: POST /api/workshops → 201
+                try:
+                    s1, r1 = _http(
+                        self._url("/api/workshops"),
+                        method="POST",
+                        body={"title": "Smoke Workshop", "direction": "test"},
+                        headers=self._bearer(e_token),
+                        expect_status=201,
+                    )
+                    workshop_id = r1.get("workshop", {}).get("id", "")
+                    self.check(
+                        "POST /api/workshops — T-1: 201",
+                        s1 == 201 and workshop_id,
+                        f"status={s1}",
+                    )
+                except SmokeError as exc:
+                    self.fail("POST workshops (T-1)", str(exc))
+            else:
+                self.skip("POST workshops (T-1)", "no educator token")
+        else:
+            self.skip("POST workshops (T-1)", "no auth_secret")
+
+        # T-2: POST /api/workshops/<id>/badges → 201
+        if workshop_id and e_token:
+            try:
+                s2, r2 = _http(
+                    self._url(f"/api/workshops/{workshop_id}/badges"),
+                    method="POST",
+                    body={"badgeId": "smoke-badge-001"},
+                    headers=self._bearer(e_token),
+                    expect_status=201,
+                )
+                badge_link_id = r2.get("badge", {}).get("id", "")
+                self.check(
+                    "POST /api/workshops/<id>/badges — T-2: 201",
+                    s2 == 201 and badge_link_id,
+                    f"status={s2}",
+                )
+            except SmokeError as exc:
+                self.fail("POST workshop badges (T-2)", str(exc))
+        else:
+            self.skip("POST workshop badges (T-2)", "no workshop_id")
+
+        # T-3: POST /api/workshops/<id>/badges/<bid>/confirm/<deviceId> → 201
+        if badge_link_id and e_token:
+            try:
+                s3, r3 = _http(
+                    self._url(f"/api/workshops/{workshop_id}/badges/{badge_link_id}/confirm/smoke-device-001"),
+                    method="POST",
+                    body={},
+                    headers=self._bearer(e_token),
+                    expect_status=201,
+                )
+                self.check(
+                    "POST confirm badge — T-3: 201",
+                    s3 == 201,
+                    f"status={s3}",
+                )
+            except SmokeError as exc:
+                self.fail("POST confirm badge (T-3)", str(exc))
+        else:
+            self.skip("POST confirm badge (T-3)", "no badge_link_id")
+
+    def run_flow_u(self):
+        """U — 4K skills mapping + stats endpoints."""
+        print("\n--- Flow U: 4K skills endpoints ---")
+
+        # U-1: GET /api/4k/mapping → 200, has category_defaults with 14 keys
+        try:
+            s1, r1 = _http(
+                self._url("/api/4k/mapping"),
+                method="GET",
+                expect_status=200,
+            )
+            cat_defaults = r1.get("category_defaults") or {}
+            self.check(
+                "GET /api/4k/mapping — U-1: 200 + 14 categories",
+                s1 == 200 and len(cat_defaults) == 14,
+                f"status={s1}, cats={len(cat_defaults)}",
+            )
+        except SmokeError as exc:
+            self.fail("GET /api/4k/mapping (U-1)", str(exc))
+
+        # U-2: GET /api/4k/stats/smoke_device → 200, has 4 skills
+        try:
+            s2, r2 = _http(
+                self._url("/api/4k/stats/smoke_device"),
+                method="GET",
+                expect_status=200,
+            )
+            skills = r2.get("skills") or {}
+            expected_keys = {"collaboration", "critical_thinking", "creativity", "communication"}
+            self.check(
+                "GET /api/4k/stats — U-2: 200 + 4 skills",
+                s2 == 200 and set(skills.keys()) == expected_keys,
+                f"status={s2}, skills={list(skills.keys())}",
+            )
+        except SmokeError as exc:
+            self.fail("GET /api/4k/stats (U-2)", str(exc))
+
+    # -----------------------------------------------------------------------
 
     def run(self) -> int:
         print(f"Smoke backend critical flows — {self.base}")
@@ -1781,6 +1895,8 @@ class SmokeRunner:
         self.run_flow_r()
         self.run_flow_q()
         self.run_flow_s()
+        self.run_flow_t()
+        self.run_flow_u()
         return self._print_summary()
 
     def _print_summary(self) -> int:

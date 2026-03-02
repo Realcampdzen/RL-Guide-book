@@ -17,6 +17,7 @@ from .base import (
     BadgeArtsStore, EnginesStore, EngineMembersStore,
     InspectorProgressStore,
     BroEventsStore, BroPassportsStore, ShiftScheduleStore,
+    WorkshopsStore,
 )
 
 _DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
@@ -439,6 +440,29 @@ class JsonShiftScheduleStore(ShiftScheduleStore):
             _write_json(_SHIFT_SCHEDULE_FILE, data if isinstance(data, dict) else {})
 
 
+# --- WorkshopsStore (M13-EDUCATOR-WORKSHOP-A) ---
+
+_WORKSHOPS_FILE = os.path.join(_DATA_DIR, "workshops.json")
+_WORKSHOPS_LOCK = threading.Lock()
+
+class JsonWorkshopsStore(WorkshopsStore):
+    _DEFAULT = {"workshops": [], "participants": [], "badges": [], "confirmations": []}
+
+    def load(self) -> dict:
+        _ensure_data_dir()
+        with _WORKSHOPS_LOCK:
+            data = _read_json(_WORKSHOPS_FILE, dict(self._DEFAULT))
+            for k in self._DEFAULT:
+                if k not in data:
+                    data[k] = []
+            return data
+
+    def save(self, data: dict) -> None:
+        _ensure_data_dir()
+        with _WORKSHOPS_LOCK:
+            _write_json(_WORKSHOPS_FILE, data if isinstance(data, dict) else {})
+
+
 JSON_STORES = {
     "shifts":          JsonShiftsStore(),
     "memberships":     JsonMembershipsStore(),
@@ -458,5 +482,6 @@ JSON_STORES = {
     "bro_events":      JsonBroEventsStore(),
     "bro_passports":   JsonBroPassportsStore(),
     "shift_schedule":  JsonShiftScheduleStore(),
+    "workshops":       JsonWorkshopsStore(),
 }
 

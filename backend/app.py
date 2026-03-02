@@ -5114,6 +5114,488 @@ def schedule_delete(event_id: str):
     return jsonify({"status": "deleted", "id": event_id})
 
 
+# ---------------------------------------------------------------------------
+# Кабинет Мастерской педагога (M13-EDUCATOR-WORKSHOP-A)
+# ---------------------------------------------------------------------------
+
+EDUCATOR_PLUS = ("educator", "shift_leader", "camp_director", "developer")
+
+
+def _get_workshop_or_404(store, data, workshop_id):
+    """Utility: find workshop by id or return None."""
+    return next((w for w in (data.get("workshops") or []) if isinstance(w, dict) and w.get("id") == workshop_id), None)
+
+
+def _require_educator_owner(payload, workshop):
+    """Return error tuple if caller is not the educator-owner (unless shift_leader+)."""
+    role = (payload.get("role") or "").strip()
+    if role in ("shift_leader", "camp_director", "developer"):
+        return None  # override
+    if (payload.get("deviceId") or "").strip() != (workshop.get("educatorId") or ""):
+        return jsonify({"error": "forbidden: not workshop owner"}), 403
+    return None
+
+
+@app.route('/api/workshops', methods=['POST'])
+def workshop_create():
+    """POST — educator creates a workshop."""
+    payload, err = _require_roles(EDUCATOR_PLUS, allow_localhost_dev=True)
+    if err is not None:
+        return err[0], err[1]
+
+    body = request.get_json() or {}
+    title = (body.get("title") or "").strip()
+    if not title:
+        return jsonify({"error": "title required"}), 400
+
+    device_id = (payload.get("deviceId") or "").strip()
+    import secrets as _secrets
+    ws_id = f"WS-{_secrets.token_hex(5)}"
+    now_iso = datetime.now(timezone.utc).isoformat()
+
+    new_ws = {
+        "id": ws_id,
+        "educatorId": device_id,
+        "title": title,
+        "direction": (body.get("direction") or "").strip(),
+        "createdAt": now_iso,
+    }
+    store = get_store("workshops")
+    data = store.load()
+    workshops = data.get("workshops") or []
+    workshops.append(new_ws)
+    data["workshops"] = workshops
+    store.save(data)
+    return jsonify({"workshop": new_ws}), 201
+
+
+@app.route('/api/workshops', methods=['GET'])
+def workshop_list():
+    """GET — list all workshops."""
+    store = get_store("workshops")
+    data = store.load()
+    workshops = data.get("workshops") or []
+    # Enrich with participant count + badge count
+    participants = data.get("participants") or []
+    badges = data.get("badges") or []
+    result = []
+    for w in workshops:
+        if not isinstance(w, dict):
+            continue
+        ws_id = w.get("id", "")
+        w_copy = dict(w)
+        w_copy["participantCount"] = sum(1 for p in participants if isinstance(p, dict) and p.get("workshopId") == ws_id)
+        w_copy["badgeCount"] = sum(1 for b in badges if isinstance(b, dict) and b.get("workshopId") == ws_id)
+        result.append(w_copy)
+    return jsonify({"workshops": result})
+
+
+@app.route('/api/workshops/<workshop_id>', methods=['GET'])
+def workshop_detail(workshop_id: str):
+    """GET — workshop details with participants, badges, confirmations."""
+    store = get_store("workshops")
+    data = store.load()
+    ws = _get_workshop_or_404(store, data, workshop_id)
+    if ws is None:
+        return jsonify({"error": "workshop not found"}), 404
+
+    participants = [p for p in (data.get("participants") or []) if isinstance(p, dict) and p.get("workshopId") == workshop_id]
+    badges = [b for b in (data.get("badges") or []) if isinstance(b, dict) and b.get("workshopId") == workshop_id]
+    badge_ids = [b.get("id") for b in badges]
+    confirmations = [c for c in (data.get("confirmations") or []) if isinstance(c, dict) and c.get("workshopBadgeId") in badge_ids]
+
+    return jsonify({
+        "workshop": ws,
+        "participants": participants,
+        "badges": badges,
+        "confirmations": confirmations,
+    })
+
+
+@app.route('/api/workshops/<workshop_id>', methods=['PATCH'])
+def workshop_update(workshop_id: str):
+    """PATCH — update workshop title/direction (educator-owner)."""
+    payload, err = _require_roles(EDUCATOR_PLUS, allow_localhost_dev=True)
+    if err is not None:
+        return err[0], err[1]
+
+    store = get_store("workshops")
+    data = store.load()
+    ws = _get_workshop_or_404(store, data, workshop_id)
+    if ws is None:
+        return jsonify({"error": "workshop not found"}), 404
+
+    owner_err = _require_educator_owner(payload, ws)
+    if owner_err is not None:
+        return owner_err[0], owner_err[1]
+
+    body = request.get_json() or {}
+    for key in ("title", "direction"):
+        if key in body:
+            ws[key] = body[key]
+    store.save(data)
+    return jsonify({"workshop": ws})
+
+
+@app.route('/api/workshops/<workshop_id>/participants', methods=['POST'])
+def workshop_add_participant(workshop_id: str):
+    """POST — add participant to workshop (educator-owner)."""
+    payload, err = _require_roles(EDUCATOR_PLUS, allow_localhost_dev=True)
+    if err is not None:
+        return err[0], err[1]
+
+    store = get_store("workshops")
+    data = store.load()
+    ws = _get_workshop_or_404(store, data, workshop_id)
+    if ws is None:
+        return jsonify({"error": "workshop not found"}), 404
+
+    owner_err = _require_educator_owner(payload, ws)
+    if owner_err is not None:
+        return owner_err[0], owner_err[1]
+
+    body = request.get_json() or {}
+    device_id = (body.get("deviceId") or "").strip()
+    if not device_id:
+        return jsonify({"error": "deviceId required"}), 400
+
+    import secrets as _secrets
+    p_id = f"WP-{_secrets.token_hex(5)}"
+    now_iso = datetime.now(timezone.utc).isoformat()
+
+    new_p = {
+        "id": p_id,
+        "workshopId": workshop_id,
+        "deviceId": device_id,
+        "nickname": (body.get("nickname") or "").strip(),
+        "joinedAt": now_iso,
+    }
+    participants = data.get("participants") or []
+    participants.append(new_p)
+    data["participants"] = participants
+    store.save(data)
+    return jsonify({"participant": new_p}), 201
+
+
+@app.route('/api/workshops/<workshop_id>/badges', methods=['POST'])
+def workshop_add_badge(workshop_id: str):
+    """POST — link a badge to workshop (educator-owner)."""
+    payload, err = _require_roles(EDUCATOR_PLUS, allow_localhost_dev=True)
+    if err is not None:
+        return err[0], err[1]
+
+    store = get_store("workshops")
+    data = store.load()
+    ws = _get_workshop_or_404(store, data, workshop_id)
+    if ws is None:
+        return jsonify({"error": "workshop not found"}), 404
+
+    owner_err = _require_educator_owner(payload, ws)
+    if owner_err is not None:
+        return owner_err[0], owner_err[1]
+
+    body = request.get_json() or {}
+    badge_id = (body.get("badgeId") or "").strip()
+    if not badge_id:
+        return jsonify({"error": "badgeId required"}), 400
+
+    import secrets as _secrets
+    wb_id = f"WB-{_secrets.token_hex(5)}"
+    device_id = (payload.get("deviceId") or "").strip()
+
+    new_badge = {
+        "id": wb_id,
+        "workshopId": workshop_id,
+        "badgeId": badge_id,
+        "addedBy": device_id,
+    }
+    badges = data.get("badges") or []
+    badges.append(new_badge)
+    data["badges"] = badges
+    store.save(data)
+    return jsonify({"badge": new_badge}), 201
+
+
+@app.route('/api/workshops/<workshop_id>/badges/<badge_link_id>', methods=['DELETE'])
+def workshop_remove_badge(workshop_id: str, badge_link_id: str):
+    """DELETE — unlink a badge from workshop (educator-owner)."""
+    payload, err = _require_roles(EDUCATOR_PLUS, allow_localhost_dev=True)
+    if err is not None:
+        return err[0], err[1]
+
+    store = get_store("workshops")
+    data = store.load()
+    ws = _get_workshop_or_404(store, data, workshop_id)
+    if ws is None:
+        return jsonify({"error": "workshop not found"}), 404
+
+    owner_err = _require_educator_owner(payload, ws)
+    if owner_err is not None:
+        return owner_err[0], owner_err[1]
+
+    badges = data.get("badges") or []
+    before_len = len(badges)
+    data["badges"] = [b for b in badges if not (isinstance(b, dict) and b.get("id") == badge_link_id and b.get("workshopId") == workshop_id)]
+    if len(data["badges"]) == before_len:
+        return jsonify({"error": "badge link not found"}), 404
+    store.save(data)
+    return jsonify({"status": "deleted", "id": badge_link_id})
+
+
+@app.route('/api/workshops/<workshop_id>/badges/<badge_link_id>/confirm/<device_id>', methods=['POST'])
+def workshop_confirm_badge(workshop_id: str, badge_link_id: str, device_id: str):
+    """POST — educator confirms a badge for a participant."""
+    payload, err = _require_roles(EDUCATOR_PLUS, allow_localhost_dev=True)
+    if err is not None:
+        return err[0], err[1]
+
+    store = get_store("workshops")
+    data = store.load()
+    ws = _get_workshop_or_404(store, data, workshop_id)
+    if ws is None:
+        return jsonify({"error": "workshop not found"}), 404
+
+    owner_err = _require_educator_owner(payload, ws)
+    if owner_err is not None:
+        return owner_err[0], owner_err[1]
+
+    # Verify badge link exists for this workshop
+    badge_link = next((b for b in (data.get("badges") or []) if isinstance(b, dict) and b.get("id") == badge_link_id and b.get("workshopId") == workshop_id), None)
+    if badge_link is None:
+        return jsonify({"error": "badge link not found"}), 404
+
+    import secrets as _secrets
+    conf_id = f"WBC-{_secrets.token_hex(5)}"
+    now_iso = datetime.now(timezone.utc).isoformat()
+    confirmer_id = (payload.get("deviceId") or "").strip()
+
+    new_conf = {
+        "id": conf_id,
+        "workshopBadgeId": badge_link_id,
+        "deviceId": device_id,
+        "status": "confirmed",
+        "confirmedAt": now_iso,
+        "confirmedBy": confirmer_id,
+    }
+    confirmations = data.get("confirmations") or []
+    confirmations.append(new_conf)
+    data["confirmations"] = confirmations
+    store.save(data)
+    return jsonify({"confirmation": new_conf}), 201
+
+# ── 4К навыки — маппинг и расчёт (M13-4K-ENGINE-C) ───────────────────
+
+_4K_MAPPING_FILE = os.path.join(
+    os.path.dirname(__file__), "..", "ai-data", "4k_mapping.json"
+)
+
+_4k_mapping_cache: dict | None = None
+
+
+def _load_4k_mapping() -> dict:
+    global _4k_mapping_cache
+    if _4k_mapping_cache is not None:
+        return _4k_mapping_cache
+    try:
+        with open(_4K_MAPPING_FILE, "r", encoding="utf-8") as f:
+            _4k_mapping_cache = json.load(f)
+    except Exception:
+        _4k_mapping_cache = {}
+    return _4k_mapping_cache
+
+
+@app.route('/api/4k/mapping', methods=['GET'])
+def api_4k_mapping():
+    """GET — return the 4K skills mapping data."""
+    mapping = _load_4k_mapping()
+    return jsonify(mapping)
+
+
+@app.route('/api/4k/stats/<device_id>', methods=['GET'])
+def api_4k_stats(device_id: str):
+    """GET — compute 4K skill scores for a device."""
+    mapping = _load_4k_mapping()
+    cat_defaults = mapping.get("category_defaults") or {}
+    badge_map = mapping.get("badge_mappings") or {}
+    act_bonuses = mapping.get("activity_bonuses") or {}
+    programs_def = mapping.get("programs") or {}
+
+    ALL_SKILLS = ["collaboration", "critical_thinking", "creativity", "communication"]
+    raw_scores: dict[str, float] = {s: 0.0 for s in ALL_SKILLS}
+    ci_count = 0
+    eng_created = 0
+    eng_joined = 0
+
+    # --- 1. Badge contributions from badge_requests ---
+    try:
+        br_data = get_store("badge_requests").load()
+        requests_list = br_data.get("requests") or []
+        approved_badge_ids: list[str] = []
+        for req in requests_list:
+            if not isinstance(req, dict):
+                continue
+            if req.get("deviceId") != device_id:
+                continue
+            if req.get("status") != "approved":
+                continue
+            bid = req.get("badgeId") or req.get("levelId") or ""
+            if bid:
+                approved_badge_ids.append(str(bid))
+
+        for bid in approved_badge_ids:
+            parts = str(bid).split(".")
+            base_id = f"{parts[0]}.{parts[1]}" if len(parts) >= 2 else bid
+            cat_id = parts[0] if parts else bid
+
+            # Lookup: badge-level first, then category default
+            entry = badge_map.get(base_id) or cat_defaults.get(cat_id)
+            if not entry:
+                continue
+            skills = entry.get("skills") or []
+            weights = entry.get("weights") or []
+            for i, sk in enumerate(skills):
+                w = weights[i] if i < len(weights) else 1.0
+                # Normalize skill key: cooperation → collaboration
+                if sk == "cooperation":
+                    sk = "collaboration"
+                if sk in raw_scores:
+                    raw_scores[sk] += w * 2  # achieved = weight * 2
+    except Exception:
+        approved_badge_ids = []
+
+    # --- 2. Activity bonuses ---
+
+    # Council initiatives
+    try:
+        ci_data = get_store("council_initiatives").load()
+        ci_count = sum(
+            1 for ini in (ci_data.get("initiatives") or [])
+            if isinstance(ini, dict) and ini.get("deviceId") == device_id
+        )
+        if ci_count > 0:
+            bonus_def = act_bonuses.get("council_initiative") or {}
+            bonus_val = bonus_def.get("bonus", 5) * ci_count
+            for sk in (bonus_def.get("skills") or []):
+                key = "collaboration" if sk == "cooperation" else sk
+                if key in raw_scores:
+                    raw_scores[key] += bonus_val
+    except Exception:
+        pass
+
+    # Engines created / joined
+    try:
+        eng_data = get_store("engines").load()
+        eng_created = sum(
+            1 for e in (eng_data.get("engines") or [])
+            if isinstance(e, dict) and e.get("createdBy") == device_id
+        )
+        if eng_created > 0:
+            bonus_def = act_bonuses.get("engine_created") or {}
+            bonus_val = bonus_def.get("bonus", 10) * eng_created
+            for sk in (bonus_def.get("skills") or []):
+                key = "collaboration" if sk == "cooperation" else sk
+                if key in raw_scores:
+                    raw_scores[key] += bonus_val
+
+        mem_data = get_store("engine_members").load()
+        eng_joined = sum(
+            1 for m in (mem_data.get("members") or [])
+            if isinstance(m, dict) and m.get("deviceId") == device_id
+        )
+        if eng_joined > 0:
+            bonus_def = act_bonuses.get("engine_joined") or {}
+            bonus_val = bonus_def.get("bonus", 3) * eng_joined
+            for sk in (bonus_def.get("skills") or []):
+                key = "collaboration" if sk == "cooperation" else sk
+                if key in raw_scores:
+                    raw_scores[key] += bonus_val
+    except Exception:
+        pass
+
+    # Inspector days completed
+    try:
+        insp_data = get_store("inspector_progress").load()
+        insp_days = sum(
+            1 for p in (insp_data.get("progress") or [])
+            if isinstance(p, dict) and p.get("deviceId") == device_id and p.get("status") == "approved"
+        )
+        if insp_days > 0:
+            bonus_def = act_bonuses.get("inspector_day_completed") or {}
+            bonus_val = bonus_def.get("bonus", 3) * insp_days
+            for sk in (bonus_def.get("skills") or []):
+                key = "collaboration" if sk == "cooperation" else sk
+                if key in raw_scores:
+                    raw_scores[key] += bonus_val
+    except Exception:
+        pass
+
+    # BRO passports completed
+    try:
+        bro_data = get_store("bro_passports").load()
+        bro_completed = sum(
+            1 for p in (bro_data.get("passports") or [])
+            if isinstance(p, dict) and p.get("deviceId") == device_id and p.get("status") == "completed"
+        )
+        if bro_completed > 0:
+            bonus_def = act_bonuses.get("bro_passport_completed") or {}
+            bonus_val = bonus_def.get("bonus", 8) * bro_completed
+            for sk in (bonus_def.get("skills") or []):
+                key = "collaboration" if sk == "cooperation" else sk
+                if key in raw_scores:
+                    raw_scores[key] += bonus_val
+    except Exception:
+        pass
+
+    # --- 3. Normalize to 0-100 ---
+    max_raw = max(raw_scores.values()) if raw_scores else 1.0
+    if max_raw < 1:
+        max_raw = 1.0
+    normalized: dict[str, int] = {}
+    for sk in ALL_SKILLS:
+        normalized[sk] = round((raw_scores.get(sk, 0) / max_raw) * 100)
+
+    # --- 4. Program track scores ---
+    program_scores: dict[str, dict] = {}
+    for prog_key, prog_def in programs_def.items():
+        if not isinstance(prog_def, dict):
+            continue
+        cat_ids = prog_def.get("category_ids") or []
+        prog_raw = 0.0
+        for bid in approved_badge_ids:
+            cat_id = str(bid).split(".")[0]
+            if cat_id in cat_ids:
+                prog_raw += 2.0  # each approved badge = 2 pts
+        # Add activity bonuses for programs that define them
+        act_keys = prog_def.get("activity_keys") or []
+        for akey in act_keys:
+            if akey == "council_initiative":
+                prog_raw += ci_count * 5
+            elif akey == "engine_created":
+                prog_raw += eng_created * 10
+            elif akey == "engine_joined":
+                prog_raw += eng_joined * 3
+        program_scores[prog_key] = {
+            "label": prog_def.get("label", prog_key),
+            "emoji": prog_def.get("emoji", ""),
+            "raw": prog_raw,
+        }
+
+    # Normalize program scores
+    prog_max = max((ps.get("raw", 0) for ps in program_scores.values()), default=1.0)
+    if prog_max < 1:
+        prog_max = 1.0
+    for ps in program_scores.values():
+        ps["normalized"] = round((ps.get("raw", 0) / prog_max) * 100)
+
+    return jsonify({
+        "deviceId": device_id,
+        "skills": normalized,
+        "raw": {k: round(v, 2) for k, v in raw_scores.items()},
+        "programs": program_scores,
+        "badgeCount": len(approved_badge_ids),
+    })
+
+
 # Для Vercel
 if __name__ == '__main__':
     # ВАЖНО (Windows): не используем эмодзи в stdout, иначе возможен UnicodeEncodeError (cp1251)
