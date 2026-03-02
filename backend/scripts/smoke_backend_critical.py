@@ -1268,6 +1268,67 @@ class SmokeRunner:
         self.check("GET squads?kind=staff — M-2: only staff + ours found", all_staff and has_ours, f"all_staff={all_staff} has_ours={has_ours}")
 
     # -----------------------------------------------------------------------
+    # Flow N — Badge Arts moderation (M9-ART-MODERATION-A)
+    # -----------------------------------------------------------------------
+
+    def run_flow_n(self) -> None:
+        """Flow N: badge art submit → inbox → approve."""
+        print("\n[Flow N] Badge Arts: submit → inbox → approve")
+        if not self.auth_secret:
+            print("  SKIP  (no AUTH_SECRET)")
+            return
+
+        participant_device = f"smoke_na_{uuid.uuid4().hex[:8]}"
+        participant_token = self._get_jwt(participant_device, "participant")
+        if not participant_token:
+            return
+        staff_device = f"smoke_ns_{uuid.uuid4().hex[:8]}"
+        staff_token = self._get_jwt(staff_device, "shift_leader")
+        if not staff_token:
+            return
+
+        # N-1: POST art → 201
+        try:
+            status_n1, body_n1 = _http(
+                self._url("/api/badges/arts"),
+                method="POST",
+                body={"badgeId": "smoke-badge", "imageUrl": "https://example.com/art.png", "source": "uploaded"},
+                headers=self._bearer(participant_token),
+            )
+        except SmokeError as exc:
+            self.fail("POST /api/badges/arts (N-1)", str(exc))
+            return
+        art = body_n1.get("art", {})
+        art_id = art.get("id", "")
+        self.check("POST /api/badges/arts — N-1: 201 + id", status_n1 == 201 and bool(art_id), f"status={status_n1}, id={art_id}")
+
+        # N-2: GET inbox → contains art
+        try:
+            status_n2, body_n2 = _http(
+                self._url("/api/badges/arts/inbox"),
+                headers=self._bearer(staff_token),
+            )
+        except SmokeError as exc:
+            self.fail("GET /api/badges/arts/inbox (N-2)", str(exc))
+            return
+        found = any(a.get("id") == art_id for a in body_n2.get("arts", []))
+        self.check("GET /api/badges/arts/inbox — N-2: art in inbox", found, f"id={art_id} not in inbox")
+
+        # N-3: PATCH review (approve) → 200
+        try:
+            status_n3, body_n3 = _http(
+                self._url(f"/api/badges/arts/{art_id}/review"),
+                method="PATCH",
+                body={"status": "approved"},
+                headers=self._bearer(staff_token),
+            )
+        except SmokeError as exc:
+            self.fail(f"PATCH /api/badges/arts/{art_id}/review (N-3)", str(exc))
+            return
+        reviewed_status = body_n3.get("art", {}).get("status", "")
+        self.check("PATCH art review — N-3: status=approved", status_n3 == 200 and reviewed_status == "approved", f"status={status_n3}, got={reviewed_status}")
+
+    # -----------------------------------------------------------------------
     # Run all
     # -----------------------------------------------------------------------
 
@@ -1297,6 +1358,7 @@ class SmokeRunner:
         self.run_flow_k()
         self.run_flow_l()
         self.run_flow_m()
+        self.run_flow_n()
         return self._print_summary()
 
     def _print_summary(self) -> int:

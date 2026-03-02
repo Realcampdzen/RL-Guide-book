@@ -3,7 +3,7 @@ import { toSiblingImageUrl } from './imageSources';
 import { pluralizeRu } from './textFormatting';
 
 export type SocialCardFormat = 'story' | 'wide';
-export type SocialCardKind = 'progress_summary' | 'start_route' | 'achieved_level' | 'favorite' | 'inspector_mission' | 'creator_proposal';
+export type SocialCardKind = 'progress_summary' | 'start_route' | 'achieved_level' | 'favorite' | 'inspector_mission' | 'creator_proposal' | 'creator_highlight';
 
 export type SocialCardProfile = {
   nickname?: string;
@@ -645,6 +645,8 @@ const buildTitle = (input: SocialCardInput): string => {
       return 'Рапорт Инспектора';
     case 'creator_proposal':
       return 'Карточка Созидателя';
+    case 'creator_highlight':
+      return 'Созидатель';
     default:
       return 'Мой прогресс';
   }
@@ -703,6 +705,11 @@ const buildCaption = (input: SocialCardInput): string => {
   if (input.kind === 'creator_proposal') {
     const line = `Я предлагаю новый смысл: Значок ${badgeTitle || 'новый'}. Кто за?`;
     return `${line}\n\n${CAPTION_CTA} ${HASHTAGS}`;
+  }
+
+  if (input.kind === 'creator_highlight') {
+    const creatorNick = !hideNickname && nickname ? nickname : 'Я';
+    return `${creatorNick} — Созидатель в Путеводителе Реального Лагеря. Создаю значки и вдохновляю!\n\n${CAPTION_CTA} ${HASHTAGS}`;
   }
 
   const reflection = String(input.reflection || '').trim();
@@ -1529,6 +1536,50 @@ export const generateSocialCard = async (input: SocialCardInput): Promise<Social
     return { blob, mimeType, filename, title, text, width, height };
   }
 
+  // creator_highlight: simple gradient card with nickname + creator stats
+  if (input.kind === 'creator_highlight') {
+    const grad = ctx.createLinearGradient(0, 0, width, height);
+    grad.addColorStop(0, '#0f0c29');
+    grad.addColorStop(0.5, '#302b63');
+    grad.addColorStop(1, '#24243e');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, width, height);
+    drawStars(ctx, width, height, seed);
+    // Creator emoji
+    const ctrY = isPortrait ? height * 0.3 : height * 0.35;
+    ctx.fillStyle = 'rgba(245,158,11,0.9)';
+    ctx.font = `${Math.round(width * 0.12)}px ${FONT_FAMILY}`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('🎨', width / 2, ctrY);
+    // Nickname
+    const nick = String(input.profile?.nickname || 'Созидатель').trim();
+    ctx.fillStyle = '#f59e0b';
+    const nickSize = fitFontSize(ctx, nick, width * 0.7, Math.round(width * 0.06), Math.round(width * 0.03), FONT_FAMILY);
+    ctx.font = `900 ${nickSize}px ${FONT_FAMILY}`;
+    ctx.fillText(nick, width / 2, ctrY + width * 0.12);
+    // Label
+    ctx.fillStyle = 'rgba(255,255,255,0.7)';
+    ctx.font = `600 ${Math.round(width * 0.025)}px ${FONT_FAMILY}`;
+    ctx.fillText('Созидатель', width / 2, ctrY + width * 0.17);
+    // Stats
+    const statsY = ctrY + width * 0.26;
+    const achieved = Number(input.profile?.totalLevelsAchieved ?? 0);
+    const started = Number(input.profile?.totalBadgesStarted ?? 0);
+    ctx.fillStyle = 'rgba(255,255,255,0.85)';
+    ctx.font = `700 ${Math.round(width * 0.03)}px ${FONT_FAMILY}`;
+    ctx.fillText(`${achieved} значков · ${started} лайков`, width / 2, statsY);
+    // Footer
+    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    ctx.font = `500 ${Math.round(width * 0.018)}px ${FONT_FAMILY}`;
+    ctx.fillText(FOOTER_TAGLINE, width / 2, height - margin);
+    const blob = await canvasToPngBlob(canvas);
+    const title = buildTitle(input);
+    const text = buildCaption(input);
+    const filename = `rl_creator_highlight_${createdAt.split('T')[0]}.png`;
+    return { blob, mimeType: 'image/png', filename, title, text, width, height };
+  }
+
   // Legacy path: other card kinds
   let usedImageBg = false;
   if (input.format === 'wide') {
@@ -1696,14 +1747,14 @@ export const generateSocialCard = async (input: SocialCardInput): Promise<Social
     input.kind === 'creator_proposal'
       ? 'Предлагаю новый смысл в Путеводитель'
       : input.kind === 'favorite'
-      ? 'Мой wishlist маршрутов'
-      : input.kind === 'start_route' && manifestSkill
-        ? `Я выбираю путь ${badgeTitle || 'значка'}, чтобы прокачать ${manifestSkill}.`
-        : input.kind === 'start_route'
-          ? 'Я выбираю направление и делаю первый шаг'
-          : levelLabel
-            ? `Уровень: ${levelLabel}`
-            : 'Реальный опыт зафиксирован';
+        ? 'Мой wishlist маршрутов'
+        : input.kind === 'start_route' && manifestSkill
+          ? `Я выбираю путь ${badgeTitle || 'значка'}, чтобы прокачать ${manifestSkill}.`
+          : input.kind === 'start_route'
+            ? 'Я выбираю направление и делаю первый шаг'
+            : levelLabel
+              ? `Уровень: ${levelLabel}`
+              : 'Реальный опыт зафиксирован';
 
   ctx.font = `700 ${Math.round(width * (isPortrait ? 0.032 : 0.028))}px "Montserrat", system-ui, -apple-system, sans-serif`;
   const subLines = wrapText(ctx, sub, textMaxW);

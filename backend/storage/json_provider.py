@@ -14,6 +14,7 @@ from .base import (
     SquadInvitesStore, SquadMessagesStore,
     BadgeRequestsStore, BadgePlansStore, ParentSnapshotsStore,
     ChatDailyUsageStore, CouncilInitiativesStore, TeamsStore,
+    BadgeArtsStore,
 )
 
 _DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
@@ -30,6 +31,7 @@ _CHAT_DAILY_USAGE_FILE = os.path.join(_DATA_DIR, "chat_daily_usage.json")
 _COUNCIL_INITIATIVES_FILE = os.path.join(_DATA_DIR, "council_initiatives.json")
 # Teams historically live in backend/teams.json (not backend/data/teams.json)
 _TEAMS_FILE = os.path.join(os.path.dirname(__file__), "..", "teams.json")
+_BADGE_ARTS_FILE         = os.path.join(_DATA_DIR, "badge_arts.json")
 
 _SHIFTS_LOCK         = threading.Lock()
 _MEMBERSHIPS_LOCK    = threading.Lock()
@@ -299,6 +301,25 @@ class JsonTeamsStore(TeamsStore):
 # Реестр экземпляров
 # ---------------------------------------------------------------------------
 
+# --- BadgeArtsStore (M9) ---
+
+_BADGE_ARTS_LOCK = threading.Lock()
+
+class JsonBadgeArtsStore(BadgeArtsStore):
+    def load(self) -> dict:
+        _ensure_data_dir()
+        with _BADGE_ARTS_LOCK:
+            data = _read_json(_BADGE_ARTS_FILE, {"arts": []})
+            if "arts" not in data:
+                data["arts"] = []
+            return data
+
+    def save(self, data: dict) -> None:
+        _ensure_data_dir()
+        with _BADGE_ARTS_LOCK:
+            _write_json(_BADGE_ARTS_FILE, data if isinstance(data, dict) else {})
+
+
 JSON_STORES = {
     "shifts":          JsonShiftsStore(),
     "memberships":     JsonMembershipsStore(),
@@ -311,4 +332,5 @@ JSON_STORES = {
     "chat_daily_usage": JsonChatDailyUsageStore(),
     "council_initiatives": JsonCouncilInitiativesStore(),
     "teams":           JsonTeamsStore(),
+    "badge_arts":      JsonBadgeArtsStore(),
 }

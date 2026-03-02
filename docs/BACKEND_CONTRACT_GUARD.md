@@ -408,6 +408,19 @@
 - Per-camp daily: `IMAGES_CAMP_DAILY_LIMIT` (default 200) генераций в сутки (UTC), ключ = `campId` из JWT, fallback = `deviceId`
 - При превышении per-camp: `{"error": "Лимит генерации изображений для смены исчерпан", "retryAfter": "tomorrow"}`
 
+**Провайдер изображений (M9-RUSSIAN-AI-C):**
+
+| Env var | Values | Default | Описание |
+|---------|--------|---------|----------|
+| `IMAGE_PROVIDER` | `openai \| fusionbrain \| stub \| auto` | `openai` | Выбор провайдера генерации |
+| `FUSIONBRAIN_API_KEY` | string | — | API ключ FusionBrain (Kandinsky) |
+| `FUSIONBRAIN_SECRET_KEY` | string | — | Секретный ключ FusionBrain |
+
+- `openai` — OpenAI GPT Image / DALL-E (requires `OPENAI_API_KEY`)
+- `fusionbrain` — Kandinsky via FusionBrain API (async polling, 30s max)
+- `stub` — 1x1 transparent PNG placeholder (no external calls, always 200)
+- `auto` — fallback chain: openai → fusionbrain → stub
+
 **Safety (prompt sanitization, M5-R2-C):**
 - HTML/script-теги удаляются из `prompt` до передачи в OpenAI
 - При обнаружении injection-паттернов (`ignore previous`, `forget instructions`, `jailbreak`, `disregard`, `override prompt`) — `prompt` отбрасывается полностью, используется только базовый контекстный промпт
@@ -734,12 +747,70 @@
 
 ---
 
+### 3.10 Badge Arts (M9-ART-MODERATION-A)
+
+#### `POST /api/badges/arts`
+
+**Auth:** `CHAT_ALLOWED_ROLES` (participant+staff)  
+**Body:**
+```json
+{
+  "badgeId":   "string (required)",
+  "imageUrl":  "string (required)",
+  "source":    "'ai_generated' | 'hand_drawn' | 'uploaded' (optional, default: uploaded)",
+  "authorNickname": "string (optional)"
+}
+```
+
+**Response 201:**
+```json
+{
+  "art": {
+    "id": "string (BA-XXXXXXXXXX)",
+    "status": "pending",
+    "badgeId": "string",
+    "imageUrl": "string",
+    "source": "string",
+    "createdAt": "string ISO8601"
+  }
+}
+```
+
+---
+
+#### `GET /api/badges/arts`
+
+**Auth:** `CHAT_ALLOWED_ROLES`  
+**Query params:** `badgeId` (optional), `status` (optional: pending|approved|rejected|canon)  
+**Response 200:** `{ "arts": [...] }` — max 200, newest first
+
+---
+
+#### `GET /api/badges/arts/inbox`
+
+**Auth:** `counselor | educator | shift_leader | camp_director | developer`  
+**Response 200:** `{ "arts": [...] }` — only status=pending
+
+---
+
+#### `PATCH /api/badges/arts/{id}/review`
+
+**Auth:** `counselor | educator | shift_leader | camp_director | developer`  
+**Body:** `{ "status": "approved" | "rejected" | "canon", "moderatorNote"?: string }`  
+**Response 200:** `{ "art": { ...updated } }`  
+**HTTP 404** если арт не найден.  
+**HTTP 409** если арт уже reviewed.
+
+---
+
+---
+
 ## 5. Smoke Verification
 
 Контракты автоматически проверяются скриптом:
 
 ```bash
-# С AUTH_SECRET — полный прогон (63 checks):
+# С AUTH_SECRET — полный прогон (70 checks):
 # Windows (cp1251): запускать с -X utf8 для корректного вывода
 AUTH_SECRET=<secret> python -X utf8 backend/scripts/smoke_backend_critical.py --base-url http://localhost:4000
 
@@ -767,7 +838,8 @@ python backend/scripts/smoke_backend_critical.py --base-url http://localhost:400
 | K | Educator RBAC: educator JWT → requests inbox 200, plans inbox 200 (M7-EDUCATOR-RBAC-A) | 2 |
 | L | Council Initiatives extended: create → list → PATCH status (M8-COUNCIL-INITIATIVES-A) | 3 |
 | M | Staff Squad: create kind=staff → filter ?kind=staff (M8-COUNSELOR-SQUAD-A) | 2 |
-| **Total** | | **63** |
+| N | Badge Arts: submit → inbox → approve (M9-ART-MODERATION-A) | 3 |
+| **Total** | | **70** |
 
 **Flow D** (M5-R2-B, `/api/badges/requests/mine`):
 - D-1: GET /mine → 200, requests is list

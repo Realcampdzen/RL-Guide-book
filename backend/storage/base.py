@@ -147,3 +147,16 @@ class TeamsStore(ABC):
 
     @abstractmethod
     def save(self, data: dict) -> None: ...
+
+
+class BadgeArtsStore(ABC):
+    """
+    Хранилище артов/скинов значков.
+    Формат: {'arts': [...]}
+    Статусы: pending | approved | rejected | canon.
+    """
+    @abstractmethod
+    def load(self) -> dict: ...
+
+    @abstractmethod
+    def save(self, data: dict) -> None: ...

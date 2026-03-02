@@ -138,6 +138,24 @@ M8-EDUCATOR-CABINET-C (параллельно)
 
 ---
 
+## Спринт M9 — Фаза 3: Creator/UGC (с 2026-03-02)
+
+| Агент | Task ID | Задача | Статус | Дата начала | Зависимость | Отчёт |
+|-------|---------|--------|--------|-------------|-------------|-------|
+| **Agent A** | M9-ART-MODERATION-A | Арты/скины: серверная модерация + migration 006 + Smoke N | ✅ done | 2026-03-02 | None | 4 endpoints + Flow N + migration 006 |
+| **Agent B** | M9-ART-UI-B | Арты: галерея + модерация в inbox + submit modal | 🔜 pending | — | Ждёт M9-ART-MODERATION-A | — |
+| **Agent B** | M9-COMMUNITY-RANKING-B | Community: «Лучшее недели» + фильтры + Creator Card | ✅ done | 2026-03-02 | None | CommunityRankingPanel + creator_highlight |
+| **Agent C** | M9-RUSSIAN-AI-C | ИИ-картинки: ImageProvider абстракция + FusionBrain + StubProvider | ✅ done | 2026-03-02 | None | 4 providers + docs |
+
+**Зависимости M9:**
+```
+M9-ART-MODERATION-A ──► M9-ART-UI-B
+M9-COMMUNITY-RANKING-B (параллельно)
+M9-RUSSIAN-AI-C (параллельно)
+```
+
+---
+
 ## История выполненных задач (архив)
 
 | Агент | Task ID | Задача | Дата завершения | Отчёт |

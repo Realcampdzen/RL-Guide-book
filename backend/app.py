@@ -4367,6 +4367,162 @@ def council_initiative_vote(initiative_id: str):
     return jsonify({"initiative": target, "voted": not voted_already})
 
 
+
+# ---------------------------------------------------------------------------
+# Badge Arts — POST/GET/GET inbox/PATCH review  (M9-ART-MODERATION-A)
+# ---------------------------------------------------------------------------
+
+@app.route('/api/badges/arts', methods=['POST'])
+def badge_arts_submit():
+    """
+    POST /api/badges/arts — submit art/skin for moderation.
+    Body: { badgeId, imageUrl, source?, authorNickname? }
+    Auth: participant+staff
+    """
+    payload, err = _require_roles(CHAT_ALLOWED_ROLES, allow_localhost_dev=True)
+    if err is not None:
+        return err[0], err[1]
+
+    body = request.get_json() or {}
+    badge_id = (body.get("badgeId") or body.get("badge_id") or "").strip()
+    image_url = (body.get("imageUrl") or body.get("image_url") or "").strip()
+    source = (body.get("source") or "uploaded").strip()
+    author_nickname = (body.get("authorNickname") or body.get("author_nickname") or "").strip()
+
+    if not badge_id:
+        return jsonify({"error": "badgeId required"}), 400
+    if not image_url:
+        return jsonify({"error": "imageUrl required"}), 400
+    if source not in ("ai_generated", "hand_drawn", "uploaded"):
+        return jsonify({"error": "source must be ai_generated, hand_drawn, or uploaded"}), 400
+
+    device_id = (payload.get("deviceId") or "").strip()
+    nickname = author_nickname or (payload.get("nickname") or "").strip()
+
+    import secrets as _secrets
+    art_id = f"BA-{_secrets.token_hex(5)}"
+    now_iso = datetime.now(timezone.utc).isoformat()
+
+    new_art = {
+        "id": art_id,
+        "deviceId": device_id,
+        "badgeId": badge_id,
+        "imageUrl": image_url,
+        "source": source,
+        "status": "pending",
+        "moderatorNote": None,
+        "authorNickname": nickname,
+        "createdAt": now_iso,
+        "updatedAt": now_iso,
+    }
+
+    store = get_store("badge_arts")
+    data = store.load()
+    arts = data.get("arts") or []
+    arts.append(new_art)
+    data["arts"] = arts
+    store.save(data)
+
+    return jsonify({"art": new_art}), 201
+
+
+@app.route('/api/badges/arts', methods=['GET'])
+def badge_arts_list():
+    """
+    GET /api/badges/arts — list arts. Optional filters: ?badgeId=, ?status=
+    Auth: all authenticated
+    """
+    payload, err = _require_roles(CHAT_ALLOWED_ROLES, allow_localhost_dev=True)
+    if err is not None:
+        return err[0], err[1]
+
+    badge_id_filter = (request.args.get("badgeId") or request.args.get("badge_id") or "").strip()
+    status_filter = (request.args.get("status") or "").strip()
+
+    store = get_store("badge_arts")
+    data = store.load()
+    arts = data.get("arts") or []
+
+    result = []
+    for art in arts:
+        if not isinstance(art, dict):
+            continue
+        if badge_id_filter and art.get("badgeId") != badge_id_filter:
+            continue
+        if status_filter and art.get("status") != status_filter:
+            continue
+        result.append(art)
+
+    result.sort(key=lambda x: x.get("createdAt", ""), reverse=True)
+    return jsonify({"arts": result[:200]})
+
+
+@app.route('/api/badges/arts/inbox', methods=['GET'])
+def badge_arts_inbox():
+    """
+    GET /api/badges/arts/inbox — pending arts for staff moderation.
+    Auth: counselor|educator|shift_leader|camp_director|developer
+    """
+    payload, err = _require_roles(("counselor", "educator", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
+    if err is not None:
+        return err[0], err[1]
+
+    store = get_store("badge_arts")
+    data = store.load()
+    arts = data.get("arts") or []
+
+    pending = [a for a in arts if isinstance(a, dict) and a.get("status") == "pending"]
+    pending.sort(key=lambda x: x.get("createdAt", ""), reverse=True)
+    return jsonify({"arts": pending})
+
+
+@app.route('/api/badges/arts/<art_id>/review', methods=['PATCH'])
+def badge_arts_review(art_id: str):
+    """
+    PATCH /api/badges/arts/<id>/review — moderate art (approve/reject/canon).
+    Body: { status: "approved"|"rejected"|"canon", moderatorNote?: string }
+    Auth: counselor|educator|shift_leader|camp_director|developer
+    """
+    payload, err = _require_roles(("counselor", "educator", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
+    if err is not None:
+        return err[0], err[1]
+
+    aid = (art_id or "").strip()
+    if not aid:
+        return jsonify({"error": "art id required"}), 400
+
+    body = request.get_json() or {}
+    new_status = (body.get("status") or "").strip()
+    moderator_note = body.get("moderatorNote") or body.get("moderator_note")
+
+    if new_status not in ("approved", "rejected", "canon"):
+        return jsonify({"error": "status must be approved, rejected, or canon"}), 400
+
+    store = get_store("badge_arts")
+    data = store.load()
+    arts = data.get("arts") or []
+
+    target = None
+    for art in arts:
+        if isinstance(art, dict) and art.get("id") == aid:
+            target = art
+            break
+
+    if target is None:
+        return jsonify({"error": "Art not found"}), 404
+
+    if target.get("status") in ("approved", "rejected", "canon"):
+        return jsonify({"error": "Art already reviewed", "currentStatus": target["status"]}), 409
+
+    target["status"] = new_status
+    if moderator_note is not None:
+        target["moderatorNote"] = str(moderator_note).strip()[:2000]
+    target["updatedAt"] = datetime.now(timezone.utc).isoformat()
+
+    store.save(data)
+    return jsonify({"art": target})
+
+
 # Для Vercel
 if __name__ == '__main__':
     # ВАЖНО (Windows): не используем эмодзи в stdout, иначе возможен UnicodeEncodeError (cp1251)
