@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import BadgeIcon from './BadgeIcon';
 import { ConfirmModal } from './ConfirmModal';
 import { useCounselorSquad } from '../context/CounselorSquadContext';
@@ -11,7 +11,7 @@ const ACCENT = '#d97706';
 const ACCENT_LIGHT = 'rgba(217, 119, 6, 0.25)';
 const isImageUrl = (s?: string) => !!s && (s.startsWith('data:') || s.startsWith('http'));
 
-export type CounselorSquadTabId = 'squad' | 'photos' | 'planner' | 'flag-badges';
+export type CounselorSquadTabId = 'squad' | 'photos' | 'planner' | 'flag-badges' | 'members' | 'chat' | 'workshops' | 'traditions';
 
 interface CounselorSquadDashboardProps {
   variant?: 'accordion' | 'cabin';
@@ -268,7 +268,7 @@ export const CounselorSquadDashboard: React.FC<CounselorSquadDashboardProps> = (
             className="squad-corner-image-source-block"
             context="squad_photo"
             value={getPhoto(key) || null}
-            onChange={canEdit ? (url) => setPhoto(key, url) : () => {}}
+            onChange={canEdit ? (url) => setPhoto(key, url) : () => { }}
             aspect="square"
             labels={{ placeholder: label }}
             onGenerate={canEdit ? async (o) => requestImageGenerate({ mode: 'generate', context: 'counselor_squad', prompt: o.prompt ?? '' }, accessToken ?? null) : undefined}
@@ -362,6 +362,51 @@ export const CounselorSquadDashboard: React.FC<CounselorSquadDashboardProps> = (
       {pendingRequests}
     </>
   );
+
+  // ── Traditions (localStorage) ─────────────────────────────────────────
+  interface Tradition {
+    id: string;
+    title: string;
+    description: string;
+    status: 'proposed' | 'approved';
+    proposedBy: string;
+    linkedBadgeId?: string;
+  }
+  const TRADITIONS_KEY = `rl-traditions-${activeSquadId}`;
+  const [traditions, setTraditions] = useState<Tradition[]>(() => {
+    try { return JSON.parse(localStorage.getItem(TRADITIONS_KEY) || '[]') as Tradition[]; }
+    catch { return []; }
+  });
+  const [tradTitle, setTradTitle] = useState('');
+  const [tradDesc, setTradDesc] = useState('');
+  const [tradBadge, setTradBadge] = useState('');
+  const saveTraditions = useCallback((next: Tradition[]) => {
+    setTraditions(next);
+    try { localStorage.setItem(TRADITIONS_KEY, JSON.stringify(next)); } catch { /* */ }
+  }, [TRADITIONS_KEY]);
+  const addTradition = useCallback(() => {
+    if (!tradTitle.trim()) return;
+    const t: Tradition = {
+      id: `trad-${Date.now()}`,
+      title: tradTitle.trim(),
+      description: tradDesc.trim(),
+      status: 'proposed',
+      proposedBy: role ?? 'counselor',
+      linkedBadgeId: tradBadge.trim() || undefined,
+    };
+    saveTraditions([...traditions, t]);
+    setTradTitle(''); setTradDesc(''); setTradBadge('');
+  }, [tradTitle, tradDesc, tradBadge, role, traditions, saveTraditions]);
+  const approveTradition = useCallback((id: string) => {
+    saveTraditions(traditions.map(t => t.id === id ? { ...t, status: 'approved' as const } : t));
+  }, [traditions, saveTraditions]);
+  const removeTradition = useCallback((id: string) => {
+    saveTraditions(traditions.filter(t => t.id !== id));
+  }, [traditions, saveTraditions]);
+
+  // ── Chat stub messages ──────────────────────────────────────────────
+  const [chatMessages] = useState<{ id: string; author: string; text: string; ts: string }[]>([]);
+  const [chatInput, setChatInput] = useState('');
 
   const onJoinSubmit = () => {
     if (!counselorJoinCode.trim()) {
@@ -584,8 +629,151 @@ export const CounselorSquadDashboard: React.FC<CounselorSquadDashboardProps> = (
     </div>
   );
 
+  // ── New section renders ─────────────────────────────────────────────
+  const ROLE_BADGES: Record<string, { label: string; color: string }> = {
+    shift_leader: { label: 'Старший вожатый', color: '#f59e0b' },
+    counselor: { label: 'Вожатый', color: '#3b82f6' },
+    educator: { label: 'Педагог', color: '#a855f7' },
+    camp_director: { label: 'Директор', color: '#ef4444' },
+    developer: { label: 'Разработчик', color: '#22c55e' },
+  };
+
+  const membersSection = sectionWrap(
+    <>
+      <div style={{ fontSize: 13, fontWeight: 700, color: ACCENT, marginBottom: 4 }}>👥 Участники отряда</div>
+      {(activeSquadCard as Record<string, unknown>)?.members && Array.isArray((activeSquadCard as Record<string, unknown>).members) ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          {((activeSquadCard as Record<string, unknown>).members as Array<{ deviceId: string; nickname?: string; role?: string }>).map(m => {
+            const rb = ROLE_BADGES[m.role ?? ''] ?? { label: m.role ?? 'участник', color: '#6b7280' };
+            return (
+              <div key={m.deviceId} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', borderRadius: 8, background: 'rgba(0,0,0,0.12)' }}>
+                <span style={{ fontSize: 14 }}>👤</span>
+                <span style={{ flex: 1, fontSize: 12 }}>{m.nickname || m.deviceId.slice(0, 8)}</span>
+                <span style={{ fontSize: 9, padding: '2px 6px', borderRadius: 6, background: `${rb.color}22`, color: rb.color }}>{rb.label}</span>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <div style={{ fontSize: 12, opacity: 0.6 }}>Список участников загрузится из серверных данных (M14).</div>
+      )}
+    </>
+  );
+
+  const chatSection = sectionWrap(
+    <>
+      <div style={{ fontSize: 13, fontWeight: 700, color: ACCENT, marginBottom: 4 }}>💬 Чат отряда</div>
+      <div style={{ minHeight: 120, maxHeight: 300, overflowY: 'auto', padding: 8, borderRadius: 10, background: 'rgba(0,0,0,0.15)', border: '1px solid rgba(255,255,255,0.06)' }}>
+        {chatMessages.length === 0 ? (
+          <div style={{ fontSize: 12, opacity: 0.5, textAlign: 'center', padding: 20 }}>Пока нет сообщений. Напишите первое!</div>
+        ) : chatMessages.map(msg => (
+          <div key={msg.id} style={{ marginBottom: 6, fontSize: 12 }}>
+            <span style={{ fontWeight: 600, color: ACCENT }}>{msg.author}</span>{' '}
+            <span style={{ opacity: 0.5, fontSize: 10 }}>{msg.ts}</span>
+            <div style={{ opacity: 0.9 }}>{msg.text}</div>
+          </div>
+        ))}
+      </div>
+      <div style={{ display: 'flex', gap: 6, marginTop: 4 }}>
+        <input type="text" value={chatInput} onChange={e => setChatInput(e.target.value)} placeholder="Сообщение…"
+          style={{ flex: 1, padding: '6px 10px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.2)', color: '#fff', fontSize: 12 }} />
+        <button type="button" className="btn-secondary" style={{ padding: '6px 12px', fontSize: 11 }} disabled={!chatInput.trim()}
+          onClick={() => { setChatInput(''); onShowHint?.({ title: 'Чат', content: 'Серверный чат будет подключён в M14.' }); }}>
+          📤
+        </button>
+      </div>
+    </>
+  );
+
+  const workshopsSection = sectionWrap(
+    <>
+      <div style={{ fontSize: 13, fontWeight: 700, color: ACCENT, marginBottom: 4 }}>🎓 Мастерские педагогов</div>
+      {(activeSquadCard as Record<string, unknown>)?.members && Array.isArray((activeSquadCard as Record<string, unknown>).members) ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          {((activeSquadCard as Record<string, unknown>).members as Array<{ deviceId: string; nickname?: string; role?: string; workshop?: string }>)
+            .filter(m => m.role === 'educator')
+            .map(m => (
+              <div key={m.deviceId} style={{ padding: '8px 10px', borderRadius: 8, background: 'rgba(168,85,247,0.08)', border: '1px solid rgba(168,85,247,0.15)' }}>
+                <div style={{ fontSize: 12, fontWeight: 600 }}>{m.nickname || m.deviceId.slice(0, 8)}</div>
+                <div style={{ fontSize: 11, opacity: 0.7 }}>{m.workshop || 'Мастерская не указана'}</div>
+              </div>
+            ))}
+          {((activeSquadCard as Record<string, unknown>).members as Array<{ role?: string }>).filter(m => m.role === 'educator').length === 0 && (
+            <div style={{ fontSize: 12, opacity: 0.6 }}>Нет педагогов в отряде</div>
+          )}
+        </div>
+      ) : (
+        <div style={{ fontSize: 12, opacity: 0.6 }}>Список педагогов загрузится из серверных данных (M14).</div>
+      )}
+    </>
+  );
+
+  const traditionsSection = sectionWrap(
+    <>
+      <div style={{ fontSize: 13, fontWeight: 700, color: ACCENT, marginBottom: 4 }}>🏛️ Традиции лагеря</div>
+      {traditions.length === 0 ? (
+        <div style={{ fontSize: 12, opacity: 0.6, marginBottom: 8 }}>Нет традиций. Предложите первую!</div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 8 }}>
+          {traditions.map(t => (
+            <div key={t.id} style={{
+              padding: '8px 10px', borderRadius: 10,
+              background: t.status === 'approved' ? 'rgba(34,197,94,0.08)' : 'rgba(0,0,0,0.12)',
+              border: `1px solid ${t.status === 'approved' ? 'rgba(34,197,94,0.2)' : 'rgba(255,255,255,0.06)'}`,
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ fontSize: 12, fontWeight: 600, flex: 1 }}>{t.title}</span>
+                <span style={{
+                  fontSize: 9, padding: '1px 5px', borderRadius: 4,
+                  background: t.status === 'approved' ? 'rgba(34,197,94,0.2)' : 'rgba(245,158,11,0.2)',
+                  color: t.status === 'approved' ? '#22c55e' : '#f59e0b'
+                }}>
+                  {t.status === 'approved' ? 'Утверждена' : 'Предложена'}
+                </span>
+              </div>
+              {t.description && <div style={{ fontSize: 11, opacity: 0.7, marginTop: 2 }}>{t.description}</div>}
+              {t.linkedBadgeId && <div style={{ fontSize: 10, opacity: 0.5, marginTop: 2 }}>🔗 Значок {t.linkedBadgeId}</div>}
+              <div style={{ display: 'flex', gap: 4, marginTop: 4 }}>
+                {t.status === 'proposed' && canEdit && (
+                  <button type="button" className="btn-secondary" style={{ padding: '2px 8px', fontSize: 10, color: '#22c55e' }}
+                    onClick={() => approveTradition(t.id)}>✅ Утвердить</button>
+                )}
+                {canEdit && (
+                  <button type="button" className="btn-secondary" style={{ padding: '2px 8px', fontSize: 10, color: '#ef4444' }}
+                    onClick={() => removeTradition(t.id)}>🗑</button>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+      {accessToken && (
+        <div style={{ padding: 10, borderRadius: 10, background: 'rgba(0,0,0,0.1)', border: '1px solid rgba(255,255,255,0.06)' }}>
+          <div style={{ fontSize: 11, fontWeight: 600, marginBottom: 4 }}>Предложить традицию</div>
+          <input type="text" value={tradTitle} onChange={e => setTradTitle(e.target.value)} placeholder="Название"
+            style={{ width: '100%', padding: '6px 8px', borderRadius: 6, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.2)', color: '#fff', fontSize: 12, marginBottom: 4, boxSizing: 'border-box' }} />
+          <textarea value={tradDesc} onChange={e => setTradDesc(e.target.value)} placeholder="Описание…"
+            style={{ width: '100%', padding: '6px 8px', borderRadius: 6, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.2)', color: '#fff', fontSize: 12, marginBottom: 4, minHeight: 40, boxSizing: 'border-box' }} />
+          <input type="text" value={tradBadge} onChange={e => setTradBadge(e.target.value)} placeholder="ID значка (необязательно)"
+            style={{ width: '100%', padding: '6px 8px', borderRadius: 6, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.2)', color: '#fff', fontSize: 12, marginBottom: 4, boxSizing: 'border-box' }} />
+          <button type="button" className="btn-primary-gold" style={{ padding: '6px 14px', fontSize: 11 }}
+            disabled={!tradTitle.trim()} onClick={addTradition}>
+            Предложить
+          </button>
+        </div>
+      )}
+    </>
+  );
+
   const cabinContent =
-    activeTab === 'squad' ? squadSection : activeTab === 'photos' ? photosSection : activeTab === 'planner' ? plannerSection : flagsSection;
+    activeTab === 'squad' ? squadSection
+      : activeTab === 'photos' ? photosSection
+        : activeTab === 'planner' ? plannerSection
+          : activeTab === 'members' ? membersSection
+            : activeTab === 'chat' ? chatSection
+              : activeTab === 'workshops' ? workshopsSection
+                : activeTab === 'traditions' ? traditionsSection
+                  : flagsSection;
 
   return (
     <div className={`fade-in counselor-squad-cabin-content ${!canEdit ? 'counselor-squad-read-only' : ''}`} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>

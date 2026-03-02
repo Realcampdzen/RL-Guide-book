@@ -199,7 +199,7 @@ M11-INSPECTOR-C ──────► M11-INSPECTOR-UI-B
 |-------|---------|--------|--------|-------------|-------------|-------|
 | **Agent A** | M12-BRO-BACKEND-A | БРО: Бросвящение + Крыло API + migration 009 + Flow Q | 🔜 pending | — | None | — |
 | **Agent A** | M12-SHIFT-PLANNER-A | План-сетка: schedule API + migration 010 + Flow S | 🔜 pending | — | None (параллельно) | — |
-| **Agent B** | M12-COUNSELOR-SQUAD-B | Вожатский Отряд: полный кабинет + традиции | 🔜 pending | — | None (параллельно) | — |
+| **Agent B** | M12-COUNSELOR-SQUAD-B | Вожатский Отряд: полный кабинет + традиции | ✅ done | 2026-03-02 | None | 4 tabs: participants, chat, workshops, traditions |
 | **Agent B** | M12-BRO-UI-B | БРО: BroPassport UI + Крыло + разблокировка значков | 🔜 pending | — | Ждёт M12-BRO-BACKEND-A | — |
 | **Agent B** | M12-SHIFT-PLANNER-UI-B | План-сетка: таблица-сетка + CRUD + назначение ответственных | 🔜 pending | — | Ждёт M12-SHIFT-PLANNER-A | — |
 
