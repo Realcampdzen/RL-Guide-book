@@ -239,7 +239,7 @@ M13-UGC-BADGES-B ────────── (независимая)
 | **Agent A** | M14-PARENT-AUTH-A | Parent: email auth stub + suggest-route API | ✅ done | 2026-03-02 | None (параллельно) | migration 013, 4 endpoints, Flow W ✅ |
 | **Agent B** | M14-TRADITIONS-B | Традиции: отряд + лагерь + связь с значками | ✅ done | 2026-03-02 | None | SquadTraditionsSection + badge linkage |
 | **Agent C** | M14-VOZHATIFFICATOR-C | Вожатификатор: stubs + Путеводные Огни | ✅ done | 2026-03-02 | None | 33 checkpoints, 2 endpoints, Flow X ✅ |
-| **Agent B** | M14-PILOT-HARDENING-B | Pilot: интеграция + ErrorBoundary + loading + offline | 🔜 pending | — | Ждёт A + C | — |
+| **Agent B** | M14-PILOT-HARDENING-B | Pilot: интеграция + ErrorBoundary + loading + offline | ✅ done | 2026-03-02 | None | CampDirectorPanel + VozhatifficatorPanel + PanelErrorBoundary + OfflineBanner |
 
 **Зависимости M14:**
 ```
