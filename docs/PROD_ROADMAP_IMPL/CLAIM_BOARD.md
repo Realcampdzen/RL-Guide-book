@@ -200,8 +200,8 @@ M11-INSPECTOR-C ──────► M11-INSPECTOR-UI-B
 | **Agent A** | M12-BRO-BACKEND-A | БРО: Бросвящение + Крыло API + migration 009 + Flow Q | ✅ done | 2026-03-02 | None | 6 endpoints, Flow Q ✅ |
 | **Agent A** | M12-SHIFT-PLANNER-A | План-сетка: schedule API + migration 010 + Flow S | ✅ done | 2026-03-02 | None | 5 endpoints, Flow S ✅ |
 | **Agent B** | M12-COUNSELOR-SQUAD-B | Вожатский Отряд: полный кабинет + традиции | ✅ done | 2026-03-02 | None | 4 tabs: participants, chat, workshops, traditions |
-| **Agent B** | M12-BRO-UI-B | БРО: BroPassport UI + Крыло + разблокировка значков | 🔜 pending | — | Ждёт M12-BRO-BACKEND-A | — |
-| **Agent B** | M12-SHIFT-PLANNER-UI-B | План-сетка: таблица-сетка + CRUD + назначение ответственных | 🔜 pending | — | Ждёт M12-SHIFT-PLANNER-A | — |
+| **Agent B** | M12-BRO-UI-B | БРО: BroPassport UI + Крыло + разблокировка значков | ✅ done | 2026-03-02 | None | BroPassportPanel + broApi |
+| **Agent B** | M12-SHIFT-PLANNER-UI-B | План-сетка: таблица-сетка + CRUD + назначение ответственных | ✅ done | 2026-03-02 | None | ShiftSchedulePanel + scheduleApi |
 
 **Зависимости M12:**
 ```
