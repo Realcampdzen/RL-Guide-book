@@ -4253,6 +4253,7 @@ def council_initiatives_create():
         "updatedAt": created_at,
         "createdBy": device_id,
         "createdByNickname": nickname,
+        "proposalType": "director_proposal" if payload.get("role") == "camp_director" else "regular",
     }
 
     store = get_store("council_initiatives")
@@ -5383,6 +5384,55 @@ def workshop_confirm_badge(workshop_id: str, badge_link_id: str, device_id: str)
     store.save(data)
     return jsonify({"confirmation": new_conf}), 201
 
+# ── Вожатификатор / Путеводные Огни (M14-VOZHATIFFICATOR-C) ──────────
+
+_VOZH_DIR = os.path.join(os.path.dirname(__file__), "..", "ai-data", "vozhatifficator")
+
+_vozh_sections_cache: list | None = None
+_vozh_gl_cache: dict | None = None
+
+
+@app.route('/api/vozhatifficator/sections', methods=['GET'])
+def api_vozh_sections():
+    """GET — list vozhatifficator book sections."""
+    global _vozh_sections_cache
+    if _vozh_sections_cache is not None:
+        return jsonify(_vozh_sections_cache)
+    sections = [
+        {"id": "2013-2019", "title": "2013–2019", "status": "ready", "preview": "Классическая книга Вожатификатор. Основы лагерной педагогики."},
+    ]
+    for fname in ["2019-2022.json", "2023-present.json"]:
+        fpath = os.path.join(_VOZH_DIR, fname)
+        try:
+            with open(fpath, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            sections.append({
+                "id": fname.replace(".json", ""),
+                "title": data.get("title", fname),
+                "status": data.get("status", "in_development"),
+                "preview": data.get("preview", ""),
+            })
+        except Exception:
+            pass
+    _vozh_sections_cache = sections
+    return jsonify(sections)
+
+
+@app.route('/api/vozhatifficator/guiding-lights', methods=['GET'])
+def api_vozh_guiding_lights():
+    """GET — return Guiding Lights checklist."""
+    global _vozh_gl_cache
+    if _vozh_gl_cache is not None:
+        return jsonify(_vozh_gl_cache)
+    fpath = os.path.join(_VOZH_DIR, "guiding_lights.json")
+    try:
+        with open(fpath, "r", encoding="utf-8") as f:
+            _vozh_gl_cache = json.load(f)
+    except Exception:
+        _vozh_gl_cache = {"error": "guiding_lights.json not found"}
+    return jsonify(_vozh_gl_cache)
+
+
 # ── 4К навыки — маппинг и расчёт (M13-4K-ENGINE-C) ───────────────────
 
 _4K_MAPPING_FILE = os.path.join(
@@ -5594,6 +5644,249 @@ def api_4k_stats(device_id: str):
         "programs": program_scores,
         "badgeCount": len(approved_badge_ids),
     })
+
+
+# ── Camp Director Overview (M14-CAMP-DIRECTOR-A) ───────────────────────────
+
+_DIRECTOR_ROLES = ("camp_director", "developer")
+
+
+@app.route('/api/camp/overview', methods=['GET'])
+def camp_overview():
+    """GET — aggregated camp stats for camp_director."""
+    payload, err = _require_roles(_DIRECTOR_ROLES, allow_localhost_dev=True)
+    if err is not None:
+        return err[0], err[1]
+
+    result = {}
+
+    # Shifts
+    try:
+        sh = get_store("shifts").load()
+        shifts_list = sh.get("shifts") or []
+        result["shifts"] = {
+            "total": len(shifts_list),
+            "active": sum(1 for s in shifts_list if isinstance(s, dict) and s.get("status") == "active"),
+        }
+    except Exception:
+        result["shifts"] = {"total": 0, "active": 0}
+
+    # Squads (from memberships)
+    try:
+        mb = get_store("memberships").load()
+        members = mb.get("members") or []
+        squad_ids = set()
+        for m in members:
+            if isinstance(m, dict) and m.get("squadId"):
+                squad_ids.add(m["squadId"])
+        result["squads"] = {"total": len(squad_ids), "members_total": len(members)}
+    except Exception:
+        result["squads"] = {"total": 0, "members_total": 0}
+
+    # Engines
+    try:
+        eng = get_store("engines").load()
+        eng_list = eng.get("engines") or []
+        result["engines"] = {
+            "total": len(eng_list),
+            "approved": sum(1 for e in eng_list if isinstance(e, dict) and e.get("status") == "approved"),
+            "pending": sum(1 for e in eng_list if isinstance(e, dict) and e.get("status") == "pending"),
+        }
+    except Exception:
+        result["engines"] = {"total": 0, "approved": 0, "pending": 0}
+
+    # Workshops
+    try:
+        ws = get_store("workshops").load()
+        workshops_list = ws.get("workshops") or []
+        prt = ws.get("participants") or []
+        result["workshops"] = {"total": len(workshops_list), "participants_total": len(prt)}
+    except Exception:
+        result["workshops"] = {"total": 0, "participants_total": 0}
+
+    # Council initiatives
+    try:
+        ci = get_store("council_initiatives").load()
+        ci_list = ci.get("initiatives") or []
+        result["council_initiatives"] = {
+            "total": len(ci_list),
+            "approved": sum(1 for i_ in ci_list if isinstance(i_, dict) and i_.get("status") == "approved"),
+            "in_progress": sum(1 for i_ in ci_list if isinstance(i_, dict) and i_.get("status") == "in_progress"),
+        }
+    except Exception:
+        result["council_initiatives"] = {"total": 0, "approved": 0, "in_progress": 0}
+
+    # Badge requests
+    try:
+        br = get_store("badge_requests").load()
+        br_list = br.get("requests") or []
+        result["badge_requests"] = {
+            "total": len(br_list),
+            "approved": sum(1 for r_ in br_list if isinstance(r_, dict) and r_.get("status") == "approved"),
+            "pending": sum(1 for r_ in br_list if isinstance(r_, dict) and r_.get("status") == "pending"),
+        }
+    except Exception:
+        result["badge_requests"] = {"total": 0, "approved": 0, "pending": 0}
+
+    # Inspector progress
+    try:
+        ip = get_store("inspector_progress").load()
+        ip_list = ip.get("progress") or []
+        device_ids_active = set()
+        completed_count = 0
+        for p in ip_list:
+            if isinstance(p, dict):
+                device_ids_active.add(p.get("deviceId", ""))
+                if p.get("status") == "approved":
+                    completed_count += 1
+        result["inspector_progress"] = {"active_users": len(device_ids_active), "completed_checklists": completed_count}
+    except Exception:
+        result["inspector_progress"] = {"active_users": 0, "completed_checklists": 0}
+
+    # BRO events
+    try:
+        be = get_store("bro_events").load()
+        bp = get_store("bro_passports").load()
+        result["bro_events"] = {
+            "total": len(be.get("events") or []),
+            "passports_completed": sum(
+                1 for p in (bp.get("passports") or [])
+                if isinstance(p, dict) and p.get("status") == "completed"
+            ),
+        }
+    except Exception:
+        result["bro_events"] = {"total": 0, "passports_completed": 0}
+
+    return jsonify(result)
+
+
+# ── Parent Email Auth Stub (M14-PARENT-AUTH-A) ────────────────────────────
+
+_email_tokens: dict = {}  # in-memory dev store: email -> token
+
+
+@app.route('/api/auth/email/request', methods=['POST'])
+def auth_email_request():
+    """
+    POST /api/auth/email/request — dev stub: generate magic link token.
+    Body: {"email": "parent@example.com"}
+    Returns: {"ok": true, "message": "...", "devToken": "..."}
+    In production this would send an email. In dev mode it returns the token directly.
+    """
+    body = request.get_json() or {}
+    email = (body.get("email") or "").strip().lower()
+    if not email or "@" not in email:
+        return jsonify({"error": "Valid email required"}), 400
+
+    import secrets as _sec
+    token = _sec.token_urlsafe(32)
+    _email_tokens[token] = email
+
+    return jsonify({
+        "ok": True,
+        "message": "Dev mode: token returned directly (no email sent)",
+        "devToken": token,
+    })
+
+
+@app.route('/api/auth/email/verify', methods=['GET'])
+def auth_email_verify():
+    """
+    GET /api/auth/email/verify?token=xxx — verify magic link, return JWT with role=parent.
+    """
+    token = (request.args.get("token") or "").strip()
+    if not token or token not in _email_tokens:
+        return jsonify({"error": "Invalid or expired token"}), 401
+
+    email = _email_tokens.pop(token)
+    # Generate a JWT for parent role
+    parent_device_id = f"parent-{email.split('@')[0]}"
+    import time as _time
+    now_ts = int(_time.time())
+    jwt_payload = {
+        "deviceId": parent_device_id,
+        "nickname": email.split("@")[0],
+        "role": "parent",
+        "email": email,
+        "iat": now_ts,
+        "exp": now_ts + 86400 * 7,  # 7 days
+    }
+    try:
+        import jwt as _jwt
+        secret = os.environ.get("AUTH_SECRET", "dev-secret")
+        encoded = _jwt.encode(jwt_payload, secret, algorithm="HS256")
+    except Exception:
+        encoded = f"dev-jwt-{parent_device_id}"
+
+    return jsonify({"ok": True, "token": encoded, "role": "parent", "deviceId": parent_device_id})
+
+
+# ── Parent Suggest Route (M14-PARENT-AUTH-A) ──────────────────────────────
+
+_PARENT_PLUS = ("parent", "counselor", "educator", "shift_leader", "camp_director", "developer")
+
+
+@app.route('/api/parent/suggest-route', methods=['POST'])
+def parent_suggest_route():
+    """
+    POST /api/parent/suggest-route — parent suggests a badge route for their child.
+    Body: {"childDeviceId": "...", "badges": ["1.1", "2.3"], "note"?: "..."}
+    """
+    payload, err = _require_roles(_PARENT_PLUS, allow_localhost_dev=True)
+    if err is not None:
+        return err[0], err[1]
+
+    body = request.get_json() or {}
+    child_id = (body.get("childDeviceId") or "").strip()
+    badges = body.get("badges") or []
+    note = (body.get("note") or "").strip()
+
+    if not child_id:
+        return jsonify({"error": "childDeviceId required"}), 400
+    if not isinstance(badges, list) or len(badges) == 0:
+        return jsonify({"error": "badges array required"}), 400
+
+    import secrets as _sec2
+    suggestion_id = f"PS-{_sec2.token_hex(5)}"
+    created_at = datetime.now(timezone.utc).isoformat()
+    parent_id = (payload.get("deviceId") or "").strip()
+
+    new_suggestion = {
+        "id": suggestion_id,
+        "parentId": parent_id,
+        "childDeviceId": child_id,
+        "badges": badges,
+        "note": note,
+        "status": "suggested",
+        "createdAt": created_at,
+    }
+
+    store = get_store("parent_suggestions")
+    data = store.load()
+    items = data.get("suggestions") or []
+    items.append(new_suggestion)
+    data["suggestions"] = items
+    store.save(data)
+
+    return jsonify({"suggestion": new_suggestion}), 201
+
+
+@app.route('/api/parent/suggestions/<child_device_id>', methods=['GET'])
+def parent_suggestions_list(child_device_id: str):
+    """
+    GET /api/parent/suggestions/<childDeviceId> — list suggestions for a child.
+    """
+    payload, err = _require_roles(_PARENT_PLUS, allow_localhost_dev=True)
+    if err is not None:
+        return err[0], err[1]
+
+    store = get_store("parent_suggestions")
+    data = store.load()
+    items = [
+        s for s in (data.get("suggestions") or [])
+        if isinstance(s, dict) and s.get("childDeviceId") == child_device_id
+    ]
+    return jsonify({"suggestions": items})
 
 
 # Для Vercel

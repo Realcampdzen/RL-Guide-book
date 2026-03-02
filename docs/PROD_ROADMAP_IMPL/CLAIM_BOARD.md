@@ -235,10 +235,10 @@ M13-UGC-BADGES-B ────────── (независимая)
 
 | Агент | Task ID | Задача | Статус | Дата начала | Зависимость | Отчёт |
 |-------|---------|--------|--------|-------------|-------------|-------|
-| **Agent A** | M14-CAMP-DIRECTOR-A | Начальник: overview API + director_proposal | 🔜 pending | — | None | — |
-| **Agent A** | M14-PARENT-AUTH-A | Parent: email auth stub + suggest-route API | 🔜 pending | — | None (параллельно) | — |
-| **Agent B** | M14-TRADITIONS-B | Традиции: отряд + лагерь + связь с значками | 🔜 pending | — | None (параллельно) | — |
-| **Agent C** | M14-VOZHATIFFICATOR-C | Вожатификатор: stubs + Путеводные Огни | 🔜 pending | — | None (параллельно) | — |
+| **Agent A** | M14-CAMP-DIRECTOR-A | Начальник: overview API + director_proposal | ✅ done | 2026-03-02 | None | migration 012, overview + tag, Flow V ✅ |
+| **Agent A** | M14-PARENT-AUTH-A | Parent: email auth stub + suggest-route API | ✅ done | 2026-03-02 | None (параллельно) | migration 013, 4 endpoints, Flow W ✅ |
+| **Agent B** | M14-TRADITIONS-B | Традиции: отряд + лагерь + связь с значками | ✅ done | 2026-03-02 | None | SquadTraditionsSection + badge linkage |
+| **Agent C** | M14-VOZHATIFFICATOR-C | Вожатификатор: stubs + Путеводные Огни | ✅ done | 2026-03-02 | None | 33 checkpoints, 2 endpoints, Flow X ✅ |
 | **Agent B** | M14-PILOT-HARDENING-B | Pilot: интеграция + ErrorBoundary + loading + offline | 🔜 pending | — | Ждёт A + C | — |
 
 **Зависимости M14:**

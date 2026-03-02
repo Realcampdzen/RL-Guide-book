@@ -23,6 +23,7 @@ from .base import (
     InspectorProgressStore,
     BroEventsStore, BroPassportsStore, ShiftScheduleStore,
     WorkshopsStore,
+    ParentSuggestionsStore,
 )
 
 _sb_client = None
@@ -1078,6 +1079,43 @@ class SupabaseWorkshopsStore(WorkshopsStore):
 
 
 # ---------------------------------------------------------------------------
+# SupabaseParentSuggestionsStore (M14-PARENT-AUTH-A)
+# ---------------------------------------------------------------------------
+
+class SupabaseParentSuggestionsStore(ParentSuggestionsStore):
+    def _row_to_suggestion(self, r: dict) -> dict:
+        return {
+            "id": r.get("id", ""),
+            "parentId": r.get("parent_id", ""),
+            "childDeviceId": r.get("child_device_id", ""),
+            "badges": r.get("badges") or [],
+            "note": r.get("note", ""),
+            "status": r.get("status", "suggested"),
+            "createdAt": r.get("created_at", ""),
+        }
+
+    def load(self) -> dict:
+        sb = _get_sb()
+        rows = sb.table("parent_suggestions").select("*").execute().data or []
+        return {"suggestions": [self._row_to_suggestion(r) for r in rows]}
+
+    def save(self, data: dict) -> None:
+        sb = _get_sb()
+        for s in (data.get("suggestions") or []):
+            if not isinstance(s, dict):
+                continue
+            row = {
+                "id": s.get("id") or str(uuid.uuid4()),
+                "parent_id": s.get("parentId", ""),
+                "child_device_id": s.get("childDeviceId", ""),
+                "badges": json.dumps(s.get("badges") or []),
+                "note": s.get("note", ""),
+                "status": s.get("status", "suggested"),
+            }
+            sb.table("parent_suggestions").upsert(row).execute()
+
+
+# ---------------------------------------------------------------------------
 # Реестр экземпляров
 # ---------------------------------------------------------------------------
 
@@ -1101,5 +1139,6 @@ SUPABASE_STORES = {
     "bro_passports":     SupabaseBroPassportsStore(),
     "shift_schedule":    SupabaseShiftScheduleStore(),
     "workshops":         SupabaseWorkshopsStore(),
+    "parent_suggestions": SupabaseParentSuggestionsStore(),
 }
 

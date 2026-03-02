@@ -1862,6 +1862,145 @@ class SmokeRunner:
             self.fail("GET /api/4k/stats (U-2)", str(exc))
 
     # -----------------------------------------------------------------------
+    # Flow V: Camp Director Overview (M14-CAMP-DIRECTOR-A)
+    # -----------------------------------------------------------------------
+
+    def run_flow_v(self):
+        """V — Camp Director overview + director_proposal."""
+        print("\n--- Flow V: Camp Director endpoints ---")
+
+        if self.auth_secret:
+            d_token = self._get_jwt(f"smoke_director_{uuid.uuid4().hex[:8]}", "camp_director")
+            if d_token:
+                # V-1: GET /api/camp/overview → 200 + has keys
+                try:
+                    s1, r1 = _http(
+                        self._url("/api/camp/overview"),
+                        method="GET",
+                        headers=self._bearer(d_token),
+                        expect_status=200,
+                    )
+                    expected_keys = {"shifts", "squads", "engines", "workshops",
+                                     "council_initiatives", "badge_requests",
+                                     "inspector_progress", "bro_events"}
+                    self.check(
+                        "GET /api/camp/overview — V-1: 200 + keys",
+                        s1 == 200 and expected_keys.issubset(set(r1.keys())),
+                        f"status={s1}, keys={list(r1.keys())}",
+                    )
+                except SmokeError as exc:
+                    self.fail("GET camp/overview (V-1)", str(exc))
+
+                # V-2: POST council initiative as director → 201 + proposalType
+                try:
+                    s2, r2 = _http(
+                        self._url("/api/council/initiatives"),
+                        method="POST",
+                        body={"title": "Director Smoke Proposal"},
+                        headers=self._bearer(d_token),
+                        expect_status=201,
+                    )
+                    self.check(
+                        "POST council initiative (director) — V-2: proposalType",
+                        s2 == 201 and r2.get("proposalType") == "director_proposal",
+                        f"status={s2}, type={r2.get('proposalType')}",
+                    )
+                except SmokeError as exc:
+                    self.fail("POST council initiative director (V-2)", str(exc))
+            else:
+                self.skip("Flow V", "no director token")
+        else:
+            self.skip("Flow V", "no auth_secret")
+
+    # -----------------------------------------------------------------------
+    # Flow W: Parent Auth + Suggest Route (M14-PARENT-AUTH-A)
+    # -----------------------------------------------------------------------
+
+    def run_flow_w(self):
+        """W — Email auth stub + parent suggest-route."""
+        print("\n--- Flow W: Parent Auth endpoints ---")
+
+        # W-1: POST /api/auth/email/request → 200
+        try:
+            s1, r1 = _http(
+                self._url("/api/auth/email/request"),
+                method="POST",
+                body={"email": "smoke-parent@example.com"},
+                expect_status=200,
+            )
+            self.check(
+                "POST /api/auth/email/request — W-1: 200 + devToken",
+                s1 == 200 and r1.get("devToken"),
+                f"status={s1}",
+            )
+        except SmokeError as exc:
+            self.fail("POST auth/email/request (W-1)", str(exc))
+
+        # W-2: POST /api/parent/suggest-route → 201
+        if self.auth_secret:
+            p_token = self._get_jwt(f"smoke_parent_{uuid.uuid4().hex[:8]}", "parent")
+            if p_token:
+                try:
+                    s2, r2 = _http(
+                        self._url("/api/parent/suggest-route"),
+                        method="POST",
+                        body={"childDeviceId": "smoke-child-001", "badges": ["1.1", "2.3"], "note": "smoke test"},
+                        headers=self._bearer(p_token),
+                        expect_status=201,
+                    )
+                    self.check(
+                        "POST /api/parent/suggest-route — W-2: 201",
+                        s2 == 201 and r2.get("suggestion", {}).get("id"),
+                        f"status={s2}",
+                    )
+                except SmokeError as exc:
+                    self.fail("POST parent/suggest-route (W-2)", str(exc))
+            else:
+                self.skip("POST parent/suggest-route (W-2)", "no parent token")
+        else:
+            self.skip("POST parent/suggest-route (W-2)", "no auth_secret")
+
+    # -----------------------------------------------------------------------
+    # Flow X: Vozhatifficator sections + Guiding Lights (M14-VOZHATIFFICATOR-C)
+    # -----------------------------------------------------------------------
+
+    def run_flow_x(self):
+        """X — Vozhatifficator sections + guiding lights."""
+        print("\n--- Flow X: Vozhatifficator endpoints ---")
+
+        # X-1: GET /api/vozhatifficator/sections → 200, 3 sections
+        try:
+            s1, r1 = _http(
+                self._url("/api/vozhatifficator/sections"),
+                method="GET",
+                expect_status=200,
+            )
+            self.check(
+                "GET /api/vozhatifficator/sections — X-1: 200 + 3 sections",
+                s1 == 200 and isinstance(r1, list) and len(r1) == 3,
+                f"status={s1}, count={len(r1) if isinstance(r1, list) else 'N/A'}",
+            )
+        except SmokeError as exc:
+            self.fail("GET vozhatifficator/sections (X-1)", str(exc))
+
+        # X-2: GET /api/vozhatifficator/guiding-lights → 200, 5 categories
+        try:
+            s2, r2 = _http(
+                self._url("/api/vozhatifficator/guiding-lights"),
+                method="GET",
+                expect_status=200,
+            )
+            cats = r2.get("categories") or [] if isinstance(r2, dict) else []
+            total_tasks = sum(len(c.get("tasks", [])) for c in cats if isinstance(c, dict))
+            self.check(
+                "GET /api/vozhatifficator/guiding-lights — X-2: 200 + 5 cats + 33 tasks",
+                s2 == 200 and len(cats) == 5 and total_tasks == 33,
+                f"status={s2}, cats={len(cats)}, tasks={total_tasks}",
+            )
+        except SmokeError as exc:
+            self.fail("GET vozhatifficator/guiding-lights (X-2)", str(exc))
+
+    # -----------------------------------------------------------------------
 
     def run(self) -> int:
         print(f"Smoke backend critical flows — {self.base}")
@@ -1897,6 +2036,9 @@ class SmokeRunner:
         self.run_flow_s()
         self.run_flow_t()
         self.run_flow_u()
+        self.run_flow_v()
+        self.run_flow_w()
+        self.run_flow_x()
         return self._print_summary()
 
     def _print_summary(self) -> int:

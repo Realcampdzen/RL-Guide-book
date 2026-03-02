@@ -250,3 +250,16 @@ class WorkshopsStore(ABC):
 
     @abstractmethod
     def save(self, data: dict) -> None: ...
+
+
+class ParentSuggestionsStore(ABC):
+    """
+    Хранилище предложений маршрутов от родителей.
+    Формат: {'suggestions': [...]}
+    Каждый: {id, parentId, childDeviceId, badges[], note, status, createdAt}
+    """
+    @abstractmethod
+    def load(self) -> dict: ...
+
+    @abstractmethod
+    def save(self, data: dict) -> None: ...

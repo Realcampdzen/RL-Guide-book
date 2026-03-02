@@ -24,6 +24,8 @@
 | **BRO** | `POST /api/squads/{squadId}/bro/initiate`, `GET /api/squads/{squadId}/bro/events`, `GET /api/bro/passport/{deviceId}`, `POST /api/bro/passport`, `PATCH /api/bro/passport/{id}/task`, `PATCH /api/bro/passport/{id}/complete` |
 | **Shift Schedule** | `GET /api/shifts/{shiftId}/schedule`, `GET /api/shifts/{shiftId}/schedule/day/{dayIndex}`, `POST /api/shifts/{shiftId}/schedule`, `PATCH /api/schedule/{eventId}`, `DELETE /api/schedule/{eventId}` |
 | **Workshops** | `POST /api/workshops`, `GET /api/workshops`, `GET /api/workshops/{id}`, `PATCH /api/workshops/{id}`, `POST /api/workshops/{id}/participants`, `POST /api/workshops/{id}/badges`, `DELETE /api/workshops/{id}/badges/{badgeId}`, `POST /api/workshops/{id}/badges/{badgeId}/confirm/{deviceId}` |
+| **Camp Director** | `GET /api/camp/overview` |
+| **Parent Auth** | `POST /api/auth/email/request`, `GET /api/auth/email/verify`, `POST /api/parent/suggest-route`, `GET /api/parent/suggestions/{childDeviceId}` |
 
 ---
 
