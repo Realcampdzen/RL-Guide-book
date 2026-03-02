@@ -1528,6 +1528,80 @@ class SmokeRunner:
     # -----------------------------------------------------------------------
     # Run all
     # -----------------------------------------------------------------------
+    # Flow R: Inspector Polzy endpoints (M11-INSPECTOR-C)
+    # -----------------------------------------------------------------------
+
+    def run_flow_r(self):
+        """R — Inspector checklists + progress + approve."""
+        print("\n--- Flow R: Inspector endpoints ---")
+
+        # R-1: GET /api/inspector/checklists → 200, missions array
+        try:
+            s1, r1 = _http(self._url("/api/inspector/checklists"), expect_status=200)
+            missions = r1.get("missions", [])
+            self.check(
+                "GET /api/inspector/checklists — R-1: 200 + missions[]",
+                s1 == 200 and isinstance(missions, list) and len(missions) >= 7,
+                f"status={s1}, count={len(missions)}",
+            )
+        except SmokeError as exc:
+            self.fail("GET /api/inspector/checklists (R-1)", str(exc))
+            return
+
+        # R-2: POST /api/inspector/progress → 201
+        device_id = f"smoke_insp_{uuid.uuid4().hex[:8]}"
+        entry_id = ""
+        try:
+            s2, r2 = _http(
+                self._url("/api/inspector/progress"),
+                method="POST",
+                body={"deviceId": device_id, "checklistId": "standard", "taskId": "d1_t1"},
+                expect_status=201,
+            )
+            entry_id = r2.get("entry", {}).get("id", "")
+            self.check(
+                "POST /api/inspector/progress — R-2: 201 created",
+                s2 == 201 and r2.get("status") == "ok" and entry_id,
+                f"status={s2}",
+            )
+        except SmokeError as exc:
+            self.fail("POST /api/inspector/progress (R-2)", str(exc))
+
+        # R-3: GET /api/inspector/progress/<deviceId> → 200, contains entry
+        try:
+            s3, r3 = _http(self._url(f"/api/inspector/progress/{device_id}"), expect_status=200)
+            progress = r3.get("progress", [])
+            self.check(
+                "GET /api/inspector/progress/<deviceId> — R-3: has entry",
+                s3 == 200 and len(progress) >= 1,
+                f"status={s3}, count={len(progress)}",
+            )
+        except SmokeError as exc:
+            self.fail("GET /api/inspector/progress (R-3)", str(exc))
+
+        # R-4: PATCH approve → 200 (requires staff token)
+        if entry_id and self.auth_secret:
+            c_token = self._get_jwt(f"smoke_counselor_{uuid.uuid4().hex[:8]}", "counselor")
+            if c_token:
+                try:
+                    s4, r4 = _http(
+                        self._url(f"/api/inspector/progress/{entry_id}/approve"),
+                        method="PATCH",
+                        body={},
+                        headers=self._bearer(c_token),
+                        expect_status=200,
+                    )
+                    self.check(
+                        "PATCH /api/inspector/progress/<id>/approve — R-4: approved",
+                        s4 == 200 and r4.get("entry", {}).get("status") == "approved",
+                        f"status={s4}",
+                    )
+                except SmokeError as exc:
+                    self.fail("PATCH approve (R-4)", str(exc))
+        else:
+            self.skip("PATCH approve (R-4)", "no auth_secret or entry_id")
+
+    # -----------------------------------------------------------------------
 
     def run(self) -> int:
         print(f"Smoke backend critical flows — {self.base}")
@@ -1558,6 +1632,7 @@ class SmokeRunner:
         self.run_flow_n()
         self.run_flow_o()
         self.run_flow_p()
+        self.run_flow_r()
         return self._print_summary()
 
     def _print_summary(self) -> int:

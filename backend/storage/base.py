@@ -185,3 +185,18 @@ class EngineMembersStore(ABC):
 
     @abstractmethod
     def save(self, data: dict) -> None: ...
+
+
+class InspectorProgressStore(ABC):
+    """
+    Хранилище прогресса Инспектора Пользы.
+    Формат: {'progress': [...]}
+    Каждая запись: {id, deviceId, checklistId, taskId, status, completedAt, approvedBy, approvedAt}
+    Статусы: completed | approved.
+    """
+    @abstractmethod
+    def load(self) -> dict: ...
+
+    @abstractmethod
+    def save(self, data: dict) -> None: ...
+

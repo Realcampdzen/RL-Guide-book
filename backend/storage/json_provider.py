@@ -15,6 +15,7 @@ from .base import (
     BadgeRequestsStore, BadgePlansStore, ParentSnapshotsStore,
     ChatDailyUsageStore, CouncilInitiativesStore, TeamsStore,
     BadgeArtsStore, EnginesStore, EngineMembersStore,
+    InspectorProgressStore,
 )
 
 _DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
@@ -357,6 +358,26 @@ class JsonEngineMembersStore(EngineMembersStore):
             _write_json(_ENGINE_MEMBERS_FILE, data if isinstance(data, dict) else {})
 
 
+# --- InspectorProgressStore (M11-INSPECTOR-C) ---
+
+_INSPECTOR_PROGRESS_FILE = os.path.join(_DATA_DIR, "inspector_progress.json")
+_INSPECTOR_PROGRESS_LOCK = threading.Lock()
+
+class JsonInspectorProgressStore(InspectorProgressStore):
+    def load(self) -> dict:
+        _ensure_data_dir()
+        with _INSPECTOR_PROGRESS_LOCK:
+            data = _read_json(_INSPECTOR_PROGRESS_FILE, {"progress": []})
+            if "progress" not in data:
+                data["progress"] = []
+            return data
+
+    def save(self, data: dict) -> None:
+        _ensure_data_dir()
+        with _INSPECTOR_PROGRESS_LOCK:
+            _write_json(_INSPECTOR_PROGRESS_FILE, data if isinstance(data, dict) else {})
+
+
 JSON_STORES = {
     "shifts":          JsonShiftsStore(),
     "memberships":     JsonMembershipsStore(),
@@ -372,4 +393,6 @@ JSON_STORES = {
     "badge_arts":      JsonBadgeArtsStore(),
     "engines":         JsonEnginesStore(),
     "engine_members":  JsonEngineMembersStore(),
+    "inspector_progress": JsonInspectorProgressStore(),
 }
+

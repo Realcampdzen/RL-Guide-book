@@ -19,6 +19,7 @@ from .base import (
     BadgeRequestsStore, BadgePlansStore, ParentSnapshotsStore,
     ChatDailyUsageStore, CouncilInitiativesStore, TeamsStore,
     BadgeArtsStore, EnginesStore, EngineMembersStore,
+    InspectorProgressStore,
 )
 
 _sb_client = None
@@ -813,6 +814,47 @@ class SupabaseEngineMembersStore(EngineMembersStore):
 
 
 # ---------------------------------------------------------------------------
+# InspectorProgressStore (M11-INSPECTOR-C)
+# ---------------------------------------------------------------------------
+
+class SupabaseInspectorProgressStore(InspectorProgressStore):
+    def load(self) -> dict:
+        sb = _client()
+        rows = sb.table("inspector_progress").select("*").order("completed_at", desc=False).execute().data or []
+        progress = []
+        for r in rows:
+            progress.append({
+                "id": str(r.get("id", "")),
+                "deviceId": r.get("device_id", ""),
+                "checklistId": r.get("checklist_id", ""),
+                "taskId": r.get("task_id", ""),
+                "status": r.get("status", "completed"),
+                "completedAt": _ts(r.get("completed_at")),
+                "approvedBy": r.get("approved_by") or None,
+                "approvedAt": _ts(r.get("approved_at")) if r.get("approved_at") else None,
+            })
+        return {"progress": progress}
+
+    def save(self, data: dict) -> None:
+        sb = _client()
+        for entry in (data.get("progress") or []):
+            if not isinstance(entry, dict):
+                continue
+            row = {
+                "id": entry.get("id") or str(uuid.uuid4()),
+                "device_id": entry.get("deviceId", ""),
+                "checklist_id": entry.get("checklistId", ""),
+                "task_id": entry.get("taskId", ""),
+                "status": entry.get("status", "completed"),
+            }
+            if entry.get("approvedBy"):
+                row["approved_by"] = entry["approvedBy"]
+            if entry.get("approvedAt"):
+                row["approved_at"] = entry["approvedAt"]
+            sb.table("inspector_progress").upsert(row).execute()
+
+
+# ---------------------------------------------------------------------------
 # Реестр экземпляров
 # ---------------------------------------------------------------------------
 
@@ -831,5 +873,6 @@ SUPABASE_STORES = {
     "badge_arts":        SupabaseBadgeArtsStore(),
     "engines":           SupabaseEnginesStore(),
     "engine_members":    SupabaseEngineMembersStore(),
+    "inspector_progress": SupabaseInspectorProgressStore(),
 }
 

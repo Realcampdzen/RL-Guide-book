@@ -4774,6 +4774,104 @@ def engines_members(engine_id: str):
     members = [m for m in (mdata.get("members") or []) if isinstance(m, dict) and m.get("engineId") == engine_id]
     return jsonify({"members": members})
 
+# ── Inspector Пользы endpoints (M11-INSPECTOR-C) ──────────────────────
+
+_INSPECTOR_CHECKLISTS_FILE = os.path.join(
+    os.path.dirname(__file__), "..", "ai-data", "inspector", "checklists.json"
+)
+
+
+@app.route('/api/inspector/checklists', methods=['GET'])
+def inspector_checklists():
+    """GET — return all Inspector missions / checklists."""
+    try:
+        with open(_INSPECTOR_CHECKLISTS_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        return jsonify(data)
+    except FileNotFoundError:
+        return jsonify({"missions": []}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/inspector/progress/<device_id>', methods=['GET'])
+def inspector_progress_get(device_id: str):
+    """GET — get Inspector progress for a device."""
+    store = get_store("inspector_progress")
+    data = store.load()
+    progress = [
+        p for p in (data.get("progress") or [])
+        if isinstance(p, dict) and p.get("deviceId") == device_id
+    ]
+    return jsonify({"progress": progress})
+
+
+@app.route('/api/inspector/progress', methods=['POST'])
+def inspector_progress_post():
+    """POST — mark an Inspector task as completed."""
+    body = request.get_json() or {}
+    device_id = (body.get("deviceId") or "").strip()
+    checklist_id = (body.get("checklistId") or "").strip()
+    task_id = (body.get("taskId") or "").strip()
+
+    if not device_id or not checklist_id or not task_id:
+        return jsonify({"error": "deviceId, checklistId, taskId required"}), 400
+
+    store = get_store("inspector_progress")
+    data = store.load()
+    progress = data.get("progress") or []
+
+    # Check for duplicate
+    for p in progress:
+        if isinstance(p, dict) and p.get("deviceId") == device_id and p.get("checklistId") == checklist_id and p.get("taskId") == task_id:
+            return jsonify({"status": "already_completed", "entry": p}), 200
+
+    entry = {
+        "id": str(uuid.uuid4()),
+        "deviceId": device_id,
+        "checklistId": checklist_id,
+        "taskId": task_id,
+        "status": "completed",
+        "completedAt": datetime.now(timezone.utc).isoformat(),
+        "approvedBy": None,
+        "approvedAt": None,
+    }
+    progress.append(entry)
+    data["progress"] = progress
+    store.save(data)
+    return jsonify({"status": "ok", "entry": entry}), 201
+
+
+@app.route('/api/inspector/progress/<entry_id>/approve', methods=['PATCH'])
+def inspector_progress_approve(entry_id: str):
+    """PATCH — approve an Inspector task (staff only)."""
+    payload, err = _require_roles(("counselor", "educator", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
+    if err is not None:
+        return err[0], err[1]
+
+    approver = (payload.get("deviceId") or "staff").strip()
+
+    store = get_store("inspector_progress")
+    data = store.load()
+    progress = data.get("progress") or []
+
+    target = None
+    for p in progress:
+        if isinstance(p, dict) and p.get("id") == entry_id:
+            target = p
+            break
+    if target is None:
+        return jsonify({"error": "Progress entry not found"}), 404
+
+    if target.get("status") == "approved":
+        return jsonify({"status": "already_approved", "entry": target}), 200
+
+    target["status"] = "approved"
+    target["approvedBy"] = approver
+    target["approvedAt"] = datetime.now(timezone.utc).isoformat()
+    store.save(data)
+    return jsonify({"status": "ok", "entry": target})
+
 
 # Для Vercel
 if __name__ == '__main__':
