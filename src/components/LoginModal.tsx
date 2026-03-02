@@ -1,5 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import { supabase } from '../utils/supabaseClient';
+import { NAV_HOME_IMAGE } from '../utils/imageSources';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -100,8 +101,8 @@ export const LoginModal: React.FC<LoginModalProps> = ({ open, onClose, onLegacyC
                     }}>✕</button>
 
                 {/* Header */}
-                <img src="/Gemini_Generated_Image_ct40o9ct40o9ct40.png" alt="Реальный Лагерь"
-                    style={{ width: 64, height: 64, borderRadius: 32, objectFit: 'cover' }} />
+                <img src={`${import.meta.env.BASE_URL}${NAV_HOME_IMAGE}`} alt="Реальный Лагерь"
+                    style={{ width: 80, height: 80, borderRadius: 40, objectFit: 'cover' }} />
                 <div style={{ textAlign: 'center', marginBottom: 4 }}>
                     <div style={{ fontSize: 18, fontWeight: 800, color: '#fff', letterSpacing: -0.5 }}>
                         Войти в Путеводитель
