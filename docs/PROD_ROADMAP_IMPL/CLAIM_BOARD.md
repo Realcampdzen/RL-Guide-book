@@ -176,6 +176,23 @@ M10-UX-POLISH-B (параллельно)
 
 ---
 
+## Спринт M11 — Движки + Инспектор Пользы (с 2026-03-02)
+
+| Агент | Task ID | Задача | Статус | Дата начала | Зависимость | Отчёт |
+|-------|---------|--------|--------|-------------|-------------|-------|
+| **Agent A** | M11-DVIZHKI-BACKEND-A | Движки: engines API + migration 007 + Flow P | 🔜 pending | — | None | — |
+| **Agent C** | M11-INSPECTOR-C | Инспектор Пользы: чек-листы + API + Flow R | 🔜 pending | — | None (параллельно) | — |
+| **Agent B** | M11-DVIZHKI-UI-B | Движки: кабинет + цель + интеграция в Отрядный Уголок | 🔜 pending | — | Ждёт M11-DVIZHKI-BACKEND-A | — |
+| **Agent B** | M11-INSPECTOR-UI-B | Инспектор Пользы: UI панель + прогрессия + staff approve | 🔜 pending | — | Ждёт M11-INSPECTOR-C | — |
+
+**Зависимости M11:**
+```
+M11-DVIZHKI-BACKEND-A ──► M11-DVIZHKI-UI-B
+M11-INSPECTOR-C ──────► M11-INSPECTOR-UI-B
+```
+
+---
+
 ## История выполненных задач (архив)
 
 | Агент | Task ID | Задача | Дата завершения | Отчёт |
