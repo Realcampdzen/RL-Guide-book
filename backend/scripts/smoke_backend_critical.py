@@ -2034,6 +2034,37 @@ class SmokeRunner:
 
     # -----------------------------------------------------------------------
 
+    # ------------------------------------------------------------------
+    # Flow AA — M16 Admin Inbox + Action (2 checks)
+    # ------------------------------------------------------------------
+    def run_flow_aa(self):
+        """Flow AA: Unified admin inbox and universal action."""
+        if not self._token:
+            self.skip("Flow AA", "no auth token")
+            return
+
+        # AA-1: GET /api/admin/inbox → 200 + has counts
+        try:
+            r, s = self._get("/api/admin/inbox")
+            ok = s == 200 and isinstance(r, dict) and "counts" in r and "items" in r
+            self.check("AA-1", ok, "admin inbox has counts + items")
+        except SmokeError as exc:
+            self.fail("GET /api/admin/inbox (AA-1)", str(exc))
+
+        # AA-2: POST /api/admin/action with unknown item → 404 (proves dispatch works)
+        try:
+            r2, s2 = self._post("/api/admin/action", json={
+                "item_type": "badge_request",
+                "item_id": "nonexistent-smoke-test",
+                "action": "approve"
+            })
+            ok2 = s2 == 404 and isinstance(r2, dict) and "error" in r2
+            self.check("AA-2", ok2, "admin action dispatch 404 for missing item")
+        except SmokeError as exc:
+            self.fail("POST /api/admin/action (AA-2)", str(exc))
+
+    # -----------------------------------------------------------------------
+
     def run(self) -> int:
         print(f"Smoke backend critical flows — {self.base}")
         print("=" * 60)
@@ -2072,6 +2103,7 @@ class SmokeRunner:
         self.run_flow_w()
         self.run_flow_x()
         self.run_flow_z()
+        self.run_flow_aa()
         return self._print_summary()
 
     def _print_summary(self) -> int:

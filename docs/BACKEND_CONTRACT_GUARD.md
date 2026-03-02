@@ -28,6 +28,7 @@
 | **Parent Auth** | `POST /api/auth/email/request`, `GET /api/auth/email/verify`, `POST /api/parent/suggest-route`, `GET /api/parent/suggestions/{childDeviceId}` |
 | **Auth / Users (M15)** | `GET /api/auth/me`, `PATCH /api/auth/me`, `POST /api/auth/link-device` |
 | **Dev Role (M15)** | `POST /api/dev/switch-role`, `GET /api/dev/users`, `PATCH /api/dev/users/{id}/role` |
+| **Admin Inbox (M16)** | `GET /api/admin/inbox`, `POST /api/admin/action` |
 
 ---
 

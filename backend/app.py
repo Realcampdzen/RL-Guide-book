@@ -6177,6 +6177,323 @@ def dev_users_update_role(user_id):
     return jsonify({"user": target})
 
 
+# ---------------------------------------------------------------------------
+# M16-DASHBOARD-BACKEND-A: Unified Inbox + Universal Action
+# ---------------------------------------------------------------------------
+
+_ADMIN_INBOX_ROLES = ("counselor", "educator", "shift_leader", "camp_director", "developer")
+
+
+def _collect_inbox_items(type_filter: str = ""):
+    """Collect pending items from 5 stores, return (items, counts)."""
+    items = []
+    counts: dict = {}
+
+    def _add(item_type, item_list):
+        if type_filter and type_filter != item_type:
+            return
+        counts[item_type] = len(item_list)
+        items.extend(item_list)
+
+    # 1) Badge requests — status == "pending"
+    try:
+        bdoc = _badge_requests_load()
+        pending_br = []
+        for row in (bdoc.get("requests") or []):
+            if not isinstance(row, dict):
+                continue
+            if (row.get("status") or "") != "pending":
+                continue
+            req_by = row.get("requestedBy") or {}
+            pending_br.append({
+                "type": "badge_request",
+                "id": row.get("id", ""),
+                "user": {
+                    "device_id": req_by.get("deviceId", "") if isinstance(req_by, dict) else "",
+                    "nickname": req_by.get("nickname", "") if isinstance(req_by, dict) else "",
+                },
+                "data": {
+                    "badge_id": row.get("levelId", ""),
+                    "badge_name": row.get("badgeTitle", ""),
+                    "attachments": row.get("evidence", {}).get("photos", []) if isinstance(row.get("evidence"), dict) else [],
+                },
+                "status": "pending",
+                "created_at": row.get("createdAt", ""),
+            })
+        _add("badge_request", pending_br)
+    except Exception:
+        counts.setdefault("badge_request", 0)
+
+    # 2) Council initiatives — pending statuses
+    _CI_PENDING = {"idea", "proposed", "new", "submitted"}
+    try:
+        ci_data = get_store("council_initiatives").load()
+        pending_ci = []
+        for item in (ci_data.get("initiatives") or []):
+            if not isinstance(item, dict):
+                continue
+            status = (item.get("status") or "").strip().lower()
+            if status not in _CI_PENDING:
+                continue
+            pending_ci.append({
+                "type": "council_initiative",
+                "id": item.get("id", ""),
+                "user": {
+                    "device_id": item.get("authorDeviceId", "") or item.get("deviceId", ""),
+                    "nickname": item.get("authorNickname", "") or item.get("author_nickname", ""),
+                },
+                "data": {
+                    "title": item.get("title", ""),
+                    "description": (item.get("description") or "")[:200],
+                    "status": item.get("status", ""),
+                },
+                "status": item.get("status", ""),
+                "created_at": item.get("createdAt", "") or item.get("created_at", ""),
+            })
+        _add("council_initiative", pending_ci)
+    except Exception:
+        counts.setdefault("council_initiative", 0)
+
+    # 3) Badge arts — status == "pending"
+    try:
+        ba_data = get_store("badge_arts").load()
+        pending_ba = []
+        for art in (ba_data.get("arts") or []):
+            if not isinstance(art, dict):
+                continue
+            if (art.get("status") or "") != "pending":
+                continue
+            pending_ba.append({
+                "type": "badge_art",
+                "id": art.get("id", ""),
+                "user": {
+                    "device_id": art.get("deviceId", ""),
+                    "nickname": art.get("authorNickname", ""),
+                },
+                "data": {
+                    "image_url": art.get("imageUrl", ""),
+                    "source": art.get("source", ""),
+                    "badge_id": art.get("badgeId", ""),
+                },
+                "status": "pending",
+                "created_at": art.get("createdAt", ""),
+            })
+        _add("badge_art", pending_ba)
+    except Exception:
+        counts.setdefault("badge_art", 0)
+
+    # 4) Engines — status == "pending"
+    try:
+        eng_data = get_store("engines").load()
+        pending_eng = []
+        for eng in (eng_data.get("engines") or []):
+            if not isinstance(eng, dict):
+                continue
+            if (eng.get("status") or "") != "pending":
+                continue
+            pending_eng.append({
+                "type": "engine_approve",
+                "id": eng.get("id", ""),
+                "user": {
+                    "device_id": eng.get("createdBy", ""),
+                    "nickname": "",
+                },
+                "data": {
+                    "title": eng.get("title", ""),
+                    "squad_id": eng.get("squadId", ""),
+                },
+                "status": "pending",
+                "created_at": eng.get("createdAt", ""),
+            })
+        _add("engine_approve", pending_eng)
+    except Exception:
+        counts.setdefault("engine_approve", 0)
+
+    # 5) Inspector progress — status == "completed" (awaiting approval)
+    try:
+        ip_data = get_store("inspector_progress").load()
+        pending_ip = []
+        for p in (ip_data.get("progress") or []):
+            if not isinstance(p, dict):
+                continue
+            if (p.get("status") or "") != "completed":
+                continue
+            pending_ip.append({
+                "type": "inspector_task",
+                "id": p.get("id", ""),
+                "user": {
+                    "device_id": p.get("deviceId", ""),
+                    "nickname": "",
+                },
+                "data": {
+                    "checklist_id": p.get("checklistId", ""),
+                    "task_id": p.get("taskId", ""),
+                },
+                "status": "done_pending",
+                "created_at": p.get("completedAt", ""),
+            })
+        _add("inspector_task", pending_ip)
+    except Exception:
+        counts.setdefault("inspector_task", 0)
+
+    # Sort by created_at descending
+    items.sort(key=lambda x: x.get("created_at", ""), reverse=True)
+    counts["total"] = sum(v for k, v in counts.items() if k != "total")
+
+    return items, counts
+
+
+@app.route('/api/admin/inbox', methods=['GET'])
+def admin_inbox():
+    """
+    GET /api/admin/inbox — unified inbox aggregating pending items from all stores.
+    Optional query param: ?type=badge_request (filter by item type).
+    Auth: counselor|educator|shift_leader|camp_director|developer
+    """
+    payload, err = _require_roles(_ADMIN_INBOX_ROLES, allow_localhost_dev=True)
+    if err is not None:
+        return err[0], err[1]
+
+    type_filter = (request.args.get("type") or "").strip()
+    items, counts = _collect_inbox_items(type_filter)
+    return jsonify({"items": items, "counts": counts})
+
+
+@app.route('/api/admin/action', methods=['POST'])
+def admin_action():
+    """
+    POST /api/admin/action — universal action dispatcher.
+    Body: { "item_type": "badge_request", "item_id": "...", "action": "approve|reject", "comment": "..." }
+    Routes action to the appropriate store.
+    Auth: counselor|educator|shift_leader|camp_director|developer
+    """
+    payload, err = _require_roles(_ADMIN_INBOX_ROLES, allow_localhost_dev=True)
+    if err is not None:
+        return err[0], err[1]
+
+    body = request.get_json() or {}
+    item_type = (body.get("item_type") or "").strip()
+    item_id = (body.get("item_id") or "").strip()
+    action = (body.get("action") or "").strip()
+    comment = (body.get("comment") or "").strip()
+
+    if not item_type or not item_id or not action:
+        return jsonify({"error": "item_type, item_id, and action are required"}), 400
+    if action not in ("approve", "reject"):
+        return jsonify({"error": "action must be 'approve' or 'reject'"}), 400
+
+    now_iso = datetime.now(timezone.utc).isoformat()
+    approver_device = (payload.get("deviceId") or "staff").strip()
+    approver_role = _normalize_role((payload.get("role") or "").strip())
+
+    # --- Route to store ---
+
+    if item_type == "badge_request":
+        next_status = "approved" if action == "approve" else "rejected"
+        bdoc = _badge_requests_load()
+        rows = bdoc.get("requests") or []
+        target = None
+        for row in rows:
+            if isinstance(row, dict) and (row.get("id") or "") == item_id:
+                target = row
+                break
+        if target is None:
+            return jsonify({"error": "Badge request not found"}), 404
+        if target.get("status") != "pending":
+            return jsonify({"error": f"Already resolved: {target.get('status')}"}), 409
+        target["status"] = next_status
+        target["resolvedAt"] = now_iso
+        target["resolvedBy"] = {"deviceId": approver_device, "role": approver_role}
+        if comment:
+            target["resolutionNote"] = comment[:2000]
+        _badge_requests_save(bdoc)
+        return jsonify({"ok": True, "item_type": item_type, "item_id": item_id, "action": action})
+
+    elif item_type == "council_initiative":
+        next_status = "approved" if action == "approve" else "rejected"
+        store = get_store("council_initiatives")
+        data = store.load()
+        items = data.get("initiatives") or []
+        target = None
+        for item in items:
+            if isinstance(item, dict) and item.get("id") == item_id:
+                target = item
+                break
+        if target is None:
+            return jsonify({"error": "Initiative not found"}), 404
+        target["status"] = next_status
+        target["updatedAt"] = now_iso
+        if comment:
+            target["moderatorNote"] = comment[:2000]
+        store.save(data)
+        return jsonify({"ok": True, "item_type": item_type, "item_id": item_id, "action": action})
+
+    elif item_type == "badge_art":
+        next_status = "approved" if action == "approve" else "rejected"
+        store = get_store("badge_arts")
+        data = store.load()
+        arts = data.get("arts") or []
+        target = None
+        for art in arts:
+            if isinstance(art, dict) and art.get("id") == item_id:
+                target = art
+                break
+        if target is None:
+            return jsonify({"error": "Art not found"}), 404
+        if target.get("status") in ("approved", "rejected", "canon"):
+            return jsonify({"error": f"Already reviewed: {target.get('status')}"}), 409
+        target["status"] = next_status
+        target["updatedAt"] = now_iso
+        if comment:
+            target["moderatorNote"] = comment[:2000]
+        store.save(data)
+        return jsonify({"ok": True, "item_type": item_type, "item_id": item_id, "action": action})
+
+    elif item_type == "engine_approve":
+        if action == "reject":
+            next_status = "rejected"
+        else:
+            next_status = "approved"
+        store = get_store("engines")
+        data = store.load()
+        engines = data.get("engines") or []
+        target = None
+        for eng in engines:
+            if isinstance(eng, dict) and eng.get("id") == item_id:
+                target = eng
+                break
+        if target is None:
+            return jsonify({"error": "Engine not found"}), 404
+        target["status"] = next_status
+        target["updatedAt"] = now_iso
+        store.save(data)
+        return jsonify({"ok": True, "item_type": item_type, "item_id": item_id, "action": action})
+
+    elif item_type == "inspector_task":
+        if action == "reject":
+            return jsonify({"error": "Inspector tasks cannot be rejected, only approved"}), 400
+        store = get_store("inspector_progress")
+        data = store.load()
+        progress = data.get("progress") or []
+        target = None
+        for p in progress:
+            if isinstance(p, dict) and p.get("id") == item_id:
+                target = p
+                break
+        if target is None:
+            return jsonify({"error": "Inspector progress entry not found"}), 404
+        if target.get("status") == "approved":
+            return jsonify({"error": "Already approved"}), 409
+        target["status"] = "approved"
+        target["approvedBy"] = approver_device
+        target["approvedAt"] = now_iso
+        store.save(data)
+        return jsonify({"ok": True, "item_type": item_type, "item_id": item_id, "action": action})
+
+    else:
+        return jsonify({"error": f"Unknown item_type: {item_type}"}), 400
+
+
 # Для Vercel
 if __name__ == '__main__':
     # ВАЖНО (Windows): не используем эмодзи в stdout, иначе возможен UnicodeEncodeError (cp1251)
