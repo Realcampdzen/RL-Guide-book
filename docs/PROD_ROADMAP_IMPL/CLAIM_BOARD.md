@@ -251,6 +251,22 @@ M14-TRADITIONS-B ────────── (независимая)
 
 ---
 
+## Спринт M15 — Supabase Auth + Dev Role (с 2026-03-02)
+
+| Агент | Task ID | Задача | Статус | Дата начала | Зависимость | Отчёт |
+|-------|---------|--------|--------|-------------|-------------|-------|
+| **Agent A** | M15-AUTH-BACKEND-A | Supabase Auth: users table + resolve_user + OAuth setup | 🔜 pending | — | None | — |
+| **Agent A** | M15-DEV-ROLE-A | Dev superuser: whitelist + role switch + permissions | 🔜 pending | — | None (параллельно) | — |
+| **Agent B** | M15-AUTH-UI-B | LoginScreen: Google/Яндекс/VK ID + Magic Link + useAuth | 🔜 pending | — | Ждёт M15-AUTH-BACKEND-A | — |
+
+**Зависимости M15:**
+```
+M15-AUTH-BACKEND-A ──► M15-AUTH-UI-B
+M15-DEV-ROLE-A ────── (параллельная)
+```
+
+---
+
 ## История выполненных задач (архив)
 
 | Агент | Task ID | Задача | Дата завершения | Отчёт |
