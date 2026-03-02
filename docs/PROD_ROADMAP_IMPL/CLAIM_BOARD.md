@@ -212,6 +212,25 @@ M12-COUNSELOR-SQUAD-B ── (независимая)
 
 ---
 
+## Спринт M13 — Педагог Мастерская + 4К навыки + UGC значки (с 2026-03-02)
+
+| Агент | Task ID | Задача | Статус | Дата начала | Зависимость | Отчёт |
+|-------|---------|--------|--------|-------------|-------------|-------|
+| **Agent A** | M13-EDUCATOR-WORKSHOP-A | Кабинет Мастерской педагога: API + migration 011 + Flow T | 🔜 pending | — | None | — |
+| **Agent C** | M13-4K-ENGINE-C | 4К навыки: маппинг + расчёт + API + Flow U | 🔜 pending | — | None (параллельно) | — |
+| **Agent B** | M13-UGC-BADGES-B | UGC: создание значков + предложения + модерация | 🔜 pending | — | None (параллельно) | — |
+| **Agent B** | M13-EDUCATOR-WORKSHOP-UI-B | Кабинет Мастерской: UI + интеграция | 🔜 pending | — | Ждёт M13-EDUCATOR-WORKSHOP-A | — |
+| **Agent B** | M13-4K-UI-B | 4К навыки: radar chart + программы РЛ | 🔜 pending | — | Ждёт M13-4K-ENGINE-C | — |
+
+**Зависимости M13:**
+```
+M13-EDUCATOR-WORKSHOP-A ──► M13-EDUCATOR-WORKSHOP-UI-B
+M13-4K-ENGINE-C ──────────► M13-4K-UI-B
+M13-UGC-BADGES-B ────────── (независимая)
+```
+
+---
+
 ## История выполненных задач (архив)
 
 | Агент | Task ID | Задача | Дата завершения | Отчёт |
