@@ -124,7 +124,7 @@ M7-REQUIRESAPPROVAL-C ──► M7-SHARE-TRIGGERS-B
 |-------|---------|--------|--------|-------------|-------------|-------|
 | **Agent A** | M8-COUNCIL-INITIATIVES-A | Совет Лагеря: CRUD инициатив + голосование + migration 004 + Smoke L | ✅ done | 2026-03-02 | None | PATCH+vote + Flow L (3 checks) |
 | **Agent A** | M8-COUNSELOR-SQUAD-A | Отряд вожатых: Squad kind=staff, фильтрация, migration 005 + Smoke M | ✅ done | 2026-03-02 | None | kind field + Flow M (2 checks) |
-| **Agent B** | M8-COUNCIL-UI-B | Совет: UI инициатив (список/создание/голосование/статусы) | 🔜 pending | — | Ждёт M8-COUNCIL-INITIATIVES-A | — |
+| **Agent B** | M8-COUNCIL-UI-B | Совет: UI инициатив (список/создание/голосование/статусы) | ✅ done | 2026-03-02 | None | councilApi.ts + CouncilDashboard |
 | **Agent B** | M8-STAFF-DASHBOARD-B | Staff dashboard: счётчики, участники, быстрые действия | ✅ done | 2026-03-02 | None | StaffDashboardPanel.tsx + ProfileView |
 | **Agent C** | M8-EDUCATOR-CABINET-C | Кабинет педагога v2: задания, проверки, промпт | ✅ done | 2026-03-02 | None | EducatorTask + workshop tabs + prompt |
 

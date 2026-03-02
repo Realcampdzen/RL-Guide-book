@@ -1,7 +1,13 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import BadgeIcon from './BadgeIcon';
 import { useTeam } from '../context/TeamContext';
 import { useUserProgress } from '../hooks/useUserProgress';
+import {
+  createInitiative,
+  fetchInitiatives,
+  updateInitiativeStatus,
+  voteInitiative,
+} from '../utils/councilApi';
 
 const COUNCIL_ACCENT = '#FFD700';
 const COUNCIL_ACCENT_LIGHT = 'rgba(255, 215, 0, 0.2)';
@@ -36,19 +42,36 @@ type TeamListItem = {
 };
 
 type InitiativeStatus = 'new' | 'reviewing' | 'accepted' | 'rejected' | 'done';
-type InitiativeItem = { id: string; title: string; createdAt?: string; status?: string; readStatus?: InitiativeStatus };
+type InitiativeItem = {
+  id: string;
+  title: string;
+  createdAt?: string;
+  status?: string;
+  readStatus?: InitiativeStatus;
+  description?: string;
+  votesUp?: number;
+  voters?: string[];
+  createdByNickname?: string;
+};
+
+const SERVER_STATUSES = ['idea', 'proposed', 'discussed', 'approved', 'in_progress', 'done'] as const;
+const SERVER_STATUS_LABELS: Record<string, string> = {
+  idea: 'Идея', proposed: 'Предложена', discussed: 'Обсуждается',
+  approved: 'Принята', in_progress: 'В работе', done: 'Выполнена',
+};
 
 interface CouncilDashboardProps {
   variant?: 'accordion' | 'cabin';
   activeTab?: CouncilTabId;
   onTabChange?: (tab: CouncilTabId) => void;
   onNavigateToBadge?: (badgeId: string) => void;
-  /** Скролл к блоку Движка */
   onScrollToTeam?: () => void;
-  /** Открыть панель "Движок" в кабине */
   onOpenTeamPanel?: () => void;
-  /** Открыть модалку «Предложить инициативу в совет лагеря» (генерация как у плана по значку) */
   onSuggestInitiative?: () => void;
+  /** JWT access token for auth'd API calls */
+  accessToken?: string | null;
+  /** Whether current user can moderate (staff role) */
+  canModerate?: boolean;
 }
 
 export const CouncilDashboard: React.FC<CouncilDashboardProps> = ({
@@ -58,7 +81,9 @@ export const CouncilDashboard: React.FC<CouncilDashboardProps> = ({
   onNavigateToBadge,
   onScrollToTeam,
   onOpenTeamPanel,
-  onSuggestInitiative
+  onSuggestInitiative,
+  accessToken,
+  canModerate = false
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const { myTeam, loadError, syncTeam } = useTeam();
@@ -69,6 +94,14 @@ export const CouncilDashboard: React.FC<CouncilDashboardProps> = ({
   const [initiatives, setInitiatives] = useState<InitiativeItem[]>([]);
   const [initiativesLoading, setInitiativesLoading] = useState(false);
   const [initiativeFilter, setInitiativeFilter] = useState<'all' | InitiativeStatus>('all');
+  const [voteBusy, setVoteBusy] = useState<string | null>(null);
+  const [statusBusy, setStatusBusy] = useState<string | null>(null);
+  // Create initiative modal state
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [createTitle, setCreateTitle] = useState('');
+  const [createDesc, setCreateDesc] = useState('');
+  const [createBusy, setCreateBusy] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
 
   useEffect(() => {
     if (variant === 'cabin' && onTabChange) onTabChange(activeTab);
@@ -115,18 +148,29 @@ export const CouncilDashboard: React.FC<CouncilDashboardProps> = ({
     };
   }, [variant, activeTab]);
 
-  useEffect(() => {
-    if (variant !== 'cabin' || activeTab !== 'camp-management') return;
-    let cancelled = false;
+  const loadInitiatives = useCallback(async () => {
     setInitiativesLoading(true);
-    fetch('/api/council/initiatives')
-      .then(async (res) => {
+    try {
+      if (accessToken) {
+        const items = await fetchInitiatives(accessToken);
+        const mapped: InitiativeItem[] = items.map((x) => ({
+          id: x.id,
+          title: x.title,
+          createdAt: x.createdAt,
+          status: x.status,
+          readStatus: mapLegacyInitiativeStatus(x.status),
+          description: x.description,
+          votesUp: x.votesUp ?? 0,
+          voters: x.voters ?? [],
+          createdByNickname: x.createdByNickname,
+        }));
+        setInitiatives(mapped);
+      } else {
+        // Fallback: unauthenticated fetch
+        const res = await fetch('/api/council/initiatives');
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return res.json();
-      })
-      .then((data: unknown) => {
-        if (cancelled) return;
-        const items = Array.isArray((data as any)?.initiatives) ? (data as any).initiatives : [];
+        const data = await res.json();
+        const items = Array.isArray(data?.initiatives) ? data.initiatives : [];
         const mapped: InitiativeItem[] = items
           .filter((x: any) => x && typeof x === 'object' && x.id && x.title)
           .map((x: any) => ({
@@ -134,21 +178,21 @@ export const CouncilDashboard: React.FC<CouncilDashboardProps> = ({
             title: String(x.title),
             createdAt: String(x.createdAt || x.created_at || ''),
             status: typeof x.status === 'string' ? x.status : undefined,
-            readStatus: mapLegacyInitiativeStatus(String(x.readStatus || x.status || 'new'))
-          }))
-          .sort((a: InitiativeItem, b: InitiativeItem) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+            readStatus: mapLegacyInitiativeStatus(String(x.readStatus || x.status || 'new')),
+          }));
         setInitiatives(mapped);
-      })
-      .catch(() => {
-        if (!cancelled) setInitiatives([]);
-      })
-      .finally(() => {
-        if (!cancelled) setInitiativesLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [variant, activeTab]);
+      }
+    } catch {
+      setInitiatives([]);
+    } finally {
+      setInitiativesLoading(false);
+    }
+  }, [accessToken]);
+
+  useEffect(() => {
+    if (variant !== 'cabin' || activeTab !== 'camp-management') return;
+    void loadInitiatives();
+  }, [variant, activeTab, loadInitiatives]);
 
   const displayNickname = useMemo(() => {
     return (userData?.profile?.nickname || 'Искатель').trim() || 'Искатель';
@@ -267,32 +311,94 @@ export const CouncilDashboard: React.FC<CouncilDashboardProps> = ({
     return initiatives.filter((x) => x.readStatus === initiativeFilter);
   }, [initiativeFilter, initiatives]);
 
+  const handleVote = useCallback(async (id: string) => {
+    if (!accessToken || voteBusy) return;
+    setVoteBusy(id);
+    try {
+      const res = await voteInitiative(accessToken, id);
+      setInitiatives(prev => prev.map(item =>
+        item.id === id ? { ...item, votesUp: res.initiative.votesUp, voters: res.initiative.voters } : item
+      ));
+    } catch { /* silent */ }
+    finally { setVoteBusy(null); }
+  }, [accessToken, voteBusy]);
+
+  const handleStatusChange = useCallback(async (id: string, newStatus: string) => {
+    if (!accessToken || statusBusy) return;
+    setStatusBusy(id);
+    try {
+      await updateInitiativeStatus(accessToken, id, { status: newStatus });
+      setInitiatives(prev => prev.map(item =>
+        item.id === id ? { ...item, status: newStatus, readStatus: mapLegacyInitiativeStatus(newStatus) } : item
+      ));
+    } catch { /* silent */ }
+    finally { setStatusBusy(null); }
+  }, [accessToken, statusBusy]);
+
+  const handleCreate = useCallback(async () => {
+    if (!accessToken || !createTitle.trim()) return;
+    setCreateBusy(true);
+    setCreateError(null);
+    try {
+      await createInitiative(accessToken, { title: createTitle.trim(), description: createDesc.trim() || undefined });
+      setShowCreateModal(false);
+      setCreateTitle('');
+      setCreateDesc('');
+      void loadInitiatives();
+    } catch (e) {
+      setCreateError(e instanceof Error ? e.message : 'Не удалось создать инициативу.');
+    } finally {
+      setCreateBusy(false);
+    }
+  }, [accessToken, createTitle, createDesc, loadInitiatives]);
+
   const campManagementSection = (
     <div className="council-cabin-section" style={{ display: 'grid', gap: 12 }}>
       <p style={{ margin: 0, fontSize: 14, opacity: 0.9, lineHeight: 1.55 }}>
         Управление Лагерем: предлагай инициативы для развития культуры лагеря и совместных решений.
       </p>
-      {onSuggestInitiative ? (
-        <button
-          type="button"
-          onClick={onSuggestInitiative}
-          style={{
-            padding: '12px 20px',
-            background: COUNCIL_ACCENT_LIGHT,
-            border: `1px solid ${COUNCIL_ACCENT}`,
-            color: COUNCIL_ACCENT,
-            borderRadius: '12px',
-            fontSize: '13px',
-            fontWeight: 700,
-            cursor: 'pointer',
-            alignSelf: 'flex-start'
-          }}
-        >
-          💡 Предложить инициативу в совет лагеря
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        {accessToken ? (
+          <button
+            type="button"
+            onClick={() => setShowCreateModal(true)}
+            style={{
+              padding: '12px 20px',
+              background: COUNCIL_ACCENT_LIGHT,
+              border: `1px solid ${COUNCIL_ACCENT}`,
+              color: COUNCIL_ACCENT,
+              borderRadius: '12px',
+              fontSize: '13px',
+              fontWeight: 700,
+              cursor: 'pointer',
+            }}
+          >
+            💡 Предложить инициативу
+          </button>
+        ) : onSuggestInitiative ? (
+          <button
+            type="button"
+            onClick={onSuggestInitiative}
+            style={{
+              padding: '12px 20px',
+              background: COUNCIL_ACCENT_LIGHT,
+              border: `1px solid ${COUNCIL_ACCENT}`,
+              color: COUNCIL_ACCENT,
+              borderRadius: '12px',
+              fontSize: '13px',
+              fontWeight: 700,
+              cursor: 'pointer',
+            }}
+          >
+            💡 Предложить инициативу
+          </button>
+        ) : (
+          <p className="profile-empty-state__text">Войдите, чтобы предложить инициативу.</p>
+        )}
+        <button type="button" className="btn-secondary" style={{ padding: '8px 14px', fontSize: 12 }} disabled={initiativesLoading} onClick={() => void loadInitiatives()}>
+          {initiativesLoading ? 'Загрузка…' : '🔄 Обновить'}
         </button>
-      ) : (
-        <p className="profile-empty-state__text">Функция предложения инициативы недоступна.</p>
-      )}
+      </div>
 
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
         <span style={{ fontSize: 12, opacity: 0.8 }}>Фильтр:</span>
@@ -320,13 +426,89 @@ export const CouncilDashboard: React.FC<CouncilDashboardProps> = ({
             return (
               <article key={item.id} className="council-initiative-card">
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'start' }}>
-                  <strong style={{ fontSize: 13 }}>{item.title}</strong>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <strong style={{ fontSize: 13 }}>{item.title}</strong>
+                    {item.createdByNickname && <span style={{ fontSize: 11, opacity: 0.6, marginLeft: 6 }}>— {item.createdByNickname}</span>}
+                  </div>
                   <span className={`m3-status-chip council-status-chip tone-${st}`}>{initiativeStatusLabel(st)}</span>
                 </div>
-                <div style={{ fontSize: 11, opacity: 0.72, marginTop: 4 }}>{item.createdAt ? new Date(item.createdAt).toLocaleString('ru-RU') : '—'}</div>
+                {item.description && (
+                  <div style={{ fontSize: 12, opacity: 0.78, marginTop: 4, maxHeight: 40, overflow: 'hidden', lineHeight: 1.4 }}>
+                    {item.description.length > 120 ? item.description.slice(0, 120) + '…' : item.description}
+                  </div>
+                )}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 6, gap: 8, flexWrap: 'wrap' }}>
+                  <div style={{ fontSize: 11, opacity: 0.72 }}>{item.createdAt ? new Date(item.createdAt).toLocaleString('ru-RU') : '—'}</div>
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                    {accessToken && (
+                      <button
+                        type="button"
+                        className="btn-secondary"
+                        disabled={voteBusy === item.id}
+                        onClick={() => void handleVote(item.id)}
+                        style={{ padding: '4px 10px', fontSize: 12, minWidth: 48 }}
+                        title="Голосовать"
+                      >
+                        👍 {item.votesUp ?? 0}
+                      </button>
+                    )}
+                    {canModerate && (
+                      <select
+                        value={item.status || 'idea'}
+                        disabled={statusBusy === item.id}
+                        onChange={(e) => void handleStatusChange(item.id, e.target.value)}
+                        style={{ fontSize: 11, padding: '4px 6px', borderRadius: 6, background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', color: 'inherit', cursor: 'pointer' }}
+                      >
+                        {SERVER_STATUSES.map(s => <option key={s} value={s}>{SERVER_STATUS_LABELS[s] || s}</option>)}
+                      </select>
+                    )}
+                  </div>
+                </div>
               </article>
             );
           })}
+        </div>
+      )}
+
+      {/* Create initiative modal */}
+      {showCreateModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }} onClick={() => setShowCreateModal(false)}>
+          <div style={{ background: 'var(--surface-2, #1a1a2e)', borderRadius: 16, padding: 20, maxWidth: 400, width: '90%', border: '1px solid rgba(255,215,0,0.2)' }} onClick={e => e.stopPropagation()}>
+            <h4 style={{ margin: '0 0 12px', color: COUNCIL_ACCENT }}>💡 Новая инициатива</h4>
+            <input
+              type="text"
+              placeholder="Название инициативы"
+              maxLength={200}
+              value={createTitle}
+              onChange={e => setCreateTitle(e.target.value)}
+              style={{ width: '100%', padding: 10, borderRadius: 8, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.3)', color: '#fff', fontSize: 13, marginBottom: 8, boxSizing: 'border-box' }}
+            />
+            <textarea
+              placeholder="Описание (необязательно)"
+              maxLength={2000}
+              value={createDesc}
+              onChange={e => setCreateDesc(e.target.value)}
+              style={{ width: '100%', minHeight: 80, padding: 10, borderRadius: 8, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.3)', color: '#fff', fontSize: 13, marginBottom: 8, resize: 'vertical', boxSizing: 'border-box' }}
+            />
+            {onSuggestInitiative && (
+              <button type="button" className="btn-secondary" style={{ marginBottom: 8, padding: '8px 14px', fontSize: 12, width: '100%' }} onClick={() => { onSuggestInitiative(); }}>
+                🤖 Сгенерировать идею ИИ
+              </button>
+            )}
+            {createError && <div style={{ fontSize: 12, color: '#ff6b6b', marginBottom: 8 }}>{createError}</div>}
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button
+                type="button"
+                className="btn-primary-gold"
+                disabled={createBusy || !createTitle.trim()}
+                onClick={() => void handleCreate()}
+                style={{ flex: 1, padding: '10px 16px' }}
+              >
+                {createBusy ? 'Создаём…' : 'Создать'}
+              </button>
+              <button type="button" className="btn-secondary" onClick={() => setShowCreateModal(false)} style={{ padding: '10px 16px' }}>Отмена</button>
+            </div>
+          </div>
         </div>
       )}
     </div>
