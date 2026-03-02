@@ -267,6 +267,22 @@ M15-DEV-ROLE-A ────── (параллельная)
 
 ---
 
+## Спринт M16 — Dev Dashboard + Role Switch (с 2026-03-02)
+
+| Агент | Task ID | Задача | Статус | Дата начала | Зависимость | Отчёт |
+|-------|---------|--------|--------|-------------|-------------|-------|
+| **Agent A** | M16-DASHBOARD-BACKEND-A | Unified Inbox API: aggregated feed + universal action | 🔜 pending | — | None | — |
+| **Agent B** | M16-ROLE-SWITCH-B | RoleSwitcher + Dev Panel + usePermissions | 🔜 pending | — | None (параллельно) | — |
+| **Agent B** | M16-DASHBOARD-UI-B | Пульт Управления: sidebar + inbox + actions | 🔜 pending | — | Ждёт M16-DASHBOARD-BACKEND-A | — |
+
+**Зависимости M16:**
+```
+M16-DASHBOARD-BACKEND-A ──► M16-DASHBOARD-UI-B
+M16-ROLE-SWITCH-B ────────── (параллельная)
+```
+
+---
+
 ## История выполненных задач (архив)
 
 | Агент | Task ID | Задача | Дата завершения | Отчёт |
