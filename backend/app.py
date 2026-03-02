@@ -4556,6 +4556,7 @@ def engines_create(squad_id: str):
         "goalStatus": "draft",
         "createdBy": device_id,
         "status": "pending",
+        "type": body.get("type", "regular"),
         "createdAt": now_iso,
         "updatedAt": now_iso,
     }
@@ -4871,6 +4872,246 @@ def inspector_progress_approve(entry_id: str):
     target["approvedAt"] = datetime.now(timezone.utc).isoformat()
     store.save(data)
     return jsonify({"status": "ok", "entry": target})
+
+
+# ---------------------------------------------------------------------------
+# БРО — Бросвящение + Крыло (M12-BRO-BACKEND-A)
+# ---------------------------------------------------------------------------
+
+@app.route('/api/squads/<squad_id>/bro/initiate', methods=['POST'])
+def bro_initiate(squad_id: str):
+    """POST — counselor initiates a Бросвящение event."""
+    payload, err = _require_roles(STAFF_ROLES, allow_localhost_dev=True)
+    if err is not None:
+        return err[0], err[1]
+
+    device_id = (payload.get("deviceId") or "").strip()
+    import secrets as _secrets
+    event_id = f"BRO-{_secrets.token_hex(5)}"
+    now_iso = datetime.now(timezone.utc).isoformat()
+
+    new_event = {
+        "id": event_id,
+        "squadId": squad_id,
+        "initiatedBy": device_id,
+        "status": "active",
+        "createdAt": now_iso,
+    }
+    store = get_store("bro_events")
+    data = store.load()
+    events = data.get("events") or []
+    events.append(new_event)
+    data["events"] = events
+    store.save(data)
+    return jsonify({"event": new_event}), 201
+
+
+@app.route('/api/squads/<squad_id>/bro/events', methods=['GET'])
+def bro_events_list(squad_id: str):
+    """GET — list all BRO events for a squad."""
+    store = get_store("bro_events")
+    data = store.load()
+    events = [e for e in (data.get("events") or []) if isinstance(e, dict) and e.get("squadId") == squad_id]
+    events.sort(key=lambda x: x.get("createdAt", ""), reverse=True)
+    return jsonify({"events": events})
+
+
+@app.route('/api/bro/passport/<device_id>', methods=['GET'])
+def bro_passport_get(device_id: str):
+    """GET — get BroPassport(s) of a device."""
+    store = get_store("bro_passports")
+    data = store.load()
+    passports = [p for p in (data.get("passports") or []) if isinstance(p, dict) and p.get("deviceId") == device_id]
+    return jsonify({"passports": passports})
+
+
+@app.route('/api/bro/passport', methods=['POST'])
+def bro_passport_create():
+    """POST — start a BroPassport for participant."""
+    payload, err = _require_roles(CHAT_ALLOWED_ROLES, allow_localhost_dev=True)
+    if err is not None:
+        return err[0], err[1]
+
+    body = request.get_json() or {}
+    bro_event_id = (body.get("broEventId") or "").strip()
+    if not bro_event_id:
+        return jsonify({"error": "broEventId required"}), 400
+
+    device_id = (payload.get("deviceId") or "").strip()
+    import secrets as _secrets
+    passport_id = f"BPAS-{_secrets.token_hex(5)}"
+    now_iso = datetime.now(timezone.utc).isoformat()
+
+    new_passport = {
+        "id": passport_id,
+        "deviceId": device_id,
+        "broEventId": bro_event_id,
+        "tasks": body.get("tasks") or [],
+        "status": "in_progress",
+        "completedAt": None,
+        "createdAt": now_iso,
+    }
+    store = get_store("bro_passports")
+    data = store.load()
+    passports = data.get("passports") or []
+    passports.append(new_passport)
+    data["passports"] = passports
+    store.save(data)
+    return jsonify({"passport": new_passport}), 201
+
+
+@app.route('/api/bro/passport/<passport_id>/task', methods=['PATCH'])
+def bro_passport_task(passport_id: str):
+    """PATCH — mark a task in a BroPassport as done."""
+    payload, err = _require_roles(CHAT_ALLOWED_ROLES, allow_localhost_dev=True)
+    if err is not None:
+        return err[0], err[1]
+
+    body = request.get_json() or {}
+    task_id = (body.get("taskId") or "").strip()
+    if not task_id:
+        return jsonify({"error": "taskId required"}), 400
+
+    store = get_store("bro_passports")
+    data = store.load()
+    passport = next((p for p in (data.get("passports") or []) if isinstance(p, dict) and p.get("id") == passport_id), None)
+    if passport is None:
+        return jsonify({"error": "passport not found"}), 404
+
+    tasks = passport.get("tasks") or []
+    found = False
+    for t in tasks:
+        if isinstance(t, dict) and t.get("id") == task_id:
+            t["done"] = True
+            t["doneAt"] = datetime.now(timezone.utc).isoformat()
+            found = True
+            break
+    if not found:
+        tasks.append({"id": task_id, "done": True, "doneAt": datetime.now(timezone.utc).isoformat()})
+    passport["tasks"] = tasks
+    store.save(data)
+    return jsonify({"passport": passport})
+
+
+@app.route('/api/bro/passport/<passport_id>/complete', methods=['PATCH'])
+def bro_passport_complete(passport_id: str):
+    """PATCH — complete a BroPassport (all tasks done)."""
+    store = get_store("bro_passports")
+    data = store.load()
+    passport = next((p for p in (data.get("passports") or []) if isinstance(p, dict) and p.get("id") == passport_id), None)
+    if passport is None:
+        return jsonify({"error": "passport not found"}), 404
+
+    passport["status"] = "completed"
+    passport["completedAt"] = datetime.now(timezone.utc).isoformat()
+    store.save(data)
+    return jsonify({"passport": passport})
+
+
+# ---------------------------------------------------------------------------
+# План-сетка смены (M12-SHIFT-PLANNER-A)
+# ---------------------------------------------------------------------------
+
+@app.route('/api/shifts/<shift_id>/schedule', methods=['GET'])
+def schedule_list(shift_id: str):
+    """GET — all schedule events for a shift."""
+    store = get_store("shift_schedule")
+    data = store.load()
+    events = [e for e in (data.get("events") or []) if isinstance(e, dict) and e.get("shiftId") == shift_id]
+    events.sort(key=lambda x: (x.get("dayIndex", 0), x.get("timeStart", "")))
+    return jsonify({"events": events})
+
+
+@app.route('/api/shifts/<shift_id>/schedule/day/<int:day_index>', methods=['GET'])
+def schedule_day(shift_id: str, day_index: int):
+    """GET — events for a specific day."""
+    store = get_store("shift_schedule")
+    data = store.load()
+    events = [
+        e for e in (data.get("events") or [])
+        if isinstance(e, dict) and e.get("shiftId") == shift_id and e.get("dayIndex") == day_index
+    ]
+    events.sort(key=lambda x: x.get("timeStart", ""))
+    return jsonify({"events": events})
+
+
+@app.route('/api/shifts/<shift_id>/schedule', methods=['POST'])
+def schedule_create(shift_id: str):
+    """POST — add a schedule event (shift_leader+)."""
+    payload, err = _require_roles(STAFF_ROLES, allow_localhost_dev=True)
+    if err is not None:
+        return err[0], err[1]
+
+    body = request.get_json() or {}
+    title = (body.get("title") or "").strip()
+    if not title:
+        return jsonify({"error": "title required"}), 400
+
+    import secrets as _secrets
+    event_id = f"SCHED-{_secrets.token_hex(5)}"
+    now_iso = datetime.now(timezone.utc).isoformat()
+
+    new_event = {
+        "id": event_id,
+        "shiftId": shift_id,
+        "dayIndex": body.get("dayIndex", 0),
+        "timeStart": body.get("timeStart", "09:00"),
+        "timeEnd": body.get("timeEnd") or "",
+        "title": title,
+        "description": body.get("description", ""),
+        "type": body.get("type", "event"),
+        "responsibleId": body.get("responsibleId") or "",
+        "responsibleName": body.get("responsibleName") or "",
+        "workshopId": body.get("workshopId") or "",
+        "createdAt": now_iso,
+    }
+    store = get_store("shift_schedule")
+    data = store.load()
+    events = data.get("events") or []
+    events.append(new_event)
+    data["events"] = events
+    store.save(data)
+    return jsonify({"event": new_event}), 201
+
+
+@app.route('/api/schedule/<event_id>', methods=['PATCH'])
+def schedule_update(event_id: str):
+    """PATCH — update a schedule event (shift_leader+)."""
+    payload, err = _require_roles(STAFF_ROLES, allow_localhost_dev=True)
+    if err is not None:
+        return err[0], err[1]
+
+    body = request.get_json() or {}
+    store = get_store("shift_schedule")
+    data = store.load()
+    target = next((e for e in (data.get("events") or []) if isinstance(e, dict) and e.get("id") == event_id), None)
+    if target is None:
+        return jsonify({"error": "event not found"}), 404
+
+    for key in ["title", "description", "timeStart", "timeEnd", "type", "dayIndex",
+                "responsibleId", "responsibleName", "workshopId"]:
+        if key in body:
+            target[key] = body[key]
+    store.save(data)
+    return jsonify({"event": target})
+
+
+@app.route('/api/schedule/<event_id>', methods=['DELETE'])
+def schedule_delete(event_id: str):
+    """DELETE — remove a schedule event (shift_leader+)."""
+    payload, err = _require_roles(STAFF_ROLES, allow_localhost_dev=True)
+    if err is not None:
+        return err[0], err[1]
+
+    store = get_store("shift_schedule")
+    data = store.load()
+    events = data.get("events") or []
+    before_len = len(events)
+    data["events"] = [e for e in events if not (isinstance(e, dict) and e.get("id") == event_id)]
+    if len(data["events"]) == before_len:
+        return jsonify({"error": "event not found"}), 404
+    store.save(data)
+    return jsonify({"status": "deleted", "id": event_id})
 
 
 # Для Vercel

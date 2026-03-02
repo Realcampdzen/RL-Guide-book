@@ -26,6 +26,9 @@ backend/storage/__init__.py — фабрика get_store().
     'engines'             — EnginesStore
     'engine_members'      — EngineMembersStore
     'inspector_progress'  — InspectorProgressStore
+    'bro_events'          — BroEventsStore
+    'bro_passports'       — BroPassportsStore
+    'shift_schedule'      — ShiftScheduleStore
 """
 
 import os
@@ -50,7 +53,8 @@ def get_store(name: str):
             f"Unknown store name: {name!r}. "
             f"Valid names: shifts, memberships, squad_corners, squad_invites, "
             f"squad_messages, badge_requests, badge_plans, parent_snapshots, chat_daily_usage, "
-            f"council_initiatives, teams, badge_arts, engines, engine_members, inspector_progress"
+            f"council_initiatives, teams, badge_arts, engines, engine_members, inspector_progress, "
+            f"bro_events, bro_passports, shift_schedule"
         )
     return store
 

@@ -21,6 +21,8 @@
 | **Council Initiatives** | `GET /api/council/initiatives`, `POST /api/council/initiatives` |
 | **Image Generation** | `POST /api/images/generate` |
 | **Chat** | `POST /api/chat` |
+| **BRO** | `POST /api/squads/{squadId}/bro/initiate`, `GET /api/squads/{squadId}/bro/events`, `GET /api/bro/passport/{deviceId}`, `POST /api/bro/passport`, `PATCH /api/bro/passport/{id}/task`, `PATCH /api/bro/passport/{id}/complete` |
+| **Shift Schedule** | `GET /api/shifts/{shiftId}/schedule`, `GET /api/shifts/{shiftId}/schedule/day/{dayIndex}`, `POST /api/shifts/{shiftId}/schedule`, `PATCH /api/schedule/{eventId}`, `DELETE /api/schedule/{eventId}` |
 
 ---
 

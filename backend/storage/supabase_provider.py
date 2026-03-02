@@ -8,6 +8,7 @@ backend/storage/supabase_provider.py — Supabase-провайдер храни�
 возвращая данные в том же формате dict (совместимость с app.py).
 """
 
+import json
 import os
 import uuid
 from datetime import datetime, timezone
@@ -20,6 +21,7 @@ from .base import (
     ChatDailyUsageStore, CouncilInitiativesStore, TeamsStore,
     BadgeArtsStore, EnginesStore, EngineMembersStore,
     InspectorProgressStore,
+    BroEventsStore, BroPassportsStore, ShiftScheduleStore,
 )
 
 _sb_client = None
@@ -855,6 +857,124 @@ class SupabaseInspectorProgressStore(InspectorProgressStore):
 
 
 # ---------------------------------------------------------------------------
+# BroEventsStore (M12-BRO-BACKEND-A)
+# ---------------------------------------------------------------------------
+
+class SupabaseBroEventsStore(BroEventsStore):
+    def load(self) -> dict:
+        sb = _client()
+        rows = sb.table("bro_events").select("*").order("created_at", desc=False).execute().data or []
+        events = []
+        for r in rows:
+            events.append({
+                "id": str(r.get("id", "")),
+                "squadId": r.get("squad_id", ""),
+                "initiatedBy": r.get("initiated_by", ""),
+                "status": r.get("status", "active"),
+                "createdAt": _ts(r.get("created_at")),
+            })
+        return {"events": events}
+
+    def save(self, data: dict) -> None:
+        sb = _client()
+        for ev in (data.get("events") or []):
+            if not isinstance(ev, dict):
+                continue
+            row = {
+                "id": ev.get("id") or str(uuid.uuid4()),
+                "squad_id": ev.get("squadId", ""),
+                "initiated_by": ev.get("initiatedBy", ""),
+                "status": ev.get("status", "active"),
+            }
+            sb.table("bro_events").upsert(row).execute()
+
+
+# ---------------------------------------------------------------------------
+# BroPassportsStore (M12-BRO-BACKEND-A)
+# ---------------------------------------------------------------------------
+
+class SupabaseBroPassportsStore(BroPassportsStore):
+    def load(self) -> dict:
+        sb = _client()
+        rows = sb.table("bro_passports").select("*").order("created_at", desc=False).execute().data or []
+        passports = []
+        for r in rows:
+            passports.append({
+                "id": str(r.get("id", "")),
+                "deviceId": r.get("device_id", ""),
+                "broEventId": r.get("bro_event_id", ""),
+                "tasks": r.get("tasks") or [],
+                "status": r.get("status", "in_progress"),
+                "completedAt": _ts(r.get("completed_at")) if r.get("completed_at") else None,
+                "createdAt": _ts(r.get("created_at")),
+            })
+        return {"passports": passports}
+
+    def save(self, data: dict) -> None:
+        sb = _client()
+        for p in (data.get("passports") or []):
+            if not isinstance(p, dict):
+                continue
+            row = {
+                "id": p.get("id") or str(uuid.uuid4()),
+                "device_id": p.get("deviceId", ""),
+                "bro_event_id": p.get("broEventId", ""),
+                "tasks": json.dumps(p.get("tasks") or []),
+                "status": p.get("status", "in_progress"),
+            }
+            if p.get("completedAt"):
+                row["completed_at"] = p["completedAt"]
+            sb.table("bro_passports").upsert(row).execute()
+
+
+# ---------------------------------------------------------------------------
+# ShiftScheduleStore (M12-SHIFT-PLANNER-A)
+# ---------------------------------------------------------------------------
+
+class SupabaseShiftScheduleStore(ShiftScheduleStore):
+    def load(self) -> dict:
+        sb = _client()
+        rows = sb.table("shift_schedule_events").select("*").order("day_index").order("time_start").execute().data or []
+        events = []
+        for r in rows:
+            events.append({
+                "id": str(r.get("id", "")),
+                "shiftId": r.get("shift_id", ""),
+                "dayIndex": r.get("day_index", 0),
+                "timeStart": r.get("time_start", ""),
+                "timeEnd": r.get("time_end") or "",
+                "title": r.get("title", ""),
+                "description": r.get("description") or "",
+                "type": r.get("type", "event"),
+                "responsibleId": r.get("responsible_id") or "",
+                "responsibleName": r.get("responsible_name") or "",
+                "workshopId": r.get("workshop_id") or "",
+                "createdAt": _ts(r.get("created_at")),
+            })
+        return {"events": events}
+
+    def save(self, data: dict) -> None:
+        sb = _client()
+        for ev in (data.get("events") or []):
+            if not isinstance(ev, dict):
+                continue
+            row = {
+                "id": ev.get("id") or str(uuid.uuid4()),
+                "shift_id": ev.get("shiftId", ""),
+                "day_index": ev.get("dayIndex", 0),
+                "time_start": ev.get("timeStart", ""),
+                "time_end": ev.get("timeEnd") or None,
+                "title": ev.get("title", ""),
+                "description": ev.get("description") or "",
+                "type": ev.get("type", "event"),
+                "responsible_id": ev.get("responsibleId") or None,
+                "responsible_name": ev.get("responsibleName") or "",
+                "workshop_id": ev.get("workshopId") or None,
+            }
+            sb.table("shift_schedule_events").upsert(row).execute()
+
+
+# ---------------------------------------------------------------------------
 # Реестр экземпляров
 # ---------------------------------------------------------------------------
 
@@ -874,5 +994,8 @@ SUPABASE_STORES = {
     "engines":           SupabaseEnginesStore(),
     "engine_members":    SupabaseEngineMembersStore(),
     "inspector_progress": SupabaseInspectorProgressStore(),
+    "bro_events":        SupabaseBroEventsStore(),
+    "bro_passports":     SupabaseBroPassportsStore(),
+    "shift_schedule":    SupabaseShiftScheduleStore(),
 }
 

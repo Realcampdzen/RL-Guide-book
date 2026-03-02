@@ -200,3 +200,41 @@ class InspectorProgressStore(ABC):
     @abstractmethod
     def save(self, data: dict) -> None: ...
 
+
+class BroEventsStore(ABC):
+    """
+    Хранилище Бросвящений.
+    Формат: {'events': [...]}
+    Статусы: active | completed | cancelled.
+    """
+    @abstractmethod
+    def load(self) -> dict: ...
+
+    @abstractmethod
+    def save(self, data: dict) -> None: ...
+
+
+class BroPassportsStore(ABC):
+    """
+    Хранилище BroPassport-ов.
+    Формат: {'passports': [...]}
+    Каждый: {id, deviceId, broEventId, tasks, status, completedAt, createdAt}
+    """
+    @abstractmethod
+    def load(self) -> dict: ...
+
+    @abstractmethod
+    def save(self, data: dict) -> None: ...
+
+
+class ShiftScheduleStore(ABC):
+    """
+    Хранилище План-сетки смены.
+    Формат: {'events': [...]}
+    Каждый: {id, shiftId, dayIndex, timeStart, timeEnd, title, description, type, ...}
+    """
+    @abstractmethod
+    def load(self) -> dict: ...
+
+    @abstractmethod
+    def save(self, data: dict) -> None: ...

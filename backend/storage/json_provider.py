@@ -16,6 +16,7 @@ from .base import (
     ChatDailyUsageStore, CouncilInitiativesStore, TeamsStore,
     BadgeArtsStore, EnginesStore, EngineMembersStore,
     InspectorProgressStore,
+    BroEventsStore, BroPassportsStore, ShiftScheduleStore,
 )
 
 _DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
@@ -378,6 +379,66 @@ class JsonInspectorProgressStore(InspectorProgressStore):
             _write_json(_INSPECTOR_PROGRESS_FILE, data if isinstance(data, dict) else {})
 
 
+# --- BroEventsStore (M12-BRO-BACKEND-A) ---
+
+_BRO_EVENTS_FILE = os.path.join(_DATA_DIR, "bro_events.json")
+_BRO_EVENTS_LOCK = threading.Lock()
+
+class JsonBroEventsStore(BroEventsStore):
+    def load(self) -> dict:
+        _ensure_data_dir()
+        with _BRO_EVENTS_LOCK:
+            data = _read_json(_BRO_EVENTS_FILE, {"events": []})
+            if "events" not in data:
+                data["events"] = []
+            return data
+
+    def save(self, data: dict) -> None:
+        _ensure_data_dir()
+        with _BRO_EVENTS_LOCK:
+            _write_json(_BRO_EVENTS_FILE, data if isinstance(data, dict) else {})
+
+
+# --- BroPassportsStore (M12-BRO-BACKEND-A) ---
+
+_BRO_PASSPORTS_FILE = os.path.join(_DATA_DIR, "bro_passports.json")
+_BRO_PASSPORTS_LOCK = threading.Lock()
+
+class JsonBroPassportsStore(BroPassportsStore):
+    def load(self) -> dict:
+        _ensure_data_dir()
+        with _BRO_PASSPORTS_LOCK:
+            data = _read_json(_BRO_PASSPORTS_FILE, {"passports": []})
+            if "passports" not in data:
+                data["passports"] = []
+            return data
+
+    def save(self, data: dict) -> None:
+        _ensure_data_dir()
+        with _BRO_PASSPORTS_LOCK:
+            _write_json(_BRO_PASSPORTS_FILE, data if isinstance(data, dict) else {})
+
+
+# --- ShiftScheduleStore (M12-SHIFT-PLANNER-A) ---
+
+_SHIFT_SCHEDULE_FILE = os.path.join(_DATA_DIR, "shift_schedule.json")
+_SHIFT_SCHEDULE_LOCK = threading.Lock()
+
+class JsonShiftScheduleStore(ShiftScheduleStore):
+    def load(self) -> dict:
+        _ensure_data_dir()
+        with _SHIFT_SCHEDULE_LOCK:
+            data = _read_json(_SHIFT_SCHEDULE_FILE, {"events": []})
+            if "events" not in data:
+                data["events"] = []
+            return data
+
+    def save(self, data: dict) -> None:
+        _ensure_data_dir()
+        with _SHIFT_SCHEDULE_LOCK:
+            _write_json(_SHIFT_SCHEDULE_FILE, data if isinstance(data, dict) else {})
+
+
 JSON_STORES = {
     "shifts":          JsonShiftsStore(),
     "memberships":     JsonMembershipsStore(),
@@ -394,5 +455,8 @@ JSON_STORES = {
     "engines":         JsonEnginesStore(),
     "engine_members":  JsonEngineMembersStore(),
     "inspector_progress": JsonInspectorProgressStore(),
+    "bro_events":      JsonBroEventsStore(),
+    "bro_passports":   JsonBroPassportsStore(),
+    "shift_schedule":  JsonShiftScheduleStore(),
 }
 

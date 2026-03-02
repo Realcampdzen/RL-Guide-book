@@ -1602,6 +1602,152 @@ class SmokeRunner:
             self.skip("PATCH approve (R-4)", "no auth_secret or entry_id")
 
     # -----------------------------------------------------------------------
+    # Flow Q: BRO endpoints (M12-BRO-BACKEND-A)
+    # -----------------------------------------------------------------------
+
+    def run_flow_q(self):
+        """Q — BRO initiate + passport + task done."""
+        print("\n--- Flow Q: BRO endpoints ---")
+
+        # Need a counselor token for initiate
+        bro_event_id = ""
+        passport_id = ""
+
+        if self.auth_secret:
+            c_token = self._get_jwt(f"smoke_bro_counselor_{uuid.uuid4().hex[:8]}", "counselor")
+            if c_token:
+                # Q-1: POST /api/squads/smoke-squad/bro/initiate → 201
+                try:
+                    s1, r1 = _http(
+                        self._url("/api/squads/smoke-squad/bro/initiate"),
+                        method="POST",
+                        body={},
+                        headers=self._bearer(c_token),
+                        expect_status=201,
+                    )
+                    bro_event_id = r1.get("event", {}).get("id", "")
+                    self.check(
+                        "POST /api/squads/<squadId>/bro/initiate — Q-1: 201",
+                        s1 == 201 and bro_event_id,
+                        f"status={s1}",
+                    )
+                except SmokeError as exc:
+                    self.fail("POST bro/initiate (Q-1)", str(exc))
+                    return
+        else:
+            self.skip("POST bro/initiate (Q-1)", "no auth_secret")
+            return
+
+        # Q-2: POST /api/bro/passport → 201
+        p_token = self._get_jwt(f"smoke_bro_participant_{uuid.uuid4().hex[:8]}", "participant")
+        if p_token and bro_event_id:
+            try:
+                s2, r2 = _http(
+                    self._url("/api/bro/passport"),
+                    method="POST",
+                    body={"broEventId": bro_event_id, "tasks": [{"id": "t1", "done": False}]},
+                    headers=self._bearer(p_token),
+                    expect_status=201,
+                )
+                passport_id = r2.get("passport", {}).get("id", "")
+                self.check(
+                    "POST /api/bro/passport — Q-2: 201",
+                    s2 == 201 and passport_id,
+                    f"status={s2}",
+                )
+            except SmokeError as exc:
+                self.fail("POST bro/passport (Q-2)", str(exc))
+        else:
+            self.skip("POST bro/passport (Q-2)", "no token or event_id")
+
+        # Q-3: PATCH /api/bro/passport/<id>/task → 200
+        if passport_id and p_token:
+            try:
+                s3, r3 = _http(
+                    self._url(f"/api/bro/passport/{passport_id}/task"),
+                    method="PATCH",
+                    body={"taskId": "t1"},
+                    headers=self._bearer(p_token),
+                    expect_status=200,
+                )
+                self.check(
+                    "PATCH /api/bro/passport/<id>/task — Q-3: done",
+                    s3 == 200,
+                    f"status={s3}",
+                )
+            except SmokeError as exc:
+                self.fail("PATCH bro/passport task (Q-3)", str(exc))
+        else:
+            self.skip("PATCH bro/passport task (Q-3)", "no passport_id")
+
+    # -----------------------------------------------------------------------
+    # Flow S: Shift Schedule endpoints (M12-SHIFT-PLANNER-A)
+    # -----------------------------------------------------------------------
+
+    def run_flow_s(self):
+        """S — Schedule create + list + update."""
+        print("\n--- Flow S: Shift Schedule endpoints ---")
+
+        event_id = ""
+
+        if self.auth_secret:
+            c_token = self._get_jwt(f"smoke_sched_{uuid.uuid4().hex[:8]}", "counselor")
+            if c_token:
+                # S-1: POST /api/shifts/smoke-shift/schedule → 201
+                try:
+                    s1, r1 = _http(
+                        self._url("/api/shifts/smoke-shift/schedule"),
+                        method="POST",
+                        body={"title": "Smoke event", "dayIndex": 0, "timeStart": "10:00"},
+                        headers=self._bearer(c_token),
+                        expect_status=201,
+                    )
+                    event_id = r1.get("event", {}).get("id", "")
+                    self.check(
+                        "POST /api/shifts/<shiftId>/schedule — S-1: 201",
+                        s1 == 201 and event_id,
+                        f"status={s1}",
+                    )
+                except SmokeError as exc:
+                    self.fail("POST schedule (S-1)", str(exc))
+                    return
+        else:
+            self.skip("POST schedule (S-1)", "no auth_secret")
+            return
+
+        # S-2: GET /api/shifts/smoke-shift/schedule → 200, contains event
+        try:
+            s2, r2 = _http(self._url("/api/shifts/smoke-shift/schedule"), expect_status=200)
+            events = r2.get("events", [])
+            self.check(
+                "GET /api/shifts/<shiftId>/schedule — S-2: has event",
+                s2 == 200 and any(e.get("id") == event_id for e in events),
+                f"status={s2}, count={len(events)}",
+            )
+        except SmokeError as exc:
+            self.fail("GET schedule (S-2)", str(exc))
+
+        # S-3: PATCH /api/schedule/<eventId> → 200
+        if event_id and c_token:
+            try:
+                s3, r3 = _http(
+                    self._url(f"/api/schedule/{event_id}"),
+                    method="PATCH",
+                    body={"title": "Updated smoke"},
+                    headers=self._bearer(c_token),
+                    expect_status=200,
+                )
+                self.check(
+                    "PATCH /api/schedule/<eventId> — S-3: updated",
+                    s3 == 200 and r3.get("event", {}).get("title") == "Updated smoke",
+                    f"status={s3}",
+                )
+            except SmokeError as exc:
+                self.fail("PATCH schedule (S-3)", str(exc))
+        else:
+            self.skip("PATCH schedule (S-3)", "no event_id")
+
+    # -----------------------------------------------------------------------
 
     def run(self) -> int:
         print(f"Smoke backend critical flows — {self.base}")
@@ -1633,6 +1779,8 @@ class SmokeRunner:
         self.run_flow_o()
         self.run_flow_p()
         self.run_flow_r()
+        self.run_flow_q()
+        self.run_flow_s()
         return self._print_summary()
 
     def _print_summary(self) -> int:
