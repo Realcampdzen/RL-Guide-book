@@ -810,7 +810,7 @@
 Контракты автоматически проверяются скриптом:
 
 ```bash
-# С AUTH_SECRET — полный прогон (75 checks):
+# С AUTH_SECRET — полный прогон (79 checks):
 # Windows (cp1251): запускать с -X utf8 для корректного вывода
 AUTH_SECRET=<secret> python -X utf8 backend/scripts/smoke_backend_critical.py --base-url http://localhost:4000
 
@@ -840,7 +840,8 @@ python backend/scripts/smoke_backend_critical.py --base-url http://localhost:400
 | M | Staff Squad: create kind=staff → filter ?kind=staff (M8-COUNSELOR-SQUAD-A) | 2 |
 | N | Badge Arts: submit → inbox → approve (M9-ART-MODERATION-A) | 3 |
 | O | Integration: plans + council + arts quick check (M10-SMOKE-STABILITY-A) | 5 |
-| **Total** | | **75** |
+| P | Engines lifecycle: create → approve → join → goal approve (M11-DVIZHKI-BACKEND-A) | 4 |
+| **Total** | | **79** |
 
 **Flow D** (M5-R2-B, `/api/badges/requests/mine`):
 - D-1: GET /mine → 200, requests is list

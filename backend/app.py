@@ -4523,6 +4523,258 @@ def badge_arts_review(art_id: str):
     return jsonify({"art": target})
 
 
+
+# ---------------------------------------------------------------------------
+# Engines (Движки) — M11-DVIZHKI-BACKEND-A
+# ---------------------------------------------------------------------------
+
+@app.route('/api/squads/<squad_id>/engines', methods=['POST'])
+def engines_create(squad_id: str):
+    """POST — create engine (status=pending), auto-add creator as member."""
+    payload, err = _require_roles(CHAT_ALLOWED_ROLES, allow_localhost_dev=True)
+    if err is not None:
+        return err[0], err[1]
+
+    body = request.get_json() or {}
+    title = (body.get("title") or "").strip()
+    if not title:
+        return jsonify({"error": "title required"}), 400
+
+    device_id = (payload.get("deviceId") or "").strip()
+    nickname = (payload.get("nickname") or "").strip()
+
+    import secrets as _secrets
+    engine_id = f"ENG-{_secrets.token_hex(5)}"
+    now_iso = datetime.now(timezone.utc).isoformat()
+
+    new_engine = {
+        "id": engine_id,
+        "squadId": squad_id,
+        "title": title,
+        "avatarUrl": (body.get("avatarUrl") or "").strip(),
+        "goal": (body.get("goal") or "").strip(),
+        "goalStatus": "draft",
+        "createdBy": device_id,
+        "status": "pending",
+        "createdAt": now_iso,
+        "updatedAt": now_iso,
+    }
+
+    store = get_store("engines")
+    data = store.load()
+    engines = data.get("engines") or []
+    engines.append(new_engine)
+    data["engines"] = engines
+    store.save(data)
+
+    # Auto-add creator as member
+    member_id = f"EM-{_secrets.token_hex(5)}"
+    new_member = {
+        "id": member_id,
+        "engineId": engine_id,
+        "deviceId": device_id,
+        "nickname": nickname,
+        "role": "creator",
+        "joinedAt": now_iso,
+    }
+    mstore = get_store("engine_members")
+    mdata = mstore.load()
+    members = mdata.get("members") or []
+    members.append(new_member)
+    mdata["members"] = members
+    mstore.save(mdata)
+
+    return jsonify({"engine": new_engine, "member": new_member}), 201
+
+
+@app.route('/api/squads/<squad_id>/engines', methods=['GET'])
+def engines_list(squad_id: str):
+    """GET — list engines for a squad."""
+    payload, err = _require_roles(CHAT_ALLOWED_ROLES, allow_localhost_dev=True)
+    if err is not None:
+        return err[0], err[1]
+
+    store = get_store("engines")
+    data = store.load()
+    engines = [e for e in (data.get("engines") or []) if isinstance(e, dict) and e.get("squadId") == squad_id]
+    engines.sort(key=lambda x: x.get("createdAt", ""), reverse=True)
+    return jsonify({"engines": engines})
+
+
+@app.route('/api/engines/<engine_id>', methods=['PATCH'])
+def engines_update(engine_id: str):
+    """PATCH — update title/goal (creator or staff)."""
+    payload, err = _require_roles(CHAT_ALLOWED_ROLES, allow_localhost_dev=True)
+    if err is not None:
+        return err[0], err[1]
+
+    store = get_store("engines")
+    data = store.load()
+    engines = data.get("engines") or []
+
+    target = None
+    for eng in engines:
+        if isinstance(eng, dict) and eng.get("id") == engine_id:
+            target = eng
+            break
+    if target is None:
+        return jsonify({"error": "Engine not found"}), 404
+
+    device_id = (payload.get("deviceId") or "").strip()
+    role = (payload.get("role") or "").strip()
+    is_staff = role in ("counselor", "educator", "shift_leader", "camp_director", "developer")
+    if target.get("createdBy") != device_id and not is_staff:
+        return jsonify({"error": "Only creator or staff can update"}), 403
+
+    body = request.get_json() or {}
+    if "title" in body:
+        target["title"] = (body["title"] or "").strip()[:200]
+    if "goal" in body:
+        target["goal"] = (body["goal"] or "").strip()[:2000]
+        target["goalStatus"] = "submitted"
+    if "avatarUrl" in body:
+        target["avatarUrl"] = (body["avatarUrl"] or "").strip()
+    target["updatedAt"] = datetime.now(timezone.utc).isoformat()
+
+    store.save(data)
+    return jsonify({"engine": target})
+
+
+@app.route('/api/engines/<engine_id>/approve', methods=['PATCH'])
+def engines_approve(engine_id: str):
+    """PATCH — approve/reject engine (staff only)."""
+    payload, err = _require_roles(("counselor", "educator", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
+    if err is not None:
+        return err[0], err[1]
+
+    body = request.get_json() or {}
+    new_status = (body.get("status") or "").strip()
+    if new_status not in ("approved", "rejected"):
+        return jsonify({"error": "status must be approved or rejected"}), 400
+
+    store = get_store("engines")
+    data = store.load()
+    engines = data.get("engines") or []
+
+    target = None
+    for eng in engines:
+        if isinstance(eng, dict) and eng.get("id") == engine_id:
+            target = eng
+            break
+    if target is None:
+        return jsonify({"error": "Engine not found"}), 404
+
+    target["status"] = new_status
+    target["updatedAt"] = datetime.now(timezone.utc).isoformat()
+    store.save(data)
+    return jsonify({"engine": target})
+
+
+@app.route('/api/engines/<engine_id>/goal/approve', methods=['PATCH'])
+def engines_goal_approve(engine_id: str):
+    """PATCH — approve engine goal (staff only)."""
+    payload, err = _require_roles(("counselor", "educator", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
+    if err is not None:
+        return err[0], err[1]
+
+    store = get_store("engines")
+    data = store.load()
+    engines = data.get("engines") or []
+
+    target = None
+    for eng in engines:
+        if isinstance(eng, dict) and eng.get("id") == engine_id:
+            target = eng
+            break
+    if target is None:
+        return jsonify({"error": "Engine not found"}), 404
+
+    if target.get("goalStatus") != "submitted":
+        return jsonify({"error": "Goal not submitted"}), 409
+
+    target["goalStatus"] = "approved"
+    target["updatedAt"] = datetime.now(timezone.utc).isoformat()
+    store.save(data)
+    return jsonify({"engine": target})
+
+
+@app.route('/api/engines/<engine_id>/join', methods=['POST'])
+def engines_join(engine_id: str):
+    """POST — join engine."""
+    payload, err = _require_roles(CHAT_ALLOWED_ROLES, allow_localhost_dev=True)
+    if err is not None:
+        return err[0], err[1]
+
+    device_id = (payload.get("deviceId") or "").strip()
+    nickname = (payload.get("nickname") or "").strip()
+
+    # Check engine exists
+    estore = get_store("engines")
+    edata = estore.load()
+    found = any(isinstance(e, dict) and e.get("id") == engine_id for e in (edata.get("engines") or []))
+    if not found:
+        return jsonify({"error": "Engine not found"}), 404
+
+    mstore = get_store("engine_members")
+    mdata = mstore.load()
+    members = mdata.get("members") or []
+
+    # Check already member
+    already = any(isinstance(m, dict) and m.get("engineId") == engine_id and m.get("deviceId") == device_id for m in members)
+    if already:
+        return jsonify({"error": "Already a member"}), 409
+
+    import secrets as _secrets
+    member_id = f"EM-{_secrets.token_hex(5)}"
+    new_member = {
+        "id": member_id,
+        "engineId": engine_id,
+        "deviceId": device_id,
+        "nickname": nickname,
+        "role": "member",
+        "joinedAt": datetime.now(timezone.utc).isoformat(),
+    }
+    members.append(new_member)
+    mdata["members"] = members
+    mstore.save(mdata)
+    return jsonify({"member": new_member})
+
+
+@app.route('/api/engines/<engine_id>/leave', methods=['POST'])
+def engines_leave(engine_id: str):
+    """POST — leave engine."""
+    payload, err = _require_roles(CHAT_ALLOWED_ROLES, allow_localhost_dev=True)
+    if err is not None:
+        return err[0], err[1]
+
+    device_id = (payload.get("deviceId") or "").strip()
+
+    mstore = get_store("engine_members")
+    mdata = mstore.load()
+    members = mdata.get("members") or []
+
+    new_members = [m for m in members if not (isinstance(m, dict) and m.get("engineId") == engine_id and m.get("deviceId") == device_id)]
+    if len(new_members) == len(members):
+        return jsonify({"error": "Not a member"}), 404
+
+    mdata["members"] = new_members
+    mstore.save(mdata)
+    return jsonify({"status": "left"})
+
+
+@app.route('/api/engines/<engine_id>/members', methods=['GET'])
+def engines_members(engine_id: str):
+    """GET — list engine members."""
+    payload, err = _require_roles(CHAT_ALLOWED_ROLES, allow_localhost_dev=True)
+    if err is not None:
+        return err[0], err[1]
+
+    mstore = get_store("engine_members")
+    mdata = mstore.load()
+    members = [m for m in (mdata.get("members") or []) if isinstance(m, dict) and m.get("engineId") == engine_id]
+    return jsonify({"members": members})
+
+
 # Для Vercel
 if __name__ == '__main__':
     # ВАЖНО (Windows): не используем эмодзи в stdout, иначе возможен UnicodeEncodeError (cp1251)

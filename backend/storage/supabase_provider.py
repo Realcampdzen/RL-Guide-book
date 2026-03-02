@@ -18,7 +18,7 @@ from .base import (
     SquadInvitesStore, SquadMessagesStore,
     BadgeRequestsStore, BadgePlansStore, ParentSnapshotsStore,
     ChatDailyUsageStore, CouncilInitiativesStore, TeamsStore,
-    BadgeArtsStore,
+    BadgeArtsStore, EnginesStore, EngineMembersStore,
 )
 
 _sb_client = None
@@ -739,6 +739,80 @@ def _badge_art_to_row(art: dict) -> dict:
 
 
 # ---------------------------------------------------------------------------
+# EnginesStore + EngineMembersStore (M11-DVIZHKI-BACKEND-A)
+# ---------------------------------------------------------------------------
+
+class SupabaseEnginesStore(EnginesStore):
+    def load(self) -> dict:
+        sb = _client()
+        rows = sb.table("engines").select("*").order("created_at", desc=False).execute().data or []
+        engines = []
+        for r in rows:
+            engines.append({
+                "id": str(r.get("id", "")),
+                "squadId": r.get("squad_id", ""),
+                "title": r.get("title", ""),
+                "avatarUrl": r.get("avatar_url", ""),
+                "goal": r.get("goal", ""),
+                "goalStatus": r.get("goal_status", "draft"),
+                "createdBy": r.get("created_by", ""),
+                "status": r.get("status", "pending"),
+                "createdAt": _ts(r.get("created_at")),
+                "updatedAt": _ts(r.get("updated_at")),
+            })
+        return {"engines": engines}
+
+    def save(self, data: dict) -> None:
+        sb = _client()
+        for eng in (data.get("engines") or []):
+            if not isinstance(eng, dict):
+                continue
+            row = {
+                "id": eng.get("id") or str(uuid.uuid4()),
+                "squad_id": eng.get("squadId", ""),
+                "title": eng.get("title", ""),
+                "status": eng.get("status", "pending"),
+            }
+            if eng.get("goal"): row["goal"] = eng["goal"]
+            if eng.get("goalStatus"): row["goal_status"] = eng["goalStatus"]
+            if eng.get("avatarUrl"): row["avatar_url"] = eng["avatarUrl"]
+            if eng.get("createdBy"): row["created_by"] = eng["createdBy"]
+            if eng.get("updatedAt"): row["updated_at"] = eng["updatedAt"]
+            sb.table("engines").upsert(row).execute()
+
+
+class SupabaseEngineMembersStore(EngineMembersStore):
+    def load(self) -> dict:
+        sb = _client()
+        rows = sb.table("engine_members").select("*").order("joined_at", desc=False).execute().data or []
+        members = []
+        for r in rows:
+            members.append({
+                "id": str(r.get("id", "")),
+                "engineId": r.get("engine_id", ""),
+                "deviceId": r.get("device_id", ""),
+                "nickname": r.get("nickname", ""),
+                "role": r.get("role", "member"),
+                "joinedAt": _ts(r.get("joined_at")),
+            })
+        return {"members": members}
+
+    def save(self, data: dict) -> None:
+        sb = _client()
+        for m in (data.get("members") or []):
+            if not isinstance(m, dict):
+                continue
+            row = {
+                "id": m.get("id") or str(uuid.uuid4()),
+                "engine_id": m.get("engineId", ""),
+                "device_id": m.get("deviceId", ""),
+                "nickname": m.get("nickname", ""),
+                "role": m.get("role", "member"),
+            }
+            sb.table("engine_members").upsert(row).execute()
+
+
+# ---------------------------------------------------------------------------
 # Реестр экземпляров
 # ---------------------------------------------------------------------------
 
@@ -755,5 +829,7 @@ SUPABASE_STORES = {
     "council_initiatives": SupabaseCouncilInitiativesStore(),
     "teams":             SupabaseTeamsStore(),
     "badge_arts":        SupabaseBadgeArtsStore(),
+    "engines":           SupabaseEnginesStore(),
+    "engine_members":    SupabaseEngineMembersStore(),
 }
 

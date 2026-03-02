@@ -160,3 +160,28 @@ class BadgeArtsStore(ABC):
 
     @abstractmethod
     def save(self, data: dict) -> None: ...
+
+
+class EnginesStore(ABC):
+    """
+    Хранилище Движков (Engines).
+    Формат: {'engines': [...]}
+    Статусы: pending | approved | rejected | archived.
+    """
+    @abstractmethod
+    def load(self) -> dict: ...
+
+    @abstractmethod
+    def save(self, data: dict) -> None: ...
+
+
+class EngineMembersStore(ABC):
+    """
+    Хранилище участников Движков.
+    Формат: {'members': [...]}
+    """
+    @abstractmethod
+    def load(self) -> dict: ...
+
+    @abstractmethod
+    def save(self, data: dict) -> None: ...

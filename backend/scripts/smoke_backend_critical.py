@@ -1417,6 +1417,115 @@ class SmokeRunner:
             self.check("GET /api/badges/arts — O-5: 200", s5 == 200, f"status={s5}")
 
     # -----------------------------------------------------------------------
+    # Flow P — Engines lifecycle (M11-DVIZHKI-BACKEND-A)
+    # -----------------------------------------------------------------------
+
+    def run_flow_p(self) -> None:
+        """Flow P: engines create → approve → join → goal approve."""
+        print("\n[Flow P] Engines: create → approve → join → goal approve")
+        if not self.auth_secret:
+            print("  SKIP  (no AUTH_SECRET)")
+            return
+
+        p_device = f"smoke_pe_{uuid.uuid4().hex[:8]}"
+        p_token = self._get_jwt(p_device, "participant")
+        if not p_token:
+            return
+        c_device = f"smoke_pc_{uuid.uuid4().hex[:8]}"
+        c_token = self._get_jwt(c_device, "counselor")
+        if not c_token:
+            return
+
+        engine_id = ""
+
+        # P-1: POST engine → 201, status=pending
+        try:
+            s1, r1 = _http(
+                self._url("/api/squads/SMOKE-SQ/engines"),
+                method="POST",
+                body={"title": "Smoke Engine"},
+                headers=self._bearer(p_token),
+                expect_status=201,
+            )
+            engine_id = r1.get("engine", {}).get("id", "")
+            self.check(
+                "POST /api/squads/<id>/engines — P-1: 201 + pending",
+                s1 == 201 and r1.get("engine", {}).get("status") == "pending",
+                f"status={s1}",
+            )
+        except SmokeError as exc:
+            self.fail("POST engine (P-1)", str(exc))
+
+        if not engine_id:
+            return
+
+        # P-2: PATCH approve → 200, status=approved
+        try:
+            s2, r2 = _http(
+                self._url(f"/api/engines/{engine_id}/approve"),
+                method="PATCH",
+                body={"status": "approved"},
+                headers=self._bearer(c_token),
+                expect_status=200,
+            )
+            self.check(
+                "PATCH /api/engines/<id>/approve — P-2: approved",
+                s2 == 200 and r2.get("engine", {}).get("status") == "approved",
+                f"status={s2}",
+            )
+        except SmokeError as exc:
+            self.fail("PATCH approve (P-2)", str(exc))
+
+        # P-3: POST join (new participant) → 200
+        p2_device = f"smoke_pj_{uuid.uuid4().hex[:8]}"
+        p2_token = self._get_jwt(p2_device, "participant")
+        if p2_token:
+            try:
+                s3, r3 = _http(
+                    self._url(f"/api/engines/{engine_id}/join"),
+                    method="POST",
+                    body={},
+                    headers=self._bearer(p2_token),
+                    expect_status=200,
+                )
+                self.check(
+                    "POST /api/engines/<id>/join — P-3: joined",
+                    s3 == 200,
+                    f"status={s3}",
+                )
+            except SmokeError as exc:
+                self.fail("POST join (P-3)", str(exc))
+
+        # P-4: PATCH goal submit + approve
+        try:
+            s4a, _ = _http(
+                self._url(f"/api/engines/{engine_id}"),
+                method="PATCH",
+                body={"goal": "Smoke goal text"},
+                headers=self._bearer(p_token),
+                expect_status=200,
+            )
+        except SmokeError as exc:
+            self.fail("PATCH goal submit (P-4)", str(exc))
+            s4a = None
+        if s4a == 200:
+            try:
+                s4b, r4b = _http(
+                    self._url(f"/api/engines/{engine_id}/goal/approve"),
+                    method="PATCH",
+                    body={},
+                    headers=self._bearer(c_token),
+                    expect_status=200,
+                )
+                self.check(
+                    "PATCH goal submit+approve — P-4: goalStatus=approved",
+                    s4b == 200 and r4b.get("engine", {}).get("goalStatus") == "approved",
+                    f"status={s4b}",
+                )
+            except SmokeError as exc:
+                self.fail("PATCH goal approve (P-4)", str(exc))
+
+    # -----------------------------------------------------------------------
     # Run all
     # -----------------------------------------------------------------------
 
@@ -1448,6 +1557,7 @@ class SmokeRunner:
         self.run_flow_m()
         self.run_flow_n()
         self.run_flow_o()
+        self.run_flow_p()
         return self._print_summary()
 
     def _print_summary(self) -> int:

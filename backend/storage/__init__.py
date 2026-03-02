@@ -23,6 +23,8 @@ backend/storage/__init__.py — фабрика get_store().
     'council_initiatives' — CouncilInitiativesStore
     'teams'               — TeamsStore
     'badge_arts'          — BadgeArtsStore
+    'engines'             — EnginesStore
+    'engine_members'      — EngineMembersStore
 """
 
 import os
@@ -47,6 +49,6 @@ def get_store(name: str):
             f"Unknown store name: {name!r}. "
             f"Valid names: shifts, memberships, squad_corners, squad_invites, "
             f"squad_messages, badge_requests, badge_plans, parent_snapshots, chat_daily_usage, "
-            f"council_initiatives, teams, badge_arts"
+            f"council_initiatives, teams, badge_arts, engines, engine_members"
         )
     return store

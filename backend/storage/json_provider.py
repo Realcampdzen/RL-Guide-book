@@ -14,7 +14,7 @@ from .base import (
     SquadInvitesStore, SquadMessagesStore,
     BadgeRequestsStore, BadgePlansStore, ParentSnapshotsStore,
     ChatDailyUsageStore, CouncilInitiativesStore, TeamsStore,
-    BadgeArtsStore,
+    BadgeArtsStore, EnginesStore, EngineMembersStore,
 )
 
 _DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
@@ -320,6 +320,43 @@ class JsonBadgeArtsStore(BadgeArtsStore):
             _write_json(_BADGE_ARTS_FILE, data if isinstance(data, dict) else {})
 
 
+# --- EnginesStore + EngineMembersStore (M11) ---
+
+_ENGINES_FILE         = os.path.join(_DATA_DIR, "engines.json")
+_ENGINE_MEMBERS_FILE  = os.path.join(_DATA_DIR, "engine_members.json")
+_ENGINES_LOCK         = threading.Lock()
+_ENGINE_MEMBERS_LOCK  = threading.Lock()
+
+class JsonEnginesStore(EnginesStore):
+    def load(self) -> dict:
+        _ensure_data_dir()
+        with _ENGINES_LOCK:
+            data = _read_json(_ENGINES_FILE, {"engines": []})
+            if "engines" not in data:
+                data["engines"] = []
+            return data
+
+    def save(self, data: dict) -> None:
+        _ensure_data_dir()
+        with _ENGINES_LOCK:
+            _write_json(_ENGINES_FILE, data if isinstance(data, dict) else {})
+
+
+class JsonEngineMembersStore(EngineMembersStore):
+    def load(self) -> dict:
+        _ensure_data_dir()
+        with _ENGINE_MEMBERS_LOCK:
+            data = _read_json(_ENGINE_MEMBERS_FILE, {"members": []})
+            if "members" not in data:
+                data["members"] = []
+            return data
+
+    def save(self, data: dict) -> None:
+        _ensure_data_dir()
+        with _ENGINE_MEMBERS_LOCK:
+            _write_json(_ENGINE_MEMBERS_FILE, data if isinstance(data, dict) else {})
+
+
 JSON_STORES = {
     "shifts":          JsonShiftsStore(),
     "memberships":     JsonMembershipsStore(),
@@ -333,4 +370,6 @@ JSON_STORES = {
     "council_initiatives": JsonCouncilInitiativesStore(),
     "teams":           JsonTeamsStore(),
     "badge_arts":      JsonBadgeArtsStore(),
+    "engines":         JsonEnginesStore(),
+    "engine_members":  JsonEngineMembersStore(),
 }
