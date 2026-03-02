@@ -13,17 +13,19 @@
 
 ## Где мы сейчас
 
-**Текущий фокус:** ✅ **Первый срез работ из роадмапа (Фаза 1 + Фаза 2 PROD_ROADMAP_IMPL) — полностью завершён и подтверждён smoke-тестом (2026-02-21).**
+**Текущий фокус:** ✅ **Sprints M7–M10 завершены (2026-03-02).** Все 12 пунктов исходного плана (3 уровня) реализованы + deploy + Opus audit.
 
-**Что сделано и задеплоено в прод:**
-- Supabase schema v1 (9 таблиц) + migration 002 (council_initiatives) — применены к `inkhtjcrzblzsfqvceid`
-- StorageProvider: `USE_SUPABASE=true` на Vercel — все данные пишутся/читаются из Supabase Postgres
-- Flask backend задеплоен на Vercel: `https://backend-murex-one-40.vercel.app` (production)
-- VITE_BACKEND_URL прописан в GitHub Variables → встроен в frontend bundle
-- Smoke-test пройден: generate-code → verify-code → создание смены → отряд «Дельфины» → join → squads/mine — всё через Supabase
-- Все задачи P1-01..P1-10 и P2-01..P2-04 выполнены (см. [PROD_ROADMAP_IMPL/CLAIM_BOARD.md](PROD_ROADMAP_IMPL/CLAIM_BOARD.md))
+**Что сделано и задеплоено (M7–M10):**
+- Badge Plans API, Council Initiatives CRUD+voting, Badge Arts moderation pipeline
+- Staff Dashboard, Educator Cabinet, requiresApproval flag, Educator RBAC
+- ImageProvider abstraction (OpenAI/FusionBrain/Stub/Auto)
+- CommunityRankingPanel, ArtGallerySection, Share triggers
+- Supabase migrations 003–006 (badge_plans, council_initiatives, squad_kind, badge_arts)
+- Vercel redeployed with IMAGE_PROVIDER=auto
+- Opus browser audit: 42/47 OK, 5 auth-gated (expected), 0 broken
+- Smoke baseline: 77/77 + 1 skip
 
-**Следующая конкретная задача:** Выбрать следующий срез из [PRODUCT_MECHANICS_AND_ROADMAP.md](PRODUCT_MECHANICS_AND_ROADMAP.md) (Фаза 2 механик — Badge Flow, Squad Corner, Council) или из видения и планов: [STEPA_VISION_LC.md](STEPA_VISION_LC.md), [FEATURE_AUTH_ROLES_DVIZHKI_PLAN.md](FEATURE_AUTH_ROLES_DVIZHKI_PLAN.md). **Архитектура:** Vercel backend (`backend-murex-one-40.vercel.app`) + Supabase — активны и рабочие. cf-api — см. [ARCHITECTURE_AND_RESOURCES.md](ARCHITECTURE_AND_RESOURCES.md).
+**Следующая конкретная задача:** Vision audit GAP-ы → Sprints M11–M14 (19 задач). Подробный план: [CLAIM_BOARD.md](PROD_ROADMAP_IMPL/CLAIM_BOARD.md). Приоритет: Движки + Инспектор Пользы (M11) → БРО + Вожатский Отряд (M12) → Педагог Мастерская + 4К (M13) → Pilot Hardening (M14).
 
 ---
 
