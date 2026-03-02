@@ -65,6 +65,9 @@ AUTH_GENERATE_SECRET = os.getenv('AUTH_GENERATE_SECRET', '').strip() or os.geten
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY', '').strip()
 IMAGE_PROVIDER = os.getenv('IMAGE_PROVIDER', 'openai').strip().lower()
 
+# M15: Dev email whitelist — emails that auto-get developer role
+DEV_EMAILS = [e.strip().lower() for e in os.getenv('DEV_EMAILS', '').split(',') if e.strip()]
+
 # 10-min slots для stateless HMAC кодов; код валиден ~40 мин (4 слота)
 AUTH_SLOT_SEC = 600
 AUTH_VERIFY_SLOTS = 4
@@ -5887,6 +5890,291 @@ def parent_suggestions_list(child_device_id: str):
         if isinstance(s, dict) and s.get("childDeviceId") == child_device_id
     ]
     return jsonify({"suggestions": items})
+
+
+# ---------------------------------------------------------------------------
+# M15-AUTH-BACKEND-A: resolve_user middleware + /api/auth/me + /api/auth/link-device
+# M15-DEV-ROLE-A:    DEV_EMAILS + /api/dev/switch-role + /api/dev/users + role mgmt
+# ---------------------------------------------------------------------------
+
+# Permissions map by role
+_PERMISSIONS_MAP = {
+    "participant": {
+        "can_submit": True,
+    },
+    "counselor": {
+        "can_submit": True,
+        "can_approve_badges": True,
+        "can_manage_squad": True,
+    },
+    "educator": {
+        "can_submit": True,
+        "can_manage_workshop": True,
+    },
+    "shift_leader": {
+        "can_submit": True,
+        "can_approve_badges": True,
+        "can_manage_squad": True,
+        "can_manage_shifts": True,
+        "can_approve_all": True,
+        "can_view_dashboard": True,
+    },
+    "camp_director": {
+        "can_submit": True,
+        "can_approve_badges": True,
+        "can_manage_squad": True,
+        "can_manage_shifts": True,
+        "can_approve_all": True,
+        "can_view_dashboard": True,
+        "can_view_overview": True,
+    },
+    "parent": {
+        "can_view_child": True,
+        "can_suggest_route": True,
+    },
+    "developer": {
+        "can_submit": True,
+        "can_approve_badges": True,
+        "can_manage_squad": True,
+        "can_manage_workshop": True,
+        "can_manage_shifts": True,
+        "can_approve_all": True,
+        "can_view_dashboard": True,
+        "can_view_overview": True,
+        "can_switch_role": True,
+        "can_manage_users": True,
+        "can_moderate_arts": True,
+    },
+}
+
+# In-memory role overrides for dev switch-role (session-scoped)
+_dev_role_overrides: dict = {}
+
+
+def _get_permissions(role: str) -> dict:
+    """Return permissions dict for a given role."""
+    return dict(_PERMISSIONS_MAP.get(role, {}))
+
+
+def resolve_user():
+    """
+    M15: Resolve current user from JWT (deviceId) or X-Device-Id header.
+    Auto-creates user if not found (migration path).
+    Returns: (user_dict, None) on success, or (None, (response, status)) on error.
+    user_dict: {id, email, role, nickname, avatar_url, deviceId, permissions}
+    """
+    device_id = None
+    email = None
+    role_from_jwt = None
+
+    # 1) Try JWT
+    auth_header = (request.headers.get("Authorization") or "").strip()
+    if auth_header.startswith("Bearer ") and AUTH_JWT_SECRET:
+        token = auth_header[7:].strip()
+        if token:
+            try:
+                payload = jwt.decode(token, AUTH_JWT_SECRET, algorithms=["HS256"])
+                device_id = (payload.get("deviceId") or "").strip() or None
+                role_from_jwt = _normalize_role((payload.get("role") or "").strip())
+            except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
+                return None, (jsonify({"error": "Invalid or expired token"}), 401)
+
+    # 2) Fallback: X-Device-Id header
+    if not device_id:
+        device_id = (request.headers.get("X-Device-Id") or "").strip() or None
+
+    # 3) Localhost fallback
+    if not device_id and _is_localhost_request():
+        device_id = "dev-local"
+
+    if not device_id:
+        return None, (jsonify({"error": "Authorization required (JWT or X-Device-Id)"}), 401)
+
+    # Look up user in store
+    store = get_store("users")
+    data = store.load()
+    users = data.get("users") or []
+
+    user = None
+    for u in users:
+        if isinstance(u, dict) and u.get("legacy_device_id") == device_id:
+            user = u
+            break
+
+    # Auto-create if not found
+    if user is None:
+        user = {
+            "id": uuid.uuid4().hex,
+            "supabase_auth_id": None,
+            "legacy_device_id": device_id,
+            "email": "",
+            "nickname": "",
+            "avatar_url": "",
+            "role": role_from_jwt or "participant",
+            "createdAt": datetime.now(timezone.utc).isoformat(),
+            "updatedAt": datetime.now(timezone.utc).isoformat(),
+        }
+        users.append(user)
+        data["users"] = users
+        try:
+            store.save(data)
+        except Exception:
+            traceback.print_exc()
+
+    # DEV_EMAILS override
+    user_email = (user.get("email") or "").strip().lower()
+    if user_email and user_email in DEV_EMAILS:
+        user["role"] = "developer"
+
+    # Dev switch-role override
+    effective_role = user.get("role", "participant")
+    override = _dev_role_overrides.get(device_id)
+    if override and effective_role == "developer":
+        effective_role = override
+
+    permissions = _get_permissions(effective_role)
+
+    return {
+        "id": user.get("id", ""),
+        "email": user.get("email", ""),
+        "role": effective_role,
+        "originalRole": user.get("role", "participant"),
+        "nickname": user.get("nickname", ""),
+        "avatar_url": user.get("avatar_url", ""),
+        "deviceId": device_id,
+        "permissions": permissions,
+    }, None
+
+
+@app.route('/api/auth/me', methods=['GET'])
+def auth_me():
+    """GET /api/auth/me — current user profile + permissions."""
+    user, err = resolve_user()
+    if err is not None:
+        return err[0], err[1]
+    return jsonify(user)
+
+
+@app.route('/api/auth/me', methods=['PATCH'])
+def auth_me_update():
+    """PATCH /api/auth/me — update nickname / avatar_url."""
+    user, err = resolve_user()
+    if err is not None:
+        return err[0], err[1]
+    body = request.get_json() or {}
+    nickname = body.get("nickname")
+    avatar_url = body.get("avatar_url")
+    if nickname is None and avatar_url is None:
+        return jsonify({"error": "Nothing to update (nickname or avatar_url expected)"}), 400
+
+    store = get_store("users")
+    data = store.load()
+    users = data.get("users") or []
+    updated_user = None
+    for u in users:
+        if isinstance(u, dict) and u.get("id") == user["id"]:
+            if nickname is not None:
+                u["nickname"] = str(nickname).strip()[:100]
+            if avatar_url is not None:
+                u["avatar_url"] = str(avatar_url).strip()[:500]
+            u["updatedAt"] = datetime.now(timezone.utc).isoformat()
+            updated_user = u
+            break
+    if updated_user:
+        data["users"] = users
+        store.save(data)
+    return jsonify({"user": {
+        "id": user["id"],
+        "nickname": (updated_user or user).get("nickname", ""),
+        "avatar_url": (updated_user or user).get("avatar_url", ""),
+    }})
+
+
+@app.route('/api/auth/link-device', methods=['POST'])
+def auth_link_device():
+    """POST /api/auth/link-device — link a legacy device_id to the current user."""
+    user, err = resolve_user()
+    if err is not None:
+        return err[0], err[1]
+    body = request.get_json() or {}
+    legacy_device_id = (body.get("deviceId") or "").strip()
+    if not legacy_device_id:
+        return jsonify({"error": "deviceId required"}), 400
+
+    store = get_store("users")
+    data = store.load()
+    users = data.get("users") or []
+    for u in users:
+        if isinstance(u, dict) and u.get("id") == user["id"]:
+            u["legacy_device_id"] = legacy_device_id
+            u["updatedAt"] = datetime.now(timezone.utc).isoformat()
+            break
+    data["users"] = users
+    store.save(data)
+    return jsonify({"linked": True, "deviceId": legacy_device_id})
+
+
+@app.route('/api/dev/switch-role', methods=['POST'])
+def dev_switch_role():
+    """POST /api/dev/switch-role — temporarily switch role (developer only)."""
+    user, err = resolve_user()
+    if err is not None:
+        return err[0], err[1]
+    if user.get("originalRole") != "developer":
+        return jsonify({"error": "Access denied: developer only"}), 403
+    body = request.get_json() or {}
+    target_role = _normalize_role((body.get("role") or "").strip())
+    if target_role not in CHAT_ALLOWED_ROLES:
+        return jsonify({"error": f"Invalid role: {target_role}"}), 400
+    device_id = user.get("deviceId", "")
+    if target_role == "developer":
+        _dev_role_overrides.pop(device_id, None)
+    else:
+        _dev_role_overrides[device_id] = target_role
+    return jsonify({
+        "original_role": "developer",
+        "current_role": target_role,
+    })
+
+
+@app.route('/api/dev/users', methods=['GET'])
+def dev_users_list():
+    """GET /api/dev/users — list all users (developer only)."""
+    payload, err = _require_roles(("developer",), allow_localhost_dev=True)
+    if err is not None:
+        return err[0], err[1]
+    store = get_store("users")
+    data = store.load()
+    users = data.get("users") or []
+    return jsonify({"users": users, "total": len(users)})
+
+
+@app.route('/api/dev/users/<user_id>/role', methods=['PATCH'])
+def dev_users_update_role(user_id):
+    """PATCH /api/dev/users/<id>/role — change a user's role (developer only)."""
+    payload, err = _require_roles(("developer",), allow_localhost_dev=True)
+    if err is not None:
+        return err[0], err[1]
+    body = request.get_json() or {}
+    new_role = _normalize_role((body.get("role") or "").strip())
+    if new_role not in CHAT_ALLOWED_ROLES:
+        return jsonify({"error": f"Invalid role: {new_role}"}), 400
+
+    store = get_store("users")
+    data = store.load()
+    users = data.get("users") or []
+    target = None
+    for u in users:
+        if isinstance(u, dict) and u.get("id") == user_id:
+            u["role"] = new_role
+            u["updatedAt"] = datetime.now(timezone.utc).isoformat()
+            target = u
+            break
+    if target is None:
+        return jsonify({"error": "User not found"}), 404
+    data["users"] = users
+    store.save(data)
+    return jsonify({"user": target})
 
 
 # Для Vercel

@@ -263,3 +263,16 @@ class ParentSuggestionsStore(ABC):
 
     @abstractmethod
     def save(self, data: dict) -> None: ...
+
+
+class UsersStore(ABC):
+    """
+    Хранилище пользователей (Supabase Auth integration).
+    Формат: {'users': [...]}
+    Каждый: {id, supabase_auth_id, legacy_device_id, email, nickname, avatar_url, role, created_at, updated_at}
+    """
+    @abstractmethod
+    def load(self) -> dict: ...
+
+    @abstractmethod
+    def save(self, data: dict) -> None: ...

@@ -24,6 +24,7 @@ from .base import (
     BroEventsStore, BroPassportsStore, ShiftScheduleStore,
     WorkshopsStore,
     ParentSuggestionsStore,
+    UsersStore,
 )
 
 _sb_client = None
@@ -1116,6 +1117,46 @@ class SupabaseParentSuggestionsStore(ParentSuggestionsStore):
 
 
 # ---------------------------------------------------------------------------
+# SupabaseUsersStore (M15-AUTH-BACKEND-A)
+# ---------------------------------------------------------------------------
+
+class SupabaseUsersStore(UsersStore):
+    def _row_to_user(self, r: dict) -> dict:
+        return {
+            "id": r.get("id", ""),
+            "supabase_auth_id": r.get("supabase_auth_id"),
+            "legacy_device_id": r.get("legacy_device_id", ""),
+            "email": r.get("email", ""),
+            "nickname": r.get("nickname", ""),
+            "avatar_url": r.get("avatar_url", ""),
+            "role": r.get("role", "participant"),
+            "createdAt": r.get("created_at", ""),
+            "updatedAt": r.get("updated_at", ""),
+        }
+
+    def load(self) -> dict:
+        sb = _get_sb()
+        rows = sb.table("users").select("*").execute().data or []
+        return {"users": [self._row_to_user(r) for r in rows]}
+
+    def save(self, data: dict) -> None:
+        sb = _get_sb()
+        for u in (data.get("users") or []):
+            if not isinstance(u, dict):
+                continue
+            row = {
+                "id": u.get("id") or str(uuid.uuid4()),
+                "supabase_auth_id": u.get("supabase_auth_id"),
+                "legacy_device_id": u.get("legacy_device_id", ""),
+                "email": u.get("email", ""),
+                "nickname": u.get("nickname", ""),
+                "avatar_url": u.get("avatar_url", ""),
+                "role": u.get("role", "participant"),
+            }
+            sb.table("users").upsert(row).execute()
+
+
+# ---------------------------------------------------------------------------
 # Реестр экземпляров
 # ---------------------------------------------------------------------------
 
@@ -1140,5 +1181,6 @@ SUPABASE_STORES = {
     "shift_schedule":    SupabaseShiftScheduleStore(),
     "workshops":         SupabaseWorkshopsStore(),
     "parent_suggestions": SupabaseParentSuggestionsStore(),
+    "users":              SupabaseUsersStore(),
 }
 

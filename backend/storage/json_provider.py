@@ -19,6 +19,7 @@ from .base import (
     BroEventsStore, BroPassportsStore, ShiftScheduleStore,
     WorkshopsStore,
     ParentSuggestionsStore,
+    UsersStore,
 )
 
 _DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
@@ -484,6 +485,26 @@ class JsonParentSuggestionsStore(ParentSuggestionsStore):
             _write_json(_PARENT_SUGGESTIONS_FILE, data if isinstance(data, dict) else {})
 
 
+# --- UsersStore (M15-AUTH-BACKEND-A) ---
+
+_USERS_FILE = os.path.join(_DATA_DIR, "users.json")
+_USERS_LOCK = threading.Lock()
+
+class JsonUsersStore(UsersStore):
+    def load(self) -> dict:
+        _ensure_data_dir()
+        with _USERS_LOCK:
+            data = _read_json(_USERS_FILE, {"users": []})
+            if "users" not in data:
+                data["users"] = []
+            return data
+
+    def save(self, data: dict) -> None:
+        _ensure_data_dir()
+        with _USERS_LOCK:
+            _write_json(_USERS_FILE, data if isinstance(data, dict) else {})
+
+
 JSON_STORES = {
     "shifts":          JsonShiftsStore(),
     "memberships":     JsonMembershipsStore(),
@@ -505,5 +526,6 @@ JSON_STORES = {
     "shift_schedule":  JsonShiftScheduleStore(),
     "workshops":       JsonWorkshopsStore(),
     "parent_suggestions": JsonParentSuggestionsStore(),
+    "users":             JsonUsersStore(),
 }
 

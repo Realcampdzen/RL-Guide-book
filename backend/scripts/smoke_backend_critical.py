@@ -2002,6 +2002,38 @@ class SmokeRunner:
 
     # -----------------------------------------------------------------------
 
+    # ------------------------------------------------------------------
+    # Flow Z — M15 Auth + Dev Role (4 checks)
+    # ------------------------------------------------------------------
+    def run_flow_z(self):
+        """Flow Z: Auth /me, link-device, dev switch-role."""
+        if not self._token:
+            self.skip("Flow Z", "no auth token")
+            return
+
+        # Z-1: GET /api/auth/me with X-Device-Id → auto-created user
+        device_id = f"smoke-z-{uuid.uuid4().hex[:8]}"
+        r, s = self._get("/api/auth/me", headers={"X-Device-Id": device_id})
+        ok = s == 200
+        self.check("Z-1", ok and isinstance(r, dict) and r.get("deviceId") == device_id, "auth/me auto-create")
+
+        # Z-2: POST /api/auth/link-device
+        new_device = f"linked-{uuid.uuid4().hex[:8]}"
+        r2, s2 = self._post("/api/auth/link-device", json={"deviceId": new_device}, headers={"X-Device-Id": device_id})
+        self.check("Z-2", s2 == 200 and isinstance(r2, dict) and r2.get("linked") is True, "link-device")
+
+        # Z-3: GET /api/auth/me with JWT → returns user with permissions
+        r3, s3 = self._get("/api/auth/me")
+        ok3 = s3 == 200
+        self.check("Z-3", ok3 and isinstance(r3, dict) and "permissions" in r3, "auth/me with JWT")
+
+        # Z-4: POST /api/dev/switch-role (developer token)
+        r4, s4 = self._post("/api/dev/switch-role", json={"role": "counselor"})
+        ok4 = s4 == 200
+        self.check("Z-4", ok4 and isinstance(r4, dict) and r4.get("current_role") == "counselor", "dev switch-role")
+
+    # -----------------------------------------------------------------------
+
     def run(self) -> int:
         print(f"Smoke backend critical flows — {self.base}")
         print("=" * 60)
@@ -2039,6 +2071,7 @@ class SmokeRunner:
         self.run_flow_v()
         self.run_flow_w()
         self.run_flow_x()
+        self.run_flow_z()
         return self._print_summary()
 
     def _print_summary(self) -> int:
