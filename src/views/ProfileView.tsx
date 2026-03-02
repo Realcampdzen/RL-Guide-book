@@ -33,6 +33,8 @@ import { InspectorMonitorCurve } from '../components/InspectorMonitorCurve';
 import { CampProgramByDays } from '../components/CampProgramByDays';
 import { VozhatifikatorChecklist } from '../components/VozhatifikatorChecklist';
 import { ImageSourceBlock } from '../components/ImageSourceBlock';
+import { CommunityRankingPanel } from '../components/CommunityRankingPanel';
+import { ArtInboxTab } from '../components/ArtInboxTab';
 import { FeatureGate } from '../components/FeatureGate';
 import ProfileTabletNav from '../components/ProfileTabletNav';
 import { requestImageGenerate } from '../utils/imageGenerateApi';
@@ -110,7 +112,7 @@ type Tab = 'active' | 'favorites' | 'collection' | 'journal' | 'workshop' | 'squ
 type SquadCornerTabId = 'squad' | 'photos' | 'planner' | 'flag-badges';
 type BroTabId = 'initiation' | 'wing';
 type ShareTabId = 'create-card' | 'invite';
-type WorkshopTabId = 'architect' | 'forge' | 'ideas' | 'my' | 'tasks' | 'reviews';
+type WorkshopTabId = 'architect' | 'forge' | 'ideas' | 'my' | 'tasks' | 'reviews' | 'community' | 'arts';
 
 type PanelViewId = 'passport' | 'inspector' | 'profile4k' | 'counselor-squad' | 'wing' | 'squad-corner' | 'real-diary' | 'team' | 'council' | 'bro' | 'workshop' | 'share' | 'vozhatifikator' | 'parents';
 const DEFAULT_SHIFT_NAME = 'Реальный Лагерь 2026';
@@ -3043,6 +3045,20 @@ export const ProfileView: React.FC<any> = (props) => {
               </section>
             );
           })()}
+          {workshopActiveTab === 'community' && (
+            <section id="workshop-section-community-ranking" className="workshop-view__section">
+              <CommunityRankingPanel
+                communityBadges={communityBadges ?? []}
+                customBadges={customBadges ?? []}
+                onNavigateToBadge={onNavigateToBadge}
+              />
+            </section>
+          )}
+          {workshopActiveTab === 'arts' && canModerateApprovals && accessToken && (
+            <section id="workshop-section-arts" className="workshop-view__section">
+              <ArtInboxTab accessToken={accessToken} />
+            </section>
+          )}
         </div>
       )}
       {panelActiveView === 'share' && (
@@ -3334,9 +3350,11 @@ export const ProfileView: React.FC<any> = (props) => {
     { id: 'forge' as const, label: 'Кузница смыслов', icon: '⚒️' },
     { id: 'ideas' as const, label: 'Идеи отряда', icon: '💡' },
     { id: 'my' as const, label: 'Мои предложения', icon: '📋' },
+    { id: 'community' as const, label: 'Сообщество', icon: '🏆' },
     ...(canModerateApprovals ? [
       { id: 'tasks' as const, label: 'Задания', icon: '📝' },
       { id: 'reviews' as const, label: 'Проверки', icon: '✅' },
+      { id: 'arts' as const, label: 'Арты', icon: '🎨' },
     ] : []),
   ];
 

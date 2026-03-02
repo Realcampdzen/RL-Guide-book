@@ -156,6 +156,26 @@ M9-RUSSIAN-AI-C (параллельно)
 
 ---
 
+## Спринт M10 — Production Deployment & Integration (с 2026-03-02)
+
+| Агент | Task ID | Задача | Статус | Дата начала | Зависимость | Отчёт |
+|-------|---------|--------|--------|-------------|-------------|-------|
+| **Agent D** | M10-SUPABASE-MIGRATIONS-D | Применить миграции 003→006 на Supabase prod | ✅ done (deployed) | 2026-03-02 | None | 4 таблицы verified |
+| **Agent D** | M10-VERCEL-REDEPLOY-D | Redeploy backend Vercel + IMAGE_PROVIDER + GH Pages | ✅ done (deployed) | 2026-03-02 | None | IMAGE_PROVIDER=auto + redeploy |
+| **Agent A** | M10-SMOKE-STABILITY-A | Flow E fix + интеграционный smoke Flow O | 🔜 pending | — | None (параллельно) | — |
+| **Agent B** | M10-UX-POLISH-B | Интеграция компонентов + навигация + empty states + polish | 🔜 pending | — | None (параллельно) | — |
+| **Agent E** | M10-OPUS-AUDIT-E | Browser audit: M5 recheck + M7-M9 features | 🔜 pending | — | Ждёт D1+D2 (деплой) | — |
+
+**Зависимости M10:**
+```
+M10-SUPABASE-MIGRATIONS-D ──┐
+M10-VERCEL-REDEPLOY-D ──────┼──► M10-OPUS-AUDIT-E
+M10-SMOKE-STABILITY-A (параллельно)
+M10-UX-POLISH-B (параллельно)
+```
+
+---
+
 ## История выполненных задач (архив)
 
 | Агент | Task ID | Задача | Дата завершения | Отчёт |

@@ -18,6 +18,7 @@ from .base import (
     SquadInvitesStore, SquadMessagesStore,
     BadgeRequestsStore, BadgePlansStore, ParentSnapshotsStore,
     ChatDailyUsageStore, CouncilInitiativesStore, TeamsStore,
+    BadgeArtsStore,
 )
 
 _sb_client = None
@@ -682,6 +683,62 @@ def _ts(value) -> str:
 
 
 # ---------------------------------------------------------------------------
+# BadgeArtsStore — таблица badge_arts (M9-ART-MODERATION-A)
+# ---------------------------------------------------------------------------
+
+class SupabaseBadgeArtsStore(BadgeArtsStore):
+    """
+    Формат load(): {'arts': [...]}
+    """
+
+    def load(self) -> dict:
+        sb = _client()
+        rows = sb.table("badge_arts").select("*").order("created_at", desc=False).execute().data or []
+        arts = [_row_to_badge_art(r) for r in rows]
+        return {"arts": arts}
+
+    def save(self, data: dict) -> None:
+        sb = _client()
+        for art in (data.get("arts") or []):
+            if not isinstance(art, dict):
+                continue
+            sb.table("badge_arts").upsert(_badge_art_to_row(art)).execute()
+
+
+def _row_to_badge_art(r: dict) -> dict:
+    return {
+        "id": str(r.get("id", "")),
+        "deviceId": r.get("device_id", ""),
+        "badgeId": r.get("badge_id", ""),
+        "imageUrl": r.get("image_url", ""),
+        "source": r.get("source", "uploaded"),
+        "status": r.get("status", "pending"),
+        "moderatorNote": r.get("moderator_note") or None,
+        "authorNickname": r.get("author_nickname", ""),
+        "createdAt": _ts(r.get("created_at")),
+        "updatedAt": _ts(r.get("updated_at")),
+    }
+
+
+def _badge_art_to_row(art: dict) -> dict:
+    row = {
+        "id": art.get("id") or str(uuid.uuid4()),
+        "device_id": art.get("deviceId", ""),
+        "badge_id": art.get("badgeId", ""),
+        "image_url": art.get("imageUrl", ""),
+        "source": art.get("source", "uploaded"),
+        "status": art.get("status", "pending"),
+    }
+    if art.get("moderatorNote"):
+        row["moderator_note"] = art["moderatorNote"]
+    if art.get("authorNickname"):
+        row["author_nickname"] = art["authorNickname"]
+    if art.get("updatedAt"):
+        row["updated_at"] = art["updatedAt"]
+    return row
+
+
+# ---------------------------------------------------------------------------
 # Реестр экземпляров
 # ---------------------------------------------------------------------------
 
@@ -697,4 +754,6 @@ SUPABASE_STORES = {
     "chat_daily_usage": SupabaseChatDailyUsageStore(),
     "council_initiatives": SupabaseCouncilInitiativesStore(),
     "teams":             SupabaseTeamsStore(),
+    "badge_arts":        SupabaseBadgeArtsStore(),
 }
+

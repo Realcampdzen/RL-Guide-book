@@ -1,22 +1,22 @@
-# Active Context — M7-REQUIRESAPPROVAL-C
+# Active Context — M10-DEPLOY-D
 
 ## Current Task
-- **Task ID:** M7-REQUIRESAPPROVAL-C
-- **Agent:** C (Chat/AI/Data)
-- **Status:** DONE — all changes applied and verified
+- **Task IDs:** M10-SUPABASE-MIGRATIONS-D + M10-VERCEL-REDEPLOY-D
+- **Agent:** D (DevOps)
+- **Status:** IN_PROGRESS — prep complete, awaiting user manual actions
 
 ## What Was Done
-1. Added `requiresApproval: true` to 13 badge JSON level objects (categories 9 and 10)
-2. Updated TypeScript types in `guide.ts` and `useDataLoader.ts`
-3. Added approval policy section to chatbot prompt
-4. Updated MASTER_INDEX.json schema documentation
-5. Created utility script `scripts/add_requires_approval.py`
+1. Created combined SQL migration file `backend/migrations/m10_combined_003_006.sql`
+2. Created `docs/OPS_SNAPSHOT_M10.md` with full migration/env/deployment matrix
+3. Verified backend health ✅ and GH Pages ✅
+4. Created report `docs/PROD_ROADMAP_IMPL/reports/REPORT_D_M10_DEPLOY.md`
+5. Updated CLAIM_BOARD with in_progress status
 
-## Verification
-- `tsc --noEmit` — CLEAN
-- `npm run build` — CLEAN (51s)
-- JSON verification: 118 files, 13 levels with flag
+## Awaiting User Actions
+1. Apply SQL via Supabase SQL Editor
+2. Add IMAGE_PROVIDER=auto to Vercel env vars
+3. Trigger Vercel redeploy
+4. Run prod smoke after both done
 
 ## Next Steps
-- Commit to branch `agent-c/m7-requires-approval`
-- Submit report to orchestrator
+- After user applies migrations + redeploy → run smoke → update CLAIM_BOARD to done

@@ -29,6 +29,7 @@ import {
 import { fetchAiSlogan, fetchVibeCheck } from '../utils/aiService';
 import '../styles/badge-view.css';
 import type { Category, Badge } from '../types/guide';
+import { ArtGallerySection } from '../components/ArtGallerySection';
 
 const loadChatBot = () => import('../components/ChatBot');
 const loadChatAvatar = () => import('../components/ChatAvatar');
@@ -1262,6 +1263,9 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
             </div>
           </div>
         </div>
+
+        {/* Community Arts Gallery */}
+        <ArtGallerySection badgeId={badge.id} />
       </main>
 
       {/* ChatBot and ChatAvatar */}
