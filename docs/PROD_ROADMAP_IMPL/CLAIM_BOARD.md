@@ -273,7 +273,7 @@ M15-DEV-ROLE-A ────── (параллельная)
 |-------|---------|--------|--------|-------------|-------------|-------|
 | **Agent A** | M16-DASHBOARD-BACKEND-A | Unified Inbox API: aggregated feed + universal action | ✅ done | 2026-03-02 | None | GET inbox (5 stores), POST action (dispatch), Flow AA ✅ |
 | **Agent B** | M16-ROLE-SWITCH-B | RoleSwitcher + Dev Panel + usePermissions | ✅ done | 2026-03-02 | None | DevPanel + usePermissions (14 perms × 7 roles) |
-| **Agent B** | M16-DASHBOARD-UI-B | Пульт Управления: sidebar + inbox + actions | 🔜 pending | — | Ждёт M16-DASHBOARD-BACKEND-A | — |
+| **Agent B** | M16-DASHBOARD-UI-B | Пульт Управления: sidebar + inbox + actions | ✅ done | 2026-03-02 | None | AdminDashboard + adminApi |
 
 **Зависимости M16:**
 ```
