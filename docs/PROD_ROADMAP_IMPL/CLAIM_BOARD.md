@@ -90,7 +90,7 @@
 || **Agent C** | M5-R5-C | `/api/telegram/agent-post`: AGENT_BOT_TOKENS map (neuro_stepa/cat_bro/dev_bro_1), auth developer/shift_leader, 400/404/409, smoke Flow I 3 checks, 47 checks total, BACKEND_CONTRACT_GUARD §3.6 | ✅ done (CERTIFIED) | 2026-02-28 | — |
 || **Agent A** | M5-R5-A | Badge requests cleanup SQL delete + hasattr guard. Smoke Flow H (2 checks), 51 checks total | ✅ done (CERTIFIED) | 2026-02-28 | [REPORT_A_M5_R5_A.md](reports/REPORT_A_M5_R5_A.md) |
 || **Agent C** | M6-CHAT-CONTEXT-C | Chat context: living-language pending badges prompt, [:3] limit confirmed, smoke G-4 (not 500 guard), 52 checks total, BACKEND_CONTRACT_GUARD §G updated | ✅ done (CERTIFIED) | 2026-02-28 | [REPORT_C_M6_CHAT_CONTEXT_C.md](reports/REPORT_C_M6_CHAT_CONTEXT_C.md) |
-|| **Agent E (Opus)** | E-UX-AUDIT-M5-RECHECK | Повторный browser-аудит после HOTFIX-BASE-PATH — категории, изображения, логотип, role walkthrough на проде | 🔜 pending | — | Ждёт GitHub Pages deploy | — |
+|| **Agent E (Opus)** | E-UX-AUDIT-M5-RECHECK | Повторный browser-аудит после HOTFIX-BASE-PATH — категории, изображения, логотип, role walkthrough на проде | ✅ done (covered by M10-OPUS-AUDIT-E) | 2026-03-02 | — | [REPORT_E_M10_OPUS_AUDIT.md](reports/REPORT_E_M10_OPUS_AUDIT.md) |
 || **Agent D** | M6-VERCEL-LOBSTERS | Lobster tokens added to Vercel Production (3/3 VERIFIED_OPTIONAL), redeploy READY, smoke I-1 401 ✅ | ✅ done | 2026-02-28 | [REPORT_D_M6_VERCEL_LOBSTERS.md](reports/REPORT_D_M6_VERCEL_LOBSTERS.md) |
 || **Agent B** | M6-IMG-FIX | Replace hardcoded /RL-Guide-book/ img paths with import.meta.env.BASE_URL in 9 TSX components (26 occurrences). Build clean. | ✅ done | 2026-02-28 | [REPORT_B_M6_IMG_FIX.md](reports/REPORT_B_M6_IMG_FIX.md) |
 || **Agent B** | TAILS_RECONCILE_B | UX tail reconciliation: ImageSourceBlock audit table, chip/tone consistency (3 systems), M2 parent read-only confirm | ✅ done | 2026-02-28 | [REPORT_B_TAILS_RECONCILE_B_2026-02-28.md](reports/REPORT_B_TAILS_RECONCILE_B_2026-02-28.md) |
@@ -164,7 +164,7 @@ M9-RUSSIAN-AI-C (параллельно)
 | **Agent D** | M10-VERCEL-REDEPLOY-D | Redeploy backend Vercel + IMAGE_PROVIDER + GH Pages | ✅ done (deployed) | 2026-03-02 | None | IMAGE_PROVIDER=auto + redeploy |
 | **Agent A** | M10-SMOKE-STABILITY-A | Flow E fix + интеграционный smoke Flow O | ✅ done | 2026-03-02 | None | 77/77 pass + 1 skip + Flow O (5 checks) |
 | **Agent B** | M10-UX-POLISH-B | Интеграция компонентов + навигация + empty states + polish | ✅ done | 2026-03-02 | None | Workshop tabs + BadgeLevelView arts |
-| **Agent E** | M10-OPUS-AUDIT-E | Browser audit: M5 recheck + M7-M9 features | 🔜 pending | — | Ждёт D1+D2 (деплой) | — |
+| **Agent E** | M10-OPUS-AUDIT-E | Browser audit: M5 recheck + M7-M9 features | ✅ done | 2026-03-02 | — | [REPORT_E_M10_OPUS_AUDIT.md](reports/REPORT_E_M10_OPUS_AUDIT.md) |
 
 **Зависимости M10:**
 ```
