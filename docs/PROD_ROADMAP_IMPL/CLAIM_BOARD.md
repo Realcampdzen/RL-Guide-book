@@ -193,6 +193,25 @@ M11-INSPECTOR-C ──────► M11-INSPECTOR-UI-B
 
 ---
 
+## Спринт M12 — БРО + Вожатский Отряд + План-сетка (с 2026-03-02)
+
+| Агент | Task ID | Задача | Статус | Дата начала | Зависимость | Отчёт |
+|-------|---------|--------|--------|-------------|-------------|-------|
+| **Agent A** | M12-BRO-BACKEND-A | БРО: Бросвящение + Крыло API + migration 009 + Flow Q | 🔜 pending | — | None | — |
+| **Agent A** | M12-SHIFT-PLANNER-A | План-сетка: schedule API + migration 010 + Flow S | 🔜 pending | — | None (параллельно) | — |
+| **Agent B** | M12-COUNSELOR-SQUAD-B | Вожатский Отряд: полный кабинет + традиции | 🔜 pending | — | None (параллельно) | — |
+| **Agent B** | M12-BRO-UI-B | БРО: BroPassport UI + Крыло + разблокировка значков | 🔜 pending | — | Ждёт M12-BRO-BACKEND-A | — |
+| **Agent B** | M12-SHIFT-PLANNER-UI-B | План-сетка: таблица-сетка + CRUD + назначение ответственных | 🔜 pending | — | Ждёт M12-SHIFT-PLANNER-A | — |
+
+**Зависимости M12:**
+```
+M12-BRO-BACKEND-A ──────► M12-BRO-UI-B
+M12-SHIFT-PLANNER-A ────► M12-SHIFT-PLANNER-UI-B
+M12-COUNSELOR-SQUAD-B ── (независимая)
+```
+
+---
+
 ## История выполненных задач (архив)
 
 | Агент | Task ID | Задача | Дата завершения | Отчёт |
