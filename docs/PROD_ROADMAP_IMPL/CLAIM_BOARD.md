@@ -283,6 +283,23 @@ M16-ROLE-SWITCH-B ────────── (параллельная)
 
 ---
 
+## Спринт M17 — Deploy + E2E Testing (с 2026-03-02)
+
+| Агент | Task ID | Задача | Статус | Дата начала | Зависимость | Отчёт |
+|-------|---------|--------|--------|-------------|-------------|-------|
+| **Agent D** | M17-DEPLOY-D | Deploy: миграции 007-014 + OAuth + Vercel | 🔜 pending | — | None (ручная) | — |
+| **Agent A** | M17-E2E-SCENARIOS-A | E2E: test seeds + Flow Y (10 checks) | 🔜 pending | — | None | — |
+| **Agent A** | M17-SMOKE-REBASE-A | Smoke rebase: test_auth + RBAC Flow AB | 🔜 pending | — | None (параллельно) | — |
+
+**Зависимости M17:**
+```
+M17-DEPLOY-D ────────── (ручная, Stepa)
+M17-E2E-SCENARIOS-A ── (параллельная)
+M17-SMOKE-REBASE-A ─── (параллельная)
+```
+
+---
+
 ## История выполненных задач (архив)
 
 | Агент | Task ID | Задача | Дата завершения | Отчёт |
