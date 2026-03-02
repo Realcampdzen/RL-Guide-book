@@ -231,6 +231,26 @@ M13-UGC-BADGES-B ────────── (независимая)
 
 ---
 
+## Спринт M14 — Начальник + Parent + Традиции + Вожатификатор + Pilot (ФИНАЛ)
+
+| Агент | Task ID | Задача | Статус | Дата начала | Зависимость | Отчёт |
+|-------|---------|--------|--------|-------------|-------------|-------|
+| **Agent A** | M14-CAMP-DIRECTOR-A | Начальник: overview API + director_proposal | 🔜 pending | — | None | — |
+| **Agent A** | M14-PARENT-AUTH-A | Parent: email auth stub + suggest-route API | 🔜 pending | — | None (параллельно) | — |
+| **Agent B** | M14-TRADITIONS-B | Традиции: отряд + лагерь + связь с значками | 🔜 pending | — | None (параллельно) | — |
+| **Agent C** | M14-VOZHATIFFICATOR-C | Вожатификатор: stubs + Путеводные Огни | 🔜 pending | — | None (параллельно) | — |
+| **Agent B** | M14-PILOT-HARDENING-B | Pilot: интеграция + ErrorBoundary + loading + offline | 🔜 pending | — | Ждёт A + C | — |
+
+**Зависимости M14:**
+```
+M14-CAMP-DIRECTOR-A ──────┐
+M14-VOZHATIFFICATOR-C ────┼──► M14-PILOT-HARDENING-B
+M14-PARENT-AUTH-A ────────┘
+M14-TRADITIONS-B ────────── (независимая)
+```
+
+---
+
 ## История выполненных задач (архив)
 
 | Агент | Task ID | Задача | Дата завершения | Отчёт |
