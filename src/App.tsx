@@ -3,6 +3,7 @@ import { LoadingScreen } from './app/LoadingScreen';
 import { AppViewRouter } from './app/AppViewRouter';
 import { useAppController } from './app/useAppController';
 import { PathFavToast } from './components/PathFavToast';
+import { AuthFloatingButton } from './components/AuthFloatingButton';
 
 // Layout configuration overrides for specific badge groups
 // (left here intentionally in the file history; currently unused and removed to keep build clean)
@@ -151,6 +152,7 @@ const App: React.FC = () => {
     <div className="app">
       <AppViewRouter controller={controller} fallback={<LoadingScreen />} />
       <PathFavToast />
+      <AuthFloatingButton />
     </div>
   );
 };
