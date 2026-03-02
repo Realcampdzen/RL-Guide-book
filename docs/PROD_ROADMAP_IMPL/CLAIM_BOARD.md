@@ -219,8 +219,8 @@ M12-COUNSELOR-SQUAD-B ── (независимая)
 | **Agent A** | M13-EDUCATOR-WORKSHOP-A | Кабинет Мастерской педагога: API + migration 011 + Flow T | ✅ done | 2026-03-02 | None | 8 endpoints, 4 tables, Flow T ✅ |
 | **Agent C** | M13-4K-ENGINE-C | 4К навыки: маппинг + расчёт + API + Flow U | ✅ done | 2026-03-02 | None | 14 categories, 24 badges, 4 programs, Flow U ✅ |
 | **Agent B** | M13-UGC-BADGES-B | UGC: создание значков + предложения + модерация | ✅ done | 2026-03-02 | None | BadgeProposalModal + UgcBadgeCreator + UgcInboxTab |
-| **Agent B** | M13-EDUCATOR-WORKSHOP-UI-B | Кабинет Мастерской: UI + интеграция | 🔜 pending | — | Ждёт M13-EDUCATOR-WORKSHOP-A | — |
-| **Agent B** | M13-4K-UI-B | 4К навыки: radar chart + программы РЛ | 🔜 pending | — | Ждёт M13-4K-ENGINE-C | — |
+| **Agent B** | M13-EDUCATOR-WORKSHOP-UI-B | Кабинет Мастерской: UI + интеграция | ✅ done | 2026-03-02 | None | EducatorWorkshopPanel + workshopApi |
+| **Agent B** | M13-4K-UI-B | 4К навыки: radar chart + программы РЛ | ✅ done | 2026-03-02 | None | FourKPanel (SVG radar) + fourKApi |
 
 **Зависимости M13:**
 ```
