@@ -162,8 +162,8 @@ M9-RUSSIAN-AI-C (параллельно)
 |-------|---------|--------|--------|-------------|-------------|-------|
 | **Agent D** | M10-SUPABASE-MIGRATIONS-D | Применить миграции 003→006 на Supabase prod | ✅ done (deployed) | 2026-03-02 | None | 4 таблицы verified |
 | **Agent D** | M10-VERCEL-REDEPLOY-D | Redeploy backend Vercel + IMAGE_PROVIDER + GH Pages | ✅ done (deployed) | 2026-03-02 | None | IMAGE_PROVIDER=auto + redeploy |
-| **Agent A** | M10-SMOKE-STABILITY-A | Flow E fix + интеграционный smoke Flow O | 🔜 pending | — | None (параллельно) | — |
-| **Agent B** | M10-UX-POLISH-B | Интеграция компонентов + навигация + empty states + polish | 🔜 pending | — | None (параллельно) | — |
+| **Agent A** | M10-SMOKE-STABILITY-A | Flow E fix + интеграционный smoke Flow O | ✅ done | 2026-03-02 | None | 77/77 pass + 1 skip + Flow O (5 checks) |
+| **Agent B** | M10-UX-POLISH-B | Интеграция компонентов + навигация + empty states + polish | ✅ done | 2026-03-02 | None | Workshop tabs + BadgeLevelView arts |
 | **Agent E** | M10-OPUS-AUDIT-E | Browser audit: M5 recheck + M7-M9 features | 🔜 pending | — | Ждёт D1+D2 (деплой) | — |
 
 **Зависимости M10:**

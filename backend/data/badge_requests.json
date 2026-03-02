@@ -183,6 +183,29 @@
         "role": "shift_leader"
       },
       "resolutionNote": "Smoke test approval"
+    },
+    {
+      "id": "BR-E9CBDD3F24",
+      "createdAt": "2026-03-02T01:27:54.374284+00:00",
+      "status": "approved",
+      "levelId": "1.1.1",
+      "badgeTitle": "Smoke-Test Badge",
+      "requestedBy": {
+        "deviceId": "smoke_p_6c6e1b36",
+        "nickname": "SmokeParticipant"
+      },
+      "campId": "",
+      "squadId": null,
+      "evidence": {
+        "reflection": "Smoke test reflection",
+        "impact": "Smoke test impact"
+      },
+      "resolvedAt": "2026-03-02T01:27:58.479720+00:00",
+      "resolvedBy": {
+        "deviceId": "smoke_s_89a2b656",
+        "role": "shift_leader"
+      },
+      "resolutionNote": "Smoke test approval"
     }
   ]
 }
