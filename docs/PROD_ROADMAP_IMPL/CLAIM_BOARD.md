@@ -287,7 +287,7 @@ M16-ROLE-SWITCH-B ────────── (параллельная)
 
 | Агент | Task ID | Задача | Статус | Дата начала | Зависимость | Отчёт |
 |-------|---------|--------|--------|-------------|-------------|-------|
-| **Agent D** | M17-DEPLOY-D | Deploy: миграции 007-014 + OAuth + Vercel | 🔜 pending | — | None (ручная) | — |
+| **Agent D** | M17-DEPLOY-D | Deploy: миграции 007-014 + OAuth + Vercel | ✅ done | 2026-03-03 | None (ручная) | OAuth (Google/VK ID/Yandex), mig 007-014, Vercel redeploy ✅ |
 | **Agent A** | M17-E2E-SCENARIOS-A | E2E: test seeds + Flow Y (10 checks) | 🔜 pending | — | None | — |
 | **Agent A** | M17-SMOKE-REBASE-A | Smoke rebase: test_auth + RBAC Flow AB | 🔜 pending | — | None (параллельно) | — |
 
