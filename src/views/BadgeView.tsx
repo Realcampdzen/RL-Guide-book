@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState, Suspense } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   fixDescriptionFormatting,
   fixCriteriaFormatting,
@@ -20,10 +20,6 @@ import { getBadge4kSkills, getSkillLabel } from '../utils/profile4k';
 import '../styles/badge-view.css';
 import type { Category, Badge } from '../types/guide';
 
-const loadChatBot = () => import('../components/ChatBot');
-const loadChatAvatar = () => import('../components/ChatAvatar');
-const ChatBot = React.lazy(loadChatBot);
-const ChatAvatar = React.lazy(loadChatAvatar);
 
 interface BadgeViewProps {
   category: Category;
@@ -51,7 +47,7 @@ const BadgeView: React.FC<BadgeViewProps> = ({
   onBadgeClick: _onBadgeClick,
   onChatToggle,
   isChatOpen,
-  onChatClose,
+  onChatClose: _onChatClose,
   onOpenCategories,
   onTelegramContact,
   onBackToIntro,
@@ -890,22 +886,7 @@ const BadgeView: React.FC<BadgeViewProps> = ({
         </div>
       </main>
 
-      {/* ChatBot and ChatAvatar */}
-      <Suspense fallback={null}>
-        <ChatAvatar onClick={onChatToggle} isOpen={isChatOpen} />
-        <ChatBot
-          isOpen={isChatOpen}
-          onClose={onChatClose}
-          currentView="badge"
-          currentCategory={category}
-          currentBadge={{
-            id: badge.id,
-            title: badge.title,
-            emoji: badge.emoji,
-            categoryId: badge.category_id
-          }}
-        />
-      </Suspense>
+
     </div>
   );
 };

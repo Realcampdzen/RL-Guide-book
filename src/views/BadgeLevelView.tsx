@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState, Suspense } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   fixDescriptionFormatting,
   fixCriteriaFormatting,
@@ -31,10 +31,6 @@ import '../styles/badge-view.css';
 import type { Category, Badge } from '../types/guide';
 import { ArtGallerySection } from '../components/ArtGallerySection';
 
-const loadChatBot = () => import('../components/ChatBot');
-const loadChatAvatar = () => import('../components/ChatAvatar');
-const ChatBot = React.lazy(loadChatBot);
-const ChatAvatar = React.lazy(loadChatAvatar);
 
 interface BadgeLevelViewProps {
   category: Category;
@@ -62,7 +58,7 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
   onChangeLevel,
   onChatToggle,
   isChatOpen,
-  onChatClose,
+  onChatClose: _onChatClose,
   onOpenCategories,
   onTelegramContact,
   onBackToIntro,
@@ -1268,24 +1264,7 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
         <ArtGallerySection badgeId={badge.id} />
       </main>
 
-      {/* ChatBot and ChatAvatar */}
-      <Suspense fallback={null}>
-        <ChatAvatar onClick={onChatToggle} isOpen={isChatOpen} />
-        <ChatBot
-          isOpen={isChatOpen}
-          onClose={onChatClose}
-          currentView="badge-level"
-          currentCategory={category}
-          currentBadge={{
-            id: badge.id,
-            title: badge.title,
-            emoji: badge.emoji,
-            categoryId: badge.category_id
-          }}
-          currentLevel={level}
-          currentLevelBadgeTitle={levelBadge.title}
-        />
-      </Suspense>
+
 
       {shareModalOpen && (
         <div

@@ -2785,6 +2785,59 @@
   border-color: rgba(139, 0, 255, 0.4);
 }
 
+/* C-2: Era switcher navigation */
+.vozhatifikator-era-nav {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+.vozhatifikator-era-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  white-space: nowrap;
+}
+.vozhatifikator-era-pill:hover:not(:disabled) {
+  background: rgba(139, 0, 255, 0.15);
+  border-color: rgba(139, 0, 255, 0.35);
+  color: #fff;
+}
+.vozhatifikator-era-pill--active {
+  color: #fff;
+  background: rgba(139, 0, 255, 0.3);
+  border-color: rgba(139, 0, 255, 0.5);
+  box-shadow: 0 0 8px rgba(139, 0, 255, 0.2);
+}
+.vozhatifikator-era-pill--disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  filter: grayscale(0.3);
+}
+.vozhatifikator-era-pill__lock {
+  font-size: 10px;
+}
+.vozhatifikator-era-pill__badge {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 1px 5px;
+  background: rgba(255, 196, 86, 0.2);
+  border: 1px solid rgba(255, 196, 86, 0.35);
+  border-radius: 999px;
+  color: rgba(255, 196, 86, 0.9);
+}
+
 /* Чек-лист Путеводные огни */
 .vozhatifikator-checklist {
   padding: 16px;

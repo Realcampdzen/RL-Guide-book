@@ -1,10 +1,22 @@
 import React from 'react';
+import { useAuth } from '../context/AuthContext';
+import type { UserRole } from '../types/authRole';
+import { ROLE_LABELS } from '../types/authRole';
 
 interface FeatureGateProps {
-  allowed: boolean;
-  reason: string;
+  /**
+   * Explicit override: if set, bypasses role-based logic.
+   * When omitted (undefined), the gate auto-computes from `requiredRoles`.
+   */
+  allowed?: boolean;
+  /** Roles that can pass the gate. Ignored if `allowed` is explicitly set. */
+  requiredRoles?: UserRole[];
+  /** Custom reason text shown when locked. */
+  reason?: string;
   ctaLabel?: string;
   onCta?: () => void;
+  /** Called when the CTA should open the login modal (not-authenticated flow). */
+  onLogin?: () => void;
   mode?: 'overlay' | 'replace';
   className?: string;
   children: React.ReactNode;
@@ -20,29 +32,66 @@ const lockShellStyle: React.CSSProperties = {
 
 export const FeatureGate: React.FC<FeatureGateProps> = ({
   allowed,
+  requiredRoles,
   reason,
   ctaLabel,
   onCta,
+  onLogin,
   mode = 'overlay',
   className,
   children
 }) => {
-  if (allowed) {
+  const { role, accessToken } = useAuth();
+
+  // --- Resolve `isAllowed` ---
+  let isAllowed: boolean;
+
+  if (allowed !== undefined) {
+    // Explicit override — preserve backward-compatibility.
+    isAllowed = allowed;
+  } else if (requiredRoles && requiredRoles.length > 0) {
+    isAllowed = requiredRoles.includes(role);
+  } else {
+    // No props provided — default open.
+    isAllowed = true;
+  }
+
+  if (isAllowed) {
     return <>{children}</>;
+  }
+
+  // --- Build lock reason & CTA ---
+  const isAuthenticated = Boolean(accessToken);
+
+  let effectiveReason = reason || '';
+  let effectiveCtaLabel = ctaLabel || '';
+  let effectiveOnCta = onCta;
+
+  if (!reason && requiredRoles && requiredRoles.length > 0) {
+    if (!isAuthenticated) {
+      effectiveReason = 'Войдите, чтобы получить доступ к этому разделу';
+      effectiveCtaLabel = ctaLabel || 'Войти';
+      effectiveOnCta = onLogin || onCta;
+    } else {
+      const roleNames = requiredRoles
+        .map((r) => ROLE_LABELS[r] || r)
+        .join(', ');
+      effectiveReason = `Доступно для: ${roleNames}`;
+    }
   }
 
   const lockContent = (
     <div style={lockShellStyle} role="note" aria-live="polite">
       <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>Раздел доступен после разблокировки</div>
-      <p style={{ margin: 0, fontSize: 12, lineHeight: 1.5, opacity: 0.9 }}>{reason}</p>
-      {ctaLabel && onCta && (
+      <p style={{ margin: 0, fontSize: 12, lineHeight: 1.5, opacity: 0.9 }}>{effectiveReason}</p>
+      {effectiveCtaLabel && effectiveOnCta && (
         <button
           type="button"
           className="btn-primary-gold"
-          onClick={onCta}
+          onClick={effectiveOnCta}
           style={{ marginTop: 10, padding: '8px 14px', fontSize: 12 }}
         >
-          {ctaLabel}
+          {effectiveCtaLabel}
         </button>
       )}
     </div>
@@ -54,7 +103,7 @@ export const FeatureGate: React.FC<FeatureGateProps> = ({
 
   return (
     <div className={className} style={{ position: 'relative' }}>
-      <div aria-hidden style={{ opacity: 0.72, filter: 'grayscale(0.18)', pointerEvents: 'none' }}>
+      <div aria-hidden style={{ opacity: 0.45, filter: 'grayscale(0.18)', pointerEvents: 'none', maxHeight: 180, overflow: 'hidden' }}>
         {children}
       </div>
       <div
@@ -62,10 +111,10 @@ export const FeatureGate: React.FC<FeatureGateProps> = ({
           position: 'absolute',
           inset: 0,
           display: 'flex',
-          alignItems: 'center',
+          alignItems: 'flex-start',
           justifyContent: 'center',
-          padding: 14,
-          background: 'linear-gradient(180deg, rgba(9, 9, 15, 0.62), rgba(9, 9, 15, 0.82))',
+          padding: '24px 14px 14px',
+          background: 'linear-gradient(180deg, rgba(9, 9, 15, 0.82), rgba(9, 9, 15, 0.62))',
           borderRadius: 14
         }}
       >

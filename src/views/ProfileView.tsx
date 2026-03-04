@@ -1,5 +1,5 @@
 import { createPortal } from 'react-dom';
-import React, { Suspense, useEffect, useMemo, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import fitty, { type FittyInstance } from 'fitty';
 import BadgeIcon from '../components/BadgeIcon';
 import { useUserProgress } from '../hooks/useUserProgress';
@@ -36,6 +36,8 @@ import { ImageSourceBlock } from '../components/ImageSourceBlock';
 import { CommunityRankingPanel } from '../components/CommunityRankingPanel';
 import { ArtInboxTab } from '../components/ArtInboxTab';
 import { FeatureGate } from '../components/FeatureGate';
+import { DevPanel } from '../components/DevPanel';
+import { AdminDashboard } from '../components/AdminDashboard';
 import ProfileTabletNav from '../components/ProfileTabletNav';
 import { requestImageGenerate } from '../utils/imageGenerateApi';
 import { parseMarkdownToc, markdownToHtmlWithHeadingIds } from '../utils/markdown';
@@ -67,6 +69,7 @@ import {
   type BadgePlanItem
 } from '../utils/badgePlanApi';
 import { StaffDashboardPanel } from '../components/StaffDashboardPanel';
+import { RoleRequestPanel as _RoleRequestPanel } from '../components/RoleRequestPanel';
 import { VOZHATIFIKATOR_CHECKLIST_ITEMS } from '../data/vozhatifikatorChecklist';
 import { QRCodeSVG } from 'qrcode.react';
 import '../styles/profile-view.css';
@@ -98,11 +101,6 @@ const DEFAULT_WORKSHOP_CATEGORY_ID = '8';
 
 /** При числе элементов не больше этого — показываем статический ряд без карусели (нет вращения, пустого экрана и стрелок). */
 const CAROUSEL_STATIC_MAX = 3;
-
-const loadChatBot = () => import('../components/ChatBot');
-const loadChatAvatar = () => import('../components/ChatAvatar');
-const ChatBot = React.lazy(loadChatBot);
-const ChatAvatar = React.lazy(loadChatAvatar);
 
 /** DOCX — редактируемая версия (VZhTFKTR.docx), будет обновляться при редактуре. */
 const VOZHATIFIKATOR_DOCX_FILE = 'VZhTFKTR.docx';
@@ -168,10 +166,10 @@ const PROFILE_AUTO_FIT_SELECTOR = [
 ].join(',');
 
 export const ProfileView: React.FC<any> = (props) => {
-  const { onBack, onNavigateToBadge, badges, ensureBadgeLoaded, addCustomBadge, restoreCustomBadges, removeCustomBadge, customBadges = [], communityBadges = [], communityPendingCount = 0, communitySyncing = false, communityLikedIds = new Set<string>(), toggleCommunityLike, publishBadgeToCommunity, setCustomBadgeImage, onChatToggle, onChatClose, isChatOpen, lastUpdated, onNavigateToRegistrationForm, onNavigateHome, onNavigateCategories, onNavigateAboutCamp, onTelegramContact, onOpenVk } = props;
+  const { onBack, onNavigateToBadge, badges, ensureBadgeLoaded, addCustomBadge, restoreCustomBadges, removeCustomBadge, customBadges = [], communityBadges = [], communityPendingCount = 0, communitySyncing = false, communityLikedIds = new Set<string>(), toggleCommunityLike, publishBadgeToCommunity, setCustomBadgeImage, onChatToggle: _onChatToggle, onChatClose: _onChatClose, isChatOpen: _isChatOpen, lastUpdated, onNavigateToRegistrationForm, onNavigateHome, onNavigateCategories, onNavigateAboutCamp, onTelegramContact, onOpenVk } = props;
   const { userData, setNickname, setAvatar, setProfileStatus, setProfileBio, toggleFavorite, removeRoute, exportData, importData, resetProgress, applyApprovedLevel, getLevelProgress, markRankUpSeen, completeTutorial, isLoading, updateLevelEvidence, updateLevelStatus, saveBadgePlan, updateBadgePlanStatus, updateVozhatifikatorChecklist, updateDiarySquad, setPathFavToast } = useUserProgress();
   const { myTeam, generateInviteUrl } = useTeam();
-  const { canUseChat, role, deviceId, setAuth, accessToken, campId } = useAuth();
+  const { canUseChat, role, deviceId, setAuth, setRole, accessToken, campId } = useAuth();
   const { activeSquadName: counselorSquadName, activeSquadCard: counselorSquadCard } = useCounselorSquad();
   const seeOtradBlocks = canSeeOtradBlocks(role);
   const showEventsForRole = showEventsPanelForRole(role);
@@ -184,6 +182,51 @@ export const ProfileView: React.FC<any> = (props) => {
   const canModerateApprovals = canModerateBadgeApprovals(role);
   const { showHint, startTutorial } = useHintOverlay();
 
+  // ── C-1: Onboarding tutorial ────────────────────────────────────────
+  const ONBOARDING_STEPS: HintStep[] = useMemo(() => [
+    {
+      title: '👋 Добро пожаловать!',
+      content: 'Это Путеводитель — твой личный кабинет в Реальном Лагере. Здесь ты собираешь значки, отслеживаешь прогресс и управляешь всеми активностями.',
+    },
+    {
+      title: '🏅 Путь значков',
+      content: 'Значки — это твои достижения. Добавляй нужные в свой Путь, проходи уровни и подтверждай их у вожатого.',
+      targetSelector: '.profile-tabs-nav',
+    },
+    {
+      title: '🚀 Панели слева и справа',
+      content: 'Инспектор, 4К-профиль, Дневник, Движок, БРО, Совет — всё доступно через навигацию кабины. Нажми на экран, чтобы открыть раздел.',
+      targetSelector: '.profile-view-panel-header',
+    },
+    {
+      title: '🤖 НейроВалюша',
+      content: 'Твой ИИ-помощник! Спроси что угодно о значках, лагере или программе. Пузырь бота всегда рядом.',
+      targetSelector: '.profile-chat-toggle, .chatbot-avatar-container',
+    },
+    {
+      title: '📊 Прогресс и ранг',
+      content: 'Каждый пройденный уровень значка приближает тебя к новому рангу. Следи за своим XP и ростом 4К-навыков.',
+      targetSelector: '.profile-view-cabin-profile-rank, .profile-empty-state__title',
+    },
+    {
+      title: '✅ Всё готово!',
+      content: 'Начинай свой путь. Добавь первый значок, или загляни в Инспектор Пользы — там тебя ждут ежедневные миссии!',
+    },
+  ], []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (localStorage.getItem('rl-tutorial-done') === '1') return;
+    // Slight delay to let the profile render
+    const timer = setTimeout(() => {
+      startTutorial(ONBOARDING_STEPS, {
+        onComplete: () => localStorage.setItem('rl-tutorial-done', '1'),
+      });
+    }, 1200);
+    return () => clearTimeout(timer);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  // ── end onboarding ──────────────────────────────────────────────────
+
   const [activeTab, setActiveTab] = useState<Tab>('active');
   const [showProfileEditor, setShowProfileEditor] = useState(false);
   const [nicknameInput, setNicknameInput] = useState('');
@@ -195,6 +238,7 @@ export const ProfileView: React.FC<any> = (props) => {
   const [cabinNavExpanded, setCabinNavExpanded] = useState(false);
   const [mobileConsoleExpanded, setMobileConsoleExpanded] = useState(false);
   const [showAvatarUploadConfirm, setShowAvatarUploadConfirm] = useState(false);
+  const [showAdminDashboard, setShowAdminDashboard] = useState(false);
   const [isTabletOrMobile, setIsTabletOrMobile] = useState(() => typeof window !== 'undefined' && window.matchMedia('(max-width: 1180px)').matches);
 
   useEffect(() => {
@@ -450,6 +494,7 @@ export const ProfileView: React.FC<any> = (props) => {
   const [vozhatifikatorLoading, setVozhatifikatorLoading] = useState(false);
   const [vozhatifikatorError, setVozhatifikatorError] = useState<string | null>(null);
   const [vozhatifikatorSubView, setVozhatifikatorSubView] = useState<'book' | 'lights'>('book');
+  const [vozhatifikatorEra, setVozhatifikatorEra] = useState<'2013-2019' | '2019-2021' | '2021-2023' | '2023-now'>('2013-2019');
   const vozhatifikatorBookRef = useRef<HTMLDivElement | null>(null);
   const avatarWrapRef = useRef<HTMLButtonElement | null>(null);
   const centerScrollRef = useRef<HTMLDivElement | null>(null);
@@ -3133,6 +3178,30 @@ export const ProfileView: React.FC<any> = (props) => {
                       <a href="#" className="vozhatifikator-badge-block__link" onClick={(e) => { e.preventDefault(); onNavigateToBadge('9.10'); }}>
                         Значок «Вожатификатор» в каталоге
                       </a>
+                    </div>
+
+                    {/* C-2: Era switcher pills */}
+                    <div className="vozhatifikator-era-nav" role="radiogroup" aria-label="Эпохи Вожатификатора">
+                      {([
+                        { id: '2013-2019' as const, label: '2013–2019', active: true },
+                        { id: '2019-2021' as const, label: '2019–2021', active: false },
+                        { id: '2021-2023' as const, label: '2021–2023', active: false },
+                        { id: '2023-now' as const, label: '2023–н.в.', active: false },
+                      ]).map((era) => (
+                        <button
+                          key={era.id}
+                          type="button"
+                          role="radio"
+                          aria-checked={vozhatifikatorEra === era.id}
+                          disabled={!era.active}
+                          className={`vozhatifikator-era-pill${vozhatifikatorEra === era.id ? ' vozhatifikator-era-pill--active' : ''}${!era.active ? ' vozhatifikator-era-pill--disabled' : ''}`}
+                          onClick={() => era.active && setVozhatifikatorEra(era.id)}
+                        >
+                          {!era.active && <span className="vozhatifikator-era-pill__lock">🔒</span>}
+                          <span>{era.label}</span>
+                          {!era.active && <span className="vozhatifikator-era-pill__badge">скоро</span>}
+                        </button>
+                      ))}
                     </div>
 
                     <div className="vozhatifikator-tabs" role="tablist" aria-label="Разделы Вожатификатора">
@@ -7054,17 +7123,7 @@ export const ProfileView: React.FC<any> = (props) => {
         </div>
       )}
 
-      <div id="profile-chat-trigger" style={{ display: 'inline-block' }}>
-        <Suspense fallback={null}>
-          <ChatAvatar onClick={onChatToggle} isOpen={isChatOpen} />
-          <ChatBot
-            isOpen={isChatOpen}
-            onClose={onChatClose}
-            onUnlockRequest={() => document.getElementById('profile-unlock-bot')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-            currentView="profile"
-          />
-        </Suspense>
-      </div>
+
 
       <ConfirmModal
         open={showAvatarUploadConfirm}
@@ -7075,6 +7134,22 @@ export const ProfileView: React.FC<any> = (props) => {
         cancelLabel="Отмена"
         onConfirm={() => avatarUploadInputRef.current?.click()}
       />
+
+      {/* A-2/A-3: Developer tools — visible only for role=developer */}
+      {role === 'developer' && (
+        <DevPanel
+          currentRole={role}
+          onRoleSwitch={(newRole) => setRole(newRole as any)}
+          onOpenDashboard={() => setShowAdminDashboard(true)}
+          accessToken={accessToken}
+        />
+      )}
+      {showAdminDashboard && (
+        <AdminDashboard
+          accessToken={accessToken || ''}
+          onClose={() => setShowAdminDashboard(false)}
+        />
+      )}
     </section>
   );
 };

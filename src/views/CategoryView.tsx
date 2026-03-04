@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState, Suspense } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { pluralizeRu } from '../utils/textFormatting';
 import { useScrollReveal } from '../hooks/useScrollReveal';
 import { useTiltCard } from '../hooks/useTiltCard';
@@ -12,10 +12,6 @@ import { useAuth } from '../context/AuthContext';
 import { useTeam } from '../context/TeamContext';
 import type { Category, Badge } from '../types/guide';
 
-const loadChatBot = () => import('../components/ChatBot');
-const loadChatAvatar = () => import('../components/ChatAvatar');
-const ChatBot = React.lazy(loadChatBot);
-const ChatAvatar = React.lazy(loadChatAvatar);
 
 const PREFETCH_BADGE_BG_COUNT = 12;
 
@@ -113,11 +109,11 @@ const TiltBadgeCard: React.FC<{
   let defaultBgUrl: string | null = null;
   let realismBaseBgUrl: string | null = null;
   let defaultBaseBgUrl: string | null = null;
-  
+
   // Extract base badge ID (e.g., "1.4" from "1.4.1")
   const badgeIdStr = String(badge.id);
   const baseBadgeId = badgeIdStr.split('.').slice(0, 2).join('.');
-  
+
   if (Array.isArray((badge as any).allLevels) && (badge as any).allLevels.length > 0) {
     const levels = (badge as any).allLevels;
     const targetLevel = levels[levels.length - 1]; // Use the last level
@@ -139,29 +135,29 @@ const TiltBadgeCard: React.FC<{
   const handleCardClick = () => {
     // Увеличиваем значок при клике
     setIsIconExpanded(true);
-    
+
     // Очищаем предыдущий таймер, если он есть
     if (expandTimeoutRef.current) {
       clearTimeout(expandTimeoutRef.current);
     }
-    
+
     // Через 600ms возвращаем значок обратно
     expandTimeoutRef.current = setTimeout(() => {
       setIsIconExpanded(false);
     }, 600);
-    
+
     onBadgeClick(badge);
   };
 
   return (
-    <article 
+    <article
       ref={cardRef}
-      key={badge.id} 
+      key={badge.id}
       className={`badge-card tilt-card hover-target ${(badge.id || '').startsWith('1.15') ? 'badge-centered-row' : ''} reveal-on-scroll`}
       role="button"
       tabIndex={0}
       aria-label={`Значок: ${badge.title}`}
-      style={{ 
+      style={{
         animationDelay: `${index * 0.05}s`,
         backgroundImage: cardBg,
         backgroundSize: 'cover',
@@ -205,29 +201,29 @@ const TiltBadgeCard: React.FC<{
 
       <div className={`badge-card__icon ${isIconExpanded ? 'is-expanded' : ''}`}>
         {(() => {
-           const badgeIdStr = String(badge.id);
-           const baseBadgeId = badgeIdStr.split('.').slice(0, 2).join('.');
-           const categoryId = badge.category_id || category.id;
-           const isImageBadge = hasBadgeImage(baseBadgeId, badge.title, categoryId);
+          const badgeIdStr = String(badge.id);
+          const baseBadgeId = badgeIdStr.split('.').slice(0, 2).join('.');
+          const categoryId = badge.category_id || category.id;
+          const isImageBadge = hasBadgeImage(baseBadgeId, badge.title, categoryId);
 
-           if (isImageBadge) {
-               return (
-               <BadgeIcon
-                 badgeId={baseBadgeId}
-                 badgeTitle={badge.title}
-                 categoryId={categoryId}
-                 emoji={badge.emoji || ''}
-                 className="badge-emoji"
-                 size="responsive"
-               />
-             );
-           }
-           return <div className="badge-emoji" style={{ fontSize: '1em' }}>{badge.emoji || '🏆'}</div>;
-         })()}
+          if (isImageBadge) {
+            return (
+              <BadgeIcon
+                badgeId={baseBadgeId}
+                badgeTitle={badge.title}
+                categoryId={categoryId}
+                emoji={badge.emoji || ''}
+                className="badge-emoji"
+                size="responsive"
+              />
+            );
+          }
+          return <div className="badge-emoji" style={{ fontSize: '1em' }}>{badge.emoji || '🏆'}</div>;
+        })()}
       </div>
-      
+
       <h3 className="badge-card__title">{badge.title}</h3>
-      
+
       <div className="badge-card__level">
         {Array.isArray((badge as any).allLevels) && (badge as any).allLevels.length > 1
           ? `${(badge as any).allLevels.length} ${pluralizeRu((badge as any).allLevels.length, ['уровень', 'уровня', 'уровней'])}`
@@ -249,7 +245,7 @@ const CategoryView: React.FC<CategoryViewProps> = ({
   onAdditionalMaterialClick,
   onChatToggle,
   isChatOpen,
-  onChatClose,
+  onChatClose: _onChatClose,
   onOpenCategories,
   onTelegramContact,
   onBackToIntro,
@@ -439,7 +435,7 @@ const CategoryView: React.FC<CategoryViewProps> = ({
 
   const headerImageFile = categoryHeaderMap[category.id];
   // Encode the filename to handle spaces and Cyrillic characters correctly in URL
-  const bgUrl = headerImageFile 
+  const bgUrl = headerImageFile
     ? `${import.meta.env.BASE_URL}шапки внутри категорий/${encodeURIComponent(headerImageFile)}?v=3`
     : `${import.meta.env.BASE_URL}category_${category.id}.png?v=2`; // Fallback to old icon if not found
 
@@ -556,8 +552,8 @@ const CategoryView: React.FC<CategoryViewProps> = ({
       </div>
 
       {/* Header Bar */}
-      <header 
-        className="category-header-bar" 
+      <header
+        className="category-header-bar"
         style={{ '--header-bg': `url('${bgUrl}')` } as React.CSSProperties}
       >
         <div className="category-topbar">
@@ -580,9 +576,9 @@ const CategoryView: React.FC<CategoryViewProps> = ({
             )}
           </div>
         </div>
-          <div className={`category-hero-content${!titleKicker ? ' category-hero-no-kicker' : ''}`}>
+        <div className={`category-hero-content${!titleKicker ? ' category-hero-no-kicker' : ''}`}>
           {titleKicker && <span className="category-title-kicker">{titleKicker}</span>}
-          <h1 
+          <h1
             className={`category-title hover-target ${category.introduction?.has_introduction ? 'category-title-clickable' : ''}`}
             onClick={category.introduction?.has_introduction ? onIntroductionClick : undefined}
           >
@@ -646,37 +642,37 @@ const CategoryView: React.FC<CategoryViewProps> = ({
             </button>
             {category.id === '14' && (
               <>
-                <button 
+                <button
                   onClick={() => onAdditionalMaterialClick('checklists', 'general-checklist.md')}
                   className="action-btn hover-target"
                 >
                   📋 Чек-лист
                 </button>
-                <button 
+                <button
                   onClick={() => onAdditionalMaterialClick('checklists', 'challenges-checklist.md')}
                   className="action-btn hover-target"
                 >
                   🧩 Челленджи
                 </button>
-                <button 
+                <button
                   onClick={() => onAdditionalMaterialClick('checklists', 'active-checklist.md')}
                   className="action-btn hover-target"
                 >
                   ✅ Активный
                 </button>
-                <button 
+                <button
                   onClick={() => onAdditionalMaterialClick('methodology', 'inspector-methodology.md')}
                   className="action-btn hover-target"
                 >
                   📘 Методика
                 </button>
-                <button 
+                <button
                   onClick={() => onAdditionalMaterialClick('methodology', 'inspector-codex.md')}
                   className="action-btn hover-target"
                 >
                   📜 Кодекс
                 </button>
-                <button 
+                <button
                   onClick={() => onAdditionalMaterialClick('methodology', 'friendship-guide.md')}
                   className="action-btn hover-target"
                 >
@@ -780,49 +776,40 @@ const CategoryView: React.FC<CategoryViewProps> = ({
                 {badgeFilter === 'all' ? 'В этой категории пока нет значков.' : 'Нет значков по выбранному фильтру. Выбери «Все» или добавь значки в путь.'}
               </p>
             ) : (
-          <div className="badges-grid">
-            {filteredBadges.map((badge, index) => {
-              const baseId = String(badge.id).split('.').slice(0, 2).join('.');
-              // For single level badges without levels array, treat as 1 total.
-              // If we have allLevels array, total is length.
-              // getBadgeProgress returns what's stored. We might need to adjust 'total' here based on actual badge data.
-              
-              const storedProgress = getBadgeProgress(baseId);
-              let totalLevels = 1;
-              if (Array.isArray((badge as any).allLevels) && (badge as any).allLevels.length > 0) {
-                totalLevels = (badge as any).allLevels.length;
-              }
-              
-              // Override stored total with actual data total to be safe
-              const progress = { ...storedProgress, total: totalLevels };
+              <div className="badges-grid">
+                {filteredBadges.map((badge, index) => {
+                  const baseId = String(badge.id).split('.').slice(0, 2).join('.');
+                  // For single level badges without levels array, treat as 1 total.
+                  // If we have allLevels array, total is length.
+                  // getBadgeProgress returns what's stored. We might need to adjust 'total' here based on actual badge data.
 
-              return (
-                <TiltBadgeCard
-                  key={badge.id}
-                  badge={badge}
-                  index={index}
-                  category={category}
-                  progress={progress}
-                  onBadgeClick={onBadgeClick}
-                />
-              );
-            })}
-          </div>
+                  const storedProgress = getBadgeProgress(baseId);
+                  let totalLevels = 1;
+                  if (Array.isArray((badge as any).allLevels) && (badge as any).allLevels.length > 0) {
+                    totalLevels = (badge as any).allLevels.length;
+                  }
+
+                  // Override stored total with actual data total to be safe
+                  const progress = { ...storedProgress, total: totalLevels };
+
+                  return (
+                    <TiltBadgeCard
+                      key={badge.id}
+                      badge={badge}
+                      index={index}
+                      category={category}
+                      progress={progress}
+                      onBadgeClick={onBadgeClick}
+                    />
+                  );
+                })}
+              </div>
             )}
           </>
         )}
       </main>
 
-      {/* ChatBot and ChatAvatar */}
-      <Suspense fallback={null}>
-        <ChatAvatar onClick={onChatToggle} isOpen={isChatOpen} />
-        <ChatBot 
-          isOpen={isChatOpen} 
-          onClose={onChatClose} 
-          currentView="category"
-          currentCategory={category}
-        />
-      </Suspense>
+
     </div>
   );
 };

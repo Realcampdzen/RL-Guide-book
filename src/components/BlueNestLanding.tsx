@@ -1,4 +1,4 @@
-import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useScrollReveal } from '../hooks/useScrollReveal';
 import { useTiltCard } from '../hooks/useTiltCard';
@@ -8,10 +8,7 @@ import { toSiblingImageUrl, NAV_HOME_IMAGE } from '../utils/imageSources';
 import { getBadgeImagePath } from '../utils/badgeImages';
 import '../styles/bluenest.css';
 
-const loadChatBot = () => import('./ChatBot');
-const loadChatAvatar = () => import('./ChatAvatar');
-const ChatBot = React.lazy(loadChatBot);
-const ChatAvatar = React.lazy(loadChatAvatar);
+
 
 interface BlueNestLandingProps {
   onStartClick: () => void;
@@ -48,14 +45,7 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
   onOpenBadgeById,
   onOpenProfile,
   onChatToggle,
-  isChatOpen,
-  onChatClose,
   categories,
-  currentView = 'intro',
-  selectedCategory,
-  selectedBadge,
-  selectedLevel,
-  currentLevelBadgeTitle,
   masterIndex,
 }) => {
   const { initReveal } = useScrollReveal();
@@ -329,9 +319,9 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
 
       {/* Sticky Navigation Panel (Top Right) */}
       <div className="sticky-nav">
-        <button 
+        <button
           type="button"
-          className="nav-link nav-bot-btn hover-target" 
+          className="nav-link nav-bot-btn hover-target"
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
@@ -345,18 +335,18 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
             e.preventDefault();
             e.stopPropagation();
           }}
-          style={{ 
-            cursor: 'pointer', 
-            pointerEvents: 'auto', 
-            position: 'relative', 
+          style={{
+            cursor: 'pointer',
+            pointerEvents: 'auto',
+            position: 'relative',
             zIndex: 1000,
             isolation: 'isolate'
           }}
         >
           NEUROVALUSHA
         </button>
-        <button 
-          className="nav-link hover-target" 
+        <button
+          className="nav-link hover-target"
           onClick={onStartClick}
         >
           Значки
@@ -582,22 +572,7 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
         </footer>
       </main>
 
-      {/* ChatBot and ChatAvatar */}
-      <Suspense fallback={null}>
-        <ChatAvatar 
-          onClick={onChatToggle} 
-          isOpen={isChatOpen} 
-        />
-        <ChatBot 
-          isOpen={isChatOpen} 
-          onClose={onChatClose} 
-          currentView={currentView}
-          currentCategory={selectedCategory}
-          currentBadge={selectedBadge}
-          currentLevel={selectedLevel}
-          currentLevelBadgeTitle={currentLevelBadgeTitle}
-        />
-      </Suspense>
+
       {isConceptOpen && portalRoot &&
         createPortal(
           <>
@@ -626,20 +601,20 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
               style={
                 effectiveAnchor
                   ? {
-                      position: 'fixed',
-                      top: effectiveAnchor.top,
-                      left: effectiveAnchor.left,
-                      transform: 'translate(-50%, 0)',
-                      maxWidth: 'min(720px, calc(100vw - 32px))',
-                      maxHeight: `calc(100vh - ${effectiveAnchor.top + 16}px)`,
-                      overflowY: 'auto',
-                    }
+                    position: 'fixed',
+                    top: effectiveAnchor.top,
+                    left: effectiveAnchor.left,
+                    transform: 'translate(-50%, 0)',
+                    maxWidth: 'min(720px, calc(100vw - 32px))',
+                    maxHeight: `calc(100vh - ${effectiveAnchor.top + 16}px)`,
+                    overflowY: 'auto',
+                  }
                   : {
-                      position: 'fixed',
-                      top: '50%',
-                      left: '50%',
-                      transform: 'translate(-50%, -50%)',
-                    }
+                    position: 'fixed',
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                  }
               }
             >
               <span className="subtitle-hint-title">Игра, которая развивает участников и Лагерь</span>
@@ -657,7 +632,7 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
                   Фиксируйте достижения. Делитесь ими в соцсетях. Создавайте команды. Общайтесь с другими игроками.
                   Прокачивайте навыки коллаборации и организации отрядных дел.
                 </p>
-                
+
                 <div style={{ display: 'flex', gap: '10px', marginTop: '16px', flexWrap: 'wrap' }}>
                   <button
                     onClick={handleShareProgress}

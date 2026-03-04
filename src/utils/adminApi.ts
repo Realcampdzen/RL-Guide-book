@@ -9,7 +9,7 @@ import { ApiError } from './badgeApprovalApi';
 // Types
 // ---------------------------------------------------------------------------
 
-export type InboxItemType = 'badge' | 'initiative' | 'art' | 'engine' | 'inspector' | 'ugc' | 'tradition';
+export type InboxItemType = 'badge' | 'initiative' | 'art' | 'engine' | 'inspector' | 'ugc' | 'tradition' | 'role_request';
 
 export interface InboxItem {
     id: string;

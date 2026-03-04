@@ -5436,6 +5436,47 @@ def api_vozh_guiding_lights():
     return jsonify(_vozh_gl_cache)
 
 
+# ── Запрос роли (M18-ROLE-REQUEST-C) ─────────────────────────────────
+
+@app.route('/api/role-requests', methods=['POST'])
+def api_role_request_create():
+    """POST — create a role request."""
+    claims = _require_jwt()
+    if isinstance(claims, tuple):
+        return claims
+    body = request.get_json(silent=True) or {}
+    desired_role = (body.get("desiredRole") or "").strip()
+    if not desired_role:
+        return jsonify({"error": "desiredRole required"}), 400
+    store = get_store("role_requests")
+    data = store.load()
+    items = data.get("items", [])
+    new_item = {
+        "id": str(uuid.uuid4()),
+        "deviceId": claims.get("sub", ""),
+        "desiredRole": desired_role,
+        "comment": (body.get("comment") or "").strip()[:300],
+        "status": "pending",
+        "createdAt": _now_iso(),
+    }
+    items.append(new_item)
+    data["items"] = items
+    store.save(data)
+    return jsonify({"roleRequest": new_item}), 201
+
+
+@app.route('/api/role-requests', methods=['GET'])
+def api_role_request_list():
+    """GET — list role requests, optional ?deviceId= filter."""
+    device_id = request.args.get("deviceId", "")
+    store = get_store("role_requests")
+    data = store.load()
+    items = data.get("items", [])
+    if device_id:
+        items = [i for i in items if i.get("deviceId") == device_id]
+    return jsonify({"requests": items})
+
+
 # ── 4К навыки — маппинг и расчёт (M13-4K-ENGINE-C) ───────────────────
 
 _4K_MAPPING_FILE = os.path.join(

@@ -250,6 +250,7 @@ export const useDataLoader = () => {
   const masterRef = useRef<MasterIndex | null>(null);
   const versionRef = useRef<string>('unknown');
   const inflightControllersRef = useRef<Map<string, AbortController>>(new Map());
+  const hasLoadedOnceRef = useRef(false);
 
   // Load community badges: first from localStorage (cache), then from API; write back to cache on success
   const syncCommunityBadges = useCallback(async () => {
@@ -617,7 +618,10 @@ export const useDataLoader = () => {
 
   const loadDataFromAi = useCallback(async () => {
     try {
-      setLoading(true);
+      // Only show full-screen loading on the very first load
+      if (!hasLoadedOnceRef.current) {
+        setLoading(true);
+      }
 
       const master = await fetchJson<MasterIndex>(MASTER_URL);
       const version = getDataVersion(master);
@@ -670,6 +674,7 @@ export const useDataLoader = () => {
     } catch (e) {
       console.error('App: Error loading AI data', e);
     } finally {
+      hasLoadedOnceRef.current = true;
       setLoading(false);
     }
   }, []);
