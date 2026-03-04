@@ -2039,13 +2039,22 @@ class SmokeRunner:
     # ------------------------------------------------------------------
     def run_flow_aa(self):
         """Flow AA: Unified admin inbox and universal action."""
-        if not self._token:
-            self.skip("Flow AA", "no auth token")
+        print("\n[Flow AA] Admin Inbox + Action dispatch")
+        if not self.auth_secret:
+            print("  SKIP  (no AUTH_SECRET)")
+            return
+
+        dev_device = f"smoke_aa_{uuid.uuid4().hex[:8]}"
+        dev_token = self._get_jwt(dev_device, "developer")
+        if not dev_token:
             return
 
         # AA-1: GET /api/admin/inbox → 200 + has counts
         try:
-            r, s = self._get("/api/admin/inbox")
+            s, r = _http(
+                self._url("/api/admin/inbox"),
+                headers=self._bearer(dev_token),
+            )
             ok = s == 200 and isinstance(r, dict) and "counts" in r and "items" in r
             self.check("AA-1", ok, "admin inbox has counts + items")
         except SmokeError as exc:
@@ -2053,11 +2062,16 @@ class SmokeRunner:
 
         # AA-2: POST /api/admin/action with unknown item → 404 (proves dispatch works)
         try:
-            r2, s2 = self._post("/api/admin/action", json={
-                "item_type": "badge_request",
-                "item_id": "nonexistent-smoke-test",
-                "action": "approve"
-            })
+            s2, r2 = _http(
+                self._url("/api/admin/action"),
+                method="POST",
+                body={
+                    "item_type": "badge_request",
+                    "item_id": "nonexistent-smoke-test",
+                    "action": "approve",
+                },
+                headers=self._bearer(dev_token),
+            )
             ok2 = s2 == 404 and isinstance(r2, dict) and "error" in r2
             self.check("AA-2", ok2, "admin action dispatch 404 for missing item")
         except SmokeError as exc:
@@ -2065,7 +2079,297 @@ class SmokeRunner:
 
     # -----------------------------------------------------------------------
 
-    def run(self) -> int:
+    # ------------------------------------------------------------------
+    # Flow Y — Full E2E participant journey (10 checks)
+    # ------------------------------------------------------------------
+    def run_flow_y(self):
+        """Flow Y: E2E participant path — auth → engine → inbox → approve → initiative → 4k."""
+        print("\n[Flow Y] E2E: full participant journey (10 checks)")
+        if not self.auth_secret:
+            print("  SKIP  (no AUTH_SECRET)")
+            return
+
+        # Setup: participant + developer (admin) tokens
+        p_device = f"smoke_y_{uuid.uuid4().hex[:8]}"
+        p_token = self._get_jwt(p_device, "participant")
+        if not p_token:
+            return
+        admin_device = f"smoke_ya_{uuid.uuid4().hex[:8]}"
+        admin_token = self._get_jwt(admin_device, "developer")
+        if not admin_token:
+            return
+
+        # Y-1: GET /api/auth/me → auto-created user (participant)
+        try:
+            s1, r1 = _http(
+                self._url("/api/auth/me"),
+                headers={"X-Device-Id": p_device},
+            )
+            self.check(
+                "Y-1: auth/me auto-create",
+                s1 == 200 and isinstance(r1, dict) and r1.get("deviceId") == p_device,
+                f"status={s1}",
+            )
+        except SmokeError as exc:
+            self.fail("Y-1: auth/me", str(exc))
+
+        # Y-2: Get first shift, then POST a schedule event
+        shift_id = ""
+        try:
+            _, shifts_body = _http(
+                self._url("/api/shifts"),
+                headers=self._bearer(admin_token),
+            )
+            shifts = shifts_body.get("shifts", [])
+            if shifts:
+                shift_id = shifts[0].get("id", "")
+        except SmokeError:
+            pass
+
+        if shift_id:
+            try:
+                s2, r2 = _http(
+                    self._url(f"/api/shifts/{shift_id}/schedule"),
+                    method="POST",
+                    body={
+                        "title": f"Smoke E2E Event {uuid.uuid4().hex[:4]}",
+                        "dayIndex": 0,
+                        "startTime": "10:00",
+                        "endTime": "11:00",
+                    },
+                    headers=self._bearer(admin_token),
+                )
+                self.check("Y-2: schedule event created", s2 in (200, 201), f"status={s2}")
+            except SmokeError as exc:
+                self.fail("Y-2: schedule event", str(exc))
+        else:
+            self.skip("Y-2", "no shifts found")
+
+        # Y-3: POST squad in shift
+        sq_id = ""
+        if shift_id:
+            try:
+                s3, r3 = _http(
+                    self._url(f"/api/shifts/{shift_id}/squads"),
+                    method="POST",
+                    body={"name": f"Smoke E2E Squad {uuid.uuid4().hex[:4]}"},
+                    headers=self._bearer(admin_token),
+                )
+                sq_id = (r3.get("squad") or {}).get("id", "")
+                self.check("Y-3: squad created", s3 in (200, 201) and bool(sq_id), f"status={s3}")
+            except SmokeError as exc:
+                self.fail("Y-3: create squad", str(exc))
+        else:
+            self.skip("Y-3", "no shift_id")
+
+        # Y-4: POST engine in squad → pending
+        engine_id = ""
+        target_sq = sq_id or "SMOKE-E2E-SQ"
+        try:
+            s4, r4 = _http(
+                self._url(f"/api/squads/{target_sq}/engines"),
+                method="POST",
+                body={"title": "Smoke E2E Engine"},
+                headers=self._bearer(p_token),
+                expect_status=201,
+            )
+            engine_id = (r4.get("engine") or {}).get("id", "")
+            self.check(
+                "Y-4: engine created (pending)",
+                s4 == 201 and (r4.get("engine") or {}).get("status") == "pending",
+                f"status={s4}",
+            )
+        except SmokeError as exc:
+            self.fail("Y-4: create engine", str(exc))
+
+        # Y-5: GET /api/admin/inbox → engine appears
+        if engine_id:
+            try:
+                s5, r5 = _http(
+                    self._url("/api/admin/inbox?type=engine"),
+                    headers=self._bearer(admin_token),
+                )
+                items = r5.get("items", [])
+                found = any(i.get("id") == engine_id for i in items)
+                self.check("Y-5: engine in inbox", s5 == 200 and found, f"engine_id={engine_id}")
+            except SmokeError as exc:
+                self.fail("Y-5: inbox engine check", str(exc))
+        else:
+            self.skip("Y-5", "no engine_id")
+
+        # Y-6: POST /api/admin/action → approve engine
+        if engine_id:
+            try:
+                s6, r6 = _http(
+                    self._url("/api/admin/action"),
+                    method="POST",
+                    body={
+                        "item_type": "engine",
+                        "item_id": engine_id,
+                        "action": "approve",
+                    },
+                    headers=self._bearer(admin_token),
+                )
+                self.check("Y-6: approve engine via action", s6 == 200, f"status={s6}")
+            except SmokeError as exc:
+                self.fail("Y-6: approve engine", str(exc))
+        else:
+            self.skip("Y-6", "no engine_id")
+
+        # Y-7: POST /api/council/initiatives → submit initiative
+        init_id = ""
+        try:
+            s7, r7 = _http(
+                self._url("/api/council/initiatives"),
+                method="POST",
+                body={
+                    "title": f"Smoke E2E Initiative {uuid.uuid4().hex[:4]}",
+                    "description": "E2E test initiative",
+                    "category": "general",
+                },
+                headers=self._bearer(p_token),
+            )
+            init_id = (r7.get("initiative") or {}).get("id", "")
+            self.check(
+                "Y-7: initiative submitted",
+                s7 in (200, 201) and bool(init_id),
+                f"status={s7}",
+            )
+        except SmokeError as exc:
+            self.fail("Y-7: submit initiative", str(exc))
+
+        # Y-8: POST /api/admin/action → approve initiative
+        if init_id:
+            try:
+                s8, r8 = _http(
+                    self._url("/api/admin/action"),
+                    method="POST",
+                    body={
+                        "item_type": "council_initiative",
+                        "item_id": init_id,
+                        "action": "approve",
+                    },
+                    headers=self._bearer(admin_token),
+                )
+                self.check("Y-8: approve initiative via action", s8 == 200, f"status={s8}")
+            except SmokeError as exc:
+                self.fail("Y-8: approve initiative", str(exc))
+        else:
+            self.skip("Y-8", "no init_id")
+
+        # Y-9: GET /api/4k/stats/<deviceId> → has 4 skill keys
+        try:
+            s9, r9 = _http(
+                self._url(f"/api/4k/stats/{p_device}"),
+                expect_status=200,
+            )
+            skills = r9.get("skills") or {}
+            expected = {"collaboration", "critical_thinking", "creativity", "communication"}
+            self.check(
+                "Y-9: 4k stats has 4 skills",
+                s9 == 200 and set(skills.keys()) == expected,
+                f"skills={list(skills.keys())}",
+            )
+        except SmokeError as exc:
+            self.fail("Y-9: 4k stats", str(exc))
+
+        # Y-10: GET /api/admin/inbox?type=engine → approved engine gone from inbox
+        try:
+            s10, r10 = _http(
+                self._url("/api/admin/inbox?type=engine"),
+                headers=self._bearer(admin_token),
+            )
+            items10 = r10.get("items", [])
+            gone = not any(i.get("id") == engine_id for i in items10) if engine_id else True
+            self.check(
+                "Y-10: approved engine not in pending inbox",
+                s10 == 200 and gone,
+                f"engine still in inbox" if not gone else "",
+            )
+        except SmokeError as exc:
+            self.fail("Y-10: inbox clean check", str(exc))
+
+    # -----------------------------------------------------------------------
+
+    # ------------------------------------------------------------------
+    # Flow AB — RBAC Verification (4 checks)
+    # ------------------------------------------------------------------
+    def run_flow_ab(self):
+        """Flow AB: RBAC role checks — participant/parent blocked, counselor/developer allowed."""
+        print("\n[Flow AB] RBAC: role-based access control (4 checks)")
+        if not self.auth_secret:
+            print("  SKIP  (no AUTH_SECRET)")
+            return
+
+        # AB-1: participant → POST /api/admin/action → 403
+        p_device = f"smoke_ab1_{uuid.uuid4().hex[:8]}"
+        p_token = self._get_jwt(p_device, "participant")
+        if p_token:
+            try:
+                s1, _ = _http(
+                    self._url("/api/admin/action"),
+                    method="POST",
+                    body={
+                        "item_type": "badge_request",
+                        "item_id": "fake",
+                        "action": "approve",
+                    },
+                    headers=self._bearer(p_token),
+                )
+                self.check("AB-1: participant blocked from admin/action", s1 == 403, f"got {s1}")
+            except SmokeError as exc:
+                self.fail("AB-1", str(exc))
+        else:
+            self.skip("AB-1", "no token")
+
+        # AB-2: counselor → can access badge inbox → 200
+        c_device = f"smoke_ab2_{uuid.uuid4().hex[:8]}"
+        c_token = self._get_jwt(c_device, "counselor")
+        if c_token:
+            try:
+                s2, _ = _http(
+                    self._url("/api/badges/requests/inbox"),
+                    headers=self._bearer(c_token),
+                )
+                self.check("AB-2: counselor can access badge inbox", s2 == 200, f"got {s2}")
+            except SmokeError as exc:
+                self.fail("AB-2", str(exc))
+        else:
+            self.skip("AB-2", "no token")
+
+        # AB-3: developer → GET /api/dev/users → 200
+        d_device = f"smoke_ab3_{uuid.uuid4().hex[:8]}"
+        d_token = self._get_jwt(d_device, "developer")
+        if d_token:
+            try:
+                s3, _ = _http(
+                    self._url("/api/dev/users"),
+                    headers=self._bearer(d_token),
+                )
+                self.check("AB-3: developer can access /dev/users", s3 == 200, f"got {s3}")
+            except SmokeError as exc:
+                self.fail("AB-3", str(exc))
+        else:
+            self.skip("AB-3", "no token")
+
+        # AB-4: parent → GET /api/admin/inbox → 403
+        parent_device = f"smoke_ab4_{uuid.uuid4().hex[:8]}"
+        parent_token = self._get_jwt(parent_device, "parent")
+        if parent_token:
+            try:
+                s4, _ = _http(
+                    self._url("/api/admin/inbox"),
+                    headers=self._bearer(parent_token),
+                )
+                self.check("AB-4: parent blocked from admin/inbox", s4 == 403, f"got {s4}")
+            except SmokeError as exc:
+                self.fail("AB-4", str(exc))
+        else:
+            self.skip("AB-4", "no token")
+
+    # -----------------------------------------------------------------------
+
+    def run(self, full_e2e: bool = False) -> int:
         print(f"Smoke backend critical flows — {self.base}")
         print("=" * 60)
 
@@ -2074,6 +2378,11 @@ class SmokeRunner:
             print("\nERROR: backend not healthy, aborting auth flows")
             self._print_summary()
             return 1
+
+        if full_e2e:
+            print("\n>>> --full-e2e mode: running Flow Y only <<<")
+            self.run_flow_y()
+            return self._print_summary()
 
         req_id, participant_token = self.run_flow_a()
         self.run_flow_b()
@@ -2104,6 +2413,8 @@ class SmokeRunner:
         self.run_flow_x()
         self.run_flow_z()
         self.run_flow_aa()
+        self.run_flow_y()
+        self.run_flow_ab()
         return self._print_summary()
 
     def _print_summary(self) -> int:
@@ -2137,6 +2448,12 @@ def main() -> int:
         default=os.environ.get("AUTH_SECRET", ""),
         help="AUTH_SECRET for HMAC code generation (or set AUTH_SECRET env var)",
     )
+    parser.add_argument(
+        "--full-e2e",
+        action="store_true",
+        default=False,
+        help="Run only Flow Y (full E2E participant journey)",
+    )
     args = parser.parse_args()
 
     auth_secret = (args.auth_secret or "").strip() or None
@@ -2147,7 +2464,7 @@ def main() -> int:
         )
 
     runner = SmokeRunner(base_url=args.base_url, auth_secret=auth_secret)
-    return runner.run()
+    return runner.run(full_e2e=args.full_e2e)
 
 
 if __name__ == "__main__":
