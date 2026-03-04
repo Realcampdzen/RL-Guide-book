@@ -4376,7 +4376,7 @@ export const ProfileView: React.FC<any> = (props) => {
               <div className="profile-view-cabin-right-rail-progress__fill" />
             </div>
             <button type="button" className={`profile-view-cabin-nav-btn profile-view-cabin-nav-btn--wide profile-view-cabin-card profile-view-cabin-card--hub ${panelActiveView === null ? 'profile-view-cabin-nav-btn--active' : ''}`} onClick={() => { setActiveTab('active'); openCabinPanel(null, null); }} aria-label="Главный экран">
-              <span className="profile-view-cabin-nav-icon" aria-hidden>🏠</span>
+
               <span className="profile-view-cabin-card-subtitle">Главный экран</span>
             </button>
           </div>
@@ -4459,7 +4459,7 @@ export const ProfileView: React.FC<any> = (props) => {
               onClick={() => openCabinPanel('counselor-squad', 'right')}
               aria-label="Вожатский отряд"
             >
-              <span className="profile-view-cabin-nav-icon" aria-hidden>👥</span>
+
               <span className="profile-view-cabin-card-subtitle">Вожатский отряд</span>
               <div className="profile-view-cabin-card-progress-wrap profile-view-cabin-card-progress-wrap--vertical">
                 <div
@@ -4479,7 +4479,7 @@ export const ProfileView: React.FC<any> = (props) => {
               <div className="profile-view-cabin-right-rail-progress__fill" />
             </div>
             <button type="button" className={`profile-view-cabin-nav-btn profile-view-cabin-nav-btn--wide profile-view-cabin-card ${panelActiveView === 'share' ? 'profile-view-cabin-nav-btn--active' : ''}`} onClick={() => openCabinPanel('share', 'right')} aria-label="Шеринг">
-              <span className="profile-view-cabin-nav-icon" aria-hidden>📤</span>
+
               <span className="profile-view-cabin-card-subtitle">Карточки прогресса</span>
               <div className="profile-view-cabin-card-progress-wrap profile-view-cabin-card-progress-wrap--vertical">
                 <div
