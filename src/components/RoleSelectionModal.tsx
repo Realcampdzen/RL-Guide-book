@@ -1,5 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import { ROLE_LABELS } from '../types/authRole';
+import { NAV_HOME_IMAGE } from '../utils/imageSources';
 import type { UserRole } from '../types/authRole';
 
 // ---------------------------------------------------------------------------
@@ -21,14 +22,14 @@ interface RoleSelectionModalProps {
 // Constants
 // ---------------------------------------------------------------------------
 
-const ROLES: Array<{ id: UserRole; icon: string; desc: string; muted?: boolean }> = [
-    { id: 'participant', icon: '👤', desc: 'Я приеду в лагерь как участник' },
-    { id: 'counselor', icon: '🏕️', desc: 'Я работаю вожатым в лагере' },
-    { id: 'educator', icon: '📚', desc: 'Я веду кружки и мастерские' },
-    { id: 'shift_leader', icon: '⭐', desc: 'Руководитель смены' },
-    { id: 'camp_director', icon: '🏛️', desc: 'Начальник лагеря' },
-    { id: 'parent', icon: '👨‍👩‍👧', desc: 'Мой ребёнок едет в лагерь' },
-    { id: 'developer', icon: '🔧', desc: 'Доступ для разработчиков', muted: true },
+const ROLES: Array<{ id: UserRole; desc: string; muted?: boolean }> = [
+    { id: 'participant', desc: 'Я приеду в лагерь как участник' },
+    { id: 'counselor', desc: 'Я работаю вожатым в лагере' },
+    { id: 'educator', desc: 'Я веду кружки и мастерские' },
+    { id: 'shift_leader', desc: 'Руководитель смены' },
+    { id: 'camp_director', desc: 'Начальник лагеря' },
+    { id: 'parent', desc: 'Мой ребёнок едет в лагерь' },
+    { id: 'developer', desc: 'Доступ для разработчиков', muted: true },
 ];
 
 const LS_KEY = 'rl-selected-role';
@@ -156,7 +157,8 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({ onResult
                 {step === 'select' && (
                     <>
                         <div style={{ textAlign: 'center', marginBottom: 20 }}>
-                            <div style={{ fontSize: 32, marginBottom: 8 }}>🏕️</div>
+                            <img src={`${import.meta.env.BASE_URL}${NAV_HOME_IMAGE}`} alt="Реальный Лагерь"
+                                style={{ width: 96, height: 96, borderRadius: '50%', objectFit: 'cover', margin: '0 auto 8px' }} />
                             <div style={{ fontSize: 18, fontWeight: 800, color: '#fff' }}>Добро пожаловать!</div>
                             <div style={{ fontSize: 13, opacity: 0.6, marginTop: 4 }}>Кто вы в Реальном Лагере?</div>
                         </div>
@@ -175,7 +177,6 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({ onResult
                                         outline: hoveredId === role.id ? '1px solid rgba(217,119,6,0.3)' : 'none',
                                         opacity: role.muted ? 0.45 : 1,
                                     }}>
-                                    <span style={{ fontSize: 22, flexShrink: 0 }}>{role.icon}</span>
                                     <div>
                                         <div style={{ fontSize: 13, fontWeight: 600, color: '#fff' }}>{ROLE_LABELS[role.id]}</div>
                                         <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.45)', marginTop: 1 }}>{role.desc}</div>
