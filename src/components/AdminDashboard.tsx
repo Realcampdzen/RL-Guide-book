@@ -18,7 +18,6 @@ interface AdminDashboardProps {
 
 type AdminTab = 'inbox' | 'codes';
 
-// Raw item shape from backend
 interface RawInboxItem {
     type: string;
     id: string;
@@ -33,41 +32,31 @@ interface RawInboxItem {
 // Constants
 // ---------------------------------------------------------------------------
 
-const TYPE_META: Record<string, { icon: string; label: string; color: string }> = {
-    badge_request: { icon: '🏅', label: 'Значки', color: '#f59e0b' },
-    council_initiative: { icon: '📋', label: 'Инициативы', color: '#3b82f6' },
-    badge_art: { icon: '🎨', label: 'Арты', color: '#a855f7' },
-    engine_approve: { icon: '⚙️', label: 'Движки', color: '#22c55e' },
-    inspector_task: { icon: '🔍', label: 'Инспектор', color: '#06b6d4' },
-    role_request: { icon: '🙋', label: 'Роли', color: '#8b5cf6' },
+const TYPE_META: Record<string, { letter: string; label: string; color: string }> = {
+    badge_request: { letter: 'З', label: 'Значки', color: '#F59E0B' },
+    council_initiative: { letter: 'И', label: 'Инициативы', color: '#3B82F6' },
+    badge_art: { letter: 'А', label: 'Арты', color: '#A855F7' },
+    engine_approve: { letter: 'Д', label: 'Движки', color: '#22C55E' },
+    inspector_task: { letter: 'И', label: 'Инспектор', color: '#06B6D4' },
+    role_request: { letter: 'Р', label: 'Роли', color: '#8B5CF6' },
 };
 
 const ALL_TYPES = Object.keys(TYPE_META);
 
 const ROLE_OPTIONS = [
-    { value: 'participant', label: '👤 Участник' },
-    { value: 'counselor', label: '🏕️ Вожатый' },
-    { value: 'educator', label: '📚 Педагог' },
-    { value: 'shift_leader', label: '⭐ Ст.вожатый' },
-    { value: 'camp_director', label: '👑 Нач.лагеря' },
-    { value: 'parent', label: '👨‍👩‍👧 Родитель' },
+    { value: 'participant', label: 'Участник' },
+    { value: 'counselor', label: 'Вожатый' },
+    { value: 'educator', label: 'Педагог' },
+    { value: 'shift_leader', label: 'Ст. вожатый' },
+    { value: 'camp_director', label: 'Нач. лагеря' },
+    { value: 'parent', label: 'Родитель' },
 ];
 
 // ---------------------------------------------------------------------------
-// Pill button helper
+// Font stack
 // ---------------------------------------------------------------------------
 
-const pillStyle = (active: boolean, color: string): React.CSSProperties => ({
-    padding: '7px 14px',
-    fontSize: 12,
-    fontWeight: 600,
-    border: `1px solid ${active ? color : 'rgba(255,255,255,0.15)'}`,
-    borderRadius: 999,
-    background: active ? `${color}22` : 'rgba(255,255,255,0.04)',
-    color: active ? color : 'rgba(255,255,255,0.7)',
-    cursor: 'pointer',
-    transition: 'all 0.2s ease',
-});
+const FONT = "'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -81,8 +70,10 @@ function formatDate(raw?: string): string {
         const now = new Date();
         const diff = now.getTime() - d.getTime();
         if (diff < 60_000) return 'только что';
-        if (diff < 3600_000) return `${Math.floor(diff / 60_000)} мин назад`;
-        if (diff < 86400_000) return `${Math.floor(diff / 3600_000)} ч назад`;
+        if (diff < 3600_000) return `${Math.floor(diff / 60_000)} мин.`;
+        if (diff < 86400_000) return `${Math.floor(diff / 3600_000)} ч.`;
+        const days = Math.floor(diff / 86400_000);
+        if (days < 7) return `${days} дн.`;
         return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
     } catch { return ''; }
 }
@@ -95,7 +86,7 @@ function humanizeId(id: string): string {
 function getUserName(item: RawInboxItem): string {
     const user = item.user || {};
     if (user.nickname) return user.nickname;
-    if (user.device_id) return `Устройство ${user.device_id.slice(0, 8)}…`;
+    if (user.device_id) return `${user.device_id.slice(0, 10)}`;
     return 'Аноним';
 }
 
@@ -128,23 +119,20 @@ function getItemDescription(item: RawInboxItem): string {
     const data = item.data || {};
     switch (item.type) {
         case 'badge_request':
-            return 'Запрос на получение значка. Проверьте доказательства.';
+            return 'Проверьте доказательства выполнения';
         case 'council_initiative': {
-            const desc = (data.description as string) || '';
-            return desc || 'Предложение от участника в совет лагеря.';
+            return (data.description as string) || 'Предложение в совет лагеря';
         }
         case 'badge_art': {
-            const source = (data.source as string) || 'неизвестно';
-            return `Источник: ${source}. Одобрите для публикации.`;
+            const source = (data.source as string) || '';
+            return source ? `Источник: ${source}` : 'Ожидает модерации';
         }
         case 'engine_approve':
-            return 'Новый движок ожидает модерации.';
+            return 'Ожидает модерации';
         case 'inspector_task':
-            return 'Задание выполнено, ожидает подтверждения.';
-        case 'role_request': {
-            const comment = (data.comment as string);
-            return comment || 'Заявка на смену роли. Одобрите или отклоните.';
-        }
+            return 'Задание выполнено, ожидает подтверждения';
+        case 'role_request':
+            return (data.comment as string) || 'Ожидает одобрения';
         default:
             return '';
     }
@@ -154,7 +142,7 @@ function getItemPhotoUrl(item: RawInboxItem): string | null {
     const data = item.data || {};
     if (item.type === 'badge_art') {
         const url = (data.image_url as string) || null;
-        if (url && url.startsWith('https://example.com')) return null; // skip test URLs
+        if (url && url.startsWith('https://example.com')) return null;
         return url;
     }
     if (item.type === 'badge_request') {
@@ -171,7 +159,7 @@ function getItemPhotoUrl(item: RawInboxItem): string | null {
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({ accessToken, onClose }) => {
     const [adminTab, setAdminTab] = useState<AdminTab>('inbox');
 
-    // ── Inbox state ──
+    // Inbox state
     const [items, setItems] = useState<RawInboxItem[]>([]);
     const [loading, setLoading] = useState(false);
     const [filter, setFilter] = useState<string | null>(null);
@@ -180,7 +168,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ accessToken, onC
     const [rejectComment, setRejectComment] = useState('');
     const [toast, setToast] = useState<string | null>(null);
 
-    // ── Code generation state ──
+    // Code generation state
     const [codeRole, setCodeRole] = useState('');
     const [codeBusy, setCodeBusy] = useState(false);
     const [codeResult, setCodeResult] = useState<{ code: string; role: string; expiresAt: string } | null>(null);
@@ -213,24 +201,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ accessToken, onC
         try {
             await performAction(accessToken, itemType as any, itemId, action, comment);
             setItems(prev => prev.filter(i => i.id !== itemId));
-            setToast(action === 'approve' ? '✅ Одобрено' : '❌ Отклонено');
+            setToast(action === 'approve' ? 'Одобрено' : 'Отклонено');
             setRejectTarget(null);
             setRejectComment('');
-            setTimeout(() => setToast(null), 2000);
+            setTimeout(() => setToast(null), 2500);
         } catch { /* silent */ }
         finally { setBusy(null); }
     }, [accessToken]);
-
-    const handleBulkApprove = useCallback(async () => {
-        if (!window.confirm(`Одобрить все ${pendingItems.length} запросов?`)) return;
-        for (const item of pendingItems) {
-            try { await performAction(accessToken, item.type as any, item.id, 'approve'); }
-            catch { /* skip */ }
-        }
-        setToast(`✅ Одобрено ${pendingItems.length} запросов`);
-        setTimeout(() => setToast(null), 2000);
-        void load();
-    }, [accessToken, pendingItems, load]);
 
     const handleGenerateCode = useCallback(async () => {
         if (!codeRole) return;
@@ -243,9 +220,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ accessToken, onC
             setCodeResult(result);
         } catch (e) {
             setCodeError(e instanceof Error ? e.message : 'Ошибка генерации');
-        } finally {
-            setCodeBusy(false);
-        }
+        } finally { setCodeBusy(false); }
     }, [accessToken, codeRole]);
 
     const handleCopyCode = useCallback(async () => {
@@ -253,228 +228,199 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ accessToken, onC
         try {
             await navigator.clipboard.writeText(codeResult.code);
             setCodeCopied(true);
-            setTimeout(() => setCodeCopied(false), 2000);
+            setTimeout(() => setCodeCopied(false), 2500);
         } catch { /* fallback */ }
     }, [codeResult]);
+
+    // ── Render ──
 
     return (
         <div style={{
             position: 'fixed', inset: 0, zIndex: 900,
-            background: 'rgba(10,8,32,0.98)', backdropFilter: 'blur(8px)',
+            background: '#f5f5f7',
             display: 'flex', flexDirection: 'column',
+            fontFamily: FONT,
+            color: '#1a1a2e',
         }}>
-            {/* Header with tabs */}
+            {/* ═══ Top bar ═══ */}
             <div style={{
-                padding: '12px 16px', borderBottom: '1px solid rgba(255,255,255,0.08)',
-                display: 'flex', alignItems: 'center', gap: 10,
+                height: 56, flexShrink: 0,
+                display: 'flex', alignItems: 'center', gap: 0,
+                padding: '0 20px',
+                background: '#fff',
+                borderBottom: '1px solid #e8e8ed',
             }}>
-                <span style={{ fontSize: 16, fontWeight: 800, color: '#f59e0b' }}>🎛️ Пульт Управления</span>
+                <span style={{ fontSize: 15, fontWeight: 700, letterSpacing: '-0.02em', color: '#1a1a2e' }}>
+                    Пульт управления
+                </span>
 
-                {/* Tab buttons */}
-                <div style={{ display: 'flex', gap: 4, marginLeft: 16 }}>
-                    <button type="button" onClick={() => setAdminTab('inbox')} style={{
-                        padding: '5px 14px', fontSize: 12, fontWeight: 600, borderRadius: 999, cursor: 'pointer',
-                        border: `1px solid ${adminTab === 'inbox' ? '#f59e0b' : 'rgba(255,255,255,0.15)'}`,
-                        background: adminTab === 'inbox' ? 'rgba(245,158,11,0.15)' : 'transparent',
-                        color: adminTab === 'inbox' ? '#f59e0b' : 'rgba(255,255,255,0.6)',
-                        transition: 'all 0.2s',
-                    }}>
-                        📥 Входящие {totalPending > 0 && `(${totalPending})`}
-                    </button>
-                    <button type="button" onClick={() => setAdminTab('codes')} style={{
-                        padding: '5px 14px', fontSize: 12, fontWeight: 600, borderRadius: 999, cursor: 'pointer',
-                        border: `1px solid ${adminTab === 'codes' ? '#8b5cf6' : 'rgba(255,255,255,0.15)'}`,
-                        background: adminTab === 'codes' ? 'rgba(139,92,246,0.15)' : 'transparent',
-                        color: adminTab === 'codes' ? '#8b5cf6' : 'rgba(255,255,255,0.6)',
-                        transition: 'all 0.2s',
-                    }}>
-                        🔑 Коды на роли
-                    </button>
+                {/* Tabs */}
+                <div style={{ display: 'flex', gap: 0, marginLeft: 24 }}>
+                    {([
+                        { id: 'inbox' as AdminTab, label: 'Входящие', count: totalPending },
+                        { id: 'codes' as AdminTab, label: 'Коды на роли', count: 0 },
+                    ]).map(tab => (
+                        <button key={tab.id} type="button" onClick={() => setAdminTab(tab.id)}
+                            style={{
+                                padding: '8px 16px', fontSize: 13, fontWeight: 500,
+                                border: 'none', cursor: 'pointer',
+                                borderRadius: 8, fontFamily: FONT,
+                                background: adminTab === tab.id ? '#f0f0f5' : 'transparent',
+                                color: adminTab === tab.id ? '#1a1a2e' : '#888',
+                                transition: 'all 0.15s',
+                            }}>
+                            {tab.label}
+                            {tab.count > 0 && (
+                                <span style={{
+                                    marginLeft: 6, fontSize: 11, fontWeight: 600,
+                                    padding: '1px 6px', borderRadius: 10,
+                                    background: '#ef4444', color: '#fff',
+                                }}>
+                                    {tab.count}
+                                </span>
+                            )}
+                        </button>
+                    ))}
                 </div>
 
                 <div style={{ flex: 1 }} />
-                {adminTab === 'inbox' && totalPending > 0 && (
-                    <button type="button" className="btn-secondary" style={{ padding: '4px 10px', fontSize: 10, color: '#22c55e' }}
-                        onClick={() => void handleBulkApprove()}>
-                        ✅ Одобрить все ({totalPending})
+
+                {adminTab === 'inbox' && (
+                    <button type="button" onClick={() => void load()} disabled={loading}
+                        style={{
+                            padding: '6px 14px', fontSize: 12, fontWeight: 500,
+                            border: '1px solid #e0e0e0', borderRadius: 8,
+                            background: '#fff', color: '#666', cursor: 'pointer',
+                            fontFamily: FONT, opacity: loading ? 0.5 : 1,
+                        }}>
+                        Обновить
                     </button>
                 )}
-                {adminTab === 'inbox' && (
-                    <button type="button" className="btn-secondary" style={{ padding: '4px 10px', fontSize: 11 }} disabled={loading} onClick={() => void load()}>🔄</button>
+
+                {onClose && (
+                    <button type="button" onClick={onClose}
+                        style={{
+                            width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            border: 'none', borderRadius: 8, background: 'transparent',
+                            color: '#999', cursor: 'pointer', fontSize: 18, marginLeft: 8,
+                        }}>
+                        ×
+                    </button>
                 )}
-                {onClose && <button type="button" style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', fontSize: 16 }} onClick={onClose}>✕</button>}
             </div>
 
-            {/* ── TAB: Inbox ── */}
+            {/* ═══ TAB: Inbox ═══ */}
             {adminTab === 'inbox' && (
                 <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
                     {/* Sidebar */}
                     <div style={{
-                        width: 190, flexShrink: 0, padding: 12, borderRight: '1px solid rgba(255,255,255,0.06)',
-                        display: 'flex', flexDirection: 'column', gap: 2, overflowY: 'auto',
+                        width: 200, flexShrink: 0, padding: '12px 8px',
+                        background: '#fff', borderRight: '1px solid #e8e8ed',
+                        display: 'flex', flexDirection: 'column', gap: 2,
+                        overflowY: 'auto',
                     }}>
-                        <button type="button" className="btn-secondary"
-                            style={{
-                                padding: '8px 10px', fontSize: 11, textAlign: 'left', justifyContent: 'flex-start',
-                                background: !filter ? 'rgba(245,158,11,0.12)' : undefined, color: !filter ? '#f59e0b' : undefined,
-                            }}
-                            onClick={() => setFilter(null)}>
-                            📥 Все ({totalPending})
-                        </button>
+                        <SidebarItem
+                            label="Все" count={totalPending} active={!filter}
+                            color="#1a1a2e" onClick={() => setFilter(null)}
+                        />
                         {ALL_TYPES.map(t => {
                             const meta = TYPE_META[t];
                             const count = typeCounts.get(t) ?? 0;
                             return (
-                                <button key={t} type="button" className="btn-secondary"
-                                    style={{
-                                        padding: '8px 10px', fontSize: 11, textAlign: 'left', justifyContent: 'flex-start',
-                                        background: filter === t ? `${meta.color}22` : undefined, color: filter === t ? meta.color : undefined,
-                                        opacity: count === 0 ? 0.4 : 1,
-                                    }}
-                                    onClick={() => setFilter(t)}>
-                                    {meta.icon} {meta.label} ({count})
-                                </button>
+                                <SidebarItem
+                                    key={t} label={meta.label} count={count}
+                                    active={filter === t} color={meta.color}
+                                    onClick={() => setFilter(t)}
+                                />
                             );
                         })}
                     </div>
 
                     {/* Main area */}
-                    <div style={{ flex: 1, overflowY: 'auto', padding: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    <div style={{
+                        flex: 1, overflowY: 'auto', padding: '16px 20px',
+                        display: 'flex', flexDirection: 'column', gap: 8,
+                    }}>
+                        {/* Loading */}
                         {loading && pendingItems.length === 0 && (
-                            <div style={{ display: 'flex', justifyContent: 'center', padding: 30 }}>
-                                <div style={{ width: 24, height: 24, border: '3px solid rgba(255,255,255,0.1)', borderTopColor: '#f59e0b', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+                            <div style={{ display: 'flex', justifyContent: 'center', padding: 60 }}>
+                                <div style={{
+                                    width: 28, height: 28,
+                                    border: '3px solid #e8e8ed', borderTopColor: '#1a1a2e',
+                                    borderRadius: '50%', animation: 'spin 0.8s linear infinite',
+                                }} />
                             </div>
                         )}
 
+                        {/* Empty state */}
                         {!loading && pendingItems.length === 0 && (
-                            <div style={{ padding: 40, textAlign: 'center' }}>
-                                <div style={{ fontSize: 40, marginBottom: 8 }}>🎉</div>
-                                <div style={{ fontSize: 14, fontWeight: 600, color: '#22c55e' }}>Нет ожидающих запросов</div>
-                                <div style={{ fontSize: 12, opacity: 0.6, marginTop: 2 }}>Всё обработано!</div>
+                            <div style={{ padding: 60, textAlign: 'center' }}>
+                                <div style={{
+                                    width: 48, height: 48, borderRadius: 14,
+                                    background: '#f0f0f5', margin: '0 auto 12px',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    fontSize: 20, color: '#bbb',
+                                }}>✓</div>
+                                <div style={{ fontSize: 15, fontWeight: 600, color: '#1a1a2e' }}>Нет ожидающих запросов</div>
+                                <div style={{ fontSize: 13, color: '#999', marginTop: 4 }}>Всё обработано</div>
                             </div>
                         )}
 
-                        {pendingItems.map(item => {
-                            const meta = TYPE_META[item.type] ?? { icon: '📄', label: item.type, color: '#888' };
-                            const isBusy = busy === item.id;
-                            const userName = getUserName(item);
-                            const title = getItemTitle(item);
-                            const description = getItemDescription(item);
-                            const photoUrl = getItemPhotoUrl(item);
-                            const timeStr = formatDate(item.created_at || item.createdAt);
-
-                            return (
-                                <div key={item.id} style={{
-                                    padding: 14, borderRadius: 14,
-                                    background: 'rgba(255,255,255,0.03)', border: `1px solid ${meta.color}15`,
-                                    transition: 'border-color 0.2s',
-                                }}>
-                                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-                                        {/* Type icon */}
-                                        <div style={{
-                                            width: 40, height: 40, borderRadius: 10,
-                                            background: `${meta.color}15`, border: `1px solid ${meta.color}30`,
-                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                            fontSize: 18, flexShrink: 0,
-                                        }}>
-                                            {meta.icon}
-                                        </div>
-
-                                        <div style={{ flex: 1, minWidth: 0 }}>
-                                            {/* Header row: type label + time */}
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-                                                <span style={{
-                                                    fontSize: 9, padding: '2px 6px', borderRadius: 4,
-                                                    background: `${meta.color}22`, color: meta.color, fontWeight: 600,
-                                                }}>
-                                                    {meta.label}
-                                                </span>
-                                                <span style={{ fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.5)' }}>
-                                                    от {userName}
-                                                </span>
-                                                {timeStr && (
-                                                    <span style={{ fontSize: 10, opacity: 0.35, marginLeft: 'auto' }}>{timeStr}</span>
-                                                )}
-                                            </div>
-
-                                            {/* Title */}
-                                            <div style={{ fontSize: 13, fontWeight: 700, marginTop: 5, color: '#fff' }}>
-                                                {title}
-                                            </div>
-
-                                            {/* Description */}
-                                            {description && (
-                                                <div style={{ fontSize: 11, opacity: 0.5, marginTop: 3, lineHeight: 1.4 }}>
-                                                    {description.slice(0, 150)}{description.length > 150 ? '…' : ''}
-                                                </div>
-                                            )}
-
-                                            {/* Photo */}
-                                            {photoUrl && (
-                                                <img src={photoUrl} alt="" style={{ marginTop: 6, maxWidth: 140, maxHeight: 90, borderRadius: 8, objectFit: 'cover', border: '1px solid rgba(255,255,255,0.08)' }} />
-                                            )}
-                                        </div>
-
-                                        {/* Actions */}
-                                        <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flexShrink: 0 }}>
-                                            <button type="button" className="btn-secondary" disabled={isBusy}
-                                                title="Одобрить"
-                                                style={{ padding: '8px 14px', fontSize: 12, color: '#22c55e', borderRadius: 8 }}
-                                                onClick={() => void handleAction(item.id, item.type, 'approve')}>
-                                                ✅
-                                            </button>
-                                            <button type="button" className="btn-secondary" disabled={isBusy}
-                                                title="Отклонить"
-                                                style={{ padding: '8px 14px', fontSize: 12, color: '#ef4444', borderRadius: 8 }}
-                                                onClick={() => setRejectTarget(rejectTarget === item.id ? null : item.id)}>
-                                                ❌
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    {/* Reject comment */}
-                                    {rejectTarget === item.id && (
-                                        <div style={{ display: 'flex', gap: 4, marginTop: 8 }}>
-                                            <input type="text" value={rejectComment} onChange={e => setRejectComment(e.target.value)}
-                                                placeholder="Причина отклонения (обязательно)"
-                                                style={{ flex: 1, padding: '6px 8px', borderRadius: 6, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(0,0,0,0.3)', color: '#fff', fontSize: 11 }} />
-                                            <button type="button" className="btn-secondary" disabled={isBusy || !rejectComment.trim()}
-                                                style={{ padding: '6px 10px', fontSize: 11, color: '#ef4444' }}
-                                                onClick={() => void handleAction(item.id, item.type, 'reject', rejectComment.trim())}>
-                                                Отклонить
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
-                            );
-                        })}
+                        {/* Items */}
+                        {pendingItems.map(item => (
+                            <InboxCard
+                                key={item.id}
+                                item={item}
+                                isBusy={busy === item.id}
+                                isRejectOpen={rejectTarget === item.id}
+                                rejectComment={rejectComment}
+                                onApprove={() => void handleAction(item.id, item.type, 'approve')}
+                                onToggleReject={() => {
+                                    setRejectTarget(rejectTarget === item.id ? null : item.id);
+                                    setRejectComment('');
+                                }}
+                                onRejectCommentChange={setRejectComment}
+                                onReject={() => void handleAction(item.id, item.type, 'reject', rejectComment.trim())}
+                            />
+                        ))}
                     </div>
                 </div>
             )}
 
-            {/* ── TAB: Code Generation ── */}
+            {/* ═══ TAB: Code Generation ═══ */}
             {adminTab === 'codes' && (
-                <div style={{ flex: 1, overflowY: 'auto', padding: 24, display: 'flex', flexDirection: 'column', gap: 20, maxWidth: 520, margin: '0 auto', width: '100%' }}>
+                <div style={{
+                    flex: 1, overflowY: 'auto', padding: '32px 20px',
+                    display: 'flex', flexDirection: 'column', gap: 24,
+                    maxWidth: 480, margin: '0 auto', width: '100%',
+                }}>
                     <div>
-                        <h3 style={{ margin: '0 0 4px', fontSize: 15, fontWeight: 700, color: 'rgba(255,255,255,0.95)' }}>
-                            🔑 Генерация кода на роль
+                        <h3 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: '#1a1a2e' }}>
+                            Генерация кода
                         </h3>
-                        <p style={{ margin: 0, fontSize: 12, color: 'rgba(255,255,255,0.5)', lineHeight: 1.5 }}>
-                            Сгенерируйте одноразовый код и отправьте его получателю в Телеграм.
+                        <p style={{ margin: '4px 0 0', fontSize: 13, color: '#888', lineHeight: 1.5 }}>
+                            Создайте одноразовый код и отправьте получателю.
                         </p>
                     </div>
 
-                    {/* Role pills */}
+                    {/* Role selection */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                        <span style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.7)' }}>Выберите роль:</span>
+                        <span style={{ fontSize: 12, fontWeight: 600, color: '#666', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                            Роль
+                        </span>
                         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                             {ROLE_OPTIONS.map(r => (
-                                <button
-                                    key={r.value}
-                                    type="button"
-                                    style={pillStyle(codeRole === r.value, '#8b5cf6')}
+                                <button key={r.value} type="button"
                                     onClick={() => setCodeRole(r.value)}
-                                >
+                                    style={{
+                                        padding: '8px 14px', fontSize: 13, fontWeight: 500,
+                                        border: codeRole === r.value ? '2px solid #1a1a2e' : '1px solid #e0e0e0',
+                                        borderRadius: 10,
+                                        background: codeRole === r.value ? '#1a1a2e' : '#fff',
+                                        color: codeRole === r.value ? '#fff' : '#444',
+                                        cursor: 'pointer', transition: 'all 0.15s',
+                                        fontFamily: FONT,
+                                    }}>
                                     {r.label}
                                 </button>
                             ))}
@@ -482,29 +428,26 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ accessToken, onC
                     </div>
 
                     {/* Generate button */}
-                    <button
-                        type="button"
-                        disabled={!codeRole || codeBusy}
+                    <button type="button" disabled={!codeRole || codeBusy}
                         onClick={() => void handleGenerateCode()}
                         style={{
-                            padding: '12px 20px',
-                            fontSize: 14,
-                            fontWeight: 700,
-                            color: '#fff',
-                            background: codeRole ? 'linear-gradient(135deg, #8b5cf6, #6d28d9)' : 'rgba(255,255,255,0.06)',
-                            border: 'none',
-                            borderRadius: 12,
+                            padding: '14px 24px', fontSize: 14, fontWeight: 600,
+                            color: '#fff', fontFamily: FONT,
+                            background: codeRole ? '#1a1a2e' : '#ccc',
+                            border: 'none', borderRadius: 12,
                             cursor: codeRole ? 'pointer' : 'not-allowed',
-                            opacity: codeBusy ? 0.6 : 1,
-                            transition: 'opacity 0.2s',
-                        }}
-                    >
-                        {codeBusy ? '⏳ Генерация...' : '🔑 Сгенерировать код'}
+                            opacity: codeBusy ? 0.6 : 1, transition: 'all 0.2s',
+                        }}>
+                        {codeBusy ? 'Генерация...' : 'Сгенерировать код'}
                     </button>
 
                     {/* Error */}
                     {codeError && (
-                        <div style={{ padding: '10px 14px', borderRadius: 10, background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)', fontSize: 13, color: '#ef4444' }}>
+                        <div style={{
+                            padding: '12px 16px', borderRadius: 12,
+                            background: '#fef2f2', border: '1px solid #fecaca',
+                            fontSize: 13, color: '#dc2626',
+                        }}>
                             {codeError}
                         </div>
                     )}
@@ -512,45 +455,51 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ accessToken, onC
                     {/* Result card */}
                     {codeResult && (
                         <div style={{
-                            padding: 20, borderRadius: 16,
-                            background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.25)',
-                            display: 'flex', flexDirection: 'column', gap: 12,
+                            padding: 24, borderRadius: 16,
+                            background: '#fff', border: '1px solid #e8e8ed',
+                            boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
                         }}>
-                            {/* Code display */}
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                                 <span style={{
-                                    flex: 1, fontSize: 24, fontWeight: 800, letterSpacing: '0.08em',
-                                    color: '#fff', fontFamily: 'monospace',
+                                    flex: 1, fontSize: 28, fontWeight: 800, letterSpacing: '0.06em',
+                                    color: '#1a1a2e', fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
                                 }}>
                                     {codeResult.code}
                                 </span>
-                                <button
-                                    type="button"
-                                    onClick={() => void handleCopyCode()}
+                                <button type="button" onClick={() => void handleCopyCode()}
                                     style={{
-                                        padding: '8px 12px', fontSize: 12, fontWeight: 600,
-                                        border: '1px solid rgba(139,92,246,0.3)', borderRadius: 8,
-                                        background: codeCopied ? 'rgba(34,197,94,0.15)' : 'rgba(139,92,246,0.15)',
-                                        color: codeCopied ? '#22c55e' : '#8b5cf6',
+                                        padding: '8px 16px', fontSize: 12, fontWeight: 600,
+                                        border: '1px solid #e0e0e0', borderRadius: 8,
+                                        background: codeCopied ? '#f0fdf4' : '#fff',
+                                        color: codeCopied ? '#16a34a' : '#444',
                                         cursor: 'pointer', transition: 'all 0.2s',
-                                    }}
-                                >
-                                    {codeCopied ? '✅ Скопировано' : '📋 Копировать'}
+                                        fontFamily: FONT,
+                                    }}>
+                                    {codeCopied ? 'Скопировано' : 'Копировать'}
                                 </button>
                             </div>
 
-                            {/* Meta */}
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                                <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)' }}>
-                                    Роль: <strong style={{ color: '#8b5cf6' }}>{ROLE_OPTIONS.find(r => r.value === codeResult.role)?.label || codeResult.role}</strong>
-                                </span>
-                                <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)' }}>
-                                    Действует до: <strong style={{ color: 'rgba(255,255,255,0.9)' }}>{new Date(codeResult.expiresAt).toLocaleDateString('ru-RU')}</strong>
-                                </span>
+                            <div style={{ marginTop: 16, display: 'flex', gap: 24 }}>
+                                <div>
+                                    <div style={{ fontSize: 11, color: '#999', fontWeight: 500 }}>Роль</div>
+                                    <div style={{ fontSize: 13, fontWeight: 600, color: '#1a1a2e', marginTop: 2 }}>
+                                        {ROLE_OPTIONS.find(r => r.value === codeResult.role)?.label || codeResult.role}
+                                    </div>
+                                </div>
+                                <div>
+                                    <div style={{ fontSize: 11, color: '#999', fontWeight: 500 }}>Действует до</div>
+                                    <div style={{ fontSize: 13, fontWeight: 600, color: '#1a1a2e', marginTop: 2 }}>
+                                        {new Date(codeResult.expiresAt).toLocaleDateString('ru-RU')}
+                                    </div>
+                                </div>
                             </div>
 
-                            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: 10 }}>
-                                Код одноразовый, действует 7 дней. Отправь код в Телеграм получателю.
+                            <div style={{
+                                marginTop: 16, paddingTop: 12,
+                                borderTop: '1px solid #f0f0f0',
+                                fontSize: 12, color: '#999',
+                            }}>
+                                Одноразовый, 7 дней. Отправьте получателю.
                             </div>
                         </div>
                     )}
@@ -560,12 +509,175 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ accessToken, onC
             {/* Toast */}
             {toast && (
                 <div style={{
-                    position: 'fixed', bottom: 20, left: '50%', transform: 'translateX(-50%)', zIndex: 10000,
+                    position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)', zIndex: 10000,
                     padding: '10px 20px', borderRadius: 10,
-                    background: 'rgba(15,12,41,0.95)', border: '1px solid rgba(245,158,11,0.3)',
-                    color: '#fff', fontSize: 13, boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+                    background: '#1a1a2e', color: '#fff',
+                    fontSize: 13, fontWeight: 500, fontFamily: FONT,
+                    boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
                 }}>
                     {toast}
+                </div>
+            )}
+        </div>
+    );
+};
+
+// ---------------------------------------------------------------------------
+// Sub-components
+// ---------------------------------------------------------------------------
+
+const SidebarItem: React.FC<{
+    label: string; count: number; active: boolean; color: string; onClick: () => void;
+}> = ({ label, count, active, onClick }) => (
+    <button type="button" onClick={onClick}
+        style={{
+            display: 'flex', alignItems: 'center', gap: 8,
+            padding: '8px 12px', borderRadius: 8,
+            border: 'none', cursor: 'pointer',
+            background: active ? '#f0f0f5' : 'transparent',
+            fontFamily: FONT, textAlign: 'left', width: '100%',
+            transition: 'background 0.15s',
+        }}>
+        <span style={{
+            fontSize: 13, fontWeight: active ? 600 : 400,
+            color: active ? '#1a1a2e' : '#666', flex: 1,
+        }}>
+            {label}
+        </span>
+        <span style={{
+            fontSize: 11, fontWeight: 500,
+            color: count > 0 ? '#666' : '#ccc',
+            minWidth: 20, textAlign: 'right',
+        }}>
+            {count}
+        </span>
+    </button>
+);
+
+const InboxCard: React.FC<{
+    item: RawInboxItem;
+    isBusy: boolean;
+    isRejectOpen: boolean;
+    rejectComment: string;
+    onApprove: () => void;
+    onToggleReject: () => void;
+    onRejectCommentChange: (v: string) => void;
+    onReject: () => void;
+}> = ({ item, isBusy, isRejectOpen, rejectComment, onApprove, onToggleReject, onRejectCommentChange, onReject }) => {
+    const meta = TYPE_META[item.type] ?? { letter: '?', label: item.type, color: '#888' };
+    const userName = getUserName(item);
+    const title = getItemTitle(item);
+    const description = getItemDescription(item);
+    const photoUrl = getItemPhotoUrl(item);
+    const timeStr = formatDate(item.created_at || item.createdAt);
+
+    return (
+        <div style={{
+            padding: '14px 16px', borderRadius: 12,
+            background: '#fff', border: '1px solid #e8e8ed',
+            transition: 'box-shadow 0.15s',
+        }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+                {/* Type indicator */}
+                <div style={{
+                    width: 36, height: 36, borderRadius: 10, flexShrink: 0,
+                    background: `${meta.color}12`,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 14, fontWeight: 700, color: meta.color,
+                    fontFamily: FONT,
+                }}>
+                    {meta.letter}
+                </div>
+
+                <div style={{ flex: 1, minWidth: 0 }}>
+                    {/* Header */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{
+                            fontSize: 10, fontWeight: 600, padding: '2px 7px',
+                            borderRadius: 5, background: `${meta.color}12`, color: meta.color,
+                            letterSpacing: '0.02em',
+                        }}>
+                            {meta.label}
+                        </span>
+                        <span style={{ fontSize: 12, fontWeight: 500, color: '#888' }}>
+                            {userName}
+                        </span>
+                        {timeStr && (
+                            <span style={{ fontSize: 11, color: '#bbb', marginLeft: 'auto' }}>{timeStr}</span>
+                        )}
+                    </div>
+
+                    {/* Title */}
+                    <div style={{ fontSize: 14, fontWeight: 600, marginTop: 4, color: '#1a1a2e', lineHeight: 1.35 }}>
+                        {title}
+                    </div>
+
+                    {/* Description */}
+                    {description && (
+                        <div style={{ fontSize: 12, color: '#888', marginTop: 3, lineHeight: 1.4 }}>
+                            {description.slice(0, 150)}{description.length > 150 ? '…' : ''}
+                        </div>
+                    )}
+
+                    {/* Photo */}
+                    {photoUrl && (
+                        <img src={photoUrl} alt="" style={{
+                            marginTop: 8, maxWidth: 160, maxHeight: 100,
+                            borderRadius: 8, objectFit: 'cover', border: '1px solid #e8e8ed',
+                        }} />
+                    )}
+                </div>
+
+                {/* Actions */}
+                <div style={{ display: 'flex', gap: 6, flexShrink: 0, alignItems: 'flex-start' }}>
+                    <button type="button" disabled={isBusy} title="Одобрить"
+                        onClick={onApprove}
+                        style={{
+                            padding: '8px 14px', fontSize: 12, fontWeight: 600,
+                            border: '1px solid #d1fae5', borderRadius: 8,
+                            background: '#f0fdf4', color: '#16a34a',
+                            cursor: 'pointer', fontFamily: FONT,
+                            transition: 'all 0.15s',
+                        }}>
+                        Да
+                    </button>
+                    <button type="button" disabled={isBusy} title="Отклонить"
+                        onClick={onToggleReject}
+                        style={{
+                            padding: '8px 14px', fontSize: 12, fontWeight: 600,
+                            border: '1px solid #fecaca', borderRadius: 8,
+                            background: isRejectOpen ? '#fef2f2' : '#fff', color: '#dc2626',
+                            cursor: 'pointer', fontFamily: FONT,
+                            transition: 'all 0.15s',
+                        }}>
+                        Нет
+                    </button>
+                </div>
+            </div>
+
+            {/* Reject input */}
+            {isRejectOpen && (
+                <div style={{ display: 'flex', gap: 6, marginTop: 10 }}>
+                    <input type="text" value={rejectComment} onChange={e => onRejectCommentChange(e.target.value)}
+                        placeholder="Причина отклонения"
+                        style={{
+                            flex: 1, padding: '8px 12px', borderRadius: 8,
+                            border: '1px solid #e0e0e0', background: '#fafafa',
+                            color: '#1a1a2e', fontSize: 12, fontFamily: FONT,
+                            outline: 'none',
+                        }} />
+                    <button type="button" disabled={isBusy || !rejectComment.trim()}
+                        onClick={onReject}
+                        style={{
+                            padding: '8px 14px', fontSize: 12, fontWeight: 600,
+                            border: 'none', borderRadius: 8,
+                            background: rejectComment.trim() ? '#dc2626' : '#e5e5e5',
+                            color: rejectComment.trim() ? '#fff' : '#999',
+                            cursor: rejectComment.trim() ? 'pointer' : 'default',
+                            fontFamily: FONT, transition: 'all 0.15s',
+                        }}>
+                        Отклонить
+                    </button>
                 </div>
             )}
         </div>
