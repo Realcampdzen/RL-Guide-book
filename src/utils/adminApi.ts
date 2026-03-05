@@ -71,3 +71,15 @@ export async function performAction(
         body: JSON.stringify({ itemType, itemId, action, comment }),
     });
 }
+
+/** Generate a one-time role code. */
+export async function generateRoleCode(
+    accessToken: string,
+    role: string,
+): Promise<{ code: string; role: string; expiresAt: string }> {
+    return requestJson<{ code: string; role: string; expiresAt: string }>('/api/role-codes/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+        body: JSON.stringify({ role }),
+    });
+}

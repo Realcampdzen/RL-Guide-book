@@ -109,6 +109,25 @@ ORGANIZER_ROLES = ('shift_leader', 'camp_director', 'developer')
 LEVEL_ID_RE = re.compile(r'^\d+\.\d+(?:\.\d+)?$')
 
 # ---------------------------------------------------------------------------
+# M19: Role Codes + Role Requests
+# ---------------------------------------------------------------------------
+ROLE_CODES_FILE = os.path.join(os.path.dirname(__file__), "data", "role_codes.json")
+_ROLE_CODES_LOCK = threading.Lock()
+ROLE_REQUESTS_FILE = os.path.join(os.path.dirname(__file__), "data", "role_requests.json")
+_ROLE_REQUESTS_LOCK = threading.Lock()
+
+ROLE_PREFIX_MAP = {
+    'participant': 'UCH',
+    'counselor': 'VOZ',
+    'educator': 'PED',
+    'shift_leader': 'STV',
+    'camp_director': 'NAC',
+    'parent': 'ROD',
+}
+VALID_ROLE_CODE_ROLES = tuple(ROLE_PREFIX_MAP.keys())
+ROLE_CODE_TTL_DAYS = 7
+
+# ---------------------------------------------------------------------------
 # P1-07: Safety filters & rate limits for squad messages and /api/chat
 # ---------------------------------------------------------------------------
 # Max message length for squad chat (env: SQUAD_MSG_MAX_LEN, default 500)
@@ -6377,6 +6396,40 @@ def _collect_inbox_items(type_filter: str = ""):
     except Exception:
         counts.setdefault("inspector_task", 0)
 
+    # 6) M19: Role requests — status == "pending"
+    try:
+        with _ROLE_REQUESTS_LOCK:
+            if os.path.exists(ROLE_REQUESTS_FILE):
+                with open(ROLE_REQUESTS_FILE, 'r', encoding='utf-8') as f:
+                    rr_data = json.load(f)
+            else:
+                rr_data = []
+        if not isinstance(rr_data, list):
+            rr_data = []
+        pending_rr = []
+        for rr in rr_data:
+            if not isinstance(rr, dict):
+                continue
+            if (rr.get("status") or "") != "pending":
+                continue
+            pending_rr.append({
+                "type": "role_request",
+                "id": rr.get("id", ""),
+                "user": {
+                    "device_id": rr.get("deviceId", ""),
+                    "nickname": rr.get("name", ""),
+                },
+                "data": {
+                    "desired_role": rr.get("desiredRole", ""),
+                    "comment": rr.get("comment", ""),
+                },
+                "status": "pending",
+                "created_at": rr.get("createdAt", ""),
+            })
+        _add("role_request", pending_rr)
+    except Exception:
+        counts.setdefault("role_request", 0)
+
     # Sort by created_at descending
     items.sort(key=lambda x: x.get("created_at", ""), reverse=True)
     counts["total"] = sum(v for k, v in counts.items() if k != "total")
@@ -6531,8 +6584,280 @@ def admin_action():
         store.save(data)
         return jsonify({"ok": True, "item_type": item_type, "item_id": item_id, "action": action})
 
+    elif item_type == "role_request":
+        next_status = "approved" if action == "approve" else "rejected"
+        rr_list = _load_role_requests()
+        target = None
+        for rr in rr_list:
+            if isinstance(rr, dict) and rr.get("id") == item_id:
+                target = rr
+                break
+        if target is None:
+            return jsonify({"error": "Role request not found"}), 404
+        if target.get("status") != "pending":
+            return jsonify({"error": f"Already resolved: {target.get('status')}"}), 409
+        target["status"] = next_status
+        target["resolvedAt"] = now_iso
+        target["resolvedBy"] = {"deviceId": approver_device, "role": approver_role}
+        if comment:
+            target["resolutionNote"] = comment[:2000]
+        _save_role_requests(rr_list)
+        return jsonify({"ok": True, "item_type": item_type, "item_id": item_id, "action": action})
+
     else:
         return jsonify({"error": f"Unknown item_type: {item_type}"}), 400
+
+
+# ---------------------------------------------------------------------------
+# M19: Role Codes + Role Requests + Auth Resolve
+# ---------------------------------------------------------------------------
+
+def _issue_role_jwt(role: str, device_id: str, email: str = "") -> str:
+    """Issue a JWT with role, deviceId, email. Expires in 30 days."""
+    import datetime as _dt
+    payload = {
+        "role": role,
+        "deviceId": device_id,
+        "email": email,
+        "iat": int(time.time()),
+        "exp": int(time.time()) + 30 * 24 * 3600,
+    }
+    return jwt.encode(payload, AUTH_JWT_SECRET, algorithm="HS256")
+
+
+def _load_role_codes() -> dict:
+    with _ROLE_CODES_LOCK:
+        if os.path.exists(ROLE_CODES_FILE):
+            with open(ROLE_CODES_FILE, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            if isinstance(data, dict):
+                return data
+        return {}
+
+
+def _save_role_codes(data: dict):
+    with _ROLE_CODES_LOCK:
+        os.makedirs(os.path.dirname(ROLE_CODES_FILE), exist_ok=True)
+        with open(ROLE_CODES_FILE, 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+
+
+def _load_role_requests() -> list:
+    with _ROLE_REQUESTS_LOCK:
+        if os.path.exists(ROLE_REQUESTS_FILE):
+            with open(ROLE_REQUESTS_FILE, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            if isinstance(data, list):
+                return data
+        return []
+
+
+def _save_role_requests(data: list):
+    with _ROLE_REQUESTS_LOCK:
+        os.makedirs(os.path.dirname(ROLE_REQUESTS_FILE), exist_ok=True)
+        with open(ROLE_REQUESTS_FILE, 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+
+
+@app.route('/api/role-codes/generate', methods=['POST'])
+def role_codes_generate():
+    """
+    POST /api/role-codes/generate — generate a one-time role code.
+    Developer only (JWT email must be in DEV_EMAILS).
+    Body: { "role": "counselor" }
+    """
+    payload, err = _require_roles(("developer",), allow_localhost_dev=True)
+    if err is not None:
+        return err[0], err[1]
+
+    body = request.get_json() or {}
+    target_role = _normalize_role((body.get("role") or "").strip())
+    if target_role not in VALID_ROLE_CODE_ROLES:
+        return jsonify({"error": f"Invalid role: {target_role}. Valid: {', '.join(VALID_ROLE_CODE_ROLES)}"}), 400
+
+    prefix = ROLE_PREFIX_MAP[target_role]
+    suffix = secrets.token_hex(2).upper()  # 4 hex chars
+    code = f"RL-{prefix}-{suffix}"
+
+    now_iso = datetime.now(timezone.utc).isoformat()
+    from datetime import timedelta
+    expires_at = (datetime.now(timezone.utc) + timedelta(days=ROLE_CODE_TTL_DAYS)).isoformat()
+
+    entry = {
+        "code": code,
+        "role": target_role,
+        "createdAt": now_iso,
+        "expiresAt": expires_at,
+        "used": False,
+        "usedBy": None,
+        "usedAt": None,
+    }
+
+    codes = _load_role_codes()
+    codes[code] = entry
+    _save_role_codes(codes)
+
+    return jsonify({"code": code, "role": target_role, "expiresAt": expires_at}), 201
+
+
+@app.route('/api/role-codes/redeem', methods=['POST'])
+def role_codes_redeem():
+    """
+    POST /api/role-codes/redeem — redeem a one-time role code.
+    No auth required (traveler enters the code).
+    Body: { "code": "RL-VOZ-7X3K", "deviceId": "xxx" }
+    """
+    body = request.get_json() or {}
+    code = (body.get("code") or "").strip().upper()
+    device_id = (body.get("deviceId") or "").strip()
+
+    if not code:
+        return jsonify({"error": "code is required"}), 400
+    if not device_id:
+        return jsonify({"error": "deviceId is required"}), 400
+
+    codes = _load_role_codes()
+    entry = codes.get(code)
+    if entry is None:
+        return jsonify({"error": "Код не найден или истёк"}), 404
+
+    if entry.get("used"):
+        return jsonify({"error": "Код уже использован"}), 409
+
+    # Check expiration
+    expires_str = entry.get("expiresAt", "")
+    if expires_str:
+        try:
+            exp_raw = expires_str
+            if exp_raw.endswith("Z"):
+                exp_raw = exp_raw[:-1] + "+00:00"
+            exp_dt = datetime.fromisoformat(exp_raw)
+            if datetime.now(timezone.utc) > exp_dt:
+                return jsonify({"error": "Код не найден или истёк"}), 410
+        except ValueError:
+            pass
+
+    # Mark as used
+    entry["used"] = True
+    entry["usedBy"] = device_id
+    entry["usedAt"] = datetime.now(timezone.utc).isoformat()
+    codes[code] = entry
+    _save_role_codes(codes)
+
+    role = entry.get("role", "participant")
+    token = _issue_role_jwt(role, device_id)
+
+    return jsonify({"role": role, "accessToken": token, "campId": "default"})
+
+
+@app.route('/api/role-requests', methods=['POST'])
+def role_requests_create():
+    """
+    POST /api/role-requests — submit a role request.
+    Body: { "deviceId": "xxx", "desiredRole": "counselor", "name": "...", "comment": "..." }
+    Or with Authorization header (JWT): body needs only desiredRole + comment.
+    """
+    body = request.get_json() or {}
+
+    # Try to get deviceId from JWT first, fallback to body
+    device_id = ""
+    auth_header = (request.headers.get("Authorization") or "").strip()
+    if auth_header.startswith("Bearer ") and AUTH_JWT_SECRET:
+        token = auth_header[7:].strip()
+        if token:
+            try:
+                jwt_payload = jwt.decode(token, AUTH_JWT_SECRET, algorithms=["HS256"])
+                device_id = (jwt_payload.get("deviceId") or "").strip()
+            except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
+                pass
+    if not device_id:
+        device_id = (body.get("deviceId") or "").strip()
+    if not device_id:
+        return jsonify({"error": "deviceId is required"}), 400
+
+    desired_role = _normalize_role((body.get("desiredRole") or "").strip())
+    if desired_role not in VALID_ROLE_CODE_ROLES:
+        return jsonify({"error": f"Invalid desiredRole: {desired_role}"}), 400
+
+    name = (body.get("name") or "").strip()[:200]
+    comment = (body.get("comment") or "").strip()[:1000]
+
+    rr_id = f"rr-{uuid.uuid4().hex[:12]}"
+    now_iso = datetime.now(timezone.utc).isoformat()
+
+    new_request = {
+        "id": rr_id,
+        "deviceId": device_id,
+        "desiredRole": desired_role,
+        "name": name,
+        "comment": comment,
+        "status": "pending",
+        "createdAt": now_iso,
+    }
+
+    requests_list = _load_role_requests()
+    requests_list.append(new_request)
+    _save_role_requests(requests_list)
+
+    return jsonify({"roleRequest": new_request}), 201
+
+
+@app.route('/api/role-requests', methods=['GET'])
+def role_requests_list():
+    """
+    GET /api/role-requests?deviceId=xxx — list role requests for a device.
+    """
+    device_id = (request.args.get("deviceId") or "").strip()
+    if not device_id:
+        return jsonify({"error": "deviceId query param required"}), 400
+
+    all_requests = _load_role_requests()
+    user_requests = [
+        rr for rr in all_requests
+        if isinstance(rr, dict) and rr.get("deviceId") == device_id
+    ]
+    return jsonify({"requests": user_requests})
+
+
+@app.route('/api/auth/resolve', methods=['POST'])
+def auth_resolve():
+    """
+    POST /api/auth/resolve — determine role by email (OAuth login).
+    Body: { "email": "...", "supabaseToken": "..." }
+    - If email in DEV_EMAILS -> developer
+    - If approved role_request for email -> that role
+    - Otherwise -> traveler
+    """
+    body = request.get_json() or {}
+    email = (body.get("email") or "").strip().lower()
+    device_id = (body.get("deviceId") or "").strip() or uuid.uuid4().hex[:16]
+
+    if not email:
+        return jsonify({"error": "email is required"}), 400
+
+    # 1) DEV_EMAILS check
+    if email in DEV_EMAILS:
+        token = _issue_role_jwt("developer", device_id, email=email)
+        return jsonify({"role": "developer", "accessToken": token})
+
+    # 2) Check approved role_requests for this email/deviceId
+    all_rr = _load_role_requests()
+    for rr in reversed(all_rr):
+        if not isinstance(rr, dict):
+            continue
+        if rr.get("status") != "approved":
+            continue
+        # Match by email or deviceId
+        rr_email = (rr.get("email") or "").strip().lower()
+        rr_device = (rr.get("deviceId") or "").strip()
+        if (rr_email and rr_email == email) or (rr_device and rr_device == device_id):
+            role = rr.get("desiredRole", "traveler")
+            token = _issue_role_jwt(role, device_id, email=email)
+            return jsonify({"role": role, "accessToken": token})
+
+    # 3) Default: traveler (no JWT needed for traveler, but issue one for consistency)
+    token = _issue_role_jwt("traveler", device_id, email=email)
+    return jsonify({"role": "traveler", "accessToken": token})
 
 
 # Для Vercel
