@@ -68,7 +68,7 @@ export async function performAction(
     return requestJson<{ ok: true }>('/api/admin/action', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
-        body: JSON.stringify({ itemType, itemId, action, comment }),
+        body: JSON.stringify({ item_type: itemType, item_id: itemId, action, comment }),
     });
 }
 
