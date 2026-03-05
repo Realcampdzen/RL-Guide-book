@@ -117,6 +117,18 @@ export const AuthFloatingButton: React.FC = () => {
             setOauthError('Не удалось получить email из OAuth.');
             return;
         }
+
+        // Client-side check first: VITE_DEV_EMAILS = comma-separated emails
+        const devEmails = (import.meta.env.VITE_DEV_EMAILS as string || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
+        if (devEmails.includes(email.toLowerCase())) {
+            setRole('developer');
+            auth.setAuth({ role: 'developer' as UserRole, accessToken: token });
+            setActiveModal('none');
+            setOauthError(null);
+            return;
+        }
+
+        // Fallback: try backend resolve
         try {
             const base = getApiBase();
             const res = await fetch(`${base}/api/auth/resolve`, {
@@ -132,7 +144,6 @@ export const AuthFloatingButton: React.FC = () => {
                 setOauthError(null);
             } else {
                 setOauthError(`Нет доступа для ${email}`);
-                // Sign out since not authorized
                 await supabase.auth.signOut();
                 setSession(null);
                 setRole(null);
