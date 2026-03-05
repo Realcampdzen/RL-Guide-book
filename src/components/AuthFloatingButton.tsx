@@ -235,27 +235,26 @@ export const AuthFloatingButton: React.FC = () => {
                             onClick={() => setShowMenu(!showMenu)}
                             style={{
                                 display: 'flex', alignItems: 'center', gap: 8,
-                                padding: '8px 14px 8px 8px', borderRadius: 24,
-                                background: 'rgba(15,12,41,0.92)', backdropFilter: 'blur(12px)',
-                                border: `1px solid ${displayInfo.color}44`,
-                                color: '#fff', cursor: 'pointer',
-                                boxShadow: `0 4px 16px ${displayInfo.color}22`,
+                                padding: '8px 16px', borderRadius: 24,
+                                background: '#fff', backdropFilter: 'blur(12px)',
+                                border: 'none',
+                                color: '#1a1a2e', cursor: 'pointer',
+                                boxShadow: '0 2px 12px rgba(0,0,0,0.15)',
                                 transition: 'transform 0.15s, box-shadow 0.15s',
+                                fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
                             }}>
                             {avatarUrl ? (
                                 <img src={avatarUrl} alt="" style={{
-                                    width: 28, height: 28, borderRadius: 14,
-                                    border: `2px solid ${displayInfo.color}`,
+                                    width: 24, height: 24, borderRadius: 12,
                                 }} />
                             ) : (
                                 <span style={{
-                                    width: 28, height: 28, borderRadius: 14,
-                                    background: `${displayInfo.color}22`,
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    fontSize: 14,
-                                }}>{displayInfo.icon}</span>
+                                    width: 8, height: 8, borderRadius: 4,
+                                    background: displayInfo.color,
+                                    flexShrink: 0,
+                                }} />
                             )}
-                            <span style={{ fontSize: 11, fontWeight: 600, color: displayInfo.color }}>
+                            <span style={{ fontSize: 13, fontWeight: 600, color: '#1a1a2e', letterSpacing: '-0.01em' }}>
                                 {displayInfo.label}
                             </span>
                         </button>
@@ -263,19 +262,19 @@ export const AuthFloatingButton: React.FC = () => {
                         {/* Dropdown menu */}
                         {showMenu && (
                             <div style={{
-                                position: 'absolute', bottom: 52, left: 0,
-                                background: 'rgba(15,12,41,0.97)', backdropFilter: 'blur(16px)',
-                                borderRadius: 12, border: '1px solid rgba(255,255,255,0.1)',
-                                padding: 6, minWidth: 180,
-                                boxShadow: '0 8px 30px rgba(0,0,0,0.4)',
+                                position: 'absolute', bottom: 48, left: 0,
+                                background: '#fff', borderRadius: 12,
+                                padding: 4, minWidth: 190,
+                                boxShadow: '0 8px 30px rgba(0,0,0,0.18), 0 0 0 1px rgba(0,0,0,0.05)',
                                 animation: 'rl-modal-scale-in 0.15s ease-out',
+                                fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
                             }}>
                                 {userEmail && (
                                     <div style={{
-                                        padding: '8px 12px', fontSize: 11,
-                                        color: 'rgba(255,255,255,0.4)',
-                                        borderBottom: '1px solid rgba(255,255,255,0.06)',
-                                        marginBottom: 4,
+                                        padding: '8px 12px', fontSize: 11, fontWeight: 500,
+                                        color: '#999',
+                                        borderBottom: '1px solid #f0f0f0',
+                                        marginBottom: 2,
                                     }}>
                                         {userEmail}
                                     </div>
@@ -284,42 +283,39 @@ export const AuthFloatingButton: React.FC = () => {
                                     style={{
                                         width: '100%', padding: '8px 12px', borderRadius: 8,
                                         background: 'none', border: 'none',
-                                        color: 'rgba(255,255,255,0.7)', fontSize: 12,
+                                        color: '#444', fontSize: 13, fontWeight: 500,
                                         cursor: 'pointer', textAlign: 'left',
+                                        display: 'flex', alignItems: 'center', gap: 8,
                                     }}>
-                                    {displayInfo.icon} {displayInfo.label}
+                                    <span style={{ width: 6, height: 6, borderRadius: 3, background: displayInfo.color }} />
+                                    {displayInfo.label}
                                 </button>
                                 <button type="button" onClick={() => void handleSignOut()}
                                     style={{
                                         width: '100%', padding: '8px 12px', borderRadius: 8,
                                         background: 'none', border: 'none',
-                                        color: '#ef4444', fontSize: 12,
+                                        color: '#dc2626', fontSize: 13, fontWeight: 500,
                                         cursor: 'pointer', textAlign: 'left',
                                     }}>
-                                    🚪 Выйти
+                                    Выйти
                                 </button>
                             </div>
                         )}
                     </div>
                 ) : (
-                    /* Not logged in — show login button → opens RoleSelectionModal */
+                    /* Not logged in — show login button */
                     <button type="button" onClick={() => { setActiveModal('role-select'); setOauthError(null); }}
                         style={{
                             display: 'flex', alignItems: 'center', gap: 8,
-                            padding: '10px 16px 10px 12px', borderRadius: 24,
-                            background: 'rgba(15,12,41,0.92)', backdropFilter: 'blur(12px)',
-                            border: '1px solid rgba(139,92,246,0.3)',
-                            color: '#fff', cursor: 'pointer',
-                            boxShadow: '0 4px 16px rgba(139,92,246,0.15)',
+                            padding: '10px 20px', borderRadius: 24,
+                            background: '#fff',
+                            border: 'none',
+                            color: '#1a1a2e', cursor: 'pointer',
+                            boxShadow: '0 2px 12px rgba(0,0,0,0.15)',
                             transition: 'transform 0.15s, box-shadow 0.15s',
+                            fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
                         }}>
-                        <span style={{
-                            width: 28, height: 28, borderRadius: 14,
-                            background: 'rgba(139,92,246,0.15)',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            fontSize: 14,
-                        }}>🧭</span>
-                        <span style={{ fontSize: 12, fontWeight: 600, color: '#a78bfa' }}>
+                        <span style={{ fontSize: 13, fontWeight: 600, letterSpacing: '-0.01em' }}>
                             Войти
                         </span>
                     </button>

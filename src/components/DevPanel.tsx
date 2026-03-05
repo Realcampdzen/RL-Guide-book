@@ -86,59 +86,77 @@ export const DevPanel: React.FC<DevPanelProps> = ({
             {/* Floating panel */}
             <div style={{
                 position: 'fixed', bottom: 16, right: 16, zIndex: 9999,
-                background: 'rgba(15,12,41,0.95)', backdropFilter: 'blur(12px)',
-                borderRadius: expanded ? 16 : 30, border: `1px solid ${roleColor}44`,
-                padding: expanded ? 14 : 0, minWidth: expanded ? 220 : 0,
+                background: '#fff', borderRadius: expanded ? 16 : 24,
+                padding: expanded ? 16 : 0, minWidth: expanded ? 220 : 0,
                 transition: 'all 0.2s ease-out',
-                boxShadow: `0 4px 20px ${roleColor}22`,
+                boxShadow: '0 2px 16px rgba(0,0,0,0.15)',
+                fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
             }}>
                 {!expanded ? (
                     <button type="button" onClick={() => setExpanded(true)}
                         style={{
-                            width: 48, height: 48, borderRadius: 24, border: 'none',
-                            background: `${roleColor}22`, color: roleColor,
-                            fontSize: 20, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            width: 44, height: 44, borderRadius: 22, border: 'none',
+                            background: '#fff', color: '#1a1a2e',
+                            fontSize: 13, fontWeight: 700, cursor: 'pointer',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            letterSpacing: '-0.02em',
                         }}>
-                        {currentRoleInfo.icon}
+                        Dev
                     </button>
                 ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <span style={{ fontSize: 11, fontWeight: 800, color: '#06b6d4' }}>🔧 DEV</span>
+                            <span style={{ fontSize: 11, fontWeight: 700, color: '#1a1a2e', letterSpacing: '0.05em', textTransform: 'uppercase' }}>Developer</span>
                             <button type="button" onClick={() => setExpanded(false)}
-                                style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)', cursor: 'pointer', fontSize: 12 }}>✕</button>
+                                style={{ background: 'none', border: 'none', color: '#999', cursor: 'pointer', fontSize: 14, lineHeight: 1 }}>×</button>
                         </div>
 
-                        {/* Current role chip */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 8px', borderRadius: 6, background: `${roleColor}22` }}>
-                            <span style={{ fontSize: 14 }}>{currentRoleInfo.icon}</span>
-                            <span style={{ fontSize: 11, fontWeight: 600, color: roleColor }}>{currentRoleInfo.label}</span>
+                        {/* Current role */}
+                        <div style={{
+                            display: 'flex', alignItems: 'center', gap: 8,
+                            padding: '6px 10px', borderRadius: 8,
+                            background: '#f5f5f5',
+                        }}>
+                            <span style={{ width: 6, height: 6, borderRadius: 3, background: roleColor }} />
+                            <span style={{ fontSize: 12, fontWeight: 600, color: '#1a1a2e' }}>{currentRoleInfo.label}</span>
                         </div>
 
                         {/* Role dropdown */}
                         <select value={currentRole} onChange={e => void handleSwitch(e.target.value)} disabled={busy}
                             style={{
                                 width: '100%', padding: '8px 10px', borderRadius: 8,
-                                border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(0,0,0,0.4)',
-                                color: '#fff', fontSize: 11,
+                                border: '1px solid #e5e5e5', background: '#fff',
+                                color: '#1a1a2e', fontSize: 12, fontWeight: 500,
+                                outline: 'none', cursor: 'pointer',
+                                fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
                             }}>
                             {ROLES.map(r => (
-                                <option key={r.id} value={r.id}>{r.icon} {r.label}</option>
+                                <option key={r.id} value={r.id}>{r.label}</option>
                             ))}
                         </select>
 
                         {/* Actions */}
-                        <div style={{ display: 'flex', gap: 4 }}>
-                            <button type="button" className="btn-secondary"
-                                style={{ flex: 1, padding: '6px 8px', fontSize: 10, color: '#06b6d4' }}
+                        <div style={{ display: 'flex', gap: 6 }}>
+                            <button type="button"
+                                style={{
+                                    flex: 1, padding: '7px 8px', fontSize: 11, fontWeight: 600,
+                                    border: '1px solid #e5e5e5', borderRadius: 8,
+                                    background: '#fff', color: '#666',
+                                    cursor: 'pointer', transition: 'all 0.15s',
+                                }}
                                 onClick={() => void handleSwitch('developer')}>
-                                🔧 Reset
+                                Reset
                             </button>
                             {onOpenDashboard && (
-                                <button type="button" className="btn-secondary"
-                                    style={{ flex: 1, padding: '6px 8px', fontSize: 10, color: '#f59e0b' }}
+                                <button type="button"
+                                    style={{
+                                        flex: 1, padding: '7px 8px', fontSize: 11, fontWeight: 600,
+                                        border: 'none', borderRadius: 8,
+                                        background: '#1a1a2e', color: '#fff',
+                                        cursor: 'pointer', transition: 'all 0.15s',
+                                    }}
                                     onClick={onOpenDashboard}>
-                                    📊 Пульт
+                                    Пульт
                                 </button>
                             )}
                         </div>
@@ -151,9 +169,9 @@ export const DevPanel: React.FC<DevPanelProps> = ({
                 <div style={{
                     position: 'fixed', bottom: 80, right: 16, zIndex: 10000,
                     padding: '10px 16px', borderRadius: 10,
-                    background: 'rgba(15,12,41,0.95)', border: `1px solid ${roleColor}44`,
-                    color: '#fff', fontSize: 12, boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-                    animation: 'fadeIn 0.3s ease-in',
+                    background: '#fff', boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
+                    color: '#1a1a2e', fontSize: 12, fontWeight: 500,
+                    fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
                 }}>
                     {toast}
                 </div>

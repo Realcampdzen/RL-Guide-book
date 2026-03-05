@@ -5394,49 +5394,52 @@ export const ProfileView: React.FC<any> = (props) => {
       )}
       <div className="profile-view-nav-decor" aria-hidden="true" />
 
-      <div className="profile-utility-bubbles">
-        {!canUseChat && (
-          <button type="button" className="profile-utility-bubble profile-utility-bubble--bot" onClick={() => setOpenBubble(openBubble === 'bot' ? null : 'bot')} title="Разблокировать бота">
-            ИИ‑чат
-          </button>
-        )}
-        {showSandbox && (
-          <button type="button" className="profile-utility-bubble profile-utility-bubble--code" onClick={() => setOpenBubble(openBubble === 'code' ? null : 'code')} title="Сгенерировать код подтверждения">
-            Код
-          </button>
-        )}
-        {(showSandbox || showEventsForRole) && utilityBubblesExpanded && (
-          <button type="button" className="profile-utility-bubble profile-utility-bubble--events" onClick={() => setOpenBubble(openBubble === 'events' ? null : 'events')} title="Входящие заявки">
-            Заявки
-          </button>
-        )}
-        {utilityBubblesExpanded && (
-          <button type="button" className="profile-utility-bubble profile-utility-bubble--backup" onClick={() => setOpenBubble(openBubble === 'backup' ? null : 'backup')} title="Резервная копия">
-            Бэкап
-          </button>
-        )}
-        {canModerateApprovals && utilityBubblesExpanded && (
-          <button type="button" className="profile-utility-bubble profile-utility-bubble--events" onClick={() => setOpenBubble(openBubble === 'staff-dashboard' ? null : 'staff-dashboard')} title="Панель staff">
-            Staff
-          </button>
-        )}
-        {showSandbox && utilityBubblesExpanded && (
-          <button type="button" className="profile-utility-bubble profile-utility-bubble--role" onClick={() => setOpenBubble(openBubble === 'role' ? null : 'role')} title="Роль для теста">
-            Роль
-          </button>
-        )}
-        {(showSandbox || showEventsForRole) && (
-          <button
-            type="button"
-            className="profile-utility-bubble profile-utility-bubble--expand"
-            onClick={() => setUtilityBubblesExpanded((prev) => !prev)}
-            aria-expanded={utilityBubblesExpanded}
-            title={utilityBubblesExpanded ? 'Свернуть утилиты' : 'Развернуть утилиты'}
-          >
-            {utilityBubblesExpanded ? '▴' : '▾'}
-          </button>
-        )}
-      </div>
+      {/* Legacy utility bubbles — disabled, functionality moved to AdminDashboard + DevPanel */}
+      {false && (
+        <div className="profile-utility-bubbles">
+          {!canUseChat && (
+            <button type="button" className="profile-utility-bubble profile-utility-bubble--bot" onClick={() => setOpenBubble(openBubble === 'bot' ? null : 'bot')} title="Разблокировать бота">
+              ИИ‑чат
+            </button>
+          )}
+          {showSandbox && (
+            <button type="button" className="profile-utility-bubble profile-utility-bubble--code" onClick={() => setOpenBubble(openBubble === 'code' ? null : 'code')} title="Сгенерировать код подтверждения">
+              Код
+            </button>
+          )}
+          {(showSandbox || showEventsForRole) && utilityBubblesExpanded && (
+            <button type="button" className="profile-utility-bubble profile-utility-bubble--events" onClick={() => setOpenBubble(openBubble === 'events' ? null : 'events')} title="Входящие заявки">
+              Заявки
+            </button>
+          )}
+          {utilityBubblesExpanded && (
+            <button type="button" className="profile-utility-bubble profile-utility-bubble--backup" onClick={() => setOpenBubble(openBubble === 'backup' ? null : 'backup')} title="Резервная копия">
+              Бэкап
+            </button>
+          )}
+          {canModerateApprovals && utilityBubblesExpanded && (
+            <button type="button" className="profile-utility-bubble profile-utility-bubble--events" onClick={() => setOpenBubble(openBubble === 'staff-dashboard' ? null : 'staff-dashboard')} title="Панель staff">
+              Staff
+            </button>
+          )}
+          {showSandbox && utilityBubblesExpanded && (
+            <button type="button" className="profile-utility-bubble profile-utility-bubble--role" onClick={() => setOpenBubble(openBubble === 'role' ? null : 'role')} title="Роль для теста">
+              Роль
+            </button>
+          )}
+          {(showSandbox || showEventsForRole) && (
+            <button
+              type="button"
+              className="profile-utility-bubble profile-utility-bubble--expand"
+              onClick={() => setUtilityBubblesExpanded((prev) => !prev)}
+              aria-expanded={utilityBubblesExpanded}
+              title={utilityBubblesExpanded ? 'Свернуть утилиты' : 'Развернуть утилиты'}
+            >
+              {utilityBubblesExpanded ? '▴' : '▾'}
+            </button>
+          )}
+        </div>
+      )}
 
       {openBubble && (
         <div className="profile-utility-panel-overlay" onClick={() => setOpenBubble(null)} aria-hidden="true" />
