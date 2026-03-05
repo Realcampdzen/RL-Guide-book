@@ -76,10 +76,14 @@ export const AuthFloatingButton: React.FC = () => {
 
     // ── Listen to auth state ──
     useEffect(() => {
+        console.log('[AUTH] useEffect: checking getSession...');
         supabase.auth.getSession().then(({ data: { session: s } }) => {
+            console.log('[AUTH] getSession result:', s ? `email=${s.user?.email}, has_token=${!!s.access_token}` : 'null');
+            console.log('[AUTH] isPendingDevOAuth:', isPendingDevOAuth());
             setSession(s);
             if (s?.access_token && isPendingDevOAuth()) {
                 // Developer OAuth callback after page reload
+                console.log('[AUTH] ✅ Pending dev OAuth detected! Calling resolveDevOAuth...');
                 setPendingDevOAuth(false);
                 void resolveDevOAuth(s);
             }
@@ -87,10 +91,13 @@ export const AuthFloatingButton: React.FC = () => {
         });
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, s) => {
+            console.log('[AUTH] onAuthStateChange:', _event, s ? `email=${s.user?.email}` : 'null');
+            console.log('[AUTH] isPendingDevOAuth:', isPendingDevOAuth());
             setSession(s);
             if (s?.access_token) {
                 if (isPendingDevOAuth()) {
                     // Developer OAuth callback
+                    console.log('[AUTH] ✅ onAuthStateChange: Pending dev OAuth! Resolving...');
                     setPendingDevOAuth(false);
                     void resolveDevOAuth(s);
                 }
@@ -110,22 +117,27 @@ export const AuthFloatingButton: React.FC = () => {
     const resolveDevOAuth = async (s: Session) => {
         const email = s.user?.email;
         const token = s.access_token;
+        console.log('[AUTH] resolveDevOAuth called. email:', email, 'token:', token ? 'yes' : 'no');
         if (!email || !token) {
+            console.log('[AUTH] ❌ No email or token');
             setOauthError('Не удалось получить email из OAuth.');
             return;
         }
 
         // Client-side check first: VITE_DEV_EMAILS = comma-separated emails
-        const devEmails = (import.meta.env.VITE_DEV_EMAILS as string || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
+        const devEmailsRaw = import.meta.env.VITE_DEV_EMAILS as string || '';
+        console.log('[AUTH] VITE_DEV_EMAILS raw:', JSON.stringify(devEmailsRaw));
+        const devEmails = devEmailsRaw.split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
+        console.log('[AUTH] devEmails parsed:', devEmails, 'checking against:', email.toLowerCase());
         if (devEmails.includes(email.toLowerCase())) {
+            console.log('[AUTH] ✅ Email matched! Setting role to developer');
             setRole('developer');
             auth.setAuth({ role: 'developer' as UserRole, accessToken: token });
             setActiveModal('none');
             setOauthError(null);
             return;
         }
-
-        // Fallback: try backend resolve
+        console.log('[AUTH] ❌ Email NOT in devEmails, trying backend fallback...');
         try {
             const base = getApiBase();
             const res = await fetch(`${base}/api/auth/resolve`, {
