@@ -4,6 +4,8 @@ import { LoginModal } from './LoginModal';
 import { RoleSelectionModal } from './RoleSelectionModal';
 import type { RoleFlowResult } from './RoleSelectionModal';
 import type { Session } from '@supabase/supabase-js';
+import { useAuth } from '../context/AuthContext';
+import type { UserRole } from '../types/authRole';
 
 // ---------------------------------------------------------------------------
 // Role display config
@@ -52,6 +54,7 @@ function getDeviceId(): string {
 type ActiveModal = 'none' | 'role-select' | 'oauth-login';
 
 export const AuthFloatingButton: React.FC = () => {
+    const auth = useAuth();
     const [session, setSession] = useState<Session | null>(null);
     const [role, setRole] = useState<string | null>(null);
     const [activeModal, setActiveModal] = useState<ActiveModal>('none');
@@ -124,6 +127,7 @@ export const AuthFloatingButton: React.FC = () => {
             const data = await res.json().catch(() => ({})) as Record<string, unknown>;
             if (res.ok && data.role === 'developer') {
                 setRole('developer');
+                auth.setAuth({ role: 'developer' as UserRole, accessToken: data.accessToken as string || token });
                 setActiveModal('none');
                 setOauthError(null);
             } else {
@@ -143,14 +147,8 @@ export const AuthFloatingButton: React.FC = () => {
         switch (result.type) {
             case 'code-redeemed':
                 setRole(result.role);
+                auth.setAuth({ role: result.role as UserRole, accessToken: result.accessToken });
                 setActiveModal('none');
-                // Dispatch to existing auth context
-                try {
-                    const event = new CustomEvent('rl-auth-code-redeemed', {
-                        detail: { role: result.role, accessToken: result.accessToken },
-                    });
-                    window.dispatchEvent(event);
-                } catch { /* */ }
                 break;
 
             case 'request-sent':
@@ -175,8 +173,9 @@ export const AuthFloatingButton: React.FC = () => {
         await supabase.auth.signOut();
         setSession(null);
         setRole(null);
+        auth.clearAuth();
         setShowMenu(false);
-    }, []);
+    }, [auth]);
 
     const handleLegacyCode = useCallback((code: string) => {
         const event = new CustomEvent('rl-auth-code', { detail: code });
