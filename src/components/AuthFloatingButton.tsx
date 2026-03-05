@@ -56,7 +56,10 @@ type ActiveModal = 'none' | 'role-select' | 'oauth-login';
 export const AuthFloatingButton: React.FC = () => {
     const auth = useAuth();
     const [session, setSession] = useState<Session | null>(null);
-    const [role, setRole] = useState<string | null>(null);
+    const [role, setRole] = useState<string | null>(() => {
+        // Initialize role from persisted auth context (survives page reload)
+        return auth.role && auth.role !== 'traveler' ? auth.role : null;
+    });
     const [activeModal, setActiveModal] = useState<ActiveModal>('none');
     const [showMenu, setShowMenu] = useState(false);
     const [loading, setLoading] = useState(true);
@@ -212,7 +215,7 @@ export const AuthFloatingButton: React.FC = () => {
 
     if (loading) return null;
 
-    const isLoggedIn = !!session;
+    const isLoggedIn = !!session || !!role;
     const roleInfo = role ? (ROLE_DISPLAY[role] || TRAVELER) : TRAVELER;
     const displayInfo = isLoggedIn ? roleInfo : TRAVELER;
     const userEmail = session?.user?.email;
