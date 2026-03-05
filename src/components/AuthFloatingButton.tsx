@@ -176,8 +176,16 @@ export const AuthFloatingButton: React.FC = () => {
                 setActiveModal('none');
                 break;
 
+            case 'dev-pin-ok':
+                // Developer authenticated via PIN
+                console.log('[AUTH] ✅ Dev PIN ok! Setting role to developer');
+                setRole('developer');
+                auth.setAuth({ role: 'developer' as UserRole });
+                setActiveModal('none');
+                break;
+
             case 'developer-oauth':
-                // Switch to OAuth login flow for developers
+                // Legacy OAuth flow (kept for compatibility)
                 setPendingDevOAuth(true);
                 setOauthError(null);
                 setActiveModal('oauth-login');
@@ -187,7 +195,7 @@ export const AuthFloatingButton: React.FC = () => {
                 setActiveModal('none');
                 break;
         }
-    }, []);
+    }, [auth]);
 
     const handleSignOut = useCallback(async () => {
         await supabase.auth.signOut();

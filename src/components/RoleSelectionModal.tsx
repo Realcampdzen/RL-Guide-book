@@ -11,6 +11,7 @@ export type RoleFlowResult =
     | { type: 'code-redeemed'; role: UserRole; accessToken: string }
     | { type: 'request-sent'; role: UserRole }
     | { type: 'developer-oauth' }
+    | { type: 'dev-pin-ok' }
     | { type: 'cancelled' };
 
 interface RoleSelectionModalProps {
@@ -34,7 +35,7 @@ const ROLES: Array<{ id: UserRole; desc: string; muted?: boolean }> = [
 
 const LS_KEY = 'rl-selected-role';
 
-type Step = 'select' | 'method' | 'code' | 'request' | 'done';
+type Step = 'select' | 'method' | 'code' | 'request' | 'done' | 'dev-pin';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -68,13 +69,17 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({ onResult
     const [reqDone, setReqDone] = useState(false);
     const [reqError, setReqError] = useState<string | null>(null);
 
+    // Dev PIN state
+    const [devPin, setDevPin] = useState('');
+    const [devPinError, setDevPinError] = useState<string | null>(null);
+
     const handleSelectRole = useCallback((roleId: UserRole) => {
         try { localStorage.setItem(LS_KEY, roleId); } catch { /* */ }
         setSelectedRole(roleId);
 
         if (roleId === 'developer') {
-            // Developer → OAuth flow
-            onResult({ type: 'developer-oauth' });
+            // Developer → PIN code flow
+            setStep('dev-pin');
             return;
         }
 
@@ -318,6 +323,65 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({ onResult
                     </>
                 )}
 
+                {/* ── Step: Dev PIN ── */}
+                {step === 'dev-pin' && (
+                    <>
+                        <div style={{ textAlign: 'center', marginBottom: 16 }}>
+                            <div style={{ fontSize: 28, marginBottom: 8 }}>🔧</div>
+                            <div style={{ fontSize: 16, fontWeight: 700, color: '#06b6d4' }}>Доступ для разработчиков</div>
+                            <div style={{ fontSize: 12, opacity: 0.5, marginTop: 4 }}>Введите PIN-код доступа</div>
+                        </div>
+                        <input
+                            type="text"
+                            value={devPin}
+                            onChange={e => { setDevPin(e.target.value); setDevPinError(null); }}
+                            placeholder="PIN-код"
+                            autoFocus
+                            style={{
+                                width: '100%', padding: '12px', borderRadius: 10,
+                                background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(6,182,212,0.3)',
+                                color: '#fff', fontSize: 18, textAlign: 'center',
+                                fontFamily: 'monospace', letterSpacing: 4,
+                                outline: 'none',
+                            }}
+                            onKeyDown={e => {
+                                if (e.key === 'Enter') {
+                                    const pin = (import.meta.env.VITE_DEV_PIN as string) || '';
+                                    if (pin && devPin.trim() === pin) {
+                                        onResult({ type: 'dev-pin-ok' });
+                                    } else {
+                                        setDevPinError('Неверный PIN-код');
+                                    }
+                                }
+                            }}
+                        />
+                        {devPinError && (
+                            <div style={{ color: '#ef4444', fontSize: 12, textAlign: 'center', marginTop: 8 }}>{devPinError}</div>
+                        )}
+                        <button type="button"
+                            onClick={() => {
+                                const pin = (import.meta.env.VITE_DEV_PIN as string) || '';
+                                if (pin && devPin.trim() === pin) {
+                                    onResult({ type: 'dev-pin-ok' });
+                                } else {
+                                    setDevPinError('Неверный PIN-код');
+                                }
+                            }}
+                            disabled={!devPin.trim()}
+                            style={{
+                                width: '100%', padding: '12px', borderRadius: 10, border: 'none', marginTop: 12,
+                                background: devPin.trim() ? 'rgba(6,182,212,0.2)' : 'rgba(255,255,255,0.05)',
+                                color: devPin.trim() ? '#06b6d4' : 'rgba(255,255,255,0.3)',
+                                fontSize: 14, fontWeight: 700, cursor: devPin.trim() ? 'pointer' : 'default',
+                            }}>
+                            Войти
+                        </button>
+                        <button type="button" onClick={() => { setStep('select'); setDevPin(''); setDevPinError(null); }}
+                            style={{ display: 'block', margin: '12px auto 0', background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', fontSize: 11, cursor: 'pointer' }}>
+                            ← Назад
+                        </button>
+                    </>
+                )}
                 {/* ── Step 4: Done ── */}
                 {step === 'done' && (
                     <>
