@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { supabase } from '../utils/supabaseClient';
 import { LoginModal } from './LoginModal';
 import { RoleSelectionModal } from './RoleSelectionModal';
@@ -62,28 +62,37 @@ export const AuthFloatingButton: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [oauthError, setOauthError] = useState<string | null>(null);
 
-    // When developer selects OAuth, we wait for the callback to resolve their role.
-    const pendingDevOAuthRef = useRef(false);
-
     const deviceId = getDeviceId();
+
+    // Persist dev OAuth pending flag in localStorage (survives page reload)
+    const LS_PENDING_DEV = 'rl-pending-dev-oauth';
+
+    const setPendingDevOAuth = (v: boolean) => {
+        try { if (v) localStorage.setItem(LS_PENDING_DEV, '1'); else localStorage.removeItem(LS_PENDING_DEV); } catch { /* */ }
+    };
+    const isPendingDevOAuth = (): boolean => {
+        try { return localStorage.getItem(LS_PENDING_DEV) === '1'; } catch { return false; }
+    };
 
     // ── Listen to auth state ──
     useEffect(() => {
         supabase.auth.getSession().then(({ data: { session: s } }) => {
             setSession(s);
-            if (s?.access_token) void fetchRole(s.access_token);
+            if (s?.access_token && isPendingDevOAuth()) {
+                // Developer OAuth callback after page reload
+                setPendingDevOAuth(false);
+                void resolveDevOAuth(s);
+            }
             setLoading(false);
         });
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, s) => {
             setSession(s);
             if (s?.access_token) {
-                if (pendingDevOAuthRef.current) {
+                if (isPendingDevOAuth()) {
                     // Developer OAuth callback
-                    pendingDevOAuthRef.current = false;
+                    setPendingDevOAuth(false);
                     void resolveDevOAuth(s);
-                } else {
-                    void fetchRole(s.access_token);
                 }
             } else {
                 setRole(null);
@@ -95,19 +104,7 @@ export const AuthFloatingButton: React.FC = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    // ── Fetch existing role from /api/auth/me ──
-    const fetchRole = async (token: string) => {
-        try {
-            const base = getApiBase();
-            const res = await fetch(`${base}/api/auth/me`, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-            if (res.ok) {
-                const data = await res.json();
-                setRole(data.role || null);
-            }
-        } catch { /* silent */ }
-    };
+
 
     // ── B-4: Resolve OAuth for developer ──
     const resolveDevOAuth = async (s: Session) => {
@@ -169,7 +166,7 @@ export const AuthFloatingButton: React.FC = () => {
 
             case 'developer-oauth':
                 // Switch to OAuth login flow for developers
-                pendingDevOAuthRef.current = true;
+                setPendingDevOAuth(true);
                 setOauthError(null);
                 setActiveModal('oauth-login');
                 break;
@@ -325,7 +322,7 @@ export const AuthFloatingButton: React.FC = () => {
             {/* OAuth Login Modal (for developer flow) */}
             <LoginModal
                 open={activeModal === 'oauth-login'}
-                onClose={() => { setActiveModal('none'); pendingDevOAuthRef.current = false; }}
+                onClose={() => { setActiveModal('none'); setPendingDevOAuth(false); }}
                 onLegacyCode={handleLegacyCode}
             />
 
