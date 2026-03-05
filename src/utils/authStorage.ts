@@ -58,8 +58,8 @@ export function loadAuthStorage(): AuthStorage {
       clearAuthStorage();
       return { role: DEFAULT_ROLE, deviceId };
     }
-    // В production всегда возвращаем traveler — иначе пользователь мог бы иметь developer из dev-сессии
-    const effectiveRole = import.meta.env.PROD && role !== 'traveler' ? 'traveler' : role;
+    // Role is stored as-is; auth is gated by PIN / code redemption flow
+    const effectiveRole = role;
     return {
       role: effectiveRole,
       accessToken: data.accessToken,
