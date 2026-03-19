@@ -112,7 +112,7 @@ type Tab = 'active' | 'favorites' | 'collection' | 'journal' | 'workshop' | 'squ
 type SquadCornerTabId = 'squad' | 'photos' | 'planner' | 'flag-badges';
 type BroTabId = 'initiation' | 'wing';
 type ShareTabId = 'create-card' | 'invite';
-type WorkshopTabId = 'architect' | 'forge' | 'ideas' | 'my' | 'tasks' | 'reviews' | 'community' | 'arts';
+type WorkshopTabId = 'constructor' | 'arts' | 'my' | 'community';
 
 type PanelViewId = 'passport' | 'inspector' | 'profile4k' | 'counselor-squad' | 'wing' | 'squad-corner' | 'real-diary' | 'team' | 'council' | 'bro' | 'workshop' | 'share' | 'vozhatifikator' | 'parents';
 const DEFAULT_SHIFT_NAME = 'Реальный Лагерь 2026';
@@ -168,7 +168,7 @@ const PROFILE_AUTO_FIT_SELECTOR = [
 ].join(',');
 
 export const ProfileView: React.FC<any> = (props) => {
-  const { onBack, onNavigateToBadge, badges, ensureBadgeLoaded, addCustomBadge, restoreCustomBadges, removeCustomBadge, customBadges = [], communityBadges = [], communityPendingCount = 0, communitySyncing = false, communityLikedIds = new Set<string>(), toggleCommunityLike, publishBadgeToCommunity, setCustomBadgeImage, onChatToggle: _onChatToggle, onChatClose: _onChatClose, isChatOpen: _isChatOpen, lastUpdated, onNavigateToRegistrationForm, onNavigateHome, onNavigateCategories, onNavigateAboutCamp, onTelegramContact, onOpenVk } = props;
+  const { onBack, onNavigateToBadge, badges, ensureBadgeLoaded, addCustomBadge, restoreCustomBadges, removeCustomBadge, customBadges = [], communityBadges = [], communityPendingCount: _communityPendingCount = 0, communitySyncing: _communitySyncing = false, communityLikedIds: _communityLikedIds = new Set<string>(), toggleCommunityLike: _toggleCommunityLike, publishBadgeToCommunity, setCustomBadgeImage, onChatToggle: _onChatToggle, onChatClose: _onChatClose, isChatOpen: _isChatOpen, lastUpdated, onNavigateToRegistrationForm, onNavigateHome, onNavigateCategories, onNavigateAboutCamp, onTelegramContact, onOpenVk } = props;
   const { userData, setNickname, setAvatar, setProfileStatus, setProfileBio, toggleFavorite, removeRoute, exportData, importData, resetProgress, applyApprovedLevel, getLevelProgress, markRankUpSeen, completeTutorial, isLoading, updateLevelEvidence, updateLevelStatus, saveBadgePlan, updateBadgePlanStatus, updateVozhatifikatorChecklist, updateDiarySquad, setPathFavToast } = useUserProgress();
   const { myTeam, generateInviteUrl } = useTeam();
   const { canUseChat, role, deviceId, setAuth, accessToken, campId } = useAuth();
@@ -666,7 +666,7 @@ export const ProfileView: React.FC<any> = (props) => {
   const [campFactsError, setCampFactsError] = useState<string | null>(null);
   const [carouselRotationSteps, setCarouselRotationSteps] = useState(0);
   const [pathCarouselRotationSteps, setPathCarouselRotationSteps] = useState(0);
-  const [squadIdeasCarouselSteps, setSquadIdeasCarouselSteps] = useState(0);
+  const [_squadIdeasCarouselSteps, _setSquadIdeasCarouselSteps] = useState(0);
 
   const showSandbox = role === 'developer' || import.meta.env.DEV || (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('sandbox') === '1');
   const canEditSquadCorner = role === 'counselor' || (showSandbox && role === 'developer');
@@ -2845,39 +2845,157 @@ export const ProfileView: React.FC<any> = (props) => {
       {panelActiveView === 'workshop' && (
         <div className="workshop-view fade-in" role="tabpanel" id="workshop-tabpanel" aria-labelledby={`workshop-tab-${workshopActiveTab}`}>
 
-          {workshopActiveTab === 'forge' && (
-            <section id="workshop-section-forge" className="workshop-view__section">
-              {hasWorkshopAccess ? (
-                <div className="workshop-form workshop-form--card">
-                  <h3 style={{ color: '#FFD700', marginTop: 0 }}>Кузница Смыслов ⚒️</h3>
-                  <p style={{ fontSize: 12, opacity: 0.8, marginTop: -4, marginBottom: 12 }}>Значок будет предложен в выбранную категорию (из ссылки или по умолчанию).</p>
-                  <label htmlFor="workshop-form-title" className="sr-only">Название значка</label>
-                  <input id="workshop-form-title" value={workshopForm.title} onChange={e => setWorkshopForm({ ...workshopForm, title: e.target.value })} placeholder="Название значка" className="w-input" aria-label="Название значка" />
-                  <label htmlFor="workshop-form-description" className="sr-only">Опиши суть</label>
-                  <textarea id="workshop-form-description" placeholder="Опиши суть..." className="w-input" style={{ minHeight: 80 }} value={workshopForm.description} onChange={e => setWorkshopForm({ ...workshopForm, description: e.target.value })} aria-label="Опиши суть" />
-                  <div style={{ marginBottom: 12 }}>
-                    <ImageSourceBlock
-                      context="workshop_badge"
-                      value={workshopForm.image}
-                      onChange={(url) => setWorkshopForm(prev => ({ ...prev, image: url }))}
-                      aspect="free"
-                      onGenerate={async (opts) =>
-                        requestImageGenerate({ mode: 'generate', context: 'workshop', prompt: opts.prompt ?? '' }, accessToken ?? null)
-                      }
-                      onProcess={async (imageBase64, opts) =>
-                        requestImageGenerate({ mode: 'process', context: 'workshop', imageBase64, prompt: opts?.prompt ?? '' }, accessToken ?? null)
-                      }
-                      onUnlockRequest={openUnlockByCode}
-                    />
-                    {workshopForm.image && (
-                      <button type="button" className="btn-secondary" style={{ marginTop: 8, fontSize: '12px' }} onClick={() => setWorkshopForm(prev => ({ ...prev, image: null }))}>
-                        Удалить изображение
-                      </button>
+          {workshopActiveTab === 'constructor' && (
+            <section id="workshop-section-constructor" className="workshop-view__section">
+              {hasWorkshopAccess ? (() => {
+                const proposalTypes = [
+                  { id: 'badge', label: '🏅 Новый значок', desc: 'Предложи оригинальный значок в категорию' },
+                  { id: 'category', label: '📁 Новая категория', desc: 'Предложи новую категорию значков' },
+                  { id: 'version', label: '🔄 Версия значка', desc: 'Предложи альт. версию существующего значка' },
+                ] as const;
+                type ProposalType = typeof proposalTypes[number]['id'];
+                const [proposalType, setProposalType] = React.useState<ProposalType>('badge');
+                return (
+                  <div className="workshop-form workshop-form--card">
+                    <h3 style={{ color: '#FFD700', marginTop: 0 }}>🛠️ Конструктор</h3>
+                    <p style={{ fontSize: 12, opacity: 0.7, marginTop: -4, marginBottom: 14 }}>Предложи значок, категорию или версию. Всё пройдёт проверку вожатым.</p>
+
+                    {/* ── Type selector ── */}
+                    <div style={{ display: 'flex', gap: 6, marginBottom: 16, flexWrap: 'wrap' }}>
+                      {proposalTypes.map(pt => (
+                        <button key={pt.id} type="button" className={proposalType === pt.id ? 'btn-primary-gold' : 'btn-secondary'}
+                          style={{ padding: '8px 14px', fontSize: 12, flex: 1, minWidth: 100 }}
+                          onClick={() => setProposalType(pt.id)}>
+                          {pt.label}
+                        </button>
+                      ))}
+                    </div>
+                    <p style={{ fontSize: 11, opacity: 0.6, margin: '-8px 0 14px' }}>
+                      {proposalTypes.find(p => p.id === proposalType)?.desc}
+                    </p>
+
+                    {/* ── New Badge form ── */}
+                    {proposalType === 'badge' && (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                        <input value={workshopForm.title} onChange={e => setWorkshopForm({ ...workshopForm, title: e.target.value })}
+                          placeholder="Название значка" className="w-input" />
+                        <textarea value={workshopForm.description} onChange={e => setWorkshopForm({ ...workshopForm, description: e.target.value })}
+                          placeholder="Описание и критерии..." className="w-input" style={{ minHeight: 80 }} />
+                        <div style={{ marginBottom: 4 }}>
+                          <ImageSourceBlock
+                            context="workshop_badge"
+                            value={workshopForm.image}
+                            onChange={(url) => setWorkshopForm(prev => ({ ...prev, image: url }))}
+                            aspect="free"
+                            onGenerate={async (opts) =>
+                              requestImageGenerate({ mode: 'generate', context: 'workshop', prompt: opts.prompt ?? '' }, accessToken ?? null)
+                            }
+                            onProcess={async (imageBase64, opts) =>
+                              requestImageGenerate({ mode: 'process', context: 'workshop', imageBase64, prompt: opts?.prompt ?? '' }, accessToken ?? null)
+                            }
+                            onUnlockRequest={openUnlockByCode}
+                          />
+                          {workshopForm.image && (
+                            <button type="button" className="btn-secondary" style={{ marginTop: 6, fontSize: 11 }}
+                              onClick={() => setWorkshopForm(prev => ({ ...prev, image: null }))}>Удалить изображение</button>
+                          )}
+                        </div>
+                        <button onClick={handleWorkshopSubmit} disabled={workshopBusy} className="btn-primary-gold" style={{ width: '100%' }}>
+                          {workshopBusy ? 'ОТПРАВЛЯЕМ...' : '📤 Отправить на проверку'}
+                        </button>
+                      </div>
+                    )}
+
+                    {/* ── New Category form ── */}
+                    {proposalType === 'category' && (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                        <input value={workshopForm.title} onChange={e => setWorkshopForm({ ...workshopForm, title: e.target.value })}
+                          placeholder="Название категории" className="w-input" />
+                        <textarea value={workshopForm.description} onChange={e => setWorkshopForm({ ...workshopForm, description: e.target.value })}
+                          placeholder="Описание категории..." className="w-input" style={{ minHeight: 60 }} />
+                        <input value={workshopForm.level1 || ''} onChange={e => setWorkshopForm({ ...workshopForm, level1: e.target.value })}
+                          placeholder="Эмодзи категории (например 🌊)" className="w-input" />
+                        <button onClick={() => {
+                          if (!workshopForm.title.trim()) return;
+                          const proposal = {
+                            id: `cat-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+                            type: 'category' as const,
+                            title: workshopForm.title.trim(),
+                            description: workshopForm.description.trim(),
+                            emoji: (workshopForm.level1 || '📁').trim(),
+                            status: 'pending' as const,
+                            createdAt: new Date().toISOString(),
+                          };
+                          try {
+                            const raw = localStorage.getItem('rl_guide_progress_v1');
+                            const data = raw ? JSON.parse(raw) : {};
+                            data.workshopProposals = [...(data.workshopProposals || []), proposal];
+                            localStorage.setItem('rl_guide_progress_v1', JSON.stringify(data));
+                          } catch (_) { /* ignore */ }
+                          setWorkshopForm({ title: '', description: '', skill: '', level1: '', level2: '', image: null });
+                          showHint({ title: 'Предложение отправлено', content: `Категория «${proposal.title}» отправлена на проверку.` });
+                        }} disabled={!workshopForm.title.trim()} className="btn-primary-gold" style={{ width: '100%' }}>
+                          📤 Предложить категорию
+                        </button>
+                      </div>
+                    )}
+
+                    {/* ── New Version form ── */}
+                    {proposalType === 'version' && (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                        <input value={workshopForm.level1 || ''} onChange={e => setWorkshopForm({ ...workshopForm, level1: e.target.value })}
+                          placeholder="ID значка (например 1.1)" className="w-input" />
+                        <input value={workshopForm.title} onChange={e => setWorkshopForm({ ...workshopForm, title: e.target.value })}
+                          placeholder="Название версии" className="w-input" />
+                        <textarea value={workshopForm.description} onChange={e => setWorkshopForm({ ...workshopForm, description: e.target.value })}
+                          placeholder="Чем отличается от оригинала, критерии..." className="w-input" style={{ minHeight: 80 }} />
+                        <div style={{ marginBottom: 4 }}>
+                          <ImageSourceBlock
+                            context="workshop_badge"
+                            value={workshopForm.image}
+                            onChange={(url) => setWorkshopForm(prev => ({ ...prev, image: url }))}
+                            aspect="free"
+                            onGenerate={async (opts) =>
+                              requestImageGenerate({ mode: 'generate', context: 'workshop', prompt: opts.prompt ?? '' }, accessToken ?? null)
+                            }
+                            onProcess={async (imageBase64, opts) =>
+                              requestImageGenerate({ mode: 'process', context: 'workshop', imageBase64, prompt: opts?.prompt ?? '' }, accessToken ?? null)
+                            }
+                            onUnlockRequest={openUnlockByCode}
+                          />
+                          {workshopForm.image && (
+                            <button type="button" className="btn-secondary" style={{ marginTop: 6, fontSize: 11 }}
+                              onClick={() => setWorkshopForm(prev => ({ ...prev, image: null }))}>Удалить изображение</button>
+                          )}
+                        </div>
+                        <button onClick={() => {
+                          if (!workshopForm.title.trim() || !workshopForm.level1?.trim()) return;
+                          const proposal = {
+                            id: `ver-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+                            type: 'version' as const,
+                            badgeId: workshopForm.level1!.trim(),
+                            title: workshopForm.title.trim(),
+                            description: workshopForm.description.trim(),
+                            image: workshopForm.image || undefined,
+                            status: 'pending' as const,
+                            createdAt: new Date().toISOString(),
+                          };
+                          try {
+                            const raw = localStorage.getItem('rl_guide_progress_v1');
+                            const data = raw ? JSON.parse(raw) : {};
+                            data.workshopProposals = [...(data.workshopProposals || []), proposal];
+                            localStorage.setItem('rl_guide_progress_v1', JSON.stringify(data));
+                          } catch (_) { /* ignore */ }
+                          setWorkshopForm({ title: '', description: '', skill: '', level1: '', level2: '', image: null });
+                          showHint({ title: 'Предложение отправлено', content: `Версия «${proposal.title}» для значка ${proposal.badgeId} отправлена на проверку.` });
+                        }} disabled={!workshopForm.title.trim() || !workshopForm.level1?.trim()} className="btn-primary-gold" style={{ width: '100%' }}>
+                          📤 Предложить версию
+                        </button>
+                      </div>
                     )}
                   </div>
-                  <button onClick={handleWorkshopSubmit} disabled={workshopBusy} className="btn-primary-gold" style={{ width: '100%' }} aria-live="polite" aria-busy={workshopBusy}>{workshopBusy ? 'ГЕНЕРИРУЕМ...' : 'АКТИВИРОВАТЬ В ПУТЕВОДИТЕЛЕ'}</button>
-                </div>
-              ) : (
+                );
+              })() : (
                 <div className="workshop-locked workshop-locked--card">
                   <div style={{ fontSize: '40px', marginBottom: '16px' }}>🔒</div>
                   <p style={{ margin: '0 0 20px', fontSize: '15px', lineHeight: 1.5, opacity: 0.9 }}>Мастерская откроется, когда ты выберешь в путь значок <strong>1.16.1 «Путеводитель»</strong> или достигнешь его.</p>
@@ -2886,59 +3004,106 @@ export const ProfileView: React.FC<any> = (props) => {
               )}
             </section>
           )}
-          {workshopActiveTab === 'ideas' && (
-            <section id="workshop-section-community" className="workshop-view__section">
-              <div className="workshop-community-feed workshop-community-feed--card">
-                <h3 style={{ color: 'rgba(255,255,255,0.95)', marginTop: 0, fontSize: '16px' }}>Идеи отряда</h3>
-                {typeof navigator !== 'undefined' && !navigator.onLine && <p style={{ margin: '0 0 8px', fontSize: '12px', opacity: 0.8 }}>Оффлайн. Отправки появятся после подключения.</p>}
-                {communitySyncing && <p style={{ margin: '0 0 8px', fontSize: '12px', opacity: 0.8 }}>Синхронизация…</p>}
-                {communityPendingCount > 0 && typeof navigator !== 'undefined' && navigator.onLine && !communitySyncing && <p style={{ margin: '0 0 8px', fontSize: '12px', opacity: 0.8 }}>В очереди: {communityPendingCount}</p>}
-                {(communityBadges?.length ?? 0) === 0 && (
-                  <>
-                    <p style={{ margin: '0 0 8px', fontSize: '13px', opacity: 0.9 }}>Здесь появятся идеи, предложенные отрядом, когда они будут.</p>
-                    <p style={{ margin: '0 0 12px', fontSize: '12px', opacity: 0.7 }}>Предложи первый значок в Кузнице Смыслов.</p>
-                  </>
-                )}
-                <div className="workshop-squad-ideas-carousel">
-                  <button type="button" className="workshop-squad-ideas-carousel__btn workshop-squad-ideas-carousel__btn--prev" onClick={(e) => { e.preventDefault(); e.stopPropagation(); const n = communityBadges?.length ?? 0; if (n <= 1) return; setSquadIdeasCarouselSteps((s) => s - 1); }} disabled={(communityBadges?.length ?? 0) <= 1} aria-label="Вращать влево"><Icons.ArrowLeft /></button>
-                  <div className="workshop-squad-ideas-carousel__viewport">
-                    <div className="workshop-squad-ideas-carousel__track" style={{ ['--squad-ideas-rotation-steps' as string]: squadIdeasCarouselSteps }}>
-                      {(communityBadges?.length ?? 0) === 0 ? (
-                        [0, 1, 2].map((slotIndex) => (
-                          <div key={`squad-placeholder-${slotIndex}`} className="workshop-squad-ideas-carousel__item workshop-squad-ideas-carousel__item--placeholder" style={{ ['--slot-offset' as string]: slotIndex }}>
-                            <div className="workshop-squad-ideas-carousel__cell" style={{ width: 64, height: 64, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 32, color: 'rgba(255,255,255,0.5)' }}>?</div>
-                          </div>
-                        ))
-                      ) : (
-                        Array.from({ length: 21 }, (_, i) => i - 10).map((slotIndex) => {
-                          const n = communityBadges!.length;
-                          const itemIndex = ((slotIndex % n) + n) % n;
-                          const b = communityBadges![itemIndex];
-                          const badge = typeof b === 'object' && b && 'id' in b ? b as { id: string; title: string; emoji?: string; category_id?: string } : null;
-                          if (!badge) return null;
-                          return (
-                            <div key={`squad-idea-${slotIndex}-${badge.id}`} className="workshop-squad-ideas-carousel__item" style={{ ['--slot-offset' as string]: slotIndex }}>
-                              <div className="workshop-squad-ideas-carousel__cell" style={{ width: 64, height: 64, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28 }} title={badge.title}>{badge.emoji || '✨'}</div>
-                              {toggleCommunityLike && (
-                                <button type="button" onClick={(ev) => { ev.stopPropagation(); toggleCommunityLike(badge.id); }} className="workshop-squad-ideas-carousel__like" aria-label={communityLikedIds?.has(badge.id) ? 'Убрать лайк' : 'Лайкнуть'} style={{ position: 'absolute', top: 2, right: 2, background: 'none', border: 'none', padding: 2, cursor: 'pointer', display: 'flex' }}><Icons.Heart filled={communityLikedIds?.has(badge.id)} /></button>
-                              )}
-                            </div>
-                          );
-                        })
-                      )}
+
+          {workshopActiveTab === 'arts' && (
+            <section id="workshop-section-arts" className="workshop-view__section">
+              {hasWorkshopAccess ? (
+                <div className="workshop-form workshop-form--card">
+                  <h3 style={{ color: '#FFD700', marginTop: 0 }}>🎨 Арты и скины</h3>
+                  <p style={{ fontSize: 12, opacity: 0.7, marginTop: -4, marginBottom: 12 }}>Сгенерируй арт для значка с помощью ИИ или загрузи свой.</p>
+                  <ImageSourceBlock
+                    context="workshop_badge"
+                    value={workshopForm.image}
+                    onChange={(url) => setWorkshopForm(prev => ({ ...prev, image: url }))}
+                    aspect="free"
+                    onGenerate={async (opts) =>
+                      requestImageGenerate({ mode: 'generate', context: 'workshop', prompt: opts.prompt ?? '' }, accessToken ?? null)
+                    }
+                    onProcess={async (imageBase64, opts) =>
+                      requestImageGenerate({ mode: 'process', context: 'workshop', imageBase64, prompt: opts?.prompt ?? '' }, accessToken ?? null)
+                    }
+                    onUnlockRequest={openUnlockByCode}
+                  />
+                  {workshopForm.image && (
+                    <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+                      <button type="button" className="btn-secondary" style={{ fontSize: 11 }}
+                        onClick={() => setWorkshopForm(prev => ({ ...prev, image: null }))}>Удалить</button>
+                      <button type="button" className="btn-primary-gold" style={{ fontSize: 12 }}
+                        onClick={() => {
+                          showHint({ title: 'Сохранено', content: 'Арт сохранён. Он будет отправлен на проверку.' });
+                        }}>📤 Отправить арт</button>
                     </div>
-                  </div>
-                  <button type="button" className="workshop-squad-ideas-carousel__btn workshop-squad-ideas-carousel__btn--next" onClick={(e) => { e.preventDefault(); e.stopPropagation(); const n = communityBadges?.length ?? 0; if (n <= 1) return; setSquadIdeasCarouselSteps((s) => s + 1); }} disabled={(communityBadges?.length ?? 0) <= 1} aria-label="Вращать вправо"><Icons.ArrowRight /></button>
+                  )}
                 </div>
-              </div>
+              ) : (
+                <div className="workshop-locked workshop-locked--card">
+                  <div style={{ fontSize: '40px', marginBottom: '16px' }}>🔒</div>
+                  <p style={{ margin: '0 0 20px', fontSize: '15px', lineHeight: 1.5, opacity: 0.9 }}>Мастерская откроется, когда ты выберешь в путь значок <strong>1.16.1 «Путеводитель»</strong> или достигнешь его.</p>
+                  <button type="button" onClick={() => onNavigateToBadge('1.16.1')} className="btn-primary-gold" style={{ padding: '14px 24px' }}>Перейти к значку 1.16.1</button>
+                </div>
+              )}
+              {canModerateApprovals && accessToken && (
+                <div style={{ marginTop: 16 }}>
+                  <ArtInboxTab accessToken={accessToken} />
+                </div>
+              )}
             </section>
           )}
+
           {workshopActiveTab === 'my' && (
             <section id="workshop-section-my" className="workshop-view__section">
               {hasWorkshopAccess ? (
                 <div className="workshop-my-proposals workshop-my-proposals--card">
-                  <h3 style={{ color: 'rgba(255,255,255,0.9)', marginTop: 0, fontSize: '16px' }}>Мои предложения</h3>
-                  {(!customBadges || customBadges.length === 0) ? <div className="profile-empty-state"><p style={{ margin: 0, fontSize: '14px', opacity: 0.7 }}>Пока нет предложений. Создай первый выше.</p></div> : <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>{customBadges.map((b: { id: string; title: string; emoji?: string; category_id?: string; level?: string }) => (<li key={b.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', padding: '12px 0', borderBottom: '1px solid rgba(255,255,255,0.06)' }}><span style={{ flex: 1 }}>{b.emoji || '⚒️'} {b.title}</span><div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>{publishBadgeToCommunity && <button type="button" onClick={async () => { if ((communityBadges?.length ?? 0) >= 10) { setPathFavToast({ type: 'squad_limit' }); return; } const res = await publishBadgeToCommunity(b); if (res.ok) { setPathFavToast({ type: 'squad_added', squadSlotsLeft: 10 - (communityBadges?.length ?? 0) - 1 }); showHint({ title: res.queued ? 'Сохранено' : 'Отправлено', content: res.queued ? 'Предложение сохранено. Будет отправлено при появлении сети.' : 'Предложение отправлено в сообщество.' }); } else showHint({ title: 'Ошибка', content: res.error || 'Не удалось отправить. Попробуйте позже.' }); }} className="btn-secondary" style={{ flexShrink: 0 }} aria-label="Отправить в сообщество">Отправить в сообщество</button>}{removeCustomBadge && <button type="button" onClick={() => { removeCustomBadge(b.id); const baseId = b.id.replace(/\.\d+$/, ''); if (setCustomBadgeImage && baseId !== b.id) setCustomBadgeImage(baseId, null); showHint({ title: 'Удалено', content: 'Предложение удалено.' }); }} className="btn-secondary" style={{ padding: '6px 10px', fontSize: 12 }} aria-label="Удалить предложение">Удалить</button>}</div></li>))}</ul>}
+                  <h3 style={{ color: 'rgba(255,255,255,0.9)', marginTop: 0, fontSize: '16px' }}>Мои проекты</h3>
+                  {(() => {
+                    let allProposals: Array<{ id: string; title: string; type?: string; status?: string; emoji?: string; category_id?: string; level?: string }> = [];
+                    try {
+                      const raw = localStorage.getItem('rl_guide_progress_v1');
+                      const data = raw ? JSON.parse(raw) : {};
+                      allProposals = data.workshopProposals || [];
+                    } catch (_) { /* ignore */ }
+                    const combined = [
+                      ...allProposals.map(p => ({ ...p, source: 'proposal' as const })),
+                      ...(customBadges || []).map((b: any) => ({ ...b, source: 'badge' as const, type: 'badge', status: 'active' })),
+                    ];
+                    if (combined.length === 0) return (
+                      <p style={{ margin: 0, fontSize: '14px', opacity: 0.7 }}>Пока нет проектов. Создай первый в Конструкторе.</p>
+                    );
+                    return (
+                      <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                        {combined.map(item => (
+                          <li key={item.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '12px 0', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                            <div style={{ flex: 1 }}>
+                              <div style={{ fontWeight: 600, fontSize: 14 }}>
+                                {item.type === 'category' ? '📁' : item.type === 'version' ? '🔄' : (item.emoji || '🏅')} {item.title}
+                              </div>
+                              <div style={{ fontSize: 11, opacity: 0.6, marginTop: 3 }}>
+                                {item.type === 'category' ? 'Категория' : item.type === 'version' ? 'Версия значка' : 'Значок'}
+                                {' · '}
+                                {item.status === 'pending' ? '⏳ На проверке' : item.status === 'approved' ? '✅ Одобрено' : item.status === 'rejected' ? '❌ Отклонено' : '📋 Активно'}
+                              </div>
+                            </div>
+                            <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+                              {item.source === 'badge' && publishBadgeToCommunity && (
+                                <button type="button" onClick={async () => {
+                                  if ((communityBadges?.length ?? 0) >= 10) { setPathFavToast({ type: 'squad_limit' }); return; }
+                                  const res = await publishBadgeToCommunity(item as any);
+                                  if (res.ok) showHint({ title: 'Отправлено', content: 'Предложение отправлено в сообщество.' });
+                                  else showHint({ title: 'Ошибка', content: res.error || 'Не удалось отправить.' });
+                                }} className="btn-secondary" style={{ fontSize: 11 }}>В сообщество</button>
+                              )}
+                              {item.source === 'badge' && removeCustomBadge && (
+                                <button type="button" onClick={() => {
+                                  removeCustomBadge(item.id);
+                                  showHint({ title: 'Удалено', content: 'Предложение удалено.' });
+                                }} className="btn-secondary" style={{ padding: '6px 10px', fontSize: 11 }}>Удалить</button>
+                              )}
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    );
+                  })()}
                 </div>
               ) : (
                 <div className="workshop-locked workshop-locked--card">
@@ -2949,9 +3114,8 @@ export const ProfileView: React.FC<any> = (props) => {
               )}
             </section>
           )}
+
           {workshopActiveTab === 'community' && (
-
-
             <section id="workshop-section-community-ranking" className="workshop-view__section">
               <CommunityRankingPanel
                 communityBadges={communityBadges ?? []}
@@ -2960,11 +3124,7 @@ export const ProfileView: React.FC<any> = (props) => {
               />
             </section>
           )}
-          {workshopActiveTab === 'arts' && canModerateApprovals && accessToken && (
-            <section id="workshop-section-arts" className="workshop-view__section">
-              <ArtInboxTab accessToken={accessToken} />
-            </section>
-          )}
+
         </div>
       )}
       {panelActiveView === 'share' && (
@@ -7128,4 +7288,3 @@ export const ProfileView: React.FC<any> = (props) => {
 };
 
 export default ProfileView;
-                                                                                                                           

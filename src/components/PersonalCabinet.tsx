@@ -167,11 +167,10 @@ const SECTION_TABS: Partial<Record<SectionId, TabDef[]>> = {
         { id: 'constructor', label: 'Создать Посвящение' },
     ],
     workshop: [
-        { id: 'forge', label: 'Кузница' },
-        { id: 'ideas', label: 'Идеи' },
-        { id: 'my', label: 'Мои' },
-        { id: 'community', label: 'Сообщество' },
+        { id: 'constructor', label: 'Конструктор' },
         { id: 'arts', label: 'Арты' },
+        { id: 'my', label: 'Мои проекты' },
+        { id: 'community', label: 'Сообщество' },
     ],
     share: [
         { id: 'invite', label: 'Пригласить друзей' },
@@ -274,7 +273,7 @@ export const PersonalCabinet: React.FC<{
     const [broPassportComplete, setBroPassportComplete] = useState(false);
     const [squadCornerTab, setSquadCornerTab] = useState<string>('squad');
     const [schedDay, setSchedDay] = useState(1);
-    const [workshopTab, setWorkshopTab] = useState<string>('forge');
+    const [workshopTab, setWorkshopTab] = useState<string>('constructor');
     const [shareTab, setShareTab] = useState<'invite' | 'qr'>('invite');
     const [parentsTab, setParentsTab] = useState<'program' | 'child' | 'contacts'>('program');
     const [eventsTab, setEventsTab] = useState<'requests' | 'announcements' | 'tasks'>('requests');
@@ -1715,8 +1714,10 @@ export const PersonalCabinet: React.FC<{
                                     {/* Workshop tab nav */}
                                     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                                         {[
-                                            { id: 'community', label: 'Сообщество' },
-                                            ...(accessToken ? [{ id: 'arts', label: 'Арты' }] : []),
+                                            { id: 'constructor', label: '🛠️ Конструктор' },
+                                            { id: 'arts', label: '🎨 Арты' },
+                                            { id: 'my', label: '📋 Мои' },
+                                            { id: 'community', label: '🏆 Сообщество' },
                                         ].map(tab => (
                                             <button key={tab.id} type="button"
                                                 onClick={() => setWorkshopTab(tab.id)}
@@ -1733,6 +1734,94 @@ export const PersonalCabinet: React.FC<{
                                         ))}
                                     </div>
 
+                                    {/* Конструктор */}
+                                    {workshopTab === 'constructor' && (
+                                        <div style={{
+                                            padding: 20, borderRadius: 14,
+                                            background: 'rgba(8, 20, 40, 0.15)',
+                                            border: '1px solid rgba(93, 228, 255, 0.12)',
+                                        }}>
+                                            <h3 style={{ color: '#FFD700', marginTop: 0, fontSize: 16 }}>🛠️ Конструктор</h3>
+                                            <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', marginBottom: 12 }}>
+                                                Предложи новый значок, категорию или версию значка. Всё пройдёт проверку вожатым.
+                                            </p>
+                                            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                                                <span style={{ padding: '6px 12px', borderRadius: 8, background: 'rgba(255,215,0,0.15)', color: '#FFD700', fontSize: 12, border: '1px solid rgba(255,215,0,0.3)' }}>🏅 Новый значок</span>
+                                                <span style={{ padding: '6px 12px', borderRadius: 8, background: 'rgba(93,228,255,0.1)', color: '#5de4ff', fontSize: 12, border: '1px solid rgba(93,228,255,0.25)' }}>📁 Новая категория</span>
+                                                <span style={{ padding: '6px 12px', borderRadius: 8, background: 'rgba(139,92,246,0.1)', color: '#a78bfa', fontSize: 12, border: '1px solid rgba(139,92,246,0.25)' }}>🔄 Версия значка</span>
+                                            </div>
+                                            <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', marginTop: 10, marginBottom: 0 }}>
+                                                Полный конструктор с AI-помощником доступен в основном кабинете.
+                                            </p>
+                                        </div>
+                                    )}
+
+                                    {/* Арты */}
+                                    {workshopTab === 'arts' && (
+                                        <div style={{
+                                            padding: 20, borderRadius: 14,
+                                            background: 'rgba(8, 20, 40, 0.15)',
+                                            border: '1px solid rgba(93, 228, 255, 0.12)',
+                                        }}>
+                                            <h3 style={{ color: '#FFD700', marginTop: 0, fontSize: 16 }}>🎨 Арты и скины</h3>
+                                            <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', marginBottom: 12 }}>
+                                                Сгенерируй арт для значка с помощью ИИ или загрузи свой.
+                                            </p>
+                                            <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>
+                                                AI-генерация доступна в основном кабинете.
+                                            </p>
+                                            {accessToken && <ArtInboxTab accessToken={accessToken} />}
+                                        </div>
+                                    )}
+
+                                    {/* Мои проекты */}
+                                    {workshopTab === 'my' && (() => {
+                                        let allProposals: any[] = [];
+                                        try {
+                                            const raw = localStorage.getItem('rl_guide_progress_v1');
+                                            const data = raw ? JSON.parse(raw) : {};
+                                            allProposals = data.workshopProposals || [];
+                                        } catch (_) { /* ignore */ }
+                                        const combined = [
+                                            ...allProposals.map((p: any) => ({ ...p, source: 'proposal' })),
+                                            ...customBadges.map((b: any) => ({ ...b, source: 'badge', type: 'badge', status: 'active' })),
+                                        ];
+                                        return (
+                                            <div style={{
+                                                padding: 20, borderRadius: 14,
+                                                background: 'rgba(8, 20, 40, 0.15)',
+                                                border: '1px solid rgba(93, 228, 255, 0.12)',
+                                            }}>
+                                                <h3 style={{ color: '#e8f0ff', marginTop: 0, fontSize: 16 }}>Мои проекты</h3>
+                                                {combined.length === 0 ? (
+                                                    <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)' }}>
+                                                        Пока нет проектов. Создай первый в Конструкторе.
+                                                    </p>
+                                                ) : (
+                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 8 }}>
+                                                        {combined.map((item: any) => (
+                                                            <div key={item.id} style={{
+                                                                padding: '10px 14px', borderRadius: 10,
+                                                                background: 'rgba(255,255,255,0.04)',
+                                                                border: '1px solid rgba(255,255,255,0.06)',
+                                                            }}>
+                                                                <div style={{ fontWeight: 600, fontSize: 13, color: '#e8f0ff' }}>
+                                                                    {item.type === 'category' ? '📁' : item.type === 'version' ? '🔄' : (item.emoji || '🏅')} {item.title}
+                                                                </div>
+                                                                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', marginTop: 4 }}>
+                                                                    {item.type === 'category' ? 'Категория' : item.type === 'version' ? 'Версия значка' : 'Значок'}
+                                                                    {' · '}
+                                                                    {item.status === 'pending' ? '⏳ На проверке' : item.status === 'approved' ? '✅ Одобрено' : item.status === 'rejected' ? '❌ Отклонено' : '📋 Активно'}
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    })()}
+
+                                    {/* Сообщество */}
                                     {workshopTab === 'community' && (
                                         <CommunityRankingPanel
                                             communityBadges={communityBadges}
@@ -1740,127 +1829,6 @@ export const PersonalCabinet: React.FC<{
                                             onNavigateToBadge={navigateToBadge}
                                         />
                                     )}
-                                    {workshopTab === 'arts' && accessToken && (
-                                        <ArtInboxTab accessToken={accessToken} />
-                                    )}
-                                    {/* Кузница Смыслов */}
-                                    {workshopTab === 'forge' && (() => {
-                                        const hasAccess = Object.keys(progress).some(id => id.startsWith('1.16'));
-                                        return hasAccess ? (
-                                            <div style={{
-                                                padding: 20, borderRadius: 14,
-                                                background: 'rgba(8, 20, 40, 0.15)',
-                                                border: '1px solid rgba(93, 228, 255, 0.12)',
-                                            }}>
-                                                <h3 style={{ color: '#FFD700', marginTop: 0, fontSize: 16 }}>Кузница Смыслов ⚒️</h3>
-                                                <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)', marginBottom: 12 }}>
-                                                    Предложи новый значок в каталог.
-                                                </p>
-                                                <input placeholder="Название значка" style={{
-                                                    width: '100%', padding: '10px 14px', borderRadius: 10,
-                                                    background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)',
-                                                    color: '#e8f0ff', fontSize: 14, fontFamily: FONT, marginBottom: 8,
-                                                    outline: 'none',
-                                                }} />
-                                                <textarea placeholder="Опиши суть..." style={{
-                                                    width: '100%', padding: '10px 14px', borderRadius: 10,
-                                                    background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)',
-                                                    color: '#e8f0ff', fontSize: 14, fontFamily: FONT, minHeight: 80,
-                                                    resize: 'vertical', marginBottom: 12, outline: 'none',
-                                                }} />
-                                                <button type="button" style={{
-                                                    width: '100%', padding: '12px 20px', borderRadius: 12,
-                                                    background: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
-                                                    color: '#1a1a2e', fontWeight: 700, fontSize: 14, border: 'none',
-                                                    cursor: 'pointer', fontFamily: FONT,
-                                                }}>
-                                                    Активировать в Путеводителе
-                                                </button>
-                                            </div>
-                                        ) : (
-                                            <div style={{
-                                                padding: 24, borderRadius: 14,
-                                                background: 'rgba(8, 20, 40, 0.15)',
-                                                border: '1px solid rgba(93, 228, 255, 0.12)',
-                                                textAlign: 'center',
-                                            }}>
-                                                <div style={{ fontSize: 40, marginBottom: 12 }}>🔒</div>
-                                                <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.7)', marginBottom: 16 }}>
-                                                    Мастерская откроется, когда ты возьмёшь значок <strong>1.16.1 «Путеводитель»</strong>
-                                                </p>
-                                                <button type="button"
-                                                    onClick={() => navigateToBadge('1.16.1')}
-                                                    style={{
-                                                        padding: '12px 24px', borderRadius: 12,
-                                                        background: 'rgba(93, 228, 255, 0.2)', color: '#5de4ff',
-                                                        border: '1px solid rgba(93,228,255,0.4)', fontWeight: 700,
-                                                        fontSize: 14, cursor: 'pointer', fontFamily: FONT,
-                                                    }}>
-                                                    Перейти к значку 1.16.1
-                                                </button>
-                                            </div>
-                                        );
-                                    })()}
-                                    {/* Идеи сообщества */}
-                                    {workshopTab === 'ideas' && (
-                                        <div style={{
-                                            padding: 20, borderRadius: 14,
-                                            background: 'rgba(8, 20, 40, 0.15)',
-                                            border: '1px solid rgba(93, 228, 255, 0.12)',
-                                        }}>
-                                            <h3 style={{ color: '#e8f0ff', marginTop: 0, fontSize: 16 }}>Идеи отряда</h3>
-                                            {communityBadges.length === 0 ? (
-                                                <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)' }}>
-                                                    Здесь появятся идеи, предложенные отрядом. Предложи первый значок в Кузнице.
-                                                </p>
-                                            ) : (
-                                                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 8 }}>
-                                                    {communityBadges.map((b: any) => (
-                                                        <div key={b.id} style={{
-                                                            padding: '10px 14px', borderRadius: 10,
-                                                            background: 'rgba(255,255,255,0.04)',
-                                                            border: '1px solid rgba(255,255,255,0.06)',
-                                                            display: 'flex', alignItems: 'center', gap: 10,
-                                                        }}>
-                                                            <span style={{ fontSize: 20 }}>{b.emoji || '✨'}</span>
-                                                            <span style={{ fontSize: 13, fontWeight: 600, color: '#e8f0ff' }}>{b.title}</span>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
-                                    {/* Мои предложения */}
-                                    {workshopTab === 'my' && (
-                                        <div style={{
-                                            padding: 20, borderRadius: 14,
-                                            background: 'rgba(8, 20, 40, 0.15)',
-                                            border: '1px solid rgba(93, 228, 255, 0.12)',
-                                        }}>
-                                            <h3 style={{ color: '#e8f0ff', marginTop: 0, fontSize: 16 }}>Мои предложения</h3>
-                                            {customBadges.length === 0 ? (
-                                                <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)' }}>
-                                                    Пока нет предложений. Создай первый значок в Кузнице.
-                                                </p>
-                                            ) : (
-                                                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 8 }}>
-                                                    {customBadges.map((b: any) => (
-                                                        <div key={b.id} style={{
-                                                            padding: '10px 14px', borderRadius: 10,
-                                                            background: 'rgba(255,255,255,0.04)',
-                                                            border: '1px solid rgba(255,255,255,0.06)',
-                                                            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                                                        }}>
-                                                            <span style={{ fontSize: 13, fontWeight: 600, color: '#e8f0ff' }}>
-                                                                {b.emoji || '⚒️'} {b.title}
-                                                            </span>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
-
 
                                 </div>
                             ) : activeSection === 'share' ? (
