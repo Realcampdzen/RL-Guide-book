@@ -1,0 +1,75 @@
+{"timestamp":"2026-03-05T23:48:04.451Z","level":"info","message":"Loading workflow: D:\\openclaw-workspace\\putevoditel_alfa\\WORKFLOW.md","context":{"component":"cli"}}
+{"timestamp":"2026-03-05T23:48:04.463Z","level":"info","message":"Tracker: github (Realcampdzen/RL-Guide-book)","context":{"component":"orchestrator"}}
+{"timestamp":"2026-03-05T23:48:04.463Z","level":"info","message":"Active labels: [todo, in-progress, human-review, rework]","context":{"component":"orchestrator"}}
+{"timestamp":"2026-03-05T23:48:04.464Z","level":"info","message":"Workspace root: C:\\Users\\stepa/symphony-workspaces","context":{"component":"orchestrator"}}
+{"timestamp":"2026-03-05T23:48:04.464Z","level":"info","message":"Max concurrent agents: 2","context":{"component":"orchestrator"}}
+{"timestamp":"2026-03-05T23:48:04.477Z","level":"info","message":"Poll interval: 30000ms","context":{"component":"orchestrator"}}
+{"timestamp":"2026-03-05T23:48:04.477Z","level":"info","message":"Agent mode: openai-api","context":{"component":"orchestrator"}}
+{"timestamp":"2026-03-05T23:48:04.478Z","level":"info","message":"Running startup cleanup for terminal issues...","context":{"component":"orchestrator"}}
+{"timestamp":"2026-03-05T23:48:09.483Z","level":"debug","message":"Fetched 0 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-05T23:48:09.484Z","level":"info","message":"Polling every 30s. Press Ctrl+C to stop.","context":{"component":"orchestrator"}}
+{"timestamp":"2026-03-05T23:48:43.813Z","level":"debug","message":"Fetched 0 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-05T23:49:13.399Z","level":"debug","message":"Fetched 0 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-05T23:49:43.826Z","level":"debug","message":"Fetched 0 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-05T23:50:13.693Z","level":"debug","message":"Fetched 0 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-05T23:50:43.402Z","level":"debug","message":"Fetched 0 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-05T23:51:13.808Z","level":"debug","message":"Fetched 0 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-05T23:51:43.722Z","level":"debug","message":"Fetched 0 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-05T23:52:13.519Z","level":"debug","message":"Fetched 0 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-05T23:52:43.847Z","level":"debug","message":"Fetched 0 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-05T23:53:13.484Z","level":"debug","message":"Fetched 0 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-05T23:53:43.712Z","level":"debug","message":"Fetched 0 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-05T23:54:13.454Z","level":"debug","message":"Fetched 0 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-05T23:54:44.027Z","level":"debug","message":"Fetched 0 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-05T23:55:13.578Z","level":"debug","message":"Fetched 0 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-05T23:55:46.100Z","level":"debug","message":"Fetched 0 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-05T23:56:16.713Z","level":"debug","message":"Fetched 0 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-05T23:56:44.381Z","level":"debug","message":"Fetched 0 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-05T23:57:14.993Z","level":"debug","message":"Fetched 0 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-05T23:57:43.855Z","level":"debug","message":"Fetched 0 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-05T23:58:13.499Z","level":"debug","message":"Fetched 0 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-05T23:58:44.833Z","level":"debug","message":"Fetched 0 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-05T23:59:13.460Z","level":"debug","message":"Fetched 0 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-05T23:59:43.930Z","level":"debug","message":"Fetched 0 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-06T00:00:14.366Z","level":"debug","message":"Fetched 0 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-06T00:00:43.663Z","level":"debug","message":"Fetched 0 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-06T00:01:13.915Z","level":"debug","message":"Fetched 0 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-06T00:01:43.670Z","level":"debug","message":"Fetched 0 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-06T00:02:14.078Z","level":"debug","message":"Fetched 0 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-06T00:02:44.178Z","level":"debug","message":"Fetched 0 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-06T00:03:13.660Z","level":"debug","message":"Fetched 0 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-06T00:03:44.057Z","level":"debug","message":"Fetched 0 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-06T00:04:13.906Z","level":"debug","message":"Fetched 0 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-06T00:04:43.885Z","level":"debug","message":"Fetched 0 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-06T00:05:14.026Z","level":"debug","message":"Fetched 0 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-06T00:05:43.998Z","level":"debug","message":"Fetched 0 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-06T00:06:13.939Z","level":"debug","message":"Fetched 0 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-06T00:06:43.811Z","level":"debug","message":"Fetched 0 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-06T00:07:14.003Z","level":"debug","message":"Fetched 0 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-06T00:07:44.116Z","level":"debug","message":"Fetched 0 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-06T00:08:13.771Z","level":"debug","message":"Fetched 0 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-06T00:08:44.041Z","level":"debug","message":"Fetched 0 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-06T00:09:14.414Z","level":"debug","message":"Fetched 0 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-06T00:09:44.118Z","level":"debug","message":"Fetched 0 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-06T00:10:14.216Z","level":"debug","message":"Fetched 0 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-06T00:10:43.893Z","level":"debug","message":"Fetched 0 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-06T00:11:14.111Z","level":"debug","message":"Fetched 0 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-06T00:11:43.818Z","level":"debug","message":"Fetched 0 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-06T00:12:14.115Z","level":"debug","message":"Fetched 0 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-06T00:12:43.807Z","level":"debug","message":"Fetched 0 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-06T00:13:14.081Z","level":"debug","message":"Fetched 0 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-06T00:13:43.967Z","level":"debug","message":"Fetched 0 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-06T00:14:14.061Z","level":"debug","message":"Fetched 0 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-06T00:14:43.730Z","level":"debug","message":"Fetched 0 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-06T00:15:14.118Z","level":"debug","message":"Fetched 0 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-06T00:15:43.777Z","level":"debug","message":"Fetched 0 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-06T00:16:14.169Z","level":"debug","message":"Fetched 0 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-06T00:16:44.573Z","level":"debug","message":"Fetched 0 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-06T00:17:13.856Z","level":"debug","message":"Fetched 0 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-06T00:17:43.774Z","level":"debug","message":"Fetched 0 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-06T00:18:14.195Z","level":"debug","message":"Fetched 0 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-06T00:18:44.040Z","level":"debug","message":"Fetched 0 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-06T00:19:14.299Z","level":"debug","message":"Fetched 0 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-06T00:19:44.295Z","level":"debug","message":"Fetched 0 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-06T00:20:21.551Z","level":"error","message":"Failed to fetch candidate issues: HttpError: Connect Timeout Error (attempted address: api.github.com:443, timeout: 10000ms)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-06T00:20:21.552Z","level":"error","message":"Poll tick error: HttpError: Connect Timeout Error (attempted address: api.github.com:443, timeout: 10000ms)","context":{"component":"orchestrator"}}

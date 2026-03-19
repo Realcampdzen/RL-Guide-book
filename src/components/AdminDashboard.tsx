@@ -14,6 +14,8 @@ import type { UserRole } from '../types/authRole';
 interface AdminDashboardProps {
     accessToken: string;
     onClose?: () => void;
+    embedded?: boolean;
+    role?: string;
 }
 
 type AdminTab = 'inbox' | 'codes';
@@ -39,6 +41,9 @@ const TYPE_META: Record<string, { letter: string; label: string; color: string }
     engine_approve: { letter: 'Д', label: 'Движки', color: '#22C55E' },
     inspector_task: { letter: 'И', label: 'Инспектор', color: '#06B6D4' },
     role_request: { letter: 'Р', label: 'Роли', color: '#8B5CF6' },
+    bro_submission: { letter: 'Б', label: 'БРО', color: '#F97316' },
+    badge_plan: { letter: 'П', label: 'Планы', color: '#14B8A6' },
+    vozhatifikator_proof: { letter: 'В', label: 'Вожатификатор', color: '#EC4899' },
 };
 
 const ALL_TYPES = Object.keys(TYPE_META);
@@ -85,9 +90,28 @@ function humanizeId(id: string): string {
 
 function getUserName(item: RawInboxItem): string {
     const user = item.user || {};
-    if (user.nickname) return user.nickname;
-    if (user.device_id) return `${user.device_id.slice(0, 10)}`;
-    return 'Аноним';
+    const data = item.data || {};
+    // Try nickname from user, then from data (badge requests store it differently)
+    const nick = user.nickname || (data.nickname as string) || (data.requested_by_nickname as string);
+    if (nick) return nick;
+    // Fallback: show generic role label instead of raw device ID
+    return 'Участник';
+}
+
+const ROLE_LABELS_RU: Record<string, string> = {
+    counselor: 'Вожатый',
+    educator: 'Педагог',
+    shift_leader: 'Ст. вожатый',
+    camp_director: 'Нач. лагеря',
+    developer: 'Dev',
+    participant: 'Участник',
+};
+
+function getUserRole(item: RawInboxItem): string | null {
+    const data = item.data || {};
+    const role = (data.userRole as string) || null;
+    if (!role || role === 'traveler') return null;
+    return ROLE_LABELS_RU[role] || role;
 }
 
 function getItemTitle(item: RawInboxItem): string {
@@ -95,8 +119,11 @@ function getItemTitle(item: RawInboxItem): string {
     switch (item.type) {
         case 'badge_request':
             return (data.badge_name as string) || humanizeId(data.badge_id as string) || 'Заявка на значок';
-        case 'council_initiative':
-            return (data.title as string) || 'Инициатива совета';
+        case 'council_initiative': {
+            const ciTitle = (data.title as string) || 'Инициатива совета';
+            if (data.sourceType === 'ode') return `🎯 ${ciTitle.replace(/^\[ОДэ\]\s*/, '')}`;
+            return ciTitle;
+        }
         case 'badge_art': {
             const name = humanizeId(data.badge_id as string) || 'значок';
             return `Новый арт: ${name}`;
@@ -110,6 +137,17 @@ function getItemTitle(item: RawInboxItem): string {
             const label = desired ? (ROLE_LABELS[desired as UserRole] || desired) : 'роль';
             return `Хочет стать: ${label}`;
         }
+        case 'bro_submission':
+            return (data.task_title as string) || `БРО: ${humanizeId(data.task_id as string)}` || 'БРО-задание';
+        case 'badge_plan': {
+            const bid = (data.badge_id as string) || '';
+            return `План: ${bid ? humanizeId(bid) : 'значок'}`;
+        }
+        case 'vozhatifikator_proof': {
+            const pts = (data.totalPoints as number) || 0;
+            const lvl = (data.level as string) || '';
+            return `Путеводные огни: ${pts} б. — ${lvl}`;
+        }
         default:
             return item.type;
     }
@@ -118,10 +156,29 @@ function getItemTitle(item: RawInboxItem): string {
 function getItemDescription(item: RawInboxItem): string {
     const data = item.data || {};
     switch (item.type) {
-        case 'badge_request':
-            return 'Проверьте доказательства выполнения';
+        case 'badge_request': {
+            // Show evidence details if available
+            const ev = (data.evidence || data) as Record<string, unknown>;
+            const parts: string[] = [];
+            if (typeof ev.reflection === 'string' && ev.reflection.trim()) parts.push(ev.reflection.trim());
+            if (typeof ev.impact === 'string' && ev.impact.trim()) parts.push(ev.impact.trim());
+            if (typeof ev.link === 'string' && ev.link.trim()) parts.push(`Ссылка: ${ev.link.trim()}`);
+            return parts.length > 0 ? parts.join(' · ') : 'Ожидает проверки';
+        }
         case 'council_initiative': {
-            return (data.description as string) || 'Предложение в совет лагеря';
+            const ciDesc = (data.description as string) || '';
+            if (data.sourceType === 'ode' && ciDesc) {
+                // Extract key ODE metadata from the structured description
+                const lines = ciDesc.split('\n');
+                const meta: string[] = [];
+                for (const line of lines) {
+                    if (line.startsWith('Длительность:') || line.startsWith('Аудитория:') || line.startsWith('Масштаб:')) {
+                        meta.push(line.trim());
+                    }
+                }
+                return meta.length > 0 ? `🎯 ОДэ · ${meta.join(' · ')}` : 'Отрядное дело из конструктора';
+            }
+            return ciDesc || 'Предложение в совет лагеря';
         }
         case 'badge_art': {
             const source = (data.source as string) || '';
@@ -133,36 +190,66 @@ function getItemDescription(item: RawInboxItem): string {
             return 'Задание выполнено, ожидает подтверждения';
         case 'role_request':
             return (data.comment as string) || 'Ожидает одобрения';
+        case 'bro_submission': {
+            const txt = (data.text as string) || '';
+            return txt ? txt.slice(0, 150) + (txt.length > 150 ? '…' : '') : 'Ожидает проверки';
+        }
+        case 'badge_plan': {
+            const pt = (data.plan_text as string) || '';
+            return pt ? pt.slice(0, 150) + (pt.length > 150 ? '…' : '') : 'План на утверждении';
+        }
+        case 'vozhatifikator_proof': {
+            const count = Array.isArray(data.completedIds) ? data.completedIds.length : 0;
+            return `Отмечено пунктов: ${count}. Ожидает подтверждения вожатого.`;
+        }
         default:
             return '';
     }
 }
 
-function getItemPhotoUrl(item: RawInboxItem): string | null {
+function getItemPhotos(item: RawInboxItem): string[] {
     const data = item.data || {};
     if (item.type === 'badge_art') {
         const url = (data.image_url as string) || null;
-        if (url && url.startsWith('https://example.com')) return null;
-        return url;
+        if (url && !url.startsWith('https://example.com')) return [url];
+        return [];
     }
     if (item.type === 'badge_request') {
+        // Check evidence.photos (base64 data URLs)
+        const ev = (data.evidence || data) as Record<string, unknown>;
+        if (Array.isArray(ev.photos) && ev.photos.length > 0) return ev.photos as string[];
+        // Legacy: check attachments
         const attachments = data.attachments;
-        if (Array.isArray(attachments) && attachments.length > 0) return attachments[0];
+        if (Array.isArray(attachments) && attachments.length > 0) return attachments;
     }
-    return null;
+    if (item.type === 'bro_submission') {
+        const photoUrl = (data.photo_url as string) || (data.photoUrl as string) || null;
+        if (photoUrl) return [photoUrl];
+    }
+    if (item.type === 'vozhatifikator_proof') {
+        if (Array.isArray(data.photos) && data.photos.length > 0) return data.photos as string[];
+    }
+    return [];
+}
+
+function getItemPhotoUrl(item: RawInboxItem): string | null {
+    const photos = getItemPhotos(item);
+    return photos.length > 0 ? photos[0] : null;
 }
 
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 
-export const AdminDashboard: React.FC<AdminDashboardProps> = ({ accessToken, onClose }) => {
+export const AdminDashboard: React.FC<AdminDashboardProps> = ({ accessToken, onClose, embedded, role: userRole }) => {
+    const isDeveloper = userRole === 'developer';
     const [adminTab, setAdminTab] = useState<AdminTab>('inbox');
 
     // Inbox state
     const [items, setItems] = useState<RawInboxItem[]>([]);
     const [loading, setLoading] = useState(false);
     const [filter, setFilter] = useState<string | null>(null);
+    const [expandedItem, setExpandedItem] = useState<string | null>(null);
     const [busy, setBusy] = useState<string | null>(null);
     const [rejectTarget, setRejectTarget] = useState<string | null>(null);
     const [rejectComment, setRejectComment] = useState('');
@@ -178,15 +265,22 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ accessToken, onC
     const load = useCallback(async () => {
         setLoading(true);
         try {
-            const data = await fetchInbox(filter as any ?? undefined);
+            // Always fetch ALL items so tab counts stay accurate
+            const data = await fetchInbox(undefined);
             setItems(data as unknown as RawInboxItem[]);
         } catch { setItems([]); }
         finally { setLoading(false); }
-    }, [filter]);
+    }, []);
 
     useEffect(() => { void load(); }, [load]);
 
     const pendingItems = useMemo(() => items.filter(i => i.status === 'pending' || i.status === 'done_pending'), [items]);
+
+    // Client-side filtering — keeps all items in state for accurate tab counts
+    const displayItems = useMemo(() => {
+        if (!filter) return pendingItems;
+        return pendingItems.filter(i => i.type === filter);
+    }, [pendingItems, filter]);
 
     const typeCounts = useMemo(() => {
         const map = new Map<string, number>();
@@ -236,9 +330,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ accessToken, onC
 
     return (
         <div style={{
-            position: 'fixed', inset: 0, zIndex: 900,
+            ...(embedded ? { width: '100%', height: '100%', minHeight: 400 } : { position: 'fixed' as const, inset: 0, zIndex: 900 }),
             background: '#f5f5f7',
-            display: 'flex', flexDirection: 'column',
+            display: 'flex', flexDirection: 'column' as const,
             fontFamily: FONT,
             color: '#1a1a2e',
         }}>
@@ -258,7 +352,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ accessToken, onC
                 <div style={{ display: 'flex', gap: 0, marginLeft: 24 }}>
                     {([
                         { id: 'inbox' as AdminTab, label: 'Входящие', count: totalPending },
-                        { id: 'codes' as AdminTab, label: 'Коды на роли', count: 0 },
+                        ...(isDeveloper ? [{ id: 'codes' as AdminTab, label: 'Коды на роли', count: 0 }] : []),
                     ]).map(tab => (
                         <button key={tab.id} type="button" onClick={() => setAdminTab(tab.id)}
                             style={{
@@ -367,12 +461,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ accessToken, onC
                         )}
 
                         {/* Items */}
-                        {pendingItems.map(item => (
+                        {displayItems.map(item => (
                             <InboxCard
                                 key={item.id}
                                 item={item}
                                 isBusy={busy === item.id}
                                 isRejectOpen={rejectTarget === item.id}
+                                isExpanded={expandedItem === item.id}
                                 rejectComment={rejectComment}
                                 onApprove={() => void handleAction(item.id, item.type, 'approve')}
                                 onToggleReject={() => {
@@ -381,6 +476,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ accessToken, onC
                                 }}
                                 onRejectCommentChange={setRejectComment}
                                 onReject={() => void handleAction(item.id, item.type, 'reject', rejectComment.trim())}
+                                onToggleExpand={() => setExpandedItem(expandedItem === item.id ? null : item.id)}
                             />
                         ))}
                     </div>
@@ -558,24 +654,32 @@ const InboxCard: React.FC<{
     item: RawInboxItem;
     isBusy: boolean;
     isRejectOpen: boolean;
+    isExpanded: boolean;
     rejectComment: string;
     onApprove: () => void;
     onToggleReject: () => void;
     onRejectCommentChange: (v: string) => void;
     onReject: () => void;
-}> = ({ item, isBusy, isRejectOpen, rejectComment, onApprove, onToggleReject, onRejectCommentChange, onReject }) => {
+    onToggleExpand: () => void;
+}> = ({ item, isBusy, isRejectOpen, isExpanded, rejectComment, onApprove, onToggleReject, onRejectCommentChange, onReject, onToggleExpand }) => {
     const meta = TYPE_META[item.type] ?? { letter: '?', label: item.type, color: '#888' };
     const userName = getUserName(item);
+    const userRoleLabel = getUserRole(item);
     const title = getItemTitle(item);
     const description = getItemDescription(item);
     const photoUrl = getItemPhotoUrl(item);
+    const allPhotos = getItemPhotos(item);
     const timeStr = formatDate(item.created_at || item.createdAt);
+
+    // Evidence data for expanded view
+    const data = item.data || {};
+    const ev = ((data.evidence || data) as Record<string, unknown>);
 
     return (
         <div style={{
             padding: '14px 16px', borderRadius: 12,
-            background: '#fff', border: '1px solid #e8e8ed',
-            transition: 'box-shadow 0.15s',
+            background: '#fff', border: `1px solid ${isExpanded ? meta.color + '44' : '#e8e8ed'}`,
+            transition: 'box-shadow 0.15s, border-color 0.15s',
         }}>
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
                 {/* Type indicator */}
@@ -589,7 +693,7 @@ const InboxCard: React.FC<{
                     {meta.letter}
                 </div>
 
-                <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ flex: 1, minWidth: 0, cursor: 'pointer' }} onClick={onToggleExpand}>
                     {/* Header */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                         <span style={{
@@ -602,6 +706,15 @@ const InboxCard: React.FC<{
                         <span style={{ fontSize: 12, fontWeight: 500, color: '#888' }}>
                             {userName}
                         </span>
+                        {userRoleLabel && (
+                            <span style={{
+                                fontSize: 10, fontWeight: 600, padding: '1px 6px',
+                                borderRadius: 5, background: '#f0f0f5', color: '#666',
+                                letterSpacing: '0.02em',
+                            }}>
+                                {userRoleLabel}
+                            </span>
+                        )}
                         {timeStr && (
                             <span style={{ fontSize: 11, color: '#bbb', marginLeft: 'auto' }}>{timeStr}</span>
                         )}
@@ -610,17 +723,18 @@ const InboxCard: React.FC<{
                     {/* Title */}
                     <div style={{ fontSize: 14, fontWeight: 600, marginTop: 4, color: '#1a1a2e', lineHeight: 1.35 }}>
                         {title}
+                        <span style={{ fontSize: 10, color: '#bbb', marginLeft: 8 }}>{isExpanded ? '▲' : '▼'}</span>
                     </div>
 
-                    {/* Description */}
-                    {description && (
+                    {/* Description (collapsed: truncated, expanded: hidden since shown below) */}
+                    {!isExpanded && description && (
                         <div style={{ fontSize: 12, color: '#888', marginTop: 3, lineHeight: 1.4 }}>
                             {description.slice(0, 150)}{description.length > 150 ? '…' : ''}
                         </div>
                     )}
 
-                    {/* Photo */}
-                    {photoUrl && (
+                    {/* Photo thumbnail (collapsed only) */}
+                    {!isExpanded && photoUrl && (
                         <img src={photoUrl} alt="" style={{
                             marginTop: 8, maxWidth: 160, maxHeight: 100,
                             borderRadius: 8, objectFit: 'cover', border: '1px solid #e8e8ed',
@@ -654,6 +768,67 @@ const InboxCard: React.FC<{
                     </button>
                 </div>
             </div>
+
+            {/* ── Expanded evidence panel ── */}
+            {isExpanded && (
+                <div style={{
+                    marginTop: 12, paddingTop: 12,
+                    borderTop: '1px solid #f0f0f0',
+                    display: 'flex', flexDirection: 'column', gap: 10,
+                }}>
+                    {typeof ev.reflection === 'string' && ev.reflection.trim() && (
+                        <div>
+                            <div style={{ fontSize: 11, fontWeight: 600, color: '#999', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 3 }}>Чему научился(лась)</div>
+                            <div style={{ fontSize: 13, color: '#333', lineHeight: 1.5 }}>{ev.reflection as string}</div>
+                        </div>
+                    )}
+                    {typeof ev.impact === 'string' && ev.impact.trim() && (
+                        <div>
+                            <div style={{ fontSize: 11, fontWeight: 600, color: '#999', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 3 }}>Реальный вклад</div>
+                            <div style={{ fontSize: 13, color: '#333', lineHeight: 1.5 }}>{ev.impact as string}</div>
+                        </div>
+                    )}
+                    {typeof ev.link === 'string' && ev.link.trim() && (
+                        <div>
+                            <div style={{ fontSize: 11, fontWeight: 600, color: '#999', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 3 }}>Ссылка</div>
+                            <a href={ev.link as string} target="_blank" rel="noopener noreferrer"
+                                style={{ fontSize: 13, color: '#3B82F6', wordBreak: 'break-all' }}>{ev.link as string}</a>
+                        </div>
+                    )}
+                    {/* Photos */}
+                    {allPhotos.length > 0 && (
+                        <div>
+                            <div style={{ fontSize: 11, fontWeight: 600, color: '#999', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 6 }}>Фото ({allPhotos.length})</div>
+                            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                                {allPhotos.map((url, i) => (
+                                    <img key={i} src={url} alt={`Фото ${i + 1}`} style={{
+                                        maxWidth: 200, maxHeight: 200, borderRadius: 10,
+                                        objectFit: 'cover', border: '1px solid #e8e8ed',
+                                        cursor: 'pointer',
+                                    }} onClick={() => window.open(url, '_blank')} />
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                    {/* Show badge_plan specific fields */}
+                    {item.type === 'badge_plan' && typeof (data.plan_text as string) === 'string' && (
+                        <div>
+                            <div style={{ fontSize: 11, fontWeight: 600, color: '#999', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 3 }}>План</div>
+                            <div style={{ fontSize: 13, color: '#333', lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>{data.plan_text as string}</div>
+                        </div>
+                    )}
+                    {item.type === 'bro_submission' && typeof (data.text as string) === 'string' && (
+                        <div>
+                            <div style={{ fontSize: 11, fontWeight: 600, color: '#999', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 3 }}>Ответ</div>
+                            <div style={{ fontSize: 13, color: '#333', lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>{data.text as string}</div>
+                        </div>
+                    )}
+                    {/* Empty evidence notice */}
+                    {!ev.reflection && !ev.impact && !ev.link && allPhotos.length === 0 && !data.plan_text && !data.text && (
+                        <div style={{ fontSize: 12, color: '#bbb', fontStyle: 'italic' }}>Доказательства не приложены</div>
+                    )}
+                </div>
+            )}
 
             {/* Reject input */}
             {isRejectOpen && (

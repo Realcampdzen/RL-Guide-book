@@ -152,13 +152,17 @@ const BadgeIcon: React.FC<BadgeIconProps> = ({
   const imagePath = imageCandidates[pathIndex] ?? null;
   const imageWebp = useWebp && imagePath ? toSiblingImageUrl(imagePath, 'webp') : null;
 
+  // Stable key so the reset only fires when the actual URLs change, not on every re-render.
+  const candidatesKey = imageCandidates.join('|');
+
   // Reset load/error state when the image source changes.
   useEffect(() => {
     setImageError(false);
     setImageLoaded(false);
     setPathIndex(0);
     setUseWebp(true);
-  }, [imageCandidates]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [candidatesKey]);
 
   useEffect(() => {
     setUseWebp(true);
@@ -185,14 +189,14 @@ const BadgeIcon: React.FC<BadgeIconProps> = ({
   }
 
   return (
-    <div 
+    <div
       className={className}
-      style={{ 
-        position: 'relative', 
-        width: getImageSize(size), 
-        height: getImageSize(size), 
-        display: 'flex', 
-        alignItems: 'center', 
+      style={{
+        position: 'relative',
+        width: getImageSize(size),
+        height: getImageSize(size),
+        display: 'flex',
+        alignItems: 'center',
         justifyContent: 'center',
         minWidth: getImageSize(size),
         minHeight: getImageSize(size),

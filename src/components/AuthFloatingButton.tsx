@@ -63,6 +63,18 @@ export const AuthFloatingButton: React.FC = () => {
     const [activeModal, setActiveModal] = useState<ActiveModal>('none');
     const [showMenu, setShowMenu] = useState(false);
     const [loading, setLoading] = useState(true);
+
+    // Hide when PersonalCabinet is open (sets data-cabinet-open on body)
+    const [cabinetOpen, setCabinetOpen] = useState(() =>
+        typeof document !== 'undefined' && document.body.hasAttribute('data-cabinet-open')
+    );
+    useEffect(() => {
+        const observer = new MutationObserver(() => {
+            setCabinetOpen(document.body.hasAttribute('data-cabinet-open'));
+        });
+        observer.observe(document.body, { attributes: true, attributeFilter: ['data-cabinet-open'] });
+        return () => observer.disconnect();
+    }, []);
     const [oauthError, setOauthError] = useState<string | null>(null);
 
     const deviceId = getDeviceId();
@@ -214,6 +226,7 @@ export const AuthFloatingButton: React.FC = () => {
     }, []);
 
     if (loading) return null;
+    if (cabinetOpen) return null; // Hide when PersonalCabinet is open
 
     const isLoggedIn = !!session || !!role;
     const roleInfo = role ? (ROLE_DISPLAY[role] || TRAVELER) : TRAVELER;
@@ -289,6 +302,16 @@ export const AuthFloatingButton: React.FC = () => {
                                     }}>
                                     <span style={{ width: 6, height: 6, borderRadius: 3, background: displayInfo.color }} />
                                     {displayInfo.label}
+                                </button>
+                                <button type="button" onClick={() => { setShowMenu(false); setActiveModal('role-select'); setOauthError(null); }}
+                                    style={{
+                                        width: '100%', padding: '8px 12px', borderRadius: 8,
+                                        background: 'none', border: 'none',
+                                        color: '#444', fontSize: 13, fontWeight: 500,
+                                        cursor: 'pointer', textAlign: 'left',
+                                        display: 'flex', alignItems: 'center', gap: 8,
+                                    }}>
+                                    🔄 Сменить роль
                                 </button>
                                 <button type="button" onClick={() => void handleSignOut()}
                                     style={{

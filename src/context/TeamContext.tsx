@@ -7,20 +7,8 @@ import { getRank } from '../types/userProgress';
 
 const TeamContext = createContext<TeamContextType | undefined>(undefined);
 
-const TEAM_STORAGE_KEY = 'rl_my_team_v1';
-
-function getScopeContextFromUrl(): { scope?: 'camp' | 'shift' | 'squad'; shiftId?: string; squadId?: string } {
-  try {
-    const params = new URLSearchParams(window.location.search);
-    const scopeRaw = (params.get('scope') || '').trim().toLowerCase();
-    const scope = scopeRaw === 'shift' || scopeRaw === 'squad' || scopeRaw === 'camp' ? scopeRaw : undefined;
-    const shiftId = (params.get('shiftId') || '').trim() || undefined;
-    const squadId = (params.get('squadId') || '').trim() || undefined;
-    return { scope, shiftId, squadId };
-  } catch {
-    return {};
-  }
-}
+const TEAMS_STORAGE_KEY = 'rl_my_teams_v2';
+const ACTIVE_TEAM_KEY = 'rl_active_team_id';
 
 const isDataUrl = (s: string | undefined): boolean => !!s && s.startsWith('data:');
 
@@ -38,310 +26,305 @@ function slimTeamForStorage(team: TeamData): TeamData {
   };
 }
 
-function persistTeamCache(team: TeamData | null) {
+function persistTeamsCache(teams: TeamData[]) {
   try {
-    if (team) {
-      const slim = slimTeamForStorage(team);
-      localStorage.setItem(TEAM_STORAGE_KEY, JSON.stringify(slim));
-    } else {
-      localStorage.removeItem(TEAM_STORAGE_KEY);
-    }
+    const slim = teams.map(slimTeamForStorage);
+    localStorage.setItem(TEAMS_STORAGE_KEY, JSON.stringify(slim));
   } catch (e) {
     if (e instanceof DOMException && (e.name === 'QuotaExceededError' || e.code === 22)) {
-      console.error('Слишком много данных в Движке.', e);
+      console.error('Слишком много данных в Движках.', e);
     }
   }
+}
+
+function loadTeamsFromStorage(): TeamData[] {
+  try {
+    const stored = localStorage.getItem(TEAMS_STORAGE_KEY);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      if (Array.isArray(parsed)) return parsed;
+    }
+    // Legacy migration: try old single-team key
+    const legacy = localStorage.getItem('rl_my_team_v1');
+    if (legacy) {
+      try {
+        const team = JSON.parse(legacy);
+        if (team && team.id) return [team];
+      } catch { /* ignore */ }
+    }
+  } catch { /* ignore */ }
+  return [];
 }
 
 export const TeamProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { userData } = useUserProgress();
   const { accessToken, deviceId } = useAuth();
-  const [myTeam, setMyTeam] = useState<TeamData | null>(null);
+  const [myTeams, setMyTeams] = useState<TeamData[]>([]);
+  const [activeTeamId, setActiveTeamId] = useState<string | null>(() => {
+    try { return localStorage.getItem(ACTIVE_TEAM_KEY) || null; } catch { return null; }
+  });
   const [isLoading, setIsLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
 
-  // Load: with token -> GET /api/teams/mine; without token -> localStorage only
-  useEffect(() => {
-    if (accessToken) {
-      setLoadError(null);
-      setIsLoading(true);
-      const ctx = getScopeContextFromUrl();
-      const query = new URLSearchParams();
-      if (ctx.scope) query.set('scope', ctx.scope);
-      if (ctx.shiftId) query.set('shiftId', ctx.shiftId);
-      if (ctx.squadId) query.set('squadId', ctx.squadId);
-      const mineUrl = query.toString() ? `/api/teams/mine?${query.toString()}` : '/api/teams/mine';
-      fetch(mineUrl, { headers: { Authorization: `Bearer ${accessToken}` } })
-        .then(res => {
-          if (res.status === 401) { fireOn401(); return Promise.reject(new Error('auth')); }
-          if (res.ok) return res.json();
-          if (res.status === 404) return null;
-          setLoadError('Не удалось загрузить Движок. Попробуйте позже.');
-          return Promise.reject(new Error('server'));
-        })
-        .then((data: TeamData | null) => {
-          if (data !== undefined) {
-            setLoadError(null);
-            setMyTeam(data);
-            persistTeamCache(data);
-          }
-        })
-        .catch((e: unknown) => {
-          if (e instanceof Error && e.message === 'auth') return;
-          if (!(e instanceof Error && e.message === 'server')) {
-            setLoadError('Ошибка сети. Проверьте подключение и нажмите «Повторить».');
-          }
-        })
-        .finally(() => setIsLoading(false));
-    } else {
-      setLoadError(null);
-      const stored = localStorage.getItem(TEAM_STORAGE_KEY);
-      if (stored) {
-        try {
-          setMyTeam(JSON.parse(stored));
-        } catch (e) {
-          console.error('Failed to parse team data', e);
-        }
-      }
-    }
-  }, [accessToken]);
+  const activeTeam = myTeams.find(t => t.id === activeTeamId) || myTeams[0] || null;
+  // Legacy compat alias
+  const myTeam = activeTeam;
 
-  // Save to LocalStorage on change (slim payload: no data URLs to avoid QuotaExceededError)
+  const setActiveTeam = useCallback((teamId: string) => {
+    setActiveTeamId(teamId);
+    try { localStorage.setItem(ACTIVE_TEAM_KEY, teamId); } catch { /* ignore */ }
+  }, []);
+
+  // Build auth headers — always include X-Device-Id so sandbox mode works too
+  const authHeaders = useCallback((): Record<string, string> => {
+    const h: Record<string, string> = { 'X-Device-Id': deviceId };
+    if (accessToken) h['Authorization'] = `Bearer ${accessToken}`;
+    return h;
+  }, [accessToken, deviceId]);
+
+  // Load: always attempt server fetch, fallback to localStorage on network error
+  useEffect(() => {
+    setLoadError(null);
+    setIsLoading(true);
+    fetch('/api/teams/mine', { headers: authHeaders() })
+      .then(res => {
+        if (res.status === 401) { if (accessToken) fireOn401(); return Promise.reject(new Error('auth')); }
+        if (res.ok) return res.json();
+        setLoadError('Не удалось загрузить Движки. Попробуйте позже.');
+        return Promise.reject(new Error('server'));
+      })
+      .then((data: TeamData[]) => {
+        if (Array.isArray(data)) {
+          setLoadError(null);
+          setMyTeams(data);
+          persistTeamsCache(data);
+        }
+      })
+      .catch((e: unknown) => {
+        if (e instanceof Error && e.message === 'auth') return;
+        if (!(e instanceof Error && e.message === 'server')) {
+          // Network error — fall back to localStorage
+          setLoadError(null);
+          setMyTeams(loadTeamsFromStorage());
+        }
+      })
+      .finally(() => setIsLoading(false));
+  }, [accessToken, deviceId]);
+
+  // Persist on change
   useEffect(() => {
     try {
-      if (myTeam) {
-        const slim = slimTeamForStorage(myTeam);
-        localStorage.setItem(TEAM_STORAGE_KEY, JSON.stringify(slim));
-      } else {
-        localStorage.removeItem(TEAM_STORAGE_KEY);
-      }
+      persistTeamsCache(myTeams);
     } catch (e) {
       if (e instanceof DOMException && (e.name === 'QuotaExceededError' || e.code === 22)) {
-        console.error('Слишком много данных в Движке. Удалите фото флага/логотипа или освободите место (резервная копия и очистка прогресса).');
-        alert('Не удалось сохранить Движок: недостаточно места в браузере. Удалите фото флага или логотипа Движка, либо сделайте резервную копию и очистите прогресс в Личном кабинете.');
+        console.error('Слишком много данных в Движках.');
       } else {
         throw e;
       }
     }
-  }, [myTeam]);
+  }, [myTeams]);
 
   const syncTeam = useCallback(async () => {
-    if (accessToken) {
-      setLoadError(null);
-      setIsLoading(true);
-      try {
-        const ctx = getScopeContextFromUrl();
-        const query = new URLSearchParams();
-        if (ctx.scope) query.set('scope', ctx.scope);
-        if (ctx.shiftId) query.set('shiftId', ctx.shiftId);
-        if (ctx.squadId) query.set('squadId', ctx.squadId);
-        const mineUrl = query.toString() ? `/api/teams/mine?${query.toString()}` : '/api/teams/mine';
-        const res = await fetch(mineUrl, { headers: { Authorization: `Bearer ${accessToken}` } });
-        if (res.status === 401) { fireOn401(); return; }
-        if (res.ok) {
-          const data = await res.json();
+    setLoadError(null);
+    setIsLoading(true);
+    try {
+      const res = await fetch('/api/teams/mine', { headers: authHeaders() });
+      if (res.status === 401) { if (accessToken) fireOn401(); return; }
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data)) {
           setLoadError(null);
-          setMyTeam(data);
-          persistTeamCache(data);
-        } else if (res.status === 404) {
-          setLoadError(null);
-          setMyTeam(null);
-          persistTeamCache(null);
-        } else {
-          setLoadError('Не удалось загрузить Движок. Попробуйте позже.');
+          setMyTeams(data);
+          persistTeamsCache(data);
         }
-      } catch {
-        setLoadError('Ошибка сети. Проверьте подключение и нажмите «Повторить».');
-      } finally {
-        setIsLoading(false);
+      } else {
+        setLoadError('Не удалось загрузить Движки. Попробуйте позже.');
       }
+    } catch {
+      setLoadError('Ошибка сети. Проверьте подключение и нажмите «Повторить».');
+    } finally {
+      setIsLoading(false);
     }
-    const params = new URLSearchParams(window.location.search);
-    const engineData = params.get('engine');
-    if (engineData) {
-      try {
-        const decoded = JSON.parse(atob(engineData));
-        if (decoded && decoded.name && decoded.id) {
-          console.log('Detected engine invitation:', decoded);
-        }
-      } catch (e) {
-        // ignore
-      }
-    }
-  }, [accessToken]);
+  }, [accessToken, authHeaders]);
 
   const createTeam = async (data: Omit<TeamData, 'id' | 'createdAt' | 'members' | 'achievements'>) => {
     const profile = userData?.profile;
-    const memberId = profile?.id ?? 'local';
     const memberNickname = profile?.nickname ?? 'Искатель';
     const memberAvatar = profile?.avatar;
     const totalLevels = profile?.stats?.totalLevelsAchieved ?? 0;
     const rank = getRank(totalLevels);
 
-    if (accessToken) {
-      setIsLoading(true);
-      try {
-        const ctx = getScopeContextFromUrl();
-        const scope = data.scope ?? ctx.scope ?? 'camp';
-        const shiftId = data.shiftId ?? ctx.shiftId;
-        const squadId = data.squadId ?? ctx.squadId;
-
-        const res = await fetch('/api/teams', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
-          body: JSON.stringify({
-            name: data.name,
-            motto: data.motto,
-            logo: data.logo,
-            goals: data.goals ?? [],
-            scope,
-            shiftId,
-            squadId,
-            nickname: memberNickname,
-            avatar: memberAvatar ?? '',
-            rank
-          })
-        });
-        if (res.status === 401) { fireOn401(); return; }
-        if (res.status === 409) {
-          const err = await res.json().catch(() => ({}));
-          const code = (err?.error || '').toLowerCase();
-          throw new Error(code.includes('already in a team') ? 'already_in_team' : 'Conflict');
-        }
-        if (!res.ok) throw new Error(res.statusText);
-        const team = await res.json();
-        setMyTeam(team);
-        persistTeamCache(team);
-      } finally {
-        setIsLoading(false);
-      }
-      return;
+    if (myTeams.length >= 3) {
+      throw new Error('max_teams');
     }
 
     setIsLoading(true);
-    const teamId = `T-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
-    const newTeam: TeamData = {
-      ...data,
-      id: teamId,
-      createdAt: new Date().toISOString(),
-      achievements: [],
-      members: [{ id: memberId, nickname: memberNickname, avatar: memberAvatar, rank }]
-    };
-    setMyTeam(newTeam);
-    setIsLoading(false);
+    try {
+      const res = await fetch('/api/teams', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
+        body: JSON.stringify({
+          name: data.name,
+          motto: data.motto,
+          logo: data.logo,
+          goals: data.goals ?? [],
+          scope: data.scope ?? 'camp',
+          shiftId: data.shiftId,
+          squadId: data.squadId,
+          nickname: memberNickname,
+          avatar: memberAvatar ?? '',
+          rank
+        })
+      });
+      if (res.status === 401) { if (accessToken) fireOn401(); return; }
+      if (res.status === 409) {
+        const err = await res.json().catch(() => ({}));
+        const code = (err?.code || err?.error || '').toLowerCase();
+        throw new Error(code.includes('max_teams') ? 'max_teams' : 'Conflict');
+      }
+      if (!res.ok) throw new Error(res.statusText);
+      const team = await res.json();
+      setMyTeams(prev => [...prev, team]);
+      setActiveTeam(team.id);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const joinTeam = async (teamId: string, options?: { nickname?: string; avatar?: string }) => {
-    if (accessToken) {
-      setIsLoading(true);
-      try {
-        const res = await fetch(`/api/teams/${encodeURIComponent(teamId)}/join`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
-          body: JSON.stringify({
-            nickname: options?.nickname ?? userData?.profile?.nickname ?? 'Искатель',
-            avatar: options?.avatar ?? userData?.profile?.avatar ?? ''
-          })
-        });
-        if (res.status === 401) { fireOn401(); return false; }
-        if (res.status === 404) {
-          return false;
-        }
-        if (res.status === 409) {
-          throw new Error('already_in_another_team');
-        }
-        if (!res.ok) {
-          throw new Error('server_or_network');
-        }
-        const team = await res.json();
-        setMyTeam(team);
-        persistTeamCache(team);
-        return true;
-      } finally {
-        setIsLoading(false);
-      }
-    }
-    console.log('Join team requested for:', teamId);
-    return true;
-  };
-
-  const updateTeam = (patch: Partial<TeamData>) => {
-    setMyTeam(prev => (prev ? { ...prev, ...patch } : null));
-    if (accessToken && myTeam) {
-      const body: Record<string, unknown> = {};
-      const allowed = ['name', 'motto', 'logo', 'goals', 'achievements', 'flagImage', 'gerbImage', 'planGridA', 'planGridB'];
-      allowed.forEach(k => { if (k in patch && patch[k as keyof TeamData] !== undefined) body[k] = patch[k as keyof TeamData]; });
-      if (Object.keys(body).length === 0) return;
-      fetch(`/api/teams/${encodeURIComponent(myTeam.id)}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
-        body: JSON.stringify(body)
-      })
-        .then(res => {
-          if (res.status === 401) { fireOn401(); return null; }
-          return res.ok ? res.json() : null;
+    setIsLoading(true);
+    try {
+      const res = await fetch(`/api/teams/${encodeURIComponent(teamId)}/join`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
+        body: JSON.stringify({
+          nickname: options?.nickname ?? userData?.profile?.nickname ?? 'Искатель',
+          avatar: options?.avatar ?? userData?.profile?.avatar ?? ''
         })
-        .then(updated => { if (updated) setMyTeam(updated); persistTeamCache(updated || null); })
-        .catch(() => {});
-    }
-  };
-
-  const leaveTeam = async () => {
-    if (accessToken && myTeam) {
-      try {
-        const res = await fetch(`/api/teams/${encodeURIComponent(myTeam.id)}/leave`, {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${accessToken}` } 
-        });
-        if (res.status === 401) { fireOn401(); return; }
-      } catch {
-        // still clear locally
+      });
+      if (res.status === 401) { if (accessToken) fireOn401(); return false; }
+      if (res.status === 404) return false;
+      if (res.status === 409) {
+        throw new Error('max_teams');
       }
-      setMyTeam(null);
-      persistTeamCache(null);
-      return;
+      if (!res.ok) throw new Error('server_or_network');
+      const team = await res.json();
+      setMyTeams(prev => {
+        const exists = prev.find(t => t.id === team.id);
+        return exists ? prev.map(t => t.id === team.id ? team : t) : [...prev, team];
+      });
+      setActiveTeam(team.id);
+      return true;
+    } finally {
+      setIsLoading(false);
     }
-    setMyTeam(null);
   };
 
-  const deleteTeam = async () => {
-    if (accessToken && myTeam && myTeam.leaderId === deviceId) {
-      try {
-        const res = await fetch(`/api/teams/${encodeURIComponent(myTeam.id)}`, {
-          method: 'DELETE',
-          headers: { Authorization: `Bearer ${accessToken}` }
-        });
-        if (res.status === 401) { fireOn401(); return; }
-      } catch {
-        // still clear locally
+  const updateTeam = (patch: Partial<TeamData>, teamId?: string) => {
+    const targetId = teamId || activeTeamId || myTeams[0]?.id;
+    if (!targetId) return;
+
+    setMyTeams(prev => prev.map(t => t.id === targetId ? { ...t, ...patch } : t));
+
+    const body: Record<string, unknown> = {};
+    const allowed = ['name', 'motto', 'logo', 'goals', 'achievements', 'flagImage', 'gerbImage', 'planGridA', 'planGridB'];
+    allowed.forEach(k => { if (k in patch && patch[k as keyof TeamData] !== undefined) body[k] = patch[k as keyof TeamData]; });
+    if (Object.keys(body).length === 0) return;
+    fetch(`/api/teams/${encodeURIComponent(targetId)}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body)
+    })
+      .then(res => {
+        if (res.status === 401) { if (accessToken) fireOn401(); return null; }
+        return res.ok ? res.json() : null;
+      })
+      .then(updated => {
+        if (updated) {
+          setMyTeams(prev => prev.map(t => t.id === targetId ? updated : t));
+        }
+      })
+      .catch(() => {});
+  };
+
+  const leaveTeam = async (teamId?: string) => {
+    const targetId = teamId || activeTeamId || myTeams[0]?.id;
+    if (!targetId) return;
+
+    try {
+      const res = await fetch(`/api/teams/${encodeURIComponent(targetId)}/leave`, {
+        method: 'POST',
+        headers: authHeaders()
+      });
+      if (res.status === 401 && accessToken) { fireOn401(); return; }
+    } catch {
+      // still clear locally
+    }
+    setMyTeams(prev => {
+      const remaining = prev.filter(t => t.id !== targetId);
+      if (activeTeamId === targetId) {
+        const next = remaining[0]?.id || null;
+        setActiveTeamId(next);
+        if (next) { try { localStorage.setItem(ACTIVE_TEAM_KEY, next); } catch { /* */ } }
+        else { try { localStorage.removeItem(ACTIVE_TEAM_KEY); } catch { /* */ } }
       }
-      setMyTeam(null);
-      persistTeamCache(null);
-      return;
-    }
-    setMyTeam(null);
+      return remaining;
+    });
   };
 
-  const generateInviteUrl = useCallback(() => {
-    if (!myTeam) return window.location.origin + window.location.pathname;
-    
-    // We encode basic team info (ID, Name, Motto, Logo, Goals) into Base64
+  const deleteTeam = async (teamId?: string) => {
+    const targetId = teamId || activeTeamId || myTeams[0]?.id;
+    if (!targetId) return;
+    const team = myTeams.find(t => t.id === targetId);
+    if (!team) return;
+
+    try {
+      const res = await fetch(`/api/teams/${encodeURIComponent(targetId)}`, {
+        method: 'DELETE',
+        headers: authHeaders()
+      });
+      if (res.status === 401 && accessToken) { fireOn401(); return; }
+    } catch {
+      // still clear locally
+    }
+    setMyTeams(prev => {
+      const remaining = prev.filter(t => t.id !== targetId);
+      if (activeTeamId === targetId) {
+        const next = remaining[0]?.id || null;
+        setActiveTeamId(next);
+        if (next) { try { localStorage.setItem(ACTIVE_TEAM_KEY, next); } catch { /* */ } }
+        else { try { localStorage.removeItem(ACTIVE_TEAM_KEY); } catch { /* */ } }
+      }
+      return remaining;
+    });
+  };
+
+  const generateInviteUrl = useCallback((teamId?: string) => {
+    const targetId = teamId || activeTeamId;
+    const team = targetId ? myTeams.find(t => t.id === targetId) : myTeams[0];
+    if (!team) return window.location.origin + window.location.pathname;
+
     const sharedData = {
-      id: myTeam.id,
-      name: myTeam.name,
-      motto: myTeam.motto,
-      logo: myTeam.logo,
-      goals: myTeam.goals
+      id: team.id,
+      name: team.name,
+      motto: team.motto,
+      logo: team.logo,
+      goals: team.goals
     };
-    
+
     const base64 = btoa(JSON.stringify(sharedData));
     const url = new URL(window.location.href);
     url.searchParams.set('engine', base64);
     return url.toString();
-  }, [myTeam]);
+  }, [myTeams, activeTeamId]);
 
   return (
-    <TeamContext.Provider value={{ myTeam, isLoading, loadError, createTeam, updateTeam, joinTeam, leaveTeam, deleteTeam, syncTeam, generateInviteUrl }}>
+    <TeamContext.Provider value={{
+      myTeams, activeTeam, activeTeamId, setActiveTeam,
+      myTeam, isLoading, loadError,
+      createTeam, updateTeam, joinTeam, leaveTeam, deleteTeam,
+      syncTeam, generateInviteUrl
+    }}>
       {children}
     </TeamContext.Provider>
   );

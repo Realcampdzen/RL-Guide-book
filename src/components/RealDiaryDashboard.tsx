@@ -1,8 +1,12 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useUserProgress } from '../hooks/useUserProgress';
 import type { MyActivityKey, ShiftScheduleKey } from '../types/userProgress';
 import { downloadBlob } from '../utils/socialGenerator';
 import { ACTIVITY_ITEMS, hasValues, ScheduleCell, ScheduleItem, SHIFT_ITEMS } from '../utils/scheduleConstants';
+import { ImageSourceBlock } from './ImageSourceBlock';
+import { requestImageGenerate } from '../utils/imageGenerateApi';
+import { useAuth } from '../context/AuthContext';
 
 const DIARY_ACCENT = 'var(--amber-500)';
 const DIARY_ACCENT_LIGHT = 'rgba(199, 119, 48, 0.25)';
@@ -13,9 +17,9 @@ const text = (v?: string) => (v || '').trim();
 
 const DiaryRow: React.FC<{ label: string; value: string; emoji?: string; onText: (v: string) => void; onEmoji: (v: string) => void }> = ({ label, value, emoji, onText, onEmoji }) => (
   <div style={{ display: 'grid', gap: 8 }}>
-    <label style={{ fontSize: 12, fontWeight: 600 }}>{label}</label>
+    <label style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255, 255, 255, 0.9)' }}>{label}</label>
     <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
-      <textarea className="w-input" value={value} onChange={(e) => onText(e.target.value)} rows={2} placeholder="Что было?" style={{ flex: 1, width: '100%', minHeight: 60 }} />
+      <textarea className="w-input real-diary-entry-textarea" value={value} onChange={(e) => onText(e.target.value)} rows={2} placeholder="Что было?" style={{ flex: 1, width: '100%', minHeight: 60 }} />
       <div style={{ width: 100, display: 'flex', flexWrap: 'wrap', gap: 4, flexShrink: 0 }}>
         {EMOJI_OPTIONS.map((em) => (
           <button key={em} type="button" onClick={() => onEmoji(emoji === em ? '' : em)} style={{ width: 28, height: 28, borderRadius: 8, border: emoji === em ? `2px solid ${DIARY_ACCENT}` : '1px solid rgba(255,255,255,0.2)', background: emoji === em ? DIARY_ACCENT_LIGHT : 'rgba(255,255,255,0.05)', cursor: 'pointer' }}>
@@ -27,7 +31,7 @@ const DiaryRow: React.FC<{ label: string; value: string; emoji?: string; onText:
   </div>
 );
 
-export type RealDiaryTabId = 'diary' | 'reflection' | 'schedule' | 'diary-card';
+export type RealDiaryTabId = 'diary' | 'reflection' | 'schedule' | 'diary-card' | 'photos';
 
 interface RealDiaryDashboardProps {
   variant?: 'accordion' | 'cabin';
@@ -37,8 +41,9 @@ interface RealDiaryDashboardProps {
   onScrollToInspector?: () => void;
 }
 
-export const RealDiaryDashboard: React.FC<RealDiaryDashboardProps> = ({ variant = 'accordion', activeTab = 'diary', onTabChange, onNavigateToBadge, onScrollToInspector }) => {
-  const { userData, updateDiaryEntry, updateDiaryShiftTemplates, setDiaryDay } = useUserProgress();
+export const RealDiaryDashboard: React.FC<RealDiaryDashboardProps> = ({ variant = 'accordion', activeTab = 'diary', onTabChange, onNavigateToBadge, onScrollToInspector: _onScrollToInspector }) => {
+  const { userData, updateDiaryEntry, updateDiaryShiftTemplates, setDiaryDay, updateDiaryPhotos } = useUserProgress();
+  const { accessToken } = useAuth();
   const progress = userData.diaryProgress || { currentDay: 1, entries: {} };
   const entries = progress.entries;
   const currentDay = progress.currentDay;
@@ -46,15 +51,25 @@ export const RealDiaryDashboard: React.FC<RealDiaryDashboardProps> = ({ variant 
 
   const [isExpanded, setIsExpanded] = useState(false);
   const [presentationExpanded, setPresentationExpanded] = useState(false);
-  const [presentationText, setPresentationText] = useState('');
-  const [copyToast, setCopyToast] = useState(false);
+  const [_presentationText, setPresentationText] = useState('');
+  // copyToast removed — was only used by deleted onCopy
   const [telegramToast, setTelegramToast] = useState(false);
   const [scheduleSavedToast, setScheduleSavedToast] = useState(false);
-  const [diaryShareToast, setDiaryShareToast] = useState(false);
+  const [cardImageUrl, setCardImageUrl] = useState<string | null>(null);
+  const [generatingCard, setGeneratingCard] = useState(false);
+  const [cardSavedToast, setCardSavedToast] = useState(false);
+  const [diarySavedToast, setDiarySavedToast] = useState<number | null>(null);
+  const toastTimerRef = useRef<ReturnType<typeof setTimeout>>();
+  const advanceTimerRef = useRef<ReturnType<typeof setTimeout>>();
+  const [cardPhoto, setCardPhoto] = useState<string | null>(null);
+  const [useCustomCardText, setUseCustomCardText] = useState(false);
+  const [customMemorable, setCustomMemorable] = useState('');
+  const [customConclusions, setCustomConclusions] = useState('');
 
   const [localMain, setLocalMain] = useState(currentEntry.mainMoments ?? '');
   const [localFriends, setLocalFriends] = useState(currentEntry.friends ?? '');
   const [localConclusions, setLocalConclusions] = useState(currentEntry.conclusions ?? '');
+  const [localContribution, setLocalContribution] = useState((currentEntry as any).contribution ?? '');
   const [localMorningText, setLocalMorningText] = useState(currentEntry.morningText ?? '');
   const [localMorningEmoji, setLocalMorningEmoji] = useState(currentEntry.morningEmoji ?? '');
   const [localDayText, setLocalDayText] = useState(currentEntry.dayText ?? '');
@@ -63,6 +78,8 @@ export const RealDiaryDashboard: React.FC<RealDiaryDashboardProps> = ({ variant 
   const [localEveningEmoji, setLocalEveningEmoji] = useState(currentEntry.eveningEmoji ?? '');
   const [localMemorableText, setLocalMemorableText] = useState(currentEntry.memorableText ?? '');
   const [localMemorableEmoji, setLocalMemorableEmoji] = useState(currentEntry.memorableEmoji ?? '');
+  const [localMemeText, setLocalMemeText] = useState((currentEntry as any).memeText ?? '');
+  const [localMemeEmoji, setLocalMemeEmoji] = useState((currentEntry as any).memeEmoji ?? '');
 
   const savedShift = progress.shiftSchedule ?? {};
   const savedActivities = progress.myActivities ?? {};
@@ -83,6 +100,7 @@ export const RealDiaryDashboard: React.FC<RealDiaryDashboardProps> = ({ variant 
     setLocalMain(e.mainMoments ?? '');
     setLocalFriends(e.friends ?? '');
     setLocalConclusions(e.conclusions ?? '');
+    setLocalContribution((e as any).contribution ?? '');
     setLocalMorningText(e.morningText ?? '');
     setLocalMorningEmoji(e.morningEmoji ?? '');
     setLocalDayText(e.dayText ?? '');
@@ -91,6 +109,8 @@ export const RealDiaryDashboard: React.FC<RealDiaryDashboardProps> = ({ variant 
     setLocalEveningEmoji(e.eveningEmoji ?? '');
     setLocalMemorableText(e.memorableText ?? '');
     setLocalMemorableEmoji(e.memorableEmoji ?? '');
+    setLocalMemeText((e as any).memeText ?? '');
+    setLocalMemeEmoji((e as any).memeEmoji ?? '');
   }, [currentDay, entries]);
 
   React.useEffect(() => {
@@ -116,6 +136,7 @@ export const RealDiaryDashboard: React.FC<RealDiaryDashboardProps> = ({ variant 
       mainMoments: text(localMain) || undefined,
       friends: text(localFriends) || undefined,
       conclusions: text(localConclusions) || undefined,
+      contribution: text(localContribution) || undefined,
       morningText: text(localMorningText) || undefined,
       morningEmoji: text(localMorningEmoji) || undefined,
       dayText: text(localDayText) || undefined,
@@ -123,18 +144,19 @@ export const RealDiaryDashboard: React.FC<RealDiaryDashboardProps> = ({ variant 
       eveningText: text(localEveningText) || undefined,
       eveningEmoji: text(localEveningEmoji) || undefined,
       memorableText: text(localMemorableText) || undefined,
-      memorableEmoji: text(localMemorableEmoji) || undefined
+      memorableEmoji: text(localMemorableEmoji) || undefined,
+      memeText: text(localMemeText) || undefined,
+      memeEmoji: text(localMemeEmoji) || undefined
     });
-    // Sharing trigger: all 3 time-of-day entries filled → offer to share
-    const allFilled = text(localMorningText) && text(localDayText) && text(localEveningText);
-    if (allFilled && typeof window !== 'undefined') {
-      const toastKey = `rl_diary_100_toast_day_${currentDay}`;
-      if (!localStorage.getItem(toastKey)) {
-        localStorage.setItem(toastKey, '1');
-        setDiaryShareToast(true);
-        setTimeout(() => setDiaryShareToast(false), 5000);
-      }
-    }
+    // Clear previous timers
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    if (advanceTimerRef.current) clearTimeout(advanceTimerRef.current);
+    // Show save confirmation
+    const nextDay = currentDay + 1;
+    setDiarySavedToast(nextDay);
+    toastTimerRef.current = setTimeout(() => setDiarySavedToast(null), 4000);
+    // Auto-advance to next day
+    advanceTimerRef.current = setTimeout(() => setDiaryDay(nextDay), 600);
   };
 
   const saveShift = () => {
@@ -174,23 +196,227 @@ export const RealDiaryDashboard: React.FC<RealDiaryDashboardProps> = ({ variant 
     return lines.join('\n') || 'Заполни разделы дневника и сохрани, чтобы создать резюме.';
   };
 
-  const onCopy = async () => {
-    const body = presentationText || buildPresentationText();
+  const generateDiaryCardImage = async () => {
+    setGeneratingCard(true);
     try {
-      await navigator.clipboard.writeText(body);
-      setCopyToast(true);
-      setTimeout(() => setCopyToast(false), 2000);
-    } catch {
-      alert('Не удалось скопировать');
+      const W = 1080;
+      const H = 1920;
+      const PAD = 56;
+      const canvas = document.createElement('canvas');
+      canvas.width = W;
+      canvas.height = H;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      // --- load background image ---
+      const bgImg = await new Promise<HTMLImageElement>((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => resolve(img);
+        img.onerror = reject;
+        const base = import.meta.env.BASE_URL || '/';
+        img.src = `${base}realdiarypic.jpg`;
+      });
+
+      // --- draw background (cover-fit) ---
+      const scale = Math.max(W / bgImg.width, H / bgImg.height);
+      const sw = W / scale;
+      const sh = H / scale;
+      const sx = (bgImg.width - sw) / 2;
+      const sy = (bgImg.height - sh) / 2;
+      ctx.drawImage(bgImg, sx, sy, sw, sh, 0, 0, W, H);
+
+      // --- dark gradient overlay ---
+      const overlay = ctx.createLinearGradient(0, 0, 0, H);
+      overlay.addColorStop(0, 'rgba(0, 0, 0, 0.45)');
+      overlay.addColorStop(0.35, 'rgba(0, 0, 0, 0.55)');
+      overlay.addColorStop(1, 'rgba(0, 0, 0, 0.72)');
+      ctx.fillStyle = overlay;
+      ctx.fillRect(0, 0, W, H);
+
+      // --- helpers ---
+      const maxTextWidth = W - PAD * 2;
+      const wrapLines = (txt: string, maxW: number): string[] => {
+        const words = txt.split(/\s+/).filter(Boolean);
+        if (!words.length) return [];
+        const result: string[] = [];
+        let line = '';
+        for (const word of words) {
+          const probe = line ? `${line} ${word}` : word;
+          if (ctx.measureText(probe).width <= maxW) { line = probe; continue; }
+          if (line) result.push(line);
+          line = word;
+        }
+        if (line) result.push(line);
+        return result;
+      };
+      const wrapTruncated = (txt: string, maxW: number, maxL: number): string[] => {
+        const lines = wrapLines(txt, maxW);
+        if (lines.length <= maxL) return lines;
+        const truncated = lines.slice(0, maxL);
+        truncated[maxL - 1] = truncated[maxL - 1].replace(/\s*\S*$/, '\u2026');
+        return truncated;
+      };
+
+      // ===== LAYOUT =====
+      let cursorY = 0;
+
+      // --- user photo (upper ~50%) ---
+      if (cardPhoto) {
+        const userImg = await new Promise<HTMLImageElement>((resolve, reject) => {
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          img.onload = () => resolve(img);
+          img.onerror = reject;
+          img.src = cardPhoto;
+        }).catch(() => null);
+
+        if (userImg) {
+          const photoH = Math.round(H * 0.50);
+          const photoMargin = 40;
+          const photoW = W - photoMargin * 2;
+          const pScale = Math.max(photoW / userImg.width, photoH / userImg.height);
+          const psw = photoW / pScale;
+          const psh = photoH / pScale;
+          const psx = (userImg.width - psw) / 2;
+          const psy = (userImg.height - psh) / 2;
+
+          // rounded clip
+          const radius = 32;
+          ctx.save();
+          ctx.beginPath();
+          ctx.moveTo(photoMargin + radius, photoMargin);
+          ctx.arcTo(photoMargin + photoW, photoMargin, photoMargin + photoW, photoMargin + photoH, radius);
+          ctx.arcTo(photoMargin + photoW, photoMargin + photoH, photoMargin, photoMargin + photoH, radius);
+          ctx.arcTo(photoMargin, photoMargin + photoH, photoMargin, photoMargin, radius);
+          ctx.arcTo(photoMargin, photoMargin, photoMargin + photoW, photoMargin, radius);
+          ctx.closePath();
+          ctx.clip();
+          ctx.drawImage(userImg, psx, psy, psw, psh, photoMargin, photoMargin, photoW, photoH);
+          ctx.restore();
+
+          // subtle border
+          ctx.strokeStyle = 'rgba(245, 158, 11, 0.4)';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(photoMargin + radius, photoMargin);
+          ctx.arcTo(photoMargin + photoW, photoMargin, photoMargin + photoW, photoMargin + photoH, radius);
+          ctx.arcTo(photoMargin + photoW, photoMargin + photoH, photoMargin, photoMargin + photoH, radius);
+          ctx.arcTo(photoMargin, photoMargin + photoH, photoMargin, photoMargin, radius);
+          ctx.arcTo(photoMargin, photoMargin, photoMargin + photoW, photoMargin, radius);
+          ctx.closePath();
+          ctx.stroke();
+
+          cursorY = photoMargin + photoH + 80;
+        }
+      }
+
+      // --- header ---
+      if (cursorY === 0) cursorY = 120;
+      ctx.fillStyle = '#f59e0b';
+      ctx.font = '800 42px "Montserrat", "Segoe UI", sans-serif';
+      ctx.fillText('\u0420\u0415\u0410\u041b\u042c\u041d\u042b\u0419 \u0414\u041d\u0415\u0412\u041d\u0418\u041a', PAD, cursorY);
+      cursorY += 80;
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '800 84px "Montserrat", "Segoe UI", sans-serif';
+      ctx.fillText(`\u0414\u0435\u043d\u044c ${currentDay}`, PAD, cursorY);
+
+      // --- squad name ---
+      const squad = progress.squad || {};
+      if (text(squad.name)) {
+        cursorY += 56;
+        ctx.fillStyle = 'rgba(245, 158, 11, 0.9)';
+        ctx.font = '600 38px "Montserrat", "Segoe UI", sans-serif';
+        ctx.fillText(`\u041e\u0442\u0440\u044f\u0434: ${text(squad.name)}`, PAD, cursorY);
+      }
+
+      // --- memorable moment ---
+      const e = entries[String(currentDay)] || {};
+      const valFont = '400 36px "Montserrat", "Segoe UI", sans-serif';
+      const valLineH = 48;
+
+      // Use custom text when toggle is on, otherwise diary data
+      const cardMemorableText = useCustomCardText ? customMemorable.trim() : text(e.memorableText);
+      const cardConclusionsText = useCustomCardText ? customConclusions.trim() : text(e.conclusions);
+
+      if (cardMemorableText) {
+        cursorY += 72;
+        ctx.fillStyle = '#fde68a';
+        ctx.font = '700 40px "Montserrat", "Segoe UI", sans-serif';
+        ctx.fillText('\u2b50 \u0427\u0435\u043c \u0437\u0430\u043f\u043e\u043c\u043d\u0438\u043b\u0441\u044f \u0434\u0435\u043d\u044c', PAD, cursorY);
+        cursorY += 52;
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.92)';
+        ctx.font = valFont;
+        const memLines = wrapTruncated(cardMemorableText, maxTextWidth, 4);
+        for (const ml of memLines) {
+          ctx.fillText(ml, PAD, cursorY);
+          cursorY += valLineH;
+        }
+      }
+
+      // --- conclusions ---
+      if (cardConclusionsText) {
+        cursorY += 48;
+        ctx.fillStyle = '#fde68a';
+        ctx.font = '700 40px "Montserrat", "Segoe UI", sans-serif';
+        ctx.fillText('\ud83d\udca1 \u041a\u0430\u043a\u0438\u0435 \u0432\u044b\u0432\u043e\u0434\u044b \u0441\u0434\u0435\u043b\u0430\u043b', PAD, cursorY);
+        cursorY += 52;
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.92)';
+        ctx.font = valFont;
+        const concLines = wrapTruncated(cardConclusionsText, maxTextWidth, 4);
+        for (const cl of concLines) {
+          ctx.fillText(cl, PAD, cursorY);
+          cursorY += valLineH;
+        }
+      }
+
+      // --- motto footer ---
+      if (text(squad.motto)) {
+        const mottoY = Math.max(cursorY + 56, H - 160);
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+        ctx.fillRect(PAD, mottoY - 4, W - PAD * 2, 2);
+        ctx.fillStyle = 'rgba(245, 158, 11, 0.8)';
+        ctx.font = 'italic 600 34px "Montserrat", "Segoe UI", sans-serif';
+        ctx.fillText(`\u00ab${text(squad.motto)}\u00bb`, PAD, mottoY + 40);
+      }
+
+      // --- bottom branding ---
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
+      ctx.font = '600 38px "Montserrat", "Segoe UI", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('\u0420\u0435\u0430\u043b\u044c\u043d\u044b\u0439 \u041b\u0430\u0433\u0435\u0440\u044c \u2022 \u0440\u0435\u0430\u043b\u044c\u043d\u044b\u0439\u043b\u0430\u0433\u0435\u0440\u044c.\u0440\u0444', W / 2, H - 50);
+      ctx.textAlign = 'start';
+
+      // --- export ---
+      const blob = await new Promise<Blob>((resolve, reject) => {
+        canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('PNG export failed'))), 'image/png', 0.95);
+      });
+      if (cardImageUrl) URL.revokeObjectURL(cardImageUrl);
+      setCardImageUrl(URL.createObjectURL(blob));
+    } catch (err) {
+      console.error('Diary card generation failed', err);
+      alert('Не удалось создать карточку');
+    } finally {
+      setGeneratingCard(false);
     }
   };
 
-  const onTelegram = () => {
-    const body = presentationText || buildPresentationText();
-    if (!body || body === 'Заполни разделы дневника и сохрани, чтобы создать резюме.') return;
-    window.open(`https://t.me/Stivanovv?text=${encodeURIComponent(body)}`, '_blank', 'noopener,noreferrer');
+
+  const onTelegram = async () => {
+    // Download the card image first
+    if (cardImageUrl) {
+      try {
+        const res = await fetch(cardImageUrl);
+        const blob = await res.blob();
+        const stamp = new Date().toISOString().slice(0, 10);
+        downloadBlob(blob, `дневник-день-${currentDay}-${stamp}.png`);
+      } catch { /* ignore download error */ }
+    }
+    // Open Telegram with a short caption
+    const caption = `📖 Реальный Дневник — День ${currentDay}`;
+    window.open(`https://t.me/Stivanovv?text=${encodeURIComponent(caption)}`, '_blank', 'noopener,noreferrer');
     setTelegramToast(true);
-    setTimeout(() => setTelegramToast(false), 3000);
+    setTimeout(() => setTelegramToast(false), 5000);
   };
 
   const saveSchedulesToDevice = async () => {
@@ -422,7 +648,7 @@ export const RealDiaryDashboard: React.FC<RealDiaryDashboardProps> = ({ variant 
   const scheduleTab = (
     <div className={sectionClass} style={variant === 'accordion' ? sectionWrapStyle : {}}>
       <div className="real-diary-schedule-columns">
-        {scheduleCard('Распорядок смены', SHIFT_ITEMS, localShift, editingShift, () => setEditingShift(true), saveShift, (k, f, v) => patchCell(setLocalShift, k, f, v))}
+        {scheduleCard('План дня', SHIFT_ITEMS, localShift, editingShift, () => setEditingShift(true), saveShift, (k, f, v) => patchCell(setLocalShift, k, f, v))}
         {scheduleCard('Мои занятия (кружки/тренировки)', ACTIVITY_ITEMS, localActivities, editingActivities, () => setEditingActivities(true), saveActivities, (k, f, v) => patchCell(setLocalActivities, k, f, v))}
       </div>
       {canExportSchedules ? (
@@ -434,14 +660,151 @@ export const RealDiaryDashboard: React.FC<RealDiaryDashboardProps> = ({ variant 
     </div>
   );
 
+  const downloadCardImage = () => {
+    if (!cardImageUrl) return;
+    fetch(cardImageUrl).then(r => r.blob()).then(blob => {
+      const stamp = new Date().toISOString().slice(0, 10);
+      downloadBlob(blob, `дневник-день-${currentDay}-${stamp}.png`);
+      setCardSavedToast(true);
+      setTimeout(() => setCardSavedToast(false), 2400);
+    });
+  };
+
   const diaryCard = (
     <div className={sectionClass} style={variant === 'accordion' ? sectionWrapStyle : {}}>
       {variant === 'accordion' ? <button type="button" onClick={() => setPresentationExpanded((v) => !v)} style={{ width: '100%', background: 'none', border: 'none', textAlign: 'left', color: DIARY_ACCENT, fontWeight: 700, cursor: 'pointer' }}>Карточка дневника ▾</button> : null}
       {(variant === 'cabin' || presentationExpanded) && (
-        <div style={{ display: 'grid', gap: 12, marginTop: variant === 'accordion' ? 12 : 0 }}>
-          <button type="button" onClick={() => setPresentationText(buildPresentationText())} className="btn-secondary" style={{ alignSelf: 'flex-start' }}>Создать карточку дневника</button>
-          {presentationText ? <textarea readOnly value={presentationText} rows={10} className="w-input" /> : null}
-          {presentationText ? <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}><button type="button" className="btn-secondary" onClick={onCopy}>Копировать</button><button type="button" className="btn-secondary" onClick={onTelegram}>Отправить в Telegram</button>{copyToast ? <span style={{ fontSize: 12, color: 'var(--cabin-neon-purple)' }}>Скопировано!</span> : null}{telegramToast ? <span style={{ fontSize: 12, color: 'var(--cabin-neon-purple)' }}>Открыт Telegram для отправки</span> : null}</div> : null}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: '3fr 2fr',
+          gridTemplateRows: 'auto auto',
+          gap: 12,
+          marginTop: variant === 'accordion' ? 12 : 0,
+          maxWidth: 640,
+        }}>
+          {/* Cell A — Photo (left, spans 2 rows) */}
+          <div style={{
+            gridRow: '1 / 3',
+            padding: 14, borderRadius: 16,
+            background: 'rgba(15, 10, 42, 0.12)',
+            backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
+            border: '1px solid rgba(255, 255, 255, 0.08)',
+            display: 'grid', gap: 8, alignContent: 'start',
+          }}>
+            <span style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.8)', letterSpacing: '0.03em' }}>Фото для карточки</span>
+            <ImageSourceBlock
+              className="squad-corner-image-source-block"
+              context="diary_photo"
+              value={cardPhoto}
+              onChange={(url) => setCardPhoto(url)}
+              aspect="9:16"
+              buttonLayout="bento"
+              labels={{ placeholder: 'Сэлфи или фото дня', upload: 'Загрузить фото', uploadReplace: 'Изменить фото', generate: 'Сгенерировать с ИИ', process: 'Обработать с ИИ', generateModalTitle: 'Сгенерировать фото для карточки', generateModalDescription: 'ИИ создаст изображение для твоей карточки дневника.' }}
+              onGenerate={async (o) => requestImageGenerate({ mode: 'generate', context: 'diary_card', prompt: o.prompt ?? '' }, accessToken ?? null)}
+              onProcess={async (imageBase64, o) => requestImageGenerate({ mode: 'process', context: 'diary_card', imageBase64, prompt: o?.prompt ?? '' }, accessToken ?? null)}
+            />
+          </div>
+
+          {/* Cell B — Custom text toggle (right top) */}
+          <div style={{
+            padding: 14, borderRadius: 16,
+            background: 'rgba(15, 10, 42, 0.12)',
+            backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
+            border: '1px solid rgba(255, 255, 255, 0.08)',
+            display: 'grid', gap: 10, alignContent: 'start',
+          }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.9)' }}>
+              <span
+                role="switch"
+                aria-checked={useCustomCardText}
+                onClick={() => setUseCustomCardText(v => !v)}
+                style={{
+                  width: 40, height: 22, borderRadius: 11, position: 'relative', flexShrink: 0,
+                  background: useCustomCardText ? 'rgba(245,158,11,0.7)' : 'rgba(255,255,255,0.15)',
+                  transition: 'background .2s', cursor: 'pointer',
+                }}
+              >
+                <span style={{
+                  position: 'absolute', top: 2, left: useCustomCardText ? 20 : 2,
+                  width: 18, height: 18, borderRadius: '50%', background: '#fff',
+                  transition: 'left .2s', boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
+                }} />
+              </span>
+              Свой текст
+            </label>
+            {!useCustomCardText && (
+              <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', lineHeight: 1.4 }}>
+                Тексты из дневника и рефлексии
+              </span>
+            )}
+            {useCustomCardText && (
+              <>
+                <textarea
+                  placeholder="Чем запомнился день"
+                  value={customMemorable}
+                  onChange={(ev) => setCustomMemorable(ev.target.value)}
+                  rows={2}
+                  style={{
+                    width: '100%', padding: '8px 10px', borderRadius: 10,
+                    background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.15)',
+                    color: '#fff', resize: 'vertical', fontSize: 12, fontFamily: 'inherit',
+                  }}
+                />
+                <textarea
+                  placeholder="Какие выводы сделал"
+                  value={customConclusions}
+                  onChange={(ev) => setCustomConclusions(ev.target.value)}
+                  rows={2}
+                  style={{
+                    width: '100%', padding: '8px 10px', borderRadius: 10,
+                    background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.15)',
+                    color: '#fff', resize: 'vertical', fontSize: 12, fontFamily: 'inherit',
+                  }}
+                />
+              </>
+            )}
+          </div>
+
+          {/* Cell C — Generate button (right bottom) */}
+          <div style={{
+            padding: 14, borderRadius: 16,
+            background: 'rgba(15, 10, 42, 0.12)',
+            backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
+            border: '1px solid rgba(255, 255, 255, 0.08)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <button
+              type="button"
+              onClick={() => { generateDiaryCardImage(); setPresentationText(buildPresentationText()); }}
+              className="btn-primary-gold"
+              disabled={generatingCard}
+              style={{ width: '100%', opacity: generatingCard ? 0.6 : 1 }}
+            >
+              {generatingCard ? 'Генерация...' : 'Создать карточку'}
+            </button>
+          </div>
+
+          {/* Cell D — Result preview (full width) */}
+          {cardImageUrl && (
+            <div style={{
+              gridColumn: '1 / -1',
+              padding: 14, borderRadius: 16,
+              background: 'rgba(15, 10, 42, 0.12)',
+              backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              display: 'grid', gap: 14, justifyItems: 'center',
+            }}>
+              <div style={{ borderRadius: 14, overflow: 'hidden', border: '1px solid rgba(245, 158, 11, 0.25)', maxWidth: 300 }}>
+                <img src={cardImageUrl} alt="Карточка дневника" style={{ width: '100%', display: 'block' }} />
+              </div>
+              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'center', paddingBottom: 80 }}>
+                <button type="button" className="btn-secondary" onClick={downloadCardImage}>Сохранить на устройство</button>
+                <button type="button" className="btn-secondary" onClick={onTelegram}>Отправить в Telegram</button>
+                {cardSavedToast && <span style={{ fontSize: 12, color: 'var(--cabin-neon-purple)' }}>Картинка сохранена!</span>}
+                {telegramToast && <span style={{ fontSize: 12, color: 'var(--cabin-neon-purple)' }}>Картинка скачана — прикрепи в чат</span>}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -449,28 +812,33 @@ export const RealDiaryDashboard: React.FC<RealDiaryDashboardProps> = ({ variant 
 
   const daySwitcher = (
     <div className={sectionClass} style={variant === 'accordion' ? sectionWrapStyle : {}}>
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+      <div className="real-diary-day-switcher" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         {dayKeys.map((d) => <button key={d} type="button" onClick={() => setDiaryDay(d)} className="btn-secondary" style={{ border: currentDay === d ? `1px solid ${DIARY_ACCENT}` : undefined }}>День {d}</button>)}
         <button type="button" className="btn-secondary" onClick={() => setDiaryDay((dayKeys.length ? Math.max(...dayKeys) : 0) + 1)}>+ День</button>
       </div>
-      {diaryShareToast && (
-        <div style={{ marginTop: 10, padding: '10px 14px', borderRadius: 10, background: 'rgba(245, 158, 11, 0.18)', border: '1px solid rgba(245, 158, 11, 0.5)', fontSize: 13, lineHeight: 1.5, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-          <span>📓 Дневник дня заполнен! Поделись карточкой с друзьями</span>
-          <button type="button" className="btn-secondary" style={{ padding: '4px 10px', fontSize: 11 }} onClick={() => setDiaryShareToast(false)}>✕</button>
-        </div>
-      )}
     </div>
   );
 
-  const diaryTab = <div className={sectionClass} style={variant === 'accordion' ? sectionWrapStyle : {}}><div style={{ display: 'grid', gap: 16 }}><DiaryRow label="Утро" value={localMorningText} emoji={localMorningEmoji} onText={setLocalMorningText} onEmoji={setLocalMorningEmoji} /><DiaryRow label="День" value={localDayText} emoji={localDayEmoji} onText={setLocalDayText} onEmoji={setLocalDayEmoji} /><DiaryRow label="Вечер" value={localEveningText} emoji={localEveningEmoji} onText={setLocalEveningText} onEmoji={setLocalEveningEmoji} /><DiaryRow label="Чем запомнился день" value={localMemorableText} emoji={localMemorableEmoji} onText={setLocalMemorableText} onEmoji={setLocalMemorableEmoji} /></div>{variant === 'cabin' ? <div style={{ marginTop: 12, display: 'flex', gap: 12, flexWrap: 'wrap' }}><button type="button" className="btn-primary-gold" onClick={saveDiary}>Сохранить</button>{onNavigateToBadge ? <button type="button" className="btn-secondary" onClick={() => onNavigateToBadge('2.6')}>Требования значка 2.6</button> : null}</div> : null}</div>;
-  const reflectionTab = <div className={sectionClass} style={variant === 'accordion' ? sectionWrapStyle : {}}><div style={{ display: 'grid', gap: 12 }}><textarea className="w-input" placeholder="Что было важным сегодня?" rows={3} value={localMain} onChange={(e) => setLocalMain(e.target.value)} /><textarea className="w-input" placeholder="О ком из друзей хочется записать?" rows={3} value={localFriends} onChange={(e) => setLocalFriends(e.target.value)} /><textarea className="w-input" placeholder="Какие выводы сделал за день?" rows={3} value={localConclusions} onChange={(e) => setLocalConclusions(e.target.value)} /><button type="button" className="btn-secondary" onClick={() => (onScrollToInspector ? onScrollToInspector() : onNavigateToBadge?.('14.1'))}>{onScrollToInspector ? 'К миссиям Инспектора ↑' : 'Перейти к миссиям Инспектора'}</button></div>{variant === 'cabin' ? <button type="button" className="btn-primary-gold" style={{ marginTop: 12 }} onClick={saveDiary}>Сохранить</button> : null}</div>;
+  const floatingToast = diarySavedToast !== null ? createPortal(
+    <div key="diary-save-toast" style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 10200, pointerEvents: 'none', opacity: 1, animation: 'diary-toast-fade 4s ease-out forwards' }}>
+      <style>{`@keyframes diary-toast-fade { 0% { opacity: 0; } 8% { opacity: 1; } 85% { opacity: 1; } 100% { opacity: 0; } }`}</style>
+      <div style={{ padding: '18px 36px', borderRadius: 20, background: 'rgba(8, 20, 40, 0.82)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid rgba(93, 228, 255, 0.25)', boxShadow: '0 16px 48px rgba(0, 0, 0, 0.6), 0 0 24px rgba(93, 228, 255, 0.15)', display: 'flex', alignItems: 'center', gap: 12 }}>
+        <span style={{ color: '#4ade80', fontSize: 22 }}>✓</span>
+        <span style={{ color: '#fff', fontSize: 17, fontWeight: 600, whiteSpace: 'nowrap' }}>Сохранено!</span>
+      </div>
+    </div>,
+    document.body
+  ) : null;
 
-  const summary = (
+  const diaryTab = <div className={sectionClass} style={variant === 'accordion' ? sectionWrapStyle : {}}><article className="real-diary-schedule-card"><div style={{ display: 'grid', gap: 16 }}><DiaryRow label="Утро" value={localMorningText} emoji={localMorningEmoji} onText={setLocalMorningText} onEmoji={setLocalMorningEmoji} /><DiaryRow label="День" value={localDayText} emoji={localDayEmoji} onText={setLocalDayText} onEmoji={setLocalDayEmoji} /><DiaryRow label="Вечер" value={localEveningText} emoji={localEveningEmoji} onText={setLocalEveningText} onEmoji={setLocalEveningEmoji} /><DiaryRow label="Мем дня" value={localMemeText} emoji={localMemeEmoji} onText={setLocalMemeText} onEmoji={setLocalMemeEmoji} /><DiaryRow label="Чем запомнился день" value={localMemorableText} emoji={localMemorableEmoji} onText={setLocalMemorableText} onEmoji={setLocalMemorableEmoji} /></div>{variant === 'cabin' ? <div style={{ marginTop: 12, display: 'flex', gap: 12, flexWrap: 'wrap' }}><button type="button" className="btn-primary-gold" onClick={saveDiary}>Сохранить</button></div> : null}</article></div>;
+  const reflectionTab = <div className={sectionClass} style={variant === 'accordion' ? sectionWrapStyle : {}}><article className="real-diary-schedule-card"><div style={{ display: 'grid', gap: 16 }}><div style={{ display: 'grid', gap: 8 }}><label style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255, 255, 255, 0.9)' }}>Что хорошего я сделал(а) сегодня?</label><textarea className="w-input real-diary-entry-textarea" placeholder="Любое доброе дело, помощь, поступок…" rows={3} value={localMain} onChange={(e) => setLocalMain(e.target.value)} /></div><div style={{ display: 'grid', gap: 8 }}><label style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255, 255, 255, 0.9)' }}>За что я могу себя похвалить?</label><textarea className="w-input real-diary-entry-textarea" placeholder="Чем ты можешь гордиться — пусть даже мелочью…" rows={3} value={localFriends} onChange={(e) => setLocalFriends(e.target.value)} /></div><div style={{ display: 'grid', gap: 8 }}><label style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255, 255, 255, 0.9)' }}>Чем я горжусь сегодня?</label><textarea className="w-input real-diary-entry-textarea" placeholder="Момент, достижение или решение, которым гордишься…" rows={3} value={localConclusions} onChange={(e) => setLocalConclusions(e.target.value)} /></div><div style={{ display: 'grid', gap: 8 }}><label style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255, 255, 255, 0.9)' }}>Мой вклад в наш отряд сегодня</label><textarea className="w-input real-diary-entry-textarea" placeholder="Что я сделал(а) для ребят, для нашей команды…" rows={3} value={localContribution} onChange={(e) => setLocalContribution(e.target.value)} /></div></div>{variant === 'cabin' ? <div style={{ marginTop: 12, display: 'flex', gap: 12, flexWrap: 'wrap' }}><button type="button" className="btn-primary-gold" onClick={saveDiary}>Сохранить</button></div> : null}</article></div>;
+
+  const summary = isShiftScheduleTab ? null : (
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: variant === 'accordion' && isExpanded ? 20 : 12 }}>
       <div onClick={variant === 'accordion' ? () => setIsExpanded((v) => !v) : undefined} style={{ cursor: variant === 'accordion' ? 'pointer' : 'default', flex: 1 }}>
         <div style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', color: DIARY_ACCENT, letterSpacing: '0.1em', marginBottom: 4 }}>Реальный Дневник</div>
-        <h3 style={{ margin: 0, fontSize: 18 }}>{isShiftScheduleTab ? 'Беспорядок дня' : `День ${currentDay}`}</h3>
-        {!isShiftScheduleTab && (variant === 'cabin' || !isExpanded) ? <div style={{ marginTop: 8, fontSize: 12, opacity: 0.7 }}>День {currentDay}, записей: {entriesCountForPreview}</div> : null}
+        <h3 style={{ margin: 0, fontSize: 18 }}>{`День ${currentDay}`}</h3>
+        {(variant === 'cabin' || !isExpanded) ? <div style={{ marginTop: 8, fontSize: 12, opacity: 0.7 }}>День {currentDay}, записей: {entriesCountForPreview}</div> : null}
       </div>
       {variant === 'accordion' ? <button type="button" onClick={() => setIsExpanded((v) => !v)} style={{ background: 'none', border: 'none', color: DIARY_ACCENT, fontSize: 20, cursor: 'pointer', transform: isExpanded ? 'rotate(180deg)' : 'none' }}>▾</button> : null}
     </div>
@@ -480,11 +848,42 @@ export const RealDiaryDashboard: React.FC<RealDiaryDashboardProps> = ({ variant 
     return (
       <div className="real-diary-dashboard" style={{ background: DIARY_GRADIENT, borderRadius: 24, padding: 20, border: `1px solid ${mvpFilledCount === 3 ? DIARY_ACCENT : DIARY_ACCENT_LIGHT}`, marginBottom: 24, position: 'relative', overflow: 'hidden' }}>
         {summary}
-        {isExpanded ? <div className="fade-in" style={{ display: 'grid', gap: 20 }}>{diaryCard}{daySwitcher}{diaryTab}{reflectionTab}{scheduleTab}<div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}><button type="button" className="btn-primary-gold" onClick={saveDiary}>Сохранить</button>{onNavigateToBadge ? <button type="button" className="btn-secondary" onClick={() => onNavigateToBadge('2.6')}>Требования значка 2.6</button> : null}</div></div> : null}
+        {isExpanded ? <div className="fade-in" style={{ display: 'grid', gap: 20 }}>{diaryCard}{daySwitcher}{diaryTab}{reflectionTab}{scheduleTab}<div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}><button type="button" className="btn-primary-gold" onClick={saveDiary}>Сохранить</button>{onNavigateToBadge ? <button type="button" className="btn-secondary" onClick={() => onNavigateToBadge('2.6')}>Требования значка 2.6</button> : null}</div></div> : null}
+        {floatingToast}
       </div>
     );
   }
 
-  const tabContent = activeTab === 'diary' ? diaryTab : activeTab === 'reflection' ? reflectionTab : activeTab === 'schedule' ? scheduleTab : diaryCard;
-  return <div className="fade-in real-diary-cabin-content" style={{ display: 'grid', gap: 16 }}>{summary}{isShiftScheduleTab ? null : daySwitcher}{tabContent}</div>;
+  const DIARY_PHOTO_SLOTS = [
+    { key: 'topMoment', label: 'Топ момент', description: 'Лучший момент смены — то, что запомнилось больше всего' },
+    { key: 'ourSquad', label: 'Наш Отряд', description: 'Общее фото вашего отряда' },
+    { key: 'withCounselors', label: 'Фото с Вожатыми', description: 'Фото с вашими вожатыми' },
+    { key: 'withFriends', label: 'Фото с друзьями', description: 'Фото с друзьями из лагеря' },
+  ];
+  const diaryPhotos = progress.photos || {};
+
+  const photosTab = (
+    <div className={sectionClass}>
+      <div className="real-diary-schedule-columns">
+        {DIARY_PHOTO_SLOTS.map(({ key, label, description }) => (
+          <article key={key} className="real-diary-schedule-card">
+            <h4 className="real-diary-schedule-card__title">{label}</h4>
+            <p style={{ margin: 0, fontSize: 12, opacity: 0.7, textAlign: 'center' }}>{description}</p>
+            <ImageSourceBlock
+              className="squad-corner-image-source-block"
+              context="diary_photo"
+              value={diaryPhotos[key] || null}
+              onChange={(url) => updateDiaryPhotos({ [key]: url || undefined })}
+              aspect="square"
+              labels={{ placeholder: label }}
+            />
+          </article>
+        ))}
+      </div>
+    </div>
+  );
+
+  const tabContent = activeTab === 'diary' ? diaryTab : activeTab === 'reflection' ? reflectionTab : activeTab === 'schedule' ? scheduleTab : activeTab === 'photos' ? photosTab : diaryCard;
+  const wrappedTab = <div key={activeTab}>{tabContent}</div>;
+  return <div className="real-diary-cabin-content" style={{ display: 'grid', gap: 16 }}>{summary}{isShiftScheduleTab ? null : daySwitcher}{wrappedTab}{floatingToast}</div>;
 };

@@ -84,12 +84,14 @@ export const BroInitiation: React.FC<BroInitiationProps> = ({
 
   if (progress.isBro) {
     return (
-      <div style={{
+      <div className="fade-in" style={{
         background: 'linear-gradient(135deg, rgba(139, 0, 255, 0.25) 0%, rgba(106, 13, 173, 0.4) 100%)',
         borderRadius: '24px',
         padding: isExpanded ? '32px 24px' : '16px 20px',
         border: '2px solid #8b00ff',
         boxShadow: '0 0 30px rgba(139, 0, 255, 0.3)',
+        backdropFilter: 'blur(8px)',
+        WebkitBackdropFilter: 'blur(8px)',
         marginBottom: '24px',
         textAlign: isExpanded ? 'center' : 'left',
         position: 'relative',
@@ -130,11 +132,13 @@ export const BroInitiation: React.FC<BroInitiationProps> = ({
 
   if (!progress.hasPassport) {
     return (
-      <div style={{
+      <div className="fade-in" style={{
         background: 'rgba(20, 10, 40, 0.7)',
         borderRadius: '24px',
         padding: isExpanded ? '32px 24px' : '16px 20px',
         border: '1px solid rgba(139, 0, 255, 0.4)',
+        backdropFilter: 'blur(8px)',
+        WebkitBackdropFilter: 'blur(8px)',
         marginBottom: '24px',
         position: 'relative'
       }}>
@@ -184,14 +188,15 @@ export const BroInitiation: React.FC<BroInitiationProps> = ({
   }
 
   return (
-    <div className="bro-initiation" style={{
+    <div className="bro-initiation fade-in" style={{
       background: 'rgba(20, 10, 40, 0.6)',
       borderRadius: '24px',
       padding: '24px',
       border: '1px solid rgba(139, 0, 255, 0.3)',
       marginBottom: '24px',
       position: 'relative',
-      backdropFilter: 'blur(10px)'
+      backdropFilter: 'blur(8px)',
+      WebkitBackdropFilter: 'blur(8px)',
     }}>
       {/* Header with Day Selector + Toggle */}
       <div 

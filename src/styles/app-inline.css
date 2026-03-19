@@ -448,7 +448,8 @@ a, button, .badge-card, .category-card, .clickable, .hover-target {
   left: 0;
   width: 100%;
   height: 100%;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   padding: 1rem;
   background: 
     linear-gradient(135deg, rgba(12, 12, 12, 0.3) 0%, rgba(26, 26, 46, 0.3) 50%, rgba(22, 33, 62, 0.3) 100%),

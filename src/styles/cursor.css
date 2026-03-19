@@ -8,12 +8,14 @@
   display: none;
 }
 
-/* Hide system cursor only when the custom cursor is active (desktop fine pointer). */
+/* Hide system cursor only when the custom cursor is active (desktop fine pointer).
+   Use a 1x1 transparent PNG cursor instead of cursor:none so Chrome still
+   allows middle-click autoscroll (autoscroll requires a non-none cursor). */
 html[data-cursor="on"],
 html[data-cursor="on"] a,
 html[data-cursor="on"] button,
 html[data-cursor="on"] [role='button'] {
-  cursor: none !important;
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1' height='1'/%3E") 0 0, auto !important;
 }
 
 html[data-cursor="on"] .cursor-dot,

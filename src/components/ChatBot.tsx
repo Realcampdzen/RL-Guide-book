@@ -146,8 +146,16 @@ const ChatBot: React.FC<ChatBotProps> = ({
     body.style.overflow = 'hidden';
     (body.style as any).overscrollBehavior = 'none';
     return () => {
-      body.style.overflow = prevOverflow;
-      (body.style as any).overscrollBehavior = prevOverscroll;
+      if (prevOverflow) {
+        body.style.overflow = prevOverflow;
+      } else {
+        body.style.removeProperty('overflow');
+      }
+      if (prevOverscroll) {
+        (body.style as any).overscrollBehavior = prevOverscroll;
+      } else {
+        body.style.removeProperty('overscroll-behavior');
+      }
     };
   }, [isMobile, isOpen]);
 

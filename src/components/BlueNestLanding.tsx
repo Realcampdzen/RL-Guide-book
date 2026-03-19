@@ -179,6 +179,16 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
   useTiltCard(featureCard1Ref);
   useTiltCard(featureCard2Ref);
 
+  // Safety: clear stale overflow:hidden on body (can persist after HMR or unclean unmounts of ChatBot/HintOverlay)
+  useEffect(() => {
+    if (document.body.style.overflow === 'hidden') {
+      document.body.style.removeProperty('overflow');
+    }
+    if ((document.body.style as any).overscrollBehavior === 'none') {
+      document.body.style.removeProperty('overscroll-behavior');
+    }
+  }, []);
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setLoaderHidden(true);

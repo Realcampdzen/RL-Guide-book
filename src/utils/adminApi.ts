@@ -9,7 +9,7 @@ import { ApiError } from './badgeApprovalApi';
 // Types
 // ---------------------------------------------------------------------------
 
-export type InboxItemType = 'badge' | 'initiative' | 'art' | 'engine' | 'inspector' | 'ugc' | 'tradition' | 'role_request';
+export type InboxItemType = 'badge' | 'initiative' | 'art' | 'engine' | 'inspector' | 'ugc' | 'tradition' | 'role_request' | 'bro_submission' | 'badge_plan' | 'vozhatifikator_proof';
 
 export interface InboxItem {
     id: string;
@@ -81,5 +81,33 @@ export async function generateRoleCode(
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
         body: JSON.stringify({ role }),
+    });
+}
+
+/** Submit a Вожатификатор (Путеводные огни) proof for approval. */
+export async function submitVozhatifikatorProof(payload: {
+    deviceId: string;
+    nickname: string;
+    userRole: string;
+    completedIds: string[];
+    totalPoints: number;
+    level: string;
+    photo?: string; // base64 data URL
+}): Promise<{ ok: true }> {
+    return requestJson<{ ok: true }>('/api/admin/inbox', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            type: 'vozhatifikator_proof',
+            data: {
+                nickname: payload.nickname,
+                userRole: payload.userRole,
+                completedIds: payload.completedIds,
+                totalPoints: payload.totalPoints,
+                level: payload.level,
+                photos: payload.photo ? [payload.photo] : [],
+            },
+            device_id: payload.deviceId,
+        }),
     });
 }

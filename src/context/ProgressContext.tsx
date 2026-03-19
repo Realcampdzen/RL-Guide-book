@@ -78,6 +78,7 @@ interface ProgressContextType {
     shiftSchedule?: Partial<Record<ShiftScheduleKey, { time?: string; note?: string }>>;
     myActivities?: Partial<Record<MyActivityKey, { time?: string; note?: string }>>;
   }) => void;
+  updateDiaryPhotos: (photos: Record<string, string | undefined>) => void;
   addFlagBadgeRequest: (badgeId: string, evidence?: { reflection?: string; impact?: string; link?: string }) => void;
   approveFlagBadgeRequest: (badgeId: string) => void;
   rejectFlagBadgeRequest: (badgeId: string) => void;
@@ -156,8 +157,8 @@ const initialData: IUserData = {
     currentDay: 1,
     entries: {}
   },
-  meta: { 
-    schemaVersion: SCHEMA_VERSION, 
+  meta: {
+    schemaVersion: SCHEMA_VERSION,
     lastSyncedAt: new Date().toISOString(),
     hasCompletedTutorial: false
   }
@@ -396,20 +397,20 @@ const normalizeUserData = (raw: any): IUserData => {
     }
   }
   const inspectorProgress = raw?.inspectorProgress || initialData.inspectorProgress;
-  
+
   const normalizedWingPlanGridA = normalizeWingPlanGrid(raw?.broProgress?.wingPlanGridA);
   const normalizedWingPlanGridB = normalizeWingPlanGrid(raw?.broProgress?.wingPlanGridB);
   const broProgress = raw?.broProgress
     ? {
-        ...(initialData.broProgress || {}),
-        ...raw.broProgress,
-        isBro: raw.broProgress.isBro ?? false,
-        hasPassport: raw.broProgress.hasPassport ?? false,
-        currentDay: raw.broProgress.currentDay ?? 1,
-        completedDeeds: raw.broProgress.completedDeeds ?? {},
-        wingPlanGridA: normalizedWingPlanGridA,
-        wingPlanGridB: normalizedWingPlanGridB
-      }
+      ...(initialData.broProgress || {}),
+      ...raw.broProgress,
+      isBro: raw.broProgress.isBro ?? false,
+      hasPassport: raw.broProgress.hasPassport ?? false,
+      currentDay: raw.broProgress.currentDay ?? 1,
+      completedDeeds: raw.broProgress.completedDeeds ?? {},
+      wingPlanGridA: normalizedWingPlanGridA,
+      wingPlanGridB: normalizedWingPlanGridB
+    }
     : initialData.broProgress;
 
   const rawSquad = raw?.diaryProgress?.squad;
@@ -431,19 +432,19 @@ const normalizeUserData = (raw: any): IUserData => {
   const squad = typeof rawSquad === 'object' ? (() => {
     const reqs = Array.isArray(rawSquad.flagBadgeRequests)
       ? rawSquad.flagBadgeRequests
-          .filter((r: any) => r && typeof r.badgeId === 'string' && ['pending', 'approved', 'rejected'].includes(r.status))
-          .map((r: any) => ({
-            badgeId: String(r.badgeId),
-            status: r.status as 'pending' | 'approved' | 'rejected',
-            requestedBy: typeof r.requestedBy === 'string' ? r.requestedBy : undefined,
-            requestedAt: typeof r.requestedAt === 'string' ? r.requestedAt : new Date().toISOString(),
-            evidence: r.evidence && typeof r.evidence === 'object' ? {
-              reflection: typeof r.evidence.reflection === 'string' ? r.evidence.reflection : undefined,
-              impact: typeof r.evidence.impact === 'string' ? r.evidence.impact : undefined,
-              link: typeof r.evidence.link === 'string' ? r.evidence.link : undefined
-            } : undefined,
-            resolvedAt: typeof r.resolvedAt === 'string' ? r.resolvedAt : undefined
-          }))
+        .filter((r: any) => r && typeof r.badgeId === 'string' && ['pending', 'approved', 'rejected'].includes(r.status))
+        .map((r: any) => ({
+          badgeId: String(r.badgeId),
+          status: r.status as 'pending' | 'approved' | 'rejected',
+          requestedBy: typeof r.requestedBy === 'string' ? r.requestedBy : undefined,
+          requestedAt: typeof r.requestedAt === 'string' ? r.requestedAt : new Date().toISOString(),
+          evidence: r.evidence && typeof r.evidence === 'object' ? {
+            reflection: typeof r.evidence.reflection === 'string' ? r.evidence.reflection : undefined,
+            impact: typeof r.evidence.impact === 'string' ? r.evidence.impact : undefined,
+            link: typeof r.evidence.link === 'string' ? r.evidence.link : undefined
+          } : undefined,
+          resolvedAt: typeof r.resolvedAt === 'string' ? r.resolvedAt : undefined
+        }))
       : undefined;
     const approved = Array.isArray(rawSquad.flagBadgesApproved)
       ? rawSquad.flagBadgesApproved.filter((id: unknown) => typeof id === 'string' && /^10\.[123]$/.test(id))
@@ -453,12 +454,12 @@ const normalizeUserData = (raw: any): IUserData => {
 
   const diaryProgress = raw?.diaryProgress && typeof raw.diaryProgress === 'object'
     ? {
-        currentDay: Math.max(1, Number(raw.diaryProgress.currentDay) || 1),
-        squad,
-        shiftSchedule: normalizeDiaryTemplateRecord<ShiftScheduleKey>(raw.diaryProgress.shiftSchedule, SHIFT_SCHEDULE_KEYS),
-        myActivities: normalizeDiaryTemplateRecord<MyActivityKey>(raw.diaryProgress.myActivities, MY_ACTIVITY_KEYS),
-        entries: typeof raw.diaryProgress.entries === 'object' ? raw.diaryProgress.entries : {}
-      }
+      currentDay: Math.max(1, Number(raw.diaryProgress.currentDay) || 1),
+      squad,
+      shiftSchedule: normalizeDiaryTemplateRecord<ShiftScheduleKey>(raw.diaryProgress.shiftSchedule, SHIFT_SCHEDULE_KEYS),
+      myActivities: normalizeDiaryTemplateRecord<MyActivityKey>(raw.diaryProgress.myActivities, MY_ACTIVITY_KEYS),
+      entries: typeof raw.diaryProgress.entries === 'object' ? raw.diaryProgress.entries : {}
+    }
     : initialData.diaryProgress!;
 
   const meta = {
@@ -468,14 +469,14 @@ const normalizeUserData = (raw: any): IUserData => {
     hasCompletedTutorial: raw?.meta?.hasCompletedTutorial ?? false,
     squadArchitectScenario:
       raw?.meta?.squadArchitectScenario &&
-      typeof raw.meta.squadArchitectScenario === 'object' &&
-      typeof raw.meta.squadArchitectScenario.name === 'string' &&
-      Array.isArray(raw.meta.squadArchitectScenario.traditions)
+        typeof raw.meta.squadArchitectScenario === 'object' &&
+        typeof raw.meta.squadArchitectScenario.name === 'string' &&
+        Array.isArray(raw.meta.squadArchitectScenario.traditions)
         ? {
-            name: String(raw.meta.squadArchitectScenario.name),
-            traditions: raw.meta.squadArchitectScenario.traditions.filter((t: unknown) => typeof t === 'string'),
-            generatedAt: String(raw.meta.squadArchitectScenario.generatedAt || new Date().toISOString())
-          }
+          name: String(raw.meta.squadArchitectScenario.name),
+          traditions: raw.meta.squadArchitectScenario.traditions.filter((t: unknown) => typeof t === 'string'),
+          generatedAt: String(raw.meta.squadArchitectScenario.generatedAt || new Date().toISOString())
+        }
         : undefined
   };
 
@@ -630,7 +631,7 @@ export const ProgressProvider: React.FC<{ children: ReactNode }> = ({ children }
       const current = prev.inspectorProgress || { currentDay: 1, completedTasks: {} };
       const dayKey = String(dayIndex);
       const dayTasks = current.completedTasks[dayKey] || [];
-      
+
       let newDayTasks: string[];
       if (completed) {
         newDayTasks = Array.from(new Set([...dayTasks, taskIndex]));
@@ -668,7 +669,7 @@ export const ProgressProvider: React.FC<{ children: ReactNode }> = ({ children }
       const current = prev.broProgress || { isBro: false, hasPassport: false, currentDay: 1, completedDeeds: {} };
       const dayKey = String(dayIndex);
       const dayDeeds = current.completedDeeds[dayKey] || [];
-      
+
       let newDayDeeds: string[];
       if (completed) {
         newDayDeeds = Array.from(new Set([...dayDeeds, deedId]));
@@ -777,6 +778,18 @@ export const ProgressProvider: React.FC<{ children: ReactNode }> = ({ children }
       return {
         ...prev,
         diaryProgress: { ...current, squad },
+        meta: { ...prev.meta, lastSyncedAt: new Date().toISOString() }
+      };
+    });
+  };
+
+  const updateDiaryPhotos = (photos: Record<string, string | undefined>) => {
+    setUserData(prev => {
+      const current = prev.diaryProgress || { currentDay: 1, entries: {} };
+      const merged = { ...(current.photos || {}), ...photos };
+      return {
+        ...prev,
+        diaryProgress: { ...current, photos: merged },
         meta: { ...prev.meta, lastSyncedAt: new Date().toISOString() }
       };
     });
@@ -1056,7 +1069,7 @@ export const ProgressProvider: React.FC<{ children: ReactNode }> = ({ children }
     setUserData(prev => {
       const newProgress = { ...prev.progress };
       const current = newProgress[levelId] || { status: 'locked' };
-      
+
       const updatedItem: ILevelProgress = {
         ...current,
         status,
@@ -1573,10 +1586,10 @@ export const ProgressProvider: React.FC<{ children: ReactNode }> = ({ children }
     setUserData(prev => {
       const current = prev.likedBadges || [];
       const isLiked = current.includes(badgeBaseId);
-      const next = isLiked 
+      const next = isLiked
         ? current.filter(id => id !== badgeBaseId)
         : [...current, badgeBaseId];
-      
+
       return {
         ...prev,
         likedBadges: next,
@@ -1657,7 +1670,7 @@ export const ProgressProvider: React.FC<{ children: ReactNode }> = ({ children }
     const levels = Object.entries(userData.progress).filter(([key]) => key === badgeId || key.startsWith(`${badgeId}.`));
     const achieved = levels.filter(([_, p]) => p.status === 'achieved').length;
     const started = levels.filter(([_, p]) => p.status === 'in_progress').length;
-    
+
     return { total: levels.length, achieved, started };
   };
 
@@ -1709,12 +1722,12 @@ export const ProgressProvider: React.FC<{ children: ReactNode }> = ({ children }
   };
 
   return (
-    <ProgressContext.Provider value={{ 
-      userData, 
-      isLoading, 
+    <ProgressContext.Provider value={{
+      userData,
+      isLoading,
       updateLevelStatus,
       applyApprovedLevel,
-      updateLevelEvidence, 
+      updateLevelEvidence,
       updateBadgeSkin,
       setCustomBadgeImage,
       addGeneratedBadgeSkin,
@@ -1734,7 +1747,7 @@ export const ProgressProvider: React.FC<{ children: ReactNode }> = ({ children }
       setProfileStatus,
       setProfileBio,
       resetProfile,
-      getLevelProgress, 
+      getLevelProgress,
       getBadgeProgress,
       exportData,
       importData,
@@ -1742,17 +1755,18 @@ export const ProgressProvider: React.FC<{ children: ReactNode }> = ({ children }
       completeTutorial,
       updateInspectorTask,
       setInspectorDay,
-    updateBroDeed,
-    setBroDay,
-    setWingAvatar,
-    setWingName,
-    updateBroWingPlans,
-    updateDiaryEntry,
-    updateDiarySquad,
-    updateDiaryShiftTemplates,
-    addFlagBadgeRequest,
-    approveFlagBadgeRequest,
-    rejectFlagBadgeRequest,
+      updateBroDeed,
+      setBroDay,
+      setWingAvatar,
+      setWingName,
+      updateBroWingPlans,
+      updateDiaryEntry,
+      updateDiarySquad,
+      updateDiaryPhotos,
+      updateDiaryShiftTemplates,
+      addFlagBadgeRequest,
+      approveFlagBadgeRequest,
+      rejectFlagBadgeRequest,
       setDiaryDay,
       receivePassport,
       becomeBro,

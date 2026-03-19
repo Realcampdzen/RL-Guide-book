@@ -86,10 +86,14 @@ export const HintOverlayProvider: React.FC<{ children: React.ReactNode }> = ({ c
   // Prevent scroll when hint is open
   useEffect(() => {
     if (isOpen) {
-      const originalStyle = window.getComputedStyle(document.body).overflow;
+      const prevInline = document.body.style.overflow;
       document.body.style.overflow = 'hidden';
       return () => {
-        document.body.style.overflow = originalStyle;
+        if (prevInline) {
+          document.body.style.overflow = prevInline;
+        } else {
+          document.body.style.removeProperty('overflow');
+        }
       };
     }
   }, [isOpen]);

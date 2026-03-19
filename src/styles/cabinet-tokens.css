@@ -1,0 +1,245 @@
+/* ════════════════════════════════════════════════════════════════════════════
+   Cabinet Design Tokens — unified dark cosmic theme
+   ════════════════════════════════════════════════════════════════════════════ */
+
+:root {
+    /* ── Surfaces ── */
+    --cab-bg-card: rgba(15, 10, 42, 0.12);
+    --cab-bg-card-hover: rgba(25, 18, 56, 0.2);
+    --cab-bg-elevated: rgba(10, 18, 38, 0.2);
+    --cab-bg-input: rgba(255, 255, 255, 0.04);
+    --cab-bg-overlay: rgba(0, 0, 0, 0.3);
+
+    /* ── Borders ── */
+    --cab-border: 1px solid rgba(255, 255, 255, 0.08);
+    --cab-border-color: rgba(255, 255, 255, 0.08);
+    --cab-border-subtle: 1px solid rgba(255, 255, 255, 0.04);
+    --cab-border-accent: 1px solid rgba(93, 228, 255, 0.2);
+
+    /* ── Text ── */
+    --cab-text-primary: #e8f0ff;
+    --cab-text-secondary: rgba(255, 255, 255, 0.5);
+    --cab-text-muted: rgba(255, 255, 255, 0.35);
+    --cab-text-inverse: #0f0a1f;
+
+    /* ── Accents ── */
+    --cab-accent: #5de4ff;
+    --cab-accent-dim: rgba(93, 228, 255, 0.15);
+    --cab-accent-warm: #ffd700;
+    --cab-accent-danger: #ff6b6b;
+    --cab-accent-success: #4ecdc4;
+
+    /* ── Layout ── */
+    --cab-radius-card: 16px;
+    --cab-radius-btn: 10px;
+    --cab-radius-pill: 20px;
+    --cab-blur: blur(8px);
+    --cab-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+    --cab-shadow-elevated: 0 8px 32px rgba(0, 0, 0, 0.4);
+
+    /* ── Typography ── */
+    --cab-font: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --cab-font-size-xs: 11px;
+    --cab-font-size-sm: 13px;
+    --cab-font-size-base: 14px;
+    --cab-font-size-lg: 16px;
+    --cab-font-size-xl: 18px;
+    --cab-font-size-2xl: 22px;
+
+    /* ── Transitions ── */
+    --cab-transition: all 0.15s ease;
+    --cab-transition-slow: all 0.3s ease;
+}
+
+/* ── Glassmorphic card mixin (use as class) ── */
+.cab-card {
+    background: var(--cab-bg-card);
+    border: var(--cab-border);
+    border-radius: var(--cab-radius-card);
+    backdrop-filter: var(--cab-blur);
+    -webkit-backdrop-filter: var(--cab-blur);
+}
+
+.cab-card:hover {
+    background: var(--cab-bg-card-hover);
+}
+
+/* ── Empty state container — glassmorphic ── */
+.cab-empty-state {
+    padding: 64px 40px;
+    border-radius: var(--cab-radius-card);
+    text-align: center;
+    background: rgba(15, 10, 42, 0.12);
+    border: var(--cab-border);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+.cab-empty-state__icon {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--cab-accent-dim);
+    border: 1px solid rgba(93, 228, 255, 0.15);
+}
+
+.cab-empty-state__icon svg {
+    width: 28px;
+    height: 28px;
+    color: var(--cab-accent);
+    opacity: 0.9;
+}
+
+.cab-empty-state__title {
+    font-size: var(--cab-font-size-xl);
+    font-weight: 700;
+    color: var(--cab-text-primary);
+    margin-bottom: 10px;
+    letter-spacing: -0.01em;
+}
+
+.cab-empty-state__desc {
+    font-size: var(--cab-font-size-base);
+    color: var(--cab-text-secondary);
+    max-width: 420px;
+    margin: 0 auto;
+    line-height: 1.6;
+}
+
+/* ── Dark buttons ── */
+.cab-btn {
+    padding: 8px 16px;
+    border-radius: var(--cab-radius-btn);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--cab-text-primary);
+    font-size: var(--cab-font-size-xs);
+    font-weight: 600;
+    cursor: pointer;
+    font-family: var(--cab-font);
+    transition: var(--cab-transition);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.cab-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.cab-btn--primary {
+    background: var(--cab-accent-dim);
+    color: var(--cab-accent);
+    border-color: rgba(93, 228, 255, 0.25);
+}
+
+.cab-btn--primary:hover {
+    background: rgba(93, 228, 255, 0.25);
+}
+
+.cab-btn--danger {
+    color: var(--cab-accent-danger);
+    border-color: rgba(255, 107, 107, 0.2);
+}
+
+.cab-btn--danger:hover {
+    background: rgba(255, 107, 107, 0.1);
+}
+
+/* ── Shift/squad card overrides ── */
+.cab-shift-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 18px;
+    border-radius: var(--cab-radius-card);
+    background: var(--cab-bg-card);
+    border: var(--cab-border);
+    backdrop-filter: var(--cab-blur);
+    -webkit-backdrop-filter: var(--cab-blur);
+    transition: var(--cab-transition);
+    cursor: pointer;
+    text-align: left;
+    font-family: var(--cab-font);
+    animation: profile-fadeIn 0.4s ease-out;
+}
+
+.cab-shift-card:hover {
+    background: var(--cab-bg-card-hover);
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+.cab-shift-card__avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--cab-text-primary);
+    overflow: hidden;
+}
+
+.cab-shift-card__avatar--spring {
+    background: linear-gradient(135deg, rgba(77, 205, 196, 0.3), rgba(93, 228, 255, 0.2));
+}
+
+.cab-shift-card__avatar--summer {
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.3), rgba(255, 159, 67, 0.2));
+}
+
+.cab-shift-card__avatar--autumn {
+    background: linear-gradient(135deg, rgba(255, 159, 67, 0.3), rgba(255, 107, 107, 0.2));
+}
+
+.cab-shift-card__avatar--default {
+    background: linear-gradient(135deg, rgba(138, 130, 255, 0.3), rgba(93, 228, 255, 0.2));
+}
+
+.cab-shift-card__name {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--cab-text-primary);
+}
+
+.cab-shift-card__meta {
+    font-size: var(--cab-font-size-xs);
+    color: var(--cab-text-muted);
+    margin-top: 2px;
+}
+
+/* ── Global purple scrollbars for the Personal Cabinet ── */
+.cab-card,
+.cab-card *,
+.cab-empty-state,
+[style*="overflowY"] {
+    scrollbar-color: rgba(139, 0, 255, 0.5) rgba(255, 255, 255, 0.06);
+    scrollbar-width: thin;
+}
+
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(139, 0, 255, 0.5);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(139, 0, 255, 0.7);
+}

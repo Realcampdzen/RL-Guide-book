@@ -15,21 +15,21 @@ const copyApiPlugin = () => ({
       if (!existsSync(distApiDir)) {
         mkdirSync(distApiDir, { recursive: true })
       }
-      
+
       // Копируем все файлы из api в dist/api
       const fs = require('fs')
       const path = require('path')
-      
+
       function copyDir(src, dest) {
         if (!existsSync(dest)) {
           mkdirSync(dest, { recursive: true })
         }
-        
+
         const entries = fs.readdirSync(src, { withFileTypes: true })
         for (const entry of entries) {
           const srcPath = path.join(src, entry.name)
           const destPath = path.join(dest, entry.name)
-          
+
           if (entry.isDirectory()) {
             if (entry.name !== 'node_modules' && !entry.name.startsWith('.')) {
               copyDir(srcPath, destPath)
@@ -39,7 +39,7 @@ const copyApiPlugin = () => ({
           }
         }
       }
-      
+
       copyDir('api', 'dist/api')
     }
   }
@@ -96,7 +96,7 @@ const rlGuideBookDevPlugin = (): Plugin => ({
         // Сначала декодируем URL, потом извлекаем путь
         // Обрабатываем как полностью закодированный путь, так и частично закодированный
         let encodedPath = req.url.replace('/RL-Guide-book/', '')
-        
+
         // Пытаемся декодировать путь, обрабатывая возможное двойное кодирование
         let decodedPath: string
         try {
@@ -110,7 +110,7 @@ const rlGuideBookDevPlugin = (): Plugin => ({
           // Если декодирование не удалось, используем исходный путь
           decodedPath = encodedPath
         }
-        
+
         const cleanPath = decodedPath.split('?')[0].split('#')[0]
         // profile-desktop.html: в dev отдаём из корня проекта (multi-page entry)
         if (cleanPath === 'profile-desktop.html') {
@@ -143,7 +143,7 @@ const rlGuideBookDevPlugin = (): Plugin => ({
           }
         }
         const publicPath = resolve(process.cwd(), 'public', cleanPath)
-        
+
         // Логирование для отладки (только для изображений значков)
         if (cleanPath.includes('Новые значки') || cleanPath.includes('%D0%9D%D0%BE%D0%B2%D1%8B%D0%B5')) {
           console.log('Vite plugin: serving file', {
@@ -155,7 +155,7 @@ const rlGuideBookDevPlugin = (): Plugin => ({
             exists: existsSync(publicPath)
           })
         }
-        
+
         if (existsSync(publicPath) && statSync(publicPath).isFile()) {
           try {
             const content = readFileSync(publicPath)
@@ -173,7 +173,7 @@ const rlGuideBookDevPlugin = (): Plugin => ({
               'js': 'application/javascript',
               'md': 'text/markdown'
             }
-            
+
             res.setHeader('Content-Type', mimeTypes[ext || ''] || 'application/octet-stream')
             res.setHeader('Cache-Control', 'no-cache')
             res.end(content)
@@ -207,12 +207,12 @@ const copyRLGuideBookPlugin = () => ({
   writeBundle() {
     const fs = require('fs')
     const path = require('path')
-    
+
     // Целевая директория — корень dist, т.к. GitHub Pages уже добавляет /RL-Guide-book/ prefix
     const targetDir = 'dist'
-    
+
     console.log('📦 Копирование public/ → dist/ ...')
-    
+
     if (existsSync('public')) {
       let copiedFiles = 0
       let copiedDirs = 0
@@ -238,19 +238,19 @@ const copyRLGuideBookPlugin = () => ({
         }
         return false
       }
-       
+
       function copyDir(src, dest) {
         if (!existsSync(dest)) {
           mkdirSync(dest, { recursive: true })
           copiedDirs++
         }
-        
+
         try {
           const entries = fs.readdirSync(src, { withFileTypes: true, encoding: 'utf8' })
           for (const entry of entries) {
             const srcPath = path.join(src, entry.name)
             const destPath = path.join(dest, entry.name)
-            
+
             if (entry.isDirectory()) {
               if (entry.name !== 'node_modules' && !entry.name.startsWith('.')) {
                 copyDir(srcPath, destPath)
@@ -262,7 +262,7 @@ const copyRLGuideBookPlugin = () => ({
                 skippedFiles++
                 continue
               }
-               
+
               if (allowedExts.includes(ext) || !ext) {
                 try {
                   copyFileWithRetry(srcPath, destPath)
@@ -279,7 +279,7 @@ const copyRLGuideBookPlugin = () => ({
           console.error(`  ❌ Ошибка чтения директории ${src}:`, error.message)
         }
       }
-      
+
       copyDir('public', targetDir)
 
       console.log(`✅ public/ → dist/ завершено:`)
@@ -291,7 +291,7 @@ const copyRLGuideBookPlugin = () => ({
     } else {
       console.warn('⚠️  Папка public не найдена!')
     }
-    
+
     // Копируем 404.html в dist для GitHub Pages SPA routing
     if (existsSync('404.html')) {
       copyFileSync('404.html', 'dist/404.html')
@@ -340,13 +340,13 @@ export default defineConfig(({ mode, command }) => {
     copyRLGuideBookPlugin(),
     ...(isAnalyze
       ? [
-          visualizer({
-            filename: 'dist/stats.html',
-            open: false,
-            gzipSize: true,
-            brotliSize: true
-          })
-        ]
+        visualizer({
+          filename: 'dist/stats.html',
+          open: false,
+          gzipSize: true,
+          brotliSize: true
+        })
+      ]
       : [])
   ]
 

@@ -161,10 +161,12 @@ export interface IUserData {
     };
     shiftSchedule?: Partial<Record<ShiftScheduleKey, { time?: string; note?: string }>>;
     myActivities?: Partial<Record<MyActivityKey, { time?: string; note?: string }>>;
+    photos?: Record<string, string | undefined>;
     entries: Record<string, {
       mainMoments?: string;
       friends?: string;
       conclusions?: string;
+      contribution?: string;
       morningText?: string;
       morningEmoji?: string;
       dayText?: string;
@@ -173,6 +175,8 @@ export interface IUserData {
       eveningEmoji?: string;
       memorableText?: string;  // Чем запомнился день
       memorableEmoji?: string;
+      memeText?: string;       // Мем дня
+      memeEmoji?: string;
       schedule?: string;      // Беспорядок дня
       updatedAt: string; // ISO
     }>;

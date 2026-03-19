@@ -13,13 +13,18 @@ export interface CouncilInitiativeItem {
     id: string;
     title: string;
     status: string;
+    readStatus?: string;
     description?: string;
     createdAt: string;
     updatedAt?: string;
+    sentAt?: string;
     campId?: string;
     teamId?: string | null;
+    teamName?: string;
+    sourceInitiativeId?: string;
     createdBy?: string;
     createdByNickname?: string;
+    authorNickname?: string;
     votesUp?: number;
     voters?: string[];
 }
@@ -98,16 +103,142 @@ export async function updateInitiativeStatus(
     });
 }
 
+export async function deleteInitiative(
+    accessToken: string,
+    id: string
+): Promise<{ deleted: boolean; id: string }> {
+    return requestJson<{ deleted: boolean; id: string }>(`/api/council/initiatives/${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${accessToken}` },
+    });
+}
+
 /**
  * Toggle vote on an initiative (POST = toggle).
  */
 export async function voteInitiative(
     accessToken: string,
-    id: string
-): Promise<{ initiative: { id: string; votesUp: number; voters: string[] }; voted: boolean }> {
-    return requestJson<{ initiative: { id: string; votesUp: number; voters: string[] }; voted: boolean }>(`/api/council/initiatives/${encodeURIComponent(id)}/vote`, {
+    id: string,
+    direction: 'up' | 'down' = 'up'
+): Promise<{ initiative: { id: string; votesUp: number; votesDown: number; voters: string[]; downVoters: string[] }; voted: boolean; direction: string }> {
+    return requestJson<{ initiative: { id: string; votesUp: number; votesDown: number; voters: string[]; downVoters: string[] }; voted: boolean; direction: string }>(`/api/council/initiatives/${encodeURIComponent(id)}/vote`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
-        body: '{}',
+        body: JSON.stringify({ direction }),
+    });
+}
+
+// ---------------------------------------------------------------------------
+// Initiative Comments
+// ---------------------------------------------------------------------------
+
+export interface InitiativeComment {
+    id: string;
+    deviceId: string;
+    nickname: string;
+    text: string;
+    createdAt: string;
+}
+
+export async function getInitiativeComments(
+    accessToken: string,
+    id: string
+): Promise<{ comments: InitiativeComment[] }> {
+    return requestJson<{ comments: InitiativeComment[] }>(`/api/council/initiatives/${encodeURIComponent(id)}/comments`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+    });
+}
+
+export async function postInitiativeComment(
+    accessToken: string,
+    id: string,
+    text: string,
+    nickname?: string
+): Promise<{ comment: InitiativeComment; comments: InitiativeComment[] }> {
+    return requestJson<{ comment: InitiativeComment; comments: InitiativeComment[] }>(`/api/council/initiatives/${encodeURIComponent(id)}/comments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+        body: JSON.stringify({ text, nickname }),
+    });
+}
+
+// ---------------------------------------------------------------------------
+// Council Protocols
+// ---------------------------------------------------------------------------
+
+export interface CouncilProtocol {
+    id: string;
+    title: string;
+    date: string;
+    summary?: string;
+    decisions?: string[];
+    participants?: string[];
+    createdBy?: string;
+    createdByNickname?: string;
+    createdAt: string;
+}
+
+export async function fetchProtocols(
+    accessToken: string
+): Promise<CouncilProtocol[]> {
+    const data = await requestJson<{ protocols: CouncilProtocol[] }>('/api/council/protocols', {
+        headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    return data.protocols || [];
+}
+
+export async function createProtocol(
+    accessToken: string,
+    payload: { title: string; date?: string; summary?: string; decisions?: string[]; participants?: string[] }
+): Promise<CouncilProtocol> {
+    const res = await requestJson<{ protocol: CouncilProtocol }>('/api/council/protocols', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+        body: JSON.stringify(payload),
+    });
+    return res.protocol;
+}
+
+// ---------------------------------------------------------------------------
+// Council Members
+// ---------------------------------------------------------------------------
+
+export interface CouncilMember {
+    id: string;
+    nickname: string;
+    role: 'member' | 'chair' | 'secretary';
+    deviceId?: string;
+    joinedAt: string;
+    addedBy?: string;
+}
+
+export async function fetchMembers(
+    accessToken: string
+): Promise<CouncilMember[]> {
+    const data = await requestJson<{ members: CouncilMember[] }>('/api/council/members', {
+        headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    return data.members || [];
+}
+
+export async function addMember(
+    accessToken: string,
+    payload: { nickname: string; role?: string; deviceId?: string }
+): Promise<CouncilMember> {
+    const res = await requestJson<{ member: CouncilMember }>('/api/council/members', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+        body: JSON.stringify(payload),
+    });
+    return res.member;
+}
+
+export async function removeMember(
+    accessToken: string,
+    memberId: string
+): Promise<void> {
+    await requestJson<{ deleted: string }>(`/api/council/members/${encodeURIComponent(memberId)}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${accessToken}` },
     });
 }

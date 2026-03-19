@@ -1,0 +1,436 @@
+/* ════════════════════════════════════════════════════════════════════════════
+   Cabinet Path Carousel — ported from profile-view.css
+   ════════════════════════════════════════════════════════════════════════════ */
+
+/* ── Action buttons (round icon buttons in card footer) ── */
+.cabinet-carousel .btn-action-round {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.cabinet-carousel .btn-action-round:hover {
+  transform: scale(1.1);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.cabinet-carousel .btn-action-round.fav {
+  border-color: #ffd700;
+  background: rgba(255, 215, 0, 0.1);
+}
+
+.cabinet-carousel .btn-action-round.trash:hover {
+  background: rgba(255, 77, 77, 0.2);
+  border-color: #ff4d4d;
+}
+
+.cabinet-carousel .btn-action-round.btn-go-badge {
+  flex-shrink: 0;
+  color: rgba(77, 172, 255, 0.9);
+}
+
+.cabinet-carousel .btn-action-round.btn-go-badge:hover {
+  color: #4dacff;
+  background: rgba(77, 172, 255, 0.15);
+}
+
+/* ── Pill buttons (text buttons in card actions) ── */
+.cabinet-carousel .btn-pill {
+  min-height: 36px;
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.95);
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+.cabinet-carousel .btn-pill:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.cabinet-carousel .btn-pill--secondary {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.cabinet-carousel .btn-pill--primary {
+  background: rgba(77, 172, 255, 0.15);
+  color: #4dacff;
+  border-color: rgba(77, 172, 255, 0.3);
+}
+
+.cabinet-carousel .btn-pill--primary:hover {
+  background: rgba(77, 172, 255, 0.25);
+  transform: translateY(-1px);
+}
+
+/* ── Cylinder carousel (3D drum rotation) ── */
+.cabinet-carousel .path-carousel--cylinder {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 800px;
+  margin: 16px auto 0;
+}
+
+.cabinet-carousel .path-carousel__btn {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: 50%;
+  border: 1px solid rgba(138, 100, 255, 0.4);
+  background: rgba(90, 60, 180, 0.35);
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.25s ease;
+  position: absolute;
+  top: 50%;
+  z-index: 10;
+  font-size: 18px;
+  box-shadow: 0 0 16px rgba(138, 100, 255, 0.4), 0 0 32px rgba(138, 100, 255, 0.15);
+}
+
+.cabinet-carousel .path-carousel__btn--prev {
+  left: -56px;
+  transform: translateY(-50%);
+}
+
+.cabinet-carousel .path-carousel__btn--next {
+  right: -56px;
+  transform: translateY(-50%);
+}
+
+.cabinet-carousel .path-carousel__btn:hover:not(:disabled) {
+  background: rgba(120, 80, 220, 0.5);
+  border-color: rgba(160, 130, 255, 0.6);
+  box-shadow: 0 0 24px rgba(138, 100, 255, 0.6), 0 0 48px rgba(138, 100, 255, 0.25);
+  transform: translateY(-50%) scale(1.08);
+}
+
+.cabinet-carousel .path-carousel__btn:active:not(:disabled) {
+  transform: translateY(-50%) scale(0.9);
+  transition-duration: 0.1s;
+}
+
+.cabinet-carousel .path-carousel__btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+  box-shadow: none;
+}
+
+.cabinet-carousel .path-carousel__viewport--cylinder {
+  overflow: visible;
+  min-width: 0;
+  flex: 1;
+  padding: 24px 0;
+  perspective: 1400px;
+  perspective-origin: center center;
+  position: relative;
+  z-index: 1;
+}
+
+.cabinet-carousel .path-carousel__track--cylinder {
+  --step-deg: 36deg;
+  --radius: 480px;
+  position: relative;
+  width: 100%;
+  height: 320px;
+  margin: 0;
+  padding: 0;
+  display: block;
+  transform-style: preserve-3d;
+  transform: rotateY(calc(var(--path-rotation-steps, 0) * var(--step-deg)));
+  transition: transform 0.4s ease-out;
+}
+
+.cabinet-carousel .path-carousel__item--cylinder {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 180px;
+  height: 320px;
+  margin-left: -90px;
+  margin-top: -160px;
+  transform-style: preserve-3d;
+  backface-visibility: visible;
+  transform: rotateY(calc(var(--slot-offset, 0) * var(--step-deg))) translateZ(var(--radius));
+}
+
+.cabinet-carousel .path-carousel__item--cylinder>.path-card {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Static row (≤ N items, no rotation) ── */
+.cabinet-carousel .path-carousel--static {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  margin-top: 16px;
+  padding: 24px 0;
+}
+
+.cabinet-carousel .path-carousel__static-track {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  gap: 20px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.cabinet-carousel .path-carousel__item--static {
+  flex-shrink: 0;
+  width: 180px;
+  min-width: 180px;
+  max-width: none;
+}
+
+.cabinet-carousel .path-carousel__item--static>.path-card {
+  width: 180px;
+  min-width: 180px;
+  height: auto;
+  min-height: 320px;
+  aspect-ratio: 9 / 16;
+  box-sizing: border-box;
+}
+
+/* ── Path card (vertical 9:16 portrait) ── */
+.cabinet-carousel .path-card.path-card--vertical {
+  aspect-ratio: 9 / 16;
+  border-radius: 14px;
+  background: rgba(15, 10, 31, 0.98);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  animation: profile-fadeIn 0.4s ease-out;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  overflow: hidden;
+  box-sizing: border-box;
+  padding-bottom: 14px;
+  position: relative;
+  isolation: isolate;
+}
+
+/* Cosmos gold-frame background via pseudo-element (matches production) */
+.cabinet-carousel .path-card.path-card--vertical::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: 14px;
+  background-image: url('/RL-Guide-book/path-carousel-cosmos-bg.png'), url('/path-carousel-cosmos-bg.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.cabinet-carousel .path-card__avatar-wrap {
+  position: relative;
+  flex-shrink: 0;
+  padding: 10px 10px 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+
+
+.cabinet-carousel .path-card__star {
+  margin: 0;
+  padding: 4px;
+  width: auto;
+  height: auto;
+  min-width: 0;
+  min-height: 0;
+  border: none;
+  border-radius: 0;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cabinet-carousel .path-card__avatar-wrap .path-card__avatar {
+  position: relative;
+  z-index: 1;
+}
+
+.cabinet-carousel .path-card__star:hover {
+  background: none;
+  transform: none;
+  opacity: 0.85;
+}
+
+.cabinet-carousel .path-card__star.fav {
+  color: #ffd700;
+}
+
+/* Neon cyan glow on star (matches production spaceship CSS) */
+.cabinet-carousel .path-card__star {
+  filter:
+    drop-shadow(0 0 2px rgba(93, 228, 255, 1)) drop-shadow(0 0 6px rgba(93, 228, 255, 0.95)) drop-shadow(0 0 12px rgba(93, 228, 255, 0.8)) drop-shadow(0 0 18px rgba(93, 228, 255, 0.6));
+}
+
+.cabinet-carousel .path-card__star:hover {
+  filter:
+    drop-shadow(0 0 3px rgba(93, 228, 255, 1)) drop-shadow(0 0 8px rgba(93, 228, 255, 1)) drop-shadow(0 0 16px rgba(93, 228, 255, 0.9)) drop-shadow(0 0 24px rgba(93, 228, 255, 0.7));
+}
+
+/* Star in footer: static, larger (matches production) */
+.cabinet-carousel .path-card__footer .path-card__star {
+  position: static;
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  min-height: 40px;
+  padding: 8px;
+  flex-shrink: 0;
+}
+
+.cabinet-carousel .path-card__footer .path-card__star svg {
+  width: 28px;
+  height: 28px;
+}
+
+.cabinet-carousel .path-card__avatar {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  min-height: 84px;
+}
+
+.cabinet-carousel .path-card__avatar .badge-icon-wrap,
+.cabinet-carousel .path-card__avatar>div {
+  width: 84px;
+  height: 84px;
+}
+
+.cabinet-carousel .path-card__title {
+  padding: 4px 10px 8px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  cursor: pointer;
+  min-height: 2.4em;
+  color: #e8f0ff;
+  text-align: center;
+}
+
+.cabinet-carousel .path-card__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 0 10px 4px;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.cabinet-carousel .path-card__actions .btn-pill {
+  width: 100%;
+  justify-content: center;
+  font-size: 11px;
+  padding: 6px 10px;
+}
+
+.cabinet-carousel .path-card__footer {
+  margin-top: auto;
+  padding: 4px 10px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.cabinet-carousel .path-card__footer .btn-action-round {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Dissolving radial-gradient edges on pill buttons (matches production spaceship) */
+.cabinet-carousel .path-card .btn-pill--primary,
+.cabinet-carousel .path-card .btn-pill--secondary {
+  border: none;
+  outline: none;
+  background: radial-gradient(ellipse 70% 70% at 50% 50%, rgba(8, 28, 48, 0.88), rgba(4, 16, 32, 0.5) 55%, rgba(4, 16, 32, 0.12) 78%, transparent 100%);
+  box-shadow: 0 0 30px rgba(4, 16, 32, 0.4);
+}
+
+.cabinet-carousel .path-card .btn-pill--primary:hover,
+.cabinet-carousel .path-card .btn-pill--secondary:hover {
+  background: radial-gradient(ellipse 70% 70% at 50% 50%, rgba(93, 228, 255, 0.2), rgba(8, 28, 48, 0.55) 55%, rgba(4, 16, 32, 0.15) 78%, transparent 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 0 24px rgba(93, 228, 255, 0.25), 0 0 40px rgba(4, 16, 32, 0.35);
+}
+
+/* Dissolving edges on footer action buttons */
+.cabinet-carousel .path-card .btn-action-round.trash,
+.cabinet-carousel .path-card .btn-action-round.btn-go-badge {
+  border: none;
+  outline: none;
+  background: radial-gradient(ellipse 65% 65% at 50% 50%, rgba(4, 16, 32, 0.9), rgba(4, 16, 32, 0.45) 50%, rgba(4, 16, 32, 0.1) 75%, transparent 100%);
+  box-shadow: 0 0 28px rgba(4, 16, 32, 0.45);
+}
+
+.cabinet-carousel .path-card .btn-action-round.trash:hover {
+  background: radial-gradient(ellipse 65% 65% at 50% 50%, rgba(60, 20, 20, 0.92), rgba(40, 12, 12, 0.5) 50%, rgba(40, 12, 12, 0.08) 75%, transparent 100%);
+  box-shadow: 0 0 32px rgba(60, 20, 20, 0.4);
+}
+
+.cabinet-carousel .path-card .btn-action-round.btn-go-badge:hover {
+  color: rgba(93, 228, 255, 1);
+  background: radial-gradient(ellipse 65% 65% at 50% 50%, rgba(93, 228, 255, 0.22), rgba(8, 28, 48, 0.45) 50%, rgba(4, 16, 32, 0.1) 75%, transparent 100%);
+  box-shadow: 0 0 32px rgba(93, 228, 255, 0.3);
+}
+
+/* Avatar wrap z-index above ::before */
+.cabinet-carousel .path-card__avatar-wrap {
+  position: relative;
+  z-index: 1;
+}

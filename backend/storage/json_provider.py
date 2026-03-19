@@ -13,10 +13,12 @@ from .base import (
     ShiftsStore, MembershipsStore, SquadCornersStore,
     SquadInvitesStore, SquadMessagesStore,
     BadgeRequestsStore, BadgePlansStore, ParentSnapshotsStore,
-    ChatDailyUsageStore, CouncilInitiativesStore, TeamsStore,
+    ChatDailyUsageStore, CouncilInitiativesStore,
+    CouncilMembersStore, CouncilProtocolsStore,
+    TeamsStore,
     BadgeArtsStore, EnginesStore, EngineMembersStore,
     InspectorProgressStore,
-    BroEventsStore, BroPassportsStore, ShiftScheduleStore,
+    BroEventsStore, BroPassportsStore, BroSubmissionsStore, BroInitiativesStore, ShiftScheduleStore,
     WorkshopsStore,
     ParentSuggestionsStore,
     UsersStore,
@@ -48,6 +50,10 @@ _BADGE_PLANS_LOCK    = threading.Lock()
 _PARENT_SNAPSHOTS_LOCK = threading.Lock()
 _CHAT_DAILY_LOCK     = threading.Lock()
 _COUNCIL_INITIATIVES_LOCK = threading.Lock()
+_COUNCIL_MEMBERS_FILE = os.path.join(_DATA_DIR, "council_members.json")
+_COUNCIL_MEMBERS_LOCK = threading.Lock()
+_COUNCIL_PROTOCOLS_FILE = os.path.join(_DATA_DIR, "council_protocols.json")
+_COUNCIL_PROTOCOLS_LOCK = threading.Lock()
 _TEAMS_LOCK          = threading.Lock()
 
 
@@ -303,6 +309,48 @@ class JsonTeamsStore(TeamsStore):
 
 
 # ---------------------------------------------------------------------------
+# CouncilMembersStore
+# ---------------------------------------------------------------------------
+
+class JsonCouncilMembersStore(CouncilMembersStore):
+    def load(self) -> dict:
+        _ensure_data_dir()
+        with _COUNCIL_MEMBERS_LOCK:
+            data = _read_json(_COUNCIL_MEMBERS_FILE, {"members": []})
+            if not isinstance(data, dict):
+                data = {"members": []}
+            if not isinstance(data.get("members"), list):
+                data["members"] = []
+            return data
+
+    def save(self, data: dict) -> None:
+        _ensure_data_dir()
+        with _COUNCIL_MEMBERS_LOCK:
+            _write_json(_COUNCIL_MEMBERS_FILE, data)
+
+
+# ---------------------------------------------------------------------------
+# CouncilProtocolsStore
+# ---------------------------------------------------------------------------
+
+class JsonCouncilProtocolsStore(CouncilProtocolsStore):
+    def load(self) -> dict:
+        _ensure_data_dir()
+        with _COUNCIL_PROTOCOLS_LOCK:
+            data = _read_json(_COUNCIL_PROTOCOLS_FILE, {"protocols": []})
+            if not isinstance(data, dict):
+                data = {"protocols": []}
+            if not isinstance(data.get("protocols"), list):
+                data["protocols"] = []
+            return data
+
+    def save(self, data: dict) -> None:
+        _ensure_data_dir()
+        with _COUNCIL_PROTOCOLS_LOCK:
+            _write_json(_COUNCIL_PROTOCOLS_FILE, data)
+
+
+# ---------------------------------------------------------------------------
 # Реестр экземпляров
 # ---------------------------------------------------------------------------
 
@@ -382,6 +430,26 @@ class JsonInspectorProgressStore(InspectorProgressStore):
             _write_json(_INSPECTOR_PROGRESS_FILE, data if isinstance(data, dict) else {})
 
 
+# --- BroSubmissionsStore (M12-BRO-BACKEND-B) ---
+
+_BRO_SUBMISSIONS_FILE = os.path.join(_DATA_DIR, "bro_submissions.json")
+_BRO_SUBMISSIONS_LOCK = threading.Lock()
+
+class JsonBroSubmissionsStore(BroSubmissionsStore):
+    def load(self) -> dict:
+        _ensure_data_dir()
+        with _BRO_SUBMISSIONS_LOCK:
+            data = _read_json(_BRO_SUBMISSIONS_FILE, {"submissions": []})
+            if "submissions" not in data:
+                data["submissions"] = []
+            return data
+
+    def save(self, data: dict) -> None:
+        _ensure_data_dir()
+        with _BRO_SUBMISSIONS_LOCK:
+            _write_json(_BRO_SUBMISSIONS_FILE, data if isinstance(data, dict) else {})
+
+
 # --- BroEventsStore (M12-BRO-BACKEND-A) ---
 
 _BRO_EVENTS_FILE = os.path.join(_DATA_DIR, "bro_events.json")
@@ -420,6 +488,26 @@ class JsonBroPassportsStore(BroPassportsStore):
         _ensure_data_dir()
         with _BRO_PASSPORTS_LOCK:
             _write_json(_BRO_PASSPORTS_FILE, data if isinstance(data, dict) else {})
+
+
+# --- BroInitiativesStore (Бродела) ---
+
+_BRO_INITIATIVES_FILE = os.path.join(_DATA_DIR, "bro_initiatives.json")
+_BRO_INITIATIVES_LOCK = threading.Lock()
+
+class JsonBroInitiativesStore(BroInitiativesStore):
+    def load(self) -> dict:
+        _ensure_data_dir()
+        with _BRO_INITIATIVES_LOCK:
+            data = _read_json(_BRO_INITIATIVES_FILE, {"initiatives": []})
+            if "initiatives" not in data:
+                data["initiatives"] = []
+            return data
+
+    def save(self, data: dict) -> None:
+        _ensure_data_dir()
+        with _BRO_INITIATIVES_LOCK:
+            _write_json(_BRO_INITIATIVES_FILE, data if isinstance(data, dict) else {})
 
 
 # --- ShiftScheduleStore (M12-SHIFT-PLANNER-A) ---
@@ -516,6 +604,8 @@ JSON_STORES = {
     "parent_snapshots": JsonParentSnapshotsStore(),
     "chat_daily_usage": JsonChatDailyUsageStore(),
     "council_initiatives": JsonCouncilInitiativesStore(),
+    "council_members":     JsonCouncilMembersStore(),
+    "council_protocols":   JsonCouncilProtocolsStore(),
     "teams":           JsonTeamsStore(),
     "badge_arts":      JsonBadgeArtsStore(),
     "engines":         JsonEnginesStore(),
@@ -523,6 +613,8 @@ JSON_STORES = {
     "inspector_progress": JsonInspectorProgressStore(),
     "bro_events":      JsonBroEventsStore(),
     "bro_passports":   JsonBroPassportsStore(),
+    "bro_submissions": JsonBroSubmissionsStore(),
+    "bro_initiatives": JsonBroInitiativesStore(),
     "shift_schedule":  JsonShiftScheduleStore(),
     "workshops":       JsonWorkshopsStore(),
     "parent_suggestions": JsonParentSuggestionsStore(),

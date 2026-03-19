@@ -1,4 +1,4 @@
-# Progress - rl-guide-book
+# Progress\n\n## 2026-03-14: Совет лагеря — подключение в PersonalCabinet\n- Расширили `SECTION_TABS.council` с 1 до 4 табов (Совет, Инициативы, Движки, Значок)\n- Добавили блок рендеринга `CouncilDashboard` с accessToken + canModerate\n- Удалили дубликат council рендеринга (строка ~2029)\n- TS чисто, все 4 таба работают в браузере\n - rl-guide-book
 
 ## Current Status
 - **Date**: 2026-02-21

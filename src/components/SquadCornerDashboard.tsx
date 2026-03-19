@@ -343,7 +343,7 @@ export const SquadCornerDashboard: React.FC<SquadCornerDashboardProps> = ({
             className="squad-corner-image-source-block"
             context="squad_photo"
             value={getPhoto(key) || null}
-            onChange={canEditCorner ? (url) => setPhoto(key, url) : () => {}}
+            onChange={canEditCorner ? (url) => setPhoto(key, url) : () => { }}
             aspect="square"
             labels={{ placeholder: label }}
             onGenerate={canEditCorner ? async (o) => requestImageGenerate({ mode: 'generate', context: key === 'photoWithCounselors' ? 'counselor_squad' : 'squad_corner', prompt: o.prompt ?? '' }, accessToken ?? null) : undefined}
@@ -433,9 +433,17 @@ export const SquadCornerDashboard: React.FC<SquadCornerDashboardProps> = ({
 
   const cabinContent = activeTab === 'squad' ? squadSection : activeTab === 'photos' ? photosSection : activeTab === 'planner' ? plannerSection : flagsSection;
   return (
-    <div className="fade-in squad-corner-cabin-content" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      {summary}
-      {cabinContent}
+    <div className="fade-in squad-corner-cabin-content" style={{
+      maxWidth: 720, margin: '0 auto', width: '100%',
+      background: 'rgba(15, 10, 42, 0.12)',
+      backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
+      borderRadius: 18, border: '1px solid rgba(255, 255, 255, 0.08)',
+      padding: '24px 28px',
+    }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        {summary}
+        {cabinContent}
+      </div>
     </div>
   );
 };

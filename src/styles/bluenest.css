@@ -13,7 +13,9 @@
             scroll-behavior: smooth;
             background: linear-gradient(135deg, #0f0a1f 0%, #1a0f2e 50%, #2a1a3d 100%);
             color: var(--c-stark);
-            overflow-x: hidden;
+            /* overflow-x: hidden moved to body — keeping it on html blocks
+               Chrome's middle-click autoscroll (the scroll container must not
+               have any overflow axis set to 'hidden'). */
         }
         
         /* Custom cursor is handled globally (src/styles/cursor.css). */

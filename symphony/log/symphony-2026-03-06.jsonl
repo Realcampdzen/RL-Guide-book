@@ -1,0 +1,171 @@
+{"timestamp":"2026-03-06T00:16:41.019Z","level":"info","message":"Loading workflow: D:\\openclaw-workspace\\putevoditel_alfa\\WORKFLOW.md","context":{"component":"cli"}}
+{"timestamp":"2026-03-06T00:16:41.030Z","level":"info","message":"Tracker: github (Realcampdzen/RL-Guide-book)","context":{"component":"orchestrator"}}
+{"timestamp":"2026-03-06T00:16:41.030Z","level":"info","message":"Active labels: [todo, in-progress, human-review, rework]","context":{"component":"orchestrator"}}
+{"timestamp":"2026-03-06T00:16:41.031Z","level":"info","message":"Workspace root: C:\\Users\\stepa/symphony-workspaces","context":{"component":"orchestrator"}}
+{"timestamp":"2026-03-06T00:16:41.031Z","level":"info","message":"Max concurrent agents: 2","context":{"component":"orchestrator"}}
+{"timestamp":"2026-03-06T00:16:41.043Z","level":"info","message":"Poll interval: 30000ms","context":{"component":"orchestrator"}}
+{"timestamp":"2026-03-06T00:16:41.044Z","level":"info","message":"Agent mode: openai-api","context":{"component":"orchestrator"}}
+{"timestamp":"2026-03-06T00:16:41.044Z","level":"info","message":"Running startup cleanup for terminal issues...","context":{"component":"orchestrator"}}
+{"timestamp":"2026-03-06T00:16:46.253Z","level":"debug","message":"Fetched 0 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-06T00:16:46.254Z","level":"info","message":"Polling every 30s. Press Ctrl+C to stop.","context":{"component":"orchestrator"}}
+{"timestamp":"2026-03-06T00:17:20.759Z","level":"debug","message":"Fetched 0 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-06T00:17:50.573Z","level":"debug","message":"Fetched 0 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-06T00:18:20.589Z","level":"debug","message":"Fetched 0 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-06T00:18:50.288Z","level":"debug","message":"Fetched 0 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-06T00:19:20.228Z","level":"debug","message":"Fetched 0 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-06T00:19:50.176Z","level":"debug","message":"Fetched 0 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-06T00:20:23.296Z","level":"error","message":"Failed to fetch candidate issues: HttpError: getaddrinfo ENOTFOUND api.github.com","context":{"component":"tracker"}}
+{"timestamp":"2026-03-06T00:20:23.297Z","level":"error","message":"Poll tick error: HttpError: getaddrinfo ENOTFOUND api.github.com","context":{"component":"orchestrator"}}
+{"timestamp":"2026-03-06T00:42:54.473Z","level":"info","message":"Loading workflow: D:\\openclaw-workspace\\putevoditel_alfa\\WORKFLOW.md","context":{"component":"cli"}}
+{"timestamp":"2026-03-06T00:42:54.500Z","level":"info","message":"Tracker: github (Realcampdzen/RL-Guide-book)","context":{"component":"orchestrator"}}
+{"timestamp":"2026-03-06T00:42:54.501Z","level":"info","message":"Active labels: [todo, in-progress, human-review, rework]","context":{"component":"orchestrator"}}
+{"timestamp":"2026-03-06T00:42:54.501Z","level":"info","message":"Workspace root: C:\\Users\\stepa/symphony-workspaces","context":{"component":"orchestrator"}}
+{"timestamp":"2026-03-06T00:42:54.501Z","level":"info","message":"Max concurrent agents: 2","context":{"component":"orchestrator"}}
+{"timestamp":"2026-03-06T00:42:54.502Z","level":"info","message":"Poll interval: 30000ms","context":{"component":"orchestrator"}}
+{"timestamp":"2026-03-06T00:42:54.502Z","level":"info","message":"Agent mode: openai-api","context":{"component":"orchestrator"}}
+{"timestamp":"2026-03-06T00:42:54.503Z","level":"info","message":"Running startup cleanup for terminal issues...","context":{"component":"orchestrator"}}
+{"timestamp":"2026-03-06T00:42:56.661Z","level":"debug","message":"Fetched 1 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-06T00:42:56.662Z","level":"info","message":"Dispatching #3: \"Test Symphony: добавить компонент приветствия\"","context":{"component":"orchestrator","issue_id":"3","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T00:42:56.664Z","level":"info","message":"Created workspace: C:\\Users\\stepa\\symphony-workspaces\\3","context":{"component":"workspace","issue_identifier":"#3","workspace_path":"C:\\Users\\stepa\\symphony-workspaces\\3"}}
+{"timestamp":"2026-03-06T00:42:56.665Z","level":"debug","message":"Running hook \"after_create\"...","context":{"component":"workspace"}}
+{"timestamp":"2026-03-06T00:42:56.685Z","level":"info","message":"Dispatched 1 new issue(s)","context":{"component":"orchestrator"}}
+{"timestamp":"2026-03-06T00:42:56.686Z","level":"info","message":"Polling every 30s. Press Ctrl+C to stop.","context":{"component":"orchestrator"}}
+{"timestamp":"2026-03-06T00:43:29.357Z","level":"debug","message":"Fetched 1 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-06T00:43:56.703Z","level":"error","message":"Hook \"after_create\" failed: Command failed: git clone --depth 1 https://github.com/Realcampdzen/RL-Guide-book.git .\nnpm install\n\nCloning into '.'...\n","context":{"component":"workspace"}}
+{"timestamp":"2026-03-06T00:43:56.704Z","level":"error","message":"after_create hook failed, removing workspace: Error: Command failed: git clone --depth 1 https://github.com/Realcampdzen/RL-Guide-book.git .\nnpm install\n\nCloning into '.'...\n","context":{"component":"workspace","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T00:43:56.705Z","level":"error","message":"Worker error for #3: Error: Command failed: git clone --depth 1 https://github.com/Realcampdzen/RL-Guide-book.git .\nnpm install\n\nCloning into '.'...\n","context":{"component":"orchestrator","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T00:43:56.706Z","level":"info","message":"Scheduling retry #1 for #3 in 2000ms","context":{"component":"orchestrator","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T00:43:59.054Z","level":"info","message":"Dispatching #3: \"Test Symphony: добавить компонент приветствия\"","context":{"component":"orchestrator","issue_id":"3","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T00:43:59.055Z","level":"debug","message":"Reusing workspace: C:\\Users\\stepa\\symphony-workspaces\\3","context":{"component":"workspace","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T00:43:59.055Z","level":"debug","message":"Running hook \"before_run\"...","context":{"component":"workspace"}}
+{"timestamp":"2026-03-06T00:43:59.661Z","level":"debug","message":"Fetched 1 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-06T00:44:29.845Z","level":"debug","message":"Fetched 1 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-06T00:44:59.085Z","level":"error","message":"Hook \"before_run\" failed: Command failed: git fetch origin main\ngit reset --hard origin/main\nnpm install\n\n","context":{"component":"workspace"}}
+{"timestamp":"2026-03-06T00:44:59.086Z","level":"error","message":"before_run hook failed: Error: Command failed: git fetch origin main\ngit reset --hard origin/main\nnpm install\n\n","context":{"component":"workspace","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T00:44:59.087Z","level":"error","message":"Worker error for #3: Error: Command failed: git fetch origin main\ngit reset --hard origin/main\nnpm install\n\n","context":{"component":"orchestrator","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T00:44:59.088Z","level":"info","message":"Scheduling retry #2 for #3 in 4000ms","context":{"component":"orchestrator","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T00:44:59.681Z","level":"debug","message":"Fetched 1 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-06T00:45:03.468Z","level":"info","message":"Dispatching #3: \"Test Symphony: добавить компонент приветствия\"","context":{"component":"orchestrator","issue_id":"3","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T00:45:03.469Z","level":"debug","message":"Reusing workspace: C:\\Users\\stepa\\symphony-workspaces\\3","context":{"component":"workspace","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T00:45:03.470Z","level":"debug","message":"Running hook \"before_run\"...","context":{"component":"workspace"}}
+{"timestamp":"2026-03-06T00:45:29.964Z","level":"debug","message":"Fetched 1 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-06T00:45:59.931Z","level":"debug","message":"Fetched 1 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-06T00:46:03.480Z","level":"error","message":"Hook \"before_run\" failed: Command failed: git fetch origin main\ngit reset --hard origin/main\nnpm install\n\n","context":{"component":"workspace"}}
+{"timestamp":"2026-03-06T00:46:03.480Z","level":"error","message":"before_run hook failed: Error: Command failed: git fetch origin main\ngit reset --hard origin/main\nnpm install\n\n","context":{"component":"workspace","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T00:46:03.481Z","level":"error","message":"Worker error for #3: Error: Command failed: git fetch origin main\ngit reset --hard origin/main\nnpm install\n\n","context":{"component":"orchestrator","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T00:46:03.481Z","level":"info","message":"Scheduling retry #3 for #3 in 8000ms","context":{"component":"orchestrator","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T00:46:12.442Z","level":"info","message":"Dispatching #3: \"Test Symphony: добавить компонент приветствия\"","context":{"component":"orchestrator","issue_id":"3","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T00:46:12.444Z","level":"debug","message":"Reusing workspace: C:\\Users\\stepa\\symphony-workspaces\\3","context":{"component":"workspace","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T00:46:12.444Z","level":"debug","message":"Running hook \"before_run\"...","context":{"component":"workspace"}}
+{"timestamp":"2026-03-06T00:46:30.526Z","level":"debug","message":"Fetched 1 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-06T00:46:59.447Z","level":"debug","message":"Fetched 1 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-06T00:47:12.461Z","level":"error","message":"Hook \"before_run\" failed: Command failed: git fetch origin main\ngit reset --hard origin/main\nnpm install\n\n","context":{"component":"workspace"}}
+{"timestamp":"2026-03-06T00:47:12.462Z","level":"error","message":"before_run hook failed: Error: Command failed: git fetch origin main\ngit reset --hard origin/main\nnpm install\n\n","context":{"component":"workspace","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T00:47:12.462Z","level":"error","message":"Worker error for #3: Error: Command failed: git fetch origin main\ngit reset --hard origin/main\nnpm install\n\n","context":{"component":"orchestrator","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T00:47:12.463Z","level":"info","message":"Scheduling retry #4 for #3 in 16000ms","context":{"component":"orchestrator","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T00:47:29.007Z","level":"info","message":"Dispatching #3: \"Test Symphony: добавить компонент приветствия\"","context":{"component":"orchestrator","issue_id":"3","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T00:47:29.008Z","level":"debug","message":"Reusing workspace: C:\\Users\\stepa\\symphony-workspaces\\3","context":{"component":"workspace","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T00:47:29.009Z","level":"debug","message":"Running hook \"before_run\"...","context":{"component":"workspace"}}
+{"timestamp":"2026-03-06T00:47:29.951Z","level":"debug","message":"Fetched 1 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-06T00:47:59.384Z","level":"debug","message":"Fetched 1 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-06T00:48:29.018Z","level":"error","message":"Hook \"before_run\" failed: Command failed: git fetch origin main\ngit reset --hard origin/main\nnpm install\n\n","context":{"component":"workspace"}}
+{"timestamp":"2026-03-06T00:48:29.019Z","level":"error","message":"before_run hook failed: Error: Command failed: git fetch origin main\ngit reset --hard origin/main\nnpm install\n\n","context":{"component":"workspace","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T00:48:29.019Z","level":"error","message":"Worker error for #3: Error: Command failed: git fetch origin main\ngit reset --hard origin/main\nnpm install\n\n","context":{"component":"orchestrator","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T00:48:29.021Z","level":"info","message":"Scheduling retry #5 for #3 in 32000ms","context":{"component":"orchestrator","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T00:48:30.672Z","level":"debug","message":"Fetched 1 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-06T00:48:59.285Z","level":"debug","message":"Fetched 1 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-06T00:49:01.495Z","level":"info","message":"Dispatching #3: \"Test Symphony: добавить компонент приветствия\"","context":{"component":"orchestrator","issue_id":"3","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T00:49:01.497Z","level":"debug","message":"Reusing workspace: C:\\Users\\stepa\\symphony-workspaces\\3","context":{"component":"workspace","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T00:49:01.498Z","level":"debug","message":"Running hook \"before_run\"...","context":{"component":"workspace"}}
+{"timestamp":"2026-03-06T00:49:30.365Z","level":"debug","message":"Fetched 1 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-06T00:49:59.497Z","level":"debug","message":"Fetched 1 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-06T00:50:01.519Z","level":"error","message":"Hook \"before_run\" failed: Command failed: git fetch origin main\ngit reset --hard origin/main\nnpm install\n\n","context":{"component":"workspace"}}
+{"timestamp":"2026-03-06T00:50:01.519Z","level":"error","message":"before_run hook failed: Error: Command failed: git fetch origin main\ngit reset --hard origin/main\nnpm install\n\n","context":{"component":"workspace","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T00:50:01.520Z","level":"error","message":"Worker error for #3: Error: Command failed: git fetch origin main\ngit reset --hard origin/main\nnpm install\n\n","context":{"component":"orchestrator","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T00:50:01.520Z","level":"info","message":"Scheduling retry #6 for #3 in 64000ms","context":{"component":"orchestrator","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T00:50:29.721Z","level":"debug","message":"Fetched 1 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-06T00:50:59.433Z","level":"debug","message":"Fetched 1 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-06T01:16:31.427Z","level":"info","message":"Loading workflow: D:\\openclaw-workspace\\putevoditel_alfa\\WORKFLOW.md","context":{"component":"cli"}}
+{"timestamp":"2026-03-06T01:16:31.660Z","level":"info","message":"🖥  Dashboard: http://localhost:4400","context":{"component":"dashboard"}}
+{"timestamp":"2026-03-06T01:16:31.662Z","level":"info","message":"📡 API:       http://localhost:4400/api/state","context":{"component":"dashboard"}}
+{"timestamp":"2026-03-06T01:16:31.674Z","level":"info","message":"Tracker: github (Realcampdzen/RL-Guide-book)","context":{"component":"orchestrator"}}
+{"timestamp":"2026-03-06T01:16:31.682Z","level":"info","message":"Active labels: [todo, in-progress, human-review, rework]","context":{"component":"orchestrator"}}
+{"timestamp":"2026-03-06T01:16:31.685Z","level":"info","message":"Workspace root: C:\\Users\\stepa/symphony-workspaces","context":{"component":"orchestrator"}}
+{"timestamp":"2026-03-06T01:16:31.689Z","level":"info","message":"Max concurrent agents: 2","context":{"component":"orchestrator"}}
+{"timestamp":"2026-03-06T01:16:31.693Z","level":"info","message":"Poll interval: 30000ms","context":{"component":"orchestrator"}}
+{"timestamp":"2026-03-06T01:16:31.699Z","level":"info","message":"Agent mode: openai-api","context":{"component":"orchestrator"}}
+{"timestamp":"2026-03-06T01:16:31.701Z","level":"info","message":"Running startup cleanup for terminal issues...","context":{"component":"orchestrator"}}
+{"timestamp":"2026-03-06T01:16:34.700Z","level":"debug","message":"Fetched 1 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-06T01:16:34.708Z","level":"info","message":"Dispatching #3: \"Test Symphony: добавить компонент приветствия\"","context":{"component":"orchestrator","issue_id":"3","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T01:16:34.747Z","level":"debug","message":"Reusing workspace: C:\\Users\\stepa\\symphony-workspaces\\3","context":{"component":"workspace","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T01:16:34.754Z","level":"debug","message":"Running hook \"before_run\"...","context":{"component":"workspace"}}
+{"timestamp":"2026-03-06T01:16:34.883Z","level":"info","message":"Dispatched 1 new issue(s)","context":{"component":"orchestrator"}}
+{"timestamp":"2026-03-06T01:16:34.887Z","level":"info","message":"Polling every 30s. Press Ctrl+C to stop.","context":{"component":"orchestrator"}}
+{"timestamp":"2026-03-06T01:16:37.856Z","level":"debug","message":"Rendered prompt (1492 chars)","context":{"component":"orchestrator","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T01:16:37.861Z","level":"info","message":"🤖 Starting OpenAI agent for #3","context":{"component":"openai-agent","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T01:16:37.865Z","level":"info","message":"🤖 Agent started (PID: openai-api)","context":{"component":"orchestrator","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T01:16:42.502Z","level":"info","message":"Scanned 29 workspace files for context","context":{"component":"openai-agent"}}
+{"timestamp":"2026-03-06T01:16:42.537Z","level":"info","message":"Calling OpenAI API...","context":{"component":"openai-agent","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T01:16:43.571Z","level":"warn","message":"❌ Turn failed","context":{"component":"orchestrator","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T01:16:43.575Z","level":"error","message":"Worker failed for #3: OpenAI agent error: Error: OpenAI API error 401: {\n    \"error\": {\n        \"message\": \"Incorrect API key provided: placeholder. You can find your API key at https://platform.openai.com/account/api-keys.\",\n        \"type\": \"invalid_request_error\",\n        \"param\": null,\n        \"code\": \"invalid_api_key\"\n    }\n}\n","context":{"component":"orchestrator","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T01:16:43.577Z","level":"info","message":"Scheduling retry #1 for #3 in 2000ms","context":{"component":"orchestrator","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T01:16:47.161Z","level":"info","message":"Dispatching #3: \"Test Symphony: добавить компонент приветствия\"","context":{"component":"orchestrator","issue_id":"3","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T01:16:47.168Z","level":"debug","message":"Reusing workspace: C:\\Users\\stepa\\symphony-workspaces\\3","context":{"component":"workspace","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T01:16:47.172Z","level":"debug","message":"Running hook \"before_run\"...","context":{"component":"workspace"}}
+{"timestamp":"2026-03-06T01:16:49.064Z","level":"debug","message":"Rendered prompt (1772 chars)","context":{"component":"orchestrator","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T01:16:49.068Z","level":"info","message":"🤖 Starting OpenAI agent for #3","context":{"component":"openai-agent","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T01:16:49.069Z","level":"info","message":"🤖 Agent started (PID: openai-api)","context":{"component":"orchestrator","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T01:16:49.092Z","level":"info","message":"Scanned 29 workspace files for context","context":{"component":"openai-agent"}}
+{"timestamp":"2026-03-06T01:16:49.093Z","level":"info","message":"Calling OpenAI API...","context":{"component":"openai-agent","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T01:16:49.836Z","level":"warn","message":"❌ Turn failed","context":{"component":"orchestrator","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T01:16:49.838Z","level":"error","message":"Worker failed for #3: OpenAI agent error: Error: OpenAI API error 401: {\n    \"error\": {\n        \"message\": \"Incorrect API key provided: placeholder. You can find your API key at https://platform.openai.com/account/api-keys.\",\n        \"type\": \"invalid_request_error\",\n        \"param\": null,\n        \"code\": \"invalid_api_key\"\n    }\n}\n","context":{"component":"orchestrator","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T01:16:49.839Z","level":"info","message":"Scheduling retry #2 for #3 in 4000ms","context":{"component":"orchestrator","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T01:16:54.503Z","level":"info","message":"Dispatching #3: \"Test Symphony: добавить компонент приветствия\"","context":{"component":"orchestrator","issue_id":"3","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T01:16:54.507Z","level":"debug","message":"Reusing workspace: C:\\Users\\stepa\\symphony-workspaces\\3","context":{"component":"workspace","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T01:16:54.508Z","level":"debug","message":"Running hook \"before_run\"...","context":{"component":"workspace"}}
+{"timestamp":"2026-03-06T01:16:56.895Z","level":"debug","message":"Rendered prompt (1772 chars)","context":{"component":"orchestrator","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T01:16:56.900Z","level":"info","message":"🤖 Starting OpenAI agent for #3","context":{"component":"openai-agent","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T01:16:56.901Z","level":"info","message":"🤖 Agent started (PID: openai-api)","context":{"component":"orchestrator","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T01:16:56.924Z","level":"info","message":"Scanned 29 workspace files for context","context":{"component":"openai-agent"}}
+{"timestamp":"2026-03-06T01:16:56.927Z","level":"info","message":"Calling OpenAI API...","context":{"component":"openai-agent","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T01:16:57.983Z","level":"warn","message":"❌ Turn failed","context":{"component":"orchestrator","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T01:16:57.985Z","level":"error","message":"Worker failed for #3: OpenAI agent error: Error: OpenAI API error 401: {\n    \"error\": {\n        \"message\": \"Incorrect API key provided: placeholder. You can find your API key at https://platform.openai.com/account/api-keys.\",\n        \"type\": \"invalid_request_error\",\n        \"param\": null,\n        \"code\": \"invalid_api_key\"\n    }\n}\n","context":{"component":"orchestrator","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T01:16:57.987Z","level":"info","message":"Scheduling retry #3 for #3 in 8000ms","context":{"component":"orchestrator","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T01:17:06.431Z","level":"info","message":"Dispatching #3: \"Test Symphony: добавить компонент приветствия\"","context":{"component":"orchestrator","issue_id":"3","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T01:17:06.435Z","level":"debug","message":"Reusing workspace: C:\\Users\\stepa\\symphony-workspaces\\3","context":{"component":"workspace","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T01:17:06.437Z","level":"debug","message":"Running hook \"before_run\"...","context":{"component":"workspace"}}
+{"timestamp":"2026-03-06T01:17:06.884Z","level":"debug","message":"Fetched 1 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-06T01:17:08.140Z","level":"debug","message":"Rendered prompt (1772 chars)","context":{"component":"orchestrator","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T01:17:08.148Z","level":"info","message":"🤖 Starting OpenAI agent for #3","context":{"component":"openai-agent","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T01:17:08.153Z","level":"info","message":"🤖 Agent started (PID: openai-api)","context":{"component":"orchestrator","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T01:17:08.188Z","level":"info","message":"Scanned 29 workspace files for context","context":{"component":"openai-agent"}}
+{"timestamp":"2026-03-06T01:17:08.261Z","level":"info","message":"Calling OpenAI API...","context":{"component":"openai-agent","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T01:17:08.944Z","level":"warn","message":"❌ Turn failed","context":{"component":"orchestrator","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T01:17:08.953Z","level":"error","message":"Worker failed for #3: OpenAI agent error: Error: OpenAI API error 401: {\n    \"error\": {\n        \"message\": \"Incorrect API key provided: placeholder. You can find your API key at https://platform.openai.com/account/api-keys.\",\n        \"type\": \"invalid_request_error\",\n        \"param\": null,\n        \"code\": \"invalid_api_key\"\n    }\n}\n","context":{"component":"orchestrator","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T01:17:08.955Z","level":"info","message":"Scheduling retry #4 for #3 in 16000ms","context":{"component":"orchestrator","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T01:17:25.583Z","level":"info","message":"Dispatching #3: \"Test Symphony: добавить компонент приветствия\"","context":{"component":"orchestrator","issue_id":"3","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T01:17:25.585Z","level":"debug","message":"Reusing workspace: C:\\Users\\stepa\\symphony-workspaces\\3","context":{"component":"workspace","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T01:17:25.587Z","level":"debug","message":"Running hook \"before_run\"...","context":{"component":"workspace"}}
+{"timestamp":"2026-03-06T01:17:27.412Z","level":"debug","message":"Rendered prompt (1772 chars)","context":{"component":"orchestrator","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T01:17:27.426Z","level":"info","message":"🤖 Starting OpenAI agent for #3","context":{"component":"openai-agent","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T01:17:27.431Z","level":"info","message":"🤖 Agent started (PID: openai-api)","context":{"component":"orchestrator","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T01:17:27.518Z","level":"info","message":"Scanned 29 workspace files for context","context":{"component":"openai-agent"}}
+{"timestamp":"2026-03-06T01:17:27.524Z","level":"info","message":"Calling OpenAI API...","context":{"component":"openai-agent","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T01:17:28.633Z","level":"warn","message":"❌ Turn failed","context":{"component":"orchestrator","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T01:17:28.638Z","level":"error","message":"Worker failed for #3: OpenAI agent error: Error: OpenAI API error 401: {\n    \"error\": {\n        \"message\": \"Incorrect API key provided: placeholder. You can find your API key at https://platform.openai.com/account/api-keys.\",\n        \"type\": \"invalid_request_error\",\n        \"param\": null,\n        \"code\": \"invalid_api_key\"\n    }\n}\n","context":{"component":"orchestrator","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T01:17:28.644Z","level":"info","message":"Scheduling retry #5 for #3 in 32000ms","context":{"component":"orchestrator","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T01:17:37.212Z","level":"debug","message":"Fetched 1 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-06T01:18:01.968Z","level":"info","message":"Dispatching #3: \"Test Symphony: добавить компонент приветствия\"","context":{"component":"orchestrator","issue_id":"3","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T01:18:01.972Z","level":"debug","message":"Reusing workspace: C:\\Users\\stepa\\symphony-workspaces\\3","context":{"component":"workspace","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T01:18:01.974Z","level":"debug","message":"Running hook \"before_run\"...","context":{"component":"workspace"}}
+{"timestamp":"2026-03-06T01:18:04.627Z","level":"debug","message":"Rendered prompt (1772 chars)","context":{"component":"orchestrator","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T01:18:04.629Z","level":"info","message":"🤖 Starting OpenAI agent for #3","context":{"component":"openai-agent","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T01:18:04.637Z","level":"info","message":"🤖 Agent started (PID: openai-api)","context":{"component":"orchestrator","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T01:18:04.760Z","level":"info","message":"Scanned 29 workspace files for context","context":{"component":"openai-agent"}}
+{"timestamp":"2026-03-06T01:18:04.762Z","level":"info","message":"Calling OpenAI API...","context":{"component":"openai-agent","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T01:18:05.662Z","level":"warn","message":"❌ Turn failed","context":{"component":"orchestrator","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T01:18:05.666Z","level":"error","message":"Worker failed for #3: OpenAI agent error: Error: OpenAI API error 401: {\n    \"error\": {\n        \"message\": \"Incorrect API key provided: placeholder. You can find your API key at https://platform.openai.com/account/api-keys.\",\n        \"type\": \"invalid_request_error\",\n        \"param\": null,\n        \"code\": \"invalid_api_key\"\n    }\n}\n","context":{"component":"orchestrator","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T01:18:05.668Z","level":"info","message":"Scheduling retry #6 for #3 in 64000ms","context":{"component":"orchestrator","issue_identifier":"#3"}}
+{"timestamp":"2026-03-06T01:18:07.305Z","level":"debug","message":"Fetched 1 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-06T01:18:38.664Z","level":"debug","message":"Fetched 1 candidate issue(s)","context":{"component":"tracker"}}
+{"timestamp":"2026-03-06T01:19:07.665Z","level":"debug","message":"Fetched 1 candidate issue(s)","context":{"component":"tracker"}}

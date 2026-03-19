@@ -66,9 +66,9 @@ export const useCustomCursor = () => {
       if (active) {
         document.documentElement.dataset.cursor = 'on';
         // Force Chrome to re-evaluate cursor style after autoscroll exit.
-        // Chrome internally resets cursor appearance when exiting autoscroll,
-        // ignoring CSS cursor:none until a repaint is triggered.
-        document.documentElement.style.cursor = 'none';
+        // Use a 1x1 transparent SVG (matching cursor.css) instead of 'none'
+        // so Chrome still allows middle-click autoscroll.
+        document.documentElement.style.cursor = "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1' height='1'/%3E\") 0 0, auto";
         requestAnimationFrame(() => {
           document.documentElement.style.cursor = '';
         });

@@ -1,7 +1,7 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useUserProgress } from '../hooks/useUserProgress';
 import { useAuth } from '../context/AuthContext';
-import { SquadArchitect } from './SquadArchitect';
+import { useTeam } from '../context/TeamContext';
 import { ImageSourceBlock } from './ImageSourceBlock';
 import { requestImageGenerate } from '../utils/imageGenerateApi';
 import type { WingPlanGridData } from '../types/userProgress';
@@ -25,18 +25,18 @@ const cloneWingPlanGrid = (grid?: WingPlanGridData): WingPlanGridData => {
 };
 
 interface WingDashboardProps {
-  /** Открыть модалку «Предложить инициативу в совет лагеря» */
   onSuggestInitiative?: () => void;
   variant?: 'default' | 'cabin';
 }
 
 export const WingDashboard: React.FC<WingDashboardProps> = ({ onSuggestInitiative, variant = 'default' }) => {
   const { userData, setWingAvatar, setWingName, selectWingMentor, updateBroWingPlans } = useUserProgress();
-  const { accessToken } = useAuth();
-  const [showArchitect, setShowArchitect] = useState(false);
+  const { accessToken, deviceId } = useAuth();
+  const [showInitForm, setShowInitForm] = useState(false);
+  const [inviteCopied, setInviteCopied] = useState<'link' | 'code' | null>(null);
   const [isExpanded, setIsExpanded] = useState(true);
   const [isEditingName, setIsEditingName] = useState(false);
-  const [activePlannerGrid, setActivePlannerGrid] = useState<'wingPlanGridA' | 'wingPlanGridB'>('wingPlanGridA');
+  const [activePlannerGrid, _setActivePlannerGrid] = useState<'wingPlanGridA' | 'wingPlanGridB'>('wingPlanGridA');
   const [plannerDay, setPlannerDay] = useState(1);
   const [plannerSaved, setPlannerSaved] = useState(false);
   const bro = userData.broProgress;
@@ -53,16 +53,7 @@ export const WingDashboard: React.FC<WingDashboardProps> = ({ onSuggestInitiativ
     [currentWingPlanGrid.shiftLength]
   );
   const plannerDayData = currentWingPlanGrid.days[String(plannerDay)] || {};
-  const activePlannerButtonStyle: React.CSSProperties = {
-    background: 'rgba(255, 215, 0, 0.2)',
-    borderColor: 'rgba(255, 215, 0, 0.6)',
-    color: '#ffd700'
-  };
-  const activePlannerDayStyle: React.CSSProperties = {
-    background: 'rgba(139, 0, 255, 0.3)',
-    borderColor: 'rgba(201, 184, 255, 0.8)',
-    color: '#fff'
-  };
+
 
   useEffect(() => {
     setLocalWingPlanGridA(cloneWingPlanGrid(userData.broProgress?.wingPlanGridA));
@@ -118,11 +109,13 @@ export const WingDashboard: React.FC<WingDashboardProps> = ({ onSuggestInitiativ
 
   if (!hasWing) {
     return (
-      <div style={{
+      <div className="fade-in" style={{
         background: 'linear-gradient(135deg, #1a0b2e 0%, #2d1b4e 100%)',
         borderRadius: '24px',
         padding: '24px',
         border: '1px solid rgba(139, 0, 255, 0.3)',
+        backdropFilter: 'blur(8px)',
+        WebkitBackdropFilter: 'blur(8px)',
         marginBottom: '24px',
         position: 'relative',
         overflow: 'hidden'
@@ -161,11 +154,13 @@ export const WingDashboard: React.FC<WingDashboardProps> = ({ onSuggestInitiativ
   }
 
   return (
-    <div className={variant === 'cabin' ? 'bro-cabin-section' : undefined} style={{
+    <div className={`fade-in${variant === 'cabin' ? ' bro-cabin-section' : ''}`} style={{
       background: 'linear-gradient(135deg, #1a0b2e 0%, #2d1b4e 100%)',
       borderRadius: '24px',
       padding: isExpanded ? '24px' : '16px 20px',
       border: '1px solid rgba(139, 0, 255, 0.3)',
+      backdropFilter: 'blur(8px)',
+      WebkitBackdropFilter: 'blur(8px)',
       marginBottom: '24px',
       position: 'relative',
       overflow: 'hidden'
@@ -307,98 +302,363 @@ export const WingDashboard: React.FC<WingDashboardProps> = ({ onSuggestInitiativ
             </div>
           )}
 
+          {/* Invite block */}
+          <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '16px', marginBottom: '16px' }}>
+            <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 10, opacity: 0.6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>ПРИГЛАСИТЬ В КРЫЛО</div>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <button type="button" onClick={() => {
+                const url = new URL(window.location.href);
+                url.searchParams.set('wing', bro?.wingId || '');
+                void navigator.clipboard.writeText(url.toString());
+                setInviteCopied('link');
+                setTimeout(() => setInviteCopied(null), 2500);
+              }} style={{
+                padding: '8px 16px', borderRadius: 10, border: '1px solid rgba(124,58,237,0.3)',
+                background: 'rgba(124,58,237,0.12)', color: '#c4b5fd', fontSize: 12,
+                fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.15s',
+              }}>
+                {inviteCopied === 'link' ? '✓ Скопировано' : '📋 Копировать ссылку'}
+              </button>
+              <button type="button" onClick={() => {
+                void navigator.clipboard.writeText(bro?.wingId || '');
+                setInviteCopied('code');
+                setTimeout(() => setInviteCopied(null), 2500);
+              }} style={{
+                padding: '8px 16px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.1)',
+                background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.5)', fontSize: 12,
+                fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.15s',
+              }}>
+                {inviteCopied === 'code' ? '✓ Скопировано' : '🔑 Копировать код'}
+              </button>
+            </div>
+            {bro?.wingId && (
+              <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', marginTop: 6 }}>
+                Код Крыла: <span style={{ fontFamily: 'monospace', color: '#a78bfa' }}>{bro.wingId}</span>
+              </div>
+            )}
+          </div>
+
           {showWingPlanner && (
-            <div className="bro-wing-planner bro-cabin-section" style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '16px', marginBottom: '16px' }}>
-              <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 12, opacity: 0.6 }}>ПЛАНИРОВАНИЕ СМЕНЫ КРЫЛА</div>
-              <div style={{ display: 'grid', gap: 10 }}>
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                  {(['wingPlanGridA', 'wingPlanGridB'] as const).map((gridId) => (
-                    <button
-                      key={gridId}
-                      type="button"
-                      className="btn-secondary"
-                      aria-pressed={activePlannerGrid === gridId}
-                      onClick={() => {
-                        setPlannerSaved(false);
-                        setActivePlannerGrid(gridId);
+            <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '16px', marginBottom: '16px' }}>
+              <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 12, opacity: 0.6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>ПЛАНИРОВАНИЕ СМЕНЫ КРЫЛА</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {/* Grid selector + shift length */}
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+                  {([9, 21] as const).map((len) => {
+                    const isActive = currentWingPlanGrid.shiftLength === len;
+                    return (
+                      <button
+                        key={len} type="button"
+                        onClick={() => setPlannerShiftLength(len)}
+                        style={{
+                          padding: '7px 14px', borderRadius: 10, fontFamily: 'inherit',
+                          fontSize: 12, fontWeight: 600, cursor: 'pointer',
+                          border: `1px solid ${isActive ? 'rgba(124,58,237,0.5)' : 'rgba(255,255,255,0.12)'}`,
+                          background: isActive ? 'rgba(124,58,237,0.2)' : 'rgba(255,255,255,0.04)',
+                          color: isActive ? '#c4b5fd' : 'rgba(255,255,255,0.5)',
+                          transition: 'all 0.15s',
+                        }}
+                      >
+                        {len} дней
+                      </button>
+                    );
+                  })}
+                </div>
+                {/* Day selector */}
+                <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                  {plannerDayKeys.map((day) => {
+                    const isActive = plannerDay === day;
+                    return (
+                      <button
+                        key={day} type="button"
+                        onClick={() => setPlannerDay(day)}
+                        style={{
+                          width: 36, height: 32, borderRadius: 8, fontFamily: 'inherit',
+                          fontSize: 12, fontWeight: 600, cursor: 'pointer',
+                          border: `1px solid ${isActive ? 'rgba(201,184,255,0.7)' : 'rgba(255,255,255,0.08)'}`,
+                          background: isActive ? 'rgba(139,0,255,0.3)' : 'rgba(255,255,255,0.03)',
+                          color: isActive ? '#fff' : 'rgba(255,255,255,0.4)',
+                          transition: 'all 0.15s',
+                        }}
+                      >
+                        {day}
+                      </button>
+                    );
+                  })}
+                </div>
+                {/* Time slots */}
+                {(['morning', 'quietHour', 'day', 'evening', 'night'] as const).map((field) => {
+                  const labels: Record<string, string> = { morning: 'Утро', quietHour: 'Тихий час', day: 'День', evening: 'Вечер', night: 'Ночь' };
+                  return (
+                    <textarea
+                      key={field}
+                      placeholder={labels[field]}
+                      value={(plannerDayData as any)[field] ?? ''}
+                      onChange={(e) => setPlannerField(field, e.target.value)}
+                      rows={2}
+                      style={{
+                        padding: '10px 14px', borderRadius: 10, fontFamily: 'inherit',
+                        border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(0,0,0,0.2)',
+                        color: '#e8f0ff', fontSize: 12, resize: 'vertical',
                       }}
-                      style={activePlannerGrid === gridId ? activePlannerButtonStyle : undefined}
-                    >
-                      {gridId === 'wingPlanGridA' ? 'Сетка 1' : 'Сетка 2'}
-                    </button>
-                  ))}
-                </div>
-                <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-                  <label><input type="radio" checked={currentWingPlanGrid.shiftLength === 9} onChange={() => setPlannerShiftLength(9)} /> 9 дней</label>
-                  <label><input type="radio" checked={currentWingPlanGrid.shiftLength === 21} onChange={() => setPlannerShiftLength(21)} /> 21 день</label>
-                </div>
-                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                  {plannerDayKeys.map((day) => (
-                    <button
-                      key={day}
-                      type="button"
-                      className="btn-secondary"
-                      aria-pressed={plannerDay === day}
-                      onClick={() => setPlannerDay(day)}
-                      style={plannerDay === day ? activePlannerDayStyle : undefined}
-                    >
-                      День {day}
-                    </button>
-                  ))}
-                </div>
-                <textarea className="w-input" placeholder="Утро" value={plannerDayData.morning ?? ''} onChange={(e) => setPlannerField('morning', e.target.value)} rows={2} />
-                <textarea className="w-input" placeholder="Тихий час" value={plannerDayData.quietHour ?? ''} onChange={(e) => setPlannerField('quietHour', e.target.value)} rows={2} />
-                <textarea className="w-input" placeholder="День" value={plannerDayData.day ?? ''} onChange={(e) => setPlannerField('day', e.target.value)} rows={2} />
-                <textarea className="w-input" placeholder="Вечер" value={plannerDayData.evening ?? ''} onChange={(e) => setPlannerField('evening', e.target.value)} rows={2} />
-                <textarea className="w-input" placeholder="Ночь" value={plannerDayData.night ?? ''} onChange={(e) => setPlannerField('night', e.target.value)} rows={2} />
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-                  <button type="button" className="btn-secondary" onClick={saveWingPlans} style={{ alignSelf: 'flex-start' }}>Сохранить</button>
+                    />
+                  );
+                })}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <button type="button" onClick={saveWingPlans}
+                    style={{
+                      padding: '10px 20px', borderRadius: 10, border: 'none', fontFamily: 'inherit',
+                      background: 'linear-gradient(135deg, #7c3aed, #6d28d9)',
+                      color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer',
+                    }}
+                  >Сохранить</button>
                   {plannerSaved && (
-                    <span style={{ fontSize: 12, color: 'rgba(176, 255, 196, 0.95)' }} role="status">
-                      Сохранено
-                    </span>
+                    <span style={{ fontSize: 12, color: '#c4b5fd' }} role="status">Сохранено ✓</span>
                   )}
                 </div>
               </div>
             </div>
           )}
 
-          {(isFullBro || onSuggestInitiative) && (
-            <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '16px' }}>
-              <div style={{ fontSize: '12px', fontWeight: 700, marginBottom: '12px', opacity: 0.6 }}>{isFullBro ? 'УПРАВЛЕНИЕ:' : 'СОВЕТ ЛАГЕРЯ:'}</div>
-              {onSuggestInitiative && (
-                <button
-                  type="button"
-                  onClick={onSuggestInitiative}
-                  style={{ width: '100%', padding: '12px', background: 'rgba(255, 215, 0, 0.15)', border: '1px solid rgba(255, 215, 0, 0.5)', color: '#FFD700', borderRadius: '12px', fontWeight: 600, cursor: 'pointer', marginBottom: '12px' }}
-                >
-                  💡 Предложить инициативу в совет лагеря
-                </button>
-              )}
-              {isFullBro && (
-                <>
-                  <button
-                    onClick={() => setShowArchitect(!showArchitect)}
-                    style={{ width: '100%', padding: '12px', background: 'rgba(139, 0, 255, 0.2)', border: '1px solid #8b00ff', color: '#c9b8ff', borderRadius: '12px', fontWeight: 700, cursor: 'pointer', marginBottom: '12px' }}
-                  >
-                    {showArchitect ? 'ЗАКРЫТЬ АРХИТЕКТОР' : '🏗️ СОЗДАТЬ ПОСВЯЩЕНИЕ ОТРЯДА'}
-                  </button>
-                  {showArchitect && <SquadArchitect />}
-                  {!showArchitect && (
-                    <div style={{ display: 'grid', gap: '8px' }}>
-                      {['Организовать сюрприз для младших', 'Провести "Свечку" в отряде', 'Помочь вожатому с документами'].map((task, index) => (
-                        <div key={index} style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13px', padding: '8px', background: 'rgba(255,255,255,0.03)', borderRadius: '8px' }}>
-                          <div style={{ width: '16px', height: '16px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.3)' }} />
-                          {task}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
+          {(true || onSuggestInitiative) && (
+            <WingInitiationSection
+              deviceId={deviceId || undefined}
+              accessToken={accessToken || undefined}
+              onSuggestInitiative={onSuggestInitiative}
+              showInitForm={showInitForm}
+              setShowInitForm={setShowInitForm}
+            />
           )}
         </>
+      )}
+    </div>
+  );
+};
+
+// ---------------------------------------------------------------------------
+// WingInitiationSection — Squad Initiation management from Wing
+// ---------------------------------------------------------------------------
+
+interface InitTask { id: string; title: string; description: string; }
+
+interface WingInitiationSectionProps {
+  deviceId?: string;
+  accessToken?: string;
+  onSuggestInitiative?: () => void;
+  showInitForm: boolean;
+  setShowInitForm: (v: boolean) => void;
+}
+
+interface SquadInitiation {
+  id: string; name: string; description?: string; status: string;
+  customTasks?: { id: string; title: string; description?: string }[];
+  createdAt: string;
+}
+
+const WingInitiationSection: React.FC<WingInitiationSectionProps> = ({
+  deviceId, accessToken, onSuggestInitiative, showInitForm, setShowInitForm,
+}) => {
+  const { activeTeam } = useTeam();
+  const squadId = activeTeam?.squadId || activeTeam?.id;
+  const [initiations, setInitiations] = useState<SquadInitiation[]>([]);
+  const [initName, setInitName] = useState('');
+  const [initDesc, setInitDesc] = useState('');
+  const [initTasks, setInitTasks] = useState<InitTask[]>([
+    { id: 'si_1', title: '', description: '' },
+  ]);
+  const [busy, setBusy] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
+
+  const headers = useMemo((): Record<string, string> => {
+    if (accessToken) return { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` };
+    if (deviceId) return { 'Content-Type': 'application/json', 'X-Device-Id': deviceId };
+    return { 'Content-Type': 'application/json' };
+  }, [accessToken, deviceId]);
+
+  const loadInitiations = useCallback(async () => {
+    if (!squadId) return;
+    try {
+      const res = await fetch(`/api/wing/initiations?squad_id=${encodeURIComponent(squadId)}`);
+      const data = await res.json().catch(() => ({ initiations: [] }));
+      setInitiations(data.initiations || []);
+    } catch { /* silent */ }
+  }, [squadId]);
+
+  useEffect(() => { void loadInitiations(); }, [loadInitiations]);
+
+  const handleCreate = async () => {
+    if (!squadId || !initName.trim()) return;
+    const tasks = initTasks.filter(t => t.title.trim()).map((t, i) => ({
+      id: t.id, title: t.title.trim(), description: t.description.trim(), order: i + 1,
+    }));
+    if (tasks.length === 0) return;
+    setBusy(true);
+    try {
+      const res = await fetch('/api/wing/initiations', {
+        method: 'POST', headers,
+        body: JSON.stringify({ squadId, name: initName.trim(), description: initDesc.trim(), tasks }),
+      });
+      if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.error || 'Ошибка'); }
+      setShowInitForm(false);
+      setInitName(''); setInitDesc('');
+      setInitTasks([{ id: `si_${Date.now().toString(36)}`, title: '', description: '' }]);
+      setToast('Посвящение создано!');
+      setTimeout(() => setToast(null), 3000);
+      void loadInitiations();
+    } catch (e: any) { setToast(e.message || 'Ошибка'); setTimeout(() => setToast(null), 3000); }
+    finally { setBusy(false); }
+  };
+
+  const handleClose = async (id: string) => {
+    if (!confirm('Завершить посвящение?')) return;
+    setBusy(true);
+    try {
+      await fetch(`/api/wing/initiations/${encodeURIComponent(id)}`, {
+        method: 'PATCH', headers,
+        body: JSON.stringify({ action: 'complete' }),
+      });
+      void loadInitiations();
+    } catch { /* silent */ }
+    finally { setBusy(false); }
+  };
+
+  const activeInits = initiations.filter(i => i.status === 'active');
+  const completedInits = initiations.filter(i => i.status === 'completed');
+
+  return (
+    <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '16px' }}>
+      <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 12, opacity: 0.6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+        Посвящения отряда
+      </div>
+
+      {onSuggestInitiative && (
+        <button type="button" onClick={onSuggestInitiative}
+          style={{ width: '100%', padding: '12px', background: 'rgba(255, 215, 0, 0.15)', border: '1px solid rgba(255, 215, 0, 0.5)', color: '#FFD700', borderRadius: '12px', fontWeight: 600, cursor: 'pointer', marginBottom: '12px', fontFamily: 'inherit' }}>
+          Предложить инициативу в совет лагеря
+        </button>
+      )}
+
+      {/* Active initiations */}
+      {activeInits.map(init => (
+        <div key={init.id} style={{
+          padding: '14px 16px', borderRadius: 14, marginBottom: 10,
+          background: 'linear-gradient(135deg, rgba(124,58,237,0.12) 0%, rgba(88,28,195,0.08) 100%)',
+          border: '1px solid rgba(124,58,237,0.2)',
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#a78bfa', boxShadow: '0 0 6px rgba(167,139,250,0.6)', flexShrink: 0 }} />
+                <span style={{ fontSize: 14, fontWeight: 700, color: '#e0d4ff' }}>{init.name}</span>
+              </div>
+              {init.description && <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', marginTop: 4, paddingLeft: 16 }}>{init.description}</div>}
+              <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', marginTop: 4, paddingLeft: 16 }}>
+                {init.customTasks?.length || 0} заданий · с {new Date(init.createdAt).toLocaleDateString()}
+              </div>
+            </div>
+            <button type="button" onClick={() => handleClose(init.id)}
+              style={{ padding: '5px 12px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.5)', fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}
+              disabled={busy}>
+              Завершить
+            </button>
+          </div>
+        </div>
+      ))}
+
+      {/* Completed initiations summary */}
+      {completedInits.length > 0 && (
+        <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', marginBottom: 10 }}>
+          Завершено посвящений: {completedInits.length}
+        </div>
+      )}
+
+      {/* Create button */}
+      <button type="button"
+        onClick={() => setShowInitForm(!showInitForm)}
+        style={{
+          width: '100%', padding: '12px', borderRadius: 12,
+          background: showInitForm ? 'rgba(255,255,255,0.06)' : 'rgba(139, 0, 255, 0.2)',
+          border: `1px solid ${showInitForm ? 'rgba(255,255,255,0.1)' : '#8b00ff'}`,
+          color: showInitForm ? 'rgba(255,255,255,0.5)' : '#c9b8ff',
+          fontWeight: 700, cursor: 'pointer', marginBottom: showInitForm ? '12px' : 0,
+          fontFamily: 'inherit', fontSize: 13, transition: 'all 0.15s',
+        }}>
+        {showInitForm ? 'Отмена' : 'Создать Посвящение отряда'}
+      </button>
+
+      {/* Create form */}
+      {showInitForm && (
+        <div style={{
+          padding: '16px', borderRadius: 14,
+          background: 'rgba(12, 8, 32, 0.55)', backdropFilter: 'blur(14px)',
+          border: '1px solid rgba(124, 58, 237, 0.18)',
+          display: 'flex', flexDirection: 'column', gap: 10,
+        }}>
+          <div style={{ fontSize: 14, fontWeight: 700, color: '#e0d4ff' }}>Новое Посвящение</div>
+
+          <input type="text" value={initName} onChange={e => setInitName(e.target.value)}
+            placeholder="Название (например: Посвящение в Морские Волки)"
+            style={{ padding: '10px 14px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(0,0,0,0.25)', color: '#e8f0ff', fontSize: 13, fontFamily: 'inherit' }} />
+
+          <textarea value={initDesc} onChange={e => setInitDesc(e.target.value)}
+            placeholder="Описание / сеттинг (необязательно)"
+            rows={2}
+            style={{ padding: '10px 14px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(0,0,0,0.15)', color: 'rgba(255,255,255,0.6)', fontSize: 12, fontFamily: 'inherit', resize: 'vertical' }} />
+
+          <div style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.5)', marginTop: 4 }}>Задания</div>
+
+          {initTasks.map((task, idx) => (
+            <div key={task.id} style={{
+              padding: '8px 10px', borderRadius: 10,
+              background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)',
+              display: 'flex', flexDirection: 'column', gap: 5,
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ width: 22, height: 22, borderRadius: 6, flexShrink: 0, background: 'rgba(124,58,237,0.2)', color: '#a78bfa', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700 }}>{idx + 1}</span>
+                <input type="text" value={task.title}
+                  onChange={e => { const n = [...initTasks]; n[idx] = { ...n[idx], title: e.target.value }; setInitTasks(n); }}
+                  placeholder="Название задания"
+                  style={{ flex: 1, padding: '6px 10px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(0,0,0,0.25)', color: '#e8f0ff', fontSize: 13, fontFamily: 'inherit' }} />
+                {initTasks.length > 1 && (
+                  <button type="button" onClick={() => setInitTasks(initTasks.filter((_, i) => i !== idx))}
+                    style={{ width: 26, height: 26, borderRadius: 6, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(220,38,38,0.1)', color: '#f87171', cursor: 'pointer', fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
+                )}
+              </div>
+              <input type="text" value={task.description}
+                onChange={e => { const n = [...initTasks]; n[idx] = { ...n[idx], description: e.target.value }; setInitTasks(n); }}
+                placeholder="Описание (необязательно)"
+                style={{ padding: '5px 10px', borderRadius: 8, marginLeft: 30, border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(0,0,0,0.15)', color: 'rgba(255,255,255,0.5)', fontSize: 11, fontFamily: 'inherit' }} />
+            </div>
+          ))}
+
+          <button type="button" onClick={() => setInitTasks([...initTasks, { id: `si_${Date.now().toString(36)}`, title: '', description: '' }])}
+            style={{ padding: '8px 14px', borderRadius: 10, border: '1px dashed rgba(255,255,255,0.15)', background: 'transparent', color: 'rgba(255,255,255,0.4)', fontSize: 12, cursor: 'pointer', fontFamily: 'inherit' }}>
+            + Добавить задание
+          </button>
+
+          <button type="button" onClick={handleCreate} disabled={busy || !initName.trim() || initTasks.every(t => !t.title.trim())}
+            style={{
+              marginTop: 4, padding: '12px', borderRadius: 12, border: 'none',
+              background: 'linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)',
+              color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+              opacity: busy || !initName.trim() ? 0.5 : 1,
+            }}>
+            {busy ? 'Создание...' : 'Запустить Посвящение'}
+          </button>
+        </div>
+      )}
+
+      {/* Toast */}
+      {toast && (
+        <div style={{
+          position: 'fixed', bottom: 120, left: '50%', transform: 'translateX(-50%)', zIndex: 1100,
+          padding: '12px 24px', borderRadius: 12,
+          background: toast.includes('Ошибка') ? 'rgba(220,38,38,0.9)' : 'rgba(34,197,94,0.9)',
+          color: '#fff', fontSize: 14, fontWeight: 600,
+          backdropFilter: 'blur(8px)', boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
+        }}>
+          {toast}
+        </div>
       )}
     </div>
   );

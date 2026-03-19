@@ -8,6 +8,7 @@ interface DevPanelProps {
     currentRole: string;
     onRoleSwitch: (role: string) => void;
     onOpenDashboard?: () => void;
+    onOpenCabinet?: () => void;
     accessToken?: string | null;
 }
 
@@ -54,6 +55,7 @@ export const DevPanel: React.FC<DevPanelProps> = ({
     currentRole,
     onRoleSwitch,
     onOpenDashboard,
+    onOpenCabinet,
     accessToken,
 }) => {
     const [expanded, setExpanded] = useState(false);
@@ -157,6 +159,18 @@ export const DevPanel: React.FC<DevPanelProps> = ({
                                     }}
                                     onClick={onOpenDashboard}>
                                     Пульт
+                                </button>
+                            )}
+                            {onOpenCabinet && (
+                                <button type="button"
+                                    style={{
+                                        flex: 1, padding: '7px 8px', fontSize: 11, fontWeight: 600,
+                                        border: '1px solid #1a1a2e', borderRadius: 8,
+                                        background: '#fff', color: '#1a1a2e',
+                                        cursor: 'pointer', transition: 'all 0.15s',
+                                    }}
+                                    onClick={onOpenCabinet}>
+                                    Кабинет
                                 </button>
                             )}
                         </div>

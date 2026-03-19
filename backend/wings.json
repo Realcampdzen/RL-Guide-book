@@ -1,1 +1,34 @@
-{}
+{
+  "wing-mmwho6jc": {
+    "id": "wing-mmwho6jc",
+    "name": "Стёпа",
+    "squadId": "9f555852b996",
+    "type": "bro_wing",
+    "deviceId": "64fe8d19-02a2-447a-a559-bc7c73eeb997",
+    "createdAt": "2026-03-18T20:23:40.824Z"
+  },
+  "wing-mmwhofqm": {
+    "id": "wing-mmwhofqm",
+    "name": "Степа",
+    "squadId": "9f555852b996",
+    "type": "bro_wing",
+    "deviceId": "64fe8d19-02a2-447a-a559-bc7c73eeb997",
+    "createdAt": "2026-03-18T20:23:52.750Z"
+  },
+  "wing-mmwhuv56": {
+    "id": "wing-mmwhuv56",
+    "name": "12",
+    "squadId": "9f555852b996",
+    "type": "bro_wing",
+    "deviceId": "64fe8d19-02a2-447a-a559-bc7c73eeb997",
+    "createdAt": "2026-03-18T20:28:52.650Z"
+  },
+  "wing-mmwhwgds": {
+    "id": "wing-mmwhwgds",
+    "name": "123",
+    "squadId": "9f555852b996",
+    "type": "bro_wing",
+    "deviceId": "64fe8d19-02a2-447a-a559-bc7c73eeb997",
+    "createdAt": "2026-03-18T20:30:06.832Z"
+  }
+}

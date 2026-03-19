@@ -103,7 +103,7 @@ SQUAD_CORNER_PATCH_LIMIT_BYTES = 5 * 1024 * 1024
 SQUAD_MESSAGES_MAX_HISTORY = 1000
 SQUAD_MESSAGES_DEFAULT_LIMIT = 50
 SQUAD_MESSAGES_MAX_LIMIT = 100
-DEFAULT_SEEDED_SHIFT_NAME = "Реальный Лагерь 2026"
+DEFAULT_SEEDED_SHIFT_NAME = "Весенняя смена 2026"
 # Staff-flow permissions (shifts/squads management, staff code issuing).
 ORGANIZER_ROLES = ('shift_leader', 'camp_director', 'developer')
 LEVEL_ID_RE = re.compile(r'^\d+\.\d+(?:\.\d+)?$')
@@ -425,11 +425,8 @@ def _ensure_default_shift_seeded(data: dict) -> tuple[dict, bool]:
     if not _is_dev_mode():
         return data, False
     shifts = data.get("shifts") or []
-    has_default = any(
-        isinstance(shift, dict) and _is_default_seeded_shift_name(shift.get("name") or "")
-        for shift in shifts
-    )
-    if has_default:
+    # Skip seeding if any shifts already exist (we already have Весенняя + Летняя)
+    if shifts:
         return data, False
     seeded_shift = {
         "id": uuid.uuid4().hex[:12],
@@ -936,11 +933,13 @@ CORS(app)  # Разрешаем CORS для фронтенда
 DATA_FILE = os.path.join(os.path.dirname(__file__), "perfect_parsed_data.json")
 COMMUNITY_FILE = os.path.join(os.path.dirname(__file__), "community_badges.json")
 TEAMS_FILE = os.path.join(os.path.dirname(__file__), "teams.json")
+INITIATIVES_FILE = os.path.join(os.path.dirname(__file__), "initiatives.json")
 BRO_MISSIONS_FILE = os.path.join(os.path.dirname(__file__), "bro_missions.json")
 WINGS_FILE = os.path.join(os.path.dirname(__file__), "wings.json")
+ENGINE_PROJECTS_FILE = os.path.join(os.path.dirname(__file__), "engine_projects.json")
 
 def ensure_json_files():
-    for f_path in [COMMUNITY_FILE, TEAMS_FILE, BRO_MISSIONS_FILE, WINGS_FILE]:
+    for f_path in [COMMUNITY_FILE, TEAMS_FILE, INITIATIVES_FILE, BRO_MISSIONS_FILE, WINGS_FILE, ENGINE_PROJECTS_FILE]:
         if not os.path.exists(f_path):
             with open(f_path, 'w', encoding='utf-8') as f:
                 if f_path == COMMUNITY_FILE:
@@ -1245,10 +1244,8 @@ def handle_teams():
 
             teams = _teams_load()
             existing_teams = _find_member_teams(teams, device_id)
-            requested_slot = _normalize_team_doc({"scope": scope, "shiftId": shift_id, "squadId": squad_id})
-            for existing in existing_teams:
-                if _is_scope_slot_equal(existing, requested_slot):
-                    return jsonify({"error": "Already in a team for this scope", "teamId": existing.get('id')}), 409
+            if len(existing_teams) >= 3:
+                return jsonify({"error": "Максимум 3 Движка", "code": "max_teams"}), 409
 
             new_id = 'T-' + ''.join(secrets.choice('ABCDEFGHJKLMNPQRSTUVWXYZ23456789') for _ in range(6))
             nickname = (data.get('nickname') or '').strip() or 'Искатель'
@@ -1314,10 +1311,9 @@ def teams_mine():
         my_teams = [t for t in my_teams if _team_matches_context(t, scope=scope, shift_id=shift_id, squad_id=squad_id)]
 
     if not my_teams:
-        return jsonify({"error": "No team"}), 404
+        return jsonify([])
 
-    # backward-compatible behavior: return one team object
-    return jsonify(my_teams[0])
+    return jsonify(my_teams)
 
 
 @app.route('/api/teams/<team_id>/join', methods=['POST'])
@@ -1336,8 +1332,8 @@ def teams_join(team_id):
     for in_other in in_teams:
         if (in_other.get('id') or '') == team_id:
             return jsonify(in_other)
-        if _is_scope_slot_equal(in_other, doc):
-            return jsonify({"error": "Already in another team for this scope", "teamId": in_other.get('id')}), 409
+    if len(in_teams) >= 3:
+        return jsonify({"error": "Максимум 3 Движка", "code": "max_teams"}), 409
     if not isinstance(doc, dict):
         return jsonify({"error": "Team not found"}), 404
     members = list(doc.get('members') or [])
@@ -1379,6 +1375,472 @@ def teams_leave(team_id):
     return jsonify({"status": "success"})
 
 
+# ---------------------------------------------------------------------------
+# Engine Projects — проекты Движков
+# ---------------------------------------------------------------------------
+def _engine_projects_load():
+    try:
+        with open(ENGINE_PROJECTS_FILE, 'r', encoding='utf-8') as f:
+            raw = f.read()
+        data = json.loads(raw) if raw.strip() else []
+        return data if isinstance(data, list) else []
+    except (json.JSONDecodeError, OSError):
+        return []
+
+def _engine_projects_save(projects):
+    with open(ENGINE_PROJECTS_FILE, 'w', encoding='utf-8') as f:
+        json.dump(projects, f, ensure_ascii=False, indent=2)
+
+
+@app.route('/api/teams/<team_id>/projects', methods=['GET', 'POST'])
+def handle_team_projects(team_id):
+    """GET: list projects for team. POST: create new project."""
+    ensure_json_files()
+    payload, err = _require_teams_auth()
+    if err is not None:
+        return err[0], err[1]
+    device_id = (payload.get('deviceId') or '').strip()
+
+    teams = _teams_load()
+    doc = teams.get(team_id)
+    if not doc or not isinstance(doc, dict):
+        return jsonify({"error": "Team not found"}), 404
+    members = doc.get('members') or []
+    is_member = any(isinstance(m, dict) and (m.get('id') or '').strip() == device_id for m in members)
+
+    if request.method == 'GET':
+        projects = _engine_projects_load()
+        team_projects = [p for p in projects if p.get('teamId') == team_id]
+        return jsonify(team_projects)
+
+    # POST — create
+    if not is_member:
+        return jsonify({"error": "Not a member"}), 403
+    data = request.get_json() or {}
+    title = (data.get('title') or '').strip()
+    if not title:
+        return jsonify({"error": "title required"}), 400
+
+    import uuid
+    project = {
+        'id': f'proj-{uuid.uuid4().hex[:8]}',
+        'teamId': team_id,
+        'title': title,
+        'description': (data.get('description') or '').strip(),
+        'plan': (data.get('plan') or '').strip(),
+        'targetBadgeId': (data.get('targetBadgeId') or '').strip() or None,
+        'status': 'draft',
+        'photos': [],
+        'reflection': '',
+        'scenario': '',
+        'createdBy': device_id,
+        'createdAt': datetime.now(timezone.utc).isoformat(),
+    }
+    projects = _engine_projects_load()
+    projects.append(project)
+    _engine_projects_save(projects)
+    return jsonify(project), 201
+
+
+@app.route('/api/teams/<team_id>/projects/<project_id>', methods=['PATCH'])
+def handle_team_project_update(team_id, project_id):
+    """PATCH — update project fields, change status."""
+    ensure_json_files()
+    payload, err = _require_teams_auth()
+    if err is not None:
+        return err[0], err[1]
+
+    projects = _engine_projects_load()
+    proj = next((p for p in projects if p.get('id') == project_id and p.get('teamId') == team_id), None)
+    if not proj:
+        return jsonify({"error": "Project not found"}), 404
+
+    data = request.get_json() or {}
+    allowed = ('title', 'description', 'plan', 'targetBadgeId', 'photos', 'reflection', 'scenario', 'status')
+    for key in allowed:
+        if key in data:
+            if key == 'photos' and isinstance(data[key], list):
+                proj['photos'] = [p for p in data[key] if isinstance(p, str)][:5]
+            elif key == 'status':
+                new_status = (data[key] or '').strip()
+                if new_status == 'in_progress' and proj['status'] in ('draft', 'rejected'):
+                    proj['status'] = 'in_progress'
+                elif new_status == 'review' and proj['status'] == 'in_progress':
+                    proj['status'] = 'review'
+                    proj['submittedAt'] = datetime.now(timezone.utc).isoformat()
+                elif new_status == 'draft' and proj['status'] in ('in_progress',):
+                    proj['status'] = 'draft'
+            elif isinstance(data[key], str):
+                proj[key] = data[key].strip()
+
+    _engine_projects_save(projects)
+    return jsonify(proj)
+
+
+@app.route('/api/teams/<team_id>/projects/<project_id>/review', methods=['POST'])
+def handle_team_project_review(team_id, project_id):
+    """POST — counselor approves or rejects project."""
+    ensure_json_files()
+    payload, err = _require_teams_auth()
+    if err is not None:
+        return err[0], err[1]
+    device_id = (payload.get('deviceId') or '').strip()
+
+    projects = _engine_projects_load()
+    proj = next((p for p in projects if p.get('id') == project_id and p.get('teamId') == team_id), None)
+    if not proj:
+        return jsonify({"error": "Project not found"}), 404
+    if proj.get('status') != 'review':
+        return jsonify({"error": "Project not in review status"}), 400
+
+    data = request.get_json() or {}
+    action = (data.get('action') or '').strip()
+    if action not in ('approve', 'reject'):
+        return jsonify({"error": "action must be approve or reject"}), 400
+
+    proj['reviewedAt'] = datetime.now(timezone.utc).isoformat()
+    proj['reviewedBy'] = device_id
+    proj['reviewNote'] = (data.get('note') or '').strip()
+
+    if action == 'approve':
+        proj['status'] = 'approved'
+        badge_id = proj.get('targetBadgeId')
+        if badge_id:
+            teams = _teams_load()
+            team_doc = teams.get(team_id)
+            if team_doc:
+                achievements = team_doc.get('achievements') or []
+                if badge_id not in achievements:
+                    achievements.append(badge_id)
+                    team_doc['achievements'] = achievements
+                    _teams_save(teams)
+    else:
+        proj['status'] = 'rejected'
+
+    _engine_projects_save(projects)
+    return jsonify(proj)
+
+
+# ---------------------------------------------------------------------------
+# Initiatives — инициативы Движков с голосованием
+# ---------------------------------------------------------------------------
+def _initiatives_load():
+    """Load all initiatives from storage."""
+    try:
+        with open(INITIATIVES_FILE, 'r', encoding='utf-8') as f:
+            raw = f.read()
+        data = json.loads(raw) if raw.strip() else []
+        return data if isinstance(data, list) else []
+    except (json.JSONDecodeError, OSError):
+        return []
+
+
+def _initiatives_save(initiatives):
+    with open(INITIATIVES_FILE, 'w', encoding='utf-8') as f:
+        json.dump(initiatives, f, ensure_ascii=False, indent=2)
+
+
+@app.route('/api/teams/<team_id>/initiatives', methods=['GET', 'POST'])
+def handle_team_initiatives(team_id):
+    """GET: list initiatives for team. POST: create new initiative."""
+    ensure_json_files()
+    payload, err = _require_teams_auth()
+    if err is not None:
+        return err[0], err[1]
+    device_id = (payload.get('deviceId') or '').strip()
+
+    teams = _teams_load()
+    doc = teams.get(team_id)
+    if not doc or not isinstance(doc, dict):
+        return jsonify({"error": "Team not found"}), 404
+    members = doc.get('members') or []
+    if not any(isinstance(m, dict) and (m.get('id') or '').strip() == device_id for m in members):
+        return jsonify({"error": "Not a team member"}), 403
+
+    all_initiatives = _initiatives_load()
+
+    if request.method == 'GET':
+        team_inits = [i for i in all_initiatives if i.get('teamId') == team_id]
+        return jsonify(team_inits)
+
+    # POST: create
+    data = request.get_json() or {}
+    title = (data.get('title') or '').strip()
+    description = (data.get('description') or '').strip()
+    if not title:
+        return jsonify({"error": "Название обязательно"}), 400
+
+    ini_id = 'INI-' + ''.join(secrets.choice('ABCDEFGHJKLMNPQRSTUVWXYZ23456789') for _ in range(6))
+    initiative = {
+        'id': ini_id,
+        'teamId': team_id,
+        'title': title[:200],
+        'description': description[:2000],
+        'createdBy': device_id,
+        'createdAt': datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z'),
+        'votes': {device_id: True},  # создатель автоматически голосует «за»
+        'status': 'voting',
+        'totalMembers': len(members),
+    }
+    all_initiatives.append(initiative)
+    _initiatives_save(all_initiatives)
+    return jsonify(initiative), 201
+
+
+@app.route('/api/teams/<team_id>/initiatives/<ini_id>/vote', methods=['POST'])
+def vote_initiative(team_id, ini_id):
+    """Vote on an initiative. Body: {"vote": true/false}"""
+    ensure_json_files()
+    payload, err = _require_teams_auth()
+    if err is not None:
+        return err[0], err[1]
+    device_id = (payload.get('deviceId') or '').strip()
+
+    teams = _teams_load()
+    doc = teams.get(team_id)
+    if not doc or not isinstance(doc, dict):
+        return jsonify({"error": "Team not found"}), 404
+    members = doc.get('members') or []
+    if not any(isinstance(m, dict) and (m.get('id') or '').strip() == device_id for m in members):
+        return jsonify({"error": "Not a team member"}), 403
+
+    all_initiatives = _initiatives_load()
+    ini = None
+    for item in all_initiatives:
+        if item.get('id') == ini_id and item.get('teamId') == team_id:
+            ini = item
+            break
+    if not ini:
+        return jsonify({"error": "Initiative not found"}), 404
+    if ini.get('status') != 'voting':
+        return jsonify({"error": "Голосование завершено"}), 400
+
+    data = request.get_json() or {}
+    vote = data.get('vote', True)
+    votes = ini.get('votes') or {}
+    votes[device_id] = bool(vote)
+    ini['votes'] = votes
+    ini['totalMembers'] = len(members)
+
+    # Проверяем: все участники проголосовали?
+    member_ids = {(m.get('id') or '').strip() for m in members if isinstance(m, dict)}
+    voted_ids = set(votes.keys())
+    if member_ids <= voted_ids:
+        all_yes = all(votes.get(mid, False) for mid in member_ids)
+        ini['status'] = 'approved' if all_yes else 'rejected'
+
+    _initiatives_save(all_initiatives)
+    return jsonify(ini)
+
+
+@app.route('/api/teams/<team_id>/initiatives/<ini_id>/send', methods=['POST'])
+def send_initiative(team_id, ini_id):
+    """Send approved initiative to camp council."""
+    ensure_json_files()
+    payload, err = _require_teams_auth()
+    if err is not None:
+        return err[0], err[1]
+    device_id = (payload.get('deviceId') or '').strip()
+
+    all_initiatives = _initiatives_load()
+    ini = None
+    for item in all_initiatives:
+        if item.get('id') == ini_id and item.get('teamId') == team_id:
+            ini = item
+            break
+    if not ini:
+        return jsonify({"error": "Initiative not found"}), 404
+    if ini.get('status') != 'approved':
+        return jsonify({"error": "Инициатива ещё не одобрена всеми участниками"}), 400
+
+    ini['status'] = 'sent_to_council'
+    ini['sentAt'] = datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
+    ini['sentBy'] = device_id
+    _initiatives_save(all_initiatives)
+
+    # ── Bridge: copy initiative to council_initiatives.json ──
+    teams = _teams_load()
+    team_doc = teams.get(team_id) or {}
+    team_name = team_doc.get('name') or team_id
+
+    # Find the member nickname who sent it
+    members = team_doc.get('members') or []
+    sender_nickname = ''
+    for m in members:
+        if isinstance(m, dict) and (m.get('id') or '').strip() == device_id:
+            sender_nickname = m.get('nickname') or ''
+            break
+
+    council_store = get_store("council_initiatives")
+    council_data = council_store.load()
+    council_items = council_data.get("initiatives") or []
+
+    # Avoid duplicates — check if already sent
+    already_exists = any(ci.get('sourceInitiativeId') == ini_id for ci in council_items if isinstance(ci, dict))
+    if not already_exists:
+        council_ini = {
+            "id": f"CI-{ini_id}",
+            "sourceInitiativeId": ini_id,
+            "teamId": team_id,
+            "teamName": team_name,
+            "title": ini.get('title', ''),
+            "description": ini.get('description', ''),
+            "status": "new",
+            "readStatus": "new",
+            "authorNickname": sender_nickname or device_id,
+            "votesUp": 0,
+            "voters": [],
+            "createdAt": ini.get('createdAt', ''),
+            "sentAt": ini['sentAt'],
+            "campId": "",
+        }
+        council_items.append(council_ini)
+        council_data["initiatives"] = council_items
+        council_store.save(council_data)
+
+    return jsonify(ini)
+
+
+# ---------------------------------------------------------------------------
+# Team Chat — чат Движка (аналог squad chat, но с team membership)
+# ---------------------------------------------------------------------------
+def _team_messages_load() -> dict:
+    """Load team messages. Uses same storage provider as squad messages, separate namespace."""
+    data = get_store("squad_messages").load()
+    return data if isinstance(data, dict) else {}
+
+
+def _team_messages_save(data: dict):
+    get_store("squad_messages").save(data)
+
+
+def _require_team_membership_for_chat(device_id: str, team_id: str):
+    """Check if device_id is a member of team_id. Returns (team_doc, None) or (None, error_tuple)."""
+    teams = _teams_load()
+    doc = teams.get(team_id)
+    if not doc or not isinstance(doc, dict):
+        return None, (jsonify({"error": "Team not found"}), 404)
+    members = doc.get('members') or []
+    if not any(isinstance(m, dict) and (m.get('id') or '').strip() == device_id for m in members):
+        return None, (jsonify({"error": "Not a team member"}), 403)
+    return doc, None
+
+
+@app.route('/api/teams/<team_id>/messages', methods=['GET', 'POST'])
+def team_messages_get_or_post(team_id: str):
+    """GET/POST team chat messages. Auth: any role, must be team member."""
+    payload, err = _require_teams_auth()
+    if err is not None:
+        return err[0], err[1]
+    device_id = (payload.get('deviceId') or '').strip()
+    role = (payload.get('role') or '').strip().lower()
+
+    team_doc, membership_err = _require_team_membership_for_chat(device_id, team_id)
+    can_bypass = role == 'developer'
+    if membership_err and not can_bypass:
+        return membership_err[0], membership_err[1]
+
+    doc = _team_messages_load()
+    by_team = doc.get('byTeamId') or {}
+    if not isinstance(by_team, dict):
+        by_team = {}
+    rows = by_team.get(team_id)
+    if not isinstance(rows, list):
+        rows = []
+
+    if request.method == 'GET':
+        try:
+            limit = int((request.args.get('limit') or str(SQUAD_MESSAGES_DEFAULT_LIMIT)).strip())
+        except ValueError:
+            limit = SQUAD_MESSAGES_DEFAULT_LIMIT
+        limit = max(1, min(SQUAD_MESSAGES_MAX_LIMIT, limit))
+        before_msg_id = (request.args.get('before') or '').strip()
+        ordered = [r for r in rows if isinstance(r, dict)]
+        if before_msg_id:
+            before_index = next((idx for idx, item in enumerate(ordered) if (item.get('id') or '').strip() == before_msg_id), None)
+            if before_index is not None:
+                ordered = ordered[:before_index]
+        has_more = len(ordered) > limit
+        out = ordered[-limit:]
+        return jsonify({'squadId': team_id, 'messages': out, 'hasMore': has_more})
+
+    # POST
+    if not _check_squad_msg_rate_limit(device_id):
+        return jsonify({"error": "Слишком много сообщений. Подождите немного."}), 429
+
+    ok, rate_err = _check_and_inc_chat_daily(device_id)
+    if not ok and rate_err is not None:
+        return rate_err[0], rate_err[1]
+
+    body = request.get_json() or {}
+    text = (body.get('text') or '').strip()
+    if not text:
+        return jsonify({'error': 'text required'}), 400
+
+    clean_text, validation_error = _validate_squad_message(text)
+    if validation_error:
+        return jsonify({'error': validation_error}), 400
+
+    # Find nickname from team members
+    nickname = (body.get('nickname') or '').strip()
+    if team_doc:
+        for m in (team_doc.get('members') or []):
+            if isinstance(m, dict) and (m.get('id') or '').strip() == device_id:
+                nickname = (m.get('nickname') or '').strip() or nickname
+                break
+
+    msg = {
+        'id': uuid.uuid4().hex[:12],
+        'squadId': team_id,
+        'createdAt': datetime.now(timezone.utc).isoformat(),
+        'deviceId': device_id or None,
+        'nickname': nickname or None,
+        'role': role,
+        'text': clean_text
+    }
+    rows.append(msg)
+    rows = rows[-SQUAD_MESSAGES_MAX_HISTORY:]
+    by_team[team_id] = rows
+    doc['byTeamId'] = by_team
+    _team_messages_save(doc)
+    return jsonify({'message': msg})
+
+
+@app.route('/api/teams/<team_id>/messages/<msg_id>', methods=['DELETE'])
+def team_message_delete(team_id: str, msg_id: str):
+    """DELETE team chat message. Auth: author or leader."""
+    payload, err = _require_teams_auth()
+    if err is not None:
+        return err[0], err[1]
+    device_id = (payload.get('deviceId') or '').strip()
+
+    teams = _teams_load()
+    team_doc = teams.get(team_id)
+    leader_id = (team_doc.get('leaderId') or '').strip() if team_doc else ''
+
+    doc = _team_messages_load()
+    by_team = doc.get('byTeamId') or {}
+    rows = by_team.get(team_id)
+    if not isinstance(rows, list):
+        return jsonify({'error': 'Message not found'}), 404
+
+    msg_index = next((i for i, r in enumerate(rows) if isinstance(r, dict) and (r.get('id') or '') == msg_id), None)
+    if msg_index is None:
+        return jsonify({'error': 'Message not found'}), 404
+
+    msg = rows[msg_index]
+    is_author = device_id and (msg.get('deviceId') or '') == device_id
+    is_leader = device_id and device_id == leader_id
+    if not is_author and not is_leader:
+        return jsonify({'error': 'Access denied'}), 403
+
+    rows.pop(msg_index)
+    by_team[team_id] = rows
+    doc['byTeamId'] = by_team
+    _team_messages_save(doc)
+    return jsonify({'ok': True})
+
+
 # Context identifiers for POST /api/images/generate (LK sections)
 IMAGES_CONTEXT_PROMPTS = {
     "squad_corner": "Squad corner photo, Real Camp style, youth camp aesthetic.",
@@ -1390,6 +1852,7 @@ IMAGES_CONTEXT_PROMPTS = {
     "gerb": "Team emblem 9:16, Real Camp style.",
     "counselor_squad": "Counselor squad visual, Real Camp style.",
     "bro_passport": "Bro passport cover or card, Real Camp / BRO style.",
+    "diary_card": "Personal diary card photo, selfie style, youth camp aesthetic, Real Camp style.",
 }
 
 GERB_STYLE_DESCS = {
@@ -2358,6 +2821,7 @@ def shifts_create():
         name = (body.get("name") or "").strip()
         start_date = (body.get("startDate") or "").strip()
         end_date = (body.get("endDate") or "").strip()
+        duration_days = int(body.get("durationDays") or 9)
         if not name:
             return jsonify({"error": "name required"}), 400
         doc = _shifts_load()
@@ -2369,6 +2833,7 @@ def shifts_create():
             "name": name,
             "startDate": start_date,
             "endDate": end_date,
+            "durationDays": duration_days,
             "createdAt": created_at,
         }
         if created_by:
@@ -3077,7 +3542,7 @@ def squad_messages_get_or_post(squad_id: str):
         "squadId": sid,
         "createdAt": datetime.now(timezone.utc).isoformat(),
         "deviceId": device_id or None,
-        "nickname": ((membership or {}).get("nickname") or "").strip() or None,
+        "nickname": ((membership or {}).get("nickname") or "").strip() or (body.get("nickname") or "").strip() or None,
         "role": role,
         "text": clean_text
     }
@@ -3086,6 +3551,108 @@ def squad_messages_get_or_post(squad_id: str):
     by_squad[sid] = rows
     doc["bySquadId"] = by_squad
     _squad_messages_save(doc)
+    return jsonify({"message": msg})
+
+
+# ── Delete message ──
+@app.route('/api/squads/<squad_id>/messages/<msg_id>', methods=['DELETE'])
+def squad_message_delete(squad_id: str, msg_id: str):
+    """
+    DELETE /api/squads/<squadId>/messages/<msgId>
+    Auth: author of the message OR counselor/shift_leader/camp_director/developer
+    """
+    payload, err = _require_roles(("participant", "parent", "counselor", "educator", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
+    if err is not None:
+        return err[0], err[1]
+    sid = (squad_id or "").strip()
+    mid = (msg_id or "").strip()
+    if not sid or not mid:
+        return jsonify({"error": "squadId and msgId required"}), 400
+    device_id = (payload.get("deviceId") or "").strip()
+    role = _normalize_role((payload.get("role") or "").strip())
+
+    doc = _squad_messages_load()
+    by_squad = doc.get("bySquadId") or {}
+    rows = by_squad.get(sid)
+    if not isinstance(rows, list):
+        return jsonify({"error": "Message not found"}), 404
+
+    msg_index = next((i for i, r in enumerate(rows) if isinstance(r, dict) and (r.get("id") or "") == mid), None)
+    if msg_index is None:
+        return jsonify({"error": "Message not found"}), 404
+
+    msg = rows[msg_index]
+    is_author = device_id and (msg.get("deviceId") or "") == device_id
+    is_staff = role in ("counselor", "shift_leader", "camp_director", "developer")
+    if not is_author and not is_staff:
+        return jsonify({"error": "Access denied"}), 403
+
+    rows.pop(msg_index)
+    by_squad[sid] = rows
+    # Also unpin if this was pinned
+    pinned = doc.get("pinned") or {}
+    if isinstance(pinned, dict) and pinned.get(sid, {}).get("id") == mid:
+        pinned.pop(sid, None)
+        doc["pinned"] = pinned
+    doc["bySquadId"] = by_squad
+    _squad_messages_save(doc)
+    return jsonify({"ok": True})
+
+
+# ── Pin / Unpin message ──
+@app.route('/api/squads/<squad_id>/messages/<msg_id>/pin', methods=['POST'])
+def squad_message_pin(squad_id: str, msg_id: str):
+    """
+    POST /api/squads/<squadId>/messages/<msgId>/pin
+    Body: { "pinned": true|false }
+    Auth: counselor/shift_leader/camp_director/developer
+    """
+    payload, err = _require_roles(("counselor", "educator", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
+    if err is not None:
+        return err[0], err[1]
+    sid = (squad_id or "").strip()
+    mid = (msg_id or "").strip()
+    if not sid or not mid:
+        return jsonify({"error": "squadId and msgId required"}), 400
+
+    body = request.get_json() or {}
+    want_pinned = body.get("pinned", True)
+
+    doc = _squad_messages_load()
+    by_squad = doc.get("bySquadId") or {}
+    rows = by_squad.get(sid)
+    if not isinstance(rows, list):
+        return jsonify({"error": "Message not found"}), 404
+
+    msg = next((r for r in rows if isinstance(r, dict) and (r.get("id") or "") == mid), None)
+    if msg is None:
+        return jsonify({"error": "Message not found"}), 404
+
+    pinned = doc.get("pinned") or {}
+    if not isinstance(pinned, dict):
+        pinned = {}
+
+    if want_pinned:
+        pinned[sid] = msg
+    else:
+        pinned.pop(sid, None)
+
+    doc["pinned"] = pinned
+    _squad_messages_save(doc)
+    return jsonify({"ok": True, "pinned": want_pinned, "message": msg if want_pinned else None})
+
+
+# ── Get pinned message ──
+@app.route('/api/squads/<squad_id>/pinned', methods=['GET'])
+def squad_message_pinned(squad_id: str):
+    """GET /api/squads/<squadId>/pinned — get the pinned message for a squad."""
+    payload, err = _require_roles(("participant", "parent", "counselor", "educator", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
+    if err is not None:
+        return err[0], err[1]
+    sid = (squad_id or "").strip()
+    doc = _squad_messages_load()
+    pinned = doc.get("pinned") or {}
+    msg = pinned.get(sid) if isinstance(pinned, dict) else None
     return jsonify({"message": msg})
 
 
@@ -3116,6 +3683,15 @@ def badge_request_create():
             cleaned = raw.strip()
             if cleaned:
                 evidence[key] = cleaned[:limit]
+    # Handle photos (base64 data URLs), limit to 5 photos, max ~500KB each
+    photos_in = evidence_in.get("photos")
+    if isinstance(photos_in, list):
+        photos = []
+        for p in photos_in[:5]:
+            if isinstance(p, str) and p.startswith("data:image/") and len(p) < 500_000:
+                photos.append(p)
+        if photos:
+            evidence["photos"] = photos
 
     camp_from_token = (payload.get("campId") or "").strip()
     camp_from_membership, squad_from_membership = _resolve_membership_context(device_id)
@@ -4343,8 +4919,10 @@ def council_initiative_update(initiative_id: str):
 @app.route('/api/council/initiatives/<initiative_id>/vote', methods=['POST'])
 def council_initiative_vote(initiative_id: str):
     """
-    POST /api/council/initiatives/<id>/vote — голос «за» инициативу.
-    Один голос на device_id. Повторный вызов — отмена голоса (toggle).
+    POST /api/council/initiatives/<id>/vote — голос «за» или «против» инициативы.
+    Body: {"direction": "up"|"down"}  (default "up")
+    Один голос на device_id per direction. Повторный вызов — отмена голоса (toggle).
+    Голос «за» снимает «против» и наоборот (mutual exclusion).
     Auth: CHAT_ALLOWED_ROLES
     """
     payload, err = _require_roles(CHAT_ALLOWED_ROLES, allow_localhost_dev=True)
@@ -4358,6 +4936,11 @@ def council_initiative_vote(initiative_id: str):
     device_id = (payload.get("deviceId") or "").strip()
     if not device_id:
         return jsonify({"error": "deviceId missing"}), 400
+
+    body = request.get_json(silent=True) or {}
+    direction = body.get("direction", "up")
+    if direction not in ("up", "down"):
+        return jsonify({"error": "direction must be 'up' or 'down'"}), 400
 
     store = get_store("council_initiatives")
     data = store.load()
@@ -4375,20 +4958,319 @@ def council_initiative_vote(initiative_id: str):
     voters = target.get("voters") or []
     if not isinstance(voters, list):
         voters = []
+    down_voters = target.get("downVoters") or []
+    if not isinstance(down_voters, list):
+        down_voters = []
 
-    voted_already = device_id in voters
-    if voted_already:
-        voters.remove(device_id)
+    voted = False
+    if direction == "up":
+        # Remove from downVoters if present
+        if device_id in down_voters:
+            down_voters.remove(device_id)
+        # Toggle upvote
+        if device_id in voters:
+            voters.remove(device_id)
+        else:
+            voters.append(device_id)
+            voted = True
     else:
-        voters.append(device_id)
+        # Remove from voters (upVoters) if present
+        if device_id in voters:
+            voters.remove(device_id)
+        # Toggle downvote
+        if device_id in down_voters:
+            down_voters.remove(device_id)
+        else:
+            down_voters.append(device_id)
+            voted = True
 
     target["voters"] = voters
+    target["downVoters"] = down_voters
     target["votesUp"] = len(voters)
+    target["votesDown"] = len(down_voters)
     target["updatedAt"] = datetime.now(timezone.utc).isoformat()
 
     store.save(data)
-    return jsonify({"initiative": target, "voted": not voted_already})
+    return jsonify({"initiative": target, "voted": voted, "direction": direction})
 
+
+@app.route('/api/council/initiatives/<initiative_id>', methods=['DELETE'])
+def council_initiative_delete(initiative_id: str):
+    """DELETE /api/council/initiatives/<id> — удалить инициативу. Staff only."""
+    payload, err = _require_roles(CHAT_ALLOWED_ROLES, allow_localhost_dev=True)
+    if err is not None:
+        return err[0], err[1]
+
+    iid = (initiative_id or "").strip()
+    if not iid:
+        return jsonify({"error": "initiative id required"}), 400
+
+    store = get_store("council_initiatives")
+    data = store.load()
+    items = data.get("initiatives") or []
+
+    new_items = [i for i in items if not (isinstance(i, dict) and i.get("id") == iid)]
+    if len(new_items) == len(items):
+        return jsonify({"error": "Initiative not found"}), 404
+
+    data["initiatives"] = new_items
+    store.save(data)
+    return jsonify({"deleted": True, "id": iid})
+
+
+@app.route('/api/council/initiatives/<initiative_id>/comments', methods=['GET', 'POST'])
+def council_initiative_comments(initiative_id: str):
+    """
+    GET  — получить комментарии инициативы.
+    POST — добавить комментарий. Body: {"text": "..."}
+    Auth: CHAT_ALLOWED_ROLES
+    """
+    payload, err = _require_roles(CHAT_ALLOWED_ROLES, allow_localhost_dev=True)
+    if err is not None:
+        return err[0], err[1]
+
+    iid = (initiative_id or "").strip()
+    if not iid:
+        return jsonify({"error": "initiative id required"}), 400
+
+    store = get_store("council_initiatives")
+    data = store.load()
+    items = data.get("initiatives") or []
+
+    target = None
+    for item in items:
+        if isinstance(item, dict) and item.get("id") == iid:
+            target = item
+            break
+
+    if target is None:
+        return jsonify({"error": "Initiative not found"}), 404
+
+    comments = target.get("comments") or []
+    if not isinstance(comments, list):
+        comments = []
+
+    if request.method == 'GET':
+        return jsonify({"comments": comments})
+
+    # POST — add comment
+    body = request.get_json(silent=True) or {}
+    text = (body.get("text") or "").strip()
+    if not text:
+        return jsonify({"error": "text is required"}), 400
+    if len(text) > 2000:
+        return jsonify({"error": "text too long (max 2000)"}), 400
+
+    device_id = (payload.get("deviceId") or "").strip()
+    nickname = (payload.get("nickname") or body.get("nickname") or "").strip() or "Аноним"
+
+    import uuid as _uuid
+    comment = {
+        "id": f"CMT-{_uuid.uuid4().hex[:6].upper()}",
+        "deviceId": device_id,
+        "nickname": nickname,
+        "text": text,
+        "createdAt": datetime.now(timezone.utc).isoformat(),
+    }
+    comments.append(comment)
+    target["comments"] = comments
+    store.save(data)
+
+    return jsonify({"comment": comment, "comments": comments}), 201
+
+# ---------------------------------------------------------------------------
+# Council Protocols — GET + POST /api/council/protocols
+# ---------------------------------------------------------------------------
+
+@app.route('/api/council/protocols', methods=['GET'])
+def council_protocols_list():
+    """
+    GET /api/council/protocols — список протоколов заседаний Совета Лагеря.
+    Auth: CHAT_ALLOWED_ROLES
+    """
+    payload, err = _require_roles(CHAT_ALLOWED_ROLES, allow_localhost_dev=True)
+    if err is not None:
+        return err[0], err[1]
+
+    store = get_store("council_protocols")
+    data = store.load()
+    items = data.get("protocols") or []
+
+    normalized = []
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        normalized.append(item)
+
+    items_sorted = sorted(normalized, key=lambda x: x.get("date", x.get("createdAt", "")), reverse=True)[:100]
+    return jsonify({"protocols": items_sorted})
+
+
+@app.route('/api/council/protocols', methods=['POST'])
+def council_protocols_create():
+    """
+    POST /api/council/protocols — создать протокол заседания.
+    Body: {"title": "...", "date": "2026-03-10", "summary"?: "...",
+           "decisions"?: ["..."], "participants"?: ["..."]}
+    Auth: counselor|educator|shift_leader|camp_director|developer
+    """
+    payload, err = _require_roles(("counselor", "educator", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
+    if err is not None:
+        return err[0], err[1]
+
+    body = request.get_json() or {}
+    title = (body.get("title") or "").strip()
+    date_str = (body.get("date") or "").strip()
+    summary = (body.get("summary") or "").strip()
+    decisions = body.get("decisions") or []
+    participants = body.get("participants") or []
+
+    if not title:
+        return jsonify({"error": "title required"}), 400
+    if len(title) > 200:
+        return jsonify({"error": "title max 200 chars"}), 400
+    if len(summary) > 5000:
+        return jsonify({"error": "summary max 5000 chars"}), 400
+
+    if not isinstance(decisions, list):
+        decisions = []
+    decisions = [str(d).strip()[:500] for d in decisions if d][:20]
+
+    if not isinstance(participants, list):
+        participants = []
+    participants = [str(p).strip()[:100] for p in participants if p][:50]
+
+    device_id = (payload.get("deviceId") or "").strip()
+    nickname = (payload.get("nickname") or "").strip()
+
+    import secrets as _secrets
+    protocol_id = f"CP-{_secrets.token_hex(5)}"
+    now_iso = datetime.now(timezone.utc).isoformat()
+
+    new_item = {
+        "id": protocol_id,
+        "title": title,
+        "date": date_str or now_iso[:10],
+        "summary": summary,
+        "decisions": decisions,
+        "participants": participants,
+        "createdBy": device_id,
+        "createdByNickname": nickname,
+        "createdAt": now_iso,
+        "updatedAt": now_iso,
+    }
+
+    store = get_store("council_protocols")
+    data = store.load()
+    items = data.get("protocols") or []
+    items.append(new_item)
+    data["protocols"] = items
+    store.save(data)
+
+    return jsonify({"protocol": new_item}), 201
+
+
+# ---------------------------------------------------------------------------
+# Council Members — GET + POST + DELETE /api/council/members
+# ---------------------------------------------------------------------------
+
+@app.route('/api/council/members', methods=['GET'])
+def council_members_list():
+    """
+    GET /api/council/members — список участников Совета Лагеря.
+    Auth: CHAT_ALLOWED_ROLES
+    """
+    payload, err = _require_roles(CHAT_ALLOWED_ROLES, allow_localhost_dev=True)
+    if err is not None:
+        return err[0], err[1]
+
+    store = get_store("council_members")
+    data = store.load()
+    items = data.get("members") or []
+
+    normalized = [m for m in items if isinstance(m, dict)]
+    normalized.sort(key=lambda x: x.get("joinedAt", ""), reverse=True)
+    return jsonify({"members": normalized})
+
+
+@app.route('/api/council/members', methods=['POST'])
+def council_members_add():
+    """
+    POST /api/council/members — добавить участника Совета.
+    Body: {"nickname": "...", "role"?: "member|chair|secretary", "deviceId"?: "..."}
+    Auth: CHAT_ALLOWED_ROLES (любой авторизованный пользователь)
+    """
+    payload, err = _require_roles(CHAT_ALLOWED_ROLES, allow_localhost_dev=True)
+    if err is not None:
+        return err[0], err[1]
+
+    body = request.get_json() or {}
+    nickname = (body.get("nickname") or "").strip()
+    member_role = (body.get("role") or "member").strip()
+    member_device_id = (body.get("deviceId") or "").strip()
+
+    if not nickname:
+        return jsonify({"error": "nickname required"}), 400
+    if len(nickname) > 100:
+        return jsonify({"error": "nickname max 100 chars"}), 400
+    if member_role not in ("member", "chair", "secretary"):
+        member_role = "member"
+
+    import secrets as _secrets
+    member_id = f"CM-{_secrets.token_hex(5)}"
+    now_iso = datetime.now(timezone.utc).isoformat()
+
+    new_member = {
+        "id": member_id,
+        "nickname": nickname,
+        "role": member_role,
+        "deviceId": member_device_id,
+        "joinedAt": now_iso,
+        "addedBy": (payload.get("deviceId") or "").strip(),
+    }
+
+    store = get_store("council_members")
+    data = store.load()
+    members = data.get("members") or []
+    members.append(new_member)
+    data["members"] = members
+    store.save(data)
+
+    return jsonify({"member": new_member}), 201
+
+
+@app.route('/api/council/members/<member_id>', methods=['DELETE'])
+def council_members_remove(member_id: str):
+    """
+    DELETE /api/council/members/<id> — удалить участника Совета.
+    Auth: counselor|educator|shift_leader|camp_director|developer
+    """
+    payload, err = _require_roles(("counselor", "educator", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
+    if err is not None:
+        return err[0], err[1]
+
+    mid = (member_id or "").strip()
+    if not mid:
+        return jsonify({"error": "member id required"}), 400
+
+    store = get_store("council_members")
+    data = store.load()
+    members = data.get("members") or []
+
+    found = False
+    new_members = []
+    for m in members:
+        if isinstance(m, dict) and m.get("id") == mid:
+            found = True
+        else:
+            new_members.append(m)
+
+    if not found:
+        return jsonify({"error": "Member not found"}), 404
+
+    data["members"] = new_members
+    store.save(data)
+    return jsonify({"deleted": mid}), 200
 
 
 # ---------------------------------------------------------------------------
@@ -4899,136 +5781,8 @@ def inspector_progress_approve(entry_id: str):
 
 # ---------------------------------------------------------------------------
 # БРО — Бросвящение + Крыло (M12-BRO-BACKEND-A)
+# → Moved to end of file (full implementation with /api/bro/* routes)
 # ---------------------------------------------------------------------------
-
-@app.route('/api/squads/<squad_id>/bro/initiate', methods=['POST'])
-def bro_initiate(squad_id: str):
-    """POST — counselor initiates a Бросвящение event."""
-    payload, err = _require_roles(STAFF_ROLES, allow_localhost_dev=True)
-    if err is not None:
-        return err[0], err[1]
-
-    device_id = (payload.get("deviceId") or "").strip()
-    import secrets as _secrets
-    event_id = f"BRO-{_secrets.token_hex(5)}"
-    now_iso = datetime.now(timezone.utc).isoformat()
-
-    new_event = {
-        "id": event_id,
-        "squadId": squad_id,
-        "initiatedBy": device_id,
-        "status": "active",
-        "createdAt": now_iso,
-    }
-    store = get_store("bro_events")
-    data = store.load()
-    events = data.get("events") or []
-    events.append(new_event)
-    data["events"] = events
-    store.save(data)
-    return jsonify({"event": new_event}), 201
-
-
-@app.route('/api/squads/<squad_id>/bro/events', methods=['GET'])
-def bro_events_list(squad_id: str):
-    """GET — list all BRO events for a squad."""
-    store = get_store("bro_events")
-    data = store.load()
-    events = [e for e in (data.get("events") or []) if isinstance(e, dict) and e.get("squadId") == squad_id]
-    events.sort(key=lambda x: x.get("createdAt", ""), reverse=True)
-    return jsonify({"events": events})
-
-
-@app.route('/api/bro/passport/<device_id>', methods=['GET'])
-def bro_passport_get(device_id: str):
-    """GET — get BroPassport(s) of a device."""
-    store = get_store("bro_passports")
-    data = store.load()
-    passports = [p for p in (data.get("passports") or []) if isinstance(p, dict) and p.get("deviceId") == device_id]
-    return jsonify({"passports": passports})
-
-
-@app.route('/api/bro/passport', methods=['POST'])
-def bro_passport_create():
-    """POST — start a BroPassport for participant."""
-    payload, err = _require_roles(CHAT_ALLOWED_ROLES, allow_localhost_dev=True)
-    if err is not None:
-        return err[0], err[1]
-
-    body = request.get_json() or {}
-    bro_event_id = (body.get("broEventId") or "").strip()
-    if not bro_event_id:
-        return jsonify({"error": "broEventId required"}), 400
-
-    device_id = (payload.get("deviceId") or "").strip()
-    import secrets as _secrets
-    passport_id = f"BPAS-{_secrets.token_hex(5)}"
-    now_iso = datetime.now(timezone.utc).isoformat()
-
-    new_passport = {
-        "id": passport_id,
-        "deviceId": device_id,
-        "broEventId": bro_event_id,
-        "tasks": body.get("tasks") or [],
-        "status": "in_progress",
-        "completedAt": None,
-        "createdAt": now_iso,
-    }
-    store = get_store("bro_passports")
-    data = store.load()
-    passports = data.get("passports") or []
-    passports.append(new_passport)
-    data["passports"] = passports
-    store.save(data)
-    return jsonify({"passport": new_passport}), 201
-
-
-@app.route('/api/bro/passport/<passport_id>/task', methods=['PATCH'])
-def bro_passport_task(passport_id: str):
-    """PATCH — mark a task in a BroPassport as done."""
-    payload, err = _require_roles(CHAT_ALLOWED_ROLES, allow_localhost_dev=True)
-    if err is not None:
-        return err[0], err[1]
-
-    body = request.get_json() or {}
-    task_id = (body.get("taskId") or "").strip()
-    if not task_id:
-        return jsonify({"error": "taskId required"}), 400
-
-    store = get_store("bro_passports")
-    data = store.load()
-    passport = next((p for p in (data.get("passports") or []) if isinstance(p, dict) and p.get("id") == passport_id), None)
-    if passport is None:
-        return jsonify({"error": "passport not found"}), 404
-
-    tasks = passport.get("tasks") or []
-    found = False
-    for t in tasks:
-        if isinstance(t, dict) and t.get("id") == task_id:
-            t["done"] = True
-            t["doneAt"] = datetime.now(timezone.utc).isoformat()
-            found = True
-            break
-    if not found:
-        tasks.append({"id": task_id, "done": True, "doneAt": datetime.now(timezone.utc).isoformat()})
-    passport["tasks"] = tasks
-    store.save(data)
-    return jsonify({"passport": passport})
-
-
-@app.route('/api/bro/passport/<passport_id>/complete', methods=['PATCH'])
-def bro_passport_complete(passport_id: str):
-    """PATCH — complete a BroPassport (all tasks done)."""
-    store = get_store("bro_passports")
-    data = store.load()
-    passport = next((p for p in (data.get("passports") or []) if isinstance(p, dict) and p.get("id") == passport_id), None)
-    if passport is None:
-        return jsonify({"error": "passport not found"}), 404
-
-    passport["status"] = "completed"
-    passport["completedAt"] = datetime.now(timezone.utc).isoformat()
-    store.save(data)
-    return jsonify({"passport": passport})
 
 
 # ---------------------------------------------------------------------------
@@ -6250,9 +7004,9 @@ def _collect_inbox_items(type_filter: str = ""):
     counts: dict = {}
 
     def _add(item_type, item_list):
+        counts[item_type] = len(item_list)
         if type_filter and type_filter != item_type:
             return
-        counts[item_type] = len(item_list)
         items.extend(item_list)
 
     # 1) Badge requests — status == "pending"
@@ -6265,17 +7019,27 @@ def _collect_inbox_items(type_filter: str = ""):
             if (row.get("status") or "") != "pending":
                 continue
             req_by = row.get("requestedBy") or {}
+            evidence_raw = row.get("evidence") or {}
+            if not isinstance(evidence_raw, dict):
+                evidence_raw = {}
             pending_br.append({
                 "type": "badge_request",
                 "id": row.get("id", ""),
                 "user": {
                     "device_id": req_by.get("deviceId", "") if isinstance(req_by, dict) else "",
-                    "nickname": req_by.get("nickname", "") if isinstance(req_by, dict) else "",
+                    "nickname": (req_by.get("nickname") or "") if isinstance(req_by, dict) else "",
                 },
                 "data": {
                     "badge_id": row.get("levelId", ""),
                     "badge_name": row.get("badgeTitle", ""),
-                    "attachments": row.get("evidence", {}).get("photos", []) if isinstance(row.get("evidence"), dict) else [],
+                    "nickname": (req_by.get("nickname") or "") if isinstance(req_by, dict) else "",
+                    "evidence": {
+                        "reflection": evidence_raw.get("reflection", ""),
+                        "impact": evidence_raw.get("impact", ""),
+                        "link": evidence_raw.get("link", ""),
+                        "photos": evidence_raw.get("photos", []),
+                    },
+                    "attachments": evidence_raw.get("photos", []),
                 },
                 "status": "pending",
                 "created_at": row.get("createdAt", ""),
@@ -6299,15 +7063,19 @@ def _collect_inbox_items(type_filter: str = ""):
                 "type": "council_initiative",
                 "id": item.get("id", ""),
                 "user": {
-                    "device_id": item.get("authorDeviceId", "") or item.get("deviceId", ""),
-                    "nickname": item.get("authorNickname", "") or item.get("author_nickname", ""),
+                    "device_id": item.get("authorDeviceId", "") or item.get("deviceId", "") or item.get("createdBy", ""),
+                    "nickname": item.get("authorNickname", "") or item.get("author_nickname", "") or item.get("createdByNickname", ""),
                 },
                 "data": {
                     "title": item.get("title", ""),
                     "description": (item.get("description") or "")[:200],
                     "status": item.get("status", ""),
+                    "nickname": item.get("authorNickname", "") or item.get("createdByNickname", ""),
+                    "sourceType": item.get("sourceType", ""),
+                    "authorRole": item.get("authorRole", ""),
+                    "authorWing": item.get("authorWing", ""),
                 },
-                "status": item.get("status", ""),
+                "status": "pending",
                 "created_at": item.get("createdAt", "") or item.get("created_at", ""),
             })
         _add("council_initiative", pending_ci)
@@ -6429,6 +7197,66 @@ def _collect_inbox_items(type_filter: str = ""):
         _add("role_request", pending_rr)
     except Exception:
         counts.setdefault("role_request", 0)
+
+    # 7) BRO task submissions — status == "pending"
+    try:
+        bro_subs_data = get_store("bro_submissions").load()
+        pending_bro = []
+        for sub in (bro_subs_data.get("submissions") or []):
+            if not isinstance(sub, dict):
+                continue
+            if (sub.get("status") or "") != "pending":
+                continue
+            pending_bro.append({
+                "type": "bro_submission",
+                "id": sub.get("id", ""),
+                "user": {
+                    "device_id": sub.get("deviceId", ""),
+                    "nickname": sub.get("nickname") or "",
+                },
+                "data": {
+                    "task_title": sub.get("taskTitle", ""),
+                    "task_id": sub.get("taskId", ""),
+                    "text": (sub.get("text") or "")[:200],
+                    "passport_id": sub.get("passportId", ""),
+                    "photoUrl": sub.get("photoUrl") or None,
+                    "nickname": sub.get("nickname") or None,
+                    "userRole": sub.get("userRole") or None,
+                },
+                "status": "pending",
+                "created_at": sub.get("submittedAt", ""),
+            })
+        _add("bro_submission", pending_bro)
+    except Exception:
+        counts.setdefault("bro_submission", 0)
+
+    # 8) Badge plans — status == "submitted"
+    try:
+        bp_data = get_store("badge_plans").load()
+        pending_bp = []
+        for p in (bp_data.get("plans") or []):
+            if not isinstance(p, dict):
+                continue
+            if (p.get("status") or "") != "submitted":
+                continue
+            pending_bp.append({
+                "type": "badge_plan",
+                "id": p.get("id", ""),
+                "user": {
+                    "device_id": p.get("deviceId", ""),
+                    "nickname": "",
+                },
+                "data": {
+                    "badge_id": p.get("badgeId", ""),
+                    "level_id": p.get("levelId", ""),
+                    "plan_text": (p.get("planText") or "")[:200],
+                },
+                "status": "pending",
+                "created_at": p.get("updatedAt", "") or p.get("createdAt", ""),
+            })
+        _add("badge_plan", pending_bp)
+    except Exception:
+        counts.setdefault("badge_plan", 0)
 
     # Sort by created_at descending
     items.sort(key=lambda x: x.get("created_at", ""), reverse=True)
@@ -6604,6 +7432,59 @@ def admin_action():
         _save_role_requests(rr_list)
         return jsonify({"ok": True, "item_type": item_type, "item_id": item_id, "action": action})
 
+    elif item_type == "bro_submission":
+        # Route to existing BRO submission review logic
+        bro_action = "approve" if action == "approve" else "reject"
+        subs_data = get_store("bro_submissions").load()
+        submissions = subs_data.get("submissions") or []
+        sub = next((s for s in submissions if s.get("id") == item_id), None)
+        if not sub:
+            return jsonify({"error": "BRO submission not found"}), 404
+        if sub.get("status") != "pending":
+            return jsonify({"error": f"Already resolved: {sub.get('status')}"}), 409
+        sub["status"] = "approved" if bro_action == "approve" else "rejected"
+        sub["comment"] = comment or None
+        sub["reviewedAt"] = now_iso
+        sub["reviewedBy"] = approver_device
+        subs_data["submissions"] = submissions
+        get_store("bro_submissions").save(subs_data)
+        # On approve: mark task done in passport
+        if bro_action == "approve":
+            passports_data = get_store("bro_passports").load()
+            passport = next((p for p in (passports_data.get("passports") or [])
+                             if p.get("id") == sub.get("passportId")), None)
+            if passport:
+                for t in passport.get("tasks") or []:
+                    if t.get("id") == sub.get("taskId"):
+                        t["done"] = True
+                        break
+                all_done = all(t.get("done") for t in passport.get("tasks") or [])
+                if all_done:
+                    passport["status"] = "completed"
+                    passport["completedAt"] = now_iso
+                passports_data["passports"] = [p if p.get("id") != passport["id"] else passport
+                                                for p in passports_data.get("passports") or []]
+                get_store("bro_passports").save(passports_data)
+        return jsonify({"ok": True, "item_type": item_type, "item_id": item_id, "action": action})
+
+    elif item_type == "badge_plan":
+        new_status = "approved" if action == "approve" else "rejected"
+        store = get_store("badge_plans")
+        data = store.load()
+        plans = data.get("plans") or []
+        target = next((p for p in plans if isinstance(p, dict) and p.get("id") == item_id), None)
+        if target is None:
+            return jsonify({"error": "Badge plan not found"}), 404
+        if target.get("status") != "submitted":
+            return jsonify({"error": f"Already resolved: {target.get('status')}"}), 409
+        target["status"] = new_status
+        target["counselorNote"] = comment[:2000] if comment else None
+        target["reviewedBy"] = approver_device
+        target["reviewedAt"] = now_iso
+        target["updatedAt"] = now_iso
+        store.save(data)
+        return jsonify({"ok": True, "item_type": item_type, "item_id": item_id, "action": action})
+
     else:
         return jsonify({"error": f"Unknown item_type: {item_type}"}), 400
 
@@ -6721,7 +7602,9 @@ def role_codes_redeem():
     if entry is None:
         return jsonify({"error": "Код не найден или истёк"}), 404
 
-    if entry.get("used"):
+    is_reusable = entry.get("_reusable", False)
+
+    if entry.get("used") and not is_reusable:
         return jsonify({"error": "Код уже использован"}), 409
 
     # Check expiration
@@ -6737,12 +7620,13 @@ def role_codes_redeem():
         except ValueError:
             pass
 
-    # Mark as used
-    entry["used"] = True
-    entry["usedBy"] = device_id
-    entry["usedAt"] = datetime.now(timezone.utc).isoformat()
-    codes[code] = entry
-    _save_role_codes(codes)
+    # Mark as used (skip for reusable test codes)
+    if not is_reusable:
+        entry["used"] = True
+        entry["usedBy"] = device_id
+        entry["usedAt"] = datetime.now(timezone.utc).isoformat()
+        codes[code] = entry
+        _save_role_codes(codes)
 
     role = entry.get("role", "participant")
     token = _issue_role_jwt(role, device_id)
@@ -6861,6 +7745,740 @@ def auth_resolve():
 
 
 # Для Vercel
+
+# ═══════════════════════════════════════════════════════════════════════════
+# @@@ M12-BRO-BACKEND — Бросвящение (BRO) API
+# ═══════════════════════════════════════════════════════════════════════════
+
+
+# Default BRO tasks (mirrors src/types/bro.ts)
+_BRO_DEFAULT_TASKS = [
+    {"id": "b1_lecture",    "title": "Прослушать лекцию по лагерной педагогике",      "description": "Основы общения с детьми и принципы Бро-Движения.",            "order": 1},
+    {"id": "b1_cases",      "title": "Участие в обсуждении вожатских кейсов",         "description": "Разбор реальных ситуаций из жизни отряда.",                    "order": 2},
+    {"id": "b1_chants",     "title": "Знать и громко кричать отрядные кричалки",       "description": "Голос отряда — это его энергия!",                              "order": 3},
+    {"id": "b2_dances",     "title": "Знать и танцевать отрядные танцы",               "description": "Движение в ритме Бро-Движения.",                               "order": 4},
+    {"id": "b2_traditions", "title": "Знать отрядные традиции",                         "description": "История и ритуалы, которые нас объединяют.",                   "order": 5},
+    {"id": "b2_meme",       "title": "Знать и понимать отрядный мем",                  "description": "Юмор — важная часть нашей идентичности.",                      "order": 6},
+    {"id": "b3_activity",   "title": "Провести собственное отрядное дело",             "description": "Практика лидерства и организации.",                            "order": 7},
+    {"id": "b3_artifact",   "title": "Оформить физический Бропаспорт",                "description": "Создать красивый артефакт с твердой обложкой.",                "order": 8},
+    {"id": "b3_approval",   "title": "Получить подписи вожатых и админа",              "description": "Финальный апрув твоего пути в Бро-Движение.",                  "order": 9},
+]
+
+_BRO_STAFF_ROLES = ("counselor", "shift_leader", "camp_director", "developer")
+_BRO_ALL_ROLES   = ("participant", "counselor", "educator", "shift_leader", "camp_director", "developer")
+
+
+@app.route("/api/bro/initiate", methods=["POST"])
+def bro_initiate():
+    """Staff: create a BRO ceremony event for a squad."""
+    payload, err = _require_roles(_BRO_STAFF_ROLES, allow_localhost_dev=True)
+    if err:
+        return err
+
+    body = request.get_json(force=True, silent=True) or {}
+    squad_id = (body.get("squadId") or "").strip()
+    if not squad_id:
+        return jsonify({"error": "squadId is required"}), 400
+
+    data = get_store("bro_events").load()
+    events = data.get("events") or []
+
+    # Check if there's already an active event for this squad
+    active = [e for e in events if e.get("squadId") == squad_id and e.get("status") == "active"]
+    if active:
+        return jsonify({"error": "Бросвящение уже активно в этом отряде", "event": active[0]}), 409
+
+    # Parse optional custom tasks
+    raw_tasks = body.get("customTasks")
+    custom_tasks = None
+    if isinstance(raw_tasks, list) and len(raw_tasks) > 0:
+        custom_tasks = []
+        for idx, rt in enumerate(raw_tasks):
+            if not isinstance(rt, dict):
+                continue
+            title = (rt.get("title") or "").strip()
+            if not title:
+                continue
+            custom_tasks.append({
+                "id": rt.get("id") or f"custom_{uuid.uuid4().hex[:6]}",
+                "title": title,
+                "description": (rt.get("description") or "").strip(),
+                "order": rt.get("order", idx + 1),
+            })
+        if not custom_tasks:
+            custom_tasks = None  # Fall back to defaults if all tasks were empty
+
+    new_event = {
+        "id": uuid.uuid4().hex[:12],
+        "squadId": squad_id,
+        "status": "active",
+        "createdAt": datetime.now(timezone.utc).isoformat(),
+        "createdBy": payload.get("deviceId") or payload.get("sub") or "unknown",
+    }
+    if custom_tasks:
+        new_event["customTasks"] = custom_tasks
+
+    events.append(new_event)
+    data["events"] = events
+    get_store("bro_events").save(data)
+
+    return jsonify({"event": new_event}), 201
+
+
+@app.route("/api/bro/events", methods=["GET"])
+def bro_events_list():
+    """Get BRO events for a squad (public, no auth required)."""
+    squad_id = request.args.get("squad_id", "").strip()
+    if not squad_id:
+        return jsonify({"events": []}), 200
+
+    data = get_store("bro_events").load()
+    events = [e for e in (data.get("events") or []) if e.get("squadId") == squad_id]
+    return jsonify({"events": events}), 200
+
+
+@app.route("/api/bro/events/<event_id>", methods=["PATCH"])
+def bro_event_update(event_id):
+    """Staff: complete/close a BRO ceremony event."""
+    payload, err = _require_roles(_BRO_STAFF_ROLES, allow_localhost_dev=True)
+    if err:
+        return err
+
+    body = request.get_json(force=True, silent=True) or {}
+    action = (body.get("action") or "").strip()
+    if action != "complete":
+        return jsonify({"error": "Only 'complete' action is supported"}), 400
+
+    data = get_store("bro_events").load()
+    events = data.get("events") or []
+    event = next((e for e in events if e.get("id") == event_id), None)
+    if not event:
+        return jsonify({"error": "Событие не найдено"}), 404
+    if event.get("status") != "active":
+        return jsonify({"error": "Событие уже завершено"}), 409
+
+    event["status"] = "completed"
+    event["completedAt"] = datetime.now(timezone.utc).isoformat()
+    event["completedBy"] = payload.get("deviceId") or payload.get("sub") or "unknown"
+    data["events"] = events
+    get_store("bro_events").save(data)
+
+    return jsonify({"event": event}), 200
+
+
+@app.route("/api/bro/passport", methods=["GET"])
+def bro_passport_get():
+    """Get a participant's BRO passport by device_id."""
+    device_id = request.args.get("device_id", "").strip()
+    if not device_id:
+        return jsonify({"passport": None}), 200
+
+    data = get_store("bro_passports").load()
+    passports = data.get("passports") or []
+    found = next((p for p in passports if p.get("deviceId") == device_id), None)
+    return jsonify({"passport": found}), 200
+
+
+@app.route("/api/bro/passport", methods=["POST"])
+def bro_passport_create():
+    """Participant: start a BRO passport for an active event."""
+    payload, err = _require_roles(_BRO_ALL_ROLES, allow_localhost_dev=True)
+    if err:
+        return err
+
+    body = request.get_json(force=True, silent=True) or {}
+    bro_event_id = (body.get("broEventId") or "").strip()
+    if not bro_event_id:
+        return jsonify({"error": "broEventId is required"}), 400
+
+    device_id = payload.get("deviceId") or (request.headers.get("X-Device-Id") or "").strip()
+    if not device_id:
+        return jsonify({"error": "deviceId is required"}), 400
+
+    # Verify event exists and is active
+    events_data = get_store("bro_events").load()
+    event = next((e for e in (events_data.get("events") or [])
+                  if e.get("id") == bro_event_id and e.get("status") == "active"), None)
+    if not event:
+        return jsonify({"error": "Бросвящение не найдено или неактивно"}), 404
+
+    # Check if passport already exists for this device
+    passports_data = get_store("bro_passports").load()
+    passports = passports_data.get("passports") or []
+    existing = next((p for p in passports if p.get("deviceId") == device_id and p.get("broEventId") == bro_event_id), None)
+    if existing:
+        return jsonify({"passport": existing}), 200  # Return existing
+
+    # Create passport — use event's custom tasks if available, else defaults
+    task_source = event.get("customTasks") if isinstance(event.get("customTasks"), list) and event.get("customTasks") else _BRO_DEFAULT_TASKS
+    tasks = [{"id": t["id"], "title": t["title"], "description": t.get("description", ""),
+              "order": t.get("order", idx + 1), "done": False} for idx, t in enumerate(task_source)]
+
+    new_passport = {
+        "id": uuid.uuid4().hex[:12],
+        "deviceId": device_id,
+        "broEventId": bro_event_id,
+        "status": "in_progress",
+        "tasks": tasks,
+    }
+    passports.append(new_passport)
+    passports_data["passports"] = passports
+    get_store("bro_passports").save(passports_data)
+
+    return jsonify({"passport": new_passport}), 201
+
+
+@app.route("/api/bro/passport/<passport_id>/task/<task_id>", methods=["PATCH"])
+def bro_passport_mark_task(passport_id, task_id):
+    """Mark a task as done in a BRO passport."""
+    payload, err = _require_roles(_BRO_ALL_ROLES, allow_localhost_dev=True)
+    if err:
+        return err
+
+    passports_data = get_store("bro_passports").load()
+    passports = passports_data.get("passports") or []
+    passport = next((p for p in passports if p.get("id") == passport_id), None)
+    if not passport:
+        return jsonify({"error": "Паспорт не найден"}), 404
+
+    # Find and mark the task
+    task_found = False
+    for t in passport.get("tasks") or []:
+        if t.get("id") == task_id:
+            t["done"] = True
+            task_found = True
+            break
+
+    if not task_found:
+        return jsonify({"error": "Задание не найдено"}), 404
+
+    # Check if all tasks are done → complete passport
+    all_done = all(t.get("done") for t in passport.get("tasks") or [])
+    if all_done:
+        passport["status"] = "completed"
+        passport["completedAt"] = datetime.now(timezone.utc).isoformat()
+
+    passports_data["passports"] = passports
+    get_store("bro_passports").save(passports_data)
+
+    return jsonify({"passport": passport}), 200
+
+# ═══════════════════════════════════════════════════════════════════════════
+# @@@ M12-BRO-SUBMISSIONS — Заявки на проверку заданий Бросвящения
+# ═══════════════════════════════════════════════════════════════════════════
+
+@app.route("/api/bro/passport/<passport_id>/task/<task_id>/submit", methods=["POST"])
+def bro_task_submit(passport_id, task_id):
+    """Participant submits proof for a BRO task."""
+    payload, err = _require_roles(_BRO_ALL_ROLES, allow_localhost_dev=True)
+    if err:
+        return err
+
+    body = request.get_json(force=True, silent=True) or {}
+    text = (body.get("text") or "").strip()
+    photo_url = (body.get("photoUrl") or "").strip() or None
+    nickname = (body.get("nickname") or "").strip() or None
+    user_role = (body.get("userRole") or "").strip() or None
+
+    if not text and not photo_url:
+        return jsonify({"error": "Нужно добавить текст или фото"}), 400
+
+    device_id = payload.get("deviceId") or (request.headers.get("X-Device-Id") or "").strip()
+
+    # Verify passport & task exist
+    passports_data = get_store("bro_passports").load()
+    passport = next((p for p in (passports_data.get("passports") or []) if p.get("id") == passport_id), None)
+    if not passport:
+        return jsonify({"error": "Паспорт не найден"}), 404
+    task = next((t for t in (passport.get("tasks") or []) if t.get("id") == task_id), None)
+    if not task:
+        return jsonify({"error": "Задание не найдено"}), 404
+    if task.get("done"):
+        return jsonify({"error": "Задание уже выполнено"}), 409
+
+    # Get squadId from the bro event
+    bro_event_id = passport.get("broEventId", "")
+    events_data = get_store("bro_events").load()
+    event = next((e for e in (events_data.get("events") or []) if e.get("id") == bro_event_id), None)
+    squad_id = event.get("squadId", "") if event else ""
+
+    # Check for existing pending submission
+    subs_data = get_store("bro_submissions").load()
+    submissions = subs_data.get("submissions") or []
+    existing = next((s for s in submissions
+                     if s.get("passportId") == passport_id
+                     and s.get("taskId") == task_id
+                     and s.get("status") == "pending"), None)
+    if existing:
+        return jsonify({"error": "Заявка уже на проверке", "submission": existing}), 409
+
+    new_sub = {
+        "id": uuid.uuid4().hex[:12],
+        "passportId": passport_id,
+        "taskId": task_id,
+        "taskTitle": task.get("title", ""),
+        "deviceId": device_id,
+        "squadId": squad_id,
+        "text": text,
+        "photoUrl": photo_url,
+        "nickname": nickname,
+        "userRole": user_role,
+        "status": "pending",
+        "comment": None,
+        "submittedAt": datetime.now(timezone.utc).isoformat(),
+        "reviewedAt": None,
+        "reviewedBy": None,
+    }
+    submissions.append(new_sub)
+    subs_data["submissions"] = submissions
+    get_store("bro_submissions").save(subs_data)
+
+    return jsonify({"submission": new_sub}), 201
+
+
+@app.route("/api/bro/submissions", methods=["GET"])
+def bro_submissions_list():
+    """Counselor: list BRO task submissions for a squad."""
+    squad_id = request.args.get("squad_id", "").strip()
+    status_filter = request.args.get("status", "").strip()  # optional: pending/approved/rejected
+
+    subs_data = get_store("bro_submissions").load()
+    submissions = subs_data.get("submissions") or []
+
+    if squad_id:
+        submissions = [s for s in submissions if s.get("squadId") == squad_id]
+    if status_filter:
+        submissions = [s for s in submissions if s.get("status") == status_filter]
+
+    submissions.sort(key=lambda x: x.get("submittedAt", ""), reverse=True)
+    return jsonify({"submissions": submissions}), 200
+
+
+@app.route("/api/bro/submissions/<submission_id>/review", methods=["PATCH"])
+def bro_submission_review(submission_id):
+    """Counselor: approve or reject a BRO task submission."""
+    payload, err = _require_roles(_BRO_STAFF_ROLES, allow_localhost_dev=True)
+    if err:
+        return err
+
+    body = request.get_json(force=True, silent=True) or {}
+    action = (body.get("action") or "").strip()
+    comment = (body.get("comment") or "").strip() or None
+
+    if action not in ("approve", "reject"):
+        return jsonify({"error": "action must be 'approve' or 'reject'"}), 400
+
+    subs_data = get_store("bro_submissions").load()
+    submissions = subs_data.get("submissions") or []
+    sub = next((s for s in submissions if s.get("id") == submission_id), None)
+    if not sub:
+        return jsonify({"error": "Заявка не найдена"}), 404
+    if sub.get("status") != "pending":
+        return jsonify({"error": "Заявка уже обработана"}), 409
+
+    reviewer = payload.get("deviceId") or payload.get("sub") or "unknown"
+    sub["status"] = "approved" if action == "approve" else "rejected"
+    sub["comment"] = comment
+    sub["reviewedAt"] = datetime.now(timezone.utc).isoformat()
+    sub["reviewedBy"] = reviewer
+
+    subs_data["submissions"] = submissions
+    get_store("bro_submissions").save(subs_data)
+
+    # On approve: mark the task as done in the passport
+    if action == "approve":
+        passports_data = get_store("bro_passports").load()
+        passport = next((p for p in (passports_data.get("passports") or [])
+                         if p.get("id") == sub.get("passportId")), None)
+        if passport:
+            for t in passport.get("tasks") or []:
+                if t.get("id") == sub.get("taskId"):
+                    t["done"] = True
+                    break
+            # Auto-complete passport if all tasks done
+            all_done = all(t.get("done") for t in passport.get("tasks") or [])
+            if all_done:
+                passport["status"] = "completed"
+                passport["completedAt"] = datetime.now(timezone.utc).isoformat()
+            passports_data["passports"] = [p if p.get("id") != passport["id"] else passport
+                                           for p in passports_data.get("passports") or []]
+            get_store("bro_passports").save(passports_data)
+
+    return jsonify({"submission": sub}), 200
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# @@@ M12-WING-INITIATIONS — Посвящения в отряд через Крыло
+# ═══════════════════════════════════════════════════════════════════════════
+
+@app.route("/api/wing/initiations", methods=["GET"])
+def wing_initiations_list():
+    """Get squad initiations (from Wing) for a squad."""
+    squad_id = request.args.get("squad_id", "").strip()
+    data = get_store("bro_events").load()
+    events = data.get("events") or []
+    filtered = [e for e in events if e.get("type") == "squad_initiation"]
+    if squad_id:
+        filtered = [e for e in filtered if e.get("squadId") == squad_id]
+    return jsonify({"initiations": filtered}), 200
+
+
+@app.route("/api/wing/initiations", methods=["POST"])
+def wing_initiation_create():
+    """Wing member: create a squad initiation event with custom tasks."""
+    payload, err = _require_roles(_BRO_ALL_ROLES, allow_localhost_dev=True)
+    if err:
+        return err
+
+    body = request.get_json(force=True, silent=True) or {}
+    squad_id = (body.get("squadId") or "").strip()
+    name = (body.get("name") or "").strip()
+    description = (body.get("description") or "").strip()
+
+    if not squad_id:
+        return jsonify({"error": "squadId is required"}), 400
+    if not name:
+        return jsonify({"error": "name is required"}), 400
+
+    raw_tasks = body.get("tasks")
+    if not isinstance(raw_tasks, list) or len(raw_tasks) == 0:
+        return jsonify({"error": "tasks array is required"}), 400
+
+    tasks = []
+    for idx, rt in enumerate(raw_tasks):
+        if not isinstance(rt, dict):
+            continue
+        title = (rt.get("title") or "").strip()
+        if not title:
+            continue
+        tasks.append({
+            "id": rt.get("id") or f"si_{uuid.uuid4().hex[:6]}",
+            "title": title,
+            "description": (rt.get("description") or "").strip(),
+            "order": rt.get("order", idx + 1),
+        })
+
+    if not tasks:
+        return jsonify({"error": "At least one task with a title is required"}), 400
+
+    data = get_store("bro_events").load()
+    events = data.get("events") or []
+
+    active = [e for e in events if e.get("squadId") == squad_id
+              and e.get("type") == "squad_initiation" and e.get("status") == "active"]
+    if active:
+        return jsonify({"error": "Посвящение уже активно в этом отряде", "initiation": active[0]}), 409
+
+    device_id = payload.get("deviceId") or (request.headers.get("X-Device-Id") or "").strip()
+
+    new_event = {
+        "id": uuid.uuid4().hex[:12],
+        "type": "squad_initiation",
+        "squadId": squad_id,
+        "name": name,
+        "description": description,
+        "status": "active",
+        "customTasks": tasks,
+        "createdAt": datetime.now(timezone.utc).isoformat(),
+        "createdBy": device_id or "unknown",
+    }
+    events.append(new_event)
+    data["events"] = events
+    get_store("bro_events").save(data)
+
+    return jsonify({"initiation": new_event}), 201
+
+
+@app.route("/api/wing/initiations/<event_id>", methods=["PATCH"])
+def wing_initiation_update(event_id):
+    """Complete/close a squad initiation event."""
+    payload, err = _require_roles(_BRO_ALL_ROLES, allow_localhost_dev=True)
+    if err:
+        return err
+
+    body = request.get_json(force=True, silent=True) or {}
+    action = (body.get("action") or "").strip()
+    if action != "complete":
+        return jsonify({"error": "Only 'complete' action is supported"}), 400
+
+    data = get_store("bro_events").load()
+    events = data.get("events") or []
+    event = next((e for e in events if e.get("id") == event_id and e.get("type") == "squad_initiation"), None)
+    if not event:
+        return jsonify({"error": "Посвящение не найдено"}), 404
+    if event.get("status") != "active":
+        return jsonify({"error": "Посвящение уже завершено"}), 409
+
+    event["status"] = "completed"
+    event["completedAt"] = datetime.now(timezone.utc).isoformat()
+    data["events"] = events
+    get_store("bro_events").save(data)
+
+    return jsonify({"initiation": event}), 200
+
+
+@app.route("/api/wing/initiations/<event_id>/join", methods=["POST"])
+def wing_initiation_join(event_id):
+    """Participant: join a squad initiation — creates a passport with its tasks."""
+    payload, err = _require_roles(_BRO_ALL_ROLES, allow_localhost_dev=True)
+    if err:
+        return err
+
+    device_id = payload.get("deviceId") or (request.headers.get("X-Device-Id") or "").strip()
+    if not device_id:
+        return jsonify({"error": "deviceId is required"}), 400
+
+    events_data = get_store("bro_events").load()
+    event = next((e for e in (events_data.get("events") or [])
+                  if e.get("id") == event_id and e.get("type") == "squad_initiation"
+                  and e.get("status") == "active"), None)
+    if not event:
+        return jsonify({"error": "Посвящение не найдено или неактивно"}), 404
+
+    passports_data = get_store("bro_passports").load()
+    passports = passports_data.get("passports") or []
+    existing = next((p for p in passports if p.get("deviceId") == device_id and p.get("broEventId") == event_id), None)
+    if existing:
+        return jsonify({"passport": existing}), 200
+
+    tasks = [{"id": t["id"], "title": t["title"], "description": t.get("description", ""),
+              "order": t.get("order", idx + 1), "done": False}
+             for idx, t in enumerate(event.get("customTasks") or [])]
+
+    new_passport = {
+        "id": uuid.uuid4().hex[:12],
+        "deviceId": device_id,
+        "broEventId": event_id,
+        "type": "squad_initiation",
+        "status": "in_progress",
+        "tasks": tasks,
+    }
+    passports.append(new_passport)
+    passports_data["passports"] = passports
+    get_store("bro_passports").save(passports_data)
+
+    return jsonify({"passport": new_passport}), 201
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# BRO INITIATIVES ("Бродела") + BRO SQUAD ("Броотряд")
+# ═══════════════════════════════════════════════════════════════════════════
+
+@app.route('/api/bro/initiatives', methods=['GET'])
+def get_bro_initiatives():
+    data = get_store("bro_initiatives").load()
+    items = data.get("initiatives", [])
+    return jsonify({"initiatives": items})
+
+
+@app.route('/api/bro/initiatives', methods=['POST'])
+def create_bro_initiative():
+    device_id = (request.headers.get('X-Device-Id') or '').strip() or 'dev'
+    body = request.get_json(silent=True) or {}
+    title = (body.get("title") or "").strip()
+    description = (body.get("description") or "").strip()
+    if not title:
+        return jsonify({"error": "title required"}), 400
+
+    data = get_store("bro_initiatives").load()
+    items = data.get("initiatives", [])
+
+    new_ini = {
+        "id": uuid.uuid4().hex[:12],
+        "title": title,
+        "description": description,
+        "createdBy": device_id,
+        "createdAt": datetime.utcnow().isoformat() + "Z",
+        "votes": {},
+        "status": "voting",
+    }
+    items.append(new_ini)
+    data["initiatives"] = items
+    get_store("bro_initiatives").save(data)
+    return jsonify(new_ini), 201
+
+
+@app.route('/api/bro/initiatives/<ini_id>', methods=['DELETE'])
+def delete_bro_initiative(ini_id):
+    data = get_store("bro_initiatives").load()
+    items = data.get("initiatives", [])
+    ini = next((i for i in items if i["id"] == ini_id), None)
+    if not ini:
+        return jsonify({"error": "not found"}), 404
+    items = [i for i in items if i["id"] != ini_id]
+    data["initiatives"] = items
+    get_store("bro_initiatives").save(data)
+    return jsonify({"deleted": True, "id": ini_id})
+
+
+@app.route('/api/bro/initiatives/<ini_id>/vote', methods=['POST'])
+def vote_bro_initiative(ini_id):
+    device_id = (request.headers.get('X-Device-Id') or '').strip() or 'dev'
+    body = request.get_json(silent=True) or {}
+    vote = body.get("vote", True)
+
+    data = get_store("bro_initiatives").load()
+    items = data.get("initiatives", [])
+    ini = next((i for i in items if i["id"] == ini_id), None)
+    if not ini:
+        return jsonify({"error": "not found"}), 404
+
+    ini.setdefault("votes", {})[device_id] = bool(vote)
+    # Auto-approve if >=1 vote (для тестирования; в продакшене поставить >=3)
+    vote_count = sum(1 for v in ini["votes"].values() if v)
+    if vote_count >= 1 and ini["status"] == "voting":
+        ini["status"] = "approved"
+
+    data["initiatives"] = items
+    get_store("bro_initiatives").save(data)
+    return jsonify(ini)
+
+
+@app.route('/api/bro/initiatives/<ini_id>/send', methods=['POST'])
+def send_bro_initiative_to_council(ini_id):
+    device_id = (request.headers.get('X-Device-Id') or '').strip() or 'dev'
+    data = get_store("bro_initiatives").load()
+    items = data.get("initiatives", [])
+    ini = next((i for i in items if i["id"] == ini_id), None)
+    if not ini:
+        return jsonify({"error": "not found"}), 404
+    ini["status"] = "sent_to_council"
+    data["initiatives"] = items
+    get_store("bro_initiatives").save(data)
+
+    # Look up sender profile from memberships + bro data
+    sender_nickname = "Участник"
+    sender_role = ""
+    wing_name = ""
+    try:
+        mem_data = get_store("memberships").load()
+        for m in mem_data.get("members", []):
+            if m.get("deviceId") == device_id:
+                sender_nickname = m.get("nickname") or sender_nickname
+                sender_role = m.get("role") or sender_role
+                break
+    except Exception:
+        pass
+    try:
+        bp_data = get_store("bro_passports").load()
+        for pp in bp_data.get("passports", []):
+            if pp.get("deviceId") == device_id:
+                wing_id = pp.get("broEventId", "")
+                if wing_id:
+                    ev_data = get_store("bro_events").load()
+                    for ev in ev_data.get("events", []):
+                        if ev.get("id") == wing_id:
+                            wing_name = ev.get("wingName") or ev.get("title") or ""
+                            break
+                break
+    except Exception:
+        pass
+
+    # Detect if this is an ODE (from constructor) or regular Brodela
+    raw_title = ini.get("title", "")
+    is_ode = raw_title.startswith("[ОДэ]")
+    source_type = "ode" if is_ode else "brodela"
+    council_tag = "[ОДэ]" if is_ode else "[Бродела]"
+    # For ODE keep original title (already has [ОДэ] prefix); for Brodela add prefix
+    council_title = raw_title if is_ode else f"{council_tag} {raw_title}"
+
+    # Create a council initiative
+    council_data = get_store("council_initiatives").load()
+    council_items = council_data.get("initiatives", [])
+    council_ini = {
+        "id": uuid.uuid4().hex[:12],
+        "title": council_title,
+        "description": ini.get("description", ""),
+        "status": "new",
+        "readStatus": "unread",
+        "createdBy": device_id,
+        "createdByNickname": sender_nickname,
+        "authorNickname": sender_nickname,
+        "authorRole": sender_role,
+        "authorWing": wing_name,
+        "createdAt": datetime.utcnow().isoformat() + "Z",
+        "sourceType": source_type,
+        "sourceInitiativeId": ini["id"],
+        "votesUp": 0,
+        "voters": [],
+    }
+    council_items.append(council_ini)
+    council_data["initiatives"] = council_items
+    get_store("council_initiatives").save(council_data)
+
+    return jsonify(ini)
+
+
+@app.route('/api/bro/squad', methods=['GET'])
+def get_bro_squad():
+    """Return all members who completed BRO + all wings."""
+    passports_data = get_store("bro_passports").load()
+    passports = passports_data.get("passports", [])
+
+    # Build memberships lookup (deviceId -> member data)
+    mem_data = get_store("memberships").load()
+    mem_by_device = {}
+    for m in mem_data.get("members", []):
+        did = m.get("deviceId", "")
+        if did:
+            mem_by_device[did] = m
+
+    # Build bro_events lookup (eventId -> event)
+    ev_data = get_store("bro_events").load()
+    ev_by_id = {}
+    for ev in ev_data.get("events", []):
+        eid = ev.get("id", "")
+        if eid:
+            ev_by_id[eid] = ev
+
+    # Collect BRO members (anyone with a passport = participated in Бросвящение)
+    members = []
+    seen_devices = set()
+    for p in passports:
+        if p.get("type") == "squad_initiation":
+            continue
+        did = p.get("deviceId", "")
+        if not did or did in seen_devices:
+            continue
+        # Check tasks completion (if tasks exist)
+        tasks = p.get("tasks", [])
+        all_done = all(t.get("done") for t in tasks) if tasks else True
+        if not all_done and p.get("status") != "completed":
+            continue
+        seen_devices.add(did)
+        # Look up nickname/avatar from memberships
+        mem = mem_by_device.get(did, {})
+        # Look up wing name from bro_events
+        bro_event_id = p.get("broEventId", "")
+        wing_ev = ev_by_id.get(bro_event_id, {})
+        wing_name = wing_ev.get("wingName") or wing_ev.get("title") or ""
+        members.append({
+            "deviceId": did,
+            "nickname": mem.get("nickname") or p.get("nickname") or "Участник",
+            "avatar": mem.get("avatarUrl") or "",
+            "squadId": mem.get("squadId") or p.get("squadId") or "",
+            "wingId": bro_event_id,
+            "wingName": wing_name,
+            "completedAt": p.get("completedAt", ""),
+        })
+
+    # Collect unique wings
+    wings = []
+    seen_wings = set()
+    for m in members:
+        wid = m.get("wingId", "")
+        if wid and wid not in seen_wings:
+            seen_wings.add(wid)
+            wings.append({
+                "wingId": wid,
+                "wingName": m.get("wingName", "Крыло"),
+                "leaderDeviceId": m["deviceId"],
+                "leaderNickname": m["nickname"],
+            })
+
+    return jsonify({"members": members, "wings": wings, "total": len(members)})
+
+
 if __name__ == '__main__':
     # ВАЖНО (Windows): не используем эмодзи в stdout, иначе возможен UnicodeEncodeError (cp1251)
     print("Запуск Flask API для Путеводителя...")

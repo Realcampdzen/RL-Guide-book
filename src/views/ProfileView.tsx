@@ -26,7 +26,7 @@ import { ConfirmModal } from '../components/ConfirmModal';
 import { CouncilDashboard, type CouncilTabId } from '../components/CouncilDashboard';
 import { BroInitiation } from '../components/BroInitiation';
 import { WingDashboard } from '../components/WingDashboard';
-import { SquadArchitect } from '../components/SquadArchitect';
+
 import { generateSocialCard, shareOrDownloadSocialCard, type SocialCardResult } from '../utils/socialGenerator';
 import { fetchAiSlogan, fetchPedagogy4k, fetchVibeCheck, fetchBadgePlan, structureUserPlan, checkPlanApiAvailable, fetchCouncilInitiative } from '../utils/aiService';
 import { InspectorMonitorCurve } from '../components/InspectorMonitorCurve';
@@ -38,6 +38,7 @@ import { ArtInboxTab } from '../components/ArtInboxTab';
 import { FeatureGate } from '../components/FeatureGate';
 import { DevPanel } from '../components/DevPanel';
 import { AdminDashboard } from '../components/AdminDashboard';
+import { PersonalCabinet } from '../components/PersonalCabinet';
 import ProfileTabletNav from '../components/ProfileTabletNav';
 import { requestImageGenerate } from '../utils/imageGenerateApi';
 import { parseMarkdownToc, markdownToHtmlWithHeadingIds } from '../utils/markdown';
@@ -50,6 +51,7 @@ import {
   fetchSquadCorner,
   joinSquad,
   loadBadgeRequestsInbox,
+  createBadgeRequest,
   loadMyApprovals,
   loadMyBadgeRequests,
   loadMySquad,
@@ -169,7 +171,7 @@ export const ProfileView: React.FC<any> = (props) => {
   const { onBack, onNavigateToBadge, badges, ensureBadgeLoaded, addCustomBadge, restoreCustomBadges, removeCustomBadge, customBadges = [], communityBadges = [], communityPendingCount = 0, communitySyncing = false, communityLikedIds = new Set<string>(), toggleCommunityLike, publishBadgeToCommunity, setCustomBadgeImage, onChatToggle: _onChatToggle, onChatClose: _onChatClose, isChatOpen: _isChatOpen, lastUpdated, onNavigateToRegistrationForm, onNavigateHome, onNavigateCategories, onNavigateAboutCamp, onTelegramContact, onOpenVk } = props;
   const { userData, setNickname, setAvatar, setProfileStatus, setProfileBio, toggleFavorite, removeRoute, exportData, importData, resetProgress, applyApprovedLevel, getLevelProgress, markRankUpSeen, completeTutorial, isLoading, updateLevelEvidence, updateLevelStatus, saveBadgePlan, updateBadgePlanStatus, updateVozhatifikatorChecklist, updateDiarySquad, setPathFavToast } = useUserProgress();
   const { myTeam, generateInviteUrl } = useTeam();
-  const { canUseChat, role, deviceId, setAuth, setRole, accessToken, campId } = useAuth();
+  const { canUseChat, role, deviceId, setAuth, accessToken, campId } = useAuth();
   const { activeSquadName: counselorSquadName, activeSquadCard: counselorSquadCard } = useCounselorSquad();
   const seeOtradBlocks = canSeeOtradBlocks(role);
   const showEventsForRole = showEventsPanelForRole(role);
@@ -239,6 +241,7 @@ export const ProfileView: React.FC<any> = (props) => {
   const [mobileConsoleExpanded, setMobileConsoleExpanded] = useState(false);
   const [showAvatarUploadConfirm, setShowAvatarUploadConfirm] = useState(false);
   const [showAdminDashboard, setShowAdminDashboard] = useState(false);
+  const [showPersonalCabinet, setShowPersonalCabinet] = useState(true);
   const [isTabletOrMobile, setIsTabletOrMobile] = useState(() => typeof window !== 'undefined' && window.matchMedia('(max-width: 1180px)').matches);
 
   useEffect(() => {
@@ -255,9 +258,9 @@ export const ProfileView: React.FC<any> = (props) => {
   const [workshopForm, setWorkshopForm] = useState({ title: '', description: '', skill: 'critical', level1: '', level2: '', image: null as string | null });
   // Educator cabinet state
   const [eduTaskForm, setEduTaskForm] = useState({ title: '', description: '', badgeId: '' });
-  const [eduPlansInbox, setEduPlansInbox] = useState<BadgePlanItem[]>([]);
-  const [eduPlansLoading, setEduPlansLoading] = useState(false);
-  const [eduReviewBusy, setEduReviewBusy] = useState<string | null>(null);
+  const [_eduPlansInbox, _setEduPlansInbox] = useState<BadgePlanItem[]>([]);
+  const [_eduPlansLoading, _setEduPlansLoading] = useState(false);
+  const [_eduReviewBusy, _setEduReviewBusy] = useState<string | null>(null);
   const importInputRef = useRef<HTMLInputElement | null>(null);
   const avatarUploadInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -277,6 +280,39 @@ export const ProfileView: React.FC<any> = (props) => {
   const [planResult, setPlanResult] = useState<{ planText: string; checklistItems: string[] } | null>(null);
   const [planError, setPlanError] = useState<string | null>(null);
   const [planApiAvailable, setPlanApiAvailable] = useState<boolean | null>(null);
+
+  // Expose plan/proof modal openers on window so PersonalCabinet buttons can call them directly
+  useEffect(() => {
+    (window as any).__openBadgePlan__ = (badgeInfo: { id: string; title: string; level?: string; criteria?: string; nameExplanation?: string; skillTips?: string; confirmation?: string }) => {
+      setPlanFormBadge(badgeInfo);
+      setPlanForm({
+        currentDay: Math.min(21, Math.max(1, userData?.diaryProgress?.currentDay ?? 1)),
+        shiftLength: 21,
+        squadProgramGrid: '',
+        squadPlan3d: '',
+        campProgram3d: '',
+        priority: 'both',
+        myPlanDraft: '',
+      });
+      setPlanResult(null);
+      setPlanError(null);
+      setPlanStep('context');
+      setPlanChecklistItems([]);
+    };
+
+    (window as any).__openBadgeProof__ = (badgeInfo: { id: string; title: string }) => {
+      setProofForm({ learned: '', impact: '', link: '' });
+      setProofPhotoCount(0);
+      if (proofPhotoInputRef.current) proofPhotoInputRef.current.value = '';
+      setProofBadge(badgeInfo);
+    };
+
+    return () => {
+      delete (window as any).__openBadgePlan__;
+      delete (window as any).__openBadgeProof__;
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userData?.diaryProgress?.currentDay]);
 
   const [initiativeModalOpen, setInitiativeModalOpen] = useState(false);
   const [initiativeForm, setInitiativeForm] = useState({
@@ -325,7 +361,7 @@ export const ProfileView: React.FC<any> = (props) => {
   const [eventsBusy, setEventsBusy] = useState(false);
   const [eventsError, setEventsError] = useState<string | null>(null);
   const [eventsHasLoaded, setEventsHasLoaded] = useState(false);
-  const [eventsTab, setEventsTab] = useState<'legacy' | 'approvals' | 'plans'>('approvals');
+  const [eventsTab, setEventsTab] = useState<'legacy' | 'approvals' | 'plans' | 'tasks'>('approvals');
   const [plansInbox, setPlansInbox] = useState<BadgePlanItem[]>([]);
   const [plansInboxBusy, setPlansInboxBusy] = useState(false);
   const [plansInboxError, setPlansInboxError] = useState<string | null>(null);
@@ -486,7 +522,7 @@ export const ProfileView: React.FC<any> = (props) => {
   const [councilActiveTab, setCouncilActiveTab] = useState<CouncilTabId>('council');
   const [broActiveTab, setBroActiveTab] = useState<BroTabId>('initiation');
   const [shareActiveTab, setShareActiveTab] = useState<ShareTabId>('create-card');
-  const [workshopActiveTab, setWorkshopActiveTab] = useState<WorkshopTabId>('architect');
+  const [workshopActiveTab, setWorkshopActiveTab] = useState<WorkshopTabId>('constructor');
   const [inspectorActiveTab, setInspectorActiveTab] = useState<InspectorTabId>('friendship');
   const [panelOrigin, setPanelOrigin] = useState<'left' | 'right' | 'top' | null>(null);
   const [vozhatifikatorToc, setVozhatifikatorToc] = useState<Array<{ id: string; title: string }>>([]);
@@ -559,7 +595,7 @@ export const ProfileView: React.FC<any> = (props) => {
       broTabOnOpenRef.current = null;
     }
     if (panelActiveView === 'share') setShareActiveTab('create-card');
-    if (panelActiveView === 'workshop') setWorkshopActiveTab('architect');
+    if (panelActiveView === 'workshop') setWorkshopActiveTab('constructor');
     if (panelActiveView === 'inspector') setInspectorActiveTab('friendship');
   }, [panelActiveView]);
 
@@ -1257,6 +1293,8 @@ export const ProfileView: React.FC<any> = (props) => {
   }, [setAuth]);
 
   const setSandboxRole = useCallback((nextRole: UserRole) => {
+    // Sandbox: set role WITHOUT fake accessToken — let components use X-Device-Id fallback.
+    // Setting accessToken=deviceId caused 401s from any API call → clearAuthStorage() → role wiped to 'traveler'.
     setAuth({ role: nextRole, accessToken: undefined, campId: undefined, exp: undefined });
   }, [setAuth]);
 
@@ -2332,6 +2370,7 @@ export const ProfileView: React.FC<any> = (props) => {
                   role={role || 'traveler'}
                   deviceId={deviceId || undefined}
                   accessToken={accessToken || undefined}
+                  myNickname={userData?.profile?.nickname || undefined}
                   mySquadInfo={mySquadInfo}
                   onRefresh={loadMySquadInfo}
                   onAfterLeave={() => setSquadCornerActiveTab('squad')}
@@ -2407,6 +2446,7 @@ export const ProfileView: React.FC<any> = (props) => {
                 role={role || 'traveler'}
                 deviceId={deviceId || undefined}
                 accessToken={accessToken || undefined}
+                myNickname={userData?.profile?.nickname || undefined}
                 mySquadInfo={mySquadInfo}
                 onRefresh={loadMySquadInfo}
                 onAfterLeave={() => setSquadCornerActiveTab('squad')}
@@ -2559,6 +2599,7 @@ export const ProfileView: React.FC<any> = (props) => {
                 onOpenTeamPanel={() => setPanelActiveView('team')}
                 onScrollToTeam={() => setPanelActiveView('team')}
                 onSuggestInitiative={undefined}
+                canModerate={canModerateApprovals}
               />
             ) : (
               <CouncilDashboard
@@ -2578,6 +2619,7 @@ export const ProfileView: React.FC<any> = (props) => {
               onOpenTeamPanel={() => setPanelActiveView('team')}
               onScrollToTeam={() => setPanelActiveView('team')}
               onSuggestInitiative={undefined}
+              canModerate={canModerateApprovals}
             />
           ) : (
             <CouncilDashboard
@@ -2802,19 +2844,7 @@ export const ProfileView: React.FC<any> = (props) => {
       )}
       {panelActiveView === 'workshop' && (
         <div className="workshop-view fade-in" role="tabpanel" id="workshop-tabpanel" aria-labelledby={`workshop-tab-${workshopActiveTab}`}>
-          {workshopActiveTab === 'architect' && (
-            <section id="workshop-section-architect" className="workshop-view__section">
-              {hasWorkshopAccess ? (
-                <SquadArchitect diarySquadName={userData?.diaryProgress?.squad?.name} onComplete={(trad) => showHint({ title: "Успех", content: `Сценарий "${trad.name}" создан! Используй его для посвящения отряда.` })} />
-              ) : (
-                <div className="workshop-locked workshop-locked--card">
-                  <div style={{ fontSize: '40px', marginBottom: '16px' }}>🔒</div>
-                  <p style={{ margin: '0 0 20px', fontSize: '15px', lineHeight: 1.5, opacity: 0.9 }}>Мастерская откроется, когда ты выберешь в путь значок <strong>1.16.1 «Путеводитель»</strong> или достигнешь его.</p>
-                  <button type="button" onClick={() => onNavigateToBadge('1.16.1')} className="btn-primary-gold" style={{ padding: '14px 24px' }}>Перейти к значку 1.16.1</button>
-                </div>
-              )}
-            </section>
-          )}
+
           {workshopActiveTab === 'forge' && (
             <section id="workshop-section-forge" className="workshop-view__section">
               {hasWorkshopAccess ? (
@@ -2919,178 +2949,9 @@ export const ProfileView: React.FC<any> = (props) => {
               )}
             </section>
           )}
-          {workshopActiveTab === 'tasks' && canModerateApprovals && (() => {
-            const tasks = userData?.educatorTasks || [];
-            return (
-              <section id="workshop-section-tasks" className="workshop-view__section">
-                <div className="workshop-form workshop-form--card">
-                  <h3 style={{ color: '#FFD700', marginTop: 0 }}>📝 Задания педагога</h3>
-                  <p style={{ fontSize: 12, opacity: 0.8, marginTop: -4, marginBottom: 12 }}>Создайте задание для участников. Можно привязать к значку.</p>
-                  <input
-                    value={eduTaskForm.title}
-                    onChange={e => setEduTaskForm(prev => ({ ...prev, title: e.target.value }))}
-                    placeholder="Название задания"
-                    className="w-input"
-                    style={{ marginBottom: 8 }}
-                  />
-                  <textarea
-                    value={eduTaskForm.description}
-                    onChange={e => setEduTaskForm(prev => ({ ...prev, description: e.target.value }))}
-                    placeholder="Описание задания..."
-                    className="w-input"
-                    style={{ minHeight: 80, marginBottom: 8 }}
-                  />
-                  <input
-                    value={eduTaskForm.badgeId}
-                    onChange={e => setEduTaskForm(prev => ({ ...prev, badgeId: e.target.value }))}
-                    placeholder="ID значка (опционально, например 1.1)"
-                    className="w-input"
-                    style={{ marginBottom: 12 }}
-                  />
-                  <button
-                    type="button"
-                    className="btn-primary-gold"
-                    style={{ width: '100%' }}
-                    disabled={!eduTaskForm.title.trim()}
-                    onClick={() => {
-                      if (!eduTaskForm.title.trim()) return;
-                      const newTask = {
-                        id: `edu-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-                        title: eduTaskForm.title.trim(),
-                        description: eduTaskForm.description.trim(),
-                        badgeId: eduTaskForm.badgeId.trim() || undefined,
-                        assignedTo: [] as string[],
-                        status: 'draft' as const,
-                        createdAt: new Date().toISOString(),
-                      };
-                      try {
-                        const raw = localStorage.getItem('rl_guide_progress_v1');
-                        const data = raw ? JSON.parse(raw) : {};
-                        data.educatorTasks = [...(data.educatorTasks || []), newTask];
-                        localStorage.setItem('rl_guide_progress_v1', JSON.stringify(data));
-                      } catch (_) { /* ignore */ }
-                      setEduTaskForm({ title: '', description: '', badgeId: '' });
-                      showHint({ title: 'Задание создано', content: `«${newTask.title}» добавлено в черновики.` });
-                    }}
-                  >
-                    Создать задание
-                  </button>
-                </div>
-                <div className="workshop-my-proposals workshop-my-proposals--card" style={{ marginTop: 16 }}>
-                  <h3 style={{ color: 'rgba(255,255,255,0.9)', marginTop: 0, fontSize: '16px' }}>Мои задания ({tasks.length})</h3>
-                  {tasks.length === 0 ? (
-                    <p style={{ margin: 0, fontSize: '14px', opacity: 0.7 }}>Пока нет заданий. Создайте первое выше.</p>
-                  ) : (
-                    <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-                      {tasks.map((t) => (
-                        <li key={t.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '12px 0', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-                          <div style={{ flex: 1 }}>
-                            <div style={{ fontWeight: 600, fontSize: 14 }}>{t.title}</div>
-                            {t.description && <div style={{ fontSize: 12, opacity: 0.75, marginTop: 2 }}>{t.description.slice(0, 80)}{t.description.length > 80 ? '…' : ''}</div>}
-                            <div style={{ fontSize: 11, opacity: 0.6, marginTop: 4 }}>
-                              {t.status === 'draft' ? '⬜ Черновик' : t.status === 'assigned' ? '📤 Назначено' : '✅ Завершено'}
-                              {t.badgeId && <span> · Значок {t.badgeId}</span>}
-                            </div>
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              </section>
-            );
-          })()}
-          {workshopActiveTab === 'reviews' && canModerateApprovals && (() => {
-            const loadInbox = async () => {
-              if (!accessToken) return;
-              setEduPlansLoading(true);
-              try {
-                const plans = await fetchPlansInbox(accessToken);
-                setEduPlansInbox(plans);
-              } catch (e) {
-                console.error('Failed to load plans inbox:', e);
-              } finally {
-                setEduPlansLoading(false);
-              }
-            };
-            return (
-              <section id="workshop-section-reviews" className="workshop-view__section">
-                <div className="workshop-my-proposals workshop-my-proposals--card">
-                  <h3 style={{ color: '#FFD700', marginTop: 0 }}>✅ Проверки планов</h3>
-                  <p style={{ fontSize: 12, opacity: 0.8, marginTop: -4, marginBottom: 12 }}>Планы участников, ожидающие проверки.</p>
-                  <button type="button" className="btn-secondary" style={{ marginBottom: 16 }} onClick={loadInbox} disabled={eduPlansLoading}>
-                    {eduPlansLoading ? 'Загрузка…' : 'Обновить'}
-                  </button>
-                  {eduPlansInbox.length === 0 && !eduPlansLoading && (
-                    <p style={{ margin: 0, fontSize: 14, opacity: 0.7 }}>Нет планов на проверку. Нажмите «Обновить» для загрузки.</p>
-                  )}
-                  {eduPlansInbox.length > 0 && (
-                    <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-                      {eduPlansInbox.map((plan) => (
-                        <li key={plan.id} style={{ padding: '14px 0', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-                          <div style={{ fontWeight: 600, fontSize: 14 }}>Значок {plan.badgeId}{plan.levelId ? ` · Уровень ${plan.levelId}` : ''}</div>
-                          <div style={{ fontSize: 13, opacity: 0.85, marginTop: 4, whiteSpace: 'pre-wrap' }}>{plan.planText.slice(0, 200)}{plan.planText.length > 200 ? '…' : ''}</div>
-                          {plan.checklist && plan.checklist.length > 0 && (
-                            <div style={{ fontSize: 12, opacity: 0.7, marginTop: 4 }}>
-                              Чек-лист: {plan.checklist.filter(c => c.done).length}/{plan.checklist.length} выполнено
-                            </div>
-                          )}
-                          <div style={{ fontSize: 11, opacity: 0.6, marginTop: 4 }}>Статус: {plan.status} · {new Date(plan.createdAt).toLocaleDateString()}</div>
-                          {plan.status === 'submitted' && (
-                            <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-                              <button
-                                type="button"
-                                className="btn-confirm-main"
-                                style={{ fontSize: 12, padding: '6px 14px' }}
-                                disabled={eduReviewBusy === plan.id}
-                                onClick={async () => {
-                                  if (!accessToken) return;
-                                  setEduReviewBusy(plan.id);
-                                  try {
-                                    await reviewPlan(accessToken, plan.id, 'approved');
-                                    setEduPlansInbox(prev => prev.map(p => p.id === plan.id ? { ...p, status: 'approved' as const } : p));
-                                    showHint({ title: 'Одобрено', content: `План для значка ${plan.badgeId} одобрен.` });
-                                  } catch (e) {
-                                    showHint({ title: 'Ошибка', content: 'Не удалось одобрить план.' });
-                                  } finally {
-                                    setEduReviewBusy(null);
-                                  }
-                                }}
-                              >
-                                Одобрить
-                              </button>
-                              <button
-                                type="button"
-                                className="btn-secondary"
-                                style={{ fontSize: 12, padding: '6px 14px' }}
-                                disabled={eduReviewBusy === plan.id}
-                                onClick={async () => {
-                                  if (!accessToken) return;
-                                  setEduReviewBusy(plan.id);
-                                  try {
-                                    await reviewPlan(accessToken, plan.id, 'rejected');
-                                    setEduPlansInbox(prev => prev.map(p => p.id === plan.id ? { ...p, status: 'rejected' as const } : p));
-                                    showHint({ title: 'Отклонено', content: `План для значка ${plan.badgeId} отклонён.` });
-                                  } catch (e) {
-                                    showHint({ title: 'Ошибка', content: 'Не удалось отклонить план.' });
-                                  } finally {
-                                    setEduReviewBusy(null);
-                                  }
-                                }}
-                              >
-                                Отклонить
-                              </button>
-                            </div>
-                          )}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              </section>
-            );
-          })()}
           {workshopActiveTab === 'community' && (
+
+
             <section id="workshop-section-community-ranking" className="workshop-view__section">
               <CommunityRankingPanel
                 communityBadges={communityBadges ?? []}
@@ -3415,16 +3276,10 @@ export const ProfileView: React.FC<any> = (props) => {
   ] satisfies Array<{ id: ShareTabId; label: string; icon: string }>;
 
   const workshopTabItems: Array<{ id: WorkshopTabId; label: string; icon: string }> = [
-    { id: 'architect' as const, label: 'Архитектор отряда', icon: '🏛️' },
-    { id: 'forge' as const, label: 'Кузница смыслов', icon: '⚒️' },
-    { id: 'ideas' as const, label: 'Идеи отряда', icon: '💡' },
-    { id: 'my' as const, label: 'Мои предложения', icon: '📋' },
+    { id: 'constructor' as const, label: 'Конструктор', icon: '🛠️' },
+    { id: 'arts' as const, label: 'Арты', icon: '🎨' },
+    { id: 'my' as const, label: 'Мои проекты', icon: '📋' },
     { id: 'community' as const, label: 'Сообщество', icon: '🏆' },
-    ...(canModerateApprovals ? [
-      { id: 'tasks' as const, label: 'Задания', icon: '📝' },
-      { id: 'reviews' as const, label: 'Проверки', icon: '✅' },
-      { id: 'arts' as const, label: 'Арты', icon: '🎨' },
-    ] : []),
   ];
 
   const inspectorTabItems = [
@@ -3462,12 +3317,13 @@ export const ProfileView: React.FC<any> = (props) => {
     { id: 'camp-control' as const, label: 'Управление Лагерем', icon: '🏕️' },
   ] satisfies Array<{ id: TeamTabId; label: string; icon: string }>;
 
-  const councilTabItems = [
+  const councilTabItems: Array<{ id: CouncilTabId; label: string; icon: string }> = [
     { id: 'council' as const, label: 'Совет', icon: '👑' },
     { id: 'engines' as const, label: 'Движки', icon: '🚀' },
-    { id: 'camp-management' as const, label: 'Управление Лагерем', icon: '🏕️' },
+    { id: 'camp-management' as const, label: 'Инициативы', icon: '🏕️' },
+    ...(canModerateApprovals ? [{ id: 'management' as CouncilTabId, label: 'Управление', icon: '📊' }] : []),
     { id: 'badge' as const, label: 'Значок', icon: '🎖️' },
-  ] satisfies Array<{ id: CouncilTabId; label: string; icon: string }>;
+  ];
 
   const vozhatifikatorTabItems = [
     { id: 'book' as const, label: 'Книга', icon: '📖' },
@@ -5659,6 +5515,11 @@ export const ProfileView: React.FC<any> = (props) => {
                   Планы{plansInbox.filter(p => p.status === 'submitted').length > 0 ? ` (${plansInbox.filter(p => p.status === 'submitted').length})` : ''}
                 </button>
               )}
+              {canModerateApprovals && (
+                <button type="button" className="btn-secondary" style={{ padding: '6px 12px', opacity: eventsTab === 'tasks' ? 1 : 0.7 }} onClick={() => setEventsTab('tasks')}>
+                  📝 Задания
+                </button>
+              )}
             </div>
 
             {eventsTab === 'legacy' && (
@@ -6166,6 +6027,88 @@ export const ProfileView: React.FC<any> = (props) => {
                 )}
               </div>
             )}
+
+            {eventsTab === 'tasks' && canModerateApprovals && (() => {
+              const tasks = userData?.educatorTasks || [];
+              return (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  <div style={{ padding: 16, borderRadius: 12, background: 'rgba(0,0,0,0.15)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                    <h4 style={{ margin: '0 0 8px', color: '#FFD700', fontSize: 14 }}>📝 Создать задание</h4>
+                    <p style={{ fontSize: 11, opacity: 0.7, margin: '0 0 10px' }}>Отправьте задание участникам — с кружка, курса или от педагога.</p>
+                    <input
+                      value={eduTaskForm.title}
+                      onChange={e => setEduTaskForm(prev => ({ ...prev, title: e.target.value }))}
+                      placeholder="Название задания"
+                      className="w-input"
+                      style={{ marginBottom: 6 }}
+                    />
+                    <textarea
+                      value={eduTaskForm.description}
+                      onChange={e => setEduTaskForm(prev => ({ ...prev, description: e.target.value }))}
+                      placeholder="Описание задания..."
+                      className="w-input"
+                      style={{ minHeight: 70, marginBottom: 6 }}
+                    />
+                    <input
+                      value={eduTaskForm.badgeId}
+                      onChange={e => setEduTaskForm(prev => ({ ...prev, badgeId: e.target.value }))}
+                      placeholder="ID значка (опционально, например 1.1)"
+                      className="w-input"
+                      style={{ marginBottom: 10 }}
+                    />
+                    <button
+                      type="button"
+                      className="btn-primary-gold"
+                      style={{ width: '100%' }}
+                      disabled={!eduTaskForm.title.trim()}
+                      onClick={() => {
+                        if (!eduTaskForm.title.trim()) return;
+                        const newTask = {
+                          id: `edu-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+                          title: eduTaskForm.title.trim(),
+                          description: eduTaskForm.description.trim(),
+                          badgeId: eduTaskForm.badgeId.trim() || undefined,
+                          assignedTo: [] as string[],
+                          status: 'draft' as const,
+                          createdAt: new Date().toISOString(),
+                        };
+                        try {
+                          const raw = localStorage.getItem('rl_guide_progress_v1');
+                          const data = raw ? JSON.parse(raw) : {};
+                          data.educatorTasks = [...(data.educatorTasks || []), newTask];
+                          localStorage.setItem('rl_guide_progress_v1', JSON.stringify(data));
+                        } catch (_) { /* ignore */ }
+                        setEduTaskForm({ title: '', description: '', badgeId: '' });
+                        showHint({ title: 'Задание создано', content: `«${newTask.title}» добавлено в черновики.` });
+                      }}
+                    >
+                      Создать задание
+                    </button>
+                  </div>
+                  <div style={{ padding: 16, borderRadius: 12, background: 'rgba(0,0,0,0.15)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                    <h4 style={{ margin: '0 0 8px', color: 'rgba(255,255,255,0.9)', fontSize: 14 }}>Мои задания ({tasks.length})</h4>
+                    {tasks.length === 0 ? (
+                      <p style={{ margin: 0, fontSize: 12, opacity: 0.6 }}>Пока нет заданий. Создайте первое выше.</p>
+                    ) : (
+                      <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                        {tasks.map((t) => (
+                          <li key={t.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                            <div style={{ flex: 1 }}>
+                              <div style={{ fontWeight: 600, fontSize: 13 }}>{t.title}</div>
+                              {t.description && <div style={{ fontSize: 11, opacity: 0.7, marginTop: 2 }}>{t.description.slice(0, 80)}{t.description.length > 80 ? '…' : ''}</div>}
+                              <div style={{ fontSize: 10, opacity: 0.5, marginTop: 3 }}>
+                                {t.status === 'draft' ? '⬜ Черновик' : t.status === 'assigned' ? '📤 Назначено' : '✅ Завершено'}
+                                {t.badgeId && <span> · Значок {t.badgeId}</span>}
+                              </div>
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         </div>
       )}
@@ -6439,9 +6382,10 @@ export const ProfileView: React.FC<any> = (props) => {
         </div>
       )}
 
-      {planFormBadge && (
-        <div className="proof-modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) { setPlanFormBadge(null); setPlanResult(null); setPlanError(null); setPlanStep('context'); setPlanChecklistItems([]); } }}>
-          <div className="proof-modal proof-modal--mobile-sheet fade-in" role="dialog" aria-modal="true" aria-labelledby="profile-modal-plan-title" onClick={e => e.stopPropagation()}>
+      {planFormBadge && createPortal(
+        <div className="profile-view" style={{ position: 'fixed', inset: 0, zIndex: 15000, pointerEvents: 'none', cursor: 'auto' }}>
+          <div className="proof-modal-overlay" style={{ pointerEvents: 'auto' }} onClick={(e) => { if (e.target === e.currentTarget) { setPlanFormBadge(null); setPlanResult(null); setPlanError(null); setPlanStep('context'); setPlanChecklistItems([]); } }}>
+            <div className="proof-modal proof-modal--mobile-sheet fade-in" role="dialog" aria-modal="true" aria-labelledby="profile-modal-plan-title" onClick={e => e.stopPropagation()}>
             <h3 id="profile-modal-plan-title" style={{ marginTop: 0, marginBottom: 8 }}>План получения: {planFormBadge.title}</h3>
             {planApiAvailable === false && !planResult && (
               <div style={{ padding: 12, marginBottom: 12, background: 'rgba(255,100,100,0.15)', borderRadius: 8, border: '1px solid rgba(255,100,100,0.4)', fontSize: 12 }}>
@@ -6767,9 +6711,10 @@ export const ProfileView: React.FC<any> = (props) => {
               </>
             )}
             <button onClick={() => { setPlanFormBadge(null); setPlanResult(null); setPlanError(null); setPlanStep('context'); setPlanChecklistItems([]); }} style={{ width: '100%', background: 'none', border: 'none', color: 'white', marginTop: 12, cursor: 'pointer', opacity: 0.5, fontSize: 13 }}>Закрыть</button>
+            </div>
           </div>
         </div>
-      )}
+      , document.body)}
 
       {workshopSuccessPending && (
         <div className="proof-modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) { handleWorkshopSuccessOnlySave(); } }}>
@@ -6873,11 +6818,12 @@ export const ProfileView: React.FC<any> = (props) => {
         </div>
       )}
 
-      {proofBadge && (
-        <div className="proof-modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) { setProofBadge(null); setProofForm({ learned: '', impact: '', link: '' }); setProofPhotoCount(0); if (proofPhotoInputRef.current) proofPhotoInputRef.current.value = ''; } }}>
-          <div className="proof-modal fade-in" role="dialog" aria-modal="true" aria-labelledby="profile-modal-proof-title" onClick={e => e.stopPropagation()}>
-            <h3 id="profile-modal-proof-title" style={{ marginTop: 0, marginBottom: 4 }}>Подтверждение: {proofBadge.title}</h3>
-            <p style={{ fontSize: 12, opacity: 0.75, marginBottom: 20, lineHeight: 1.5 }}>Опыт и рефлексия помогают зафиксировать достижение. Вожатый получит твою заявку в Telegram.</p>
+      {proofBadge && createPortal(
+        <div className="profile-view" style={{ position: 'fixed', inset: 0, zIndex: 15000, pointerEvents: 'none', cursor: 'auto' }}>
+          <div className="proof-modal-overlay" style={{ pointerEvents: 'auto' }} onClick={(e) => { if (e.target === e.currentTarget) { setProofBadge(null); setProofForm({ learned: '', impact: '', link: '' }); setProofPhotoCount(0); if (proofPhotoInputRef.current) proofPhotoInputRef.current.value = ''; } }}>
+            <div className="proof-modal fade-in" role="dialog" aria-modal="true" aria-labelledby="profile-modal-proof-title" onClick={e => e.stopPropagation()}>
+              <h3 id="profile-modal-proof-title" style={{ marginTop: 0, marginBottom: 4 }}>Подтверждение: {proofBadge.title}</h3>
+            <p style={{ fontSize: 12, opacity: 0.75, marginBottom: 20, lineHeight: 1.5 }}>Опыт и рефлексия помогают зафиксировать достижение. Вожатый рассмотрит заявку в Пульте управления.</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div>
                 <label style={{ display: 'block', fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', opacity: 0.9, marginBottom: 6 }}>Чему научился(лась)?</label>
@@ -6892,66 +6838,84 @@ export const ProfileView: React.FC<any> = (props) => {
                 <input type="url" placeholder="Ссылка (посты в соцсетях лагеря, отряда, вашей страницы и т.д.)" className="w-input" style={{ width: '100%', padding: 12, borderRadius: 12, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.12)', color: 'white' }} value={proofForm.link} onChange={e => setProofForm({ ...proofForm, link: e.target.value })} />
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', opacity: 0.9, marginBottom: 6 }}>Фото</label>
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', opacity: 0.9, marginBottom: 6 }}>Фото (доказательство)</label>
                 <button type="button" onClick={() => proofPhotoInputRef.current?.click()} className="btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  📁 {proofPhotoCount > 0 ? `Выбрано ${proofPhotoCount}` : 'Загрузить фото'}
+                  📷 {proofPhotoCount > 0 ? `Выбрано: ${proofPhotoCount}` : 'Прикрепить фото'}
                 </button>
                 <input type="file" ref={proofPhotoInputRef} accept="image/*" multiple style={{ display: 'none' }} onChange={e => setProofPhotoCount(e.target.files?.length ?? 0)} />
-                <p style={{ fontSize: 11, opacity: 0.65, marginTop: 6, lineHeight: 1.4 }}>После открытия Telegram прикрепите выбранные файлы вручную, если нужно. Текст и ссылка будут подставлены автоматически.</p>
+                <p style={{ fontSize: 11, opacity: 0.55, marginTop: 4, lineHeight: 1.3 }}>Фото прикрепляется к заявке и будет видно вожатому.</p>
               </div>
             </div>
             <button onClick={async () => {
-              const hasAny = proofForm.learned.trim() || proofForm.impact.trim() || proofForm.link.trim();
-              if (!hasAny && !confirm('Отправить только заголовок? Рекомендуем заполнить опыт и реальный вклад.')) return;
-              const parts: string[] = [`✅ Подтверждение: ${proofBadge.title}`];
-              if (proofForm.learned.trim()) parts.push(`\nЧему я научился(лась): ${proofForm.learned.trim()}`);
-              if (proofForm.impact.trim()) parts.push(`\nРеальный вклад (что изменилось в лагере): ${proofForm.impact.trim()}`);
-              if (proofForm.link.trim()) parts.push(`\nСсылка: ${proofForm.link.trim()}`);
-              if (proofPhotoCount > 0) parts.push('\n\n(Прикрепите фото вручную в Telegram.)');
-              const text = parts.join('');
+              const hasAny = proofForm.learned.trim() || proofForm.impact.trim() || proofForm.link.trim() || proofPhotoCount > 0;
+              if (!hasAny && !confirm('Отправить без описания? Рекомендуем заполнить опыт и реальный вклад.')) return;
               try {
-                const res = await fetch('/api/telegram/notify-achievement', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    levelId: proofBadge.id,
-                    levelLabel: proofBadge.title,
+                // Convert photos to base64 data URLs
+                const photos: string[] = [];
+                if (proofPhotoInputRef.current?.files) {
+                  for (const file of Array.from(proofPhotoInputRef.current.files)) {
+                    const dataUrl = await new Promise<string>((resolve) => {
+                      const reader = new FileReader();
+                      reader.onload = () => {
+                        // Compress: draw to canvas at max 800px
+                        const img = new Image();
+                        img.onload = () => {
+                          const MAX = 800;
+                          let w = img.width, h = img.height;
+                          if (w > MAX || h > MAX) {
+                            const scale = Math.min(MAX / w, MAX / h);
+                            w = Math.round(w * scale);
+                            h = Math.round(h * scale);
+                          }
+                          const canvas = document.createElement('canvas');
+                          canvas.width = w;
+                          canvas.height = h;
+                          canvas.getContext('2d')!.drawImage(img, 0, 0, w, h);
+                          resolve(canvas.toDataURL('image/jpeg', 0.7));
+                        };
+                        img.onerror = () => resolve(reader.result as string);
+                        img.src = reader.result as string;
+                      };
+                      reader.onerror = () => resolve('');
+                      reader.readAsDataURL(file);
+                    });
+                    if (dataUrl) photos.push(dataUrl);
+                  }
+                }
+                await createBadgeRequest(accessToken || '', {
+                  levelId: proofBadge.id,
+                  badgeTitle: proofBadge.title,
+                  evidence: {
                     reflection: proofForm.learned.trim() || undefined,
                     impact: proofForm.impact.trim() || undefined,
                     link: proofForm.link.trim() || undefined,
-                  }),
-                });
-                if (res.ok) {
-                  showHint({ title: 'Отправлено', content: 'Заявка отправлена в канал. Вожатый получит твоё подтверждение.' });
-                } else {
-                  showHint({ title: 'Частично', content: 'Сообщение в канал не ушло. Открываю Telegram для ручной отправки.' });
+                    photos: photos.length > 0 ? photos : undefined,
+                  },
+                  nickname: undefined,
+                }, deviceId || undefined);
+                showHint({ title: '✅ Заявка отправлена', content: 'Вожатый рассмотрит её в Пульте управления.' });
+                if (proofBadge.id && progress?.[proofBadge.id] && updateLevelEvidence) {
+                  const evidence: { type: 'link' | 'text'; value: string }[] = [];
+                  if (proofForm.learned.trim()) evidence.push({ type: 'text', value: proofForm.learned.trim() });
+                  if (proofForm.impact.trim()) evidence.push({ type: 'text', value: proofForm.impact.trim() });
+                  if (proofForm.link.trim()) evidence.push({ type: 'link', value: proofForm.link.trim() });
+                  if (evidence.length > 0) updateLevelEvidence(proofBadge.id, evidence);
                 }
-              } catch {
-                showHint({ title: 'Частично', content: 'Сервер недоступен. Открываю Telegram для ручной отправки.' });
-              }
-              window.open(`https://t.me/Stivanovv?text=${encodeURIComponent(text || `✅ Подтверждение: ${proofBadge.title}`)}`, '_blank', 'noopener,noreferrer');
-              if (proofBadge.id && progress?.[proofBadge.id] && updateLevelEvidence) {
-                const evidence: { type: 'link' | 'text'; value: string }[] = [];
-                if (proofForm.learned.trim()) evidence.push({ type: 'text', value: proofForm.learned.trim() });
-                if (proofForm.impact.trim()) evidence.push({ type: 'text', value: proofForm.impact.trim() });
-                if (proofForm.link.trim()) evidence.push({ type: 'link', value: proofForm.link.trim() });
-                if (evidence.length > 0) updateLevelEvidence(proofBadge.id, evidence);
+              } catch (err: any) {
+                console.error('createBadgeRequest error:', err);
+                showHint({ title: 'Ошибка', content: err?.message || 'Не удалось отправить заявку. Проверьте, что backend запущен.' });
+                return;
               }
               setProofBadge(null);
               setProofForm({ learned: '', impact: '', link: '' });
               setProofPhotoCount(0);
               if (proofPhotoInputRef.current) proofPhotoInputRef.current.value = '';
-              if (canRequestApprovals) {
-                showHint({ title: 'Заявка отправлена', content: 'Вожатый рассмотрит её в ближайшее время.' });
-                setTimeout(() => {
-                  document.getElementById('profile-badge-requests-mine')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }, 300);
-              }
-            }} className="btn-primary-gold" style={{ width: '100%', marginTop: 24 }}>Отправить в Telegram</button>
+            }} className="btn-primary-gold" style={{ width: '100%', marginTop: 24 }}>Отправить на проверку</button>
             <button onClick={() => { setProofBadge(null); setProofForm({ learned: '', impact: '', link: '' }); setProofPhotoCount(0); if (proofPhotoInputRef.current) proofPhotoInputRef.current.value = ''; }} style={{ width: '100%', background: 'none', border: 'none', color: 'white', marginTop: 10, cursor: 'pointer', opacity: 0.5, fontSize: 13 }}>Отмена</button>
+            </div>
           </div>
         </div>
-      )}
+      , document.body)}
 
       {showChildBadges && (
         <div className="proof-modal-overlay" onClick={() => { setShowChildBadges(false); setChildProgressFromFile(null); setChildReportMeta(null); }}>
@@ -7138,12 +7102,13 @@ export const ProfileView: React.FC<any> = (props) => {
         onConfirm={() => avatarUploadInputRef.current?.click()}
       />
 
-      {/* A-2/A-3: Developer tools — visible only for role=developer */}
-      {role === 'developer' && (
+      {/* A-2/A-3: Developer tools — visible for developers, or always in dev mode */}
+      {(role === 'developer' || import.meta.env.DEV) && (
         <DevPanel
           currentRole={role}
-          onRoleSwitch={(newRole) => setRole(newRole as any)}
+          onRoleSwitch={(newRole) => setAuth({ role: newRole as any, accessToken, campId: undefined })}
           onOpenDashboard={() => setShowAdminDashboard(true)}
+          onOpenCabinet={() => setShowPersonalCabinet(true)}
           accessToken={accessToken}
         />
       )}
@@ -7153,8 +7118,14 @@ export const ProfileView: React.FC<any> = (props) => {
           onClose={() => setShowAdminDashboard(false)}
         />
       )}
+      {showPersonalCabinet && (
+        <PersonalCabinet
+          onBack={() => setShowPersonalCabinet(false)}
+        />
+      )}
     </section>
   );
 };
 
 export default ProfileView;
+                                                                                                                           

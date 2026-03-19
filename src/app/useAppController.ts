@@ -516,7 +516,7 @@ export function useAppController() {
       setCurrentView('profile');
     };
 
-    (window as any).openBadgeById = (rawId: string, options?: { origin?: View }) => {
+    (window as any).openBadgeById = (rawId: string, options?: { origin?: View; action?: 'plan' | 'confirm' }) => {
       try {
         const parts = (rawId || '').split('.');
         const baseKey = parts.length >= 2 ? `${parts[0]}.${parts[1]}` : rawId;

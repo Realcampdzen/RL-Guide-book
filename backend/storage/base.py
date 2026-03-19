@@ -136,6 +136,30 @@ class CouncilInitiativesStore(ABC):
     def save(self, data: dict) -> None: ...
 
 
+class CouncilMembersStore(ABC):
+    """
+    Хранилище участников Совета Лагеря.
+    Формат: {'members': [...]}
+    """
+    @abstractmethod
+    def load(self) -> dict: ...
+
+    @abstractmethod
+    def save(self, data: dict) -> None: ...
+
+
+class CouncilProtocolsStore(ABC):
+    """
+    Хранилище протоколов Совета Лагеря.
+    Формат: {'protocols': [...]}
+    """
+    @abstractmethod
+    def load(self) -> dict: ...
+
+    @abstractmethod
+    def save(self, data: dict) -> None: ...
+
+
 class TeamsStore(ABC):
     """
     Хранилище Движков (teams/engines).
@@ -219,6 +243,32 @@ class BroPassportsStore(ABC):
     Хранилище BroPassport-ов.
     Формат: {'passports': [...]}
     Каждый: {id, deviceId, broEventId, tasks, status, completedAt, createdAt}
+    """
+    @abstractmethod
+    def load(self) -> dict: ...
+
+    @abstractmethod
+    def save(self, data: dict) -> None: ...
+
+
+class BroSubmissionsStore(ABC):
+    """
+    Хранилище заявок на проверку заданий Бросвящения.
+    Формат: {'submissions': [...]}
+    Статусы: pending | approved | rejected.
+    """
+    @abstractmethod
+    def load(self) -> dict: ...
+
+    @abstractmethod
+    def save(self, data: dict) -> None: ...
+
+
+class BroInitiativesStore(ABC):
+    """
+    Хранилище Бродел (инициатив БРО-сообщества).
+    Формат: {'initiatives': [...]}
+    Статусы: voting | approved | sent_to_council.
     """
     @abstractmethod
     def load(self) -> dict: ...

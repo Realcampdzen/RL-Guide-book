@@ -1,0 +1,90 @@
+[
+  {
+    "id": "INI-X8N8DQ",
+    "teamId": "T-G5F3WR",
+    "title": "Бросвящение",
+    "description": "Хотим сделать",
+    "createdBy": "dev-it0cqgf2mmdvd8fa",
+    "createdAt": "2026-03-12T18:35:33.696556Z",
+    "votes": {
+      "dev-it0cqgf2mmdvd8fa": true
+    },
+    "status": "sent_to_council",
+    "totalMembers": 1,
+    "sentAt": "2026-03-12T18:35:42.624429Z",
+    "sentBy": "dev-it0cqgf2mmdvd8fa"
+  },
+  {
+    "id": "INI-4U6PGQ",
+    "teamId": "T-MMSCFT",
+    "title": "Chess Tournament",
+    "description": "A tournament for all levels.",
+    "createdBy": "f2ed836c-d0bf-49a2-bd8c-573967cd2ce1",
+    "createdAt": "2026-03-14T22:43:13.490991Z",
+    "votes": {
+      "f2ed836c-d0bf-49a2-bd8c-573967cd2ce1": true
+    },
+    "status": "sent_to_council",
+    "totalMembers": 1,
+    "sentAt": "2026-03-14T22:59:14.213601Z",
+    "sentBy": "f2ed836c-d0bf-49a2-bd8c-573967cd2ce1"
+  },
+  {
+    "id": "INI-9ECN3Q",
+    "teamId": "T-QVH7BE",
+    "title": "12",
+    "description": "12",
+    "createdBy": "64fe8d19-02a2-447a-a559-bc7c73eeb997",
+    "createdAt": "2026-03-14T22:46:34.669578Z",
+    "votes": {
+      "64fe8d19-02a2-447a-a559-bc7c73eeb997": true
+    },
+    "status": "sent_to_council",
+    "totalMembers": 1,
+    "sentAt": "2026-03-14T22:46:41.907463Z",
+    "sentBy": "64fe8d19-02a2-447a-a559-bc7c73eeb997"
+  },
+  {
+    "id": "INI-Y42G24",
+    "teamId": "T-MMSCFT",
+    "title": "New Test Initiative",
+    "description": "Testing auto-approval flow.",
+    "createdBy": "f2ed836c-d0bf-49a2-bd8c-573967cd2ce1",
+    "createdAt": "2026-03-14T22:58:14.090961Z",
+    "votes": {
+      "f2ed836c-d0bf-49a2-bd8c-573967cd2ce1": true
+    },
+    "status": "voting",
+    "totalMembers": 1
+  },
+  {
+    "id": "INI-VMPU8Y",
+    "teamId": "T-QVH7BE",
+    "title": "123",
+    "description": "123",
+    "createdBy": "64fe8d19-02a2-447a-a559-bc7c73eeb997",
+    "createdAt": "2026-03-14T23:01:17.616416Z",
+    "votes": {
+      "64fe8d19-02a2-447a-a559-bc7c73eeb997": true
+    },
+    "status": "sent_to_council",
+    "totalMembers": 1,
+    "sentAt": "2026-03-14T23:01:23.970635Z",
+    "sentBy": "64fe8d19-02a2-447a-a559-bc7c73eeb997"
+  },
+  {
+    "id": "INI-9M5BG2",
+    "teamId": "T-QVH7BE",
+    "title": "12",
+    "description": "12",
+    "createdBy": "64fe8d19-02a2-447a-a559-bc7c73eeb997",
+    "createdAt": "2026-03-15T01:07:24.486939Z",
+    "votes": {
+      "64fe8d19-02a2-447a-a559-bc7c73eeb997": true
+    },
+    "status": "sent_to_council",
+    "totalMembers": 1,
+    "sentAt": "2026-03-15T01:07:30.842317Z",
+    "sentBy": "64fe8d19-02a2-447a-a559-bc7c73eeb997"
+  }
+]

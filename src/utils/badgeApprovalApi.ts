@@ -2,6 +2,7 @@ export interface BadgeRequestEvidence {
   reflection?: string;
   impact?: string;
   link?: string;
+  photos?: string[]; // base64 data URLs
 }
 
 export interface BadgeRequestItem {
@@ -51,6 +52,7 @@ export interface ShiftMeta {
   name: string;
   startDate?: string;
   endDate?: string;
+  durationDays?: number;
   createdAt?: string;
 }
 
@@ -157,51 +159,60 @@ async function requestJson<T>(path: string, options: RequestInit = {}): Promise<
 
 export async function createBadgeRequest(
   accessToken: string,
-  payload: { levelId: string; badgeTitle?: string; evidence?: BadgeRequestEvidence; nickname?: string }
+  payload: { levelId: string; badgeTitle?: string; evidence?: BadgeRequestEvidence; nickname?: string },
+  deviceId?: string
 ): Promise<BadgeRequestItem> {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (accessToken) headers['Authorization'] = `Bearer ${accessToken}`;
+  if (deviceId) headers['X-Device-Id'] = deviceId;
   const data = await requestJson<{ request: BadgeRequestItem }>('/api/badges/requests', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+    headers,
     body: JSON.stringify(payload)
   });
   return data.request;
 }
 
-export async function loadMyBadgeRequests(accessToken: string): Promise<BadgeRequestItem[]> {
+export async function loadMyBadgeRequests(accessToken: string, extraHeaders?: Record<string, string>): Promise<BadgeRequestItem[]> {
+  const headers: Record<string, string> = accessToken ? { Authorization: `Bearer ${accessToken}` } : {};
   const data = await requestJson<{ requests: BadgeRequestItem[] }>('/api/badges/requests/mine', {
-    headers: { Authorization: `Bearer ${accessToken}` }
+    headers: { ...headers, ...extraHeaders }
   });
   return data.requests || [];
 }
 
 export async function loadBadgeRequestsInbox(
   accessToken: string,
-  filters?: { campId?: string; squadId?: string; status?: 'pending' | 'approved' | 'rejected' }
+  filters?: { campId?: string; squadId?: string; status?: 'pending' | 'approved' | 'rejected' },
+  extraHeaders?: Record<string, string>
 ): Promise<BadgeRequestItem[]> {
   const params = new URLSearchParams();
   if (filters?.campId) params.set('campId', filters.campId);
   if (filters?.squadId) params.set('squadId', filters.squadId);
   if (filters?.status) params.set('status', filters.status);
   const suffix = params.toString() ? `?${params.toString()}` : '';
+  const headers: Record<string, string> = accessToken ? { Authorization: `Bearer ${accessToken}` } : {};
   const data = await requestJson<{ requests: BadgeRequestItem[] }>(`/api/badges/requests/inbox${suffix}`, {
-    headers: { Authorization: `Bearer ${accessToken}` }
+    headers: { ...headers, ...extraHeaders }
   });
   return data.requests || [];
 }
 
-export async function approveBadgeRequest(accessToken: string, requestId: string, note?: string): Promise<BadgeRequestItem> {
+export async function approveBadgeRequest(accessToken: string, requestId: string, note?: string, extraHeaders?: Record<string, string>): Promise<BadgeRequestItem> {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json', ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}), ...extraHeaders };
   const data = await requestJson<{ request: BadgeRequestItem }>(`/api/badges/requests/${encodeURIComponent(requestId)}/approve`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+    headers,
     body: JSON.stringify(note ? { note } : {})
   });
   return data.request;
 }
 
-export async function rejectBadgeRequest(accessToken: string, requestId: string, note?: string): Promise<BadgeRequestItem> {
+export async function rejectBadgeRequest(accessToken: string, requestId: string, note?: string, extraHeaders?: Record<string, string>): Promise<BadgeRequestItem> {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json', ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}), ...extraHeaders };
   const data = await requestJson<{ request: BadgeRequestItem }>(`/api/badges/requests/${encodeURIComponent(requestId)}/reject`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+    headers,
     body: JSON.stringify(note ? { note } : {})
   });
   return data.request;
@@ -226,10 +237,14 @@ export async function joinSquad(
   });
 }
 
-export async function loadMySquad(accessToken: string): Promise<SquadMineResponse> {
-  return requestJson<SquadMineResponse>('/api/squads/mine', {
-    headers: { Authorization: `Bearer ${accessToken}` }
-  });
+export async function loadMySquad(accessToken: string, deviceId?: string): Promise<SquadMineResponse> {
+  const headers: Record<string, string> = {};
+  if (accessToken) {
+    headers['Authorization'] = `Bearer ${accessToken}`;
+  } else if (deviceId) {
+    headers['X-Device-Id'] = deviceId;
+  }
+  return requestJson<SquadMineResponse>('/api/squads/mine', { headers });
 }
 
 export async function fetchSquadCorner(accessToken: string, squadId: string): Promise<SquadCornerResponse> {
@@ -292,26 +307,33 @@ export async function leaveSquad(
 export async function fetchSquadMessages(
   accessToken: string,
   squadId: string,
-  opts?: { limit?: number; before?: string }
+  opts?: { limit?: number; before?: string },
+  extraHeaders?: Record<string, string>
 ): Promise<{ squadId: string; messages: SquadMessage[]; hasMore?: boolean }> {
   const params = new URLSearchParams();
   if (typeof opts?.limit === 'number') params.set('limit', String(opts.limit));
   if (opts?.before) params.set('before', opts.before);
   const suffix = params.toString() ? `?${params.toString()}` : '';
+  const headers: Record<string, string> = accessToken ? { Authorization: `Bearer ${accessToken}` } : {};
   return requestJson<{ squadId: string; messages: SquadMessage[]; hasMore?: boolean }>(`/api/squads/${encodeURIComponent(squadId)}/messages${suffix}`, {
-    headers: { Authorization: `Bearer ${accessToken}` }
+    headers: { ...headers, ...extraHeaders }
   });
 }
 
 export async function postSquadMessage(
   accessToken: string,
   squadId: string,
-  text: string
+  text: string,
+  nickname?: string,
+  extraHeaders?: Record<string, string>
 ): Promise<{ squadId: string; message: SquadMessage }> {
+  const payload: Record<string, string> = { text };
+  if (nickname) payload.nickname = nickname;
+  const headers: Record<string, string> = { 'Content-Type': 'application/json', ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}), ...extraHeaders };
   const created = await requestJson<{ squadId?: string; message: SquadMessage }>(`/api/squads/${encodeURIComponent(squadId)}/messages`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
-    body: JSON.stringify({ text })
+    headers,
+    body: JSON.stringify(payload)
   });
   return { squadId: created.squadId || squadId, message: created.message };
 }
@@ -327,5 +349,73 @@ export async function deleteSquad(accessToken: string, squadId: string): Promise
   return requestJson<{ ok: true; deleted: Record<string, number> }>(`/api/squads/${encodeURIComponent(squadId)}`, {
     method: 'DELETE',
     headers: { Authorization: `Bearer ${accessToken}` }
+  });
+}
+
+export async function deleteSquadMessage(accessToken: string, squadId: string, msgId: string, extraHeaders?: Record<string, string>): Promise<{ ok: true }> {
+  const headers: Record<string, string> = accessToken ? { Authorization: `Bearer ${accessToken}` } : {};
+  return requestJson<{ ok: true }>(`/api/squads/${encodeURIComponent(squadId)}/messages/${encodeURIComponent(msgId)}`, {
+    method: 'DELETE',
+    headers: { ...headers, ...extraHeaders }
+  });
+}
+
+export async function pinSquadMessage(accessToken: string, squadId: string, msgId: string, pinned: boolean, extraHeaders?: Record<string, string>): Promise<{ ok: true; pinned: boolean; message: SquadMessage | null }> {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json', ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}), ...extraHeaders };
+  return requestJson<{ ok: true; pinned: boolean; message: SquadMessage | null }>(`/api/squads/${encodeURIComponent(squadId)}/messages/${encodeURIComponent(msgId)}/pin`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ pinned })
+  });
+}
+
+export async function fetchPinnedMessage(accessToken: string, squadId: string, extraHeaders?: Record<string, string>): Promise<{ message: SquadMessage | null }> {
+  const headers: Record<string, string> = accessToken ? { Authorization: `Bearer ${accessToken}` } : {};
+  return requestJson<{ message: SquadMessage | null }>(`/api/squads/${encodeURIComponent(squadId)}/pinned`, {
+    headers: { ...headers, ...extraHeaders }
+  });
+}
+
+// ── Team chat (Engine) — routes to /api/teams/:id/messages ──
+
+export async function fetchTeamMessages(
+  accessToken: string,
+  teamId: string,
+  opts?: { limit?: number; before?: string },
+  extraHeaders?: Record<string, string>
+): Promise<{ squadId: string; messages: SquadMessage[]; hasMore?: boolean }> {
+  const params = new URLSearchParams();
+  if (typeof opts?.limit === 'number') params.set('limit', String(opts.limit));
+  if (opts?.before) params.set('before', opts.before);
+  const suffix = params.toString() ? `?${params.toString()}` : '';
+  const headers: Record<string, string> = accessToken ? { Authorization: `Bearer ${accessToken}` } : {};
+  return requestJson<{ squadId: string; messages: SquadMessage[]; hasMore?: boolean }>(`/api/teams/${encodeURIComponent(teamId)}/messages${suffix}`, {
+    headers: { ...headers, ...extraHeaders }
+  });
+}
+
+export async function postTeamMessage(
+  accessToken: string,
+  teamId: string,
+  text: string,
+  nickname?: string,
+  extraHeaders?: Record<string, string>
+): Promise<{ squadId: string; message: SquadMessage }> {
+  const payload: Record<string, string> = { text };
+  if (nickname) payload.nickname = nickname;
+  const headers: Record<string, string> = { 'Content-Type': 'application/json', ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}), ...extraHeaders };
+  const created = await requestJson<{ squadId?: string; message: SquadMessage }>(`/api/teams/${encodeURIComponent(teamId)}/messages`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(payload)
+  });
+  return { squadId: created.squadId || teamId, message: created.message };
+}
+
+export async function deleteTeamMessage(accessToken: string, teamId: string, msgId: string, extraHeaders?: Record<string, string>): Promise<{ ok: true }> {
+  const headers: Record<string, string> = accessToken ? { Authorization: `Bearer ${accessToken}` } : {};
+  return requestJson<{ ok: true }>(`/api/teams/${encodeURIComponent(teamId)}/messages/${encodeURIComponent(msgId)}`, {
+    method: 'DELETE',
+    headers: { ...headers, ...extraHeaders }
   });
 }

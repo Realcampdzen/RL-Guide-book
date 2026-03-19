@@ -1,12 +1,19 @@
 {
   "members": [
     {
-      "deviceId": "64fe8d19-02a2-447a-a559-bc7c73eeb997",
+      "deviceId": "dev-it0cqgf2mmdvd8fa",
       "campId": "64f3ca208702",
       "squadId": "9f555852b996",
       "role": "participant",
-      "joinedAt": "2026-02-28T03:48:40.641493+00:00",
-      "nickname": "Искатель"
+      "joinedAt": "2026-03-09T22:47:59.704471+00:00",
+      "nickname": "Neuro Stepa"
+    },
+    {
+      "deviceId": "64fe8d19-02a2-447a-a559-bc7c73eeb997",
+      "campId": "64f3ca208702",
+      "squadId": "9f555852b996",
+      "role": "counselor",
+      "joinedAt": "2026-03-16T18:42:35.658097+00:00"
     }
   ]
 }

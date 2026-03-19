@@ -138,11 +138,13 @@
 .profile-spaceship-root .profile-utility-bubbles {
   z-index: 10008;
 }
+
 /* Окна кабины (Вожатификатор, Паспорт, Мастерская) — ниже пузырей, чтобы пузыри оставались кликабельны */
 .profile-spaceship-root .profile-view-cabin-center {
   position: relative;
   z-index: 10004;
 }
+
 .profile-spaceship-root .profile-utility-panel-overlay,
 .profile-spaceship-root .profile-utility-panel {
   z-index: 10010;
@@ -157,25 +159,26 @@
   z-index: 10050;
   pointer-events: none;
 }
+
 .vozhatifikator-spotlight-portal .vozhatifikator-spotlight-overlay,
 .vozhatifikator-spotlight-portal .vozhatifikator-spotlight-content {
   pointer-events: auto;
 }
+
 .profile-spaceship-root .vozhatifikator-spotlight-overlay,
 .vozhatifikator-spotlight-portal .vozhatifikator-spotlight-overlay {
   position: fixed;
   inset: 0;
   z-index: 10006;
-  background: radial-gradient(
-    ellipse 72% 78% at 50% 44%,
-    transparent 0%,
-    rgba(0, 0, 0, 0.55) 55%,
-    rgba(0, 0, 0, 0.88) 95%,
-    rgba(0, 0, 0, 0.95) 100%
-  );
+  background: radial-gradient(ellipse 72% 78% at 50% 44%,
+      transparent 0%,
+      rgba(0, 0, 0, 0.55) 55%,
+      rgba(0, 0, 0, 0.88) 95%,
+      rgba(0, 0, 0, 0.95) 100%);
   cursor: pointer;
   animation: vozhatifikator-spotlight-fade 0.35s ease-out;
 }
+
 .profile-spaceship-root .vozhatifikator-spotlight-content,
 .vozhatifikator-spotlight-portal .vozhatifikator-spotlight-content {
   position: fixed;
@@ -199,6 +202,7 @@
   flex-direction: column;
   animation: vozhatifikator-spotlight-in 0.4s ease-out;
 }
+
 .profile-spaceship-root .vozhatifikator-spotlight-close,
 .vozhatifikator-spotlight-portal .vozhatifikator-spotlight-close {
   position: absolute;
@@ -218,11 +222,13 @@
   cursor: pointer;
   transition: background 0.2s ease, border-color 0.2s ease;
 }
+
 .profile-spaceship-root .vozhatifikator-spotlight-close:hover,
 .vozhatifikator-spotlight-portal .vozhatifikator-spotlight-close:hover {
   background: rgba(255, 255, 255, 0.14);
   border-color: rgba(255, 255, 255, 0.25);
 }
+
 .profile-spaceship-root .vozhatifikator-panel--spotlight,
 .vozhatifikator-spotlight-portal .vozhatifikator-panel--spotlight {
   flex: 1;
@@ -231,6 +237,7 @@
   grid-template-rows: 1fr;
   overflow: hidden;
 }
+
 .profile-spaceship-root .vozhatifikator-panel--spotlight .vozhatifikator-viewer,
 .vozhatifikator-spotlight-portal .vozhatifikator-panel--spotlight .vozhatifikator-viewer {
   flex: 1;
@@ -239,6 +246,7 @@
   display: flex;
   flex-direction: column;
 }
+
 .profile-spaceship-root .vozhatifikator-panel--spotlight .vozhatifikator-book,
 .vozhatifikator-spotlight-portal .vozhatifikator-panel--spotlight .vozhatifikator-book {
   flex: 1;
@@ -247,15 +255,18 @@
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
 }
+
 .profile-spaceship-root .vozhatifikator-panel--spotlight .vozhatifikator-toc,
 .vozhatifikator-spotlight-portal .vozhatifikator-panel--spotlight .vozhatifikator-toc {
   gap: 10px;
 }
+
 .profile-spaceship-root .vozhatifikator-panel--spotlight .vozhatifikator-badge-block,
 .vozhatifikator-spotlight-portal .vozhatifikator-panel--spotlight .vozhatifikator-badge-block {
   padding-top: 2px;
   padding-bottom: 10px;
 }
+
 .profile-spaceship-root .vozhatifikator-panel--spotlight .vozhatifikator-tabs,
 .vozhatifikator-spotlight-portal .vozhatifikator-panel--spotlight .vozhatifikator-tabs {
   display: flex;
@@ -263,6 +274,7 @@
   gap: 6px;
   margin-bottom: 0;
 }
+
 .profile-spaceship-root .vozhatifikator-panel--spotlight .vozhatifikator-tab,
 .vozhatifikator-spotlight-portal .vozhatifikator-panel--spotlight .vozhatifikator-tab {
   display: flex;
@@ -275,33 +287,45 @@
   font-size: 12px;
   letter-spacing: 0.02em;
 }
+
 .profile-spaceship-root .vozhatifikator-panel--spotlight .vozhatifikator-tab:focus-visible,
 .vozhatifikator-spotlight-portal .vozhatifikator-panel--spotlight .vozhatifikator-tab:focus-visible {
   outline: 2px solid rgba(255, 215, 0, 0.55);
   outline-offset: 2px;
 }
+
 .profile-spaceship-root .vozhatifikator-panel--spotlight .vozhatifikator-downloads,
 .vozhatifikator-spotlight-portal .vozhatifikator-panel--spotlight .vozhatifikator-downloads {
   margin-top: 2px;
 }
+
 .profile-spaceship-root .vozhatifikator-panel--spotlight .vozhatifikator-download,
 .vozhatifikator-spotlight-portal .vozhatifikator-panel--spotlight .vozhatifikator-download {
   width: 100%;
 }
+
 .profile-spaceship-root .vozhatifikator-panel--spotlight .vozhatifikator-lights-panel,
 .vozhatifikator-spotlight-portal .vozhatifikator-panel--spotlight .vozhatifikator-lights-panel {
   min-height: 0;
   height: 100%;
 }
+
 @keyframes vozhatifikator-spotlight-fade {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
+
 @keyframes vozhatifikator-spotlight-in {
   from {
     opacity: 0;
     transform: translate(-50%, -50%) scale(0.96);
   }
+
   to {
     opacity: 1;
     transform: translate(-50%, -50%) scale(1);
@@ -479,14 +503,17 @@
   font-family: inherit;
   overflow: visible;
 }
+
 .profile-spaceship-root .console-btn-wrap .console-btn .console-btn-icon {
   font-size: 22px;
   line-height: 1;
 }
+
 .profile-spaceship-root .console-btn-wrap .console-btn:hover {
   background: rgba(139, 0, 255, 0.35);
   transform: translateY(-1px);
 }
+
 .profile-spaceship-root .console-btn-label {
   font-size: 9px;
   font-weight: 700;
@@ -518,6 +545,7 @@
   transition: background 0.2s, transform 0.1s;
   text-align: center;
 }
+
 .profile-spaceship-root .console-btn span:not(.console-btn-icon) {
   max-width: 100%;
   overflow-wrap: break-word;
@@ -581,17 +609,21 @@
   scrollbar-width: thin;
   scrollbar-color: rgba(139, 0, 255, 0.5) rgba(255, 255, 255, 0.06);
 }
+
 .profile-spaceship-root .profile-view-scroll-container::-webkit-scrollbar {
   width: 6px;
 }
+
 .profile-spaceship-root .profile-view-scroll-container::-webkit-scrollbar-track {
   background: rgba(255, 255, 255, 0.04);
   border-radius: 3px;
 }
+
 .profile-spaceship-root .profile-view-scroll-container::-webkit-scrollbar-thumb {
   background: rgba(139, 0, 255, 0.45);
   border-radius: 3px;
 }
+
 .profile-spaceship-root .profile-view-scroll-container::-webkit-scrollbar-thumb:hover {
   background: rgba(139, 0, 255, 0.6);
 }
@@ -604,17 +636,21 @@
   scrollbar-width: thin;
   scrollbar-color: rgba(139, 0, 255, 0.5) rgba(255, 255, 255, 0.06);
 }
+
 .profile-spaceship-root .profile-view-panel-scroll::-webkit-scrollbar {
   width: 6px;
 }
+
 .profile-spaceship-root .profile-view-panel-scroll::-webkit-scrollbar-track {
   background: rgba(255, 255, 255, 0.04);
   border-radius: 3px;
 }
+
 .profile-spaceship-root .profile-view-panel-scroll::-webkit-scrollbar-thumb {
   background: rgba(139, 0, 255, 0.45);
   border-radius: 3px;
 }
+
 .profile-spaceship-root .profile-view-panel-scroll::-webkit-scrollbar-thumb:hover {
   background: rgba(139, 0, 255, 0.6);
 }
@@ -683,7 +719,7 @@
   margin-top: 0;
 }
 
-.profile-spaceship-root .profile-view-cabin-center-wrap > .profile-view-cabin-center {
+.profile-spaceship-root .profile-view-cabin-center-wrap>.profile-view-cabin-center {
   grid-area: unset;
   flex: 1;
   min-height: 0;
@@ -714,17 +750,21 @@
   scrollbar-color: rgba(139, 0, 255, 0.5) rgba(255, 255, 255, 0.06);
   scrollbar-gutter: stable;
 }
+
 .profile-spaceship-root .profile-view-cabin-center-scroll::-webkit-scrollbar {
   width: 6px;
 }
+
 .profile-spaceship-root .profile-view-cabin-center-scroll::-webkit-scrollbar-track {
   background: rgba(255, 255, 255, 0.04);
   border-radius: 3px;
 }
+
 .profile-spaceship-root .profile-view-cabin-center-scroll::-webkit-scrollbar-thumb {
   background: rgba(139, 0, 255, 0.45);
   border-radius: 3px;
 }
+
 .profile-spaceship-root .profile-view-cabin-center-scroll::-webkit-scrollbar-thumb:hover {
   background: rgba(139, 0, 255, 0.6);
 }
@@ -775,7 +815,8 @@
 .profile-spaceship-root .profile-view-cabin-center-scroll .workshop-view__section {
   min-width: 0;
 }
-.profile-spaceship-root .profile-view-cabin-center-scroll .workshop-view__section + .workshop-view__section {
+
+.profile-spaceship-root .profile-view-cabin-center-scroll .workshop-view__section+.workshop-view__section {
   margin-top: 0;
 }
 
@@ -823,15 +864,18 @@
   gap: 24px;
   align-content: start;
 }
+
 .profile-spaceship-root .profile-view-panel-scroll .workshop-view__nav {
   grid-column: 1 / -1;
   margin-bottom: 0;
 }
+
 .profile-spaceship-root .profile-view-panel-scroll .workshop-view__nav-inner {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
 }
+
 .profile-spaceship-root .profile-view-panel-scroll .workshop-view__nav-btn {
   padding: 8px 14px;
   font-size: 12px;
@@ -844,6 +888,7 @@
   transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
   font-family: inherit;
 }
+
 .profile-spaceship-root .profile-view-panel-scroll .workshop-view__nav-btn:hover,
 .profile-spaceship-root .profile-view-panel-scroll .workshop-view__nav-btn:focus-visible {
   border-color: var(--cabin-btn-border-hover);
@@ -852,23 +897,28 @@
   color: #fff;
   outline: none;
 }
+
 .profile-spaceship-root .profile-view-panel-scroll .workshop-view__section {
   min-width: 0;
 }
-.profile-spaceship-root .profile-view-panel-scroll .workshop-view__section + .workshop-view__section {
+
+.profile-spaceship-root .profile-view-panel-scroll .workshop-view__section+.workshop-view__section {
   margin-top: 0;
 }
+
 @media (max-width: 560px) {
   .profile-spaceship-root .profile-view-panel-scroll .workshop-view {
     grid-template-columns: 1fr;
   }
 }
+
 .profile-spaceship-root .profile-view-panel-scroll .workshop-community-feed--card {
   padding: 20px;
   background: var(--panel-alt);
   border-radius: 24px;
   border: 1px solid var(--border);
 }
+
 .profile-spaceship-root .profile-view-panel-scroll .workshop-locked--card {
   padding: 32px 24px;
   text-align: center;
@@ -876,12 +926,14 @@
   border-radius: 24px;
   border: 1px solid var(--border);
 }
+
 .profile-spaceship-root .profile-view-panel-scroll .workshop-form--card {
   padding: 24px;
   background: var(--panel-alt);
   border-radius: 24px;
   border: 1px solid var(--border);
 }
+
 .profile-spaceship-root .profile-view-panel-scroll .workshop-my-proposals--card {
   padding: 20px;
   background: var(--panel-alt);
@@ -899,6 +951,7 @@
   background: rgba(2, 10, 19, 0.4);
   flex-shrink: 0;
 }
+
 .profile-spaceship-root .profile-view-cabin-panel-header__back {
   padding: 6px 12px;
   font-size: 13px;
@@ -910,6 +963,7 @@
   cursor: pointer;
   transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
 }
+
 .profile-spaceship-root .profile-view-cabin-panel-header__back:hover,
 .profile-spaceship-root .profile-view-cabin-panel-header__back:focus-visible {
   background: rgba(var(--cabin-neon-cyan-rgb), 0.3);
@@ -917,6 +971,7 @@
   box-shadow: var(--cabin-focus-shadow);
   outline: none;
 }
+
 .profile-spaceship-root .profile-view-cabin-panel-header__title {
   font-size: 14px;
   font-weight: 600;
@@ -928,26 +983,53 @@
 .profile-spaceship-root .profile-view-cabin-content {
   min-height: 0;
 }
+
 .profile-spaceship-root .profile-view-cabin-content--from-left {
   animation: profile-cabin-content-in-left 0.3s ease-out forwards;
 }
+
 .profile-spaceship-root .profile-view-cabin-content--from-right {
   animation: profile-cabin-content-in-right 0.3s ease-out forwards;
 }
+
 .profile-spaceship-root .profile-view-cabin-content--from-top {
   animation: profile-cabin-content-in-top 0.3s ease-out forwards;
 }
+
 @keyframes profile-cabin-content-in-left {
-  from { transform: translateX(-100%); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
+
 @keyframes profile-cabin-content-in-right {
-  from { transform: translateX(100%); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
+
 @keyframes profile-cabin-content-in-top {
-  from { transform: translateY(-100%); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 .profile-spaceship-root .profile-view-cabin-placeholder {
@@ -1024,6 +1106,7 @@
   font-family: inherit;
   overflow: hidden;
 }
+
 .profile-spaceship-root .profile-view-cabin-nav-btn img {
   width: 44px;
   height: 44px;
@@ -1031,6 +1114,7 @@
   border-radius: 50%;
   flex-shrink: 0;
 }
+
 .profile-spaceship-root .profile-view-cabin-nav-btn:hover,
 .profile-spaceship-root .profile-view-cabin-nav-btn:focus-visible {
   border-color: rgba(139, 0, 255, 0.4);
@@ -1038,6 +1122,7 @@
   box-shadow: 0 0 12px rgba(139, 0, 255, 0.15);
   outline: none;
 }
+
 .profile-spaceship-root .profile-view-cabin-nav-btn--active,
 .profile-spaceship-root .profile-view-cabin-avatar-wrap.profile-view-cabin-nav-btn--active {
   border-color: rgba(139, 0, 255, 0.5);
@@ -1049,6 +1134,7 @@
   font-size: 20px;
   line-height: 1;
 }
+
 .profile-spaceship-root .profile-view-cabin-nav-title {
   font-size: 9px;
   font-weight: 700;
@@ -1068,6 +1154,7 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
 .profile-spaceship-root .profile-view-cabin-card-progress-wrap {
   width: 100%;
   height: 3px;
@@ -1075,17 +1162,20 @@
   border-radius: 2px;
   overflow: hidden;
 }
+
 .profile-spaceship-root .profile-view-cabin-card-progress {
   height: 100%;
   background: var(--cabin-progress-gradient);
   border-radius: 2px;
   transition: width 0.25s ease-out;
 }
+
 .profile-spaceship-root .profile-view-cabin-card-hint {
   font-size: 7px;
   opacity: 0.75;
   line-height: 1.1;
 }
+
 .profile-spaceship-root .profile-view-cabin-nav-btn.profile-view-cabin-card {
   gap: 2px;
   width: 56px;
@@ -1093,6 +1183,7 @@
   min-width: 56px;
   min-height: 56px;
 }
+
 .profile-spaceship-root .profile-view-cabin-avatar-wrap.profile-view-cabin-card .profile-view-cabin-card-progress-wrap {
   width: 44px;
   margin-top: 2px;
@@ -1120,6 +1211,7 @@
   font-family: inherit;
   overflow: hidden;
 }
+
 .profile-spaceship-root .profile-view-cabin-avatar-wrap:hover,
 .profile-spaceship-root .profile-view-cabin-avatar-wrap:focus-visible {
   border-color: rgba(139, 0, 255, 0.4);
@@ -1127,6 +1219,7 @@
   box-shadow: 0 0 12px rgba(139, 0, 255, 0.15);
   outline: none;
 }
+
 .profile-spaceship-root .profile-view-cabin-avatar-wrap img {
   width: 48px;
   height: 48px;
@@ -1136,16 +1229,19 @@
   display: block;
   flex-shrink: 0;
 }
-.profile-spaceship-root .profile-view-cabin-avatar-wrap > span:first-of-type {
+
+.profile-spaceship-root .profile-view-cabin-avatar-wrap>span:first-of-type {
   font-size: 24px;
   line-height: 1;
   display: block;
 }
+
 .profile-spaceship-root .profile-view-cabin-avatar-wrap .profile-view-cabin-card-progress-wrap {
   width: 44px;
   height: 2px;
   margin-top: 1px;
 }
+
 .profile-spaceship-root .profile-view-cabin-avatar-rank {
   font-size: 9px;
   font-weight: 700;
@@ -1188,6 +1284,7 @@
   appearance: none;
   font-family: inherit;
 }
+
 .profile-spaceship-root .profile-view-screen:hover,
 .profile-spaceship-root .profile-view-screen:focus-visible {
   border-color: var(--cabin-btn-border-hover);
@@ -1195,10 +1292,12 @@
   box-shadow: var(--cabin-focus-shadow);
   outline: none;
 }
+
 .profile-spaceship-root .profile-view-screen-icon {
   font-size: 24px;
   line-height: 1;
 }
+
 .profile-spaceship-root .profile-view-screen-title {
   font-size: 11px;
   font-weight: 700;
@@ -1206,6 +1305,7 @@
   letter-spacing: 0.04em;
   opacity: 0.95;
 }
+
 .profile-spaceship-root .profile-view-screen-meta {
   font-size: 10px;
   opacity: 0.75;
@@ -1240,7 +1340,7 @@
     gap: 24px;
   }
 
-  .profile-spaceship-root .profile-view-share-row > div:first-child {
+  .profile-spaceship-root .profile-view-share-row>div:first-child {
     flex: 1;
     min-width: 280px;
   }
@@ -1319,12 +1419,10 @@
 
 /* Центральная панель кабины — прозрачная (без размытия) */
 .profile-spaceship-root .profile-view-cabin-center {
-  --cabin-center-glass-bg: linear-gradient(
-    165deg,
-    rgba(255, 255, 255, 0.02) 0%,
-    rgba(255, 255, 255, 0.005) 45%,
-    rgba(12, 35, 56, 0.06) 100%
-  );
+  --cabin-center-glass-bg: linear-gradient(165deg,
+      rgba(255, 255, 255, 0.02) 0%,
+      rgba(255, 255, 255, 0.005) 45%,
+      rgba(12, 35, 56, 0.06) 100%);
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow:
     0 0 0 1px rgba(255, 255, 255, 0.03) inset,
@@ -1407,6 +1505,7 @@
   .profile-spaceship-root .profile-view-cabin-profile--mobile-only {
     display: none !important;
   }
+
   .profile-spaceship-root .profile-view-cabin-profile--desktop-only {
     display: contents !important;
   }
@@ -1417,6 +1516,7 @@
   .profile-spaceship-root .profile-view-cabin-profile--desktop-only {
     display: none !important;
   }
+
   .profile-spaceship-root .profile-view-cabin-profile--mobile-only {
     display: contents !important;
   }
@@ -1439,6 +1539,7 @@
   border: 1px solid rgba(103, 226, 255, 0.45);
   background: linear-gradient(180deg, rgba(9, 34, 59, 0.78), rgba(5, 19, 35, 0.95));
 }
+
 .profile-spaceship-root .profile-view-cabin-avatar-wrap--hero img {
   width: 100%;
   height: 100%;
@@ -1466,6 +1567,7 @@
   color: #ffc96b;
   font-weight: 700;
 }
+
 .profile-spaceship-root .profile-view-cabin-profile-rank--legendary {
   color: var(--legendary-accent, #b088c8);
   text-shadow: 0 0 12px var(--legendary-glow, rgba(74, 32, 96, 0.33));
@@ -1618,6 +1720,7 @@
   position: relative;
   overflow: hidden;
 }
+
 /* Отключаем анимированный градиент — он искажает картинку */
 .profile-spaceship-root .profile-view-cabin-nav-btn--wide.profile-view-cabin-card--vozhatifikator::before {
   display: none;
@@ -1649,7 +1752,7 @@
 .profile-spaceship-root .profile-view-cabin-card--vozhatifikator .profile-view-cabin-card-progress-wrap {
   position: relative;
   z-index: 1;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
 }
 
 .profile-spaceship-root .profile-view-cabin-card--vozhatifikator .profile-view-cabin-card-hint {
@@ -1660,7 +1763,7 @@
   text-shadow:
     0 0 8px rgba(var(--cabin-neon-magenta-rgb), 0.9),
     0 0 16px rgba(var(--cabin-neon-magenta-rgb), 0.6),
-    0 1px 2px rgba(0,0,0,0.9);
+    0 1px 2px rgba(0, 0, 0, 0.9);
 }
 
 .profile-spaceship-root .profile-view-cabin-center {
@@ -2196,13 +2299,11 @@
   pointer-events: none;
   border-radius: inherit;
   background:
-    repeating-linear-gradient(
-      180deg,
+    repeating-linear-gradient(180deg,
       rgba(255, 255, 255, 0.035) 0,
       rgba(255, 255, 255, 0.035) 1px,
       transparent 1px,
-      transparent 4px
-    ),
+      transparent 4px),
     linear-gradient(114deg, transparent 0%, rgba(255, 255, 255, 0.11) 46%, transparent 66%);
   opacity: 0.38;
   transform: translateX(-118%);
@@ -2319,6 +2420,7 @@
     overflow: visible !important;
     pointer-events: none;
   }
+
   .profile-spaceship-root .profile-view-cabin-top-inspector-page--desktop-only .profile-view-cabin-top-inspector {
     pointer-events: auto;
     width: 100%;
@@ -2340,14 +2442,17 @@
       0 0 32px rgba(88, 231, 255, 0.25),
       0 0 0 1px rgba(88, 231, 255, 0.4) !important;
   }
+
   .profile-spaceship-root .profile-view-cabin-top-inspector--curved {
     position: relative;
   }
+
   /* Обёртка эффекта вогнутого монитора */
   .profile-spaceship-root .profile-view-cabin-inspector-monitor {
     flex: 1;
     min-height: 0;
   }
+
   .profile-spaceship-root .profile-view-cabin-inspector-monitor__strip-content {
     display: flex;
     flex-direction: column;
@@ -2357,11 +2462,13 @@
     height: 100%;
     box-sizing: border-box;
   }
+
   .profile-spaceship-root .profile-view-cabin-top-inspector-page--desktop-only .profile-view-cabin-top-inspector__title {
     font-size: clamp(13px, 0.95vw, 15px);
     line-height: 1.2;
     flex-shrink: 0;
   }
+
   .profile-spaceship-root .profile-view-cabin-top-inspector-page--desktop-only .profile-view-cabin-top-inspector__subtitle {
     font-size: 11px;
     line-height: 1.25;
@@ -2370,10 +2477,12 @@
     text-overflow: ellipsis;
     flex-shrink: 0;
   }
+
   .profile-spaceship-root .profile-view-cabin-top-inspector-page--desktop-only .profile-view-cabin-top-inspector__progress {
     height: 5px;
     flex-shrink: 0;
   }
+
   .profile-spaceship-root .profile-view-cabin-top-inspector-page--desktop-only::before,
   .profile-spaceship-root .profile-view-cabin-top-inspector-page--desktop-only::after,
   .profile-spaceship-root .profile-view-cabin-top-inspector-page--desktop-only .profile-view-cabin-top-inspector::before,
@@ -2384,6 +2493,7 @@
     content: none !important;
     visibility: hidden !important;
   }
+
   .profile-spaceship-root .profile-view-cabin-top-inspector-page--desktop-only .profile-view-cabin-top-inspector:hover,
   .profile-spaceship-root .profile-view-cabin-top-inspector-page--desktop-only .profile-view-cabin-top-inspector--active {
     box-shadow:
@@ -2391,6 +2501,7 @@
       0 0 40px rgba(88, 231, 255, 0.3),
       0 0 0 1px rgba(88, 231, 255, 0.5) !important;
   }
+
   .profile-spaceship-root .profile-view-cabin-right .profile-view-cabin-nav-item--inspector {
     display: none !important;
   }
@@ -2401,9 +2512,11 @@
     padding: 8px 12px !important;
     grid-template-rows: auto auto;
   }
+
   .profile-spaceship-root .profile-view-cabin-right .profile-view-cabin-nav-btn--wide.profile-view-cabin-card--hub .profile-view-cabin-nav-icon {
     font-size: 22px;
   }
+
   .profile-spaceship-root .profile-view-cabin-right .profile-view-cabin-nav-btn--wide.profile-view-cabin-card--hub .profile-view-cabin-card-subtitle {
     font-size: 12px;
   }
@@ -2438,6 +2551,7 @@
   color: var(--cabin-neon-orange);
   text-shadow: 0 0 12px rgba(var(--cabin-neon-orange-rgb), 0.44);
 }
+
 .profile-spaceship-root .profile-view-cabin-profile-rank--legendary {
   color: var(--legendary-accent, #b088c8);
   text-shadow: 0 0 12px var(--legendary-glow, rgba(74, 32, 96, 0.33));
@@ -2632,13 +2746,11 @@
   inset: 0;
   pointer-events: none;
   background:
-    repeating-linear-gradient(
-      90deg,
+    repeating-linear-gradient(90deg,
       rgba(255, 255, 255, 0.03) 0,
       rgba(255, 255, 255, 0.03) 1px,
       transparent 1px,
-      transparent 5px
-    );
+      transparent 5px);
   opacity: 0.22;
 }
 
@@ -2722,6 +2834,7 @@
 .profile-spaceship-root .console-btn-wrap .console-btn {
   position: relative;
 }
+
 .profile-spaceship-root .console-btn-wrap .console-btn .console-btn-bubble-label {
   position: absolute;
   inset: 0;
@@ -2742,6 +2855,7 @@
   paint-order: stroke fill;
   pointer-events: none;
 }
+
 .profile-spaceship-root .console-btn-wrap .console-btn[data-console-section="workshop"] .console-btn-bubble-label {
   inset: 12% 8%;
 }
@@ -2751,17 +2865,21 @@
   .profile-spaceship-root .console-btn-wrap .console-btn .console-btn-bubble-label {
     font-size: clamp(14px, 2.2vw, 20px);
   }
+
   .profile-spaceship-root .console-btn-wrap .console-btn[data-console-section="squad-corner"] .console-btn-bubble-label,
   .profile-spaceship-root .console-btn-wrap .console-btn[data-console-section="real-diary"] .console-btn-bubble-label,
   .profile-spaceship-root .console-btn-wrap .console-btn[data-console-section="council"] .console-btn-bubble-label {
     font-size: clamp(11px, 1.6vw, 16px);
   }
+
   .profile-spaceship-root .console-btn-wrap .console-btn[data-console-section="team"] .console-btn-bubble-label {
     font-size: clamp(16px, 2.6vw, 24px);
   }
+
   .profile-spaceship-root .console-btn-wrap .console-btn[data-console-section="bro"] .console-btn-bubble-label {
     font-size: clamp(22px, 3.5vw, 32px);
   }
+
   .profile-spaceship-root .console-btn-wrap .console-btn[data-console-section="workshop"] .console-btn-bubble-label {
     font-size: clamp(12px, 1.8vw, 18px);
   }
@@ -2787,13 +2905,11 @@
   inset: 0;
   pointer-events: none;
   background:
-    repeating-linear-gradient(
-      180deg,
+    repeating-linear-gradient(180deg,
       rgba(255, 255, 255, 0.04) 0,
       rgba(255, 255, 255, 0.04) 1px,
       transparent 1px,
-      transparent 4px
-    );
+      transparent 4px);
   opacity: 0.3;
 }
 
@@ -2828,32 +2944,55 @@
 }
 
 @keyframes cabin-panel-sweep {
-  0% { transform: translateX(-122%); }
-  100% { transform: translateX(122%); }
+  0% {
+    transform: translateX(-122%);
+  }
+
+  100% {
+    transform: translateX(122%);
+  }
 }
 
 @keyframes cabin-progress-chase {
-  0% { transform: translateX(-122%); }
-  100% { transform: translateX(122%); }
+  0% {
+    transform: translateX(-122%);
+  }
+
+  100% {
+    transform: translateX(122%);
+  }
 }
 
 @keyframes cabin-glow-breathe {
-  0%, 100% { box-shadow:
-    0 0 0 1px rgba(var(--cabin-neon-cyan-rgb), 0.26),
-    0 16px 36px rgba(2, 11, 24, 0.56),
-    0 0 24px rgba(var(--cabin-neon-magenta-rgb), 0.18); }
-  50% { box-shadow:
-    0 0 0 1px rgba(var(--cabin-neon-magenta-rgb), 0.34),
-    0 20px 40px rgba(2, 11, 24, 0.6),
-    0 0 36px rgba(var(--cabin-neon-cyan-rgb), 0.26); }
+
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 1px rgba(var(--cabin-neon-cyan-rgb), 0.26),
+      0 16px 36px rgba(2, 11, 24, 0.56),
+      0 0 24px rgba(var(--cabin-neon-magenta-rgb), 0.18);
+  }
+
+  50% {
+    box-shadow:
+      0 0 0 1px rgba(var(--cabin-neon-magenta-rgb), 0.34),
+      0 20px 40px rgba(2, 11, 24, 0.6),
+      0 0 36px rgba(var(--cabin-neon-cyan-rgb), 0.26);
+  }
 }
 
 @keyframes cabin-scanline {
-  0% { transform: translateY(0); }
-  100% { transform: translateY(240px); }
+  0% {
+    transform: translateY(0);
+  }
+
+  100% {
+    transform: translateY(240px);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   .profile-spaceship-root .profile-view-cabin-top::before,
   .profile-spaceship-root .profile-view-cabin-left::before,
   .profile-spaceship-root .profile-view-cabin-right::before,
@@ -2869,6 +3008,7 @@
 
 
 @media (max-width: 880px) {
+
   .profile-spaceship-root .profile-view-cabin-top,
   .profile-spaceship-root .profile-view-cabin-left,
   .profile-spaceship-root .profile-view-cabin-right,
@@ -2883,6 +3023,7 @@
 }
 
 @media (max-width: 1180px) {
+
   .profile-spaceship-root .profile-view-cabin-left,
   .profile-spaceship-root .profile-view-cabin-right {
     overflow: visible;
@@ -3354,7 +3495,7 @@
     justify-content: stretch !important;
   }
 
-  .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--inspector .profile-view-cabin-tabs-docked > .profile-tabs-nav {
+  .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--inspector .profile-view-cabin-tabs-docked>.profile-tabs-nav {
     flex: 1 1 0% !important;
     min-width: 0 !important;
     width: 100% !important;
@@ -3437,6 +3578,7 @@
 
 /* Наклон левых табов — perspective() в transform (без preserve-3d), чтобы клики работали */
 @media (min-width: 1181px) {
+
   .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--hub .profile-view-cabin-tabs-docked .profile-tabs-nav button,
   .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--squad-corner .profile-view-cabin-tabs-docked .profile-tabs-nav button,
   .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--real-diary .profile-view-cabin-tabs-docked .profile-tabs-nav button,
@@ -3445,6 +3587,7 @@
     transform-origin: left center;
     pointer-events: auto;
   }
+
   .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--hub .profile-view-cabin-tabs-docked .profile-tabs-nav button:hover,
   .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--hub .profile-view-cabin-tabs-docked .profile-tabs-nav button:focus-visible,
   .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--hub .profile-view-cabin-tabs-docked .profile-tabs-nav button.active,
@@ -3459,6 +3602,7 @@
   .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--counselor-squad .profile-view-cabin-tabs-docked .profile-tabs-nav button.active {
     transform: perspective(500px) rotateY(6deg) translateX(4px);
   }
+
   .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--hub .profile-view-cabin-tabs-docked .profile-tabs-nav button:active,
   .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--squad-corner .profile-view-cabin-tabs-docked .profile-tabs-nav button:active,
   .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--real-diary .profile-view-cabin-tabs-docked .profile-tabs-nav button:active,
@@ -3471,16 +3615,19 @@
     pointer-events: auto;
     cursor: pointer;
   }
+
   .profile-spaceship-root .profile-view-cabin-right .profile-view-cabin-nav-btn--wide {
     transform: perspective(500px) rotateY(-6deg);
     transform-origin: right center;
     pointer-events: auto;
   }
+
   .profile-spaceship-root .profile-view-cabin-right .profile-view-cabin-nav-btn--wide:hover,
   .profile-spaceship-root .profile-view-cabin-right .profile-view-cabin-nav-btn--wide:focus-visible,
   .profile-spaceship-root .profile-view-cabin-right .profile-view-cabin-nav-btn--active.profile-view-cabin-nav-btn--wide {
     transform: perspective(500px) rotateY(-6deg) translateY(-2px);
   }
+
   .profile-spaceship-root .profile-view-cabin-right .profile-view-cabin-nav-btn--wide:active {
     transform: perspective(500px) rotateY(-6deg) translateY(-2px) scale(0.98);
   }
@@ -3489,13 +3636,14 @@
 /* Смены и отряды: горизонтальные отступы на десктопе (восстановлено из DELETED_CHATS_RECOVERED) */
 @media (min-width: 900px) {
   .profile-spaceship-root .organizer-shifts-section {
-  pointer-events: auto !important;
-  position: relative;
-  z-index: 26;
+    pointer-events: auto !important;
+    position: relative;
+    z-index: 26;
     padding-left: 28px;
     padding-right: 28px;
     padding-top: 16px;
   }
+
   .profile-spaceship-root .organizer-shift-card {
     padding: 18px;
   }
@@ -3730,6 +3878,7 @@
     inset 0 0 0 1px rgba(255, 255, 255, 0.05);
   outline: none;
 }
+
 /* transform для hub (hover/active) задаётся в media (min-width: 1181px) вместе с rotateY — ниже в каскаде */
 
 
@@ -3773,6 +3922,7 @@
     border-bottom: 2px solid var(--tab-active-indicator);
     box-shadow: 0 14px 22px rgba(1, 6, 14, 0.42), inset 0 0 0 1px rgba(255, 255, 255, 0.04);
   }
+
   .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--hub .profile-tabs-nav--docked button.active {
     background: var(--tab-active-selected-bg);
     border: 1px solid var(--border-accent);
@@ -3789,6 +3939,7 @@
   filter: drop-shadow(0 0 8px var(--selection-glow));
   filter: drop-shadow(0 0 8px var(--selection-glow));
 }
+
 .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--counselor-squad .profile-tabs-nav--counselor-squad button {
   width: 132px;
   min-height: 58px;
@@ -4091,12 +4242,14 @@
 }
 
 @media (min-width: 1181px) {
+
   .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--hub .profile-tabs-nav--docked button:active,
   .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--squad-corner .profile-tabs-nav--squad-corner button:active,
   .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--real-diary .profile-tabs-nav--real-diary button:active,
   .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--counselor-squad .profile-tabs-nav--counselor-squad button:active {
     transform: perspective(500px) rotateY(6deg) translateX(4px) scale(0.98);
   }
+
   .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--profile4k .profile-tabs-nav--profile4k button:active,
   .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--team .profile-tabs-nav--team button:active,
   .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--council .profile-tabs-nav--council button:active,
@@ -4211,6 +4364,7 @@
   grid-template-rows: 1fr;
   min-height: 0;
 }
+
 .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--squad-corner .profile-view-cabin-center-scroll.profile-view-cabin-center-scroll--content-fit {
   min-height: 0 !important;
   height: 100% !important;
@@ -4336,7 +4490,8 @@
 .profile-spaceship-root .profile-view-cabin-center--counselor-squad .counselor-squad-cabin-content {
   width: 100%;
   box-sizing: border-box;
-  padding-inline: clamp(40px, 5vw, 56px);
+  padding-inline: clamp(16px, 2.5vw, 24px);
+  padding-bottom: 100px;
 }
 
 .profile-spaceship-root .profile-view-cabin-center--counselor-squad .counselor-squad-cabin-section {
@@ -4344,7 +4499,7 @@
   min-width: 0;
 }
 
-.profile-spaceship-root .profile-view-cabin-center--counselor-squad .counselor-squad-cabin-section > * {
+.profile-spaceship-root .profile-view-cabin-center--counselor-squad .counselor-squad-cabin-section>* {
   max-width: 100%;
 }
 
@@ -4409,7 +4564,7 @@
   min-width: 0;
 }
 
-.profile-spaceship-root .profile-view-cabin-center--squad-corner .squad-corner-cabin-section > * {
+.profile-spaceship-root .profile-view-cabin-center--squad-corner .squad-corner-cabin-section>* {
   max-width: 100%;
 }
 
@@ -4424,7 +4579,7 @@
   min-width: 0;
 }
 
-.profile-spaceship-root .profile-view-cabin-center--squad-corner .squad-corner-image-source-block > div:last-child {
+.profile-spaceship-root .profile-view-cabin-center--squad-corner .squad-corner-image-source-block>div:last-child {
   flex: 1 1 auto;
   min-width: 0;
 }
@@ -4432,7 +4587,8 @@
 .profile-spaceship-root .profile-view-cabin-center--real-diary .real-diary-cabin-content {
   width: 100%;
   box-sizing: border-box;
-  padding-inline: clamp(40px, 5vw, 56px);
+  padding-inline: clamp(16px, 2.5vw, 24px);
+  padding-bottom: 100px;
 }
 
 .profile-spaceship-root .profile-view-cabin-center--profile4k .profile4k-cabin-content {
@@ -4521,15 +4677,17 @@
 .profile-spaceship-root .profile-view-cabin-center--council .council-cabin-engine-card {
   display: grid;
   gap: 10px;
-  padding: 12px;
+  padding: 14px;
   border-radius: 14px;
-  border: 1px solid rgba(255, 215, 0, 0.24);
-  background: linear-gradient(165deg, rgba(72, 51, 10, 0.5), rgba(25, 19, 8, 0.64));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(15, 10, 42, 0.35);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 .profile-spaceship-root .profile-view-cabin-center--council .council-cabin-engine-card--mine {
-  border-color: rgba(255, 215, 0, 0.54);
-  box-shadow: 0 0 0 1px rgba(255, 215, 0, 0.24);
+  border-color: rgba(255, 255, 255, 0.18);
+  box-shadow: 0 0 12px rgba(139, 0, 255, 0.15);
 }
 
 .profile-spaceship-root .profile-view-cabin-center--council .council-cabin-engine-badge {
@@ -4645,7 +4803,7 @@
   min-width: 0;
 }
 
-.profile-spaceship-root .profile-view-cabin-center--real-diary .real-diary-cabin-section > * {
+.profile-spaceship-root .profile-view-cabin-center--real-diary .real-diary-cabin-section>* {
   max-width: 100%;
 }
 
@@ -4659,7 +4817,7 @@
 .profile-spaceship-root .profile-view-cabin-center--counselor-squad .real-diary-schedule-columns {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
+  gap: 24px;
   align-items: start;
 }
 
@@ -4667,11 +4825,13 @@
 .profile-spaceship-root .profile-view-cabin-center--counselor-squad .real-diary-schedule-card {
   display: grid;
   gap: 12px;
-  padding: 14px;
+  padding: 18px;
   border-radius: 14px;
-  border: 1px solid var(--border);
-  background: var(--panel-alt);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(15, 10, 42, 0.12);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 0 0 1px rgba(255, 255, 255, 0.06);
   align-content: start;
   align-self: start;
 }
@@ -4717,6 +4877,7 @@
   border: 1px solid var(--border);
   color: var(--text-primary);
 }
+
 .profile-spaceship-root .profile-view-cabin-center--real-diary .real-diary-schedule-editor__time:focus-visible,
 .profile-spaceship-root .profile-view-cabin-center--real-diary .real-diary-schedule-editor__note:focus-visible,
 .profile-spaceship-root .profile-view-cabin-center--counselor-squad .real-diary-schedule-editor__time:focus-visible,
@@ -4731,10 +4892,12 @@
   border: 1px solid var(--border);
   color: var(--text-primary);
 }
+
 .profile-spaceship-root .profile-view-cabin-center .w-input:focus {
   border-color: var(--focus-ring);
   outline: none;
 }
+
 .profile-spaceship-root .profile-view-cabin-center .w-input::placeholder {
   color: var(--text-muted);
 }
@@ -4804,6 +4967,7 @@
 }
 
 @media (max-width: 1200px) {
+
   .profile-spaceship-root .profile-view-cabin-center--real-diary .real-diary-schedule-columns,
   .profile-spaceship-root .profile-view-cabin-center--counselor-squad .real-diary-schedule-columns {
     grid-template-columns: 1fr;
@@ -4820,6 +4984,7 @@
 }
 
 @media (max-width: 900px) {
+
   .profile-spaceship-root .profile-view-cabin-center--real-diary .real-diary-schedule-editor__row,
   .profile-spaceship-root .profile-view-cabin-center--real-diary .real-diary-schedule-row,
   .profile-spaceship-root .profile-view-cabin-center--counselor-squad .real-diary-schedule-editor__row,
@@ -5058,6 +5223,7 @@
   border-radius: 12px;
   text-align: center;
 }
+
 .profile-spaceship-root .profile-view-cabin-progress-hub .profile-empty-state--hub .profile-empty-state__text {
   margin: 0;
   font-size: 13px;
@@ -5079,11 +5245,13 @@
   overflow-y: hidden;
   scroll-snap-type: x mandatory;
 }
+
 .profile-spaceship-root .profile-view-cabin-progress-hub .shelf-scroll--carousel3d {
   perspective: 900px;
   perspective-origin: center center;
   transform-style: preserve-3d;
 }
+
 .profile-spaceship-root .profile-view-cabin-progress-hub .shelf-scroll:not(:has(.shelf-item:nth-child(4))) {
   justify-content: center;
 }
@@ -5100,15 +5268,15 @@
 }
 
 /* BadgeIcon root (inner div) has inline 48px – override so icon is 128px */
-.profile-spaceship-root .profile-view-cabin-progress-hub .shelf-item > div > div {
+.profile-spaceship-root .profile-view-cabin-progress-hub .shelf-item>div>div {
   width: 128px !important;
   height: 128px !important;
   min-width: 128px !important;
   min-height: 128px !important;
 }
 
-.profile-spaceship-root .profile-view-cabin-progress-hub .shelf-item > div > div img,
-.profile-spaceship-root .profile-view-cabin-progress-hub .shelf-item > div picture img {
+.profile-spaceship-root .profile-view-cabin-progress-hub .shelf-item>div>div img,
+.profile-spaceship-root .profile-view-cabin-progress-hub .shelf-item>div picture img {
   width: 100% !important;
   height: 100% !important;
   min-width: 100% !important;
@@ -5160,6 +5328,7 @@
   position: relative;
   isolation: isolate;
 }
+
 .profile-spaceship-root .profile-view-cabin-progress-hub .path-card::before {
   content: '';
   position: absolute;
@@ -5171,6 +5340,7 @@
   background-position: center;
   background-repeat: no-repeat;
 }
+
 .profile-spaceship-root .profile-view-cabin-progress-hub .path-card__avatar-wrap {
   position: relative;
   z-index: 1;
@@ -5179,17 +5349,12 @@
 /* Звезда избранного: голубое неоновое свечение по контуру (и при пустой, и при заливке) */
 .profile-spaceship-root .profile-view-cabin-progress-hub .path-card__star {
   filter:
-    drop-shadow(0 0 2px rgba(93, 228, 255, 1))
-    drop-shadow(0 0 6px rgba(93, 228, 255, 0.95))
-    drop-shadow(0 0 12px rgba(93, 228, 255, 0.8))
-    drop-shadow(0 0 18px rgba(93, 228, 255, 0.6));
+    drop-shadow(0 0 2px rgba(93, 228, 255, 1)) drop-shadow(0 0 6px rgba(93, 228, 255, 0.95)) drop-shadow(0 0 12px rgba(93, 228, 255, 0.8)) drop-shadow(0 0 18px rgba(93, 228, 255, 0.6));
 }
+
 .profile-spaceship-root .profile-view-cabin-progress-hub .path-card__star:hover {
   filter:
-    drop-shadow(0 0 3px rgba(93, 228, 255, 1))
-    drop-shadow(0 0 8px rgba(93, 228, 255, 1))
-    drop-shadow(0 0 16px rgba(93, 228, 255, 0.9))
-    drop-shadow(0 0 24px rgba(93, 228, 255, 0.7));
+    drop-shadow(0 0 3px rgba(93, 228, 255, 1)) drop-shadow(0 0 8px rgba(93, 228, 255, 1)) drop-shadow(0 0 16px rgba(93, 228, 255, 0.9)) drop-shadow(0 0 24px rgba(93, 228, 255, 0.7));
 }
 
 /* Звезда внизу карточки по центру, крупнее */
@@ -5202,6 +5367,7 @@
   padding: 8px;
   flex-shrink: 0;
 }
+
 .profile-spaceship-root .profile-view-cabin-progress-hub .path-card__footer .path-card__star svg {
   width: 28px;
   height: 28px;
@@ -5220,7 +5386,8 @@
   min-width: 144px;
   max-width: none;
 }
-.profile-spaceship-root .profile-view-cabin-progress-hub .path-carousel--static .path-carousel__item--static > .path-card {
+
+.profile-spaceship-root .profile-view-cabin-progress-hub .path-carousel--static .path-carousel__item--static>.path-card {
   width: 144px;
   min-width: 144px;
   min-height: 280px;
@@ -5228,7 +5395,7 @@
   box-sizing: border-box;
 }
 
-.profile-spaceship-root .profile-view-cabin-progress-hub .active-tab-content .path-carousel__item--cylinder > .path-card {
+.profile-spaceship-root .profile-view-cabin-progress-hub .active-tab-content .path-carousel__item--cylinder>.path-card {
   height: calc(100% - 5px);
 }
 
@@ -5236,6 +5403,7 @@
 .profile-spaceship-root .profile-view-cabin-progress-hub .active-tab-content .path-carousel.path-carousel--cylinder {
   overflow: visible;
 }
+
 .profile-spaceship-root .profile-view-cabin-progress-hub .active-tab-content .path-carousel__viewport--cylinder {
   overflow: visible;
 }
@@ -5266,6 +5434,7 @@
     0 0 80px rgba(139, 0, 255, 0.3);
   outline: none;
 }
+
 .profile-spaceship-root .profile-view-cabin-progress-hub .active-tab-content .path-carousel__btn:disabled {
   opacity: var(--cabin-disabled-opacity);
   cursor: not-allowed;
@@ -5294,6 +5463,7 @@
   color: rgba(186, 249, 255, 0.98);
   border-color: rgba(var(--cabin-neon-cyan-rgb), 0.35);
 }
+
 .profile-spaceship-root .profile-view-cabin-progress-hub .btn-pill--primary:hover {
   background: rgba(var(--cabin-neon-cyan-rgb), 0.28);
   transform: translateY(-1px);
@@ -5308,12 +5478,14 @@
   background: radial-gradient(ellipse 70% 70% at 50% 50%, rgba(8, 28, 48, 0.88), rgba(4, 16, 32, 0.5) 55%, rgba(4, 16, 32, 0.12) 78%, transparent 100%);
   box-shadow: 0 0 30px rgba(4, 16, 32, 0.4);
 }
+
 .profile-spaceship-root .profile-view-cabin-progress-hub .path-card .btn-pill--primary:hover,
 .profile-spaceship-root .profile-view-cabin-progress-hub .path-card .btn-pill--secondary:hover {
   background: radial-gradient(ellipse 70% 70% at 50% 50%, rgba(var(--cabin-neon-cyan-rgb), 0.2), rgba(8, 28, 48, 0.55) 55%, rgba(4, 16, 32, 0.15) 78%, transparent 100%);
   transform: translateY(-1px);
   box-shadow: 0 0 24px rgba(var(--cabin-neon-cyan-rgb), 0.25), 0 0 40px rgba(4, 16, 32, 0.35);
 }
+
 .profile-spaceship-root .profile-view-cabin-progress-hub .path-card .btn-action-round.trash,
 .profile-spaceship-root .profile-view-cabin-progress-hub .path-card .btn-action-round.btn-go-badge {
   border: none;
@@ -5321,10 +5493,12 @@
   background: radial-gradient(ellipse 65% 65% at 50% 50%, rgba(4, 16, 32, 0.9), rgba(4, 16, 32, 0.45) 50%, rgba(4, 16, 32, 0.1) 75%, transparent 100%);
   box-shadow: 0 0 28px rgba(4, 16, 32, 0.45);
 }
+
 .profile-spaceship-root .profile-view-cabin-progress-hub .path-card .btn-action-round.trash:hover {
   background: radial-gradient(ellipse 65% 65% at 50% 50%, rgba(60, 20, 20, 0.92), rgba(40, 12, 12, 0.5) 50%, rgba(40, 12, 12, 0.08) 75%, transparent 100%);
   box-shadow: 0 0 32px rgba(60, 20, 20, 0.4);
 }
+
 .profile-spaceship-root .profile-view-cabin-progress-hub .path-card .btn-action-round.btn-go-badge:hover {
   color: rgba(186, 249, 255, 1);
   background: radial-gradient(ellipse 65% 65% at 50% 50%, rgba(var(--cabin-neon-cyan-rgb), 0.22), rgba(8, 28, 48, 0.45) 50%, rgba(4, 16, 32, 0.1) 75%, transparent 100%);
@@ -5381,7 +5555,7 @@
   margin-top: 10px;
 }
 
-.profile-spaceship-root .profile-view-cabin-progress-hub .profile-plan-section__details > summary {
+.profile-spaceship-root .profile-view-cabin-progress-hub .profile-plan-section__details>summary {
   list-style: none;
   cursor: pointer;
   user-select: none;
@@ -5395,11 +5569,11 @@
   background: linear-gradient(145deg, rgba(6, 16, 30, 0.64), rgba(3, 10, 20, 0.56));
 }
 
-.profile-spaceship-root .profile-view-cabin-progress-hub .profile-plan-section__details > summary::-webkit-details-marker {
+.profile-spaceship-root .profile-view-cabin-progress-hub .profile-plan-section__details>summary::-webkit-details-marker {
   display: none;
 }
 
-.profile-spaceship-root .profile-view-cabin-progress-hub .profile-plan-section__details[open] > summary {
+.profile-spaceship-root .profile-view-cabin-progress-hub .profile-plan-section__details[open]>summary {
   border-color: rgba(var(--cabin-neon-magenta-rgb), 0.35);
   box-shadow: 0 0 18px rgba(var(--cabin-neon-magenta-rgb), 0.16);
 }
@@ -5486,7 +5660,7 @@
   background: rgba(2, 10, 22, 0.44);
 }
 
-.profile-spaceship-root .profile-view-cabin-progress-hub .profile-route-details > summary {
+.profile-spaceship-root .profile-view-cabin-progress-hub .profile-route-details>summary {
   list-style: none;
   cursor: pointer;
   user-select: none;
@@ -5496,7 +5670,7 @@
   color: rgba(210, 242, 255, 0.86);
 }
 
-.profile-spaceship-root .profile-view-cabin-progress-hub .profile-route-details > summary::-webkit-details-marker {
+.profile-spaceship-root .profile-view-cabin-progress-hub .profile-route-details>summary::-webkit-details-marker {
   display: none;
 }
 
@@ -5517,6 +5691,7 @@
   border: none;
   box-shadow: none;
 }
+
 .profile-spaceship-root .profile-view-cabin-progress-hub .favorites-shelf-container--empty {
   background-image: none !important;
 }
@@ -5532,7 +5707,8 @@
   max-width: 100%;
   padding: 14px 16px;
 }
-.profile-spaceship-root .profile-view-cabin-progress-hub .active-tab-content__col--badges .badge-row-complex + .badge-row-complex {
+
+.profile-spaceship-root .profile-view-cabin-progress-hub .active-tab-content__col--badges .badge-row-complex+.badge-row-complex {
   margin-top: 12px;
 }
 
@@ -5560,6 +5736,7 @@
   margin-right: auto;
   position: relative;
 }
+
 .profile-spaceship-root .profile-view-cabin-progress-hub .shelf-carousel__btn {
   flex-shrink: 0;
   width: 44px;
@@ -5583,6 +5760,7 @@
   transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
   z-index: 10;
 }
+
 /* Кнопки: полностью независимое позиционирование (вне потока, свой z) */
 .profile-spaceship-root .profile-view-cabin-progress-hub .shelf-carousel__btn--prev {
   position: absolute;
@@ -5592,6 +5770,7 @@
   z-index: 20;
   transform: translateY(130px);
 }
+
 .profile-spaceship-root .profile-view-cabin-progress-hub .shelf-carousel__btn--next {
   position: absolute;
   right: 30px;
@@ -5600,6 +5779,7 @@
   z-index: 20;
   transform: translateY(130px);
 }
+
 .profile-spaceship-root .profile-view-cabin-progress-hub .shelf-carousel__btn:hover:not(:disabled),
 .profile-spaceship-root .profile-view-cabin-progress-hub .shelf-carousel__btn:focus-visible:not(:disabled) {
   border-color: rgba(var(--cabin-neon-magenta-rgb), 0.85);
@@ -5611,10 +5791,12 @@
     0 0 80px rgba(139, 0, 255, 0.3);
   outline: none;
 }
+
 .profile-spaceship-root .profile-view-cabin-progress-hub .shelf-carousel__btn:disabled {
   opacity: var(--cabin-disabled-opacity);
   cursor: not-allowed;
 }
+
 .profile-spaceship-root .profile-view-cabin-progress-hub .shelf-viewport {
   flex: 1;
   min-width: 0;
@@ -5623,6 +5805,7 @@
   margin-left: 54px;
   margin-right: 54px;
 }
+
 .profile-spaceship-root .profile-view-cabin-progress-hub .shelf-viewport .shelf-track {
   display: flex;
   flex-wrap: nowrap;
@@ -5643,6 +5826,7 @@
   perspective: 1400px;
   perspective-origin: center center;
 }
+
 .profile-spaceship-root .profile-view-cabin-progress-hub .shelf-carousel--cylinder .shelf-track--cylinder {
   --step-deg: 36deg;
   --radius: 440px;
@@ -5656,6 +5840,7 @@
   transform: rotateY(calc(var(--carousel-rotation-steps, 0) * var(--step-deg)));
   transition: transform 0.4s ease-out;
 }
+
 .profile-spaceship-root .profile-view-cabin-progress-hub .shelf-carousel--cylinder .shelf-item--cylinder {
   position: absolute;
   left: 50%;
@@ -5668,7 +5853,8 @@
   backface-visibility: visible;
   transform: rotateY(calc(var(--slot-offset, 0) * var(--step-deg))) translateZ(var(--radius));
 }
-.profile-spaceship-root .profile-view-cabin-progress-hub .shelf-carousel--cylinder .shelf-item--cylinder > div {
+
+.profile-spaceship-root .profile-view-cabin-progress-hub .shelf-carousel--cylinder .shelf-item--cylinder>div {
   width: 100%;
   height: 100%;
   position: relative;
@@ -5680,6 +5866,7 @@
     0 0 48px rgba(139, 0, 255, 0.45),
     0 0 72px rgba(139, 0, 255, 0.25);
 }
+
 /* LED-полоса по контуру значка: яркое кольцо сзади, без размытия */
 .profile-spaceship-root .profile-view-cabin-progress-hub .shelf-carousel--cylinder .shelf-item--cylinder::before {
   content: '';
@@ -5814,10 +6001,12 @@
   background: var(--btn-primary-bg);
   color: var(--btn-primary-text);
 }
+
 .profile-spaceship-root .profile-view .btn-primary-gold:hover,
 .profile-spaceship-root .profile-view .btn-primary-gold:focus-visible {
   background: var(--btn-primary-hover);
 }
+
 .profile-spaceship-root .profile-view .btn-primary-gold:active {
   background: var(--btn-primary-pressed);
 }
@@ -5847,6 +6036,7 @@
   box-shadow: 0 0 16px var(--selection-glow);
   outline: none;
 }
+
 .profile-spaceship-root .profile-view-cabin-profile-actions .btn-secondary:active,
 .profile-spaceship-root .profile-view-cabin-center-actions .btn-secondary:active,
 .profile-spaceship-root .profile-view-cabin-center-scroll .btn-secondary:active {
@@ -5859,11 +6049,13 @@
   background: var(--tab-active-bg) !important;
   color: var(--text-primary) !important;
 }
+
 .profile-spaceship-root .profile-view-cabin-center .profile-tabs-nav button:hover:not(:disabled),
 .profile-spaceship-root .profile-view-cabin-center .profile-tabs-nav button:focus-visible:not(:disabled) {
   background: var(--tab-hover-bg) !important;
   border-color: var(--border-accent) !important;
 }
+
 .profile-spaceship-root .profile-view-cabin-center .profile-tabs-nav button.active {
   background: var(--tab-active-selected-bg) !important;
   border-color: var(--border-accent) !important;
@@ -5891,6 +6083,7 @@
   height: 58px !important;
   min-height: 58px !important;
 }
+
 .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--profile4k .profile-view-cabin-tabs-docked .profile-tabs-nav--profile4k button:hover:not(:disabled),
 .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--profile4k .profile-view-cabin-tabs-docked .profile-tabs-nav--profile4k button:focus-visible:not(:disabled),
 .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--team .profile-view-cabin-tabs-docked .profile-tabs-nav--team button:hover:not(:disabled),
@@ -5913,6 +6106,7 @@
 .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--workshop .profile-view-cabin-tabs-docked .profile-tabs-nav--workshop button:focus-visible:not(:disabled) {
   background: var(--tab-hover-bg) !important;
 }
+
 .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--hub .profile-view-cabin-tabs-docked .profile-tabs-nav--docked button.active,
 .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--squad-corner .profile-view-cabin-tabs-docked .profile-tabs-nav--squad-corner button.active,
 .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--real-diary .profile-view-cabin-tabs-docked .profile-tabs-nav--real-diary button.active,
@@ -5929,10 +6123,12 @@
   border-bottom: 2px solid var(--tab-active-indicator) !important;
   color: var(--tab-active-selected-text) !important;
 }
+
 .profile-spaceship-root .profile-view-cabin-center .profile-tabs-nav button.active .profile-tabs-nav__label,
 .profile-spaceship-root .profile-view-cabin-center .profile-tabs-nav button.active .profile-tabs-nav__icon {
   color: inherit !important;
 }
+
 /* Скрыть эмодзи во всех табах кабины */
 .profile-spaceship-root .profile-view-cabin-center .profile-tabs-nav .profile-tabs-nav__icon {
   display: none !important;
@@ -5962,6 +6158,7 @@
   color: var(--text-muted) !important;
   border-color: var(--border) !important;
 }
+
 .profile-spaceship-root .profile-view-cabin-hub-actions {
   margin-top: 14px;
   display: grid;
@@ -5977,7 +6174,7 @@
   background: rgba(2, 10, 22, 0.38);
 }
 
-.profile-spaceship-root .profile-view-cabin-hub-actions-wrap > summary,
+.profile-spaceship-root .profile-view-cabin-hub-actions-wrap>summary,
 .profile-spaceship-root .profile-view-cabin-hub-actions-wrap__title {
   list-style: none;
   cursor: pointer;
@@ -5989,7 +6186,7 @@
   color: rgba(236, 247, 255, 0.96);
 }
 
-.profile-spaceship-root .profile-view-cabin-hub-actions-wrap > summary::-webkit-details-marker {
+.profile-spaceship-root .profile-view-cabin-hub-actions-wrap>summary::-webkit-details-marker {
   display: none;
 }
 
@@ -6169,26 +6366,26 @@
     padding-inline: 4px;
   }
 
-.profile-spaceship-root .profile-view-cabin-right .profile-view-cabin-nav-item--wide {
-  width: min(198px, 100%);
-}
+  .profile-spaceship-root .profile-view-cabin-right .profile-view-cabin-nav-item--wide {
+    width: min(198px, 100%);
+  }
 
-.profile-spaceship-root .profile-view-cabin-right .profile-view-cabin-nav-btn--wide {
-  min-height: 126px;
-  padding: 10px 14px;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: auto auto 1fr;
-  row-gap: 6px;
-  align-items: center;
-  text-align: left;
-}
+  .profile-spaceship-root .profile-view-cabin-right .profile-view-cabin-nav-btn--wide {
+    min-height: 126px;
+    padding: 10px 14px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto 1fr;
+    row-gap: 6px;
+    align-items: center;
+    text-align: left;
+  }
 
-.profile-spaceship-root .profile-view-cabin-right .profile-view-cabin-nav-btn--wide .profile-view-cabin-nav-icon,
-.profile-spaceship-root .profile-view-cabin-right .profile-view-cabin-nav-btn--wide img {
-  grid-row: 1;
-  justify-self: start;
-}
+  .profile-spaceship-root .profile-view-cabin-right .profile-view-cabin-nav-btn--wide .profile-view-cabin-nav-icon,
+  .profile-spaceship-root .profile-view-cabin-right .profile-view-cabin-nav-btn--wide img {
+    grid-row: 1;
+    justify-self: start;
+  }
 
   .profile-spaceship-root .profile-view-cabin-right .profile-view-cabin-nav-btn--wide img {
     width: 44px;
@@ -6220,92 +6417,92 @@
       0 0 40px rgba(93, 173, 255, 0.35);
   }
 
-.profile-spaceship-root .profile-view-cabin-right .profile-view-cabin-card-subtitle {
-  grid-row: 2;
-  white-space: normal;
-  line-height: 1.2;
-}
+  .profile-spaceship-root .profile-view-cabin-right .profile-view-cabin-card-subtitle {
+    grid-row: 2;
+    white-space: normal;
+    line-height: 1.2;
+  }
 
-.profile-spaceship-root .profile-view-cabin-right .profile-view-cabin-card-hint {
-  grid-row: 3;
-  align-self: end;
-  line-height: 1.2;
-}
+  .profile-spaceship-root .profile-view-cabin-right .profile-view-cabin-card-hint {
+    grid-row: 3;
+    align-self: end;
+    line-height: 1.2;
+  }
 
-.profile-spaceship-root .profile-view-cabin-right .profile-view-cabin-nav-btn--wide .profile-view-cabin-card-progress-wrap--vertical {
-  display: none !important;
-}
+  .profile-spaceship-root .profile-view-cabin-right .profile-view-cabin-nav-btn--wide .profile-view-cabin-card-progress-wrap--vertical {
+    display: none !important;
+  }
 
-.profile-spaceship-root .profile-view-cabin-right .profile-view-cabin-nav-item--wide {
-  position: relative;
-}
+  .profile-spaceship-root .profile-view-cabin-right .profile-view-cabin-nav-item--wide {
+    position: relative;
+  }
 
-.profile-spaceship-root .profile-view-cabin-right-rail-progress {
-  --rail-accent-rgb: var(--cabin-neon-cyan-rgb);
-  position: absolute;
-  top: 14px;
-  bottom: 14px;
-  left: -12px;
-  width: 7px;
-  border-radius: 999px;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  border: none !important;
-  background: linear-gradient(180deg, rgba(var(--rail-accent-rgb), 0.12), rgba(210, 236, 255, 0.08)) !important;
-  box-shadow:
-    0 0 0 1px rgba(var(--rail-accent-rgb), 0.34),
-    0 0 14px rgba(var(--rail-accent-rgb), 0.3);
-  overflow: visible;
-  pointer-events: none;
-}
+  .profile-spaceship-root .profile-view-cabin-right-rail-progress {
+    --rail-accent-rgb: var(--cabin-neon-cyan-rgb);
+    position: absolute;
+    top: 14px;
+    bottom: 14px;
+    left: -12px;
+    width: 7px;
+    border-radius: 999px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    border: none !important;
+    background: linear-gradient(180deg, rgba(var(--rail-accent-rgb), 0.12), rgba(210, 236, 255, 0.08)) !important;
+    box-shadow:
+      0 0 0 1px rgba(var(--rail-accent-rgb), 0.34),
+      0 0 14px rgba(var(--rail-accent-rgb), 0.3);
+    overflow: visible;
+    pointer-events: none;
+  }
 
-.profile-spaceship-root .profile-view-cabin-right-rail-progress::before,
-.profile-spaceship-root .profile-view-cabin-right-rail-progress::after {
-  content: '';
-  position: absolute;
-  left: 50%;
-  width: 3px;
-  height: 3px;
-  transform: translateX(-50%);
-  border-radius: 999px;
-  background: rgba(238, 249, 255, 0.88);
-  box-shadow: 0 0 8px rgba(var(--rail-accent-rgb), 0.72);
-}
+  .profile-spaceship-root .profile-view-cabin-right-rail-progress::before,
+  .profile-spaceship-root .profile-view-cabin-right-rail-progress::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    width: 3px;
+    height: 3px;
+    transform: translateX(-50%);
+    border-radius: 999px;
+    background: rgba(238, 249, 255, 0.88);
+    box-shadow: 0 0 8px rgba(var(--rail-accent-rgb), 0.72);
+  }
 
-.profile-spaceship-root .profile-view-cabin-right-rail-progress::before {
-  top: -5px;
-}
+  .profile-spaceship-root .profile-view-cabin-right-rail-progress::before {
+    top: -5px;
+  }
 
-.profile-spaceship-root .profile-view-cabin-right-rail-progress::after {
-  bottom: -5px;
-}
+  .profile-spaceship-root .profile-view-cabin-right-rail-progress::after {
+    bottom: -5px;
+  }
 
-.profile-spaceship-root .profile-view-cabin-right-rail-progress__fill {
-  width: 100%;
-  min-height: 6px;
-  height: var(--progress-value, 0%);
-  border-radius: 999px;
-  background: var(--cabin-progress-gradient-vertical);
-  box-shadow: 0 0 12px rgba(var(--cabin-neon-magenta-rgb), 0.48);
-  transition: height 0.28s ease-out;
-}
+  .profile-spaceship-root .profile-view-cabin-right-rail-progress__fill {
+    width: 100%;
+    min-height: 6px;
+    height: var(--progress-value, 0%);
+    border-radius: 999px;
+    background: var(--cabin-progress-gradient-vertical);
+    box-shadow: 0 0 12px rgba(var(--cabin-neon-magenta-rgb), 0.48);
+    transition: height 0.28s ease-out;
+  }
 
-.profile-spaceship-root .profile-view-cabin-right-rail-progress--cyan {
-  --rail-accent-rgb: var(--cabin-neon-cyan-rgb);
-}
+  .profile-spaceship-root .profile-view-cabin-right-rail-progress--cyan {
+    --rail-accent-rgb: var(--cabin-neon-cyan-rgb);
+  }
 
-.profile-spaceship-root .profile-view-cabin-right-rail-progress--magenta {
-  --rail-accent-rgb: var(--cabin-neon-magenta-rgb);
-}
+  .profile-spaceship-root .profile-view-cabin-right-rail-progress--magenta {
+    --rail-accent-rgb: var(--cabin-neon-magenta-rgb);
+  }
 
-.profile-spaceship-root .profile-view-cabin-right-rail-progress--orange {
-  --rail-accent-rgb: var(--cabin-neon-orange-rgb);
-}
+  .profile-spaceship-root .profile-view-cabin-right-rail-progress--orange {
+    --rail-accent-rgb: var(--cabin-neon-orange-rgb);
+  }
 
-.profile-spaceship-root .profile-view-cabin-right-rail-progress--purple {
-  --rail-accent-rgb: var(--cabin-neon-purple-rgb);
-}
+  .profile-spaceship-root .profile-view-cabin-right-rail-progress--purple {
+    --rail-accent-rgb: var(--cabin-neon-purple-rgb);
+  }
 
   .profile-spaceship-root .console-btn-wrap {
     position: relative;
@@ -6366,12 +6563,10 @@
     min-height: 8px;
     height: var(--progress-value, 0%);
     border-radius: 999px;
-    background: linear-gradient(
-      180deg,
-      rgba(246, 252, 255, 0.98) 0%,
-      var(--console-accent) 56%,
-      rgba(var(--console-accent-rgb), 0.86) 100%
-    ) !important;
+    background: linear-gradient(180deg,
+        rgba(246, 252, 255, 0.98) 0%,
+        var(--console-accent) 56%,
+        rgba(var(--console-accent-rgb), 0.86) 100%) !important;
     box-shadow: 0 0 12px rgba(var(--console-accent-rgb), 0.56);
     transition: height 0.28s ease-out;
   }
@@ -7284,12 +7479,10 @@
     min-height: 7px;
     height: var(--progress-value, 0%) !important;
     border-radius: inherit;
-    background: linear-gradient(
-      180deg,
-      rgba(246, 252, 255, 0.98) 0%,
-      var(--console-accent) 56%,
-      rgba(var(--console-accent-rgb), 0.86) 100%
-    ) !important;
+    background: linear-gradient(180deg,
+        rgba(246, 252, 255, 0.98) 0%,
+        var(--console-accent) 56%,
+        rgba(var(--console-accent-rgb), 0.86) 100%) !important;
     box-shadow: 0 0 10px rgba(var(--console-accent-rgb), 0.52);
   }
 
@@ -7712,6 +7905,7 @@
 
 /* ===== Desktop anti-nesting: no container-inside-container visuals ===== */
 @media (min-width: 1181px) {
+
   /* Центр: один основной контур у .profile-view-cabin-center, внутренности без хрома */
   .profile-spaceship-root .profile-view-cabin-center-shell,
   .profile-spaceship-root .profile-view-cabin-progress-hub,
@@ -7771,6 +7965,7 @@
 
 /* ===== Desktop avatar block readability fix (no clipping, no outer container box) ===== */
 @media (min-width: 1181px) {
+
   .profile-spaceship-root .profile-view-cabin-left.profile-view-cabin-left--profile-collapsed,
   .profile-spaceship-root .profile-view-cabin-left.profile-view-cabin-left--profile-expanded {
     width: clamp(296px, 19.4vw, 352px) !important;
@@ -7879,6 +8074,7 @@
 
 /* ===== Desktop profile header final: single-line nickname + safe tooltip + no clipping ===== */
 @media (min-width: 1181px) {
+
   .profile-spaceship-root .profile-view-cabin-left.profile-view-cabin-left--profile-collapsed,
   .profile-spaceship-root .profile-view-cabin-left.profile-view-cabin-left--profile-expanded {
     width: clamp(312px, 20.8vw, 388px) !important;
@@ -7892,6 +8088,7 @@
     overflow: visible !important;
     gap: 8px !important;
   }
+
   /* Тёмная обводка вокруг текста (ник, статус, что делаю) — только десктоп, без контейнеров */
   .profile-spaceship-root .profile-view-cabin-profile-rank,
   .profile-spaceship-root .profile-view-cabin-profile-nickname,
@@ -7907,6 +8104,7 @@
       1px -1px 0 rgba(0, 0, 0, 0.85),
       -1px 1px 0 rgba(0, 0, 0, 0.85);
   }
+
   .profile-spaceship-root .profile-view-cabin-profile-rank--legendary {
     text-shadow:
       1px 0 0 rgba(0, 0, 0, 0.85),
@@ -7919,6 +8117,7 @@
       -1px 1px 0 rgba(0, 0, 0, 0.85),
       0 0 12px var(--legendary-glow, rgba(74, 32, 96, 0.33));
   }
+
   .profile-spaceship-root .profile-view-cabin-profile-nickname {
     text-shadow:
       1px 0 0 rgba(0, 0, 0, 0.85),
@@ -7941,12 +8140,14 @@
     gap: 6px;
     overflow: visible;
   }
+
   /* Блок «Что делаю» по ширине контента — дымка не длиннее подписи */
   .profile-spaceship-root .profile-view-cabin-profile-secondary {
     width: fit-content;
     max-width: 100%;
     align-self: flex-start;
   }
+
   /* Чёрная дымка за текстом (ник, статус, что делаю) — только за блоками с подписями, не на аватар */
   .profile-spaceship-root .profile-view-cabin-profile-primary::before,
   .profile-spaceship-root .profile-view-cabin-profile-secondary::before {
@@ -7958,11 +8159,13 @@
     background: rgba(0, 0, 0, 0.4);
     pointer-events: none;
   }
+
   /* Чёрная дымка за текстом роль + уровень (десктоп) */
-  .profile-spaceship-root .profile-view-cabin-profile-chips > .profile-view-cabin-profile--desktop-only {
+  .profile-spaceship-root .profile-view-cabin-profile-chips>.profile-view-cabin-profile--desktop-only {
     position: relative;
   }
-  .profile-spaceship-root .profile-view-cabin-profile-chips > .profile-view-cabin-profile--desktop-only::before {
+
+  .profile-spaceship-root .profile-view-cabin-profile-chips>.profile-view-cabin-profile--desktop-only::before {
     content: '';
     position: absolute;
     inset: 0;
@@ -8046,13 +8249,16 @@
 
 /* ===== Desktop anti-clipping lock: profile header + right cards ===== */
 @media (min-width: 1181px) {
+
   /* Header wrapper: no layout on desktop, grid sees avatar-col + profile-meta */
   .profile-spaceship-root .profile-view-cabin-header-content {
     display: contents !important;
   }
+
   .profile-spaceship-root .profile-view-cabin-header-actions {
     display: none !important;
   }
+
   /* Social-style left header: bigger avatar, smaller name, actions under avatar */
   .profile-spaceship-root .profile-view-cabin-left--profile-collapsed,
   .profile-spaceship-root .profile-view-cabin-left--profile-expanded {
@@ -8090,6 +8296,7 @@
     cursor: pointer;
     box-shadow: 0 10px 20px rgba(1, 6, 14, 0.48), 0 0 16px rgba(var(--cabin-neon-cyan-rgb), 0.18);
   }
+
   .profile-spaceship-root .profile-view-cabin-avatar-upload:hover,
   .profile-spaceship-root .profile-view-cabin-avatar-upload:focus-visible {
     outline: none;
@@ -8317,10 +8524,12 @@
 
 /* ===== Mobile cabin adaptation (max-width: 1180px) - desktop unchanged ===== */
 @media (max-width: 1180px) {
+
   /* Обычный скролл страницы, консоль в потоке */
   .profile-view-mobile-where-panel {
     display: none !important;
   }
+
   /* 1. Layout: remove right from grid, add padding for bottom stack */
   .profile-spaceship-root {
     --cabin-right-mobile-height: 0px;
@@ -8338,9 +8547,7 @@
     gap: 20px !important;
     padding-left: 14px !important;
     padding-right: 14px !important;
-    padding-bottom: calc(
-      var(--mobile-nav-height, 68px) + 24px + env(safe-area-inset-bottom) + 12px
-    ) !important;
+    padding-bottom: calc(var(--mobile-nav-height, 68px) + 24px + env(safe-area-inset-bottom) + 12px) !important;
     overflow-x: hidden !important;
     max-width: 100% !important;
   }
@@ -8350,6 +8557,7 @@
   .profile-spaceship-root {
     --cabin-right-mobile-width: min(240px, 82vw);
   }
+
   .profile-spaceship-root .profile-view-cabin-right {
     position: fixed !important;
     max-height: none !important;
@@ -8398,6 +8606,7 @@
       inset 0 0 20px rgba(255, 255, 255, 0.04) !important;
     border-color: rgba(var(--cabin-neon-cyan-rgb), 0.4) !important;
   }
+
   .profile-spaceship-root .profile-view-cabin-right.profile-view-cabin-right--nav-expanded .profile-view-cabin-nav-btn--wide:hover,
   .profile-spaceship-root .profile-view-cabin-right.profile-view-cabin-right--nav-expanded .profile-view-cabin-nav-btn--wide:focus-visible {
     box-shadow:
@@ -8406,6 +8615,7 @@
       inset 0 0 24px rgba(255, 255, 255, 0.06) !important;
     border-color: rgba(var(--cabin-neon-cyan-rgb), 0.6) !important;
   }
+
   .profile-spaceship-root .profile-view-cabin-right.profile-view-cabin-right--nav-expanded .profile-view-cabin-nav-btn--wide.profile-view-cabin-nav-btn--active {
     box-shadow:
       0 2px 10px rgba(0, 0, 0, 0.35),
@@ -8422,6 +8632,7 @@
     pointer-events: none !important;
     animation: profile-cabin-nav-overlay-in 0.3s ease-out !important;
   }
+
   .profile-view-cabin-nav-overlay::before {
     content: '' !important;
     position: absolute !important;
@@ -8429,6 +8640,7 @@
     background: rgba(0, 0, 0, 0.6) !important;
     pointer-events: none !important;
   }
+
   .profile-view-cabin-nav-overlay__backdrop {
     position: absolute !important;
     left: 0 !important;
@@ -8441,8 +8653,13 @@
   }
 
   @keyframes profile-cabin-nav-overlay-in {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
   }
 
   /* Toggle button: fixed, isolated — violet glow, neon arrow */
@@ -8507,41 +8724,50 @@
     justify-content: center !important;
     animation: cabin-nav-toggle-icon-pulse 2.2s ease-in-out infinite !important;
   }
+
   .profile-view-cabin-nav-toggle-icon svg {
     width: 22px !important;
     height: 22px !important;
     color: #e8d5ff !important;
     filter:
-      drop-shadow(0 0 3px rgba(168, 85, 247, 0.9))
-      drop-shadow(0 0 8px rgba(168, 85, 247, 0.6))
-      drop-shadow(0 0 14px rgba(168, 85, 247, 0.35)) !important;
+      drop-shadow(0 0 3px rgba(168, 85, 247, 0.9)) drop-shadow(0 0 8px rgba(168, 85, 247, 0.6)) drop-shadow(0 0 14px rgba(168, 85, 247, 0.35)) !important;
     transition: transform 0.25s cubic-bezier(0.34, 1.2, 0.64, 1), filter 0.25s ease !important;
   }
+
   .profile-view-cabin-nav-toggle:hover .profile-view-cabin-nav-toggle-icon svg,
   .profile-view-cabin-nav-toggle:focus-visible .profile-view-cabin-nav-toggle-icon svg {
     transform: scale(1.12) !important;
     filter:
-      drop-shadow(0 0 4px rgba(168, 85, 247, 1))
-      drop-shadow(0 0 12px rgba(168, 85, 247, 0.8))
-      drop-shadow(0 0 20px rgba(168, 85, 247, 0.5)) !important;
+      drop-shadow(0 0 4px rgba(168, 85, 247, 1)) drop-shadow(0 0 12px rgba(168, 85, 247, 0.8)) drop-shadow(0 0 20px rgba(168, 85, 247, 0.5)) !important;
   }
+
   .profile-view-cabin-nav-toggle:hover .profile-view-cabin-nav-toggle-icon--left svg,
   .profile-view-cabin-nav-toggle:focus-visible .profile-view-cabin-nav-toggle-icon--left svg {
     transform: translateX(-1px) scale(1.12) !important;
   }
+
   .profile-view-cabin-nav-toggle:hover .profile-view-cabin-nav-toggle-icon--right svg,
   .profile-view-cabin-nav-toggle:focus-visible .profile-view-cabin-nav-toggle-icon--right svg {
     transform: translateX(1px) scale(1.12) !important;
   }
+
   @keyframes cabin-nav-toggle-icon-pulse {
-    0%, 100% { opacity: 0.92; }
-    50% { opacity: 1; }
+
+    0%,
+    100% {
+      opacity: 0.92;
+    }
+
+    50% {
+      opacity: 1;
+    }
   }
 
   /* Кнопка над nav со стрелкой вверх — только на мобиле (≤768), выше mobile-bottom-nav */
   .profile-view-mobile-nav-arrow-up {
     display: none !important;
   }
+
   @media (max-width: 768px) {
     .profile-view-mobile-nav-arrow-up {
       display: flex !important;
@@ -8572,6 +8798,7 @@
       contain: layout style paint !important;
       transition: background 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease !important;
     }
+
     .profile-view-mobile-nav-arrow-up:hover,
     .profile-view-mobile-nav-arrow-up:focus-visible {
       background: rgba(168, 85, 247, 0.18) !important;
@@ -8583,6 +8810,7 @@
         inset 0 0 24px rgba(168, 85, 247, 0.08) !important;
       outline: none !important;
     }
+
     .profile-view-mobile-nav-arrow-up:active {
       background: rgba(168, 85, 247, 0.25) !important;
       box-shadow:
@@ -8590,27 +8818,26 @@
         0 0 16px rgba(168, 85, 247, 0.4),
         inset 0 0 16px rgba(168, 85, 247, 0.1) !important;
     }
+
     .profile-view-mobile-nav-arrow-up__icon {
       display: flex !important;
       align-items: center !important;
       justify-content: center !important;
     }
+
     .profile-view-mobile-nav-arrow-up__icon svg {
       width: 22px !important;
       height: 22px !important;
       color: #e8d5ff !important;
       filter:
-        drop-shadow(0 0 3px rgba(168, 85, 247, 0.9))
-        drop-shadow(0 0 8px rgba(168, 85, 247, 0.6))
-        drop-shadow(0 0 14px rgba(168, 85, 247, 0.35)) !important;
+        drop-shadow(0 0 3px rgba(168, 85, 247, 0.9)) drop-shadow(0 0 8px rgba(168, 85, 247, 0.6)) drop-shadow(0 0 14px rgba(168, 85, 247, 0.35)) !important;
       transition: filter 0.25s ease !important;
     }
+
     .profile-view-mobile-nav-arrow-up:hover .profile-view-mobile-nav-arrow-up__icon svg,
     .profile-view-mobile-nav-arrow-up:focus-visible .profile-view-mobile-nav-arrow-up__icon svg {
       filter:
-        drop-shadow(0 0 4px rgba(168, 85, 247, 1))
-        drop-shadow(0 0 12px rgba(168, 85, 247, 0.8))
-        drop-shadow(0 0 20px rgba(168, 85, 247, 0.5)) !important;
+        drop-shadow(0 0 4px rgba(168, 85, 247, 1)) drop-shadow(0 0 12px rgba(168, 85, 247, 0.8)) drop-shadow(0 0 20px rgba(168, 85, 247, 0.5)) !important;
     }
   }
 
@@ -8845,6 +9072,7 @@
       transform: translateY(100%) !important;
       transition: opacity 0.25s ease, visibility 0.25s ease, transform 0.25s ease !important;
     }
+
     .profile-spaceship-root:not(.profile-spaceship-root--console-portal) .profile-view-console.profile-view-console--mobile-expanded {
       opacity: 1 !important;
       visibility: visible !important;
@@ -8938,6 +9166,7 @@
       width: 0.35em !important;
       overflow: hidden !important;
     }
+
     .profile-spaceship-root .profile-view-console .console-btn-wrap .console-btn .console-btn-bubble-label br::before {
       content: '\00a0' !important;
     }
@@ -8990,9 +9219,7 @@
     }
 
     .profile-spaceship-root .profile-view-cabin-layout {
-      padding-bottom: calc(
-        var(--console-mobile-height) + 20px + var(--mobile-nav-height, 68px) + env(safe-area-inset-bottom) + 24px
-      ) !important;
+      padding-bottom: calc(var(--console-mobile-height) + 20px + var(--mobile-nav-height, 68px) + env(safe-area-inset-bottom) + 24px) !important;
       overflow-x: hidden !important;
     }
 
@@ -9052,6 +9279,7 @@
   .profile-spaceship-root .profile-view-cabin-top--offset {
     transform: none !important;
   }
+
   .profile-spaceship-root .profile-view-cabin-center--offset {
     transform: translateY(10px) !important;
   }
@@ -9066,6 +9294,7 @@
     .profile-spaceship-root .profile-view-cabin-center-wrap {
       transform: translateY(18px) !important;
     }
+
     .profile-spaceship-root .profile-view-cabin-layout:has(.profile-view-cabin-center--squad-corner) .profile-view-cabin-center-wrap {
       transform: none !important;
     }
@@ -9217,6 +9446,7 @@
       0 0 24px rgba(var(--cabin-neon-magenta-rgb), 0.18),
       0 0 16px rgba(var(--cabin-neon-cyan-rgb), 0.12) !important;
   }
+
   .profile-spaceship-root .profile-view-cabin-left--profile-collapsed .profile-view-cabin-card-progress-wrap--thick .profile-view-cabin-card-progress {
     box-shadow: 0 0 16px rgba(var(--cabin-neon-cyan-rgb), 0.34) !important;
   }
@@ -9307,6 +9537,7 @@
   .profile-spaceship-root .profile-view-cabin-center {
     align-items: stretch !important;
   }
+
   .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--hub .profile-view-cabin-tabs-docked,
   .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--squad-corner .profile-view-cabin-tabs-docked,
   .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--real-diary .profile-view-cabin-tabs-docked,
@@ -9335,8 +9566,9 @@
     align-items: stretch !important;
     justify-content: stretch !important;
   }
+
   /* Nav (single child) must fill tabs-docked width */
-  .profile-spaceship-root .profile-view-cabin-center .profile-view-cabin-tabs-docked > .profile-tabs-nav {
+  .profile-spaceship-root .profile-view-cabin-center .profile-view-cabin-tabs-docked>.profile-tabs-nav {
     flex: 1 1 0% !important;
     min-width: 0 !important;
     width: 100% !important;
@@ -9468,6 +9700,7 @@
 
 /* Tablet only (768-1180px): cabin center tabs in one row, equal width (override mobile grid above) */
 @media (min-width: 768px) and (max-width: 1180px) {
+
   /* Чёрная дымка за ником и статусом в свёрнутом профиле (mobile-only ветка) — только на планшете */
   .profile-spaceship-root .profile-view-cabin-left--profile-collapsed .profile-view-cabin-profile--mobile-only .profile-view-cabin-profile-primary {
     position: relative !important;
@@ -9475,6 +9708,7 @@
     max-width: 100% !important;
     align-self: flex-start !important;
   }
+
   .profile-spaceship-root .profile-view-cabin-left--profile-collapsed .profile-view-cabin-profile--mobile-only .profile-view-cabin-profile-primary::before {
     content: '' !important;
     position: absolute !important;
@@ -9489,6 +9723,7 @@
   .profile-spaceship-root .profile-view-cabin-layout {
     padding-bottom: calc(48px + env(safe-area-inset-bottom)) !important;
   }
+
   .profile-spaceship-root .profile-view-cabin-center-scroll {
     padding-bottom: calc(4px + env(safe-area-inset-bottom)) !important;
     scroll-padding-bottom: calc(4px + env(safe-area-inset-bottom));
@@ -9564,6 +9799,7 @@
 
 /* Desktop: hide mobile cabin nav toggle and overlay (only used on mobile) */
 @media (min-width: 1181px) {
+
   .profile-view-cabin-nav-toggle,
   .profile-view-cabin-nav-overlay {
     display: none !important;
@@ -9572,11 +9808,9 @@
 
 /* Центральная панель кабины — прозрачная (без размытия, фон виден чётко) */
 .profile-spaceship-root .profile-view-cabin-center {
-  background: linear-gradient(
-    165deg,
-    rgba(255, 255, 255, 0.04) 0%,
-    rgba(12, 28, 48, 0.08) 100%
-  ) !important;
+  background: linear-gradient(165deg,
+      rgba(255, 255, 255, 0.04) 0%,
+      rgba(12, 28, 48, 0.08) 100%) !important;
   border: 1px solid rgba(255, 255, 255, 0.1) !important;
   box-shadow:
     0 0 0 1px rgba(255, 255, 255, 0.04) inset,

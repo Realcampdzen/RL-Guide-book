@@ -8,7 +8,8 @@ export type ImageContextId =
   | 'squad_photo'
   | 'wing_avatar'
   | 'passport_avatar'
-  | 'workshop_badge';
+  | 'workshop_badge'
+  | 'diary_photo';
 
 export interface ImageSourceBlockLabels {
   title?: string;
@@ -97,6 +98,11 @@ const DEFAULT_LABELS: Record<ImageContextId, ImageSourceBlockLabels> = {
     processModalTitle: 'Обработать изображение ИИ',
     processModalDescription: 'Загрузите фото и при необходимости опишите правки.',
   },
+  diary_photo: {
+    upload: 'Добавить фото',
+    uploadReplace: 'Изменить фото',
+    placeholder: 'Фото',
+  },
 };
 
 export type GerbStyle = 'cyberpunk' | 'cosmos' | 'realism';
@@ -128,7 +134,7 @@ export interface ImageSourceBlockProps {
   /** Hide the preview block when parent shows avatar separately */
   hidePreview?: boolean;
   /** 'row' = buttons in a row (default), 'column' = stacked vertically */
-  buttonLayout?: 'row' | 'column';
+  buttonLayout?: 'row' | 'column' | 'bento';
 }
 
 const isImageUrl = (s: string | null | undefined): s is string =>
@@ -178,7 +184,35 @@ export const ImageSourceBlock: React.FC<ImageSourceBlockProps> = ({
     const file = e.target.files?.[0];
     if (file) {
       const r = new FileReader();
-      r.onload = () => onChange(r.result as string);
+      r.onload = () => {
+        const dataUrl = r.result as string;
+        // Compress image via canvas to avoid localStorage quota issues
+        const img = new Image();
+        img.onload = () => {
+          const MAX_DIM = 800;
+          const QUALITY = 0.7;
+          let { width, height } = img;
+          if (width > MAX_DIM || height > MAX_DIM) {
+            if (width > height) {
+              height = Math.round(height * (MAX_DIM / width));
+              width = MAX_DIM;
+            } else {
+              width = Math.round(width * (MAX_DIM / height));
+              height = MAX_DIM;
+            }
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) { onChange(dataUrl); return; }
+          ctx.drawImage(img, 0, 0, width, height);
+          const compressed = canvas.toDataURL('image/jpeg', QUALITY);
+          onChange(compressed.length < dataUrl.length ? compressed : dataUrl);
+        };
+        img.onerror = () => onChange(dataUrl); // fallback to raw if compression fails
+        img.src = dataUrl;
+      };
       r.readAsDataURL(file);
     }
     e.target.value = '';
@@ -295,15 +329,28 @@ export const ImageSourceBlock: React.FC<ImageSourceBlockProps> = ({
         ? { width: 120, height: 213, borderRadius: 12 }
         : { width: 120, height: 80, borderRadius: 12 };
 
-  const buttonsContainerStyle: React.CSSProperties = {
-    display: 'flex',
-    flexDirection: buttonLayout === 'column' ? 'column' : 'row',
-    gap: 8,
-    flexWrap: buttonLayout === 'column' ? 'nowrap' : 'wrap',
+  const buttonsContainerStyle: React.CSSProperties = buttonLayout === 'bento'
+    ? { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }
+    : {
+      display: 'flex',
+      flexDirection: buttonLayout === 'column' ? 'column' : 'row',
+      gap: 8,
+      flexWrap: buttonLayout === 'column' ? 'nowrap' : 'wrap',
+    };
+
+  const bentoCell: React.CSSProperties = {
+    padding: '12px 10px', borderRadius: 14,
+    background: 'rgba(8, 20, 40, 0.40)',
+    backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)',
+    border: '1px solid rgba(93, 228, 255, 0.10)',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
   };
 
   return (
-    <div className={className} style={{ display: 'flex', flexDirection: buttonLayout === 'column' ? 'column' : 'row', alignItems: buttonLayout === 'column' ? 'stretch' : 'center', gap: 12, flexWrap: 'wrap' }}>
+    <div className={className} style={buttonLayout === 'bento'
+      ? { display: 'grid', gap: 12 }
+      : { display: 'flex', flexDirection: buttonLayout === 'column' ? 'column' : 'row', alignItems: buttonLayout === 'column' ? 'stretch' : 'center', gap: 12, flexWrap: 'wrap' }
+    }>
       {!hidePreview && (
         <div
           style={{
@@ -324,57 +371,34 @@ export const ImageSourceBlock: React.FC<ImageSourceBlockProps> = ({
               style={{ width: '100%', height: '100%', objectFit: 'cover' }}
             />
           ) : (
-            <span style={{ fontSize: 11, opacity: 0.5 }}>{labels.placeholder ?? 'Фото'}</span>
+            <span style={{ fontSize: 11, opacity: 0.5, textAlign: 'center', padding: '0 4px' }}>{labels.placeholder ?? 'Фото'}</span>
           )}
         </div>
       )}
       <div style={buttonsContainerStyle}>
-        <button
-          type="button"
-          onClick={() => fileInputRef.current?.click()}
-          className="btn-secondary"
-          style={{ padding: '8px 14px', fontSize: 12 }}
-        >
-          {uploadLabel}
-        </button>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          style={{ display: 'none' }}
-          onChange={handleUpload}
-        />
-        {showGenerate && (
-          <button
-            type="button"
-            onClick={openModal}
-            disabled={!expensiveActionsAllowed}
-            style={{
-              padding: '8px 14px',
-              fontSize: 12,
-              background: 'rgba(255, 215, 0, 0.15)',
-              border: '1px solid rgba(255, 215, 0, 0.5)',
-              color: '#FFD700',
-              borderRadius: 10,
-              fontWeight: 600,
-              cursor: expensiveActionsAllowed ? 'pointer' : 'not-allowed',
-              opacity: expensiveActionsAllowed ? 1 : 0.55,
-            }}
-          >
-            {labels.generate ?? 'Сгенерировать'}
-          </button>
-        )}
-        {showProcess && (
-          <button
-            type="button"
-            aria-label="Обработать изображение с помощью ИИ"
-            onClick={openProcessModal}
-            className="btn-secondary"
-            disabled={!expensiveActionsAllowed}
-            style={{ padding: '8px 14px', fontSize: 12, opacity: expensiveActionsAllowed ? 1 : 0.55, cursor: expensiveActionsAllowed ? 'pointer' : 'not-allowed' }}
-          >
-            {labels.process ?? 'Обработать ИИ'}
-          </button>
+        {/* In bento: AI buttons on top row, upload full-width bottom. Otherwise: original order */}
+        {buttonLayout === 'bento' ? (
+          <>
+            {showGenerate && (
+              <button type="button" className="btn-secondary" onClick={openModal} disabled={!expensiveActionsAllowed} style={{ ...bentoCell, padding: '12px 14px', fontSize: 12, background: 'rgba(255,215,0,0.12)', border: '1px solid rgba(255,215,0,0.35)', color: '#FFD700', fontWeight: 600, cursor: expensiveActionsAllowed ? 'pointer' : 'not-allowed', opacity: expensiveActionsAllowed ? 1 : 0.55 }}>{labels.generate ?? 'Сгенерировать'}</button>
+            )}
+            {showProcess && (
+              <button type="button" className="btn-secondary" aria-label="Обработать изображение с помощью ИИ" onClick={openProcessModal} disabled={!expensiveActionsAllowed} style={{ ...bentoCell, padding: '12px 14px', fontSize: 12, cursor: expensiveActionsAllowed ? 'pointer' : 'not-allowed', opacity: expensiveActionsAllowed ? 1 : 0.55, color: '#fff' }}>{labels.process ?? 'Обработать ИИ'}</button>
+            )}
+            <button type="button" className="btn-secondary" onClick={() => fileInputRef.current?.click()} style={{ ...bentoCell, gridColumn: '1 / -1', padding: '12px 14px', fontSize: 12, cursor: 'pointer', color: '#fff' }}>{uploadLabel}</button>
+            <input ref={fileInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleUpload} />
+          </>
+        ) : (
+          <>
+            <button type="button" onClick={() => fileInputRef.current?.click()} className="btn-secondary" style={{ padding: '8px 14px', fontSize: 12 }}>{uploadLabel}</button>
+            <input ref={fileInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleUpload} />
+            {showGenerate && (
+              <button type="button" onClick={openModal} disabled={!expensiveActionsAllowed} style={{ padding: '8px 14px', fontSize: 12, background: 'rgba(255,215,0,0.15)', border: '1px solid rgba(255,215,0,0.5)', color: '#FFD700', borderRadius: 10, fontWeight: 600, cursor: expensiveActionsAllowed ? 'pointer' : 'not-allowed', opacity: expensiveActionsAllowed ? 1 : 0.55 }}>{labels.generate ?? 'Сгенерировать'}</button>
+            )}
+            {showProcess && (
+              <button type="button" aria-label="Обработать изображение с помощью ИИ" onClick={openProcessModal} className="btn-secondary" disabled={!expensiveActionsAllowed} style={{ padding: '8px 14px', fontSize: 12, opacity: expensiveActionsAllowed ? 1 : 0.55, cursor: expensiveActionsAllowed ? 'pointer' : 'not-allowed' }}>{labels.process ?? 'Обработать ИИ'}</button>
+            )}
+          </>
         )}
       </div>
       {aiActionsLocked && (

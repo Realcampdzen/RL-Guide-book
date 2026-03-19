@@ -151,12 +151,27 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({ onResult
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             padding: 16,
         }}>
-            <div style={{
+            <div
+                ref={(el) => {
+                    if (el) {
+                        // Hide webkit scrollbar via JS (no external CSS needed)
+                        const style = document.createElement('style');
+                        style.textContent = `[data-role-modal]::-webkit-scrollbar { display: none; }`;
+                        if (!document.querySelector('style[data-role-modal-style]')) {
+                            style.setAttribute('data-role-modal-style', '');
+                            document.head.appendChild(style);
+                        }
+                    }
+                }}
+                data-role-modal=""
+                style={{
                 width: '100%', maxWidth: 440, padding: 28, borderRadius: 20,
                 background: 'linear-gradient(180deg, rgba(30,27,60,0.95), rgba(15,12,35,0.95))',
                 border: '1px solid rgba(255,255,255,0.1)',
                 maxHeight: '90vh', overflowY: 'auto',
-            }}>
+                scrollbarWidth: 'none',           // Firefox
+                msOverflowStyle: 'none',           // IE / Edge legacy
+            } as React.CSSProperties}>
 
                 {/* ── Step 1: Role Selection ── */}
                 {step === 'select' && (
@@ -204,6 +219,24 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({ onResult
                             <div style={{ fontSize: 18, fontWeight: 800, color: '#f59e0b' }}>{roleLabel}</div>
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                            {import.meta.env.DEV && (
+                                <button type="button" onClick={() => {
+                                    if (selectedRole) {
+                                        try { localStorage.setItem(LS_KEY, selectedRole); } catch { /* */ }
+                                        // Sandbox: signal role change without fake accessToken.
+                                        // Using deviceId as accessToken caused 401s → clearAuth → role wiped.
+                                        onResult({ type: 'code-redeemed', role: selectedRole, accessToken: '' });
+                                    }
+                                }}
+                                    style={{
+                                        padding: '14px 16px', borderRadius: 12, border: '1px solid rgba(6,182,212,0.3)',
+                                        background: 'rgba(6,182,212,0.1)', cursor: 'pointer', textAlign: 'left',
+                                        transition: 'background 0.2s',
+                                    }}>
+                                    <div style={{ fontSize: 14, fontWeight: 600, color: '#06b6d4' }}>⚡ Песочница — переключить сразу</div>
+                                    <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)', marginTop: 2 }}>Dev-режим: мгновенная смена роли без кода</div>
+                                </button>
+                            )}
                             <button type="button" onClick={() => setStep('code')}
                                 style={{
                                     padding: '14px 16px', borderRadius: 12, border: 'none',

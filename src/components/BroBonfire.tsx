@@ -23,7 +23,11 @@ export const BroBonfire: React.FC<BroBonfireProps> = ({ onComplete, onCancel, us
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     return () => {
-      document.body.style.overflow = previousOverflow;
+      if (previousOverflow) {
+        document.body.style.overflow = previousOverflow;
+      } else {
+        document.body.style.removeProperty('overflow');
+      }
     };
   }, [usePortal]);
 
