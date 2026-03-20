@@ -9,6 +9,7 @@ import {
     loadMyBadgeRequests,
     type BadgeRequestItem,
 } from '../utils/badgeApprovalApi';
+import { fetchMyProposals, createWorkshopProposal, type WorkshopProposal } from '../utils/workshopProposalsApi';
 
 import { AdminDashboard } from './AdminDashboard';
 import { RealDiaryDashboard, type RealDiaryTabId } from './RealDiaryDashboard';
@@ -36,6 +37,8 @@ import { VozhatifikatorChecklist } from './VozhatifikatorChecklist';
 
 import { CommunityRankingPanel } from './CommunityRankingPanel';
 import { ArtInboxTab } from './ArtInboxTab';
+import { ImageSourceBlock } from './ImageSourceBlock';
+import { requestImageGenerate } from '../utils/imageGenerateApi';
 import { useTeam } from '../context/TeamContext';
 import { CampProgramByDays } from './CampProgramByDays';
 import { ShiftsAndSquadsDashboard } from './ShiftsAndSquadsDashboard';
@@ -252,6 +255,15 @@ export const PersonalCabinet: React.FC<{
     }, [accessToken, deviceId, isDev]);
     const effectiveToken = accessToken || ''; // pass empty to API fns when in sandbox
 
+    // Workshop proposals from API (used in "Мои проекты" tab)
+    const [cabinetProposals, setCabinetProposals] = useState<WorkshopProposal[]>([]);
+    useEffect(() => {
+        if (!effectiveToken) return;
+        let cancelled = false;
+        fetchMyProposals(effectiveToken).then(rows => { if (!cancelled) setCabinetProposals(rows); }).catch(() => {});
+        return () => { cancelled = true; };
+    }, [effectiveToken]);
+
     // Badge lookup map for image resolution (matches production pattern)
     const badgeLookupMap = React.useMemo(() => {
         const map = new Map<string, { title: string; emoji: string; category_id: string; level?: string }>();
@@ -274,6 +286,32 @@ export const PersonalCabinet: React.FC<{
     const [squadCornerTab, setSquadCornerTab] = useState<string>('squad');
     const [schedDay, setSchedDay] = useState(1);
     const [workshopTab, setWorkshopTab] = useState<string>('constructor');
+    const [wsProposalType, setWsProposalType] = useState<'badge' | 'category' | 'version'>('badge');
+    const [wsTitle, setWsTitle] = useState('');
+    const [wsDescription, setWsDescription] = useState('');
+    const [wsEmoji, setWsEmoji] = useState('');
+    const [wsBadgeId, setWsBadgeId] = useState('');
+    const [wsImage, setWsImage] = useState<string | null>(null);
+    const [wsBusy, setWsBusy] = useState(false);
+
+    const handleWsSubmit = async () => {
+        if (!wsTitle.trim() || !effectiveToken) return;
+        if (wsProposalType === 'version' && !wsBadgeId.trim()) return;
+        setWsBusy(true);
+        try {
+            const created = await createWorkshopProposal(effectiveToken, {
+                type: wsProposalType,
+                title: wsTitle.trim(),
+                description: wsDescription.trim() || undefined,
+                emoji: wsProposalType === 'category' ? (wsEmoji.trim() || '📁') : undefined,
+                badgeId: wsProposalType === 'version' ? wsBadgeId.trim() : undefined,
+                image: wsImage || undefined,
+            });
+            setCabinetProposals(prev => [created, ...prev]);
+            setWsTitle(''); setWsDescription(''); setWsEmoji(''); setWsBadgeId(''); setWsImage(null);
+        } catch (_) { /* handled silently */ }
+        setWsBusy(false);
+    };
     const [shareTab, setShareTab] = useState<'invite' | 'qr'>('invite');
     const [parentsTab, setParentsTab] = useState<'program' | 'child' | 'contacts'>('program');
     const [eventsTab, setEventsTab] = useState<'requests' | 'announcements' | 'tasks'>('requests');
@@ -1708,107 +1746,230 @@ export const PersonalCabinet: React.FC<{
                                     )}
                                 </div>
                             ) : activeSection === 'workshop' ? (
-                                <div key="workshop" className="fade-in" style={{
-                                    display: 'flex', flexDirection: 'column' as const, gap: 16,
-                                }}>
-                                    {/* Workshop tab nav */}
-                                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                                        {[
-                                            { id: 'constructor', label: '🛠️ Конструктор' },
-                                            { id: 'arts', label: '🎨 Арты' },
-                                            { id: 'my', label: '📋 Мои' },
-                                            { id: 'community', label: '🏆 Сообщество' },
-                                        ].map(tab => (
-                                            <button key={tab.id} type="button"
-                                                onClick={() => setWorkshopTab(tab.id)}
-                                                style={{
-                                                    padding: '8px 16px', borderRadius: 8,
-                                                    border: workshopTab === tab.id ? '1px solid rgba(93,228,255,0.6)' : '1px solid rgba(255,255,255,0.15)',
-                                                    background: workshopTab === tab.id ? 'rgba(93, 228, 255, 0.25)' : 'rgba(255,255,255,0.06)',
-                                                    color: workshopTab === tab.id ? '#5de4ff' : 'rgba(255,255,255,0.6)',
-                                                    fontSize: 13, fontWeight: 600, cursor: 'pointer',
-                                                    fontFamily: FONT, transition: 'all 0.15s',
-                                                }}>
-                                                {tab.label}
-                                            </button>
-                                        ))}
-                                    </div>
+                                <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 16 }}>
+
 
                                     {/* Конструктор */}
                                     {workshopTab === 'constructor' && (
-                                        <div style={{
-                                            padding: 20, borderRadius: 14,
-                                            background: 'rgba(8, 20, 40, 0.15)',
-                                            border: '1px solid rgba(93, 228, 255, 0.12)',
+                                        <div key="ws-constructor" className="fade-in cab-card" style={{
+                                            padding: '28px 32px', borderRadius: 20, maxWidth: 680,
+                                            display: 'flex', flexDirection: 'column', gap: 24,
                                         }}>
-                                            <h3 style={{ color: '#FFD700', marginTop: 0, fontSize: 16 }}>🛠️ Конструктор</h3>
-                                            <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', marginBottom: 12 }}>
-                                                Предложи новый значок, категорию или версию значка. Всё пройдёт проверку вожатым.
-                                            </p>
-                                            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                                                <span style={{ padding: '6px 12px', borderRadius: 8, background: 'rgba(255,215,0,0.15)', color: '#FFD700', fontSize: 12, border: '1px solid rgba(255,215,0,0.3)' }}>🏅 Новый значок</span>
-                                                <span style={{ padding: '6px 12px', borderRadius: 8, background: 'rgba(93,228,255,0.1)', color: '#5de4ff', fontSize: 12, border: '1px solid rgba(93,228,255,0.25)' }}>📁 Новая категория</span>
-                                                <span style={{ padding: '6px 12px', borderRadius: 8, background: 'rgba(139,92,246,0.1)', color: '#a78bfa', fontSize: 12, border: '1px solid rgba(139,92,246,0.25)' }}>🔄 Версия значка</span>
+                                            {/* Header */}
+                                            <div>
+                                                <h3 style={{ 
+                                                    margin: '0 0 8px 0', fontSize: 18, fontWeight: 700, color: '#e8f0ff',
+                                                    letterSpacing: '-0.01em', display: 'flex', alignItems: 'center', gap: 8
+                                                }}>
+                                                    <span style={{ fontSize: 20 }}>✨</span> Конструктор
+                                                </h3>
+                                                <p style={{ margin: 0, fontSize: 13, color: 'rgba(255,255,255,0.6)', lineHeight: 1.5 }}>
+                                                    Предложи свой значок, категорию или версию. Всё пройдёт проверку вожатым. Ваши лучшие идеи попадут в путеводитель!
+                                                </p>
                                             </div>
-                                            <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', marginTop: 10, marginBottom: 0 }}>
-                                                Полный конструктор с AI-помощником доступен в основном кабинете.
-                                            </p>
+
+                                            {/* Type selector */}
+                                            <div>
+                                                <div style={{ 
+                                                    display: 'inline-flex', gap: 4, padding: 4, borderRadius: 12, 
+                                                    background: 'rgba(0,0,0,0.25)', border: '1px solid rgba(255,255,255,0.05)',
+                                                    flexWrap: 'wrap'
+                                                }}>
+                                                    {([['badge', 'Новый значок'], ['category', 'Категория'], ['version', 'Версия']] as const).map(([type, label]) => (
+                                                        <button key={type} type="button"
+                                                            className={wsProposalType === type ? 'cab-btn-accent-sm' : ''}
+                                                            onClick={() => setWsProposalType(type)}
+                                                            style={wsProposalType === type ? { padding: '8px 16px', borderRadius: 8 } : {
+                                                                padding: '8px 16px', borderRadius: 8,
+                                                                fontSize: 13, fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s',
+                                                                background: 'transparent',
+                                                                color: 'rgba(255,255,255,0.6)',
+                                                                border: 'none',
+                                                            }}>
+                                                            {label}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                                <p style={{ margin: '8px 0 0 4px', fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>
+                                                    {wsProposalType === 'badge' ? 'Предложи оригинальный значок в любую категорию'
+                                                        : wsProposalType === 'category' ? 'Предложи новую масштабную категорию для значков'
+                                                        : 'Предложи альтернативную версию существующего значка (например, новогоднюю)'}
+                                                </p>
+                                            </div>
+
+                                            {/* Form common input styles setup */}
+                                            {(() => {
+                                                const labelStyle = { 
+                                                    display: 'block', fontSize: 12, fontWeight: 800, 
+                                                    color: 'rgba(255,255,255,0.85)', textTransform: 'uppercase' as const, 
+                                                    letterSpacing: '0.05em', marginBottom: 8 
+                                                };
+                                                const activeClass = wsProposalType === 'badge' ? 'cab-input--cyan' : wsProposalType === 'category' ? 'cab-input--purple' : 'cab-input--pink';
+
+                                                return (
+                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                                                        {wsProposalType === 'badge' && (
+                                                            <>
+                                                                <div>
+                                                                    <label style={labelStyle}>Название значка</label>
+                                                                    <input value={wsTitle} onChange={e => setWsTitle(e.target.value)}
+                                                                        placeholder="Например: Мастер костра" 
+                                                                        className={`cab-input ${activeClass}`} />
+                                                                </div>
+                                                                <div>
+                                                                    <label style={labelStyle}>Описание и критерии</label>
+                                                                    <textarea value={wsDescription} onChange={e => setWsDescription(e.target.value)}
+                                                                        placeholder="За что выдаётся этот значок? Какие задания нужно выполнить?" 
+                                                                        className={`cab-input ${activeClass}`} style={{ minHeight: 100, resize: 'vertical' }} />
+                                                                </div>
+                                                            </>
+                                                        )}
+
+                                                        {wsProposalType === 'category' && (
+                                                            <>
+                                                                <div>
+                                                                    <label style={labelStyle}>Название категории</label>
+                                                                    <input value={wsTitle} onChange={e => setWsTitle(e.target.value)}
+                                                                        placeholder="Например: Спортивные достижения" 
+                                                                        className={`cab-input ${activeClass}`} />
+                                                                </div>
+                                                                <div>
+                                                                    <label style={labelStyle}>Описание</label>
+                                                                    <textarea value={wsDescription} onChange={e => setWsDescription(e.target.value)}
+                                                                        placeholder="Пиши суть. Какие значки будут в этой категории?" 
+                                                                        className={`cab-input ${activeClass}`} style={{ minHeight: 80, resize: 'vertical' }} />
+                                                                </div>
+                                                            </>
+                                                        )}
+
+                                                        {wsProposalType === 'version' && (
+                                                            <>
+                                                                <div style={{ display: 'flex', gap: 12 }}>
+                                                                    <div style={{ flex: 1 }}>
+                                                                        <label style={labelStyle}>ID оригинала</label>
+                                                                        <input value={wsBadgeId} onChange={e => setWsBadgeId(e.target.value)}
+                                                                            placeholder="Например: 1.1" 
+                                                                            className={`cab-input ${activeClass}`} />
+                                                                    </div>
+                                                                    <div style={{ flex: 2 }}>
+                                                                        <label style={labelStyle}>Название версии</label>
+                                                                        <input value={wsTitle} onChange={e => setWsTitle(e.target.value)}
+                                                                            placeholder="Новогодняя искра" 
+                                                                            className={`cab-input ${activeClass}`} />
+                                                                    </div>
+                                                                </div>
+                                                                <div>
+                                                                    <label style={labelStyle}>Отличия и условия</label>
+                                                                    <textarea value={wsDescription} onChange={e => setWsDescription(e.target.value)}
+                                                                        placeholder="В чём особенность этой версии?" 
+                                                                        className={`cab-input ${activeClass}`} style={{ minHeight: 80, resize: 'vertical' }} />
+                                                                </div>
+                                                            </>
+                                                        )}
+
+                                                        {/* Image Uploader */}
+                                                        <div>
+                                                            <label style={labelStyle}>Изображение (Опционально)</label>
+                                                            <div style={{
+                                                                padding: '16px', borderRadius: 16, background: 'rgba(0,0,0,0.15)',
+                                                                border: '1px dashed rgba(255,255,255,0.06)'
+                                                            }}>
+                                                                <ImageSourceBlock
+                                                                    context="workshop_badge"
+                                                                    value={wsImage}
+                                                                    onChange={(url) => setWsImage(url)}
+                                                                    aspect="free"
+                                                                    onGenerate={async (opts) =>
+                                                                        requestImageGenerate({ mode: 'generate', context: 'workshop', prompt: opts.prompt ?? '' }, effectiveToken || null)
+                                                                    }
+                                                                    onProcess={async (imageBase64, opts) =>
+                                                                        requestImageGenerate({ mode: 'process', context: 'workshop', imageBase64, prompt: opts?.prompt ?? '' }, effectiveToken || null)
+                                                                    }
+                                                                />
+                                                                {wsImage && (
+                                                                    <div style={{ display: 'flex', justifyContent: 'center', marginTop: 12 }}>
+                                                                        <button type="button" className="cab-btn cab-btn--danger"
+                                                                            onClick={() => setWsImage(null)}>
+                                                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                                                            Удалить
+                                                                        </button>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Submit Button */}
+                                                        <div style={{ display: 'flex', justifyContent: 'flex-start', marginTop: 8 }}>
+                                                            <button onClick={handleWsSubmit} 
+                                                                disabled={!wsTitle.trim() || (wsProposalType === 'version' && !wsBadgeId.trim()) || wsBusy}
+                                                                className="cab-btn-accent">
+                                                                {wsBusy ? 'Отправка...' : 'Отправить на проверку'}
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })()}
                                         </div>
                                     )}
 
                                     {/* Арты */}
                                     {workshopTab === 'arts' && (
-                                        <div style={{
-                                            padding: 20, borderRadius: 14,
-                                            background: 'rgba(8, 20, 40, 0.15)',
-                                            border: '1px solid rgba(93, 228, 255, 0.12)',
+                                        <div key="ws-arts" className="fade-in cab-card" style={{
+                                            padding: '28px 32px', borderRadius: 20, maxWidth: 680,
+                                            display: 'flex', flexDirection: 'column', gap: 16,
                                         }}>
-                                            <h3 style={{ color: '#FFD700', marginTop: 0, fontSize: 16 }}>🎨 Арты и скины</h3>
-                                            <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', marginBottom: 12 }}>
-                                                Сгенерируй арт для значка с помощью ИИ или загрузи свой.
-                                            </p>
-                                            <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>
-                                                AI-генерация доступна в основном кабинете.
-                                            </p>
+                                            <div>
+                                                <h3 style={{ 
+                                                    margin: '0 0 8px 0', fontSize: 18, fontWeight: 700, color: '#e8f0ff',
+                                                    letterSpacing: '-0.01em', display: 'flex', alignItems: 'center', gap: 8
+                                                }}>
+                                                    Арты и скины
+                                                </h3>
+                                                <p style={{ margin: 0, fontSize: 13, color: 'rgba(255,255,255,0.6)', lineHeight: 1.5 }}>
+                                                    Сгенерируй арт для значка с помощью ИИ или загрузи свой.<br/>
+                                                    <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>AI-генерация доступна в основном кабинете.</span>
+                                                </p>
+                                            </div>
                                             {accessToken && <ArtInboxTab accessToken={accessToken} />}
                                         </div>
                                     )}
 
                                     {/* Мои проекты */}
                                     {workshopTab === 'my' && (() => {
-                                        let allProposals: any[] = [];
-                                        try {
-                                            const raw = localStorage.getItem('rl_guide_progress_v1');
-                                            const data = raw ? JSON.parse(raw) : {};
-                                            allProposals = data.workshopProposals || [];
-                                        } catch (_) { /* ignore */ }
                                         const combined = [
-                                            ...allProposals.map((p: any) => ({ ...p, source: 'proposal' })),
+                                            ...cabinetProposals.map((p: any) => ({ ...p, source: 'proposal' })),
                                             ...customBadges.map((b: any) => ({ ...b, source: 'badge', type: 'badge', status: 'active' })),
                                         ];
                                         return (
-                                            <div style={{
-                                                padding: 20, borderRadius: 14,
-                                                background: 'rgba(8, 20, 40, 0.15)',
-                                                border: '1px solid rgba(93, 228, 255, 0.12)',
+                                            <div key="ws-my" className="fade-in cab-card" style={{
+                                                padding: '28px 32px', borderRadius: 20, maxWidth: 680,
+                                                display: 'flex', flexDirection: 'column', gap: 16,
                                             }}>
-                                                <h3 style={{ color: '#e8f0ff', marginTop: 0, fontSize: 16 }}>Мои проекты</h3>
-                                                {combined.length === 0 ? (
-                                                    <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)' }}>
-                                                        Пока нет проектов. Создай первый в Конструкторе.
-                                                    </p>
-                                                ) : (
-                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 8 }}>
+                                                <div>
+                                                    <h3 style={{ 
+                                                        margin: '0 0 8px 0', fontSize: 18, fontWeight: 700, color: '#e8f0ff',
+                                                        letterSpacing: '-0.01em', display: 'flex', alignItems: 'center', gap: 8
+                                                    }}>
+                                                        Мои проекты
+                                                    </h3>
+                                                    {combined.length === 0 && (
+                                                        <p style={{ margin: 0, fontSize: 13, color: 'rgba(255,255,255,0.6)', lineHeight: 1.5 }}>
+                                                            Пока нет проектов. Создай первый в Конструкторе.
+                                                        </p>
+                                                    )}
+                                                </div>
+                                                {combined.length > 0 && (
+                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                                                         {combined.map((item: any) => (
                                                             <div key={item.id} style={{
-                                                                padding: '10px 14px', borderRadius: 10,
-                                                                background: 'rgba(255,255,255,0.04)',
-                                                                border: '1px solid rgba(255,255,255,0.06)',
+                                                                padding: '12px 16px', borderRadius: 12,
+                                                                background: 'rgba(0,0,0,0.15)',
+                                                                border: '1px solid rgba(255,255,255,0.05)',
                                                             }}>
-                                                                <div style={{ fontWeight: 600, fontSize: 13, color: '#e8f0ff' }}>
+                                                                <div style={{ fontWeight: 600, fontSize: 14, color: '#e8f0ff' }}>
                                                                     {item.type === 'category' ? '📁' : item.type === 'version' ? '🔄' : (item.emoji || '🏅')} {item.title}
                                                                 </div>
-                                                                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', marginTop: 4 }}>
+                                                                <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', marginTop: 4 }}>
                                                                     {item.type === 'category' ? 'Категория' : item.type === 'version' ? 'Версия значка' : 'Значок'}
                                                                     {' · '}
                                                                     {item.status === 'pending' ? '⏳ На проверке' : item.status === 'approved' ? '✅ Одобрено' : item.status === 'rejected' ? '❌ Отклонено' : '📋 Активно'}
@@ -1832,58 +1993,64 @@ export const PersonalCabinet: React.FC<{
 
                                 </div>
                             ) : activeSection === 'share' ? (
-                                <div key="share" className="fade-in" style={{
-                                    display: 'flex', flexDirection: 'column' as const, gap: 16,
-                                }}>
+                                <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 16 }}>
                                     {shareTab === 'invite' && (
-                                        <div style={{
-                                            padding: 24, borderRadius: 16,
-                                            background: 'rgba(8, 20, 40, 0.15)', border: '1px solid rgba(93, 228, 255, 0.12)',
-                                            backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)',
-                                            textAlign: 'center',
+                                        <div key="share-invite" className="fade-in cab-card" style={{
+                                            padding: '28px 32px', borderRadius: 20, maxWidth: 680,
+                                            display: 'flex', flexDirection: 'column', gap: 16,
                                         }}>
-                                            <h3 style={{ margin: '0 0 8px', fontSize: 18, color: '#e8f0ff' }}>Пригласить друзей</h3>
-                                            <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)', marginBottom: 16 }}>
-                                                {myTeam ? 'Скопируй ссылку и отправь друзьям.' : 'Скопируй ссылку на путеводитель и отправь друзьям.'}
-                                            </p>
-                                            <button type="button"
-                                                onClick={() => {
-                                                    const url = myTeam ? generateInviteUrl() : window.location.href;
-                                                    navigator.clipboard.writeText(url).then(() => alert('Ссылка скопирована!'));
-                                                }}
-                                                style={{
-                                                    padding: '12px 24px', borderRadius: 12,
-                                                    background: 'rgba(93, 228, 255, 0.25)', color: '#5de4ff',
-                                                    border: '1px solid rgba(93,228,255,0.5)', fontWeight: 700, fontSize: 14,
-                                                    cursor: 'pointer', fontFamily: FONT,
+                                            <div>
+                                                <h3 style={{ 
+                                                    margin: '0 0 8px 0', fontSize: 18, fontWeight: 700, color: '#e8f0ff',
+                                                    letterSpacing: '-0.01em', display: 'flex', alignItems: 'center', gap: 8
                                                 }}>
-                                                Скопировать ссылку
-                                            </button>
+                                                    Пригласить друзей
+                                                </h3>
+                                                <p style={{ margin: 0, fontSize: 13, color: 'rgba(255,255,255,0.6)', lineHeight: 1.5 }}>
+                                                    {myTeam ? 'Скопируй ссылку и отправь друзьям.' : 'Скопируй ссылку на путеводитель и отправь друзьям.'}
+                                                </p>
+                                            </div>
+                                            <div style={{ display: 'flex' }}>
+                                                <button type="button"
+                                                    onClick={() => {
+                                                        const url = myTeam ? generateInviteUrl() : window.location.href;
+                                                        navigator.clipboard.writeText(url).then(() => alert('Ссылка скопирована!'));
+                                                    }}
+                                                    className="cab-btn-accent">
+                                                    Скопировать ссылку
+                                                </button>
+                                            </div>
                                         </div>
                                     )}
                                     {shareTab === 'qr' && (
-                                        <div style={{
-                                            padding: 24, borderRadius: 16,
-                                            background: 'rgba(8, 20, 40, 0.15)', border: '1px solid rgba(93, 228, 255, 0.12)',
-                                            backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)',
-                                            display: 'flex', flexDirection: 'column', alignItems: 'center',
+                                        <div key="share-qr" className="fade-in cab-card" style={{
+                                            padding: '28px 32px', borderRadius: 20, maxWidth: 680,
+                                            display: 'flex', flexDirection: 'column', gap: 16,
                                         }}>
-                                            <h3 style={{ margin: '0 0 16px', fontSize: 18, color: '#e8f0ff' }}>QR-код путеводителя</h3>
+                                            <div>
+                                                <h3 style={{ 
+                                                    margin: '0 0 8px 0', fontSize: 18, fontWeight: 700, color: '#e8f0ff',
+                                                    letterSpacing: '-0.01em', display: 'flex', alignItems: 'center', gap: 8
+                                                }}>
+                                                    QR-код путеводителя
+                                                </h3>
+                                                <p style={{ margin: 0, fontSize: 13, color: 'rgba(255,255,255,0.6)', lineHeight: 1.5 }}>
+                                                    Наведи камеру телефона для перехода на путеводитель
+                                                </p>
+                                            </div>
                                             <div style={{
-                                                padding: 20, borderRadius: 16, background: '#ffffff',
-                                                display: 'inline-flex', marginBottom: 16,
+                                                padding: 24, borderRadius: 16, background: '#ffffff',
+                                                display: 'flex', width: 'fit-content',
                                             }}>
                                                 <QRCodeSVG value={window.location.origin + (import.meta.env.BASE_URL || '/')} size={180} />
                                             </div>
-                                            <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', textAlign: 'center' }}>
-                                                Наведи камеру телефона для перехода на путеводитель
-                                            </p>
                                         </div>
                                     )}
                                 </div>
                             ) : activeSection === 'events' ? (
-                                <div key="events" className="fade-in" style={{
+                                <div key="events" className="fade-in cab-card" style={{
                                     display: 'flex', flexDirection: 'column' as const, gap: 16,
+                                    borderRadius: 20, maxWidth: 680, padding: '28px 32px',
                                 }}>
                                     {/* ── Auto-load when Events section opens ── */}
                                     {(() => {
@@ -1904,10 +2071,22 @@ export const PersonalCabinet: React.FC<{
 
                                     {eventsTab === 'requests' && (
                                         <div style={{
-                                            display: 'flex', flexDirection: 'column', gap: 10,
+                                            display: 'flex', flexDirection: 'column', gap: 12,
                                         }}>
+                                            <div style={{ marginBottom: 4 }}>
+                                                <h3 style={{ 
+                                                    margin: '0 0 8px 0', fontSize: 18, fontWeight: 700, color: '#e8f0ff',
+                                                    letterSpacing: '-0.01em', display: 'flex', alignItems: 'center', gap: 8
+                                                }}>
+                                                    Мои заявки
+                                                </h3>
+                                                <p style={{ margin: 0, fontSize: 13, color: 'rgba(255,255,255,0.6)', lineHeight: 1.5 }}>
+                                                    Отслеживай статус проверки полученных значков.
+                                                </p>
+                                            </div>
+
                                             {/* Refresh button */}
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 4 }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                                                 <button type="button" onClick={async () => {
                                                     if (!hasAuth) return;
                                                     setEventsLoading(true);
@@ -1916,15 +2095,10 @@ export const PersonalCabinet: React.FC<{
                                                         setMyRequests(my);
                                                     } catch (e) { console.error(e); }
                                                     setEventsLoading(false);
-                                                }} disabled={eventsLoading} style={{
-                                                    padding: '8px 16px', borderRadius: 10,
-                                                    background: 'rgba(93, 228, 255, 0.1)', color: '#5de4ff',
-                                                    border: '1px solid rgba(93,228,255,0.2)', fontWeight: 500, fontSize: 12,
-                                                    cursor: 'pointer', fontFamily: FONT,
-                                                }}>
+                                                }} disabled={eventsLoading} className="cab-btn-accent-sm">
                                                     {eventsLoading ? 'Загрузка…' : '🔄 Обновить'}
                                                 </button>
-                                                <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)' }}>
+                                                <span style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.5)' }}>
                                                     {myRequests.length > 0 ? `${myRequests.length} заявок` : ''}
                                                 </span>
                                             </div>
@@ -2155,6 +2329,9 @@ export const PersonalCabinet: React.FC<{
                                 ) : activeSection === 'parents' ? (
                                     <div key="parents" className="fade-in" style={{
                                         display: 'flex', flexDirection: 'column' as const, gap: 16,
+                                        background: 'rgba(8, 20, 40, 0.15)', backdropFilter: 'blur(12px)',
+                                        WebkitBackdropFilter: 'blur(12px)', borderRadius: 18,
+                                        border: '1px solid rgba(93, 228, 255, 0.12)', padding: '24px 28px',
                                     }}>
                                         {parentsTab === 'program' && (
                                             <div style={{

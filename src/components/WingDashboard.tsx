@@ -109,42 +109,30 @@ export const WingDashboard: React.FC<WingDashboardProps> = ({ onSuggestInitiativ
 
   if (!hasWing) {
     return (
-      <div className="fade-in" style={{
-        background: 'linear-gradient(135deg, #1a0b2e 0%, #2d1b4e 100%)',
-        borderRadius: '24px',
-        padding: '24px',
-        border: '1px solid rgba(139, 0, 255, 0.3)',
-        backdropFilter: 'blur(8px)',
-        WebkitBackdropFilter: 'blur(8px)',
-        marginBottom: '24px',
-        position: 'relative',
-        overflow: 'hidden'
+      <div className="fade-in cab-card" style={{
+        maxWidth: 680, width: '100%', margin: '0 auto',
+        padding: '28px 32px', borderRadius: 20, marginBottom: 24,
+        position: 'relative', overflow: 'hidden'
       }}>
         <div style={{
           position: 'absolute', top: '-50px', right: '-50px',
           width: '150px', height: '150px', background: '#8b00ff',
           filter: 'blur(60px)', opacity: 0.2
         }} />
-        <div style={{ fontSize: '10px', fontWeight: 800, color: '#c9b8ff', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '4px' }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>
           ШТАБ КРЫЛА
         </div>
-        <div className="profile-empty-state profile-empty-state--squads">
+        <div className="profile-empty-state profile-empty-state--squads" style={{ marginTop: 24 }}>
           <div className="profile-empty-state__icon" aria-hidden>🦅</div>
           <p className="profile-empty-state__title">Твоё Крыло</p>
-          <p className="profile-empty-state__text">Сформируй Крыло, чтобы добавлять фото аватара Крыла, участвовать в делах наставников и предлагать инициативы в Совет лагеря.</p>
+          <p className="profile-empty-state__text" style={{ maxWidth: 400, margin: '0 auto 24px' }}>
+            Сформируй Крыло, чтобы добавлять фото аватара, участвовать в делах наставников и предлагать инициативы в Совет лагеря.
+          </p>
           <button
             type="button"
+            className="cab-btn-accent"
             onClick={() => selectWingMentor('', 'Моё Крыло')}
-            style={{
-              padding: '12px 24px',
-              background: 'rgba(139, 0, 255, 0.4)',
-              border: '1px solid #8b00ff',
-              color: '#c9b8ff',
-              borderRadius: '12px',
-              fontSize: '14px',
-              fontWeight: 700,
-              cursor: 'pointer'
-            }}
+            style={{ fontSize: 15, padding: '14px 28px' }}
           >
             Сформировать Крыло
           </button>
@@ -154,16 +142,11 @@ export const WingDashboard: React.FC<WingDashboardProps> = ({ onSuggestInitiativ
   }
 
   return (
-    <div className={`fade-in${variant === 'cabin' ? ' bro-cabin-section' : ''}`} style={{
-      background: 'linear-gradient(135deg, #1a0b2e 0%, #2d1b4e 100%)',
-      borderRadius: '24px',
-      padding: isExpanded ? '24px' : '16px 20px',
-      border: '1px solid rgba(139, 0, 255, 0.3)',
-      backdropFilter: 'blur(8px)',
-      WebkitBackdropFilter: 'blur(8px)',
-      marginBottom: '24px',
-      position: 'relative',
-      overflow: 'hidden'
+    <div className={`fade-in cab-card${variant === 'cabin' ? ' bro-cabin-section' : ''}`} style={{
+      maxWidth: 680, width: '100%', margin: '0 auto',
+      padding: isExpanded ? '28px 32px' : '20px 24px',
+      borderRadius: 20, marginBottom: 24,
+      position: 'relative', overflow: 'hidden'
     }}>
       <div style={{
         position: 'absolute', top: '-50px', right: '-50px',
@@ -172,41 +155,49 @@ export const WingDashboard: React.FC<WingDashboardProps> = ({ onSuggestInitiativ
       }} />
 
       <div
-        style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: isExpanded ? '20px' : 0, cursor: 'pointer' }}
+        style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: isExpanded ? 24 : 0, cursor: 'pointer' }}
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <div>
-          <div style={{ fontSize: '10px', fontWeight: 800, color: '#c9b8ff', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '4px' }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>
             {isFullBro ? 'ТВОЕ КРЫЛО (ШТАБ)' : 'КРЫЛО (КАНДИДАТ)'}
           </div>
-          <h3 style={{ margin: 0, fontSize: isExpanded ? '20px' : '16px', color: 'white', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <h3 style={{ margin: 0, fontSize: isExpanded ? 22 : 18, fontWeight: 700, color: '#e8f0ff', display: 'flex', alignItems: 'center', gap: 10 }}>
             🦅 {wingName}
-            {!isExpanded && <span style={{ fontSize: '12px', opacity: 0.7 }}>— {isFullBro ? 'БРО-НАСТАВНИК' : 'ПРОХОЖДЕНИЕ'}</span>}
+            {!isExpanded && <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', fontWeight: 500 }}>— {isFullBro ? 'БРО-НАСТАВНИК' : 'ПРОХОЖДЕНИЕ'}</span>}
           </h3>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           {isExpanded && (
             <button
               type="button"
               onClick={(e) => { e.stopPropagation(); setIsEditingName(true); }}
-              style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.18)', color: '#fff', borderRadius: 10, padding: '6px 10px', cursor: 'pointer', fontSize: 12 }}
+              style={{
+                padding: '6px 12px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.1)',
+                background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.6)',
+                fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
+                transition: 'background 0.15s',
+              }}
               aria-label="Переименовать Крыло"
               title="Переименовать Крыло"
             >
-              ✏️ Название
+              Изменить название
             </button>
           )}
           {isExpanded && (
             <div style={{
-              width: '40px', height: '40px', borderRadius: '50%',
+              width: 44, height: 44, borderRadius: '50%', flexShrink: 0,
               background: 'linear-gradient(135deg, #222 50%, #8b00ff 50%)',
-              border: '2px solid rgba(255,255,255,0.2)',
+              border: '2px solid rgba(255,255,255,0.15)',
               boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
-            }} title="Двухцветный галстук Наставника" />
+            }} title="Крыло Наставника" />
           )}
           <button
             onClick={(e) => { e.stopPropagation(); setIsExpanded(!isExpanded); }}
-            style={{ background: 'none', border: 'none', color: '#c9b8ff', fontSize: '20px', cursor: 'pointer', padding: '0 4px', transform: isExpanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.3s ease' }}
+            style={{
+              background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', fontSize: 24, cursor: 'pointer',
+              padding: '0 4px', transform: isExpanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.3s ease'
+            }}
           >
             ▾
           </button>
@@ -259,9 +250,12 @@ export const WingDashboard: React.FC<WingDashboardProps> = ({ onSuggestInitiativ
           </div>
 
           {isEditingName && (
-            <div style={{ background: 'rgba(0,0,0,0.35)', border: '1px solid rgba(255,255,255,0.14)', borderRadius: 16, padding: 16, marginBottom: 16 }} onClick={(e) => e.stopPropagation()}>
-              <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 10, opacity: 0.75 }}>НАЗВАНИЕ КРЫЛА</div>
-              <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+            <div style={{
+              background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.15)',
+              borderRadius: 16, padding: '20px 24px', marginBottom: 20
+            }} onClick={(e) => e.stopPropagation()}>
+              <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 12, color: 'rgba(255,255,255,0.85)', textTransform: 'uppercase' }}>Название Крыла</div>
+              <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
                 <input
                   defaultValue={wingName}
                   onKeyDown={(e) => {
@@ -275,26 +269,32 @@ export const WingDashboard: React.FC<WingDashboardProps> = ({ onSuggestInitiativ
                     }
                   }}
                   placeholder="Например: Небесные Стражи"
-                  style={{ flex: 1, padding: '10px 12px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.18)', background: 'rgba(255,255,255,0.06)', color: '#fff' }}
+                  className="cab-input"
+                  style={{ flex: 1, padding: '12px 14px', fontSize: 14 }}
                   aria-label="Название Крыла"
                   autoFocus
                 />
                 <button
                   type="button"
+                  className="cab-btn-accent-sm"
                   onClick={(e) => {
                     e.stopPropagation();
                     const input = e.currentTarget.parentElement?.querySelector('input') as HTMLInputElement | null;
                     setWingName(input?.value ?? wingName);
                     setIsEditingName(false);
                   }}
-                  style={{ padding: '10px 12px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.18)', background: 'rgba(255, 215, 0, 0.18)', color: '#FFD700', fontWeight: 800, cursor: 'pointer' }}
                 >
                   Сохранить
                 </button>
                 <button
                   type="button"
                   onClick={(e) => { e.stopPropagation(); setIsEditingName(false); }}
-                  style={{ padding: '10px 12px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.18)', background: 'rgba(255,255,255,0.06)', color: '#fff', cursor: 'pointer' }}
+                  style={{
+                    padding: '10px 16px', borderRadius: 10,
+                    border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)',
+                    color: 'rgba(255,255,255,0.6)', cursor: 'pointer', fontSize: 13, fontWeight: 600,
+                    fontFamily: 'inherit', transition: 'background 0.15s'
+                  }}
                 >
                   Отмена
                 </button>
@@ -313,11 +313,12 @@ export const WingDashboard: React.FC<WingDashboardProps> = ({ onSuggestInitiativ
                 setInviteCopied('link');
                 setTimeout(() => setInviteCopied(null), 2500);
               }} style={{
-                padding: '8px 16px', borderRadius: 10, border: '1px solid rgba(124,58,237,0.3)',
-                background: 'rgba(124,58,237,0.12)', color: '#c4b5fd', fontSize: 12,
-                fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.15s',
+                padding: '8px 16px', borderRadius: 10, border: '1px solid rgba(6,182,212,0.4)',
+                background: 'linear-gradient(135deg, rgba(6,182,212,0.15) 0%, rgba(124,58,237,0.15) 100%)',
+                color: '#67e8f9', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                fontFamily: 'inherit', transition: 'all 0.2s', backdropFilter: 'blur(8px)',
               }}>
-                {inviteCopied === 'link' ? '✓ Скопировано' : '📋 Копировать ссылку'}
+                {inviteCopied === 'link' ? '✓ Сохранено' : '📋 Копировать ссылку'}
               </button>
               <button type="button" onClick={() => {
                 void navigator.clipboard.writeText(bro?.wingId || '');
@@ -325,8 +326,8 @@ export const WingDashboard: React.FC<WingDashboardProps> = ({ onSuggestInitiativ
                 setTimeout(() => setInviteCopied(null), 2500);
               }} style={{
                 padding: '8px 16px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.1)',
-                background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.5)', fontSize: 12,
-                fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.15s',
+                background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.6)', fontSize: 13,
+                fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', transition: 'background 0.15s',
               }}>
                 {inviteCopied === 'code' ? '✓ Скопировано' : '🔑 Копировать код'}
               </button>
@@ -396,22 +397,17 @@ export const WingDashboard: React.FC<WingDashboardProps> = ({ onSuggestInitiativ
                       value={(plannerDayData as any)[field] ?? ''}
                       onChange={(e) => setPlannerField(field, e.target.value)}
                       rows={2}
+                      className="cab-input"
                       style={{
-                        padding: '10px 14px', borderRadius: 10, fontFamily: 'inherit',
-                        border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(0,0,0,0.2)',
-                        color: '#e8f0ff', fontSize: 12, resize: 'vertical',
+                        padding: '12px 14px', fontSize: 13, resize: 'vertical',
                       }}
                     />
                   );
                 })}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <button type="button" onClick={saveWingPlans}
-                    style={{
-                      padding: '10px 20px', borderRadius: 10, border: 'none', fontFamily: 'inherit',
-                      background: 'linear-gradient(135deg, #7c3aed, #6d28d9)',
-                      color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer',
-                    }}
-                  >Сохранить</button>
+                  <button type="button" className="cab-btn-accent-sm" onClick={saveWingPlans}>
+                    Сохранить
+                  </button>
                   {plannerSaved && (
                     <span style={{ fontSize: 12, color: '#c4b5fd' }} role="status">Сохранено ✓</span>
                   )}
@@ -576,12 +572,12 @@ const WingInitiationSection: React.FC<WingInitiationSectionProps> = ({
       <button type="button"
         onClick={() => setShowInitForm(!showInitForm)}
         style={{
-          width: '100%', padding: '12px', borderRadius: 12,
-          background: showInitForm ? 'rgba(255,255,255,0.06)' : 'rgba(139, 0, 255, 0.2)',
-          border: `1px solid ${showInitForm ? 'rgba(255,255,255,0.1)' : '#8b00ff'}`,
-          color: showInitForm ? 'rgba(255,255,255,0.5)' : '#c9b8ff',
-          fontWeight: 700, cursor: 'pointer', marginBottom: showInitForm ? '12px' : 0,
-          fontFamily: 'inherit', fontSize: 13, transition: 'all 0.15s',
+          width: '100%', padding: '12px 20px', borderRadius: 10,
+          border: '1px solid rgba(124,58,237,0.4)',
+          background: showInitForm ? 'rgba(255,255,255,0.06)' : 'linear-gradient(135deg, rgba(124,58,237,0.15) 0%, rgba(88,28,195,0.25) 100%)',
+          color: showInitForm ? 'rgba(255,255,255,0.5)' : '#c4b5fd',
+          fontWeight: 600, cursor: 'pointer', marginBottom: showInitForm ? 12 : 0,
+          fontFamily: 'inherit', fontSize: 14, transition: 'all 0.15s', backdropFilter: 'blur(8px)',
         }}>
         {showInitForm ? 'Отмена' : 'Создать Посвящение отряда'}
       </button>
@@ -598,36 +594,43 @@ const WingInitiationSection: React.FC<WingInitiationSectionProps> = ({
 
           <input type="text" value={initName} onChange={e => setInitName(e.target.value)}
             placeholder="Название (например: Посвящение в Морские Волки)"
-            style={{ padding: '10px 14px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(0,0,0,0.25)', color: '#e8f0ff', fontSize: 13, fontFamily: 'inherit' }} />
+            className="cab-input"
+            style={{ padding: '12px 14px', fontSize: 13 }} />
 
           <textarea value={initDesc} onChange={e => setInitDesc(e.target.value)}
             placeholder="Описание / сеттинг (необязательно)"
             rows={2}
-            style={{ padding: '10px 14px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(0,0,0,0.15)', color: 'rgba(255,255,255,0.6)', fontSize: 12, fontFamily: 'inherit', resize: 'vertical' }} />
+            className="cab-input"
+            style={{ padding: '12px 14px', fontSize: 12, resize: 'vertical' }} />
 
           <div style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.5)', marginTop: 4 }}>Задания</div>
 
           {initTasks.map((task, idx) => (
             <div key={task.id} style={{
-              padding: '8px 10px', borderRadius: 10,
+              padding: '16px', borderRadius: 16,
               background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)',
-              display: 'flex', flexDirection: 'column', gap: 5,
+              display: 'flex', flexDirection: 'column', gap: 0,
+              transition: 'border-color 0.2s, background 0.2s'
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ width: 22, height: 22, borderRadius: 6, flexShrink: 0, background: 'rgba(124,58,237,0.2)', color: '#a78bfa', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700 }}>{idx + 1}</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, paddingBottom: 10 }}>
+                <span style={{ width: 28, height: 28, borderRadius: 8, flexShrink: 0, background: 'rgba(255,255,255,0.08)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, border: '1px solid rgba(255,255,255,0.1)' }}>{idx + 1}</span>
                 <input type="text" value={task.title}
                   onChange={e => { const n = [...initTasks]; n[idx] = { ...n[idx], title: e.target.value }; setInitTasks(n); }}
                   placeholder="Название задания"
-                  style={{ flex: 1, padding: '6px 10px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(0,0,0,0.25)', color: '#e8f0ff', fontSize: 13, fontFamily: 'inherit' }} />
+                  style={{ flex: 1, padding: '4px 0', fontSize: 15, fontWeight: 600, background: 'transparent', border: 'none', outline: 'none', color: '#fff', fontFamily: 'inherit' }} />
                 {initTasks.length > 1 && (
                   <button type="button" onClick={() => setInitTasks(initTasks.filter((_, i) => i !== idx))}
-                    style={{ width: 26, height: 26, borderRadius: 6, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(220,38,38,0.1)', color: '#f87171', cursor: 'pointer', fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
+                    style={{ width: 32, height: 32, borderRadius: 10, border: '1px solid transparent', background: 'transparent', color: 'rgba(255,255,255,0.4)', cursor: 'pointer', fontSize: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'color 0.2s' }} title="Удалить"
+                    onMouseEnter={e => { e.currentTarget.style.color = '#f87171'; }}
+                    onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.4)'; }}
+                  >×</button>
                 )}
               </div>
+              <div style={{ height: 1, background: 'rgba(255,255,255,0.05)', marginLeft: 40, marginBottom: 10 }} />
               <input type="text" value={task.description}
                 onChange={e => { const n = [...initTasks]; n[idx] = { ...n[idx], description: e.target.value }; setInitTasks(n); }}
                 placeholder="Описание (необязательно)"
-                style={{ padding: '5px 10px', borderRadius: 8, marginLeft: 30, border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(0,0,0,0.15)', color: 'rgba(255,255,255,0.5)', fontSize: 11, fontFamily: 'inherit' }} />
+                style={{ padding: '4px 0', marginLeft: 40, fontSize: 13, background: 'transparent', border: 'none', outline: 'none', color: 'rgba(255,255,255,0.7)', fontFamily: 'inherit' }} />
             </div>
           ))}
 
@@ -636,11 +639,11 @@ const WingInitiationSection: React.FC<WingInitiationSectionProps> = ({
             + Добавить задание
           </button>
 
-          <button type="button" onClick={handleCreate} disabled={busy || !initName.trim() || initTasks.every(t => !t.title.trim())}
+          <button type="button"
+            className="cab-btn-accent"
+            onClick={handleCreate} disabled={busy || !initName.trim() || initTasks.every(t => !t.title.trim())}
             style={{
-              marginTop: 4, padding: '12px', borderRadius: 12, border: 'none',
-              background: 'linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)',
-              color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+              marginTop: 4, width: '100%',
               opacity: busy || !initName.trim() ? 0.5 : 1,
             }}>
             {busy ? 'Создание...' : 'Запустить Посвящение'}

@@ -151,6 +151,113 @@
     background: rgba(255, 107, 107, 0.1);
 }
 
+/* ── Accent CTA Button ── */
+.cab-btn-accent {
+    width: fit-content;
+    padding: 14px 32px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #5de4ff, #8b5cf6);
+    color: #0f0a1f;
+    font-size: 14px;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    transition: var(--cab-transition);
+    box-shadow: 0 4px 20px rgba(93,228,255,0.25);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-family: var(--cab-font);
+}
+
+.cab-btn-accent:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px rgba(93,228,255,0.4);
+}
+
+.cab-btn-accent:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* ── Small Accent Button ── */
+.cab-btn-accent-sm {
+    padding: 10px 20px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #5de4ff, #8b5cf6);
+    color: #0f0a1f;
+    font-size: 13px;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    transition: var(--cab-transition);
+    box-shadow: 0 4px 12px rgba(93,228,255,0.2);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-family: var(--cab-font);
+}
+
+.cab-btn-accent-sm:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(93,228,255,0.3);
+}
+
+.cab-btn-accent-sm:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* ── Form Inputs ── */
+.cab-input {
+    width: 100%;
+    padding: 14px 16px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: var(--cab-text-primary);
+    font-size: var(--cab-font-size-base);
+    font-family: var(--cab-font);
+    transition: var(--cab-transition);
+    outline: none;
+    box-sizing: border-box;
+}
+
+.cab-input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+    font-weight: 500;
+}
+
+.cab-input:focus {
+    background: rgba(255,255,255,0.06);
+    border-color: rgba(255,255,255,0.3);
+    box-shadow: 0 0 0 3px rgba(255,255,255,0.05);
+}
+
+.cab-input--cyan:focus {
+    border-color: #5de4ff;
+    background: rgba(93,228,255,0.05);
+    box-shadow: 0 0 0 3px rgba(93,228,255,0.1);
+}
+
+.cab-input--purple:focus {
+    border-color: #a78bfa;
+    background: rgba(167,139,250,0.05);
+    box-shadow: 0 0 0 3px rgba(167,139,250,0.1);
+}
+
+.cab-input--pink:focus {
+    border-color: #f472b6;
+    background: rgba(244,114,182,0.05);
+    box-shadow: 0 0 0 3px rgba(244,114,182,0.1);
+}
+
 /* ── Shift/squad card overrides ── */
 .cab-shift-card {
     display: flex;

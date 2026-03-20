@@ -250,31 +250,23 @@ export const BroPassportPanel: React.FC<BroPassportPanelProps> = ({
         return <div style={{ padding: 12, fontSize: 12, opacity: 0.6 }}>Загрузка…</div>;
     }
 
-    // ── Shared card style ──
-    const cardStyle: React.CSSProperties = {
-        padding: '20px 22px', borderRadius: 14,
-        background: 'rgba(12, 8, 32, 0.55)',
-        backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)',
-        border: '1px solid rgba(124, 58, 237, 0.18)',
-    };
-
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 14, paddingBottom: 100 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingBottom: 100, maxWidth: 680, width: '100%' }}>
 
             {/* Staff: Initiate */}
             {canModerate && !activeEvent && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                     <button type="button" style={{
                         padding: '12px 20px', borderRadius: 12, border: '1px solid rgba(124,58,237,0.4)',
-                        background: 'linear-gradient(135deg, rgba(124,58,237,0.25) 0%, rgba(88,28,195,0.35) 100%)',
-                        color: '#c4b5fd', fontSize: 14, fontWeight: 600, cursor: 'pointer',
-                        fontFamily: 'inherit', transition: 'all 0.2s',
+                        background: 'linear-gradient(135deg, rgba(124,58,237,0.15) 0%, rgba(88,28,195,0.25) 100%)',
+                        color: '#c4b5fd', fontSize: 15, fontWeight: 600, cursor: 'pointer',
+                        fontFamily: 'inherit', transition: 'all 0.2s', backdropFilter: 'blur(8px)',
                     }} disabled={busy} onClick={() => showTaskEditor ? void handleInitiate() : setShowTaskEditor(true)}>
                         {busy ? 'Загрузка…' : showTaskEditor ? 'Объявить Бросвящение' : 'Настроить и объявить Бросвящение'}
                     </button>
 
                     {showTaskEditor && (
-                        <div style={{ ...cardStyle, display: 'flex', flexDirection: 'column', gap: 10 }}>
+                        <div className="fade-in cab-card" style={{ padding: '28px 32px', borderRadius: 20, display: 'flex', flexDirection: 'column', gap: 10 }}>
                             <div style={{ fontSize: 14, fontWeight: 700, color: '#e0d4ff', marginBottom: 2 }}>
                                 Задания Бросвящения
                             </div>
@@ -284,16 +276,17 @@ export const BroPassportPanel: React.FC<BroPassportPanelProps> = ({
 
                             {editTasks.map((task, idx) => (
                                 <div key={task.id} style={{
-                                    padding: '10px 12px', borderRadius: 10,
-                                    background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)',
-                                    display: 'flex', flexDirection: 'column', gap: 6,
+                                    padding: '16px', borderRadius: 16,
+                                    background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.08)',
+                                    display: 'flex', flexDirection: 'column', gap: 0,
+                                    transition: 'border-color 0.2s, background 0.2s',
                                 }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, paddingBottom: 10 }}>
                                         <span style={{
-                                            width: 22, height: 22, borderRadius: 6, flexShrink: 0,
-                                            background: 'rgba(124,58,237,0.2)', color: '#a78bfa',
+                                            width: 28, height: 28, borderRadius: 8, flexShrink: 0,
+                                            background: 'rgba(255,255,255,0.08)', color: '#fff',
                                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                            fontSize: 11, fontWeight: 700,
+                                            fontSize: 13, fontWeight: 700, border: '1px solid rgba(255,255,255,0.1)',
                                         }}>{idx + 1}</span>
                                         <input
                                             type="text" value={task.title}
@@ -304,19 +297,24 @@ export const BroPassportPanel: React.FC<BroPassportPanelProps> = ({
                                             }}
                                             placeholder="Название задания"
                                             style={{
-                                                flex: 1, padding: '6px 10px', borderRadius: 8,
-                                                border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(0,0,0,0.25)',
-                                                color: '#e8f0ff', fontSize: 13, fontFamily: 'inherit',
+                                                flex: 1, padding: '4px 0', fontSize: 15, fontWeight: 600,
+                                                background: 'transparent', border: 'none', outline: 'none', color: '#fff',
+                                                fontFamily: 'inherit'
                                             }}
                                         />
                                         <button type="button" onClick={() => {
                                             setEditTasks(editTasks.filter((_, i) => i !== idx));
                                         }} style={{
-                                            width: 28, height: 28, borderRadius: 6, border: '1px solid rgba(255,255,255,0.1)',
-                                            background: 'rgba(220,38,38,0.1)', color: '#f87171', cursor: 'pointer',
-                                            fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                        }} title="Удалить">×</button>
+                                            width: 32, height: 32, borderRadius: 10, border: '1px solid transparent',
+                                            background: 'transparent', color: 'rgba(255,255,255,0.4)', cursor: 'pointer',
+                                            fontSize: 20, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                            transition: 'color 0.2s',
+                                        }} title="Удалить"
+                                        onMouseEnter={e => { e.currentTarget.style.color = '#f87171'; }}
+                                        onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.4)'; }}
+                                        >×</button>
                                     </div>
+                                    <div style={{ height: 1, background: 'rgba(255,255,255,0.05)', marginLeft: 40, marginBottom: 10 }} />
                                     <input
                                         type="text" value={task.description}
                                         onChange={e => {
@@ -326,9 +324,9 @@ export const BroPassportPanel: React.FC<BroPassportPanelProps> = ({
                                         }}
                                         placeholder="Описание (необязательно)"
                                         style={{
-                                            padding: '5px 10px', borderRadius: 8, marginLeft: 30,
-                                            border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(0,0,0,0.15)',
-                                            color: 'rgba(255,255,255,0.6)', fontSize: 11, fontFamily: 'inherit',
+                                            marginLeft: 40, padding: '4px 0', fontSize: 13,
+                                            background: 'transparent', border: 'none', outline: 'none', color: 'rgba(255,255,255,0.7)',
+                                            fontFamily: 'inherit'
                                         }}
                                     />
                                 </div>
@@ -375,7 +373,7 @@ export const BroPassportPanel: React.FC<BroPassportPanelProps> = ({
 
             {/* Active event — join */}
             {activeEvent && !passport && (
-                <div className="fade-in" style={cardStyle}>
+                <div className="fade-in cab-card" style={{ padding: '28px 32px', borderRadius: 20 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
                         <span style={{
                             width: 8, height: 8, borderRadius: '50%', background: '#22c55e',
@@ -389,10 +387,10 @@ export const BroPassportPanel: React.FC<BroPassportPanelProps> = ({
 
                     {hasAuth && (
                         <button type="button" style={{
-                            padding: '10px 18px', borderRadius: 10, border: 'none',
-                            background: 'linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)',
-                            color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer',
-                            fontFamily: 'inherit', transition: 'opacity 0.15s',
+                            padding: '10px 18px', borderRadius: 10, border: '1px solid rgba(124,58,237,0.4)',
+                            background: 'linear-gradient(135deg, rgba(124,58,237,0.15) 0%, rgba(88,28,195,0.25) 100%)',
+                            color: '#c4b5fd', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                            fontFamily: 'inherit', transition: 'all 0.2s', backdropFilter: 'blur(8px)',
                         }} disabled={busy} onClick={() => void handleStart()}>
                             Начать паспорт БРО
                         </button>
@@ -446,24 +444,27 @@ export const BroPassportPanel: React.FC<BroPassportPanelProps> = ({
 
             {/* ── Passport checklist ── */}
             {passport && (
-                <div className="fade-in" style={cardStyle}>
+                <div className="fade-in cab-card" style={{ padding: '28px 32px', borderRadius: 20 }}>
                     {/* Title row */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-                        <span style={{ fontSize: 16, fontWeight: 700, color: '#e0d4ff', letterSpacing: '-0.01em' }}>
+                        <h3 style={{ 
+                            margin: '0', fontSize: 18, fontWeight: 700, color: '#e8f0ff',
+                            letterSpacing: '-0.01em', display: 'flex', alignItems: 'center', gap: 8
+                        }}>
                             Паспорт БРО
-                        </span>
+                        </h3>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                             {isComplete && (
                                 <span style={{
-                                    fontSize: 11, padding: '3px 10px', borderRadius: 20,
-                                    background: 'rgba(124,58,237,0.18)', color: '#c4b5fd',
-                                    fontWeight: 600, letterSpacing: '0.02em',
+                                    fontSize: 12, padding: '4px 12px', borderRadius: 20,
+                                    background: 'rgba(124,58,237,0.25)', color: '#d8b4fe',
+                                    fontWeight: 700, letterSpacing: '0.02em',
                                 }}>Завершён</span>
                             )}
                             <button type="button" style={{
                                 padding: '5px 12px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.1)',
-                                background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.5)',
-                                fontSize: 11, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit',
+                                background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.85)',
+                                fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
                                 transition: 'background 0.15s',
                             }} disabled={loading} onClick={() => void load()}>Обновить</button>
                         </div>
@@ -471,9 +472,9 @@ export const BroPassportPanel: React.FC<BroPassportPanelProps> = ({
 
                     {/* Progress bar */}
                     <div style={{ marginBottom: 16 }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'rgba(255,255,255,0.5)', marginBottom: 6 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: 'rgba(255,255,255,0.85)', fontWeight: 500, marginBottom: 6 }}>
                             <span>{tasksDone} из {tasksTotal} заданий</span>
-                            <span style={{ fontWeight: 600, color: '#c4b5fd' }}>{progressPct}%</span>
+                            <span style={{ fontWeight: 700, color: '#e0e7ff', fontSize: 14 }}>{progressPct}%</span>
                         </div>
                         <div style={{ height: 5, borderRadius: 3, background: 'rgba(255,255,255,0.08)', overflow: 'hidden' }}>
                             <div style={{
@@ -496,24 +497,26 @@ export const BroPassportPanel: React.FC<BroPassportPanelProps> = ({
                                 <div key={task.id} style={{
                                     padding: '14px 16px', borderRadius: 10,
                                     background: task.done
-                                        ? 'rgba(124,58,237,0.06)'
+                                        ? 'rgba(109,40,217,0.35)'
                                         : isPending
-                                            ? 'rgba(234,179,8,0.06)'
-                                            : 'rgba(255,255,255,0.03)',
+                                            ? 'rgba(202,138,4,0.35)'
+                                            : 'rgba(0,0,0,0.5)',
+                                    backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
                                     border: `1px solid ${
-                                        task.done ? 'rgba(124,58,237,0.15)'
-                                        : isPending ? 'rgba(234,179,8,0.15)'
-                                        : 'rgba(255,255,255,0.06)'
+                                        task.done ? 'rgba(167,139,250,0.4)'
+                                        : isPending ? 'rgba(250,204,21,0.4)'
+                                        : 'rgba(255,255,255,0.2)'
                                     }`,
-                                    opacity: task.done ? 0.7 : 1,
+                                    boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+                                    opacity: task.done ? 0.85 : 1,
                                     transition: 'all 0.2s',
                                 }}>
                                     <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
                                         {/* Status indicator */}
                                         <div style={{
-                                            width: 24, height: 24, borderRadius: 7, flexShrink: 0, marginTop: 1,
+                                            width: 28, height: 28, borderRadius: 8, flexShrink: 0, marginTop: 1,
                                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                            fontSize: 11, fontWeight: 700, color: '#fff',
+                                            fontSize: 14, fontWeight: 800, color: '#fff',
                                             background: task.done
                                                 ? 'linear-gradient(135deg, #7c3aed, #6d28d9)'
                                                 : isPending
@@ -529,12 +532,17 @@ export const BroPassportPanel: React.FC<BroPassportPanelProps> = ({
                                         {/* Content */}
                                         <div style={{ flex: 1, minWidth: 0 }}>
                                             <div style={{
-                                                fontSize: 13, fontWeight: 600, lineHeight: 1.35,
-                                                color: task.done ? 'rgba(255,255,255,0.55)' : '#e8f0ff',
+                                                fontSize: 15, fontWeight: 600, lineHeight: 1.4,
+                                                color: task.done ? 'rgba(255,255,255,0.6)' : '#fff',
                                                 textDecoration: task.done ? 'line-through' : 'none',
+                                                textShadow: '0 1px 3px rgba(0,0,0,0.6)',
                                             }}>{task.title}</div>
                                             {task.description && (
-                                                <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginTop: 3, lineHeight: 1.4 }}>
+                                                <div style={{
+                                                    fontSize: 13, color: 'rgba(255,255,255,0.85)',
+                                                    marginTop: 4, lineHeight: 1.4,
+                                                    textShadow: '0 1px 3px rgba(0,0,0,0.6)',
+                                                }}>
                                                     {task.description}
                                                 </div>
                                             )}
@@ -596,12 +604,8 @@ export const BroPassportPanel: React.FC<BroPassportPanelProps> = ({
                                                 placeholder="Опишите выполнение (рефлексия, что сделали, что поняли...)"
                                                 value={submitText}
                                                 onChange={e => setSubmitText(e.target.value)}
-                                                style={{
-                                                    width: '100%', minHeight: 72, padding: 12, borderRadius: 8,
-                                                    border: '1px solid rgba(124,58,237,0.2)', background: 'rgba(0,0,0,0.25)',
-                                                    color: '#e8f0ff', fontSize: 13, resize: 'vertical', boxSizing: 'border-box',
-                                                    fontFamily: 'inherit', lineHeight: 1.5,
-                                                }}
+                                                className="cab-input cab-input--purple"
+                                                style={{ minHeight: 72, resize: 'vertical' }}
                                             />
                                             {/* Photo upload */}
                                             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -638,11 +642,11 @@ export const BroPassportPanel: React.FC<BroPassportPanelProps> = ({
                                             {/* Actions */}
                                             <div style={{ display: 'flex', gap: 8, marginTop: 2 }}>
                                                 <button type="button" style={{
-                                                    padding: '8px 18px', borderRadius: 8, border: 'none', flex: 1,
-                                                    background: 'linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)',
-                                                    color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                                                    padding: '8px 18px', borderRadius: 8, border: '1px solid rgba(124,58,237,0.4)', flex: 1,
+                                                    background: 'linear-gradient(135deg, rgba(124,58,237,0.15) 0%, rgba(88,28,195,0.25) 100%)',
+                                                    color: '#c4b5fd', fontSize: 13, fontWeight: 600, cursor: 'pointer',
                                                     fontFamily: 'inherit', opacity: (!submitText.trim()) ? 0.4 : 1,
-                                                    transition: 'opacity 0.15s',
+                                                    transition: 'all 0.2s', backdropFilter: 'blur(8px)',
                                                 }}
                                                 disabled={busy || !submitText.trim()}
                                                 onClick={() => void handleSubmitTask(task.id)}>
@@ -668,26 +672,27 @@ export const BroPassportPanel: React.FC<BroPassportPanelProps> = ({
                     {/* Create Wing */}
                     {isComplete && hasAuth && !hasWing && (
                         <button type="button" style={{
-                            marginTop: 14, padding: '12px 20px', width: '100%', borderRadius: 10,
-                            border: 'none',
-                            background: 'linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)',
-                            color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer',
-                            fontFamily: 'inherit', letterSpacing: '0.01em',
+                            marginTop: 14, width: '100%', padding: '12px 20px', borderRadius: 10,
+                            border: '1px solid rgba(124,58,237,0.4)',
+                            background: 'linear-gradient(135deg, rgba(124,58,237,0.15) 0%, rgba(88,28,195,0.25) 100%)',
+                            color: '#c4b5fd', fontSize: 14, fontWeight: 600, cursor: 'pointer',
+                            fontFamily: 'inherit', transition: 'all 0.2s', backdropFilter: 'blur(8px)',
                         }} onClick={() => setShowWingModal(true)}>
                             Создать Крыло
                         </button>
                     )}
                     {isComplete && hasWing && (
                         <div style={{
-                            marginTop: 14, padding: '12px 16px', borderRadius: 10,
-                            background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.2)',
-                            textAlign: 'center',
+                            marginTop: 14, padding: '16px 20px', borderRadius: 12,
+                            background: 'linear-gradient(135deg, rgba(124,58,237,0.15) 0%, rgba(6,182,212,0.15) 100%)',
+                            border: '1px solid rgba(124,58,237,0.3)',
+                            textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
                         }}>
-                            <div style={{ fontSize: 13, fontWeight: 600, color: '#4ade80' }}>
-                                Крыло создано
+                            <div style={{ fontSize: 15, fontWeight: 700, color: '#e0e7ff' }}>
+                                ✨ Крыло успешно создано
                             </div>
-                            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)', marginTop: 2 }}>
-                                Перейдите на вкладку «Крыло БРО»
+                            <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.75)' }}>
+                                Перейдите на вкладку «Крыло БРО» в левом меню
                             </div>
                         </div>
                     )}
@@ -699,7 +704,7 @@ export const BroPassportPanel: React.FC<BroPassportPanelProps> = ({
                 const pending = submissions.filter(s => s.status === 'pending');
                 if (pending.length === 0) return null;
                 return (
-                    <div className="fade-in" style={{ ...cardStyle, borderColor: 'rgba(234,179,8,0.2)' }}>
+                    <div className="fade-in cab-card" style={{ padding: '28px 32px', borderRadius: 20, borderColor: 'rgba(234,179,8,0.2)' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
                             <span style={{
                                 width: 8, height: 8, borderRadius: '50%', background: '#eab308',
@@ -730,8 +735,8 @@ export const BroPassportPanel: React.FC<BroPassportPanelProps> = ({
 
             {/* Completion banner */}
             {showComplete && (
-                <div style={{
-                    ...cardStyle, borderColor: 'rgba(34,197,94,0.25)',
+                <div className="cab-card" style={{
+                    padding: '28px 32px', borderRadius: 20, borderColor: 'rgba(34,197,94,0.25)',
                     textAlign: 'center',
                 }}>
                     <div style={{ fontSize: 22, fontWeight: 700, color: '#4ade80', marginBottom: 4 }}>Паспорт БРО завершён</div>
