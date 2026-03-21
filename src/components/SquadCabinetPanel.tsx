@@ -126,15 +126,16 @@ export const SquadCabinetPanel: React.FC<SquadCabinetPanelProps> = ({
   }, []);
 
   const members = useMemo(() => {
-    const fallback: Array<{ deviceId: string; nickname: string | null; role: string; joinedAt?: string }> = [];
+    const fallback: Array<{ deviceId: string; nickname: string | null; role: string; joinedAt?: string; avatarUrl?: string | null }> = [];
     const myDeviceId = mySquadInfo?.membership?.deviceId || deviceId || '';
+    const myAvatarUrl = userData?.profile?.avatar || null;
 
     // Use mySquadInfo.members (has role) if available
     const membersData = mySquadInfo?.members;
     if (membersData && membersData.length > 0) {
       for (const m of membersData) {
         if (!m?.deviceId) continue;
-        fallback.push({ deviceId: m.deviceId, nickname: m.nickname || null, role: m.role || 'participant', joinedAt: m.joinedAt });
+        fallback.push({ deviceId: m.deviceId, nickname: m.nickname || null, role: m.role || 'participant', joinedAt: m.joinedAt, avatarUrl: (m as any).avatarUrl || null });
       }
     }
 
@@ -154,14 +155,15 @@ export const SquadCabinetPanel: React.FC<SquadCabinetPanelProps> = ({
     for (const p of mySquadInfo?.participants || []) {
       if (!p?.deviceId) continue;
       if (fallback.some((x) => x.deviceId === p.deviceId)) continue;
-      fallback.push({ deviceId: p.deviceId, nickname: p.nickname || null, role: 'participant', joinedAt: p.joinedAt });
+      fallback.push({ deviceId: p.deviceId, nickname: p.nickname || null, role: 'participant', joinedAt: p.joinedAt, avatarUrl: (p as any).avatarUrl || null });
     }
 
-    // Final pass: ensure current user always has the correct nickname from profile
-    if (myNickname && myDeviceId) {
+    // Final pass: ensure current user always has the correct nickname and avatar from profile
+    if (myDeviceId || myNickname) {
       for (const m of fallback) {
-        if (m.deviceId === myDeviceId) {
-          m.nickname = myNickname;
+        if ((myDeviceId && m.deviceId === myDeviceId) || (myNickname && m.nickname === myNickname)) {
+          if (myNickname) m.nickname = myNickname;
+          if (myAvatarUrl) m.avatarUrl = myAvatarUrl;
         }
       }
     }
@@ -291,20 +293,21 @@ export const SquadCabinetPanel: React.FC<SquadCabinetPanelProps> = ({
 
   if (!squadId) {
     return (
-      <div style={{ maxWidth: 720, margin: '0 auto', width: '100%' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <div style={{ maxWidth: 680, margin: '0 auto', width: '100%' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <div className="profile-empty-state__text">Вы пока не состоите в отряде.</div>
-          <div style={{ padding: 12, borderRadius: 14, background: 'rgba(8,20,40,0.45)', backdropFilter: 'blur(14px)', border: '1px solid rgba(93,228,255,0.12)' }}>
-            <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8 }}>Вступить по коду</div>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <div className="cab-card" style={{ padding: '20px 24px' }}>
+            <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 12, color: '#e8f0ff' }}>Вступить по коду</div>
+            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
               <input
                 type="text"
                 value={joinCode}
                 onChange={(e) => { setJoinCode(e.target.value.toUpperCase()); setStatus(null); }}
                 placeholder="Введите код приглашения"
-                style={{ flex: 1, minWidth: 180, padding: '8px 10px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.2)', color: '#fff', fontSize: 13 }}
+                className="cab-input"
+                style={{ flex: 1, minWidth: 180, padding: '10px 14px', fontSize: 14 }}
               />
-              <button type="button" className="btn-primary-gold" style={{ padding: '8px 14px' }} onClick={() => void handleJoinByCode()} disabled={joinBusy}>
+              <button type="button" className="cab-btn-accent" style={{ padding: '8px 18px', fontSize: 14 }} onClick={() => void handleJoinByCode()} disabled={joinBusy}>
                 {joinBusy ? 'Проверка...' : 'Вступить'}
               </button>
             </div>
@@ -315,29 +318,46 @@ export const SquadCabinetPanel: React.FC<SquadCabinetPanelProps> = ({
     );
   }
 
+  const squadPhotoUrl = cornerPhotos.find(p => p.key === 'photoSquad')?.url || cornerPhotos[0]?.url;
+
   return (
-    <div style={{ maxWidth: 720, margin: '0 auto', width: '100%', paddingBottom: 80 }}>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+    <div style={{ maxWidth: 680, margin: '0 auto', width: '100%' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         {/* Squad header */}
-        <div className="fade-in" style={{ padding: '16px 18px', borderRadius: 14, background: 'rgba(15, 10, 42, 0.12)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
-          <div style={{ fontSize: 18, fontWeight: 800, letterSpacing: 0.3 }}>{squadName}</div>
-          <div style={{ fontSize: 13, opacity: 0.65, marginTop: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span>Смена: {shiftName}</span>
-            <span style={{ fontWeight: 600, color: '#c97730', opacity: 1 }}>{mySquadInfo?.shift?.durationDays || 9} дней</span>
+        <div className="fade-in cab-card" style={{ display: 'flex', gap: 16, alignItems: 'center', padding: '24px 28px' }}>
+          {squadPhotoUrl ? (
+            <div style={{ width: 80, height: 80, borderRadius: 20, overflow: 'hidden', flexShrink: 0, border: '1px solid rgba(255,255,255,0.1)' }}>
+              <img src={squadPhotoUrl} alt="Squad" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            </div>
+          ) : (
+            <div style={{ width: 80, height: 80, borderRadius: 20, background: 'linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02))', border: '1px solid rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 32, flexShrink: 0 }}>
+              🚀
+            </div>
+          )}
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 24, fontWeight: 900, textTransform: 'uppercase', letterSpacing: 0.5, background: 'linear-gradient(90deg, #ffffff, #a5b4fc)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+              {squadName}
+            </div>
+            <div style={{ fontSize: 13, opacity: 0.7, marginTop: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontWeight: 500 }}>Смена: {shiftName}</span>
+              <span style={{ fontWeight: 700, color: '#fbbf24', padding: '4px 8px', background: 'rgba(251, 191, 36, 0.1)', borderRadius: 8 }}>
+                {mySquadInfo?.shift?.durationDays || 9} дней
+              </span>
+            </div>
           </div>
         </div>
 
         {/* Corner info */}
-        <div className="fade-in" style={{ padding: '16px 18px', borderRadius: 14, background: 'rgba(15, 10, 42, 0.12)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+        <div className="fade-in cab-card">
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', alignItems: 'center', marginBottom: 14 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontSize: 14, fontWeight: 700 }}>📋 Уголок отряда</span>
+              <span style={{ fontSize: 14, fontWeight: 700 }}>Уголок отряда</span>
               <span className={`m3-status-chip squad-corner-readiness-chip tone-${getSquadCornerReadinessTone(cornerReadiness)}`} style={{ marginTop: 0 }}>{getSquadCornerReadinessLabel(cornerReadiness)}</span>
             </div>
             {canEditCorner && onEditCorner && (
-              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                <button type="button" className="btn-secondary" style={{ padding: '5px 10px', fontSize: 11 }} onClick={() => onEditCorner('photos')}>✏️ Фото</button>
-                <button type="button" className="btn-secondary" style={{ padding: '5px 10px', fontSize: 11 }} onClick={() => onEditCorner('planner')}>✏️ Планёрка</button>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                <button type="button" className="cab-btn-glass" style={{ padding: '6px 14px', fontSize: 12, borderRadius: 10, background: 'rgba(255,255,255,0.06)' }} onClick={() => onEditCorner('photos')}>Фото</button>
+                <button type="button" className="cab-btn-glass" style={{ padding: '6px 14px', fontSize: 12, borderRadius: 10, background: 'rgba(255,255,255,0.06)' }} onClick={() => onEditCorner('planner')}>Планёрка</button>
               </div>
             )}
           </div>
@@ -346,17 +366,29 @@ export const SquadCabinetPanel: React.FC<SquadCabinetPanelProps> = ({
           {cornerError && <div style={{ fontSize: 13, color: '#ff9b9b' }}>{cornerError}</div>}
           {!cornerBusy && !cornerError && (
             <>
-              <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '6px 14px', fontSize: 13, lineHeight: 1.6 }}>
-                <span style={{ opacity: 0.5, fontWeight: 500 }}>Название</span>
-                <span style={{ fontWeight: 700 }}>{(corner?.name || squadName) || '—'}</span>
-                <span style={{ opacity: 0.5, fontWeight: 500 }}>Девиз</span>
-                <span>{corner?.motto || '—'}</span>
-                <span style={{ opacity: 0.5, fontWeight: 500 }}>Кричалки</span>
-                <span>{corner?.chants || '—'}</span>
-                <span style={{ opacity: 0.5, fontWeight: 500 }}>Приветствие</span>
-                <span>{corner?.greeting || '—'}</span>
-                <span style={{ opacity: 0.5, fontWeight: 500 }}>Мемы</span>
-                <span>{corner?.memes || '—'}</span>
+              <div style={{ 
+                display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginTop: 8 
+              }}>
+                {[
+                  { label: 'Название', value: (corner?.name || squadName) },
+                  { label: 'Девиз', value: corner?.motto },
+                  { label: 'Кричалки', value: corner?.chants },
+                  { label: 'Приветствие', value: corner?.greeting },
+                  { label: 'Мемы', value: corner?.memes }
+                ].map((prop, idx) => (
+                  <div key={idx} style={{ 
+                    background: 'rgba(255, 255, 255, 0.03)', 
+                    border: '1px solid rgba(255, 255, 255, 0.05)', 
+                    borderRadius: 16, padding: '12px 16px' 
+                  }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1, color: 'rgba(255,255,255,0.4)', marginBottom: 6 }}>
+                      {prop.label}
+                    </div>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: '#e8f0ff', lineHeight: 1.4, wordBreak: 'break-word' }}>
+                      {prop.value || '—'}
+                    </div>
+                  </div>
+                ))}
               </div>
 
               {cornerPhotos.length > 0 && (
@@ -387,11 +419,11 @@ export const SquadCabinetPanel: React.FC<SquadCabinetPanelProps> = ({
                   const totalFilled = a.filled + b.filled;
                   const shiftDuration = mySquadInfo?.shift?.durationDays || a.total || 9;
                   return (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-                      <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)' }}>
-                        Расписание: {totalFilled}/{shiftDuration} дней
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', marginTop: 6 }}>
+                      <span style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.8)' }}>
+                        Расписание: <span style={{ color: '#fbbf24' }}>{totalFilled}/{shiftDuration}</span> дней
                       </span>
-                      <button type="button" className="btn-secondary" style={{ padding: '5px 10px', fontSize: 11 }} onClick={() => { setPlannerDay(1); setPlannerOpen(true); }}>
+                      <button type="button" className="cab-btn-accent" style={{ padding: '8px 16px', fontSize: 12, borderRadius: 12, boxShadow: '0 4px 12px rgba(93, 228, 255, 0.15)' }} onClick={() => { setPlannerDay(1); setPlannerOpen(true); }}>
                         Открыть расписание
                       </button>
                     </div>
@@ -403,12 +435,12 @@ export const SquadCabinetPanel: React.FC<SquadCabinetPanelProps> = ({
         </div>
 
         {/* Members */}
-        <div className="fade-in" style={{ padding: '16px 18px', borderRadius: 14, background: 'rgba(15, 10, 42, 0.12)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+        <div className="fade-in cab-card">
           <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 10 }}>Участники <span style={{ opacity: 0.5, fontWeight: 400, fontSize: 12 }}>({members.length})</span></div>
           {members.length === 0 ? (
             <div style={{ fontSize: 13, opacity: 0.65 }}>Пока пусто — пригласите друзей!</div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 200, overflowY: 'auto' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 0, maxHeight: 200, overflowY: 'auto' }}>
               {members.map((m) => {
                 const roleLabels: Record<string, string> = {
                   participant: 'Участник', traveler: 'Путешественник', counselor: 'Вожатый',
@@ -416,21 +448,69 @@ export const SquadCabinetPanel: React.FC<SquadCabinetPanelProps> = ({
                   camp_director: 'Директор лагеря', developer: 'Разработчик',
                 };
                 const roleLabel = roleLabels[m.role] || m.role;
+                const isCounselor = m.role === 'counselor' || m.role === 'shift_leader' || m.role === 'developer';
+                const initial = (m.nickname || 'Б')[0].toUpperCase();
+
                 return (
-                  <div key={m.deviceId} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, padding: '6px 10px', borderRadius: 10, background: 'rgba(255,255,255,0.04)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span style={{ fontSize: 13, fontWeight: 600 }}>{m.nickname || 'Без ника'}</span>
-                      <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: 6, background: 'rgba(93,228,255,0.12)', color: 'rgba(93,228,255,0.9)', fontWeight: 600 }}>{roleLabel}</span>
+                  <div key={m.deviceId} style={{ 
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, 
+                    padding: '12px 16px', 
+                    background: 'rgba(255,255,255,0.02)',
+                    borderRadius: 16,
+                    border: '1px solid rgba(255,255,255,0.04)',
+                    marginBottom: 8
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                      {m.avatarUrl ? (
+                        <div style={{ 
+                          width: 40, height: 40, borderRadius: '50%', overflow: 'hidden', 
+                          border: `1px solid ${isCounselor ? 'rgba(244,114,182,0.3)' : 'rgba(93,228,255,0.2)'}`,
+                          flexShrink: 0
+                        }}>
+                          <img src={m.avatarUrl} alt={m.nickname || ''} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        </div>
+                      ) : (
+                        <div style={{ 
+                          width: 40, height: 40, borderRadius: '50%', 
+                          background: isCounselor ? 'linear-gradient(135deg, rgba(244,114,182,0.2), rgba(251,146,60,0.2))' : 'linear-gradient(135deg, rgba(93,228,255,0.15), rgba(165,180,252,0.15))',
+                          border: `1px solid ${isCounselor ? 'rgba(244,114,182,0.3)' : 'rgba(93,228,255,0.2)'}`,
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                          fontSize: 16, fontWeight: 800, color: isCounselor ? '#fdf2f8' : '#e8f0ff',
+                          flexShrink: 0
+                        }}>
+                          {initial}
+                        </div>
+                      )}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                        <span style={{ fontSize: 15, fontWeight: 700, color: '#e8f0ff' }}>{m.nickname || 'Без ника'}</span>
+                        <span style={{ fontSize: 11, fontWeight: 600, color: isCounselor ? '#f472b6' : '#60a5fa', textTransform: 'uppercase', letterSpacing: 0.5 }}>{roleLabel}</span>
+                      </div>
                     </div>
-                    {m.deviceId === deviceId ? (
-                      <button type="button" className="btn-secondary" style={{ padding: '4px 8px', fontSize: 11, opacity: 0.7 }} onClick={() => void handleLeave()} disabled={busy}>
-                        Выйти
-                      </button>
-                    ) : canManage ? (
-                      <button type="button" className="btn-secondary" style={{ padding: '4px 8px', fontSize: 11 }} onClick={() => void handleKick(m.deviceId)} disabled={busy}>
-                        Исключить
-                      </button>
-                    ) : null}
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      {m.deviceId === deviceId ? (
+                        <button type="button" className="cab-btn-glass" style={{ 
+                          padding: '6px 14px', fontSize: 12, fontWeight: 700,
+                          border: '1px solid rgba(239, 68, 68, 0.6)', 
+                          background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.25), rgba(239, 68, 68, 0.15))', 
+                          color: '#fca5a5',
+                          boxShadow: '0 0 10px rgba(239, 68, 68, 0.2)',
+                          backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)'
+                        }} onClick={() => void handleLeave()} disabled={busy}>
+                          Выйти
+                        </button>
+                      ) : canManage ? (
+                        <button type="button" className="cab-btn-glass" style={{ 
+                          padding: '6px 14px', fontSize: 12, fontWeight: 700,
+                          border: '1px solid rgba(245, 158, 11, 0.6)', 
+                          background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.25), rgba(245, 158, 11, 0.15))', 
+                          color: '#fcd34d',
+                          boxShadow: '0 0 10px rgba(245, 158, 11, 0.2)',
+                          backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)'
+                        }} onClick={() => void handleKick(m.deviceId)} disabled={busy}>
+                          Исключить
+                        </button>
+                      ) : null}
+                    </div>
                   </div>
                 );
               })}
@@ -439,25 +519,25 @@ export const SquadCabinetPanel: React.FC<SquadCabinetPanelProps> = ({
         </div>
 
         {/* Invite */}
-        <div className="fade-in" style={{ padding: '16px 18px', borderRadius: 14, background: 'rgba(15, 10, 42, 0.12)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+        <div className="fade-in cab-card">
           <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 10 }}>Пригласить в отряд</div>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-            <button type="button" className="btn-secondary" style={{ padding: '7px 14px', fontSize: 12 }} onClick={() => void copyText(inviteLink, '✅ Ссылка скопирована!')}>
-              📋 Копировать ссылку
+            <button type="button" className="cab-btn-glass" style={{ padding: '7px 14px', fontSize: 12 }} onClick={() => void copyText(inviteLink, 'Ссылка скопирована!')}>
+              Копировать ссылку
             </button>
             {canManage && (
-              <button type="button" className="btn-secondary" style={{ padding: '7px 14px', fontSize: 12 }} onClick={() => void handleCreateInviteCode()} disabled={busy}>
-                🔑 Создать код приглашения
+              <button type="button" className="cab-btn-glass" style={{ padding: '7px 14px', fontSize: 12 }} onClick={() => void handleCreateInviteCode()} disabled={busy}>
+                Создать код приглашения
               </button>
             )}
           </div>
           {inviteCode && (
-            <div style={{ marginTop: 10, padding: '10px 14px', borderRadius: 10, background: 'rgba(93,228,255,0.06)', border: '1px solid rgba(93,228,255,0.15)' }}>
+            <div style={{ marginTop: 14, padding: '12px 14px', borderRadius: 12, background: 'rgba(93,228,255,0.06)', border: '1px solid rgba(93,228,255,0.15)' }}>
               <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: 2, fontFamily: 'monospace', color: '#5de4ff' }}>{inviteCode}</div>
               <div style={{ fontSize: 11, opacity: 0.6, marginTop: 4 }}>
                 Действует до: {inviteMeta ? new Date(inviteMeta.expiresAt).toLocaleString('ru-RU') : '—'}
               </div>
-              <button type="button" className="btn-secondary" style={{ padding: '5px 10px', fontSize: 11, marginTop: 6 }} onClick={() => void copyText(inviteCode, '✅ Код скопирован!')}>
+              <button type="button" className="cab-btn-glass" style={{ padding: '5px 10px', fontSize: 11, marginTop: 10 }} onClick={() => void copyText(inviteCode, 'Код скопирован!')}>
                 Копировать код
               </button>
             </div>
@@ -465,18 +545,28 @@ export const SquadCabinetPanel: React.FC<SquadCabinetPanelProps> = ({
         </div>
 
         {/* Actions */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, padding: '4px 0' }}>
-          <button type="button" className="btn-secondary" style={{ padding: '8px 16px', fontSize: 12 }} onClick={() => void onRefresh()} disabled={busy}>
-            🔄 Обновить
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, padding: '8px 0', marginTop: 12 }}>
+          <button type="button" className="cab-btn-accent" style={{ 
+            padding: '10px 20px', fontSize: 13, fontWeight: 700, borderRadius: 14,
+            boxShadow: '0 4px 16px rgba(93, 228, 255, 0.2)'
+          }} onClick={() => void onRefresh()} disabled={busy}>
+            Обновить данные
           </button>
-          <button type="button" className="btn-secondary" style={{ padding: '8px 16px', fontSize: 12, opacity: 0.7 }} onClick={() => void handleLeave()} disabled={busy}>
+          <button type="button" className="cab-btn-glass" style={{ 
+            padding: '10px 20px', fontSize: 13, fontWeight: 700, borderRadius: 14,
+            border: '1px solid rgba(239, 68, 68, 0.4)', 
+            background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.25), rgba(239, 68, 68, 0.1))', 
+            color: '#fca5a5',
+            boxShadow: '0 4px 16px rgba(239, 68, 68, 0.25)',
+            backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)'
+          }} onClick={() => void handleLeave()} disabled={busy}>
             Выйти из отряда
           </button>
         </div>
 
         {status && <div style={{ fontSize: 12, opacity: 0.9, textAlign: 'center' }}>{status}</div>}
 
-        {(accessToken || (import.meta.env.DEV && deviceId)) && <SquadChat squadId={squadId} accessToken={accessToken || ''} nickname={myNickname || mySquadInfo?.membership?.nickname || undefined} deviceId={deviceId} role={role} />}
+        {(accessToken || (import.meta.env.DEV && deviceId)) && <SquadChat squadId={squadId} accessToken={accessToken || ''} nickname={myNickname || mySquadInfo?.membership?.nickname || undefined} deviceId={deviceId} role={role} members={members} />}
 
         {photoZoomUrl && (
           <div
@@ -493,9 +583,9 @@ export const SquadCabinetPanel: React.FC<SquadCabinetPanelProps> = ({
         {plannerOpen && (
           <div className="proof-modal-overlay" onClick={() => setPlannerOpen(false)} style={{ alignItems: 'center', justifyContent: 'center' }}>
             <div className="proof-modal proof-modal--mobile-sheet proof-modal--wide fade-in" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()} style={{ width: 'min(92vw, 860px)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-                <div style={{ fontSize: 14, fontWeight: 800 }}>Программа смены</div>
-                <button type="button" className="btn-secondary" style={{ padding: '6px 10px' }} onClick={() => setPlannerOpen(false)}>Закрыть</button>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+                <h3 style={{ fontSize: 18, fontWeight: 700, color: '#e8f0ff', margin: 0 }}>Программа смены</h3>
+                <button type="button" className="cab-btn-glass" style={{ padding: '6px 10px' }} onClick={() => setPlannerOpen(false)}>Закрыть</button>
               </div>
               {(() => {
                 const grid = corner?.planGridA;
@@ -504,33 +594,33 @@ export const SquadCabinetPanel: React.FC<SquadCabinetPanelProps> = ({
                 const day = (grid?.days || {})[String(plannerDay)] || {};
                 return (
                   <>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 14 }}>
                       {dayKeys.map((d) => (
-                        <button key={d} type="button" className="btn-secondary" style={{ padding: '6px 10px', opacity: plannerDay === d ? 1 : 0.75 }} onClick={() => setPlannerDay(d)}>
+                        <button key={d} type="button" className="cab-btn-glass" style={{ padding: '6px 12px', background: plannerDay === d ? 'rgba(255,255,255,0.12)' : undefined, color: plannerDay === d ? '#fff' : undefined }} onClick={() => setPlannerDay(d)}>
                           День {d}
                         </button>
                       ))}
                     </div>
-                    <div style={{ display: 'grid', gap: 8 }}>
-                      <div style={{ padding: 10, borderRadius: 14, background: 'rgba(8,20,40,0.45)', backdropFilter: 'blur(14px)', border: '1px solid rgba(93,228,255,0.12)' }}>
-                        <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 4 }}>Утро</div>
-                        <div style={{ fontSize: 12, opacity: 0.9, whiteSpace: 'pre-wrap' }}>{day.morning || '—'}</div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                      <div style={{ padding: '12px 14px', borderRadius: 12, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                        <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 4, color: '#e0d4ff' }}>Утро</div>
+                        <div style={{ fontSize: 13, opacity: 0.8, whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>{day.morning || '—'}</div>
                       </div>
-                      <div style={{ padding: 10, borderRadius: 14, background: 'rgba(8,20,40,0.45)', backdropFilter: 'blur(14px)', border: '1px solid rgba(93,228,255,0.12)' }}>
-                        <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 4 }}>Тихий час</div>
-                        <div style={{ fontSize: 12, opacity: 0.9, whiteSpace: 'pre-wrap' }}>{day.quietHour || '—'}</div>
+                      <div style={{ padding: '12px 14px', borderRadius: 12, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                        <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 4, color: '#e0d4ff' }}>Тихий час</div>
+                        <div style={{ fontSize: 13, opacity: 0.8, whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>{day.quietHour || '—'}</div>
                       </div>
-                      <div style={{ padding: 10, borderRadius: 14, background: 'rgba(8,20,40,0.45)', backdropFilter: 'blur(14px)', border: '1px solid rgba(93,228,255,0.12)' }}>
-                        <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 4 }}>День</div>
-                        <div style={{ fontSize: 12, opacity: 0.9, whiteSpace: 'pre-wrap' }}>{day.day || '—'}</div>
+                      <div style={{ padding: '12px 14px', borderRadius: 12, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                        <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 4, color: '#e0d4ff' }}>День</div>
+                        <div style={{ fontSize: 13, opacity: 0.8, whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>{day.day || '—'}</div>
                       </div>
-                      <div style={{ padding: 10, borderRadius: 14, background: 'rgba(8,20,40,0.45)', backdropFilter: 'blur(14px)', border: '1px solid rgba(93,228,255,0.12)' }}>
-                        <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 4 }}>Вечер</div>
-                        <div style={{ fontSize: 12, opacity: 0.9, whiteSpace: 'pre-wrap' }}>{day.evening || '—'}</div>
+                      <div style={{ padding: '12px 14px', borderRadius: 12, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                        <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 4, color: '#e0d4ff' }}>Вечер</div>
+                        <div style={{ fontSize: 13, opacity: 0.8, whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>{day.evening || '—'}</div>
                       </div>
-                      <div style={{ padding: 10, borderRadius: 14, background: 'rgba(8,20,40,0.45)', backdropFilter: 'blur(14px)', border: '1px solid rgba(93,228,255,0.12)' }}>
-                        <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 4 }}>Ночь</div>
-                        <div style={{ fontSize: 12, opacity: 0.9, whiteSpace: 'pre-wrap' }}>{day.night || '—'}</div>
+                      <div style={{ padding: '12px 14px', borderRadius: 12, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                        <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 4, color: '#e0d4ff' }}>Ночь</div>
+                        <div style={{ fontSize: 13, opacity: 0.8, whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>{day.night || '—'}</div>
                       </div>
                     </div>
                   </>

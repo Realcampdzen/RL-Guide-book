@@ -360,16 +360,6 @@ export const TeamDashboard: React.FC<TeamDashboardProps> = ({
     }
   };
 
-  const setPlannerShiftLength = (next: 9 | 21) => {
-    updateCurrentPlannerGrid((prev) => {
-      const days = { ...prev.days };
-      if (next === 9) {
-        for (let day = 10; day <= 21; day += 1) delete days[String(day)];
-      }
-      return { shiftLength: next, days };
-    });
-    if (plannerDay > next) setPlannerDay(next);
-  };
 
   const setPlannerField = (field: 'morning' | 'quietHour' | 'day' | 'evening' | 'night', value: string) => {
     const dayKey = String(plannerDay);
@@ -819,31 +809,82 @@ export const TeamDashboard: React.FC<TeamDashboardProps> = ({
           <p className="profile-empty-state__text">Сначала создай Движок или вступи по коду.</p>
         </div>
       ) : (
-        <div style={{ display: 'grid', gap: 10 }}>
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            {(['planGridA', 'planGridB'] as const).map((gridId) => (
-              <button key={gridId} type="button" className="btn-secondary" onClick={() => setActivePlannerGrid(gridId)}>
-                {gridId === 'planGridA' ? 'Сетка 1' : 'Сетка 2'}
+        <div style={{ display: 'grid', gap: 16 }}>
+          {/* Controls Header */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, paddingBottom: 16, borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+              <button type="button" 
+                className={activePlannerGrid === 'planGridA' ? 'cab-btn-accent' : 'cab-btn-glass'} 
+                style={{ padding: '6px 14px', fontSize: 13 }}
+                onClick={() => {
+                  setActivePlannerGrid('planGridA');
+                  setLocalPlanGridA(prev => {
+                    const days = { ...prev.days };
+                    for (let day = 10; day <= 21; day++) delete days[String(day)];
+                    return { ...prev, shiftLength: 9, days };
+                  });
+                  if (plannerDay > 9) setPlannerDay(9);
+                }}>
+                Смена 9 дней
               </button>
+              
+              <button type="button" 
+                className={activePlannerGrid === 'planGridB' ? 'cab-btn-accent' : 'cab-btn-glass'} 
+                style={{ padding: '6px 14px', fontSize: 13 }}
+                onClick={() => {
+                  setActivePlannerGrid('planGridB');
+                  setLocalPlanGridB(prev => ({ ...prev, shiftLength: 21 }));
+                }}>
+                Смена 21 день
+              </button>
+            </div>
+
+            {/* Day selector */}
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              {plannerDays.map((day) => (
+                <button key={day} type="button" 
+                  className="cab-btn-glass" 
+                  style={{ 
+                    padding: '6px 12px', fontSize: 12, 
+                    background: plannerDay === day ? 'rgba(139,0,255,0.2)' : undefined,
+                    borderColor: plannerDay === day ? TEAM_ACCENT : 'rgba(255,255,255,0.1)',
+                    color: plannerDay === day ? '#fff' : 'rgba(255,255,255,0.7)',
+                    fontWeight: plannerDay === day ? 700 : 500
+                  }} 
+                  onClick={() => setPlannerDay(day)}>
+                  День {day}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Textareas */}
+          <div style={{ display: 'grid', gap: 14 }}>
+            {[
+              { id: 'morning', label: 'Утро', placeholder: 'Зарядка, завтрак, отрядное дело...' },
+              { id: 'quietHour', label: 'Тихий час', placeholder: 'Отдых, подготовка к вечеру...' },
+              { id: 'day', label: 'День', placeholder: 'Кружки, спорт, полдник...' },
+              { id: 'evening', label: 'Вечер', placeholder: 'Ужин, общелагерное мероприятие, свечка...' },
+              { id: 'night', label: 'Ночь', placeholder: 'Планерка, отбой...' }
+            ].map((field) => (
+              <div key={field.id}>
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 700, opacity: 0.6, marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  {field.label}
+                </label>
+                <textarea 
+                  className="cab-input" 
+                  style={{ width: '100%', minHeight: 70, resize: 'vertical', fontSize: 13, lineHeight: 1.5 }} 
+                  placeholder={field.placeholder} 
+                  value={plannerDayData[field.id as keyof typeof plannerDayData] ?? ''} 
+                  onChange={(e) => setPlannerField(field.id as any, e.target.value)} 
+                />
+              </div>
             ))}
           </div>
-          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-            <label><input type="radio" checked={currentPlannerGrid.shiftLength === 9} onChange={() => setPlannerShiftLength(9)} /> 9 дней</label>
-            <label><input type="radio" checked={currentPlannerGrid.shiftLength === 21} onChange={() => setPlannerShiftLength(21)} /> 21 день</label>
-          </div>
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-            {plannerDays.map((day) => (
-              <button key={day} type="button" className="btn-secondary" style={{ border: plannerDay === day ? `1px solid ${TEAM_ACCENT}` : undefined }} onClick={() => setPlannerDay(day)}>
-                День {day}
-              </button>
-            ))}
-          </div>
-          <textarea className="w-input" rows={2} placeholder="Утро" value={plannerDayData.morning ?? ''} onChange={(e) => setPlannerField('morning', e.target.value)} />
-          <textarea className="w-input" rows={2} placeholder="Тихий час" value={plannerDayData.quietHour ?? ''} onChange={(e) => setPlannerField('quietHour', e.target.value)} />
-          <textarea className="w-input" rows={2} placeholder="День" value={plannerDayData.day ?? ''} onChange={(e) => setPlannerField('day', e.target.value)} />
-          <textarea className="w-input" rows={2} placeholder="Вечер" value={plannerDayData.evening ?? ''} onChange={(e) => setPlannerField('evening', e.target.value)} />
-          <textarea className="w-input" rows={2} placeholder="Ночь" value={plannerDayData.night ?? ''} onChange={(e) => setPlannerField('night', e.target.value)} />
-          <button type="button" className="btn-secondary" style={{ alignSelf: 'flex-start' }} onClick={savePlanner}>Сохранить</button>
+          
+          <button type="button" className="cab-btn-gold" style={{ alignSelf: 'flex-start', padding: '10px 20px', marginTop: 4 }} onClick={savePlanner}>
+            💾 Сохранить расписание
+          </button>
         </div>
       )}
     </div>
@@ -881,14 +922,16 @@ export const TeamDashboard: React.FC<TeamDashboardProps> = ({
     }
     const nickname = userData?.profile?.nickname || undefined;
     return (
-      <SquadChat
-        squadId={myTeam.id}
-        accessToken={chatToken}
-        nickname={nickname}
-        deviceId={deviceId}
-        role={undefined}
-        chatType="team"
-      />
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 14, maxWidth: 720, margin: '0 auto', width: '100%' }}>
+        <SquadChat
+          squadId={myTeam.id}
+          accessToken={chatToken}
+          nickname={nickname}
+          deviceId={deviceId}
+          role={undefined}
+          chatType="team"
+        />
+      </div>
     );
   };
 
@@ -990,12 +1033,22 @@ export const TeamDashboard: React.FC<TeamDashboardProps> = ({
           </div>
 
           {iniCreating && (
-            <div style={{ display: 'grid', gap: 8, marginBottom: 14, padding: 12, borderRadius: 10, background: 'rgba(255,255,255,0.04)' }}>
-              <input className="w-input" placeholder="Название инициативы" value={iniTitle} onChange={e => setIniTitle(e.target.value)} />
-              <textarea className="w-input" rows={3} placeholder="Описание (необязательно)" value={iniDesc} onChange={e => setIniDesc(e.target.value)} />
-              <div style={{ display: 'flex', gap: 8 }}>
-                <button type="button" className="btn-primary-gold" style={{ padding: '6px 14px', fontSize: 12 }} onClick={() => void createInitiative()} disabled={!iniTitle.trim()}>Создать</button>
-                <button type="button" className="btn-secondary" style={{ padding: '6px 14px', fontSize: 12 }} onClick={() => { setIniCreating(false); setIniTitle(''); setIniDesc(''); }}>Отмена</button>
+            <div className="fade-in" style={{ display: 'grid', gap: 12, marginBottom: 16, padding: 16, borderRadius: 14, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 700, opacity: 0.6, marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Название инициативы *</label>
+                <input className="cab-input" style={{ width: '100%' }} placeholder="Например: Ночной кинопоказ" value={iniTitle} onChange={e => setIniTitle(e.target.value)} />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 700, opacity: 0.6, marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Описание (необязательно)</label>
+                <textarea className="cab-input" style={{ width: '100%', resize: 'vertical' }} rows={3} placeholder="В чем суть идеи, зачем это нужно..." value={iniDesc} onChange={e => setIniDesc(e.target.value)} />
+              </div>
+              <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
+                <button type="button" className="cab-btn-accent" onClick={() => void createInitiative()} disabled={!iniTitle.trim()}>
+                  Создать инициативу
+                </button>
+                <button type="button" className="cab-btn-glass" onClick={() => { setIniCreating(false); setIniTitle(''); setIniDesc(''); }}>
+                  Отмена
+                </button>
               </div>
             </div>
           )}
@@ -1140,12 +1193,12 @@ export const TeamDashboard: React.FC<TeamDashboardProps> = ({
     if (selectedProject) {
       const badge = PATH_BADGES.find(b => b.id === selectedProject.targetBadgeId);
       return (
-        <div className="fade-in" style={{ display: 'flex', flexDirection: 'column', gap: 14, maxWidth: 720, margin: '0 auto', width: '100%' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14, maxWidth: 720, margin: '0 auto', width: '100%' }}>
           {/* Back button */}
           <button type="button" onClick={() => setSelectedProjectId(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: TEAM_ACCENT, fontSize: 12, padding: 0, textAlign: 'left' }}>← Все проекты</button>
 
           {/* Project header */}
-          <div style={glassCard}>
+          <div className="fade-in" style={glassCard}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
               <div>
                 <div style={{ fontSize: 16, fontWeight: 800 }}>{selectedProject.title}</div>
@@ -1165,7 +1218,7 @@ export const TeamDashboard: React.FC<TeamDashboardProps> = ({
 
           {/* Draft → Start */}
           {selectedProject.status === 'draft' && (
-            <div style={glassCard}>
+            <div className="fade-in" style={glassCard}>
               <p style={{ fontSize: 13, opacity: 0.7, margin: '0 0 10px' }}>Проект создан! Начните работу над ним.</p>
               <button type="button" className="btn-primary-gold" onClick={() => void updateProject(selectedProject.id, { status: 'in_progress' })}>🚀 Начать работу</button>
             </div>
@@ -1173,7 +1226,7 @@ export const TeamDashboard: React.FC<TeamDashboardProps> = ({
 
           {/* In progress → deliverables + submit */}
           {selectedProject.status === 'in_progress' && (
-            <div style={glassCard}>
+            <div className="fade-in" style={glassCard}>
               <h4 style={{ margin: '0 0 10px', fontSize: 14 }}>📎 Артефакты проекта</h4>
               <p style={{ fontSize: 12, opacity: 0.6, margin: '0 0 10px' }}>Добавьте фото, опишите что сделали, прикрепите сценарий — и отправьте вожатому.</p>
               <div style={{ display: 'grid', gap: 10 }}>
@@ -1205,7 +1258,7 @@ export const TeamDashboard: React.FC<TeamDashboardProps> = ({
 
           {/* Review → waiting */}
           {selectedProject.status === 'review' && (
-            <div style={glassCard}>
+            <div className="fade-in" style={glassCard}>
               <div style={{ textAlign: 'center', padding: '20px 0' }}>
                 <div style={{ fontSize: 36, marginBottom: 10 }}>⏳</div>
                 <div style={{ fontSize: 14, fontWeight: 700 }}>Проект на проверке у вожатого</div>
@@ -1216,7 +1269,7 @@ export const TeamDashboard: React.FC<TeamDashboardProps> = ({
 
           {/* Approved */}
           {selectedProject.status === 'approved' && (
-            <div style={glassCard}>
+            <div className="fade-in" style={glassCard}>
               <div style={{ textAlign: 'center', padding: '20px 0' }}>
                 <div style={{ fontSize: 48, marginBottom: 10 }}>🎉</div>
                 <div style={{ fontSize: 16, fontWeight: 800, color: '#5cb85c' }}>Проект утверждён!</div>
@@ -1228,7 +1281,7 @@ export const TeamDashboard: React.FC<TeamDashboardProps> = ({
 
           {/* Rejected */}
           {selectedProject.status === 'rejected' && (
-            <div style={glassCard}>
+            <div className="fade-in" style={glassCard}>
               <div style={{ textAlign: 'center', padding: '20px 0' }}>
                 <div style={{ fontSize: 36, marginBottom: 10 }}>📝</div>
                 <div style={{ fontSize: 14, fontWeight: 700, color: '#d9534f' }}>Проект отклонён</div>
@@ -1344,7 +1397,7 @@ export const TeamDashboard: React.FC<TeamDashboardProps> = ({
                   : renderCampControlSection();
 
   return (
-    <div className="fade-in team-cabin-content" style={{ display: 'grid', gap: 14 }}>
+    <div className="team-cabin-content" style={{ display: 'grid', gap: 14, paddingBottom: 120 }}>
       {summary}
       {cabinContent}
     </div>

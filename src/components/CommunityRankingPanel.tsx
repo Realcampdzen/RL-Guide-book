@@ -96,7 +96,12 @@ export const CommunityRankingPanel: React.FC<CommunityRankingPanelProps> = ({
     const [creatorPopup, setCreatorPopup] = useState<CreatorProfile | null>(null);
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div className="fade-in" style={{ display: 'flex', flexDirection: 'column', gap: 16,
+            padding: '24px 28px', borderRadius: 18,
+            background: 'rgba(8, 20, 40, 0.15)',
+            backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
+            border: '1px solid rgba(93, 228, 255, 0.12)',
+        }}>
             {/* ---------- Top-5 Weekly ---------- */}
             <div style={{ padding: 14, borderRadius: 14, background: ACCENT_LIGHT, border: `1px solid rgba(245,158,11,0.25)` }}>
                 <div style={{ fontSize: 13, fontWeight: 800, color: ACCENT, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>

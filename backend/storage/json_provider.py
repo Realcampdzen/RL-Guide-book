@@ -22,6 +22,7 @@ from .base import (
     WorkshopsStore,
     ParentSuggestionsStore,
     UsersStore,
+    WorkshopProposalsStore,
 )
 
 _DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
@@ -593,6 +594,26 @@ class JsonUsersStore(UsersStore):
             _write_json(_USERS_FILE, data if isinstance(data, dict) else {})
 
 
+# --- WorkshopProposalsStore (Constructor pipeline) ---
+
+_WORKSHOP_PROPOSALS_FILE = os.path.join(_DATA_DIR, "workshop_proposals.json")
+_WORKSHOP_PROPOSALS_LOCK = threading.Lock()
+
+class JsonWorkshopProposalsStore(WorkshopProposalsStore):
+    def load(self) -> dict:
+        _ensure_data_dir()
+        with _WORKSHOP_PROPOSALS_LOCK:
+            data = _read_json(_WORKSHOP_PROPOSALS_FILE, {"proposals": []})
+            if "proposals" not in data:
+                data["proposals"] = []
+            return data
+
+    def save(self, data: dict) -> None:
+        _ensure_data_dir()
+        with _WORKSHOP_PROPOSALS_LOCK:
+            _write_json(_WORKSHOP_PROPOSALS_FILE, data if isinstance(data, dict) else {})
+
+
 JSON_STORES = {
     "shifts":          JsonShiftsStore(),
     "memberships":     JsonMembershipsStore(),
@@ -619,5 +640,6 @@ JSON_STORES = {
     "workshops":       JsonWorkshopsStore(),
     "parent_suggestions": JsonParentSuggestionsStore(),
     "users":             JsonUsersStore(),
+    "workshop_proposals": JsonWorkshopProposalsStore(),
 }
 

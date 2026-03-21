@@ -3,6 +3,7 @@ import { useUserProgress } from '../hooks/useUserProgress';
 import { useAuth } from '../context/AuthContext';
 import type { UserRole } from '../types/authRole';
 import { canModerateBadgeApprovals } from '../types/authRole';
+import type { InspectorTabId } from '../types/inspector';
 
 import { getRank } from '../types/userProgress';
 import {
@@ -17,6 +18,7 @@ import BadgeIcon from './BadgeIcon';
 import { TeamDashboard, type TeamTabId } from './TeamDashboard';
 import { CouncilDashboard, type CouncilTabId } from './CouncilDashboard';
 import { InspectorDashboard } from './InspectorDashboard';
+import { InspectorCabinetPanel } from './InspectorCabinetPanel';
 import { useDataLoader } from '../hooks/useDataLoader';
 import { Profile4KDashboard, type Profile4KTabId } from './Profile4KDashboard';
 import { CounselorSquadDashboard, type CounselorSquadTabId } from './CounselorSquadDashboard';
@@ -41,6 +43,7 @@ import { ImageSourceBlock } from './ImageSourceBlock';
 import { requestImageGenerate } from '../utils/imageGenerateApi';
 import { useTeam } from '../context/TeamContext';
 import { CampProgramByDays } from './CampProgramByDays';
+
 import { ShiftsAndSquadsDashboard } from './ShiftsAndSquadsDashboard';
 import { QRCodeSVG } from 'qrcode.react';
 import { parseMarkdownToc, markdownToHtmlWithHeadingIds } from '../utils/markdown';
@@ -94,6 +97,7 @@ const SECTIONS: SidebarSection[] = [
     { id: 'bro', label: 'БРО', group: 'main', minRole: true },
     { id: 'workshop', label: 'Мастерская', group: 'main' },
     { id: 'vozhatifikator', label: 'Вожатификатор', group: 'main' },
+    { id: 'inspector', label: 'Инспектор Пользы', group: 'main' },
     { id: 'events', label: 'События', group: 'main' },
     { id: 'share', label: 'Поделиться', group: 'main' },
     // Staff sections
@@ -118,7 +122,7 @@ const ROLE_DISPLAY: Record<string, { label: string; color: string }> = {
 };
 
 
-type TabDef = { id: string; label: string; icon?: string };
+type TabDef = { id: string; label: string; icon?: string; isDivider?: boolean; editorOnly?: boolean; staffOnly?: boolean };
 const SECTION_TABS: Partial<Record<SectionId, TabDef[]>> = {
     home: [
         { id: 'active', label: 'В пути' },
@@ -128,10 +132,10 @@ const SECTION_TABS: Partial<Record<SectionId, TabDef[]>> = {
         { id: 'squads', label: 'Смены и отряды' },
     ],
     'squad-corner': [
-        { id: 'squad', label: 'Кабинет' },
+        { id: 'squad', label: 'Отрядный Уголок' },
         { id: 'chat', label: 'Чат' },
         { id: 'schedule', label: 'Беспорядок дня' },
-        { id: 'program', label: 'Программа' },
+        { id: 'program', label: 'Программа смены' },
         { id: 'photos', label: 'Фото', editorOnly: true },
         { id: 'planner', label: 'Планёрка', editorOnly: true },
         { id: 'flag-badges', label: 'Значки на флаг' },
@@ -200,6 +204,23 @@ const SECTION_TABS: Partial<Record<SectionId, TabDef[]>> = {
         { id: 'era-23-26', label: 'Эпоха 2023–2026' },
         { id: 'bad-advice', label: 'Вредные советы директору лагеря' },
     ],
+    inspector: [
+        { id: 'cabinet', label: 'Кабинет' },
+        { id: 'div-1', label: '', isDivider: true },
+        { id: 'friendship', label: 'Дружба' },
+        { id: 'politeness', label: 'Вежливость' },
+        { id: 'comfort', label: 'Уют' },
+        { id: 'help', label: 'Помощь' },
+        { id: 'involvement', label: 'Вовлечение' },
+        { id: 'peacemaker', label: 'Спокойствие' },
+        { id: 'mood', label: 'Настроение' },
+        { id: 'chief', label: 'Главный' },
+        { id: 'div-2', label: '', isDivider: true },
+        { id: 'badges', label: 'Линейка значков' },
+        { id: 'intro-doc', label: 'Введение' },
+        { id: 'methodology-doc', label: 'Методика' },
+        { id: 'active-checklist-doc', label: 'Активный чек-лист' },
+    ],
 };
 
 // ---------------------------------------------------------------------------
@@ -232,6 +253,75 @@ const SECTION_INFO: Record<SectionId, { title: string; description: string; emoj
 const CAROUSEL_STATIC_MAX = 5;
 
 // ---------------------------------------------------------------------------
+// Markdown document tab viewer (for Inspector reference materials)
+// ---------------------------------------------------------------------------
+
+const MarkdownDocTab: React.FC<{ mdPath: string }> = ({ mdPath }) => {
+    const [html, setHtml] = React.useState<string | null>(null);
+    const [loading, setLoading] = React.useState(true);
+    const [error, setError] = React.useState<string | null>(null);
+
+    React.useEffect(() => {
+        let cancelled = false;
+        setLoading(true);
+        setError(null);
+        fetch(mdPath)
+            .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.text(); })
+            .then(md => {
+                if (cancelled) return;
+                const toc = parseMarkdownToc(md);
+                const rendered = markdownToHtmlWithHeadingIds(md, toc);
+                setHtml(rendered);
+            })
+            .catch(e => { if (!cancelled) setError(String(e)); })
+            .finally(() => { if (!cancelled) setLoading(false); });
+        return () => { cancelled = true; };
+    }, [mdPath]);
+
+    return (
+        <div style={{
+            position: 'relative',
+            marginTop: 16,
+            minHeight: '200px', // Fallback for very short content to still have a glassy frame
+            color: '#e8f0ff'
+        }}>
+            {/* 
+              This is the secret sauce: a sticky glass pane inside an absolute wrapper.
+              It visually sticks to the screen while you scroll native long text, 
+              preventing Chromium backdrop-filter crash on 4000px+ height elements.
+            */}
+            <div style={{
+                position: 'absolute', top: 0, bottom: 0, left: 0, right: 0,
+                pointerEvents: 'none', zIndex: 0
+            }}>
+                <div style={{
+                    position: 'sticky',
+                    top: 16,
+                    height: '100%', 
+                    maxHeight: '120vh', // Extends far below the screen so the bottom edge is hidden while scrolling long text!
+                    background: 'rgba(8, 20, 40, 0.15)',
+                    backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
+                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                    borderRadius: 24,
+                    boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.02), 0 16px 40px rgba(0,0,0,0.3)',
+                }} />
+            </div>
+
+            <div style={{ position: 'relative', zIndex: 1, padding: '32px 40px', paddingBottom: 64 }}>
+                {loading && <div style={{ padding: 40, textAlign: 'center', color: 'rgba(255,255,255,0.4)', fontSize: 14 }}>Загрузка документа...</div>}
+                {error && <div style={{ padding: 32, textAlign: 'center', color: '#ef4444', fontSize: 14 }}>Не удалось загрузить: {error}</div>}
+                {html && (
+                    <div
+                        className="markdown-body inspector-doc"
+                        dangerouslySetInnerHTML={{ __html: html }}
+                    />
+                )}
+            </div>
+        </div>
+    );
+};
+
+// ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 
@@ -243,7 +333,7 @@ export const PersonalCabinet: React.FC<{
     const { userData, updateVozhatifikatorChecklist, toggleFavorite, removeRoute, setNickname, setAvatar, setProfileStatus, setProfileBio } = useUserProgress();
     const { role, accessToken, deviceId } = useAuth();
     const { myTeam, generateInviteUrl } = useTeam();
-    const { badges: allBadges, ensureBadgeLoaded } = useDataLoader();
+    const { badges: allBadges, ensureBadgeLoaded, ensureCategoryBadgesLoaded } = useDataLoader();
 
     // Sandbox / dev mode helpers — use X-Device-Id when no real JWT
     const isDev = import.meta.env.DEV;
@@ -284,7 +374,6 @@ export const PersonalCabinet: React.FC<{
     const [broTab, setBroTab] = useState<'initiation' | 'wing' | 'constructor' | 'chat' | 'brodela' | 'brosquad' | 'ode'>('initiation');
     const [broPassportComplete, setBroPassportComplete] = useState(false);
     const [squadCornerTab, setSquadCornerTab] = useState<string>('squad');
-    const [schedDay, setSchedDay] = useState(1);
     const [workshopTab, setWorkshopTab] = useState<string>('constructor');
     const [wsProposalType, setWsProposalType] = useState<'badge' | 'category' | 'version'>('badge');
     const [wsTitle, setWsTitle] = useState('');
@@ -322,6 +411,7 @@ export const PersonalCabinet: React.FC<{
     const [pathCarouselSteps, setPathCarouselSteps] = useState(0);
     const [favCarouselSteps, setFavCarouselSteps] = useState(0);
     const [vozhatifikatorTab, setVozhatifikatorTab] = useState<string>('book');
+    const [inspectorTab, setInspectorTab] = useState<string>('missions');
     const [vozhatifikatorHtml, setVozhatifikatorHtml] = useState<string | null>(null);
     const [vozhatifikatorToc, setVozhatifikatorToc] = useState<Array<{ id: string; title: string }>>([]);
     const [vozhatifikatorLoading, setVozhatifikatorLoading] = useState(false);
@@ -385,18 +475,24 @@ export const PersonalCabinet: React.FC<{
         return () => { document.body.removeAttribute('data-cabinet-open'); };
     }, []);
 
-    // Navigate to badge — use the global function from AppViewRouter
-    // Pre-load badge data for lazy-loaded categories before calling openBadgeById
-    const navigateToBadge = useCallback(async (badgeId: string, action?: 'plan' | 'confirm') => {
-        // Ensure badge data is loaded (handles lazy-loaded categories like 8)
+    const navigateToBadge = useCallback(async (badgeId: string, _action?: 'plan' | 'confirm') => {
+        // Ensure badge & category data is loaded
         await ensureBadgeLoaded(badgeId);
-        // Small delay to let React re-render with new badges in context
-        await new Promise(r => setTimeout(r, 50));
+        const categoryId = String(badgeId).split('.')[0];
+        if (categoryId) await ensureCategoryBadgesLoaded(categoryId);
+        // Wait for state updates
+        await new Promise(r => setTimeout(r, 300));
+        // Try the global function first
         const openBadge = (window as any).openBadgeById;
         if (typeof openBadge === 'function') {
-            openBadge(badgeId, { origin: 'cabinet', action });
+            openBadge(badgeId, { origin: 'cabinet' });
         }
-    }, [ensureBadgeLoaded]);
+        // Fallback: navigate via URL (forces deep-link handler on reload)
+        const url = new URL(window.location.href);
+        url.searchParams.set('view', 'badge');
+        url.searchParams.set('badgeId', badgeId);
+        window.location.href = url.toString();
+    }, [ensureBadgeLoaded, ensureCategoryBadgesLoaded]);
 
     const profile = userData?.profile || {};
     const nickname = (profile as any)?.nickname || 'Искатель';
@@ -478,6 +574,17 @@ export const PersonalCabinet: React.FC<{
         } : null
     );
 
+    // Derive default shift length (9 or 21 days) from the user's shift data
+    const defaultShiftLength: 9 | 21 = (() => {
+        const shift = mySquadInfo?.shift;
+        if (!shift) return 21;
+        if (shift.durationDays === 9 || shift.durationDays === 21) return shift.durationDays;
+        // Infer from name: летняя = 21 days, everything else (весенняя/осенняя/зимняя) = 9 days
+        if (shift.name) return shift.name.toLowerCase().includes('лет') ? 21 : 9;
+        return 21;
+    })();
+
+
     const openProfileEditor = () => {
         setNicknameInput(nickname);
         setAvatarInput(avatar);
@@ -524,7 +631,7 @@ export const PersonalCabinet: React.FC<{
 
     const currentInfo = SECTION_INFO[activeSection];
 
-    // ── Deep linking: ?openPanel=section&join_squad=squadId ────────────
+    // ── Deep linking: ?openPanel=section&join_squad=squadId or #hash ────────────
     useEffect(() => {
         if (typeof window === 'undefined') return;
         const params = new URLSearchParams(window.location.search);
@@ -543,7 +650,14 @@ export const PersonalCabinet: React.FC<{
             params.delete('join_squad');
         }
 
-        // Clean up URL
+        // Handle #workshop hash from BadgeView/CategoryView
+        if (window.location.hash.startsWith('#workshop')) {
+            setActiveSection('workshop');
+            setWorkshopTab('constructor');
+            setWsProposalType('badge'); // Default to creating a badge when coming from category
+        }
+
+        // Clean up URL parameters
         const remaining = params.toString();
         if (panel || squadId) {
             window.history.replaceState(null, '',
@@ -571,9 +685,10 @@ export const PersonalCabinet: React.FC<{
                 {/* ═══ Колонка 1: Навигация разделов ═══ */}
                 <div style={{
                     width: 180, flexShrink: 0,
-                    background: 'rgba(5, 12, 28, 0.85)',
-                    backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
-                    borderRight: '1px solid rgba(93,228,255,0.1)',
+                    background: 'linear-gradient(180deg, rgba(120,80,255,0.04) 0%, transparent 40%), linear-gradient(270deg, rgba(80,140,255,0.05) 0%, transparent 40%), linear-gradient(180deg, #111827 0%, #0B1020 100%)',
+                    backgroundColor: '#111827',
+                    backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
+                    borderRight: '1px solid rgba(255,255,255,0.04)',
                     display: 'flex', flexDirection: 'column',
                     padding: '8px 6px', gap: 1, overflowY: 'auto',
                 }}>
@@ -676,25 +791,28 @@ export const PersonalCabinet: React.FC<{
                             }}
                         />
                         {/* Slide-over panel */}
+                        {/* Slide-over panel */}
                         <div style={{
                             position: 'fixed', top: 0, left: 0, bottom: 0,
-                            width: 260, zIndex: 101,
-                            background: 'rgba(8, 16, 36, 0.97)',
-                            backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
-                            borderRight: '1px solid rgba(93,228,255,0.15)',
+                            width: 280, zIndex: 101,
+                            background: 'rgba(255, 255, 255, 0.85)',
+                            backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)',
+                            borderRight: '1px solid rgba(0,0,0,0.05)',
                             display: 'flex', flexDirection: 'column',
-                            padding: '24px 16px',
-                            boxShadow: '4px 0 24px rgba(0,0,0,0.4)',
+                            padding: '32px 24px',
+                            boxShadow: '8px 0 40px rgba(0,0,0,0.08)',
                             animation: 'slideInLeft 0.2s ease-out',
+                            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
                         }}>
                             {/* Avatar */}
-                            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 14 }}>
+                            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 20 }}>
                                 <div style={{
-                                    width: 72, height: 72, borderRadius: '50%',
-                                    background: 'rgba(93,228,255,0.15)',
+                                    width: 140, height: 140, borderRadius: '50%',
+                                    background: '#fff',
                                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    fontSize: avatar.length <= 2 ? 28 : 14, fontWeight: 600,
-                                    overflow: 'hidden', border: '2px solid rgba(93,228,255,0.3)',
+                                    fontSize: avatar.length <= 2 ? 56 : 32, fontWeight: 500, color: '#0f172a',
+                                    overflow: 'hidden', border: '1px solid rgba(0,0,0,0.06)',
+                                    boxShadow: '0 8px 24px rgba(0,0,0,0.08)'
                                 }}>
                                     {avatar.startsWith('http') || avatar.startsWith('/') || avatar.startsWith('data:') ? (
                                         <img src={avatar} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -702,13 +820,13 @@ export const PersonalCabinet: React.FC<{
                                 </div>
                             </div>
                             {/* Name + Role */}
-                            <div style={{ textAlign: 'center', marginBottom: 24 }}>
-                                <div style={{ fontSize: 16, fontWeight: 700, color: '#e8f0ff' }}>{nickname}</div>
-                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, marginTop: 4 }}>
-                                    <span style={{ width: 7, height: 7, borderRadius: 4, background: roleInfo.color }} />
-                                    <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)' }}>{roleInfo.label}</span>
+                            <div style={{ textAlign: 'center', marginBottom: 28 }}>
+                                <div style={{ fontSize: 16, fontWeight: 600, color: '#000' }}>{nickname}</div>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 4 }}>
+                                    <span style={{ fontSize: 13, fontWeight: 400, color: '#3390ec' }}>{roleInfo.label}</span>
                                 </div>
                             </div>
+                            <div style={{ height: 1, background: 'rgba(0,0,0,0.06)', margin: '0 0 12px' }} />
                             {/* Menu items */}
                             <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                                 {[
@@ -718,15 +836,19 @@ export const PersonalCabinet: React.FC<{
                                 ].map((item, i) => (
                                     <button key={i} type="button" onClick={item.action}
                                         style={{
-                                            padding: '10px 14px', borderRadius: 10, border: 'none',
+                                            padding: '12px 14px', borderRadius: 8, border: 'none',
                                             background: 'transparent', cursor: 'pointer',
                                             display: 'flex', alignItems: 'center', gap: 10,
-                                            color: '#e8f0ff', fontSize: 14, fontWeight: 500,
-                                            fontFamily: FONT, transition: 'background 0.15s', textAlign: 'left',
-                                            width: '100%',
+                                            color: '#111827', fontSize: 14, fontWeight: 500,
+                                            fontFamily: 'inherit', transition: 'background 0.15s', textAlign: 'left',
+                                            width: '100%'
                                         }}
-                                        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.08)'; }}
-                                        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}>
+                                        onMouseEnter={e => { 
+                                            e.currentTarget.style.background = 'rgba(0,0,0,0.05)'; 
+                                        }}
+                                        onMouseLeave={e => { 
+                                            e.currentTarget.style.background = 'transparent'; 
+                                        }}>
                                         {item.label}
                                     </button>
                                 ))}
@@ -778,6 +900,7 @@ export const PersonalCabinet: React.FC<{
                                 case 'events': return eventsTab as string;
                                 case 'profile4k': return profile4kTab;
                                 case 'vozhatifikator': return vozhatifikatorTab;
+                                case 'inspector': return inspectorTab;
                                 default: return tabs[0]?.id || '';
                             }
                         };
@@ -795,78 +918,92 @@ export const PersonalCabinet: React.FC<{
                                 case 'events': setEventsTab(tabId as 'requests' | 'announcements' | 'tasks'); break;
                                 case 'profile4k': setProfile4kTab(tabId as any); break;
                                 case 'vozhatifikator': setVozhatifikatorTab(tabId as any); break;
+                                case 'inspector': setInspectorTab(tabId); break;
                             }
                         };
                         const activeTabId = getActiveTabId();
 
                         const isStaff = canModerateBadgeApprovals(currentRole as UserRole);
                         const visibleTabs = activeSection === 'squad-corner'
-                            ? tabs.filter((t: any) => !t.editorOnly || canEditSquadCorner)
+                            ? tabs.filter(t => !t.editorOnly || canEditSquadCorner)
                             : activeSection === 'council'
-                              ? tabs.filter((t: any) => !t.staffOnly || isStaff)
+                              ? tabs.filter(t => !t.staffOnly || isStaff)
                               : tabs;
-                        return visibleTabs.map(tab => (
-                            <button key={tab.id} type="button"
-                                onClick={() => setActiveTabId(tab.id)}
-                                style={{
-                                    padding: '10px 16px', border: 'none', textAlign: 'left',
-                                    background: activeTabId === tab.id ? 'rgba(93,228,255,0.12)' : 'transparent',
-                                    borderLeft: activeTabId === tab.id ? '3px solid #5de4ff' : '3px solid transparent',
-                                    cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10,
-                                    color: activeTabId === tab.id ? '#fff' : 'rgba(255,255,255,0.6)',
-                                    fontSize: 14, fontWeight: activeTabId === tab.id ? 600 : 400,
-                                    fontFamily: FONT, transition: 'all 0.15s',
-                                }}
-                                onMouseEnter={e => { if (activeTabId !== tab.id) (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.05)'; }}
-                                onMouseLeave={e => { if (activeTabId !== tab.id) (e.currentTarget as HTMLElement).style.background = 'transparent'; }}>
-                                {tab.icon && <span style={{ fontSize: 16 }}>{tab.icon}</span>}
-                                {tab.label}
-                            </button>
-                        ));
+                        return visibleTabs.map(tab => {
+                            if (tab.isDivider) {
+                                return (
+                                    <div key={tab.id} style={{
+                                        height: 1,
+                                        background: 'rgba(255,255,255,0.06)',
+                                        margin: '8px 16px'
+                                    }} />
+                                );
+                            }
+                            return (
+                                <button key={tab.id} type="button"
+                                    onClick={() => setActiveTabId(tab.id)}
+                                    style={{
+                                        padding: '10px 16px', border: 'none', textAlign: 'left',
+                                        background: activeTabId === tab.id ? 'rgba(93,228,255,0.12)' : 'transparent',
+                                        borderLeft: activeTabId === tab.id ? '3px solid #5de4ff' : '3px solid transparent',
+                                        cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10,
+                                        color: activeTabId === tab.id ? '#fff' : 'rgba(255,255,255,0.6)',
+                                        fontSize: 14, fontWeight: activeTabId === tab.id ? 600 : 400,
+                                        fontFamily: FONT, transition: 'all 0.15s',
+                                    }}
+                                    onMouseEnter={e => { if (activeTabId !== tab.id) (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.05)'; }}
+                                    onMouseLeave={e => { if (activeTabId !== tab.id) (e.currentTarget as HTMLElement).style.background = 'transparent'; }}>
+                                    {tab.icon && <span style={{ fontSize: 16 }}>{tab.icon}</span>}
+                                    {tab.label}
+                                </button>
+                            );
+                        });
                     })()}
                 </div>
 
-                <div style={{ flex: 1, overflowY: 'auto', padding: '24px 32px' }}>
-                    <div style={{ width: '100%' }}>
+                <div style={{ flex: 1, overflowY: 'auto', padding: '24px 32px 120px' }}>
+                    <div style={{ width: '100%', maxWidth: (activeSection === 'council' && (councilTab === 'camp-management' || councilTab === 'management')) ? 'none' : 680, margin: '0 auto' }}>
 
 
                         {/* ── Profile Editor (when profileEditing is true) ── */}
                         {profileEditing ? (
-                            <div style={{
+                            <div className="fade-in" style={{
                                 maxWidth: 520, margin: '0 auto',
-                                background: 'rgba(10, 18, 38, 0.85)',
-                                borderRadius: 18, border: '1px solid rgba(93,228,255,0.12)',
+                                background: 'rgba(8, 20, 40, 0.15)',
+                                borderRadius: 20, border: '1px solid rgba(255, 255, 255, 0.08)',
                                 padding: '32px 28px',
-                                backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)',
+                                backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
+                                boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.02), 0 8px 32px rgba(0,0,0,0.25)'
                             }}>
                                 <h2 style={{ margin: '0 0 24px', fontSize: 20, fontWeight: 700, color: '#e8f0ff', textAlign: 'center' }}>
                                     Профиль
                                 </h2>
 
                                 {/* Avatar */}
-                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 24 }}>
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 28 }}>
                                     <div style={{
-                                        width: 96, height: 96, borderRadius: '50%',
-                                        background: 'rgba(93,228,255,0.12)',
+                                        width: 160, height: 160, borderRadius: '50%',
+                                        background: 'rgba(255,255,255,0.04)',
                                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                        overflow: 'hidden', border: '2px solid rgba(93,228,255,0.3)',
-                                        marginBottom: 12, cursor: 'pointer',
+                                        overflow: 'hidden', border: '1px solid rgba(255, 255, 255, 0.08)',
+                                        marginBottom: 16, cursor: 'pointer',
                                     }} onClick={() => avatarFileRef.current?.click()}>
                                         {isImageAvatar(avatarInput) ? (
                                             <img src={avatarInput} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                         ) : (
-                                            <span style={{ fontSize: 42 }}>{avatarInput || nickname.charAt(0).toUpperCase()}</span>
+                                            <span style={{ fontSize: 64, opacity: 0.8 }}>{avatarInput || nickname.charAt(0).toUpperCase()}</span>
                                         )}
                                     </div>
-                                    <input ref={avatarFileRef} type="file" accept="image/*" style={{ display: 'none' }}
-                                        onChange={handleAvatarFile} />
+                                    <input ref={avatarFileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleAvatarFile} />
                                     <button type="button" onClick={() => avatarFileRef.current?.click()}
-                                        style={{
-                                            padding: '6px 16px', borderRadius: 20, border: '1px solid rgba(93,228,255,0.3)',
-                                            background: 'rgba(93,228,255,0.1)', color: '#5de4ff',
-                                            fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: FONT,
-                                            transition: 'background 0.15s',
-                                        }}>
+                                        style={{ 
+                                            padding: '8px 16px', borderRadius: 12, fontSize: 13, fontWeight: 600,
+                                            background: 'rgba(255,255,255,0.04)', border: 'none',
+                                            color: 'rgba(255,255,255,0.7)', cursor: 'pointer', transition: 'all 0.2s ease', fontFamily: FONT,
+                                        }}
+                                        onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; e.currentTarget.style.color = '#fff'; }}
+                                        onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.color = 'rgba(255,255,255,0.7)'; }}
+                                    >
                                         Загрузить фото
                                     </button>
                                 </div>
@@ -874,110 +1011,63 @@ export const PersonalCabinet: React.FC<{
                                 {/* Fields */}
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                                     <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                                        <span style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                        <span style={{ fontSize: 11, fontWeight: 700, opacity: 0.6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                                             Ник
                                         </span>
-                                        <input value={nicknameInput} onChange={e => setNicknameInput(e.target.value)}
-                                            placeholder="Никнейм"
-                                            style={{
-                                                padding: '10px 14px', borderRadius: 10,
-                                                border: '1px solid rgba(255,255,255,0.15)',
-                                                background: 'rgba(255,255,255,0.06)',
-                                                color: '#e8f0ff', fontSize: 14, fontFamily: FONT,
-                                                outline: 'none', transition: 'border-color 0.15s',
-                                            }}
-                                            onFocus={e => e.currentTarget.style.borderColor = 'rgba(93,228,255,0.4)'}
-                                            onBlur={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)'}
-                                        />
+                                        <input className="cab-input" value={nicknameInput} onChange={e => setNicknameInput(e.target.value)} placeholder="Никнейм" />
                                     </label>
 
                                     <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                                        <span style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                        <span style={{ fontSize: 11, fontWeight: 700, opacity: 0.6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                                             Направление
                                         </span>
-                                        <input value={statusInput} onChange={e => setStatusInput(e.target.value)}
-                                            maxLength={80} placeholder="Направление"
-                                            style={{
-                                                padding: '10px 14px', borderRadius: 10,
-                                                border: '1px solid rgba(255,255,255,0.15)',
-                                                background: 'rgba(255,255,255,0.06)',
-                                                color: '#e8f0ff', fontSize: 14, fontFamily: FONT,
-                                                outline: 'none', transition: 'border-color 0.15s',
-                                            }}
-                                            onFocus={e => e.currentTarget.style.borderColor = 'rgba(93,228,255,0.4)'}
-                                            onBlur={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)'}
-                                        />
+                                        <input className="cab-input" value={statusInput} onChange={e => setStatusInput(e.target.value)} maxLength={80} placeholder="Направление" />
                                     </label>
 
                                     <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                                        <span style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                        <span style={{ fontSize: 11, fontWeight: 700, opacity: 0.6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                                             Сейчас делаю
                                         </span>
-                                        <textarea value={bioInput} onChange={e => setBioInput(e.target.value)}
-                                            maxLength={160} placeholder="Коротко. Одна мысль."
-                                            style={{
-                                                padding: '10px 14px', borderRadius: 10,
-                                                border: '1px solid rgba(255,255,255,0.15)',
-                                                background: 'rgba(255,255,255,0.06)',
-                                                color: '#e8f0ff', fontSize: 14, fontFamily: FONT,
-                                                outline: 'none', minHeight: 80, resize: 'vertical',
-                                                transition: 'border-color 0.15s',
-                                            }}
-                                            onFocus={e => e.currentTarget.style.borderColor = 'rgba(93,228,255,0.4)'}
-                                            onBlur={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)'}
-                                        />
-                                        <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', textAlign: 'right' }}>
+                                        <textarea className="cab-input" value={bioInput} onChange={e => setBioInput(e.target.value)} maxLength={160} placeholder="Коротко. Одна мысль." style={{ minHeight: 80, resize: 'vertical' }} />
+                                        <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', textAlign: 'right', marginTop: -2 }}>
                                             {bioInput.length}/160
                                         </span>
                                     </label>
                                 </div>
 
                                 {/* Rank */}
-                                <div style={{ margin: '20px 0 8px' }}>
+                                <div style={{ margin: '24px 0 12px' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                                        <span style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase' }}>
-                                            Ранг
-                                        </span>
-                                        <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)' }}>
-                                            {rank} · Уровень {currentLevels}
-                                        </span>
+                                        <span style={{ fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase' }}>Ранг</span>
+                                        <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)', fontWeight: 600 }}>{rank} · Уровень {currentLevels}</span>
                                     </div>
-                                    <div style={{ width: '100%', height: 6, background: 'rgba(255,255,255,0.1)', borderRadius: 3, overflow: 'hidden' }}>
-                                        <div style={{
-                                            width: `${xpPercent}%`, height: '100%',
-                                            background: 'linear-gradient(90deg, #8B00FF, #FFD700)',
-                                            borderRadius: 3, transition: 'width 0.3s ease',
-                                        }} />
+                                    <div style={{ width: '100%', height: 6, background: 'rgba(255,255,255,0.06)', borderRadius: 3, overflow: 'hidden' }}>
+                                        <div style={{ width: `${xpPercent}%`, height: '100%', background: 'linear-gradient(90deg, #8B00FF, #FFD700)', borderRadius: 3, transition: 'width 0.3s ease' }} />
                                     </div>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
                                         <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)' }}>{prevRankAt} ур.</span>
-                                        <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)' }}>
-                                            {xpPercent >= 100 ? 'Цель выполнена' : `Цель: ${nextRankAt} ур.`}
-                                        </span>
+                                        <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)' }}>{xpPercent >= 100 ? 'Цель выполнена' : `Цель: ${nextRankAt} ур.`}</span>
                                     </div>
                                 </div>
 
                                 {/* Actions */}
                                 <div style={{ display: 'flex', gap: 12, marginTop: 24 }}>
-                                    <button type="button" onClick={cancelProfileEditor}
-                                        style={{
-                                            flex: 1, padding: '10px 20px', borderRadius: 12,
-                                            border: '1px solid rgba(255,255,255,0.15)',
-                                            background: 'transparent', color: 'rgba(255,255,255,0.7)',
-                                            fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: FONT,
-                                            transition: 'background 0.15s',
-                                        }}>
+                                    <button type="button" className="cab-btn-glass" onClick={cancelProfileEditor} style={{ flex: 1, padding: '12px 20px', fontSize: 14 }}>
                                         Отмена
                                     </button>
                                     <button type="button" onClick={saveProfile}
                                         style={{
-                                            flex: 1, padding: '10px 20px', borderRadius: 12,
+                                            flex: 1, padding: '12px 20px', borderRadius: 12,
                                             border: 'none',
                                             background: 'linear-gradient(135deg, #8B00FF, #FFD700)',
                                             color: '#fff', fontSize: 14, fontWeight: 700,
                                             cursor: 'pointer', fontFamily: FONT,
-                                            transition: 'opacity 0.15s', boxShadow: '0 4px 16px rgba(139,0,255,0.3)',
-                                        }}>
+                                            transition: 'transform 0.15s, box-shadow 0.15s',
+                                            boxShadow: '0 4px 16px rgba(139,0,255,0.3)',
+                                        }}
+                                        onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 24px rgba(139,0,255,0.45)'; }}
+                                        onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(139,0,255,0.3)'; }}
+                                    >
                                         Сохранить
                                     </button>
                                 </div>
@@ -1411,6 +1501,7 @@ export const PersonalCabinet: React.FC<{
                                             deviceId={deviceId || ''}
                                             role={undefined}
                                             chatType="wing"
+                                            members={[{ deviceId: deviceId || '', nickname: userData?.profile?.nickname || null, avatarUrl: userData?.profile?.avatar || null }]}
                                         />
                                     ) : broTab === 'constructor' ? (
                                         <InitiationConstructor
@@ -1460,7 +1551,7 @@ export const PersonalCabinet: React.FC<{
                                     )}
                                 </div>
                             ) : activeSection === 'squad-corner' ? (
-                                <div style={{ width: '100%', paddingBottom: 100 }}>
+                                <div style={{ width: '100%', paddingBottom: squadCornerTab === 'chat' ? 0 : 100 }}>
                                     {currentRole !== 'traveler' && squadCornerTab === 'squad' ? (
                                         !(hasSquadMembership || userData?.diaryProgress?.squad?.name) ? (
                                             <SquadCabinetPanel
@@ -1512,7 +1603,7 @@ export const PersonalCabinet: React.FC<{
                                                     </div>
                                                 </div>
                                             );
-                                            return <SquadChat key="chat-active" squadId={sid} accessToken={accessToken || ''} nickname={nickname} deviceId={deviceId} role={currentRole} />;
+                                            return <SquadChat key="chat-active" squadId={sid} accessToken={accessToken || ''} nickname={nickname} deviceId={deviceId} role={currentRole} members={[{ deviceId: deviceId || '', nickname: nickname || null, avatarUrl: userData?.profile?.avatar || null }]} height="calc(100vh - 126px)" minHeight={0} />;
                                         })()
                                     ) : squadCornerTab === 'schedule' ? (
                                         <RealDiaryDashboard
@@ -1522,77 +1613,7 @@ export const PersonalCabinet: React.FC<{
                                             onNavigateToBadge={navigateToBadge}
                                         />
                                     ) : squadCornerTab === 'program' ? (
-                                        (() => {
-                                            const diaryCorner = userData?.diaryProgress?.squad;
-                                            const gridA = (diaryCorner as any)?.planGridA;
-                                            const gridB = (diaryCorner as any)?.planGridB;
-                                            const countFilled = (g: any) => {
-                                                if (!g?.days) return 0;
-                                                return Object.values(g.days).filter((d: any) => d && (d.morning || d.quietHour || d.day || d.evening || d.night)).length;
-                                            };
-                                            const grid = countFilled(gridA) >= countFilled(gridB) ? gridA : gridB;
-                                            const shiftLength = grid?.shiftLength || 21;
-                                            const days = grid?.days || {};
-                                            const hasDays = Object.keys(days).length > 0 && Object.values(days).some((d: any) => d && (d.morning || d.quietHour || d.day || d.evening || d.night));
-
-                                            if (!hasDays) return (
-                                                <div key="program-empty" className="cab-empty-state fade-in">
-                                                    <div className="cab-empty-state__icon">
-                                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>
-                                                    </div>
-                                                    <div className="cab-empty-state__title">Программа смены</div>
-                                                    <div className="cab-empty-state__desc">Программа смены будет доступна после заполнения вожатым план-сетки в разделе «Планёрка».</div>
-                                                </div>
-                                            );
-
-                                            const dayData = days[String(schedDay)] || {};
-                                            const slots = [
-                                                { key: 'morning', label: 'Утро' },
-                                                { key: 'quietHour', label: 'Тихий час' },
-                                                { key: 'day', label: 'День' },
-                                                { key: 'evening', label: 'Вечер' },
-                                                { key: 'night', label: 'Ночь' },
-                                            ];
-
-                                            return (
-                                                <div key="program-container" className="fade-in" style={{
-                                                    borderRadius: 16, padding: 20,
-                                                    background: 'rgba(8, 20, 40, 0.15)',
-                                                    backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
-                                                    border: '1px solid rgba(93, 228, 255, 0.12)',
-                                                }}>
-                                                    <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 12, color: '#e8f0ff' }}>📋 Программа смены</div>
-                                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 14 }}>
-                                                        {Array.from({ length: shiftLength }, (_, i) => i + 1).map(d => (
-                                                            <button key={d} type="button" onClick={() => setSchedDay(d)}
-                                                                style={{
-                                                                    padding: '5px 10px', borderRadius: 8, fontSize: 12, fontWeight: 600,
-                                                                    border: '1px solid rgba(93,228,255,0.15)',
-                                                                    background: schedDay === d ? 'rgba(93,228,255,0.2)' : 'rgba(255,255,255,0.04)',
-                                                                    color: schedDay === d ? '#5de4ff' : 'rgba(255,255,255,0.6)',
-                                                                    cursor: 'pointer', fontFamily: FONT, transition: 'all 0.15s',
-                                                                }}>
-                                                                День {d}
-                                                            </button>
-                                                        ))}
-                                                    </div>
-                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                                                        {slots.map(({ key, label }) => (
-                                                            <div key={key} style={{
-                                                                padding: '10px 14px', borderRadius: 10,
-                                                                background: 'rgba(255,255,255,0.04)',
-                                                                border: '1px solid rgba(255,255,255,0.06)',
-                                                            }}>
-                                                                <div style={{ fontSize: 12, fontWeight: 700, color: '#5de4ff', marginBottom: 4 }}>{label}</div>
-                                                                <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.8)', whiteSpace: 'pre-wrap' }}>
-                                                                    {(dayData as any)[key] || '—'}
-                                                                </div>
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            );
-                                        })()
+                                        <CampProgramByDays defaultShiftLength={defaultShiftLength} />
                                     ) : (
                                         <SquadCornerDashboard
                                             key={squadCornerTab}
@@ -1752,7 +1773,7 @@ export const PersonalCabinet: React.FC<{
                                     {/* Конструктор */}
                                     {workshopTab === 'constructor' && (
                                         <div key="ws-constructor" className="fade-in cab-card" style={{
-                                            padding: '28px 32px', borderRadius: 20, maxWidth: 680,
+                                            padding: '28px 32px', borderRadius: 20,
                                             display: 'flex', flexDirection: 'column', gap: 24,
                                         }}>
                                             {/* Header */}
@@ -1915,7 +1936,7 @@ export const PersonalCabinet: React.FC<{
                                     {/* Арты */}
                                     {workshopTab === 'arts' && (
                                         <div key="ws-arts" className="fade-in cab-card" style={{
-                                            padding: '28px 32px', borderRadius: 20, maxWidth: 680,
+                                            padding: '28px 32px', borderRadius: 20,
                                             display: 'flex', flexDirection: 'column', gap: 16,
                                         }}>
                                             <div>
@@ -1942,7 +1963,7 @@ export const PersonalCabinet: React.FC<{
                                         ];
                                         return (
                                             <div key="ws-my" className="fade-in cab-card" style={{
-                                                padding: '28px 32px', borderRadius: 20, maxWidth: 680,
+                                                padding: '28px 32px', borderRadius: 20,
                                                 display: 'flex', flexDirection: 'column', gap: 16,
                                             }}>
                                                 <div>
@@ -1996,7 +2017,7 @@ export const PersonalCabinet: React.FC<{
                                 <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 16 }}>
                                     {shareTab === 'invite' && (
                                         <div key="share-invite" className="fade-in cab-card" style={{
-                                            padding: '28px 32px', borderRadius: 20, maxWidth: 680,
+                                            padding: '28px 32px', borderRadius: 20,
                                             display: 'flex', flexDirection: 'column', gap: 16,
                                         }}>
                                             <div>
@@ -2024,7 +2045,7 @@ export const PersonalCabinet: React.FC<{
                                     )}
                                     {shareTab === 'qr' && (
                                         <div key="share-qr" className="fade-in cab-card" style={{
-                                            padding: '28px 32px', borderRadius: 20, maxWidth: 680,
+                                            padding: '28px 32px', borderRadius: 20,
                                             display: 'flex', flexDirection: 'column', gap: 16,
                                         }}>
                                             <div>
@@ -2050,7 +2071,7 @@ export const PersonalCabinet: React.FC<{
                             ) : activeSection === 'events' ? (
                                 <div key="events" className="fade-in cab-card" style={{
                                     display: 'flex', flexDirection: 'column' as const, gap: 16,
-                                    borderRadius: 20, maxWidth: 680, padding: '28px 32px',
+                                    borderRadius: 20, padding: '28px 32px',
                                 }}>
                                     {/* ── Auto-load when Events section opens ── */}
                                     {(() => {
@@ -2343,7 +2364,7 @@ export const PersonalCabinet: React.FC<{
                                                 <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', margin: '0 0 16px' }}>
                                                     Режим ребёнка в этом разделе всегда read-only.
                                                 </p>
-                                                <CampProgramByDays />
+                                                <CampProgramByDays defaultShiftLength={defaultShiftLength} />
                                             </div>
                                         )}
                                         {parentsTab === 'child' && (() => {
@@ -2413,12 +2434,91 @@ export const PersonalCabinet: React.FC<{
                                         )}
                                     </div>
                                 ) : activeSection === 'inspector' ? (
-                                    <InspectorDashboard
-                                        key="inspector"
-                                        variant="cabin"
-                                        onOpenDiary={() => setActiveSection('diary')}
-                                        onNavigateToBadge={navigateToBadge}
-                                    />
+                                    <div key="inspector" className="fade-in" style={{
+                                        display: 'flex', flexDirection: 'column' as const, gap: 16,
+                                    }}>
+                                        {inspectorTab === 'cabinet' && (
+                                            <InspectorCabinetPanel
+                                                accessToken={accessToken}
+                                                deviceId={deviceId}
+                                                onOpenDiary={() => setActiveSection('diary')}
+                                                onNavigateToBadge={navigateToBadge}
+                                            />
+                                        )}
+                                        {(['friendship', 'politeness', 'comfort', 'help', 'involvement', 'peacemaker', 'mood', 'chief'] as InspectorTabId[]).includes(inspectorTab as InspectorTabId) && (
+                                            <InspectorDashboard
+                                                variant="cabin"
+                                                activeTab={inspectorTab as InspectorTabId}
+                                                onTabChange={(tab) => setInspectorTab(tab)}
+                                                onOpenDiary={() => setActiveSection('diary')}
+                                                onNavigateToBadge={navigateToBadge}
+                                                accessToken={accessToken}
+                                                deviceId={deviceId}
+                                            />
+                                        )}
+                                        {inspectorTab === 'badges' && (() => {
+                                            // Trigger lazy load of category 14
+                                            void ensureCategoryBadgesLoaded('14');
+                                            const cat14Badges = allBadges.filter((b: any) => String(b.category_id) === '14');
+                                            return (
+                                                <div style={{
+                                                    background: 'rgba(5, 12, 28, 0.4)',
+                                                    backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
+                                                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                                                    borderRadius: 24, padding: 24,
+                                                    boxShadow: '0 16px 40px rgba(0,0,0,0.3)',
+                                                }}>
+                                                    <h3 style={{ margin: '0 0 16px', fontSize: 18, fontWeight: 700, color: '#e8f0ff', display: 'flex', alignItems: 'center', gap: 8 }}>
+                                                        <span>🔍</span> Линейка значков Инспектора Пользы
+                                                    </h3>
+                                                    <p style={{ margin: '0 0 20px', fontSize: 13, color: 'rgba(255,255,255,0.6)', lineHeight: 1.5 }}>
+                                                        Все значки категории «Инспектор Пользы». Кликни для перехода к значку.
+                                                    </p>
+                                                    {cat14Badges.length > 0 ? (
+                                                        <div style={{
+                                                            display: 'grid',
+                                                            gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
+                                                            gap: 12,
+                                                        }}>
+                                                            {cat14Badges.map((b: any) => (
+                                                                <div key={b.id}
+                                                                    onClick={() => navigateToBadge(String(b.id))}
+                                                                    style={{
+                                                                        padding: 16, borderRadius: 14,
+                                                                        background: 'rgba(255, 255, 255, 0.04)',
+                                                                        border: '1px solid rgba(255, 255, 255, 0.08)',
+                                                                        cursor: 'pointer', textAlign: 'center',
+                                                                        transition: 'all 0.2s',
+                                                                    }}
+                                                                    onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)'; e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.15)'; }}
+                                                                    onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)'; e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)'; }}
+                                                                >
+                                                                    <div style={{ width: 56, height: 56, margin: '0 auto 8px' }}>
+                                                                        <BadgeIcon badgeId={String(b.id)} badgeTitle={b.title || ''} categoryId="14" emoji={b.emoji || ''} size="responsive" />
+                                                                    </div>
+                                                                    <div style={{ fontSize: 12, fontWeight: 600, color: '#e8f0ff', lineHeight: 1.3 }}>{b.title}</div>
+                                                                    <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)', marginTop: 4 }}>ID: {b.id}</div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    ) : (
+                                                        <div style={{ padding: 32, textAlign: 'center', color: 'rgba(255,255,255,0.4)', fontSize: 13 }}>
+                                                            Значки категории 14 загружаются…
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            );
+                                        })()}
+                                        {['intro-doc', 'methodology-doc', 'active-checklist-doc'].includes(inspectorTab) && (() => {
+                                            const DOC_CONFIG: Record<string, { path: string }> = {
+                                                'intro-doc': { path: '/RL-Guide-book/ai-data/category-14/introduction.md' },
+                                                'methodology-doc': { path: '/RL-Guide-book/ai-data/category-14/methodology/inspector-methodology.md' },
+                                                'active-checklist-doc': { path: '/RL-Guide-book/ai-data/category-14/checklists/active-checklist.md' },
+                                            };
+                                            const cfg = DOC_CONFIG[inspectorTab];
+                                            return <MarkdownDocTab key={inspectorTab} mdPath={cfg.path} />;
+                                        })()}
+                                    </div>
                                 ) : activeSection === 'counselor-squad' ? (
                                     <CounselorSquadDashboard
                                         key="counselor-squad"

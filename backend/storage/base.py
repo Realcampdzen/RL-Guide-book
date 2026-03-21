@@ -326,3 +326,18 @@ class UsersStore(ABC):
 
     @abstractmethod
     def save(self, data: dict) -> None: ...
+
+
+class WorkshopProposalsStore(ABC):
+    """
+    Хранилище предложений Мастерской (значки, категории, версии, арты).
+    Формат: {'proposals': [...]}
+    Каждый: {id, type, title, description, status, createdBy, campId, squadId, createdAt, resolvedAt, resolvedBy}
+    Типы: badge | category | version | art.
+    Статусы: pending | approved | rejected.
+    """
+    @abstractmethod
+    def load(self) -> dict: ...
+
+    @abstractmethod
+    def save(self, data: dict) -> None: ...

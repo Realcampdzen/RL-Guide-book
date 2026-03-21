@@ -25,6 +25,7 @@ from .base import (
     WorkshopsStore,
     ParentSuggestionsStore,
     UsersStore,
+    WorkshopProposalsStore,
 )
 
 _sb_client = None
@@ -1157,6 +1158,88 @@ class SupabaseUsersStore(UsersStore):
 
 
 # ---------------------------------------------------------------------------
+# SupabaseWorkshopProposalsStore (Constructor pipeline)
+# ---------------------------------------------------------------------------
+
+class SupabaseWorkshopProposalsStore(WorkshopProposalsStore):
+    """
+    Формат load(): {'proposals': [...]}
+    Таблица: workshop_proposals
+    """
+
+    def load(self) -> dict:
+        sb = _client()
+        rows = sb.table("workshop_proposals").select("*").order("created_at", desc=False).execute().data or []
+        proposals = [self._row_to_proposal(r) for r in rows]
+        return {"proposals": proposals}
+
+    def save(self, data: dict) -> None:
+        sb = _client()
+        for p in (data.get("proposals") or []):
+            if not isinstance(p, dict):
+                continue
+            sb.table("workshop_proposals").upsert(self._proposal_to_row(p)).execute()
+
+    @staticmethod
+    def _row_to_proposal(r: dict) -> dict:
+        cb = r.get("created_by_device_id") or ""
+        rb_dev = r.get("resolved_by_device_id") or ""
+        return {
+            "id": str(r.get("id", "")),
+            "type": r.get("type", "badge"),
+            "title": r.get("title", ""),
+            "description": r.get("description") or "",
+            "emoji": r.get("emoji") or None,
+            "badgeId": r.get("badge_id") or None,
+            "image": r.get("image") or None,
+            "status": r.get("status", "pending"),
+            "createdBy": {"deviceId": cb, "nickname": r.get("created_by_nickname") or ""},
+            "campId": r.get("camp_id") or "",
+            "squadId": r.get("squad_id") or None,
+            "createdAt": _ts(r.get("created_at")),
+            "resolvedAt": _ts(r.get("resolved_at")) if r.get("resolved_at") else None,
+            "resolvedBy": {"deviceId": rb_dev, "role": r.get("resolved_by_role") or ""} if rb_dev else None,
+            "resolutionNote": r.get("resolution_note") or None,
+        }
+
+    @staticmethod
+    def _proposal_to_row(p: dict) -> dict:
+        cb = p.get("createdBy") or {}
+        rb = p.get("resolvedBy") or {}
+        row = {
+            "id": p.get("id") or str(uuid.uuid4()),
+            "type": p.get("type", "badge"),
+            "title": p.get("title", ""),
+            "status": p.get("status", "pending"),
+        }
+        if p.get("description"):
+            row["description"] = p["description"]
+        if p.get("emoji"):
+            row["emoji"] = p["emoji"]
+        if p.get("badgeId"):
+            row["badge_id"] = p["badgeId"]
+        if p.get("image"):
+            row["image"] = p["image"]
+        if cb.get("deviceId"):
+            row["created_by_device_id"] = cb["deviceId"]
+        if cb.get("nickname"):
+            row["created_by_nickname"] = cb["nickname"]
+        if p.get("campId"):
+            row["camp_id"] = p["campId"]
+        if p.get("squadId"):
+            row["squad_id"] = p["squadId"]
+        if p.get("resolvedAt"):
+            row["resolved_at"] = p["resolvedAt"]
+        if rb.get("deviceId"):
+            row["resolved_by_device_id"] = rb["deviceId"]
+        if rb.get("role"):
+            row["resolved_by_role"] = rb["role"]
+        if p.get("resolutionNote"):
+            row["resolution_note"] = p["resolutionNote"]
+        return row
+
+
+# ---------------------------------------------------------------------------
 # Реестр экземпляров
 # ---------------------------------------------------------------------------
 
@@ -1182,5 +1265,6 @@ SUPABASE_STORES = {
     "workshops":         SupabaseWorkshopsStore(),
     "parent_suggestions": SupabaseParentSuggestionsStore(),
     "users":              SupabaseUsersStore(),
+    "workshop_proposals": SupabaseWorkshopProposalsStore(),
 }
 

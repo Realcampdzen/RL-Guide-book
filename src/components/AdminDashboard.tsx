@@ -117,8 +117,15 @@ function getUserRole(item: RawInboxItem): string | null {
 function getItemTitle(item: RawInboxItem): string {
     const data = item.data || {};
     switch (item.type) {
-        case 'badge_request':
+        case 'badge_request': {
+            const ev = (data.evidence || data) as Record<string, unknown>;
+            if (ev.source === 'inspector') {
+                const mTitle = (ev.missionTitle as string) || '';
+                const mDay = ev.missionDay as number;
+                return `🔍 Инспектор · ${mTitle || (mDay ? `Миссия ${mDay}` : 'Миссия')}`;
+            }
             return (data.badge_name as string) || humanizeId(data.badge_id as string) || 'Заявка на значок';
+        }
         case 'council_initiative': {
             const ciTitle = (data.title as string) || 'Инициатива совета';
             if (data.sourceType === 'ode') return `🎯 ${ciTitle.replace(/^\[ОДэ\]\s*/, '')}`;
@@ -159,6 +166,22 @@ function getItemDescription(item: RawInboxItem): string {
         case 'badge_request': {
             // Show evidence details if available
             const ev = (data.evidence || data) as Record<string, unknown>;
+            if (ev.source === 'inspector') {
+                const parts: string[] = [];
+                if (typeof ev.durationMs === 'number') {
+                    const mins = Math.floor((ev.durationMs as number) / 60000);
+                    const secs = Math.floor(((ev.durationMs as number) % 60000) / 1000);
+                    parts.push(`⏱ ${mins} мин ${secs} сек`);
+                }
+                if (Array.isArray(ev.completedTasks)) {
+                    parts.push(`✅ ${ev.completedTasks.length} заданий`);
+                }
+                if (typeof ev.reflection === 'string' && ev.reflection.trim()) {
+                    const refl = ev.reflection.trim();
+                    parts.push(`📝 «${refl.slice(0, 80)}${refl.length > 80 ? '…' : ''}»`);
+                }
+                return parts.length > 0 ? parts.join(' · ') : 'Ожидает проверки вожатого';
+            }
             const parts: string[] = [];
             if (typeof ev.reflection === 'string' && ev.reflection.trim()) parts.push(ev.reflection.trim());
             if (typeof ev.impact === 'string' && ev.impact.trim()) parts.push(ev.impact.trim());
@@ -823,8 +846,31 @@ const InboxCard: React.FC<{
                             <div style={{ fontSize: 13, color: '#333', lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>{data.text as string}</div>
                         </div>
                     )}
+                    {/* Inspector-specific stats */}
+                    {item.type === 'badge_request' && ev.source === 'inspector' && (
+                        <div>
+                            <div style={{ fontSize: 11, fontWeight: 600, color: '#999', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 6 }}>Инспектор Пользы</div>
+                            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                                {typeof ev.missionDay === 'number' && (
+                                    <span style={{ padding: '4px 10px', borderRadius: 6, background: '#f0f0f5', fontSize: 12, fontWeight: 600, color: '#666' }}>
+                                        Миссия {ev.missionDay as number}
+                                    </span>
+                                )}
+                                {typeof ev.durationMs === 'number' && (
+                                    <span style={{ padding: '4px 10px', borderRadius: 6, background: '#e0f2fe', fontSize: 12, fontWeight: 600, color: '#0284c7' }}>
+                                        ⏱ {Math.floor((ev.durationMs as number) / 60000)} мин {Math.floor(((ev.durationMs as number) % 60000) / 1000)} сек
+                                    </span>
+                                )}
+                                {Array.isArray(ev.completedTasks) && (
+                                    <span style={{ padding: '4px 10px', borderRadius: 6, background: '#f0fdf4', fontSize: 12, fontWeight: 600, color: '#16a34a' }}>
+                                        ✅ {ev.completedTasks.length} заданий
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+                    )}
                     {/* Empty evidence notice */}
-                    {!ev.reflection && !ev.impact && !ev.link && allPhotos.length === 0 && !data.plan_text && !data.text && (
+                    {!ev.reflection && !ev.impact && !ev.link && allPhotos.length === 0 && !data.plan_text && !data.text && ev.source !== 'inspector' && (
                         <div style={{ fontSize: 12, color: '#bbb', fontStyle: 'italic' }}>Доказательства не приложены</div>
                     )}
                 </div>

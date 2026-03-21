@@ -251,7 +251,7 @@ export const BroPassportPanel: React.FC<BroPassportPanelProps> = ({
     }
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingBottom: 100, maxWidth: 680, width: '100%' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingBottom: 100, width: '100%' }}>
 
             {/* Staff: Initiate */}
             {canModerate && !activeEvent && (

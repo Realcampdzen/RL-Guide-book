@@ -50,40 +50,6 @@ const uid = () => `bs_${Date.now().toString(36)}_${Math.random().toString(36).sl
 const DRAFT_KEY = 'brodela-constructor-draft';
 const DRAFT_STEP_KEY = 'brodela-constructor-step';
 
-// ---------------------------------------------------------------------------
-// Shared styles
-// ---------------------------------------------------------------------------
-
-const sectionCard: React.CSSProperties = {
-  padding: '18px 20px', borderRadius: 14,
-  background: '#161230',
-  border: '1px solid rgba(124, 58, 237, 0.18)',
-};
-
-const fieldStyle: React.CSSProperties = {
-  padding: '10px 14px', borderRadius: 10,
-  border: '1px solid rgba(124,58,237,0.25)',
-  background: 'rgba(124,58,237,0.06)', color: '#e8f0ff',
-  fontSize: 13, fontFamily: 'inherit', fontWeight: 500,
-  outline: 'none', width: '100%', boxSizing: 'border-box',
-};
-
-const btnPrimary: React.CSSProperties = {
-  padding: '10px 22px', borderRadius: 10, border: 'none',
-  background: 'linear-gradient(135deg, #7c3aed, #6d28d9)',
-  color: '#fff', fontSize: 13, fontWeight: 700,
-  cursor: 'pointer', fontFamily: 'inherit',
-  transition: 'all 0.15s',
-};
-
-const btnSecondary: React.CSSProperties = {
-  padding: '8px 16px', borderRadius: 10,
-  border: '1px solid rgba(124,58,237,0.3)',
-  background: 'rgba(124,58,237,0.08)', color: '#c4b5fd',
-  fontSize: 12, fontWeight: 600,
-  cursor: 'pointer', fontFamily: 'inherit',
-};
-
 const labelStyle: React.CSSProperties = {
   fontSize: 12, fontWeight: 700, color: '#c4b5fd',
   textTransform: 'uppercase' as const, letterSpacing: 0.5,
@@ -358,7 +324,7 @@ export const BroDelaPanel: React.FC = () => {
     <>
       <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
         <button type="button" onClick={() => { setShowTip(true); setTipIndex(Math.floor(Math.random() * BRODELA_TIPS.length)); }}
-          style={{ ...btnSecondary, fontSize: 11 }}>Совет из книги</button>
+          className="cab-btn-glass" style={{ padding: '6px 14px', fontSize: 12 }}>Совет из книги</button>
       </div>
       {showTip && (
         <div style={{
@@ -369,7 +335,7 @@ export const BroDelaPanel: React.FC = () => {
           {BRODELA_TIPS[tipIndex]}
           <div style={{ marginTop: 6, display: 'flex', gap: 8 }}>
             <button type="button" onClick={() => setTipIndex(Math.floor(Math.random() * BRODELA_TIPS.length))}
-              style={{ ...btnSecondary, padding: '3px 10px', fontSize: 10 }}>Ещё</button>
+              className="cab-btn-glass" style={{ padding: '4px 10px', fontSize: 11 }}>Ещё</button>
             <button type="button" onClick={() => setShowTip(false)}
               style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', fontSize: 10, cursor: 'pointer', fontFamily: 'inherit' }}>Скрыть</button>
           </div>
@@ -379,7 +345,7 @@ export const BroDelaPanel: React.FC = () => {
   );
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 14, maxWidth: 720, margin: '0 auto', width: '100%', position: 'relative' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 14, width: '100%', position: 'relative' }}>
       {/* Toast */}
       {toast && (
         <div style={{
@@ -395,9 +361,9 @@ export const BroDelaPanel: React.FC = () => {
       {/* CONSTRUCTOR */}
       {/* ================================================================= */}
       {constructorOpen && (
-        <div className="fade-in" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           {/* Header */}
-          <div style={sectionCard}>
+          <div className="cab-card">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
               <div>
                 <div style={{ fontSize: 16, fontWeight: 800, color: '#e0d4ff', letterSpacing: 0.5 }}>КОНСТРУКТОР БРОДЕЛ</div>
@@ -445,33 +411,32 @@ export const BroDelaPanel: React.FC = () => {
 
           {/* ---- STEP 1: Template picker ---- */}
           {cStep === 1 && (
-            <div style={sectionCard}>
+            <div className="cab-card">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, gap: 10, flexWrap: 'wrap' }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: '#e0d4ff' }}>Выберите основу</div>
+                <h3 style={{ fontSize: 18, fontWeight: 700, color: '#e8f0ff', margin: 0 }}>Выберите основу</h3>
                 <input
                   value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
                   placeholder="Поиск шаблона..."
-                  style={{ ...fieldStyle, maxWidth: 220, padding: '6px 12px', fontSize: 12 }}
+                  className="cab-input"
+                  style={{ maxWidth: 220, padding: '10px 14px', fontSize: 13 }}
                 />
               </div>
 
               {/* Category filter */}
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 14 }}>
-                <button type="button" onClick={() => setCategoryFilter(null)}
+                <button type="button" className="cab-btn-glass" onClick={() => setCategoryFilter(null)}
                   style={{
-                    ...btnSecondary,
                     padding: '5px 12px', fontSize: 11,
-                    background: !categoryFilter ? 'rgba(124,58,237,0.25)' : 'rgba(124,58,237,0.08)',
-                    borderColor: !categoryFilter ? 'rgba(124,58,237,0.5)' : 'rgba(124,58,237,0.2)',
+                    background: !categoryFilter ? 'rgba(124,58,237,0.25)' : 'rgba(255,255,255,0.04)',
+                    borderColor: !categoryFilter ? 'rgba(124,58,237,0.5)' : 'rgba(255,255,255,0.1)',
                   }}>Все</button>
                 {(Object.entries(BRODELA_CATEGORY_META) as [BroDelaCategory, { label: string; icon: string; color: string }][]).map(([key, meta]) => (
-                  <button key={key} type="button" onClick={() => setCategoryFilter(key)}
+                  <button key={key} type="button" className="cab-btn-glass" onClick={() => setCategoryFilter(key)}
                     style={{
-                      ...btnSecondary,
                       padding: '5px 12px', fontSize: 11,
-                      background: categoryFilter === key ? `${meta.color}22` : 'rgba(124,58,237,0.08)',
-                      borderColor: categoryFilter === key ? `${meta.color}66` : 'rgba(124,58,237,0.2)',
-                      color: categoryFilter === key ? meta.color : '#c4b5fd',
+                      background: categoryFilter === key ? `${meta.color}22` : 'rgba(255,255,255,0.04)',
+                      borderColor: categoryFilter === key ? `${meta.color}66` : 'rgba(255,255,255,0.1)',
+                      color: categoryFilter === key ? meta.color : 'rgba(255,255,255,0.6)',
                     }}>{meta.label}</button>
                 ))}
               </div>
@@ -532,14 +497,15 @@ export const BroDelaPanel: React.FC = () => {
           {cStep === 2 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               {/* Name & Description */}
-              <div style={sectionCard}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: '#e0d4ff', marginBottom: 14 }}>Основные настройки</div>
+              <div className="cab-card">
+                <h3 style={{ fontSize: 18, fontWeight: 700, color: '#e8f0ff', margin: 0, marginBottom: 14 }}>Основные настройки</h3>
 
                 <div style={{ marginBottom: 12 }}>
                   <label style={labelStyle}>Название Бродела</label>
                   <input value={state.name} onChange={e => setState(p => ({ ...p, name: e.target.value }))}
                     placeholder="Например: Квест «Тайна Залива»"
-                    style={fieldStyle} />
+                    className="cab-input"
+                    style={{ padding: '12px 14px', fontSize: 13 }} />
                 </div>
 
                 <div style={{ marginBottom: 12 }}>
@@ -547,7 +513,8 @@ export const BroDelaPanel: React.FC = () => {
                   <textarea value={state.description} onChange={e => setState(p => ({ ...p, description: e.target.value }))}
                     placeholder="Что это за дело? Какая цель? Почему важно?"
                     rows={3}
-                    style={{ ...fieldStyle, resize: 'vertical' }} />
+                    className="cab-input"
+                    style={{ padding: '12px 14px', fontSize: 13, resize: 'vertical' }} />
                 </div>
 
                 {/* Duration buttons */}
@@ -589,52 +556,75 @@ export const BroDelaPanel: React.FC = () => {
                   <label style={labelStyle}>Материалы и реквизит</label>
                   <input value={state.materials} onChange={e => setState(p => ({ ...p, materials: e.target.value }))}
                     placeholder="Что нужно подготовить?"
-                    style={fieldStyle} />
+                    className="cab-input"
+                    style={{ padding: '12px 14px', fontSize: 13 }} />
                 </div>
               </div>
 
               {/* Steps editor */}
-              <div style={sectionCard}>
+              <div className="cab-card">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: '#e0d4ff' }}>Этапы ({state.steps.length})</div>
-                  <button type="button" onClick={addStep} style={{ ...btnSecondary, fontSize: 11 }}>+ Добавить этап</button>
+                  <h3 style={{ fontSize: 18, fontWeight: 700, color: '#e8f0ff', margin: 0 }}>Этапы ({state.steps.length})</h3>
+                  <button type="button" className="cab-btn-glass" onClick={addStep} style={{ padding: '6px 14px', fontSize: 12 }}>+ Добавить этап</button>
                 </div>
 
                 {state.steps.length === 0 ? (
-                  <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', textAlign: 'center', padding: '20px 0' }}>
+                  <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', textAlign: 'center', padding: '20px 0' }}>
                     Добавьте этапы вашего Бродела
                   </div>
                 ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                    {state.steps.map((s, i) => (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    {state.steps.map((s, idx) => (
                       <div key={s.id} style={{
-                        padding: '12px 14px', borderRadius: 10,
-                        background: 'rgba(124,58,237,0.06)', border: '1px solid rgba(124,58,237,0.15)',
+                        padding: '16px', borderRadius: 16,
+                        background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.08)',
+                        display: 'flex', flexDirection: 'column', gap: 0,
+                        transition: 'border-color 0.2s, background 0.2s',
                       }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                          <span style={{ fontSize: 11, fontWeight: 700, color: '#c4b5fd' }}>Этап {i + 1}</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12, paddingBottom: 10 }}>
+                          <span style={{
+                            width: 28, height: 28, borderRadius: 8, flexShrink: 0,
+                            background: 'rgba(255,255,255,0.08)', color: '#fff',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontSize: 13, fontWeight: 700, border: '1px solid rgba(255,255,255,0.1)',
+                          }}>{idx + 1}</span>
+                          <input
+                            type="text" value={s.title}
+                            onChange={e => updateStep(s.id, 'title', e.target.value)}
+                            placeholder="Название этапа"
+                            style={{
+                              flex: 1, padding: '4px 0', fontSize: 15, fontWeight: 600,
+                              background: 'transparent', border: 'none', outline: 'none', color: '#fff',
+                              fontFamily: 'inherit'
+                            }}
+                          />
                           <div style={{ display: 'flex', gap: 4 }}>
-                            <button type="button" onClick={() => moveStep(s.id, -1)} disabled={i === 0}
-                              style={{ padding: '2px 6px', borderRadius: 6, border: 'none', background: 'rgba(255,255,255,0.06)', color: i === 0 ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.5)', fontSize: 11, cursor: i === 0 ? 'default' : 'pointer', fontFamily: 'inherit' }}>
+                            <button type="button" onClick={() => moveStep(s.id, -1)} disabled={idx === 0}
+                              style={{ width: 26, height: 26, borderRadius: 8, border: 'none', background: 'rgba(255,255,255,0.06)', color: idx === 0 ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.5)', fontSize: 11, cursor: idx === 0 ? 'default' : 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                               &#9650;
                             </button>
-                            <button type="button" onClick={() => moveStep(s.id, 1)} disabled={i === state.steps.length - 1}
-                              style={{ padding: '2px 6px', borderRadius: 6, border: 'none', background: 'rgba(255,255,255,0.06)', color: i === state.steps.length - 1 ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.5)', fontSize: 11, cursor: i === state.steps.length - 1 ? 'default' : 'pointer', fontFamily: 'inherit' }}>
+                            <button type="button" onClick={() => moveStep(s.id, 1)} disabled={idx === state.steps.length - 1}
+                              style={{ width: 26, height: 26, borderRadius: 8, border: 'none', background: 'rgba(255,255,255,0.06)', color: idx === state.steps.length - 1 ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.5)', fontSize: 11, cursor: idx === state.steps.length - 1 ? 'default' : 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                               &#9660;
                             </button>
                             <button type="button" onClick={() => removeStep(s.id)}
-                              style={{ padding: '2px 6px', borderRadius: 6, border: 'none', background: 'rgba(239,68,68,0.12)', color: '#f87171', fontSize: 11, cursor: 'pointer', fontFamily: 'inherit' }}>
-                              &#10005;
-                            </button>
+                              style={{ width: 26, height: 26, borderRadius: 8, border: '1px solid transparent', background: 'transparent', color: 'rgba(255,255,255,0.4)', cursor: 'pointer', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'color 0.2s' }} title="Удалить"
+                              onMouseEnter={e => { e.currentTarget.style.color = '#f87171'; }}
+                              onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.4)'; }}
+                              >×</button>
                           </div>
                         </div>
-                        <input value={s.title} onChange={e => updateStep(s.id, 'title', e.target.value)}
-                          placeholder="Название этапа"
-                          style={{ ...fieldStyle, marginBottom: 6 }} />
-                        <textarea value={s.description} onChange={e => updateStep(s.id, 'description', e.target.value)}
+                        <div style={{ height: 1, background: 'rgba(255,255,255,0.05)', marginLeft: 40, marginBottom: 10 }} />
+                        <input
+                          type="text" value={s.description}
+                          onChange={e => updateStep(s.id, 'description', e.target.value)}
                           placeholder="Описание: что делать на этом этапе"
-                          rows={2}
-                          style={{ ...fieldStyle, resize: 'vertical' }} />
+                          style={{
+                            marginLeft: 40, padding: '4px 0', fontSize: 13,
+                            background: 'transparent', border: 'none', outline: 'none', color: 'rgba(255,255,255,0.7)',
+                            fontFamily: 'inherit'
+                          }}
+                        />
                       </div>
                     ))}
                   </div>
@@ -657,10 +647,10 @@ export const BroDelaPanel: React.FC = () => {
 
               {/* Navigation */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <button type="button" onClick={() => setCStep(1)} style={btnSecondary}>Назад</button>
+                <button type="button" onClick={() => setCStep(1)} className="cab-btn-glass">Назад</button>
                 <button type="button" onClick={validateAndProceed} disabled={!canCreate}
+                  className="cab-btn-accent"
                   style={{
-                    ...btnPrimary,
                     opacity: canCreate ? 1 : 0.4,
                     cursor: canCreate ? 'pointer' : 'default',
                   }}>Далее: Превью</button>
@@ -671,13 +661,13 @@ export const BroDelaPanel: React.FC = () => {
           {/* ---- STEP 3: Preview ---- */}
           {cStep === 3 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              <div style={sectionCard}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: '#e0d4ff', marginBottom: 14 }}>Превью Бродела</div>
+              <div className="cab-card">
+                <h3 style={{ fontSize: 18, fontWeight: 700, color: '#e8f0ff', margin: 0, marginBottom: 14 }}>Превью Бродела</h3>
 
                 {/* Preview card */}
                 <div style={{
                   padding: '16px 18px', borderRadius: 12,
-                  background: 'rgba(124,58,237,0.06)', border: '1px solid rgba(124,58,237,0.2)',
+                  background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
                 }}>
                   <div style={{ fontSize: 16, fontWeight: 800, color: '#e0d4ff', marginBottom: 6 }}>{state.name}</div>
                   {state.description && (
@@ -728,10 +718,10 @@ export const BroDelaPanel: React.FC = () => {
 
               {/* Navigation */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <button type="button" onClick={() => setCStep(2)} style={btnSecondary}>Назад</button>
+                <button type="button" onClick={() => setCStep(2)} className="cab-btn-glass">Назад</button>
                 <button type="button" onClick={() => setShowConfirm(true)} disabled={!canCreate || busy}
+                  className="cab-btn-accent"
                   style={{
-                    ...btnPrimary,
                     opacity: canCreate && !busy ? 1 : 0.4,
                     cursor: canCreate && !busy ? 'pointer' : 'default',
                   }}>{busy ? 'Создание...' : 'Создать Бродело'}</button>
@@ -751,24 +741,24 @@ export const BroDelaPanel: React.FC = () => {
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           padding: 20,
         }}>
-          <div style={{
-            ...sectionCard,
+          <div className="cab-card" style={{
             maxWidth: 420, width: '100%',
             boxShadow: '0 8px 40px rgba(0,0,0,0.5)',
+            padding: '24px',
           }}>
-            <div style={{ fontSize: 15, fontWeight: 800, color: '#e0d4ff', marginBottom: 10 }}>Подтверждение</div>
+            <h3 style={{ fontSize: 18, fontWeight: 700, color: '#e8f0ff', margin: 0, marginBottom: 12 }}>Подтверждение</h3>
             <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)', lineHeight: 1.5, marginBottom: 6 }}>
               Создать Бродело <strong style={{ color: '#c4b5fd' }}>«{state.name}»</strong>?
             </div>
             <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginBottom: 14 }}>
               {state.steps.length} этапов · {state.duration} · {state.targetAudience}
             </div>
-            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', marginBottom: 16 }}>
+            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', marginBottom: 20 }}>
               Бродело будет доступно для голосования и отправки в Совет лагеря.
             </div>
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-              <button type="button" onClick={() => setShowConfirm(false)} style={btnSecondary}>Отмена</button>
-              <button type="button" onClick={() => { setShowConfirm(false); void handleConstructorCreate(); }} style={btnPrimary}>Подтвердить</button>
+              <button type="button" onClick={() => setShowConfirm(false)} className="cab-btn-glass">Отмена</button>
+              <button type="button" onClick={() => { setShowConfirm(false); void handleConstructorCreate(); }} className="cab-btn-accent">Подтвердить</button>
             </div>
           </div>
         </div>
@@ -777,13 +767,11 @@ export const BroDelaPanel: React.FC = () => {
       {/* ================================================================= */}
       {/* INITIATIVES LIST (existing functionality) */}
       {/* ================================================================= */}
-      <div className="fade-in" style={sectionCard}>
+      <div className="fade-in cab-card">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-          <span style={{ fontSize: 15, fontWeight: 800, color: '#e0d4ff' }}>Бродела</span>
+          <h3 style={{ fontSize: 18, fontWeight: 700, color: '#e8f0ff', margin: 0 }}>Бродела</h3>
           {!constructorOpen && (
-            <button type="button" onClick={() => setConstructorOpen(true)} style={{
-              ...btnPrimary, padding: '8px 16px', fontSize: 12,
-            }}>+ Создать Бродело</button>
+            <button type="button" onClick={() => setConstructorOpen(true)} className="cab-btn-accent" style={{ padding: '8px 16px', fontSize: 12 }}>+ Создать Бродело</button>
           )}
         </div>
         <p style={{ margin: '0 0 14px', fontSize: 13, color: 'rgba(255,255,255,0.5)', lineHeight: 1.5, fontWeight: 500 }}>
@@ -815,8 +803,10 @@ export const BroDelaPanel: React.FC = () => {
               const isMine = ini.createdBy === deviceId;
               return (
                 <div key={ini.id} style={{
-                  padding: '14px 16px', borderRadius: 12,
-                  background: 'rgba(124,58,237,0.04)', border: '1px solid rgba(124,58,237,0.12)',
+                  padding: '16px 20px', borderRadius: 16,
+                  background: 'rgba(0, 0, 0, 0.4)', border: '1px solid rgba(255, 255, 255, 0.08)',
+                  backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
+                  boxShadow: '0 4px 16px rgba(0, 0, 0, 0.3)',
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8, marginBottom: 6 }}>
                     <div style={{ fontWeight: 700, fontSize: 14, color: '#e0d4ff' }}>{ini.title}</div>
@@ -860,11 +850,9 @@ export const BroDelaPanel: React.FC = () => {
                   <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
                     {ini.status === 'voting' && mv === null && (
                       <>
-                        <button type="button" onClick={() => void vote(ini.id, true)} style={{
-                          ...btnPrimary, padding: '6px 14px', fontSize: 12,
-                        }}>За</button>
+                        <button type="button" onClick={() => void vote(ini.id, true)} className="cab-btn-accent" style={{ padding: '6px 16px', fontSize: 12 }}>За</button>
                         <button type="button" onClick={() => void vote(ini.id, false)} style={{
-                          padding: '6px 14px', borderRadius: 8, border: '1px solid rgba(239,68,68,0.3)',
+                          padding: '6px 14px', borderRadius: 10, border: '1px solid rgba(239,68,68,0.3)',
                           background: 'rgba(239,68,68,0.1)',
                           color: '#f87171', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
                         }}>Против</button>
@@ -876,9 +864,7 @@ export const BroDelaPanel: React.FC = () => {
                       </span>
                     )}
                     {ini.status === 'approved' && (
-                      <button type="button" onClick={() => void sendToCouncil(ini.id)} style={{
-                        ...btnPrimary, padding: '6px 14px', fontSize: 12,
-                      }}>Отправить в Совет</button>
+                      <button type="button" onClick={() => void sendToCouncil(ini.id)} className="cab-btn-accent" style={{ padding: '6px 14px', fontSize: 12 }}>Отправить в Совет</button>
                     )}
                     {ini.status === 'sent_to_council' && (
                       <span style={{ fontSize: 11, color: '#3b82f6', padding: '6px 0', fontWeight: 600 }}>Отправлено в Совет лагеря</span>

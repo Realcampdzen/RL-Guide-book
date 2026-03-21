@@ -338,14 +338,6 @@ export const ImageSourceBlock: React.FC<ImageSourceBlockProps> = ({
       flexWrap: buttonLayout === 'column' ? 'nowrap' : 'wrap',
     };
 
-  const bentoCell: React.CSSProperties = {
-    padding: '12px 10px', borderRadius: 14,
-    background: 'rgba(8, 20, 40, 0.40)',
-    backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)',
-    border: '1px solid rgba(93, 228, 255, 0.10)',
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-  };
-
   return (
     <div className={className} style={buttonLayout === 'bento'
       ? { display: 'grid', gap: 12 }
@@ -380,23 +372,23 @@ export const ImageSourceBlock: React.FC<ImageSourceBlockProps> = ({
         {buttonLayout === 'bento' ? (
           <>
             {showGenerate && (
-              <button type="button" className="btn-secondary" onClick={openModal} disabled={!expensiveActionsAllowed} style={{ ...bentoCell, padding: '12px 14px', fontSize: 12, background: 'rgba(255,215,0,0.12)', border: '1px solid rgba(255,215,0,0.35)', color: '#FFD700', fontWeight: 600, cursor: expensiveActionsAllowed ? 'pointer' : 'not-allowed', opacity: expensiveActionsAllowed ? 1 : 0.55 }}>{labels.generate ?? 'Сгенерировать'}</button>
+              <button type="button" className="cab-btn-accent" onClick={openModal} disabled={!expensiveActionsAllowed} style={{ padding: '12px 10px', fontSize: 13, fontWeight: 500, minWidth: 'unset', width: '100%', cursor: expensiveActionsAllowed ? 'pointer' : 'not-allowed', opacity: expensiveActionsAllowed ? 1 : 0.55 }}>{labels.generate ?? 'Сгенерировать'}</button>
             )}
             {showProcess && (
-              <button type="button" className="btn-secondary" aria-label="Обработать изображение с помощью ИИ" onClick={openProcessModal} disabled={!expensiveActionsAllowed} style={{ ...bentoCell, padding: '12px 14px', fontSize: 12, cursor: expensiveActionsAllowed ? 'pointer' : 'not-allowed', opacity: expensiveActionsAllowed ? 1 : 0.55, color: '#fff' }}>{labels.process ?? 'Обработать ИИ'}</button>
+              <button type="button" className="cab-btn-glass" aria-label="Обработать изображение с помощью ИИ" onClick={openProcessModal} disabled={!expensiveActionsAllowed} style={{ padding: '12px 10px', fontSize: 13, fontWeight: 500, minWidth: 'unset', width: '100%', cursor: expensiveActionsAllowed ? 'pointer' : 'not-allowed', opacity: expensiveActionsAllowed ? 1 : 0.55 }}>{labels.process ?? 'Обработать ИИ'}</button>
             )}
-            <button type="button" className="btn-secondary" onClick={() => fileInputRef.current?.click()} style={{ ...bentoCell, gridColumn: '1 / -1', padding: '12px 14px', fontSize: 12, cursor: 'pointer', color: '#fff' }}>{uploadLabel}</button>
+            <button type="button" className="cab-btn-glass" onClick={() => fileInputRef.current?.click()} style={{ gridColumn: '1 / -1', padding: '12px 14px', fontSize: 13, fontWeight: 500, minWidth: 'unset', width: '100%', cursor: 'pointer' }}>{uploadLabel}</button>
             <input ref={fileInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleUpload} />
           </>
         ) : (
           <>
-            <button type="button" onClick={() => fileInputRef.current?.click()} className="btn-secondary" style={{ padding: '8px 14px', fontSize: 12 }}>{uploadLabel}</button>
+            <button type="button" onClick={() => fileInputRef.current?.click()} className="cab-btn-glass" style={{ padding: '8px 14px', fontSize: 13, minWidth: 'unset', fontWeight: 500 }}>{uploadLabel}</button>
             <input ref={fileInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleUpload} />
             {showGenerate && (
-              <button type="button" onClick={openModal} disabled={!expensiveActionsAllowed} style={{ padding: '8px 14px', fontSize: 12, background: 'rgba(255,215,0,0.15)', border: '1px solid rgba(255,215,0,0.5)', color: '#FFD700', borderRadius: 10, fontWeight: 600, cursor: expensiveActionsAllowed ? 'pointer' : 'not-allowed', opacity: expensiveActionsAllowed ? 1 : 0.55 }}>{labels.generate ?? 'Сгенерировать'}</button>
+              <button type="button" onClick={openModal} disabled={!expensiveActionsAllowed} className="cab-btn-accent" style={{ padding: '8px 14px', fontSize: 13, minWidth: 'unset', fontWeight: 500, opacity: expensiveActionsAllowed ? 1 : 0.55 }}>{labels.generate ?? 'Сгенерировать'}</button>
             )}
             {showProcess && (
-              <button type="button" aria-label="Обработать изображение с помощью ИИ" onClick={openProcessModal} className="btn-secondary" disabled={!expensiveActionsAllowed} style={{ padding: '8px 14px', fontSize: 12, opacity: expensiveActionsAllowed ? 1 : 0.55, cursor: expensiveActionsAllowed ? 'pointer' : 'not-allowed' }}>{labels.process ?? 'Обработать ИИ'}</button>
+              <button type="button" aria-label="Обработать изображение с помощью ИИ" onClick={openProcessModal} className="cab-btn-glass" disabled={!expensiveActionsAllowed} style={{ padding: '8px 14px', fontSize: 13, minWidth: 'unset', fontWeight: 500, opacity: expensiveActionsAllowed ? 1 : 0.55, cursor: expensiveActionsAllowed ? 'pointer' : 'not-allowed' }}>{labels.process ?? 'Обработать ИИ'}</button>
             )}
           </>
         )}

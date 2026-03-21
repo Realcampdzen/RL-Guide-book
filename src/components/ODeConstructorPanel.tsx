@@ -73,22 +73,23 @@ const DRAFT_STEP_KEY = 'ode-constructor-step';
 // ---------------------------------------------------------------------------
 
 const sectionCard: React.CSSProperties = {
-  padding: '18px 20px', borderRadius: 14,
-  background: '#161230',
-  border: '1px solid rgba(6, 182, 212, 0.18)',
+  padding: '18px 20px', borderRadius: 16,
+  background: 'rgba(15, 10, 42, 0.35)',
+  backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)',
+  border: '1px solid rgba(124, 58, 237, 0.12)',
 };
 
 const fieldStyle: React.CSSProperties = {
   padding: '10px 14px', borderRadius: 10,
-  border: '1px solid rgba(6,182,212,0.25)',
-  background: 'rgba(6,182,212,0.06)', color: '#e8f0ff',
+  border: '1px solid rgba(124,58,237,0.25)',
+  background: 'rgba(124,58,237,0.06)', color: '#e8f0ff',
   fontSize: 13, fontFamily: 'inherit', fontWeight: 500,
   outline: 'none', width: '100%', boxSizing: 'border-box',
 };
 
 const btnPrimary: React.CSSProperties = {
   padding: '10px 22px', borderRadius: 10, border: 'none',
-  background: 'linear-gradient(135deg, #06b6d4, #0891b2)',
+  background: 'linear-gradient(135deg, #7c3aed, #6d28d9)',
   color: '#fff', fontSize: 13, fontWeight: 700,
   cursor: 'pointer', fontFamily: 'inherit',
   transition: 'all 0.15s',
@@ -96,14 +97,14 @@ const btnPrimary: React.CSSProperties = {
 
 const btnSecondary: React.CSSProperties = {
   padding: '8px 16px', borderRadius: 10,
-  border: '1px solid rgba(6,182,212,0.3)',
-  background: 'rgba(6,182,212,0.08)', color: '#67e8f9',
+  border: '1px solid rgba(124,58,237,0.3)',
+  background: 'rgba(124,58,237,0.08)', color: '#c4b5fd',
   fontSize: 12, fontWeight: 600,
   cursor: 'pointer', fontFamily: 'inherit',
 };
 
 const labelStyle: React.CSSProperties = {
-  fontSize: 12, fontWeight: 700, color: '#67e8f9',
+  fontSize: 12, fontWeight: 700, color: '#c4b5fd',
   textTransform: 'uppercase' as const, letterSpacing: 0.5,
   marginBottom: 6, display: 'block',
 };
@@ -407,14 +408,14 @@ export const ODeConstructorPanel: React.FC = () => {
   const renderTipBlock = () => (
     <div style={{ marginTop: 12 }}>
       <button type="button" onClick={() => { setShowTip(v => !v); if (!showTip) setTipIndex(0); }}
-        style={{ ...btnSecondary, width: '100%', textAlign: 'center', borderColor: 'rgba(6,182,212,0.25)' }}>
+        style={{ ...btnSecondary, width: '100%', textAlign: 'center', borderColor: 'rgba(255,255,255,0.1)' }}>
         {showTip ? '🔽 Скрыть совет' : '📖 Совет из Вожатификатора'}
       </button>
       {showTip && (
         <div style={{
           marginTop: 8, padding: '12px 16px', borderRadius: 10,
-          background: 'rgba(6,182,212,0.08)', border: '1px solid rgba(6,182,212,0.2)',
-          fontSize: 12, color: '#a5f3fc', lineHeight: 1.5, fontStyle: 'italic',
+          background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
+          fontSize: 12, color: '#e8f0ff', lineHeight: 1.5, fontStyle: 'italic',
         }}>
           {contextualTips[tipIndex % contextualTips.length]}
           <div style={{ marginTop: 8, textAlign: 'right' }}>
@@ -451,10 +452,10 @@ export const ODeConstructorPanel: React.FC = () => {
                 <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 6, background: `${catMeta.color}22`, color: catMeta.color }}>
                   {catMeta.icon} {catMeta.label}
                 </span>
-                <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 6, background: 'rgba(6,182,212,0.1)', color: '#67e8f9' }}>
+                <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 6, background: 'rgba(255,255,255,0.05)', color: '#c4b5fd' }}>
                   {ODE_AGE_META[t.ageGroup].emoji} {ODE_AGE_META[t.ageGroup].label}
                 </span>
-                <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 6, background: 'rgba(6,182,212,0.1)', color: '#67e8f9' }}>
+                <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 6, background: 'rgba(255,255,255,0.05)', color: '#c4b5fd' }}>
                   ⏱️ {t.duration}
                 </span>
               </div>
@@ -465,9 +466,9 @@ export const ODeConstructorPanel: React.FC = () => {
 
           {t.steps.length > 0 && (
             <div style={{ marginBottom: 12 }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: '#67e8f9', marginBottom: 6 }}>ПЛАН ({t.steps.length} этапов)</div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#c4b5fd', marginBottom: 6 }}>ПЛАН ({t.steps.length} этапов)</div>
               {t.steps.map((s, i) => (
-                <div key={s.id} style={{ padding: '6px 10px', borderRadius: 8, marginBottom: 3, background: 'rgba(6,182,212,0.04)', borderLeft: '3px solid rgba(6,182,212,0.3)' }}>
+                <div key={s.id} style={{ padding: '6px 10px', borderRadius: 8, marginBottom: 3, background: 'rgba(255,255,255,0.03)', borderLeft: '3px solid rgba(124, 58, 237, 0.4)' }}>
                   <span style={{ fontSize: 11, fontWeight: 700, color: '#e8f0ff' }}>{i + 1}. {s.title}</span>
                   {s.duration && <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)', marginLeft: 6 }}>({s.duration})</span>}
                 </div>
@@ -486,7 +487,7 @@ export const ODeConstructorPanel: React.FC = () => {
           )}
 
           {t.tips && (
-            <div style={{ padding: '10px 12px', borderRadius: 10, background: 'rgba(6,182,212,0.08)', border: '1px solid rgba(6,182,212,0.15)', fontSize: 11, color: '#a5f3fc', lineHeight: 1.5, fontStyle: 'italic', marginBottom: 12 }}>
+            <div style={{ padding: '10px 12px', borderRadius: 10, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)', fontSize: 11, color: '#e8f0ff', lineHeight: 1.5, fontStyle: 'italic', marginBottom: 12 }}>
               📚 {t.tips}
             </div>
           )}
@@ -505,19 +506,19 @@ export const ODeConstructorPanel: React.FC = () => {
   // ---------------------------------------------------------------------------
 
   return (
-    <div className="fade-in" style={{ display: 'flex', flexDirection: 'column', gap: 16, fontFamily: "'Inter', system-ui, sans-serif" }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16, fontFamily: "'Inter', system-ui, sans-serif" }}>
 
       {/* Toast */}
       {toast && (
         <div style={{
           position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)',
-          padding: '10px 24px', borderRadius: 12, background: '#06b6d4', color: '#fff',
-          fontSize: 13, fontWeight: 600, zIndex: 10000, boxShadow: '0 4px 20px rgba(6,182,212,0.4)',
+          padding: '10px 24px', borderRadius: 12, background: 'rgba(124,58,237,0.92)', color: '#fff',
+          fontSize: 13, fontWeight: 600, zIndex: 10000, boxShadow: '0 4px 20px rgba(124,58,237,0.4)',
         }}>{toast}</div>
       )}
 
       {/* Header */}
-      <div style={sectionCard}>
+      <div className="fade-in" style={sectionCard}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
           <span style={{ fontSize: 28 }}>🎯</span>
           <div>
@@ -535,7 +536,7 @@ export const ODeConstructorPanel: React.FC = () => {
         <div style={{ display: 'flex', gap: 8, marginTop: 14, flexWrap: 'wrap' }}>
           <button type="button" onClick={() => { setConstructorOpen(true); setCStep(1); }}
             style={btnPrimary}>
-            🛠️ Открыть конструктор
+            Открыть конструктор
           </button>
           {hasDraft && (
             <button type="button" onClick={clearDraft} style={btnSecondary}>
@@ -552,7 +553,7 @@ export const ODeConstructorPanel: React.FC = () => {
 
       {/* Constructor */}
       {constructorOpen && (
-        <div style={sectionCard}>
+        <div className="fade-in" style={sectionCard}>
           {/* Stepper */}
           <div style={{ display: 'flex', gap: 6, marginBottom: 16 }}>
             {['Шаблон', 'Настройки', 'Предпросмотр'].map((label, i) => (
@@ -560,8 +561,8 @@ export const ODeConstructorPanel: React.FC = () => {
                 onClick={() => { if (i + 1 < cStep) setCStep(i + 1 as 1 | 2 | 3); }}
                 style={{
                   flex: 1, padding: '8px 4px', borderRadius: 8, border: 'none',
-                  background: cStep === i + 1 ? 'rgba(6,182,212,0.2)' : 'rgba(255,255,255,0.04)',
-                  color: cStep === i + 1 ? '#67e8f9' : 'rgba(255,255,255,0.35)',
+                  background: cStep === i + 1 ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.04)',
+                  color: cStep === i + 1 ? '#c4b5fd' : 'rgba(255,255,255,0.35)',
                   fontSize: 11, fontWeight: 700, cursor: i + 1 < cStep ? 'pointer' : 'default',
                   fontFamily: 'inherit', transition: 'all 0.15s',
                 }}>
@@ -601,17 +602,17 @@ export const ODeConstructorPanel: React.FC = () => {
                   onClick={() => setCategoryFilter(null)}
                   style={{
                     ...btnSecondary, fontSize: 10, padding: '4px 8px',
-                    background: !categoryFilter ? 'rgba(6,182,212,0.2)' : 'rgba(6,182,212,0.06)',
-                    color: !categoryFilter ? '#67e8f9' : 'rgba(255,255,255,0.4)',
+                    background: !categoryFilter ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.04)',
+                    color: !categoryFilter ? '#c4b5fd' : 'rgba(255,255,255,0.4)',
                   }}>Все</button>
                 {(Object.entries(ODE_CATEGORY_META) as [ODeCategory, typeof ODE_CATEGORY_META[ODeCategory]][]).map(([key, meta]) => (
                   <button type="button" key={key}
                     onClick={() => setCategoryFilter(categoryFilter === key ? null : key)}
                     style={{
                       ...btnSecondary, fontSize: 10, padding: '4px 8px',
-                      background: categoryFilter === key ? `${meta.color}22` : 'rgba(6,182,212,0.06)',
+                      background: categoryFilter === key ? `${meta.color}22` : 'rgba(255,255,255,0.04)',
                       color: categoryFilter === key ? meta.color : 'rgba(255,255,255,0.4)',
-                      borderColor: categoryFilter === key ? `${meta.color}44` : 'rgba(6,182,212,0.15)',
+                      borderColor: categoryFilter === key ? `${meta.color}44` : 'rgba(255,255,255,0.06)',
                     }}>
                     {meta.icon} {meta.label}
                   </button>
@@ -625,16 +626,16 @@ export const ODeConstructorPanel: React.FC = () => {
                   onClick={() => setAgeFilter(null)}
                   style={{
                     ...btnSecondary, fontSize: 10, padding: '4px 8px',
-                    background: !ageFilter ? 'rgba(6,182,212,0.2)' : 'rgba(6,182,212,0.06)',
-                    color: !ageFilter ? '#67e8f9' : 'rgba(255,255,255,0.4)',
+                    background: !ageFilter ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.04)',
+                    color: !ageFilter ? '#c4b5fd' : 'rgba(255,255,255,0.4)',
                   }}>Все</button>
                 {(Object.entries(ODE_AGE_META) as [ODeAgeGroup, typeof ODE_AGE_META[ODeAgeGroup]][]).map(([key, meta]) => (
                   <button type="button" key={key}
                     onClick={() => setAgeFilter(ageFilter === key ? null : key as ODeAgeGroup)}
                     style={{
                       ...btnSecondary, fontSize: 10, padding: '4px 8px',
-                      background: ageFilter === key ? 'rgba(6,182,212,0.2)' : 'rgba(6,182,212,0.06)',
-                      color: ageFilter === key ? '#67e8f9' : 'rgba(255,255,255,0.4)',
+                      background: ageFilter === key ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.04)',
+                      color: ageFilter === key ? '#c4b5fd' : 'rgba(255,255,255,0.4)',
                     }}>
                     {meta.emoji} {meta.label}
                   </button>
@@ -648,16 +649,16 @@ export const ODeConstructorPanel: React.FC = () => {
                   onClick={() => setScaleFilter(null)}
                   style={{
                     ...btnSecondary, fontSize: 10, padding: '4px 8px',
-                    background: !scaleFilter ? 'rgba(6,182,212,0.2)' : 'rgba(6,182,212,0.06)',
-                    color: !scaleFilter ? '#67e8f9' : 'rgba(255,255,255,0.4)',
+                    background: !scaleFilter ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.04)',
+                    color: !scaleFilter ? '#c4b5fd' : 'rgba(255,255,255,0.4)',
                   }}>Все</button>
                 {(Object.entries(ODE_SCALE_META) as [ODeScale, typeof ODE_SCALE_META[ODeScale]][]).map(([key, meta]) => (
                   <button type="button" key={key}
                     onClick={() => setScaleFilter(scaleFilter === key ? null : key as ODeScale)}
                     style={{
                       ...btnSecondary, fontSize: 10, padding: '4px 8px',
-                      background: scaleFilter === key ? 'rgba(6,182,212,0.2)' : 'rgba(6,182,212,0.06)',
-                      color: scaleFilter === key ? '#67e8f9' : 'rgba(255,255,255,0.4)',
+                      background: scaleFilter === key ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.04)',
+                      color: scaleFilter === key ? '#c4b5fd' : 'rgba(255,255,255,0.4)',
                     }}>
                     {meta.emoji} {meta.label}
                   </button>
@@ -673,8 +674,8 @@ export const ODeConstructorPanel: React.FC = () => {
                 <button type="button" onClick={() => selectTemplate(null)}
                   style={{
                     padding: 14, borderRadius: 12,
-                    background: 'rgba(6,182,212,0.06)', border: '1px dashed rgba(6,182,212,0.3)',
-                    color: '#67e8f9', textAlign: 'left', cursor: 'pointer',
+                    background: 'rgba(255,255,255,0.04)', border: '1px dashed rgba(124, 58, 237, 0.4)',
+                    color: '#c4b5fd', textAlign: 'left', cursor: 'pointer',
                     fontFamily: 'inherit', transition: 'all 0.15s',
                   }}>
                   <div style={{ fontSize: 22, marginBottom: 6 }}>✨</div>
@@ -757,9 +758,9 @@ export const ODeConstructorPanel: React.FC = () => {
                     <button key={d} type="button" onClick={() => setState(p => ({ ...p, duration: d }))}
                       style={{
                         padding: '6px 14px', borderRadius: 8,
-                        border: `1px solid ${state.duration === d ? 'rgba(6,182,212,0.5)' : 'rgba(6,182,212,0.2)'}`,
-                        background: state.duration === d ? 'rgba(6,182,212,0.2)' : 'rgba(6,182,212,0.06)',
-                        color: state.duration === d ? '#67e8f9' : 'rgba(255,255,255,0.5)',
+                        border: `1px solid ${state.duration === d ? 'rgba(124, 58, 237, 0.6)' : 'rgba(255,255,255,0.08)'}`,
+                        background: state.duration === d ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.04)',
+                        color: state.duration === d ? '#c4b5fd' : 'rgba(255,255,255,0.5)',
                         fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
                       }}>{d}</button>
                   ))}
@@ -774,9 +775,9 @@ export const ODeConstructorPanel: React.FC = () => {
                     <button key={a} type="button" onClick={() => setState(p => ({ ...p, targetAudience: a }))}
                       style={{
                         padding: '6px 14px', borderRadius: 8,
-                        border: `1px solid ${state.targetAudience === a ? 'rgba(6,182,212,0.5)' : 'rgba(6,182,212,0.2)'}`,
-                        background: state.targetAudience === a ? 'rgba(6,182,212,0.2)' : 'rgba(6,182,212,0.06)',
-                        color: state.targetAudience === a ? '#67e8f9' : 'rgba(255,255,255,0.5)',
+                        border: `1px solid ${state.targetAudience === a ? 'rgba(124, 58, 237, 0.6)' : 'rgba(255,255,255,0.08)'}`,
+                        background: state.targetAudience === a ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.04)',
+                        color: state.targetAudience === a ? '#c4b5fd' : 'rgba(255,255,255,0.5)',
                         fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
                       }}>{a}</button>
                   ))}
@@ -818,8 +819,8 @@ export const ODeConstructorPanel: React.FC = () => {
                     {state.roles.map((r, i) => (
                       <span key={i} style={{
                         fontSize: 11, padding: '4px 10px', borderRadius: 8,
-                        background: 'rgba(6,182,212,0.1)', border: '1px solid rgba(6,182,212,0.2)',
-                        color: '#67e8f9',
+                        background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)',
+                        color: '#c4b5fd',
                       }}>🎭 {r}</span>
                     ))}
                   </div>
@@ -835,10 +836,10 @@ export const ODeConstructorPanel: React.FC = () => {
               {state.steps.map((step, idx) => (
                 <div key={step.id} style={{
                   padding: '12px 14px', borderRadius: 10, marginBottom: 8,
-                  background: 'rgba(6,182,212,0.04)', border: '1px solid rgba(6,182,212,0.12)',
+                  background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)',
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                    <span style={{ fontSize: 11, fontWeight: 700, color: '#67e8f9' }}>Этап {idx + 1}</span>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: '#c4b5fd' }}>Этап {idx + 1}</span>
                     <div style={{ display: 'flex', gap: 4 }}>
                       <button type="button" onClick={() => moveStep(step.id, -1)} disabled={idx === 0}
                         style={{ ...btnSecondary, fontSize: 10, padding: '2px 6px', opacity: idx === 0 ? 0.3 : 1 }}>↑</button>
@@ -881,23 +882,23 @@ export const ODeConstructorPanel: React.FC = () => {
 
               <div style={{
                 padding: 16, borderRadius: 12,
-                background: 'rgba(6,182,212,0.06)', border: '1px solid rgba(6,182,212,0.2)',
+                background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
               }}>
                 <div style={{ fontSize: 22, marginBottom: 4 }}>{selectedTemplate?.icon || '🎯'}</div>
                 <h4 style={{ margin: '0 0 4px', fontSize: 16, fontWeight: 800, color: '#e8f0ff' }}>{state.name}</h4>
                 <p style={{ margin: '0 0 10px', fontSize: 12, color: 'rgba(255,255,255,0.6)', lineHeight: 1.5 }}>{state.description}</p>
 
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
-                  <span style={{ fontSize: 10, padding: '3px 8px', borderRadius: 6, background: 'rgba(6,182,212,0.15)', color: '#67e8f9' }}>
+                  <span style={{ fontSize: 10, padding: '3px 8px', borderRadius: 6, background: 'rgba(255,255,255,0.06)', color: '#c4b5fd' }}>
                     ⏱️ {state.duration}
                   </span>
-                  <span style={{ fontSize: 10, padding: '3px 8px', borderRadius: 6, background: 'rgba(6,182,212,0.15)', color: '#67e8f9' }}>
+                  <span style={{ fontSize: 10, padding: '3px 8px', borderRadius: 6, background: 'rgba(255,255,255,0.06)', color: '#c4b5fd' }}>
                     👥 {state.targetAudience}
                   </span>
-                  <span style={{ fontSize: 10, padding: '3px 8px', borderRadius: 6, background: 'rgba(6,182,212,0.15)', color: '#67e8f9' }}>
+                  <span style={{ fontSize: 10, padding: '3px 8px', borderRadius: 6, background: 'rgba(255,255,255,0.06)', color: '#c4b5fd' }}>
                     {ODE_AGE_META[state.ageGroup].emoji} {ODE_AGE_META[state.ageGroup].label}
                   </span>
-                  <span style={{ fontSize: 10, padding: '3px 8px', borderRadius: 6, background: 'rgba(6,182,212,0.15)', color: '#67e8f9' }}>
+                  <span style={{ fontSize: 10, padding: '3px 8px', borderRadius: 6, background: 'rgba(255,255,255,0.06)', color: '#c4b5fd' }}>
                     {ODE_SCALE_META[state.scale].emoji} {ODE_SCALE_META[state.scale].label}
                   </span>
                   {state.relatedBadge && (
@@ -921,11 +922,11 @@ export const ODeConstructorPanel: React.FC = () => {
 
                 {state.steps.length > 0 && (
                   <div style={{ marginTop: 8 }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: '#67e8f9', marginBottom: 6 }}>ПЛАН ({state.steps.length} этапов)</div>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: '#c4b5fd', marginBottom: 6 }}>ПЛАН ({state.steps.length} этапов)</div>
                     {state.steps.map((s, i) => (
                       <div key={s.id} style={{
                         padding: '8px 12px', borderRadius: 8, marginBottom: 4,
-                        background: 'rgba(6,182,212,0.04)', borderLeft: '3px solid rgba(6,182,212,0.3)',
+                        background: 'rgba(255,255,255,0.03)', borderLeft: '3px solid rgba(124, 58, 237, 0.4)',
                       }}>
                         <div style={{ fontSize: 12, fontWeight: 700, color: '#e8f0ff' }}>{i + 1}. {s.title}</div>
                         <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', marginTop: 2 }}>{s.description}</div>
@@ -976,7 +977,7 @@ export const ODeConstructorPanel: React.FC = () => {
           }}>
             <div style={{ fontSize: 15, fontWeight: 800, color: '#e8f0ff', marginBottom: 10 }}>Подтверждение</div>
             <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)', lineHeight: 1.5, marginBottom: 6 }}>
-              Создать ОДэ <strong style={{ color: '#67e8f9' }}>«{state.name}»</strong>?
+              Создать ОДэ <strong style={{ color: '#c4b5fd' }}>«{state.name}»</strong>?
             </div>
             <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginBottom: 14 }}>
               {state.steps.length} этапов · {state.duration} · {state.targetAudience} · {ODE_SCALE_META[state.scale].label}
@@ -994,14 +995,14 @@ export const ODeConstructorPanel: React.FC = () => {
       )}
 
       {/* Existing ОДэ initiatives list */}
-      <div style={sectionCard}>
+      <div className="fade-in" style={sectionCard}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
           <h4 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: '#e8f0ff' }}>
             📋 Созданные ОДэ
           </h4>
           <button type="button" onClick={() => void load()} disabled={loading}
             style={{ ...btnSecondary, fontSize: 11 }}>
-            {loading ? '⏳' : '🔄'} Обновить
+            {loading ? 'Загрузка…' : 'Обновить'}
           </button>
         </div>
 
@@ -1014,7 +1015,7 @@ export const ODeConstructorPanel: React.FC = () => {
           items.filter(i => i.title.startsWith('[ОДэ]')).map(ini => (
             <div key={ini.id} style={{
               padding: '14px 16px', borderRadius: 12, marginBottom: 8,
-              background: 'rgba(6,182,212,0.04)', border: '1px solid rgba(6,182,212,0.12)',
+              background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)',
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <div style={{ flex: 1 }}>
@@ -1041,7 +1042,7 @@ export const ODeConstructorPanel: React.FC = () => {
                 {ini.status !== 'sent' && (
                   <button type="button" onClick={() => sendToCouncil(ini.id)}
                     style={{ ...btnSecondary, fontSize: 10, color: '#34d399', borderColor: 'rgba(52,211,153,0.3)' }}>
-                    📤 В Совет
+                    В Совет
                   </button>
                 )}
                 <button type="button" onClick={() => deleteIni(ini.id)}

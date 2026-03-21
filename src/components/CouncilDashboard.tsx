@@ -67,8 +67,8 @@ type InitiativeItem = {
 
 const SERVER_STATUSES = ['idea', 'discussed', 'approved', 'in_progress', 'done'] as const;
 const SERVER_STATUS_LABELS: Record<string, string> = {
-  idea: '💡 Идея', proposed: '📋 Предложена', discussed: '💬 Обсуждается',
-  approved: '✅ Принята', in_progress: '🔨 В работе', done: '🏁 Выполнена',
+  idea: 'Идея', proposed: 'Предложена', discussed: 'Обсуждается',
+  approved: 'Принята', in_progress: 'В работе', done: 'Выполнена',
 };
 
 const KANBAN_COLUMN_COLORS: Record<string, string> = {
@@ -460,8 +460,8 @@ export const CouncilDashboard: React.FC<CouncilDashboardProps> = ({
               const isMe = m.nickname === nick;
               return (
                 <div key={m.id} style={{ padding: '10px 14px', borderRadius: 10, background: isMe ? 'rgba(46,204,113,0.06)' : 'rgba(15, 10, 42, 0.12)', border: isMe ? '1px solid rgba(46,204,113,0.15)' : '1px solid rgba(255, 255, 255, 0.08)', display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'rgba(255,215,0,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, flexShrink: 0 }}>
-                    {m.role === 'chair' ? '👑' : m.role === 'secretary' ? '📝' : '🏕️'}
+                  <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'rgba(255,215,0,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: MEMBER_ROLE_COLORS[m.role] || '#fff', flexShrink: 0 }}>
+                    {m.role === 'chair' ? 'П' : m.role === 'secretary' ? 'С' : 'У'}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 13, fontWeight: 600, color: '#e8f0ff' }}>{m.nickname}{isMe ? ' (вы)' : ''}</div>
@@ -519,8 +519,8 @@ export const CouncilDashboard: React.FC<CouncilDashboardProps> = ({
       {/* Protocol create modal */}
       {showProtocolModal && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }} onClick={() => setShowProtocolModal(false)}>
-          <div style={{ background: 'var(--surface-2, #1a1a2e)', borderRadius: 16, padding: 20, maxWidth: 420, width: '90%', border: '1px solid rgba(255,215,0,0.2)' }} onClick={e => e.stopPropagation()}>
-            <h4 style={{ margin: '0 0 12px', color: COUNCIL_ACCENT }}>📋 Новый протокол</h4>
+          <div className="cab-card" style={{ maxWidth: 420, width: '90%', padding: '24px' }} onClick={e => e.stopPropagation()}>
+            <h4 style={{ margin: '0 0 16px', color: COUNCIL_ACCENT, fontSize: 18 }}>Новый протокол</h4>
             <input type="text" placeholder="Название (напр. Заседание #3)" maxLength={200} value={protoTitle} onChange={e => setProtoTitle(e.target.value)}
               style={{ width: '100%', padding: 10, borderRadius: 8, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.3)', color: '#fff', fontSize: 13, marginBottom: 8, boxSizing: 'border-box' }} />
             <input type="date" value={protoDate} onChange={e => setProtoDate(e.target.value)}
@@ -715,7 +715,7 @@ export const CouncilDashboard: React.FC<CouncilDashboardProps> = ({
             <div style={{ flex: 1, minWidth: 0 }}>
               <h3 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: '#fff', lineHeight: 1.3 }}>{detailItem.title}</h3>
               {detailItem.teamName && (
-                <span style={{ fontSize: 11, opacity: 0.6, background: 'rgba(255,215,0,0.1)', padding: '2px 8px', borderRadius: 6, border: '1px solid rgba(255,215,0,0.2)', display: 'inline-block', marginTop: 6 }}>⚙️ {detailItem.teamName}</span>
+                <span style={{ fontSize: 11, opacity: 0.6, background: 'rgba(255,215,0,0.1)', padding: '2px 8px', borderRadius: 6, border: '1px solid rgba(255,215,0,0.2)', display: 'inline-block', marginTop: 6 }}>{detailItem.teamName}</span>
               )}
             </div>
             <button type="button" onClick={closeDetailModal} style={{
@@ -727,13 +727,13 @@ export const CouncilDashboard: React.FC<CouncilDashboardProps> = ({
           {/* Meta info */}
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 10, fontSize: 11, opacity: 0.6 }}>
             {(detailItem.authorNickname || detailItem.createdByNickname) && (
-              <span>👤 {detailItem.authorNickname || detailItem.createdByNickname}{detailItem.authorRole ? ` · ${detailItem.authorRole}` : ''}{detailItem.authorWing ? ` · 🦅 ${detailItem.authorWing}` : ''}</span>
+              <span>{detailItem.authorNickname || detailItem.createdByNickname}{detailItem.authorRole ? ` · ${detailItem.authorRole}` : ''}{detailItem.authorWing ? ` · ${detailItem.authorWing}` : ''}</span>
             )}
             {detailItem.sourceType === 'brodela' && (
-              <span style={{ padding: '1px 8px', borderRadius: 10, background: 'rgba(124,58,237,0.15)', color: '#c4b5fd', fontWeight: 600, border: '1px solid rgba(124,58,237,0.3)' }}>🦅 Бродела</span>
+              <span style={{ padding: '1px 8px', borderRadius: 10, background: 'rgba(124,58,237,0.15)', color: '#c4b5fd', fontWeight: 600, border: '1px solid rgba(124,58,237,0.3)' }}>Бродела</span>
             )}
             {detailItem.sourceType === 'ode' && (
-              <span style={{ padding: '1px 8px', borderRadius: 10, background: 'rgba(234,179,8,0.15)', color: '#fbbf24', fontWeight: 600, border: '1px solid rgba(234,179,8,0.3)' }}>🎯 ОДэ</span>
+              <span style={{ padding: '1px 8px', borderRadius: 10, background: 'rgba(234,179,8,0.15)', color: '#fbbf24', fontWeight: 600, border: '1px solid rgba(234,179,8,0.3)' }}>ОДэ</span>
             )}
             <span style={{
               padding: '1px 8px', borderRadius: 10,
@@ -743,8 +743,8 @@ export const CouncilDashboard: React.FC<CouncilDashboardProps> = ({
             }}>
               {SERVER_STATUS_LABELS[detailItem.status || 'idea'] || detailItem.status}
             </span>
-            {detailItem.createdAt && <span>📅 {new Date(detailItem.createdAt).toLocaleDateString('ru-RU')}</span>}
-            <span>👍 {detailItem.votesUp ?? 0} · 👎 {(detailItem as any).votesDown ?? 0}</span>
+            {detailItem.createdAt && <span>{new Date(detailItem.createdAt).toLocaleDateString('ru-RU')}</span>}
+            <span>За {detailItem.votesUp ?? 0} · Против {(detailItem as any).votesDown ?? 0}</span>
           </div>
 
           {/* Description */}
@@ -757,7 +757,7 @@ export const CouncilDashboard: React.FC<CouncilDashboardProps> = ({
 
         {/* Chat section */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '12px 20px', display: 'flex', flexDirection: 'column', gap: 8, minHeight: 120 }}>
-          <div style={{ fontSize: 12, fontWeight: 700, opacity: 0.5, marginBottom: 4 }}>💬 Обсуждение</div>
+          <div style={{ fontSize: 12, fontWeight: 700, opacity: 0.5, marginBottom: 4 }}>Обсуждение</div>
           {detailCommentsLoading ? (
             <div style={{ fontSize: 12, opacity: 0.5, textAlign: 'center', padding: 20 }}>Загрузка…</div>
           ) : detailComments.length === 0 ? (
@@ -802,20 +802,19 @@ export const CouncilDashboard: React.FC<CouncilDashboardProps> = ({
               type="button"
               disabled={commentBusy || !commentText.trim()}
               onClick={() => void handleSendComment()}
+              className="cab-btn-glass"
               style={{
-                padding: '10px 16px', borderRadius: 10,
                 background: COUNCIL_ACCENT_LIGHT, border: `1px solid ${COUNCIL_ACCENT}`,
                 color: COUNCIL_ACCENT, fontSize: 13, fontWeight: 700,
-                cursor: commentText.trim() ? 'pointer' : 'default',
                 opacity: commentText.trim() ? 1 : 0.5,
               }}
             >
-              {commentBusy ? '…' : '📤'}
+              {commentBusy ? '…' : 'Отправить'}
             </button>
           </div>
         ) : (
           <div style={{ padding: '12px 20px', borderTop: '1px solid rgba(255,255,255,0.08)', textAlign: 'center', fontSize: 12, color: 'rgba(255,255,255,0.4)' }}>
-            🔒 Вступите в Совет, чтобы комментировать
+            Вступите в Совет, чтобы комментировать
           </div>
         )}
       </div>
@@ -830,42 +829,34 @@ export const CouncilDashboard: React.FC<CouncilDashboardProps> = ({
             <button
               type="button"
               onClick={() => setShowCreateModal(true)}
+              className="cab-btn-glass"
               style={{
-                padding: '8px 16px',
                 background: COUNCIL_ACCENT_LIGHT,
                 border: `1px solid ${COUNCIL_ACCENT}`,
                 color: COUNCIL_ACCENT,
-                borderRadius: '10px',
-                fontSize: '12px',
-                fontWeight: 700,
-                cursor: 'pointer',
               }}
             >
-              💡 Предложить
+              Предложить
             </button>
           ) : onSuggestInitiative ? (
             <button
               type="button"
               onClick={onSuggestInitiative}
+              className="cab-btn-glass"
               style={{
-                padding: '8px 16px',
                 background: COUNCIL_ACCENT_LIGHT,
                 border: `1px solid ${COUNCIL_ACCENT}`,
                 color: COUNCIL_ACCENT,
-                borderRadius: '10px',
-                fontSize: '12px',
-                fontWeight: 700,
-                cursor: 'pointer',
               }}
             >
-              💡 Предложить
+              Предложить
             </button>
           ) : (
             <span style={{ fontSize: 11, opacity: 0.5 }}>Вступите в Движок, чтобы предлагать</span>
           )}
         </div>
-        <button type="button" className="btn-secondary" style={{ padding: '6px 12px', fontSize: 11 }} disabled={initiativesLoading} onClick={() => void loadInitiatives()}>
-          {initiativesLoading ? 'Загрузка…' : '🔄 Обновить'}
+        <button type="button" className="cab-btn-glass" style={{ padding: '6px 12px', fontSize: 11 }} disabled={initiativesLoading} onClick={() => void loadInitiatives()}>
+          {initiativesLoading ? 'Загрузка…' : 'Обновить'}
         </button>
       </div>
 
@@ -886,11 +877,11 @@ export const CouncilDashboard: React.FC<CouncilDashboardProps> = ({
             const columnItems = initiatives.filter(i => { const s = i.status || 'idea'; return (s === 'proposed' || s === 'new' ? 'idea' : s) === status; });
             return (
               <div key={status} style={{
-                background: 'rgba(15, 10, 42, 0.35)',
-                backdropFilter: 'blur(8px)',
-                WebkitBackdropFilter: 'blur(8px)',
+                background: 'rgba(255, 255, 255, 0.03)',
+                backdropFilter: 'blur(12px)',
+                WebkitBackdropFilter: 'blur(12px)',
                 borderRadius: 12,
-                border: `1px solid ${colColor}25`,
+                border: `1px solid rgba(255,255,255,0.06)`,
                 minHeight: 180,
                 display: 'flex',
                 flexDirection: 'column',
@@ -898,7 +889,7 @@ export const CouncilDashboard: React.FC<CouncilDashboardProps> = ({
                 {/* Column header */}
                 <div style={{
                   padding: '7px 10px',
-                  borderBottom: `2px solid ${colColor}44`,
+                  borderBottom: `1px solid rgba(255,255,255,0.06)`,
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
@@ -921,61 +912,58 @@ export const CouncilDashboard: React.FC<CouncilDashboardProps> = ({
                 </div>
 
                 {/* Read-only cards */}
-                <div style={{ padding: 5, display: 'grid', gap: 5, flex: 1, alignContent: 'start' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', flex: 1, alignContent: 'start' }}>
                   {columnItems.map(item => {
                     const authorName = item.authorNickname || item.createdByNickname || '';
                     return (
                       <div key={item.id} onClick={() => void openDetailModal(item)} style={{
-                        background: 'rgba(255,255,255,0.07)',
-                        borderRadius: 8,
-                        padding: '7px 9px',
-                        border: '1px solid rgba(255,255,255,0.08)',
-                        fontSize: 12,
-                        display: 'grid',
-                        gap: 3,
+                        padding: '12px 12px',
+                        borderBottom: '1px solid rgba(255,255,255,0.06)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 6,
                         cursor: 'pointer',
-                        transition: 'background 0.15s',
-                      }} onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.12)')}
-                         onMouseLeave={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.07)')}>
-                        <strong style={{ fontSize: 12, lineHeight: 1.3 }}>{item.title}</strong>
-                        {item.teamName && <span style={{ fontSize: 10, opacity: 0.5 }}>⚙️ {item.teamName}</span>}
-                        {item.sourceType === 'brodela' && <span style={{ fontSize: 10, opacity: 0.6, color: '#c4b5fd' }}>🦅 Бродела</span>}
-                        {authorName && <span style={{ fontSize: 10, opacity: 0.4 }}>
-                          👤 {authorName}{item.authorRole ? ` · ${item.authorRole}` : ''}{item.authorWing ? ` · 🦅 ${item.authorWing}` : ''}
-                        </span>}
-                        {item.description && <span style={{ fontSize: 10, opacity: 0.35, lineHeight: 1.3 }}>{item.description.length > 50 ? item.description.slice(0, 50) + '…' : item.description}</span>}
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 1 }}>
+                        transition: 'background 0.2s ease',
+                      }} onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.03)')}
+                         onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+                        <div style={{ fontSize: 13, fontWeight: 500, color: '#fff', lineHeight: 1.4, letterSpacing: '0.01em' }}>{item.title}</div>
+                        
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px 12px', fontSize: 11, opacity: 0.6, letterSpacing: '0.02em' }}>
+                          {item.teamName && <span>{item.teamName}</span>}
+                          {item.sourceType === 'brodela' && <span style={{ color: '#c4b5fd' }}>Бродела</span>}
+                        </div>
+
+                        {authorName && <div style={{ fontSize: 11, opacity: 0.45, letterSpacing: '0.02em' }}>
+                          {authorName}{item.authorRole ? ` · ${item.authorRole}` : ''}{item.authorWing ? ` · ${item.authorWing}` : ''}
+                        </div>}
+
+                        {item.description && <div style={{ fontSize: 11, opacity: 0.4, lineHeight: 1.4 }}>{item.description.length > 50 ? item.description.slice(0, 50) + '…' : item.description}</div>}
+                        
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
                           {isInCouncil ? (
-                            <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+                            <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                               <button
                                 type="button"
                                 disabled={voteBusy === item.id}
                                 onClick={(e) => { e.stopPropagation(); void handleVote(item.id, 'up'); }}
-                                style={{
-                                  padding: '4px 10px', fontSize: 12, borderRadius: 8,
-                                  background: 'rgba(46,204,113,0.1)',
-                                  border: '1px solid rgba(46,204,113,0.2)',
-                                  color: '#2ecc71', cursor: 'pointer',
-                                }}
+                                className="cab-btn-glass"
+                                style={{ padding: '0px 6px', height: 24, fontSize: 11, color: '#2ecc71', minWidth: 'unset', fontWeight: 500 }}
                                 title="За"
-                              >👍 {item.votesUp ?? 0}</button>
+                              >За: {item.votesUp ?? 0}</button>
                               <button
                                 type="button"
                                 disabled={voteBusy === item.id}
                                 onClick={(e) => { e.stopPropagation(); void handleVote(item.id, 'down'); }}
-                                style={{
-                                  padding: '4px 10px', fontSize: 12, borderRadius: 8,
-                                  background: 'rgba(231,76,60,0.1)',
-                                  border: '1px solid rgba(231,76,60,0.2)',
-                                  color: '#e74c3c', cursor: 'pointer',
-                                }}
+                                className="cab-btn-glass"
+                                style={{ padding: '0px 6px', height: 24, fontSize: 11, color: '#e74c3c', minWidth: 'unset', fontWeight: 500 }}
                                 title="Против"
-                              >👎 {(item as any).votesDown ?? 0}</button>
+                              >Против: {(item as any).votesDown ?? 0}</button>
                             </div>
                           ) : (
-                            <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
-                              <span style={{ fontSize: 10, opacity: 0.5 }}>👍 {item.votesUp ?? 0}</span>
-                              <span style={{ fontSize: 10, opacity: 0.5 }}>👎 {(item as any).votesDown ?? 0}</span>
+                            <div style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 11, opacity: 0.5 }}>
+                              <span>За: {item.votesUp ?? 0}</span>
+                              <span style={{ width: 1, height: 10, background: 'rgba(255,255,255,0.2)' }} />
+                              <span>Против: {(item as any).votesDown ?? 0}</span>
                             </div>
                           )}
                         </div>
@@ -992,40 +980,42 @@ export const CouncilDashboard: React.FC<CouncilDashboardProps> = ({
       {/* Create initiative modal */}
       {showCreateModal && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }} onClick={() => setShowCreateModal(false)}>
-          <div style={{ background: 'var(--surface-2, #1a1a2e)', borderRadius: 16, padding: 20, maxWidth: 400, width: '90%', border: '1px solid rgba(255,215,0,0.2)' }} onClick={e => e.stopPropagation()}>
-            <h4 style={{ margin: '0 0 12px', color: COUNCIL_ACCENT }}>💡 Новая инициатива</h4>
+          <div className="cab-card" style={{ maxWidth: 400, width: '90%', padding: '24px' }} onClick={e => e.stopPropagation()}>
+            <h4 style={{ margin: '0 0 16px', color: COUNCIL_ACCENT, fontSize: 18 }}>Новая инициатива</h4>
             <input
               type="text"
               placeholder="Название инициативы"
               maxLength={200}
               value={createTitle}
               onChange={e => setCreateTitle(e.target.value)}
-              style={{ width: '100%', padding: 10, borderRadius: 8, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.3)', color: '#fff', fontSize: 13, marginBottom: 8, boxSizing: 'border-box' }}
+              className="cab-input"
+              style={{ width: '100%', marginBottom: 12, boxSizing: 'border-box' }}
             />
             <textarea
               placeholder="Описание (необязательно)"
               maxLength={2000}
               value={createDesc}
               onChange={e => setCreateDesc(e.target.value)}
-              style={{ width: '100%', minHeight: 80, padding: 10, borderRadius: 8, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.3)', color: '#fff', fontSize: 13, marginBottom: 8, resize: 'vertical', boxSizing: 'border-box' }}
+              className="cab-input"
+              style={{ width: '100%', minHeight: 80, marginBottom: 12, resize: 'vertical', boxSizing: 'border-box' }}
             />
             {onSuggestInitiative && (
-              <button type="button" className="btn-secondary" style={{ marginBottom: 8, padding: '8px 14px', fontSize: 12, width: '100%' }} onClick={() => { onSuggestInitiative(); }}>
-                🤖 Сгенерировать идею ИИ
+              <button type="button" className="cab-btn-glass" style={{ marginBottom: 16, width: '100%' }} onClick={() => { onSuggestInitiative(); }}>
+                Сгенерировать идею
               </button>
             )}
-            {createError && <div style={{ fontSize: 12, color: '#ff6b6b', marginBottom: 8 }}>{createError}</div>}
+            {createError && <div style={{ fontSize: 12, color: '#ff6b6b', marginBottom: 12 }}>{createError}</div>}
             <div style={{ display: 'flex', gap: 8 }}>
               <button
                 type="button"
-                className="btn-primary-gold"
+                className="cab-btn-accent"
                 disabled={createBusy || !createTitle.trim()}
                 onClick={() => void handleCreate()}
-                style={{ flex: 1, padding: '10px 16px' }}
+                style={{ flex: 1 }}
               >
                 {createBusy ? 'Создаём…' : 'Создать'}
               </button>
-              <button type="button" className="btn-secondary" onClick={() => setShowCreateModal(false)} style={{ padding: '10px 16px' }}>Отмена</button>
+              <button type="button" className="cab-btn-glass" onClick={() => setShowCreateModal(false)}>Отмена</button>
             </div>
           </div>
         </div>
@@ -1036,9 +1026,9 @@ export const CouncilDashboard: React.FC<CouncilDashboardProps> = ({
   const managementSection = (
     <div className="council-cabin-section fade-in" style={{ display: 'grid', gap: 12, padding: '16px 18px', borderRadius: 14, background: 'rgba(15, 10, 42, 0.12)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
-        <h4 style={{ margin: 0, fontSize: 15, display: 'flex', alignItems: 'center', gap: 6 }}>📊 Канбан инициатив</h4>
-        <button type="button" className="btn-secondary" style={{ padding: '6px 12px', fontSize: 11 }} disabled={initiativesLoading} onClick={() => void loadInitiatives()}>
-          {initiativesLoading ? 'Загрузка…' : '🔄 Обновить'}
+        <h4 style={{ margin: 0, fontSize: 15, display: 'flex', alignItems: 'center', gap: 6 }}>Канбан инициатив</h4>
+        <button type="button" className="cab-btn-glass" style={{ padding: '6px 12px', fontSize: 11 }} disabled={initiativesLoading} onClick={() => void loadInitiatives()}>
+          {initiativesLoading ? 'Загрузка…' : 'Обновить'}
         </button>
       </div>
 
@@ -1059,11 +1049,11 @@ export const CouncilDashboard: React.FC<CouncilDashboardProps> = ({
             const columnItems = initiatives.filter(i => { const s = i.status || 'idea'; return (s === 'proposed' || s === 'new' ? 'idea' : s) === status; });
             return (
               <div key={status} style={{
-                background: 'rgba(15, 10, 42, 0.35)',
-                backdropFilter: 'blur(8px)',
-                WebkitBackdropFilter: 'blur(8px)',
+                background: 'rgba(255, 255, 255, 0.03)',
+                backdropFilter: 'blur(12px)',
+                WebkitBackdropFilter: 'blur(12px)',
                 borderRadius: 12,
-                border: `1px solid ${colColor}25`,
+                border: `1px solid rgba(255,255,255,0.06)`,
                 minHeight: 200,
                 display: 'flex',
                 flexDirection: 'column',
@@ -1071,7 +1061,7 @@ export const CouncilDashboard: React.FC<CouncilDashboardProps> = ({
                 {/* Column header */}
                 <div style={{
                   padding: '8px 10px',
-                  borderBottom: `2px solid ${colColor}55`,
+                  borderBottom: `1px solid rgba(255,255,255,0.06)`,
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
@@ -1094,64 +1084,67 @@ export const CouncilDashboard: React.FC<CouncilDashboardProps> = ({
                 </div>
 
                 {/* Cards */}
-                <div style={{ padding: 6, display: 'grid', gap: 6, flex: 1, alignContent: 'start' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', flex: 1, alignContent: 'start' }}>
                   {columnItems.map(item => {
                     const prevStatus = colIdx > 0 ? SERVER_STATUSES[colIdx - 1] : null;
                     const nextStatus = colIdx < SERVER_STATUSES.length - 1 ? SERVER_STATUSES[colIdx + 1] : null;
                     const authorName = item.authorNickname || item.createdByNickname || '';
                     return (
                       <div key={item.id} onClick={() => void openDetailModal(item)} style={{
-                        background: 'rgba(255,255,255,0.07)',
-                        borderRadius: 8,
-                        padding: '8px 10px',
-                        border: '1px solid rgba(255,255,255,0.08)',
-                        fontSize: 12,
-                        display: 'grid',
-                        gap: 4,
+                        padding: '12px 12px',
+                        borderBottom: '1px solid rgba(255,255,255,0.06)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 6,
                         cursor: 'pointer',
-                        transition: 'background 0.15s',
-                      }} onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.12)')}
-                         onMouseLeave={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.07)')}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', gap: 4 }}>
-                          <strong style={{ fontSize: 12, lineHeight: 1.3, flex: 1, minWidth: 0 }}>{item.title}</strong>
+                        transition: 'background 0.2s ease',
+                      }} onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.03)')}
+                         onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', gap: 8 }}>
+                          <div style={{ fontSize: 13, fontWeight: 500, color: '#fff', lineHeight: 1.4, flex: 1, letterSpacing: '0.01em' }}>{item.title}</div>
                           <button
                             type="button"
                             onClick={(e) => { e.stopPropagation(); void handleDelete(item.id, item.title); }}
+                            className="cab-btn-glass"
                             style={{
-                              width: 22, height: 22, borderRadius: 6,
-                              background: 'rgba(231,76,60,0.1)',
-                              border: '1px solid rgba(231,76,60,0.2)',
-                              color: '#e74c3c', cursor: 'pointer',
-                              display: 'flex', alignItems: 'center', justifyContent: 'center',
-                              fontSize: 11, padding: 0, flexShrink: 0,
+                              width: 24, height: 24, padding: 0, minWidth: 'unset', color: 'rgba(255,255,255,0.4)',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, flexShrink: 0, border: 'none', background: 'transparent'
                             }}
+                            onMouseEnter={e => e.currentTarget.style.color = '#e74c3c'}
+                            onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.4)'}
                             title="Удалить инициативу"
-                          >✕</button>
+                          >×</button>
                         </div>
-                        {item.teamName && <span style={{ fontSize: 10, opacity: 0.5 }}>⚙️ {item.teamName}</span>}
-                        {item.sourceType === 'brodela' && <span style={{ fontSize: 10, opacity: 0.6, color: '#c4b5fd' }}>🦅 Бродела</span>}
-                        {authorName && <span style={{ fontSize: 10, opacity: 0.45 }}>
-                          👤 {authorName}{item.authorRole ? ` · ${item.authorRole}` : ''}{item.authorWing ? ` · 🦅 ${item.authorWing}` : ''}
-                        </span>}
-                        {item.description && <span style={{ fontSize: 10, opacity: 0.4, lineHeight: 1.3 }}>{item.description.length > 60 ? item.description.slice(0, 60) + '…' : item.description}</span>}
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 2 }}>
-                          <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
-                            <span style={{ fontSize: 10, opacity: 0.6 }}>👍 {item.votesUp ?? 0}</span>
-                            <span style={{ fontSize: 10, opacity: 0.6 }}>👎 {(item as any).votesDown ?? 0}</span>
+                        
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px 12px', fontSize: 11, opacity: 0.6, letterSpacing: '0.02em' }}>
+                          {item.teamName && <span>{item.teamName}</span>}
+                          {item.sourceType === 'brodela' && <span style={{ color: '#c4b5fd' }}>Бродела</span>}
+                        </div>
+
+                        {authorName && <div style={{ fontSize: 11, opacity: 0.45, letterSpacing: '0.02em' }}>
+                          {authorName}{item.authorRole ? ` · ${item.authorRole}` : ''}{item.authorWing ? ` · ${item.authorWing}` : ''}
+                        </div>}
+
+                        {item.description && <div style={{ fontSize: 11, opacity: 0.4, lineHeight: 1.4 }}>{item.description.length > 60 ? item.description.slice(0, 60) + '…' : item.description}</div>}
+                        
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
+                          <div style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 11, opacity: 0.6 }}>
+                            <span>За: {item.votesUp ?? 0}</span>
+                            <span style={{ width: 1, height: 10, background: 'rgba(255,255,255,0.2)' }} />
+                            <span>Против: {(item as any).votesDown ?? 0}</span>
                           </div>
-                          <div style={{ display: 'flex', gap: 4 }}>
+                          
+                          <div style={{ display: 'flex', gap: 6 }}>
                             {prevStatus && (
                               <button
                                 type="button"
                                 disabled={statusBusy === item.id}
                                 onClick={(e) => { e.stopPropagation(); void handleStatusChange(item.id, prevStatus); }}
+                                className="cab-btn-glass"
                                 style={{
-                                  width: 30, height: 30, borderRadius: 8,
-                                  background: 'rgba(255,255,255,0.08)',
-                                  border: '1px solid rgba(255,255,255,0.12)',
-                                  color: '#fff', cursor: 'pointer',
+                                  width: 28, height: 28, padding: 0, minWidth: 'unset',
                                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                  fontSize: 14, padding: 0,
+                                  fontSize: 14, color: 'rgba(255,255,255,0.6)', border: '1px solid rgba(255,255,255,0.1)'
                                 }}
                                 title={`← ${SERVER_STATUS_LABELS[prevStatus]}`}
                               >←</button>
@@ -1161,13 +1154,11 @@ export const CouncilDashboard: React.FC<CouncilDashboardProps> = ({
                                 type="button"
                                 disabled={statusBusy === item.id}
                                 onClick={(e) => { e.stopPropagation(); void handleStatusChange(item.id, nextStatus); }}
+                                className="cab-btn-glass"
                                 style={{
-                                  width: 30, height: 30, borderRadius: 8,
-                                  background: `${colColor}22`,
-                                  border: `1px solid ${colColor}44`,
-                                  color: colColor, cursor: 'pointer',
+                                  width: 28, height: 28, padding: 0, minWidth: 'unset', color: colColor,
                                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                  fontSize: 14, fontWeight: 700, padding: 0,
+                                  fontSize: 14, fontWeight: 500, borderColor: `${colColor}44`,
                                 }}
                                 title={`→ ${SERVER_STATUS_LABELS[nextStatus]}`}
                               >→</button>
@@ -1202,7 +1193,7 @@ export const CouncilDashboard: React.FC<CouncilDashboardProps> = ({
         }}
       >
         <div className="council-cabin-badge-card__icon" style={{ width: 120, height: 120, borderRadius: 16, overflow: 'hidden', background: 'rgba(0,0,0,0.3)', flexShrink: 0 }}>
-          <BadgeIcon badgeId="8.6" badgeTitle="Совет Реального Лагеря" categoryId="8" emoji="👑" size="large" />
+          <BadgeIcon badgeId="8.6" badgeTitle="Совет Реального Лагеря" categoryId="8" emoji="" size="large" />
         </div>
         <div className="council-cabin-badge-card__text">
           <div style={{ fontWeight: 700, fontSize: 15 }}>8.6 — Совет Реального Лагеря</div>
@@ -1299,7 +1290,7 @@ export const CouncilDashboard: React.FC<CouncilDashboardProps> = ({
             Механика ЛК
           </div>
           <h3 style={{ margin: 0, fontSize: '18px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            👑 Совет Лагеря
+            Совет Лагеря
           </h3>
           {!isExpanded && (
             <p style={{ margin: '8px 0 0', fontSize: '13px', opacity: 0.75, lineHeight: 1.4 }}>
@@ -1388,23 +1379,15 @@ export const CouncilDashboard: React.FC<CouncilDashboardProps> = ({
                 alignSelf: 'flex-start'
               }}
             >
-              💡 Предложить инициативу в совет лагеря
+              Предложить инициативу в совет лагеря
             </button>
           )}
 
           {onNavigateToBadge && (
             <button
               onClick={() => onNavigateToBadge('8.6')}
-              className="btn-primary-gold"
+              className="cab-btn-glass"
               style={{
-                padding: '12px 20px',
-                background: COUNCIL_ACCENT_LIGHT,
-                border: `1px solid ${COUNCIL_ACCENT}`,
-                color: COUNCIL_ACCENT,
-                borderRadius: '12px',
-                fontSize: '13px',
-                fontWeight: 700,
-                cursor: 'pointer',
                 alignSelf: 'flex-start'
               }}
             >

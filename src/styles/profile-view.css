@@ -508,136 +508,19 @@
   line-height: 1.3;
 }
 
-/* План-сетка программы смены (CampProgramByDays) */
+
+/* CampProgramByDays — новый канбан-стиль (компонент использует inline-стили) */
 .camp-program-by-days {
-  padding: 24px;
-  background: rgba(255, 215, 0, 0.06);
-  border-radius: 20px;
-  border: 1px solid rgba(255, 215, 0, 0.2);
-}
-
-.camp-program-by-days__title {
-  color: #FFD700;
-  margin: 0 0 8px;
-  font-size: 20px;
-  font-weight: 800;
-}
-
-.camp-program-by-days__title:only-child {
-  margin-bottom: 16px;
-}
-
-.camp-program-by-days__description {
-  font-size: 14px;
-  opacity: 0.9;
-  margin: 0 0 16px;
-  line-height: 1.4;
-}
-
-.camp-program-by-days__toggle {
-  display: inline-flex;
-  border-radius: 10px;
-  border: 1px solid rgba(255, 215, 0, 0.35);
-  background: rgba(0, 0, 0, 0.15);
-  padding: 2px;
-  margin-bottom: 20px;
-}
-
-.camp-program-by-days__toggle-option {
-  padding: 8px 16px;
-  font-size: 14px;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.85);
-  background: transparent;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-family: inherit;
-  transition: background 0.15s ease, color 0.15s ease;
-}
-
-.camp-program-by-days__toggle-option:hover {
-  color: #fff;
-  background: rgba(255, 255, 255, 0.06);
-}
-
-.camp-program-by-days__toggle-option[aria-selected="true"] {
-  background: rgba(255, 215, 0, 0.2);
-  color: #FFD700;
-}
-
-.camp-program-by-days__grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-}
-
-@media (max-width: 600px) {
-  .camp-program-by-days__grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 400px) {
-  .camp-program-by-days__grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-.camp-program-day-card {
-  padding: 12px 14px;
-  background: rgba(255, 255, 255, 0.06);
-  border-radius: 12px;
-  border: 1px solid rgba(255, 215, 0, 0.15);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  height: 100%;
   display: flex;
   flex-direction: column;
-  min-height: 0;
+  overflow: hidden;
 }
 
-.camp-program-day-card__day {
-  font-weight: 800;
-  font-size: 14px;
-  margin-bottom: 6px;
-  color: rgba(255, 255, 255, 0.95);
-}
+/* Прячем горизонтальный скролл переключателя дней */
+.camp-program-by-days--day-scroll::-webkit-scrollbar { display: none; }
 
-.camp-program-day-card__theme {
-  font-size: 13px;
-  font-weight: 600;
-  color: #FFD700;
-  margin-bottom: 8px;
-  line-height: 1.3;
-}
 
-.camp-program-day-card__activities {
-  margin: 0;
-  padding-left: 16px;
-  font-size: 12px;
-  opacity: 0.92;
-  line-height: 1.4;
-  max-height: 120px;
-  overflow-y: auto;
-  flex-shrink: 1;
-}
-
-.camp-program-day-card__activities li {
-  margin-bottom: 2px;
-}
-
-.camp-program-day-card__activities::-webkit-scrollbar {
-  width: 4px;
-}
-
-.camp-program-day-card__activities::-webkit-scrollbar-thumb {
-  background: rgba(255, 215, 0, 0.3);
-  border-radius: 2px;
-}
-
-.camp-program-day-card__activities::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.04);
-  border-radius: 2px;
-}
 
 /* Стили профиля (перенесены из inline для совместимости со сборкой) */
 .profile-view .avatar-circle {
@@ -3944,8 +3827,10 @@
 
 /* ── Header ── */
 .init-constructor__header {
-  background: rgba(18, 10, 48, 0.92);
-  border: 1px solid rgba(124, 58, 237, 0.25);
+  background: rgba(15, 10, 42, 0.35);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(124, 58, 237, 0.12);
   border-radius: 16px;
   padding: 20px;
 }
@@ -4023,8 +3908,10 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
-  background: rgba(14, 8, 38, 0.92);
-  border: 1px solid rgba(124, 58, 237, 0.18);
+  background: rgba(15, 10, 42, 0.35);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(124, 58, 237, 0.12);
   border-radius: 16px;
   padding: 20px;
   animation: initFadeUp 0.3s ease-out;
@@ -4048,7 +3935,7 @@
   padding: 16px 10px;
   border-radius: 14px;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(18, 10, 48, 0.85);
+  background: rgba(15, 10, 42, 0.45);
   cursor: pointer;
   transition: all 0.2s ease;
   text-align: center;
@@ -4057,7 +3944,7 @@
 }
 .init-template-card:hover {
   border-color: var(--accent, rgba(124, 58, 237, 0.5));
-  background: rgba(30, 18, 70, 0.95);
+  background: rgba(30, 18, 70, 0.55);
   transform: translateY(-2px);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
 }
@@ -4419,7 +4306,7 @@
 .init-constructor__summary {
   padding: 20px;
   border-radius: 14px;
-  background: rgba(18, 10, 48, 0.9);
+  background: rgba(15, 10, 42, 0.45);
   border: 1px solid rgba(124, 58, 237, 0.25);
   text-align: center;
 }

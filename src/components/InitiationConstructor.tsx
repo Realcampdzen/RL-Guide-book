@@ -242,7 +242,7 @@ export const InitiationConstructor: React.FC<InitiationConstructorProps> = ({
   // =========================================================================
 
   return (
-    <div className="init-constructor fade-in">
+    <div className="init-constructor">
       {/* Header */}
       <div className="init-constructor__header">
         <div className="init-constructor__header-top">

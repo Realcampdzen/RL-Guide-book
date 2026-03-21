@@ -71,6 +71,7 @@ import {
   type BadgePlanItem
 } from '../utils/badgePlanApi';
 import { StaffDashboardPanel } from '../components/StaffDashboardPanel';
+import { createWorkshopProposal, fetchMyProposals, fetchProposalsInbox, type WorkshopProposal } from '../utils/workshopProposalsApi';
 import { RoleRequestPanel as _RoleRequestPanel } from '../components/RoleRequestPanel';
 import { VOZHATIFIKATOR_CHECKLIST_ITEMS } from '../data/vozhatifikatorChecklist';
 import { QRCodeSVG } from 'qrcode.react';
@@ -99,7 +100,7 @@ const getBaseId = (rawId: string) => {
 };
 
 /** Категория по умолчанию для новых значков в Кузнице Смыслов (можно переопределить через ?categoryId= в URL). */
-const DEFAULT_WORKSHOP_CATEGORY_ID = '8';
+
 
 /** При числе элементов не больше этого — показываем статический ряд без карусели (нет вращения, пустого экрана и стрелок). */
 const CAROUSEL_STATIC_MAX = 3;
@@ -168,7 +169,7 @@ const PROFILE_AUTO_FIT_SELECTOR = [
 ].join(',');
 
 export const ProfileView: React.FC<any> = (props) => {
-  const { onBack, onNavigateToBadge, badges, ensureBadgeLoaded, addCustomBadge, restoreCustomBadges, removeCustomBadge, customBadges = [], communityBadges = [], communityPendingCount: _communityPendingCount = 0, communitySyncing: _communitySyncing = false, communityLikedIds: _communityLikedIds = new Set<string>(), toggleCommunityLike: _toggleCommunityLike, publishBadgeToCommunity, setCustomBadgeImage, onChatToggle: _onChatToggle, onChatClose: _onChatClose, isChatOpen: _isChatOpen, lastUpdated, onNavigateToRegistrationForm, onNavigateHome, onNavigateCategories, onNavigateAboutCamp, onTelegramContact, onOpenVk } = props;
+  const { onBack, onNavigateToBadge, badges, ensureBadgeLoaded, addCustomBadge: _addCustomBadge, restoreCustomBadges, removeCustomBadge, customBadges = [], communityBadges = [], communityPendingCount: _communityPendingCount = 0, communitySyncing: _communitySyncing = false, communityLikedIds: _communityLikedIds = new Set<string>(), toggleCommunityLike: _toggleCommunityLike, publishBadgeToCommunity, setCustomBadgeImage: _setCustomBadgeImage, onChatToggle: _onChatToggle, onChatClose: _onChatClose, isChatOpen: _isChatOpen, lastUpdated, onNavigateToRegistrationForm, onNavigateHome, onNavigateCategories, onNavigateAboutCamp, onTelegramContact, onOpenVk } = props;
   const { userData, setNickname, setAvatar, setProfileStatus, setProfileBio, toggleFavorite, removeRoute, exportData, importData, resetProgress, applyApprovedLevel, getLevelProgress, markRankUpSeen, completeTutorial, isLoading, updateLevelEvidence, updateLevelStatus, saveBadgePlan, updateBadgePlanStatus, updateVozhatifikatorChecklist, updateDiarySquad, setPathFavToast } = useUserProgress();
   const { myTeam, generateInviteUrl } = useTeam();
   const { canUseChat, role, deviceId, setAuth, accessToken, campId } = useAuth();
@@ -255,7 +256,8 @@ export const ProfileView: React.FC<any> = (props) => {
   const [proofForm, setProofForm] = useState({ learned: '', impact: '', link: '' });
   const [proofPhotoCount, setProofPhotoCount] = useState(0);
   const proofPhotoInputRef = useRef<HTMLInputElement | null>(null);
-  const [workshopForm, setWorkshopForm] = useState({ title: '', description: '', skill: 'critical', level1: '', level2: '', image: null as string | null });
+  const [workshopForm, setWorkshopForm] = useState({ title: '', description: '', level1: '', level2: '', image: null as string | null });
+  const [workshopProposalType, setWorkshopProposalType] = useState<'badge' | 'category' | 'version'>('badge');
   // Educator cabinet state
   const [eduTaskForm, setEduTaskForm] = useState({ title: '', description: '', badgeId: '' });
   const [_eduPlansInbox, _setEduPlansInbox] = useState<BadgePlanItem[]>([]);
@@ -325,15 +327,7 @@ export const ProfileView: React.FC<any> = (props) => {
   const [initiativeBusy, setInitiativeBusy] = useState(false);
   const [initiativeError, setInitiativeError] = useState<string | null>(null);
 
-  const workshopCategoryId = useMemo(() => {
-    const search = window.location.search || '';
-    const hash = window.location.hash || '';
-    const fromSearch = new URLSearchParams(search).get('categoryId');
-    if (fromSearch) return fromSearch;
-    const hashPart = hash.indexOf('?') >= 0 ? hash.slice(hash.indexOf('?')) : '';
-    const fromHash = hashPart ? new URLSearchParams(hashPart).get('categoryId') : null;
-    return fromHash || DEFAULT_WORKSHOP_CATEGORY_ID;
-  }, [typeof window !== 'undefined' ? window.location.search + window.location.hash : '']);
+
 
   const [shareBusy, setShareBusy] = useState(false);
   const [shareStoryUrl, setShareStoryUrl] = useState<string | null>(null);
@@ -342,8 +336,7 @@ export const ProfileView: React.FC<any> = (props) => {
   const [shareHideNickname, setShareHideNickname] = useState(false);
   const [shareStoryResult, setShareStoryResult] = useState<SocialCardResult | null>(null);
   const [shareWideResult, setShareWideResult] = useState<SocialCardResult | null>(null);
-  const [workshopBusy, setWorkshopBusy] = useState(false);
-  const [workshopSuccessPending, setWorkshopSuccessPending] = useState<{ title: string; description: string; categoryId: string } | null>(null);
+
 
   const [verifyCode, setVerifyCode] = useState('');
   const [verifyBusy, setVerifyBusy] = useState(false);
@@ -369,6 +362,8 @@ export const ProfileView: React.FC<any> = (props) => {
   const [planRejectNote, setPlanRejectNote] = useState('');
   const [badgeRequestsMine, setBadgeRequestsMine] = useState<BadgeRequestItem[]>([]);
   const [badgeRequestsInbox, setBadgeRequestsInbox] = useState<BadgeRequestItem[]>([]);
+  const [wpInbox, setWpInbox] = useState<WorkshopProposal[]>([]);
+  const [wpInboxBusy, setWpInboxBusy] = useState(false);
   const [badgeRequestsBusy, setBadgeRequestsBusy] = useState(false);
   const [badgeRequestsError, setBadgeRequestsError] = useState<string | null>(null);
   const [approvalsSyncBusy, setApprovalsSyncBusy] = useState(false);
@@ -666,7 +661,7 @@ export const ProfileView: React.FC<any> = (props) => {
   const [campFactsError, setCampFactsError] = useState<string | null>(null);
   const [carouselRotationSteps, setCarouselRotationSteps] = useState(0);
   const [pathCarouselRotationSteps, setPathCarouselRotationSteps] = useState(0);
-  const [_squadIdeasCarouselSteps, _setSquadIdeasCarouselSteps] = useState(0);
+
 
   const showSandbox = role === 'developer' || import.meta.env.DEV || (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('sandbox') === '1');
   const canEditSquadCorner = role === 'counselor' || (showSandbox && role === 'developer');
@@ -885,9 +880,11 @@ export const ProfileView: React.FC<any> = (props) => {
     try {
       const minePromise = canRequestApprovals ? loadMyBadgeRequests(accessToken) : Promise.resolve([]);
       const inboxPromise = canModerateApprovals ? loadBadgeRequestsInbox(accessToken) : Promise.resolve([]);
-      const [mine, inbox] = await Promise.all([minePromise, inboxPromise]);
+      const wpInboxPromise = canModerateApprovals ? fetchProposalsInbox(accessToken).catch(() => [] as WorkshopProposal[]) : Promise.resolve([] as WorkshopProposal[]);
+      const [mine, inbox, wpRows] = await Promise.all([minePromise, inboxPromise, wpInboxPromise]);
       setBadgeRequestsMine(mine);
       setBadgeRequestsInbox(inbox);
+      setWpInbox(wpRows);
     } catch (e) {
       setBadgeRequestsError(e instanceof Error ? e.message : 'Не удалось загрузить заявки.');
       setBadgeRequestsMine([]);
@@ -1746,78 +1743,43 @@ export const ProfileView: React.FC<any> = (props) => {
     });
   }, [progress]);
   const inspectorProgressPercent = Math.round((inspectorCard.totalTasks ? (100 * inspectorCard.completedCount / inspectorCard.totalTasks) : 0));
-  const workshopProgressPercent = Math.min(100, (hasWorkshopAccess ? 40 : 0) + Math.min(60, (customBadges?.length ?? 0) * 15));
+  const [workshopProposals, setWorkshopProposals] = useState<WorkshopProposal[]>([]);
+  const [_workshopProposalsBusy, setWorkshopProposalsBusy] = useState(false);
+  useEffect(() => {
+    if (!hasWorkshopAccess || !accessToken) return;
+    let cancelled = false;
+    fetchMyProposals(accessToken).then(rows => { if (!cancelled) setWorkshopProposals(rows); }).catch(() => {});
+    return () => { cancelled = true; };
+  }, [hasWorkshopAccess, accessToken]);
+  const workshopProgressPercent = (() => {
+    const total = workshopProposals.length + (customBadges?.length ?? 0);
+    return Math.min(100, (hasWorkshopAccess ? 20 : 0) + Math.min(80, total * 10));
+  })();
   const achievedSorted = Object.entries(progress)
     .filter(([_, p]) => p.status === 'achieved')
     .sort((a, b) => (b[1].achievedAt || '').localeCompare(a[1].achievedAt || ''));
 
   const isFavorite = (id: string) => favorites.some(fav => getBaseId(fav) === getBaseId(id));
 
-  const handleWorkshopSubmit = () => {
-    if (!workshopForm.title) return;
-    const cid = `custom.${Date.now()}`;
-    if (!addCustomBadge) return;
-    addCustomBadge({ id: `${cid}.1`, title: workshopForm.title, emoji: '⚒️', category_id: workshopCategoryId, level: 'Базовый', criteria: workshopForm.level1 || 'Начать путь', description: workshopForm.description });
-    if (workshopForm.image && setCustomBadgeImage) setCustomBadgeImage(cid, workshopForm.image);
-    setWorkshopSuccessPending({ title: workshopForm.title, description: workshopForm.description || '', categoryId: workshopCategoryId });
-    setWorkshopForm({ title: '', description: '', skill: 'critical', level1: '', level2: '', image: null });
-  };
+  const handleWorkshopSubmit = async () => {
+    if (!workshopForm.title.trim() || !accessToken) return;
+    setWorkshopProposalsBusy(true);
+    try {
+      const created = await createWorkshopProposal(accessToken, {
+        type: 'badge',
+        title: workshopForm.title.trim(),
+        description: workshopForm.description.trim(),
+        image: workshopForm.image || undefined,
 
-  const handleWorkshopSuccessOnlySave = () => {
-    setWorkshopSuccessPending(null);
-    setActiveTab('active');
-  };
-
-  const handleWorkshopSuccessSendTelegramAndCard = () => {
-    const pending = workshopSuccessPending;
-    if (!pending) return;
-    const telegramText = `Концепт: ${pending.title}. ${pending.description || ''}`;
-    window.open(`https://t.me/Stivanovv?text=${encodeURIComponent(telegramText)}`, '_blank', 'noopener,noreferrer');
-    setWorkshopBusy(true);
-    (async () => {
-      try {
-        const result = await generateSocialCard({
-          format: 'story',
-          kind: 'creator_proposal',
-          profile: { nickname: profile.nickname ?? '', avatar: profile.avatar ?? '', rank },
-          badge: { title: pending.title, emoji: '⚒️', categoryId: pending.categoryId, levelLabel: 'НОВЫЙ СМЫСЛ' },
-          createdAt: new Date().toISOString(),
-        });
-        (async () => {
-          try {
-            const base64 = await new Promise<string>((resolve, reject) => {
-              const r = new FileReader();
-              r.onloadend = () => {
-                const s = r.result as string;
-                resolve(s && s.includes(',') ? s.split(',')[1] : '');
-              };
-              r.onerror = reject;
-              r.readAsDataURL(result.blob);
-            });
-            const res = await fetch('/api/telegram/notify-creator-card', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                imageBase64: base64,
-                badgeTitle: pending.title,
-                description: pending.description || '',
-              }),
-            });
-            if (res.ok) showHint({ title: 'Отправлено', content: 'Карточка отправлена вожатым.' });
-            else showHint({ title: 'Сохранено у тебя', content: 'Карточка в канал не отправлена, но сохранена у тебя.' });
-          } catch {
-            showHint({ title: 'Сохранено у тебя', content: 'Карточка в канал не отправлена, но сохранена у тебя.' });
-          }
-        })();
-        await shareOrDownloadSocialCard(result);
-      } catch (e) {
-        console.error(e);
-      } finally {
-        setWorkshopBusy(false);
-        setWorkshopSuccessPending(null);
-        setActiveTab('active');
-      }
-    })();
+      });
+      setWorkshopProposals(prev => [created, ...prev]);
+      setWorkshopForm({ title: '', description: '', level1: '', level2: '', image: null });
+      showHint({ title: 'Предложение отправлено', content: `Значок «${created.title}» отправлен на проверку вожатому.` });
+    } catch (e: any) {
+      showHint({ title: 'Ошибка', content: e?.message || 'Не удалось отправить предложение.' });
+    } finally {
+      setWorkshopProposalsBusy(false);
+    }
   };
 
   const isImageAvatar = (v: string | undefined) => v && (v.startsWith('data:') || v.startsWith('http') || v.startsWith('/'));
@@ -2849,12 +2811,12 @@ export const ProfileView: React.FC<any> = (props) => {
             <section id="workshop-section-constructor" className="workshop-view__section">
               {hasWorkshopAccess ? (() => {
                 const proposalTypes = [
-                  { id: 'badge', label: '🏅 Новый значок', desc: 'Предложи оригинальный значок в категорию' },
-                  { id: 'category', label: '📁 Новая категория', desc: 'Предложи новую категорию значков' },
-                  { id: 'version', label: '🔄 Версия значка', desc: 'Предложи альт. версию существующего значка' },
-                ] as const;
-                type ProposalType = typeof proposalTypes[number]['id'];
-                const [proposalType, setProposalType] = React.useState<ProposalType>('badge');
+                  { id: 'badge' as const, label: '🏅 Новый значок', desc: 'Предложи оригинальный значок в категорию' },
+                  { id: 'category' as const, label: '📁 Новая категория', desc: 'Предложи новую категорию значков' },
+                  { id: 'version' as const, label: '🔄 Версия значка', desc: 'Предложи альт. версию существующего значка' },
+                ];
+                const proposalType = workshopProposalType;
+                const setProposalType = setWorkshopProposalType;
                 return (
                   <div className="workshop-form workshop-form--card">
                     <h3 style={{ color: '#FFD700', marginTop: 0 }}>🛠️ Конструктор</h3>
@@ -2900,8 +2862,8 @@ export const ProfileView: React.FC<any> = (props) => {
                               onClick={() => setWorkshopForm(prev => ({ ...prev, image: null }))}>Удалить изображение</button>
                           )}
                         </div>
-                        <button onClick={handleWorkshopSubmit} disabled={workshopBusy} className="btn-primary-gold" style={{ width: '100%' }}>
-                          {workshopBusy ? 'ОТПРАВЛЯЕМ...' : '📤 Отправить на проверку'}
+                        <button onClick={handleWorkshopSubmit} disabled={!workshopForm.title.trim()} className="btn-primary-gold" style={{ width: '100%' }}>
+                          📤 Отправить на проверку
                         </button>
                       </div>
                     )}
@@ -2915,25 +2877,25 @@ export const ProfileView: React.FC<any> = (props) => {
                           placeholder="Описание категории..." className="w-input" style={{ minHeight: 60 }} />
                         <input value={workshopForm.level1 || ''} onChange={e => setWorkshopForm({ ...workshopForm, level1: e.target.value })}
                           placeholder="Эмодзи категории (например 🌊)" className="w-input" />
-                        <button onClick={() => {
-                          if (!workshopForm.title.trim()) return;
-                          const proposal = {
-                            id: `cat-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-                            type: 'category' as const,
-                            title: workshopForm.title.trim(),
-                            description: workshopForm.description.trim(),
-                            emoji: (workshopForm.level1 || '📁').trim(),
-                            status: 'pending' as const,
-                            createdAt: new Date().toISOString(),
-                          };
+                        <button onClick={async () => {
+                          if (!workshopForm.title.trim() || !accessToken) return;
+                          setWorkshopProposalsBusy(true);
                           try {
-                            const raw = localStorage.getItem('rl_guide_progress_v1');
-                            const data = raw ? JSON.parse(raw) : {};
-                            data.workshopProposals = [...(data.workshopProposals || []), proposal];
-                            localStorage.setItem('rl_guide_progress_v1', JSON.stringify(data));
-                          } catch (_) { /* ignore */ }
-                          setWorkshopForm({ title: '', description: '', skill: '', level1: '', level2: '', image: null });
-                          showHint({ title: 'Предложение отправлено', content: `Категория «${proposal.title}» отправлена на проверку.` });
+                            const created = await createWorkshopProposal(accessToken, {
+                              type: 'category',
+                              title: workshopForm.title.trim(),
+                              description: workshopForm.description.trim(),
+                              emoji: (workshopForm.level1 || '📁').trim(),
+                      
+                            });
+                            setWorkshopProposals(prev => [created, ...prev]);
+                            setWorkshopForm({ title: '', description: '', level1: '', level2: '', image: null });
+                            showHint({ title: 'Предложение отправлено', content: `Категория «${created.title}» отправлена на проверку.` });
+                          } catch (e: any) {
+                            showHint({ title: 'Ошибка', content: e?.message || 'Не удалось отправить.' });
+                          } finally {
+                            setWorkshopProposalsBusy(false);
+                          }
                         }} disabled={!workshopForm.title.trim()} className="btn-primary-gold" style={{ width: '100%' }}>
                           📤 Предложить категорию
                         </button>
@@ -2968,26 +2930,26 @@ export const ProfileView: React.FC<any> = (props) => {
                               onClick={() => setWorkshopForm(prev => ({ ...prev, image: null }))}>Удалить изображение</button>
                           )}
                         </div>
-                        <button onClick={() => {
-                          if (!workshopForm.title.trim() || !workshopForm.level1?.trim()) return;
-                          const proposal = {
-                            id: `ver-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-                            type: 'version' as const,
-                            badgeId: workshopForm.level1!.trim(),
-                            title: workshopForm.title.trim(),
-                            description: workshopForm.description.trim(),
-                            image: workshopForm.image || undefined,
-                            status: 'pending' as const,
-                            createdAt: new Date().toISOString(),
-                          };
+                        <button onClick={async () => {
+                          if (!workshopForm.title.trim() || !workshopForm.level1?.trim() || !accessToken) return;
+                          setWorkshopProposalsBusy(true);
                           try {
-                            const raw = localStorage.getItem('rl_guide_progress_v1');
-                            const data = raw ? JSON.parse(raw) : {};
-                            data.workshopProposals = [...(data.workshopProposals || []), proposal];
-                            localStorage.setItem('rl_guide_progress_v1', JSON.stringify(data));
-                          } catch (_) { /* ignore */ }
-                          setWorkshopForm({ title: '', description: '', skill: '', level1: '', level2: '', image: null });
-                          showHint({ title: 'Предложение отправлено', content: `Версия «${proposal.title}» для значка ${proposal.badgeId} отправлена на проверку.` });
+                            const created = await createWorkshopProposal(accessToken, {
+                              type: 'version',
+                              badgeId: workshopForm.level1!.trim(),
+                              title: workshopForm.title.trim(),
+                              description: workshopForm.description.trim(),
+                              image: workshopForm.image || undefined,
+                      
+                            });
+                            setWorkshopProposals(prev => [created, ...prev]);
+                            setWorkshopForm({ title: '', description: '', level1: '', level2: '', image: null });
+                            showHint({ title: 'Предложение отправлено', content: `Версия «${created.title}» для значка ${created.badgeId} отправлена на проверку.` });
+                          } catch (e: any) {
+                            showHint({ title: 'Ошибка', content: e?.message || 'Не удалось отправить.' });
+                          } finally {
+                            setWorkshopProposalsBusy(false);
+                          }
                         }} disabled={!workshopForm.title.trim() || !workshopForm.level1?.trim()} className="btn-primary-gold" style={{ width: '100%' }}>
                           📤 Предложить версию
                         </button>
@@ -3029,8 +2991,24 @@ export const ProfileView: React.FC<any> = (props) => {
                       <button type="button" className="btn-secondary" style={{ fontSize: 11 }}
                         onClick={() => setWorkshopForm(prev => ({ ...prev, image: null }))}>Удалить</button>
                       <button type="button" className="btn-primary-gold" style={{ fontSize: 12 }}
-                        onClick={() => {
-                          showHint({ title: 'Сохранено', content: 'Арт сохранён. Он будет отправлен на проверку.' });
+                        onClick={async () => {
+                          if (!workshopForm.image || !accessToken) return;
+                          setWorkshopProposalsBusy(true);
+                          try {
+                            const created = await createWorkshopProposal(accessToken, {
+                              type: 'art',
+                              title: 'Арт значка',
+                              image: workshopForm.image,
+                      
+                            });
+                            setWorkshopProposals(prev => [created, ...prev]);
+                            setWorkshopForm(prev => ({ ...prev, image: null }));
+                            showHint({ title: 'Арт отправлен', content: 'Арт сохранён и отправлен на проверку.' });
+                          } catch (e: any) {
+                            showHint({ title: 'Ошибка', content: e?.message || 'Не удалось отправить арт.' });
+                          } finally {
+                            setWorkshopProposalsBusy(false);
+                          }
                         }}>📤 Отправить арт</button>
                     </div>
                   )}
@@ -3056,14 +3034,8 @@ export const ProfileView: React.FC<any> = (props) => {
                 <div className="workshop-my-proposals workshop-my-proposals--card">
                   <h3 style={{ color: 'rgba(255,255,255,0.9)', marginTop: 0, fontSize: '16px' }}>Мои проекты</h3>
                   {(() => {
-                    let allProposals: Array<{ id: string; title: string; type?: string; status?: string; emoji?: string; category_id?: string; level?: string }> = [];
-                    try {
-                      const raw = localStorage.getItem('rl_guide_progress_v1');
-                      const data = raw ? JSON.parse(raw) : {};
-                      allProposals = data.workshopProposals || [];
-                    } catch (_) { /* ignore */ }
                     const combined = [
-                      ...allProposals.map(p => ({ ...p, source: 'proposal' as const })),
+                      ...workshopProposals.map(p => ({ ...p, source: 'proposal' as const })),
                       ...(customBadges || []).map((b: any) => ({ ...b, source: 'badge' as const, type: 'badge', status: 'active' })),
                     ];
                     if (combined.length === 0) return (
@@ -6043,6 +6015,69 @@ export const ProfileView: React.FC<any> = (props) => {
                       )}
                     </div>
                   )}
+
+                  {/* ── Workshop Proposals Inbox ── */}
+                  {canModerateApprovals && (() => {
+                    const pendingCount = wpInbox.filter(p => p.status === 'pending').length;
+                    return (
+                      <div style={{ padding: 12, borderRadius: 12, background: 'rgba(0,0,0,0.32)', border: '1px solid rgba(255,255,255,0.06)', marginTop: 12 }}>
+                        <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 8, opacity: 0.9 }}>
+                          🔨 Предложения Мастерской{pendingCount > 0 ? ` (${pendingCount})` : ''}
+                        </div>
+                        {wpInbox.length === 0 ? (
+                          <div style={{ fontSize: 12, opacity: 0.8 }}>Нет входящих предложений.</div>
+                        ) : (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 360, overflowY: 'auto' }}>
+                            {wpInbox.map(proposal => (
+                              <div key={proposal.id} style={{ padding: 8, borderRadius: 8, background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                                <div style={{ fontSize: 12, fontWeight: 700 }}>
+                                  {proposal.type === 'category' ? '📁' : proposal.type === 'version' ? '🔄' : proposal.type === 'art' ? '🎨' : '🏅'} {proposal.title}
+                                </div>
+                                <div style={{ fontSize: 11, opacity: 0.8 }}>
+                                  {proposal.type === 'category' ? 'Категория' : proposal.type === 'version' ? 'Версия' : proposal.type === 'art' ? 'Арт' : 'Значок'}
+                                  {' · '}{proposal.createdBy?.nickname || '—'}
+                                  <span style={{ opacity: 0.6 }}> · {new Date(proposal.createdAt).toLocaleString('ru-RU')}</span>
+                                </div>
+                                {proposal.description && (
+                                  <div style={{ fontSize: 11, opacity: 0.7, marginTop: 4 }}>{proposal.description.slice(0, 200)}</div>
+                                )}
+                                {proposal.status === 'pending' && (
+                                  <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
+                                    <button type="button" className="btn-primary-gold" style={{ padding: '6px 12px', fontSize: 12 }}
+                                      disabled={wpInboxBusy}
+                                      onClick={async () => {
+                                        setWpInboxBusy(true);
+                                        try {
+                                          const { approveProposal } = await import('../utils/workshopProposalsApi');
+                                          await approveProposal(accessToken || '', proposal.id);
+                                          setWpInbox(prev => prev.filter(p => p.id !== proposal.id));
+                                          showHint({ title: 'Одобрено', content: `Предложение «${proposal.title}» одобрено.` });
+                                        } catch (e: any) {
+                                          showHint({ title: 'Ошибка', content: e?.message || 'Не удалось одобрить.' });
+                                        } finally { setWpInboxBusy(false); }
+                                      }}>Одобрить</button>
+                                    <button type="button" className="btn-secondary" style={{ padding: '6px 12px', fontSize: 12 }}
+                                      disabled={wpInboxBusy}
+                                      onClick={async () => {
+                                        setWpInboxBusy(true);
+                                        try {
+                                          const { rejectProposal } = await import('../utils/workshopProposalsApi');
+                                          await rejectProposal(accessToken || '', proposal.id);
+                                          setWpInbox(prev => prev.filter(p => p.id !== proposal.id));
+                                          showHint({ title: 'Отклонено', content: `Предложение «${proposal.title}» отклонено.` });
+                                        } catch (e: any) {
+                                          showHint({ title: 'Ошибка', content: e?.message || 'Не удалось отклонить.' });
+                                        } finally { setWpInboxBusy(false); }
+                                      }}>Отклонить</button>
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </div>
               )
             )}
@@ -6876,21 +6911,7 @@ export const ProfileView: React.FC<any> = (props) => {
         </div>
       , document.body)}
 
-      {workshopSuccessPending && (
-        <div className="proof-modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) { handleWorkshopSuccessOnlySave(); } }}>
-          <div className="proof-modal fade-in" role="dialog" aria-modal="true" aria-labelledby="profile-modal-workshop-success-title" onClick={e => e.stopPropagation()} style={{ maxWidth: '360px', textAlign: 'center' }}>
-            <div style={{ fontSize: '40px', marginBottom: '12px' }}>⚒️</div>
-            <h3 id="profile-modal-workshop-success-title" style={{ marginTop: 0, marginBottom: 8 }}>Концепт успешно выкован!</h3>
-            <p style={{ fontSize: 13, opacity: 0.9, marginBottom: 20 }}>Отправить заявку вожатым в Telegram и создать карточку Созидателя?</p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <button type="button" onClick={handleWorkshopSuccessSendTelegramAndCard} disabled={workshopBusy} className="btn-primary-gold" style={{ width: '100%' }} aria-live="polite">
-                {workshopBusy ? 'ГЕНЕРИРУЕМ...' : 'Отправить в Telegram и создать карточку'}
-              </button>
-              <button type="button" onClick={handleWorkshopSuccessOnlySave} className="btn-secondary" style={{ width: '100%' }}>Только сохранить</button>
-            </div>
-          </div>
-        </div>
-      )}
+
 
       {initiativeModalOpen && (
         <div className="proof-modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) { setInitiativeModalOpen(false); setInitiativeResult(null); setInitiativeError(null); } }}>

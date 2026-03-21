@@ -20,9 +20,12 @@ interface SquadChatProps {
   deviceId?: string;
   role?: string;
   chatType?: 'squad' | 'team' | 'wing';
+  members?: Array<{ deviceId: string; nickname?: string | null; avatarUrl?: string | null }>;
+  height?: string | number;
+  minHeight?: string | number;
 }
 
-export const SquadChat: React.FC<SquadChatProps> = ({ squadId, accessToken, nickname: myNickname, deviceId, chatType = 'squad' }) => {
+export const SquadChat: React.FC<SquadChatProps> = ({ squadId, accessToken, nickname: myNickname, deviceId, chatType = 'squad', members = [], height = 'calc(100vh - 120px)', minHeight = 500 }) => {
   // In sandbox/dev mode, accessToken may be a fake deviceId string, not a real JWT.
   // In that case we must use X-Device-Id header instead of Authorization.
   const isRealJwt = accessToken && accessToken.includes('.');
@@ -150,7 +153,7 @@ export const SquadChat: React.FC<SquadChatProps> = ({ squadId, accessToken, nick
       background: 'rgba(15, 10, 42, 0.12)',
       border: '1px solid rgba(255, 255, 255, 0.08)',
       backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
-      display: 'flex', flexDirection: 'column', height: 'calc(100vh - 120px)', minHeight: 500,
+      display: 'flex', flexDirection: 'column', height, minHeight,
     }}>
       {/* Header */}
       <div style={{
@@ -160,8 +163,8 @@ export const SquadChat: React.FC<SquadChatProps> = ({ squadId, accessToken, nick
       }}>
         <span style={{
           width: 8, height: 8, borderRadius: '50%',
-          background: messages.length > 0 ? '#4ecdc4' : 'rgba(255,255,255,0.25)',
-          boxShadow: messages.length > 0 ? '0 0 8px rgba(78, 205, 196, 0.5)' : 'none',
+          background: messages.length > 0 ? '#8b00ff' : 'rgba(255,255,255,0.25)',
+          boxShadow: messages.length > 0 ? '0 0 8px rgba(139, 0, 255, 0.5)' : 'none',
         }} />
         {chatType === 'wing' ? 'Чат Крыла' : chatType === 'team' ? 'Чат Движка' : 'Чат отряда'}
         {loading && <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', fontWeight: 400 }}>обновление...</span>}
@@ -212,47 +215,74 @@ export const SquadChat: React.FC<SquadChatProps> = ({ squadId, accessToken, nick
         ) : messages.length === 0 ? (
           <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.7)', textAlign: 'center', padding: 32, fontWeight: 500 }}>Сообщений пока нет. Напишите первое!</div>
         ) : (
-          messages.map((m) => (
-            <div key={m.id}
-              style={{
-                marginBottom: 8, padding: '8px 12px', borderRadius: 10, position: 'relative',
-                background: isPinned(m) ? 'rgba(139, 0, 255, 0.06)' : 'rgba(255, 255, 255, 0.03)',
-                border: isPinned(m) ? '1px solid rgba(139, 0, 255, 0.15)' : '1px solid rgba(255, 255, 255, 0.04)',
-              }}>
-              {/* Message header */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'rgba(255,255,255,0.4)', marginBottom: 3 }}>
-                {isPinned(m) && <span style={{ fontSize: 10 }}>📌</span>}
-                <span style={{ fontWeight: 600, color: 'rgba(93, 228, 255, 0.8)' }}>{m.nickname || 'Участник'}</span>
-                {m.role && <span style={{ color: 'rgba(255, 215, 0, 0.6)' }}>· {ROLE_LABELS[m.role] || m.role}</span>}
-                <span style={{ marginLeft: 'auto', fontSize: 10 }}>{new Date(m.createdAt).toLocaleString('ru-RU')}</span>
-                {/* Action buttons */}
-                <button type="button" title={isPinned(m) ? 'Открепить' : 'Закрепить'}
-                  onClick={() => void handlePin(m.id, !isPinned(m))}
-                  style={{
-                    padding: '1px 5px', borderRadius: 4, border: 'none',
-                    background: 'transparent', cursor: 'pointer',
-                    fontSize: 13, lineHeight: 1, opacity: isPinned(m) ? 0.8 : 0.35,
-                    transition: 'opacity 0.15s',
-                  }}
-                  onMouseEnter={e => { e.currentTarget.style.opacity = '1'; }}
-                  onMouseLeave={e => { e.currentTarget.style.opacity = isPinned(m) ? '0.8' : '0.35'; }}
-                >📌</button>
-                <button type="button" title="Удалить"
-                  onClick={() => { if (window.confirm('Удалить сообщение?')) void handleDelete(m.id); }}
-                  style={{
-                    padding: '1px 5px', borderRadius: 4, border: 'none',
-                    background: 'transparent', cursor: 'pointer',
-                    fontSize: 13, lineHeight: 1, opacity: 0.35,
-                    transition: 'opacity 0.15s',
-                  }}
-                  onMouseEnter={e => { e.currentTarget.style.opacity = '1'; }}
-                  onMouseLeave={e => { e.currentTarget.style.opacity = '0.35'; }}
-                >🗑️</button>
+          messages.map((m) => {
+            const writer = members.find(x => x.deviceId === m.deviceId || (x.nickname && x.nickname === m.nickname));
+            const writerAvatar = writer?.avatarUrl;
+            const isCounselor = m.role === 'counselor' || m.role === 'shift_leader' || m.role === 'developer';
+            const initial = (m.nickname || 'У')[0].toUpperCase();
+
+            return (
+              <div key={m.id}
+                style={{
+                  marginBottom: 8, padding: '10px 14px', borderRadius: 12, position: 'relative',
+                  background: isPinned(m) ? 'rgba(139, 0, 255, 0.06)' : 'rgba(255, 255, 255, 0.03)',
+                  border: isPinned(m) ? '1px solid rgba(139, 0, 255, 0.15)' : '1px solid rgba(255, 255, 255, 0.06)',
+                }}>
+                <div style={{ display: 'flex', gap: 12 }}>
+                  {writerAvatar ? (
+                    <div style={{ width: 34, height: 34, borderRadius: '50%', overflow: 'hidden', flexShrink: 0, border: `1px solid ${isCounselor ? 'rgba(244,114,182,0.3)' : 'rgba(93,228,255,0.2)'}` }}>
+                      <img src={writerAvatar} alt={m.nickname || ''} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    </div>
+                  ) : (
+                    <div style={{ 
+                      width: 34, height: 34, borderRadius: '50%', 
+                      background: isCounselor ? 'linear-gradient(135deg, rgba(244,114,182,0.2), rgba(251,146,60,0.2))' : 'linear-gradient(135deg, rgba(93,228,255,0.15), rgba(165,180,252,0.15))',
+                      border: `1px solid ${isCounselor ? 'rgba(244,114,182,0.3)' : 'rgba(93,228,255,0.2)'}`,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                      fontSize: 14, fontWeight: 800, color: isCounselor ? '#fdf2f8' : '#e8f0ff',
+                      flexShrink: 0
+                    }}>
+                      {initial}
+                    </div>
+                  )}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    {/* Message header */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'rgba(255,255,255,0.4)', marginBottom: 4 }}>
+                      {isPinned(m) && <span style={{ fontSize: 10 }}>📌</span>}
+                      <span style={{ fontWeight: 600, color: '#e8f0ff' }}>{m.nickname || 'Участник'}</span>
+                      {m.role && <span style={{ color: isCounselor ? '#f472b6' : 'rgba(255, 215, 0, 0.6)' }}>· {ROLE_LABELS[m.role] || m.role}</span>}
+                      <span style={{ marginLeft: 'auto', fontSize: 10 }}>{new Date(m.createdAt).toLocaleString('ru-RU')}</span>
+                      {/* Action buttons */}
+                      <button type="button" title={isPinned(m) ? 'Открепить' : 'Закрепить'}
+                        onClick={() => void handlePin(m.id, !isPinned(m))}
+                        style={{
+                          padding: '1px 5px', borderRadius: 4, border: 'none',
+                          background: 'transparent', cursor: 'pointer',
+                          fontSize: 13, lineHeight: 1, opacity: isPinned(m) ? 0.8 : 0.35,
+                          transition: 'opacity 0.15s',
+                        }}
+                        onMouseEnter={e => { e.currentTarget.style.opacity = '1'; }}
+                        onMouseLeave={e => { e.currentTarget.style.opacity = isPinned(m) ? '0.8' : '0.35'; }}
+                      >📌</button>
+                      <button type="button" title="Удалить"
+                        onClick={() => { if (window.confirm('Удалить сообщение?')) void handleDelete(m.id); }}
+                        style={{
+                          padding: '1px 5px', borderRadius: 4, border: 'none',
+                          background: 'transparent', cursor: 'pointer',
+                          fontSize: 13, lineHeight: 1, opacity: 0.35,
+                          transition: 'opacity 0.15s',
+                        }}
+                        onMouseEnter={e => { e.currentTarget.style.opacity = '1'; }}
+                        onMouseLeave={e => { e.currentTarget.style.opacity = '0.35'; }}
+                      >🗑️</button>
+                    </div>
+                    {/* Message text */}
+                    <div style={{ fontSize: 13, lineHeight: 1.45, color: '#e8f0ff', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{m.text}</div>
+                  </div>
+                </div>
               </div>
-              {/* Message text */}
-              <div style={{ fontSize: 13, lineHeight: 1.45, color: '#e8f0ff', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{m.text}</div>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
 
@@ -274,7 +304,7 @@ export const SquadChat: React.FC<SquadChatProps> = ({ squadId, accessToken, nick
                   onClick={() => setEmojiCat(cat.id)}
                   style={{
                     padding: '4px 8px', borderRadius: 8, border: 'none',
-                    background: emojiCat === cat.id ? 'rgba(93, 228, 255, 0.15)' : 'transparent',
+                    background: emojiCat === cat.id ? 'rgba(139, 0, 255, 0.15)' : 'transparent',
                     cursor: 'pointer', fontSize: 18, lineHeight: 1, flexShrink: 0,
                     transition: 'background 0.12s',
                   }}
@@ -307,16 +337,17 @@ export const SquadChat: React.FC<SquadChatProps> = ({ squadId, accessToken, nick
         <textarea
           ref={textareaRef}
           className="squad-chat-input"
+          rows={1}
           style={{
-            flex: 1, minHeight: 56, maxHeight: 120, resize: 'vertical',
-            padding: '10px 14px', borderRadius: 12,
+            flex: 1, minHeight: 48, height: 48, maxHeight: 120, resize: 'vertical',
+            padding: '14px 14px', borderRadius: 12,
             background: 'rgba(255, 255, 255, 0.06)',
             border: '1px solid rgba(255, 255, 255, 0.1)',
             color: '#e8f0ff', fontSize: 13,
             fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
             outline: 'none', transition: 'border-color 0.15s',
           }}
-          onFocus={(e) => { e.currentTarget.style.borderColor = 'rgba(93, 228, 255, 0.3)'; }}
+          onFocus={(e) => { e.currentTarget.style.borderColor = 'rgba(139, 0, 255, 0.4)'; }}
           onBlur={(e) => { e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)'; }}
           placeholder="Напишите сообщение..."
           value={text}
@@ -326,23 +357,25 @@ export const SquadChat: React.FC<SquadChatProps> = ({ squadId, accessToken, nick
         />
         <button type="button" onClick={() => setEmojiOpen(!emojiOpen)} title="Эмодзи"
           style={{
-            padding: '10px 12px', borderRadius: 12,
-            background: emojiOpen ? 'rgba(93, 228, 255, 0.15)' : 'rgba(255, 255, 255, 0.06)',
-            border: emojiOpen ? '1px solid rgba(93, 228, 255, 0.25)' : '1px solid rgba(255, 255, 255, 0.1)',
-            cursor: 'pointer', fontSize: 20, lineHeight: 1, transition: 'all 0.15s',
+            width: 48, height: 48, borderRadius: 12,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0,
+            background: emojiOpen ? 'rgba(139, 0, 255, 0.15)' : 'rgba(255, 255, 255, 0.06)',
+            border: emojiOpen ? '1px solid rgba(139, 0, 255, 0.3)' : '1px solid rgba(255, 255, 255, 0.1)',
+            cursor: 'pointer', fontSize: 20, transition: 'all 0.15s',
           }}
         >😊</button>
         <button type="button" onClick={() => void sendMessage()} disabled={!canSend}
           style={{
-            padding: '12px 18px', borderRadius: 12,
+            minWidth: 48, height: 48, borderRadius: 12,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 16px',
             background: canSend
-              ? 'linear-gradient(135deg, rgba(93, 228, 255, 0.25), rgba(93, 228, 255, 0.12))'
+              ? 'linear-gradient(135deg, rgba(139, 0, 255, 0.3), rgba(139, 0, 255, 0.1))'
               : 'rgba(255, 255, 255, 0.08)',
-            color: canSend ? '#5de4ff' : 'rgba(255, 255, 255, 0.7)',
+            color: canSend ? '#e8f0ff' : 'rgba(255, 255, 255, 0.7)',
             fontSize: 18, fontWeight: 700, cursor: canSend ? 'pointer' : 'default',
             fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
             transition: 'all 0.15s',
-            border: canSend ? '1px solid rgba(93, 228, 255, 0.3)' : '1px solid rgba(255, 255, 255, 0.15)',
+            border: canSend ? '1px solid rgba(139, 0, 255, 0.4)' : '1px solid rgba(255, 255, 255, 0.15)',
             whiteSpace: 'nowrap',
           }}
         >{sending ? '...' : '→'}</button>

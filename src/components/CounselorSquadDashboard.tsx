@@ -424,7 +424,7 @@ export const CounselorSquadDashboard: React.FC<CounselorSquadDashboardProps> = (
 
   if (!activeSquadId) {
     return (
-      <div className="fade-in counselor-squad-cabin-content" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div className="fade-in counselor-squad-cabin-content" style={{ display: 'flex', flexDirection: 'column', gap: 16, background: 'rgba(8, 20, 40, 0.15)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', borderRadius: 18, border: '1px solid rgba(93, 228, 255, 0.12)', padding: '24px 28px' }}>
         <div className="counselor-squad-cabin-section" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <div style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', color: ACCENT, letterSpacing: '.1em', marginBottom: 4 }}>Вожатский отряд</div>
         </div>
@@ -776,7 +776,7 @@ export const CounselorSquadDashboard: React.FC<CounselorSquadDashboardProps> = (
                   : flagsSection;
 
   return (
-    <div className={`fade-in counselor-squad-cabin-content ${!canEdit ? 'counselor-squad-read-only' : ''}`} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <div className={`fade-in counselor-squad-cabin-content ${!canEdit ? 'counselor-squad-read-only' : ''}`} style={{ display: 'flex', flexDirection: 'column', gap: 16, background: 'rgba(8, 20, 40, 0.15)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', borderRadius: 18, border: '1px solid rgba(93, 228, 255, 0.12)', padding: '24px 28px' }}>
       {summary}
       {emptyStateCard || cabinContent}
       <ConfirmModal

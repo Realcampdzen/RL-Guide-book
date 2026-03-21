@@ -850,7 +850,7 @@ const BadgeView: React.FC<BadgeViewProps> = ({
                 <div className="badge-workshop-cta" style={{ marginTop: '20px', padding: '16px', background: 'rgba(255,215,0,0.06)', borderRadius: '16px', border: '1px solid rgba(255,215,0,0.15)', textAlign: 'center' }}>
                   <p style={{ margin: '0 0 12px', fontSize: '14px', opacity: 0.9 }}>Этого мало? Предложи свой вариант</p>
                   <button type="button" onClick={handleOpenWorkshopForCategory} className="badge-cta" style={{ width: '100%', padding: '12px 16px', fontSize: '13px' }}>
-                    Открыть Мастерскую в эту категорию
+                    ⚒️ Предложи свой значок в эту категорию
                   </button>
                 </div>
               </FeatureGate>

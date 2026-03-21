@@ -151,6 +151,34 @@
     background: rgba(255, 107, 107, 0.1);
 }
 
+/* ── Glass Button (semi-transparent) ── */
+.cab-btn-glass {
+    padding: 8px 16px;
+    border-radius: var(--cab-radius-btn);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: var(--cab-text-primary);
+    font-size: var(--cab-font-size-sm);
+    font-weight: 600;
+    cursor: pointer;
+    font-family: var(--cab-font);
+    transition: var(--cab-transition);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.cab-btn-glass:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.25);
+}
+
+.cab-btn-glass:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 /* ── Accent CTA Button ── */
 .cab-btn-accent {
     width: fit-content;
@@ -177,6 +205,38 @@
 }
 
 .cab-btn-accent:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* ── Gold Accent CTA Button ── */
+.cab-btn-gold {
+    width: fit-content;
+    padding: 14px 32px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #8b00ff, #ffd700);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    transition: var(--cab-transition);
+    box-shadow: 0 4px 20px rgba(139,0,255,0.3);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-family: var(--cab-font);
+}
+
+.cab-btn-gold:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px rgba(139,0,255,0.45);
+}
+
+.cab-btn-gold:disabled {
     opacity: 0.5;
     cursor: not-allowed;
     transform: none;
@@ -349,4 +409,121 @@
 
 ::-webkit-scrollbar-thumb:hover {
     background: rgba(139, 0, 255, 0.7);
+}
+
+/* ── Inspector Documentation Tabs Styling ── */
+.inspector-doc-scroll::-webkit-scrollbar {
+    display: none;
+}
+.inspector-doc-scroll {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.inspector-doc {
+    font-family: var(--cab-font);
+    color: rgba(255, 255, 255, 0.9);
+    line-height: 1.6;
+    font-size: 15px;
+}
+
+/* Reset headings inside the doc to look elegant and readable */
+.inspector-doc h1,
+.inspector-doc h2,
+.inspector-doc h3,
+.inspector-doc h4 {
+    color: #fff;
+    font-weight: 700;
+    margin-top: 1.8rem;
+    margin-bottom: 1rem;
+    letter-spacing: -0.01em;
+    font-family: var(--cab-font);
+    text-transform: none;
+    -webkit-text-fill-color: initial;
+}
+
+.inspector-doc h1 {
+    font-size: 24px;
+    background: linear-gradient(90deg, #fff, rgba(255, 255, 255, 0.6));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding-bottom: 12px;
+}
+
+.inspector-doc h2 {
+    font-size: 20px;
+    color: #5de4ff;
+    padding-bottom: 8px;
+    border-bottom: 1px dashed rgba(93, 228, 255, 0.2);
+}
+
+.inspector-doc h3 {
+    font-size: 17px;
+    color: #e8f0ff;
+}
+
+/* Paragraphs and Spacing */
+.inspector-doc p {
+    margin-bottom: 1.25rem;
+    color: rgba(255, 255, 255, 0.75);
+    font-weight: 400;
+}
+
+.inspector-doc strong {
+    color: #fff;
+    font-weight: 600;
+}
+
+/* Lists */
+.inspector-doc ul,
+.inspector-doc ol {
+    margin-bottom: 1.5rem;
+    padding-left: 2rem;
+}
+
+.inspector-doc li {
+    margin-bottom: 0.5rem;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.inspector-doc li p {
+    margin-bottom: 0 !important;
+}
+
+/* Quotes & Blockquotes */
+.inspector-doc blockquote {
+    border-left: 3px solid #5de4ff;
+    background: rgba(93, 228, 255, 0.05);
+    padding: 16px 20px;
+    border-radius: 0 12px 12px 0;
+    margin: 1.5rem 0;
+    font-style: italic;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.inspector-doc blockquote p:last-child {
+    margin-bottom: 0;
+}
+
+/* Horizontal Lines */
+.inspector-doc hr {
+    border: none;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0) 100%);
+    margin: 2.5rem 0;
+}
+
+/* Link Styling */
+.inspector-doc a {
+    color: #5de4ff;
+    text-decoration: none;
+    border-bottom: 1px dotted rgba(93, 228, 255, 0.5);
+    transition: var(--cab-transition);
+}
+
+.inspector-doc a:hover {
+    color: #a78bfa;
+    border-bottom-color: rgba(167, 139, 250, 0.5);
 }

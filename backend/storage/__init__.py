@@ -58,7 +58,7 @@ def get_store(name: str):
             f"Valid names: shifts, memberships, squad_corners, squad_invites, "
             f"squad_messages, badge_requests, badge_plans, parent_snapshots, chat_daily_usage, "
             f"council_initiatives, council_members, council_protocols, teams, badge_arts, engines, engine_members, inspector_progress, "
-            f"bro_events, bro_passports, bro_submissions, bro_initiatives, shift_schedule, workshops, parent_suggestions, users"
+            f"bro_events, bro_passports, bro_submissions, bro_initiatives, shift_schedule, workshops, parent_suggestions, users, workshop_proposals"
         )
     return store
 

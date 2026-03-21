@@ -4193,6 +4193,208 @@ def badge_plan_review(plan_id: str):
     return jsonify({"plan": plan})
 
 
+# ── Workshop Proposals (Constructor pipeline) ──
+
+def _workshop_proposals_load() -> dict:
+    return get_store("workshop_proposals").load()
+
+def _workshop_proposals_save(data: dict):
+    get_store("workshop_proposals").save(data)
+
+
+@app.route('/api/workshop/proposals', methods=['POST'])
+def workshop_proposal_create():
+    """
+    POST /api/workshop/proposals
+    Auth: participant|developer
+    Body: { type, title, description?, emoji?, badgeId?, image?, nickname? }
+    type: badge | category | version | art
+    """
+    payload, err = _require_roles(("participant", "developer"), allow_localhost_dev=True)
+    if err is not None:
+        return err[0], err[1]
+    device_id = (payload.get("deviceId") or "").strip()
+    if not device_id:
+        return jsonify({"error": "deviceId missing in token"}), 400
+
+    body = request.get_json() or {}
+    proposal_type = (body.get("type") or "").strip()
+    if proposal_type not in ("badge", "category", "version", "art"):
+        return jsonify({"error": "type must be badge|category|version|art"}), 400
+
+    title = (body.get("title") or "").strip()[:200]
+    if not title:
+        return jsonify({"error": "title required"}), 400
+
+    description = (body.get("description") or "").strip()[:4000]
+    emoji = (body.get("emoji") or "").strip()[:10] or None
+    badge_id = (body.get("badgeId") or "").strip()[:50] or None
+    image = (body.get("image") or "").strip() or None
+    # Limit image size (base64 data URLs up to ~500KB)
+    if image and len(image) > 500_000:
+        image = None
+    nickname = (body.get("nickname") or "").strip()[:120] or None
+
+    camp_from_token = (payload.get("campId") or "").strip()
+    camp_from_membership, squad_from_membership = _resolve_membership_context(device_id)
+    camp_id = camp_from_membership or camp_from_token or ""
+    squad_id = squad_from_membership or ""
+
+    now_iso = datetime.now(timezone.utc).isoformat()
+    proposal_doc = {
+        "id": f"WP-{uuid.uuid4().hex[:10].upper()}",
+        "type": proposal_type,
+        "title": title,
+        "description": description,
+        "emoji": emoji,
+        "badgeId": badge_id,
+        "image": image,
+        "status": "pending",
+        "createdBy": {
+            "deviceId": device_id,
+            "nickname": nickname,
+        },
+        "campId": camp_id,
+        "squadId": squad_id or None,
+        "createdAt": now_iso,
+        "resolvedAt": None,
+        "resolvedBy": None,
+        "resolutionNote": None,
+    }
+
+    doc = _workshop_proposals_load()
+    proposals = doc.get("proposals") or []
+    proposals.append(proposal_doc)
+    doc["proposals"] = proposals
+    _workshop_proposals_save(doc)
+    return jsonify({"proposal": proposal_doc}), 201
+
+
+@app.route('/api/workshop/proposals/mine', methods=['GET'])
+def workshop_proposal_mine():
+    """
+    GET /api/workshop/proposals/mine
+    Auth: participant|developer
+    Returns own proposals, newest-first.
+    """
+    payload, err = _require_roles(("participant", "developer"), allow_localhost_dev=True)
+    if err is not None:
+        return err[0], err[1]
+    device_id = (payload.get("deviceId") or "").strip()
+    if not device_id:
+        return jsonify({"error": "deviceId missing in token"}), 400
+
+    doc = _workshop_proposals_load()
+    rows = []
+    for p in (doc.get("proposals") or []):
+        if not isinstance(p, dict):
+            continue
+        cb = p.get("createdBy") if isinstance(p.get("createdBy"), dict) else {}
+        if (cb.get("deviceId") or "").strip() != device_id:
+            continue
+        rows.append(p)
+    rows.sort(key=lambda item: _parse_iso_ts(item.get("createdAt") or ""), reverse=True)
+    return jsonify({"proposals": rows})
+
+
+@app.route('/api/workshop/proposals/inbox', methods=['GET'])
+def workshop_proposal_inbox():
+    """
+    GET /api/workshop/proposals/inbox?status=pending
+    Auth: counselor|educator|shift_leader|camp_director|developer
+    Returns proposals for moderation. Auto-scope for counselor/educator.
+    """
+    payload, err = _require_roles(("counselor", "educator", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
+    if err is not None:
+        return err[0], err[1]
+
+    device_id = (payload.get("deviceId") or "").strip()
+    actor_role = _normalize_role((payload.get("role") or "").strip())
+    camp_filter = (request.args.get("campId") or "").strip()
+    status_filter = (request.args.get("status") or "").strip()
+    if status_filter and status_filter not in ("pending", "approved", "rejected"):
+        return jsonify({"error": "Invalid status filter"}), 400
+
+    if actor_role in ("counselor", "educator") and not camp_filter:
+        camp_self, _ = _resolve_membership_context(device_id)
+        camp_filter = camp_self
+
+    doc = _workshop_proposals_load()
+    rows = []
+    for p in (doc.get("proposals") or []):
+        if not isinstance(p, dict):
+            continue
+        if status_filter and (p.get("status") or "").strip() != status_filter:
+            continue
+        if not status_filter and (p.get("status") or "").strip() != "pending":
+            continue
+        if camp_filter and (p.get("campId") or "").strip() != camp_filter:
+            continue
+        rows.append(p)
+
+    rows.sort(
+        key=lambda item: (
+            0 if (item.get("status") or "").strip() == "pending" else 1,
+            -_parse_iso_ts(item.get("createdAt") or "")
+        )
+    )
+    return jsonify({"proposals": rows})
+
+
+def _workshop_proposal_resolve(proposal_id: str, next_status: str):
+    """Shared resolve logic for approve/reject."""
+    payload, err = _require_roles(("counselor", "educator", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
+    if err is not None:
+        return err[0], err[1]
+    pid = (proposal_id or "").strip()
+    if not pid:
+        return jsonify({"error": "proposal id required"}), 400
+
+    body = request.get_json() or {}
+    note = (body.get("note") or "").strip()
+    now_iso = datetime.now(timezone.utc).isoformat()
+
+    doc = _workshop_proposals_load()
+    proposals = doc.get("proposals") or []
+    found_idx = -1
+    for idx, p in enumerate(proposals):
+        if not isinstance(p, dict):
+            continue
+        if (p.get("id") or "").strip().lower() == pid.lower():
+            found_idx = idx
+            break
+    if found_idx < 0:
+        return jsonify({"error": "Proposal not found"}), 404
+
+    row = proposals[found_idx]
+    current_status = (row.get("status") or "").strip()
+    if current_status != "pending":
+        return jsonify({"error": f"Proposal already resolved: {current_status}"}), 409
+
+    row["status"] = next_status
+    row["resolvedAt"] = now_iso
+    row["resolvedBy"] = {
+        "deviceId": (payload.get("deviceId") or "").strip() or None,
+        "role": _normalize_role((payload.get("role") or "").strip())
+    }
+    if note:
+        row["resolutionNote"] = note[:2000]
+    proposals[found_idx] = row
+    doc["proposals"] = proposals
+    _workshop_proposals_save(doc)
+    return jsonify({"proposal": row})
+
+
+@app.route('/api/workshop/proposals/<proposal_id>/approve', methods=['POST'])
+def workshop_proposal_approve(proposal_id: str):
+    return _workshop_proposal_resolve(proposal_id, "approved")
+
+
+@app.route('/api/workshop/proposals/<proposal_id>/reject', methods=['POST'])
+def workshop_proposal_reject(proposal_id: str):
+    return _workshop_proposal_resolve(proposal_id, "rejected")
+
+
 @app.route('/api/organizer/generate-code', methods=['POST'])
 def organizer_generate_code():
     """

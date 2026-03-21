@@ -280,7 +280,7 @@ export const Profile4KDashboard: React.FC<Profile4KDashboardProps> = ({
   }
 
   return (
-    <div className="fade-in profile4k-cabin-content" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+    <div className="fade-in profile4k-cabin-content" style={{ display: 'flex', flexDirection: 'column', gap: 14, background: 'rgba(8, 20, 40, 0.15)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', borderRadius: 18, border: '1px solid rgba(93, 228, 255, 0.12)', padding: '24px 28px' }}>
       {summary}
       {activeTab === 'skills' ? renderSkillsSection() : renderCampProgressSection()}
     </div>

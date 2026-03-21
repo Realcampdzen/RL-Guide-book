@@ -3,6 +3,12 @@ export interface BadgeRequestEvidence {
   impact?: string;
   link?: string;
   photos?: string[]; // base64 data URLs
+  /** Inspector-specific fields */
+  source?: 'inspector' | 'badge';
+  durationMs?: number;
+  completedTasks?: string[];
+  missionDay?: number;
+  missionTitle?: string;
 }
 
 export interface BadgeRequestItem {

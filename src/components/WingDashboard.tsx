@@ -110,7 +110,7 @@ export const WingDashboard: React.FC<WingDashboardProps> = ({ onSuggestInitiativ
   if (!hasWing) {
     return (
       <div className="fade-in cab-card" style={{
-        maxWidth: 680, width: '100%', margin: '0 auto',
+        width: '100%',
         padding: '28px 32px', borderRadius: 20, marginBottom: 24,
         position: 'relative', overflow: 'hidden'
       }}>
@@ -143,7 +143,7 @@ export const WingDashboard: React.FC<WingDashboardProps> = ({ onSuggestInitiativ
 
   return (
     <div className={`fade-in cab-card${variant === 'cabin' ? ' bro-cabin-section' : ''}`} style={{
-      maxWidth: 680, width: '100%', margin: '0 auto',
+      width: '100%',
       padding: isExpanded ? '28px 32px' : '20px 24px',
       borderRadius: 20, marginBottom: 24,
       position: 'relative', overflow: 'hidden'

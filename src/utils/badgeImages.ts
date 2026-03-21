@@ -135,6 +135,7 @@ export const getBadgeImagePath = (
         ].join('/');
         return pathPrefix + withRealism;
       }
+      return pathPrefix + overridePath; // Fallback if fewer than 4 parts
     } else {
       return pathPrefix + overridePath;
     }

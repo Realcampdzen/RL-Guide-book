@@ -11,25 +11,123 @@ import { useAuth } from '../context/AuthContext';
 const DIARY_ACCENT = 'var(--amber-500)';
 const DIARY_ACCENT_LIGHT = 'rgba(199, 119, 48, 0.25)';
 const DIARY_GRADIENT = 'linear-gradient(135deg, rgba(199, 119, 48, 0.12) 0%, rgba(120, 53, 15, 0.18) 100%)';
-const EMOJI_OPTIONS = ['😊', '😢', '😤', '🌟', '🎉', '😴', '🤔', '💪', '❤️', '🔥', '👍', '😎'];
+const EMOJI_OPTIONS = [
+  // Настроение
+  '😊', '😁', '😂', '🥹', '😢', '😭', '😤', '😡', '🥺', '😩', '😪', '😴', '😌', '🤔', '🤩', '😎', '🥳', '🤗', '😶', '🙈',
+  // Природа и погода
+  '🌟', '⭐', '✨', '🌙', '☀️', '🌅', '🌈', '⚡', '🔥', '❄️', '🌊', '🌿', '🍃', '🌸', '🌺',
+  // Активности
+  '💪', '🏃', '🎯', '🏆', '🎉', '🎊', '🎶', '🎵', '🎸', '🎭', '🎨', '📚', '⚽', '🏊', '🤸',
+  // Еда
+  '🍕', '🍔', '🍦', '🍩', '🍫', '☕', '🧃', '🍉', '🍓', '🍒',
+  // Сердца и жесты
+  '❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '💝', '💫', '👍', '👏', '🙌', '🤝', '🫶',
+  // Предметы и символы
+  '📖', '✏️', '🎒', '🏕️', '🕯️', '🔑', '⚙️', '🧩', '💡', '🎁',
+];
+
+const DIARY_PLACEHOLDERS: Record<string, string> = {
+  'Утро': 'Как проснулся? С кем начался день? Настрой на новый день…',
+  'День': 'Что запомнилось днём? Интересные события, встречи, активности…',
+  'Вечер': 'Как прошёл вечер? Чем завершился день? Огонёк, свечка, разговоры…',
+  'Мем дня': 'Что тебя рассмешило или удивило? Смешной момент дня…',
+  'Чем запомнился день': 'Один главный момент, который будешь помнить долго…',
+};
 
 const text = (v?: string) => (v || '').trim();
 
-const DiaryRow: React.FC<{ label: string; value: string; emoji?: string; onText: (v: string) => void; onEmoji: (v: string) => void }> = ({ label, value, emoji, onText, onEmoji }) => (
-  <div style={{ display: 'grid', gap: 8 }}>
-    <label style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255, 255, 255, 0.9)' }}>{label}</label>
-    <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
-      <textarea className="w-input real-diary-entry-textarea" value={value} onChange={(e) => onText(e.target.value)} rows={2} placeholder="Что было?" style={{ flex: 1, width: '100%', minHeight: 60 }} />
-      <div style={{ width: 100, display: 'flex', flexWrap: 'wrap', gap: 4, flexShrink: 0 }}>
-        {EMOJI_OPTIONS.map((em) => (
-          <button key={em} type="button" onClick={() => onEmoji(emoji === em ? '' : em)} style={{ width: 28, height: 28, borderRadius: 8, border: emoji === em ? `2px solid ${DIARY_ACCENT}` : '1px solid rgba(255,255,255,0.2)', background: emoji === em ? DIARY_ACCENT_LIGHT : 'rgba(255,255,255,0.05)', cursor: 'pointer' }}>
-            {em}
-          </button>
-        ))}
+const DiaryRow: React.FC<{ label: string; value: string; emoji?: string; onText: (v: string) => void; onEmoji: (v: string) => void }> = ({ label, value, emoji, onText, onEmoji }) => {
+  const [pickerOpen, setPickerOpen] = React.useState(false);
+  const [search, setSearch] = React.useState('');
+  const placeholder = DIARY_PLACEHOLDERS[label] ?? 'Что было?';
+  const filteredEmoji = search.trim() ? EMOJI_OPTIONS.filter(em => em.includes(search)) : EMOJI_OPTIONS;
+
+  return (
+    <div style={{ display: 'grid', gap: 8, position: 'relative' }}>
+      <label style={{ fontSize: 13, fontWeight: 700, color: 'rgba(255, 255, 255, 0.9)', letterSpacing: '0.02em', textTransform: 'uppercase' }}>{label}</label>
+
+      <div style={{ display: 'flex', gap: 10, alignItems: 'stretch' }}>
+        <textarea
+          className="w-input real-diary-entry-textarea"
+          value={value}
+          onChange={(e) => onText(e.target.value)}
+          rows={3}
+          placeholder={placeholder}
+          onClick={() => setPickerOpen(false)}
+          style={{ flex: 1, minHeight: 80, borderRadius: 12, fontSize: 14, lineHeight: 1.6 }}
+        />
+        <button
+          type="button"
+          onClick={() => setPickerOpen(v => !v)}
+          title="Выбрать эмодзи настроения"
+          style={{
+            width: 60, height: 'auto', minHeight: 80, borderRadius: 12, fontSize: 36,
+            border: 'none', background: 'none',
+            cursor: 'pointer', flexShrink: 0,
+            transition: 'transform 0.15s',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            filter: emoji ? 'none' : 'grayscale(0.3) opacity(0.5)',
+          }}
+        >
+          {emoji || '🙂'}
+        </button>
       </div>
+
+      {pickerOpen && (
+        <div style={{
+          position: 'absolute', top: '100%', right: 0, zIndex: 300, marginTop: 4,
+          background: 'rgba(6, 14, 30, 0.97)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
+          border: '1px solid rgba(93, 228, 255, 0.18)', borderRadius: 18,
+          padding: 14, width: 280,
+          boxShadow: '0 16px 48px rgba(0,0,0,0.7), 0 0 24px rgba(93,228,255,0.08)',
+        }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>
+            Настроение · {label}
+          </div>
+          <input
+            type="text"
+            placeholder="Поиск..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            autoFocus
+            style={{
+              width: '100%', marginBottom: 10, padding: '6px 12px',
+              borderRadius: 10, border: '1px solid rgba(255,255,255,0.12)',
+              background: 'rgba(255,255,255,0.07)', color: '#fff',
+              fontSize: 13, fontFamily: 'inherit', boxSizing: 'border-box',
+              outline: 'none',
+            }}
+          />
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, maxHeight: 200, overflowY: 'auto' }}>
+            {emoji && (
+              <button type="button" onClick={() => { onEmoji(''); setPickerOpen(false); setSearch(''); }}
+                style={{
+                  width: '100%', padding: '4px 0', fontSize: 11,
+                  background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
+                  borderRadius: 8, color: 'rgba(255,255,255,0.45)', cursor: 'pointer', fontFamily: 'inherit',
+                }}
+              >✕ Убрать эмодзи</button>
+            )}
+            {filteredEmoji.map((em) => (
+              <button
+                key={em}
+                type="button"
+                onClick={() => { onEmoji(emoji === em ? '' : em); setPickerOpen(false); setSearch(''); }}
+                style={{
+                  width: 38, height: 38, borderRadius: 10, fontSize: 22,
+                  border: emoji === em ? `2px solid rgba(199,119,48,0.9)` : '1px solid rgba(255,255,255,0.1)',
+                  background: emoji === em ? 'rgba(199,119,48,0.3)' : 'rgba(255,255,255,0.05)',
+                  cursor: 'pointer', transition: 'all 0.1s',
+                  boxShadow: emoji === em ? '0 0 8px rgba(199,119,48,0.4)' : 'none',
+                }}
+              >{em}</button>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
-  </div>
-);
+  );
+};
 
 export type RealDiaryTabId = 'diary' | 'reflection' | 'schedule' | 'diary-card' | 'photos';
 
@@ -50,6 +148,8 @@ export const RealDiaryDashboard: React.FC<RealDiaryDashboardProps> = ({ variant 
   const currentEntry = entries[String(currentDay)] || {};
 
   const [isExpanded, setIsExpanded] = useState(false);
+  const [localDayMoodEmoji, setLocalDayMoodEmoji] = useState((currentEntry as any).dayMoodEmoji ?? '');
+  const [dayMoodPopover, setDayMoodPopover] = useState(false);
   const [presentationExpanded, setPresentationExpanded] = useState(false);
   const [_presentationText, setPresentationText] = useState('');
   // copyToast removed — was only used by deleted onCopy
@@ -111,6 +211,7 @@ export const RealDiaryDashboard: React.FC<RealDiaryDashboardProps> = ({ variant 
     setLocalMemorableEmoji(e.memorableEmoji ?? '');
     setLocalMemeText((e as any).memeText ?? '');
     setLocalMemeEmoji((e as any).memeEmoji ?? '');
+    setLocalDayMoodEmoji((e as any).dayMoodEmoji ?? '');
   }, [currentDay, entries]);
 
   React.useEffect(() => {
@@ -146,7 +247,8 @@ export const RealDiaryDashboard: React.FC<RealDiaryDashboardProps> = ({ variant 
       memorableText: text(localMemorableText) || undefined,
       memorableEmoji: text(localMemorableEmoji) || undefined,
       memeText: text(localMemeText) || undefined,
-      memeEmoji: text(localMemeEmoji) || undefined
+      memeEmoji: text(localMemeEmoji) || undefined,
+      dayMoodEmoji: text(localDayMoodEmoji) || undefined,
     });
     // Clear previous timers
     if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
@@ -615,46 +717,69 @@ export const RealDiaryDashboard: React.FC<RealDiaryDashboardProps> = ({ variant 
   const sectionClass = variant === 'cabin' ? 'real-diary-cabin-section' : undefined;
 
   const scheduleCard = <K extends string>(title: string, items: Array<ScheduleItem<K>>, values: Partial<Record<K, ScheduleCell>>, editing: boolean, onEdit: () => void, onSave: () => void, onChange: (k: K, field: 'time' | 'note', value: string) => void) => (
-    <article className="real-diary-schedule-card">
-      <h4 className="real-diary-schedule-card__title">{title}</h4>
-      {editing ? (
-        <div className="real-diary-schedule-editor">
-          {items.map(({ key, label }) => (
-            <div key={String(key)} className="real-diary-schedule-editor__row">
-              <div className="real-diary-schedule-editor__label">{label}</div>
-              <input className="w-input real-diary-schedule-editor__time" placeholder="Время" value={values[key]?.time || ''} onChange={(e) => onChange(key, 'time', e.target.value)} />
-              <input className="w-input real-diary-schedule-editor__note" placeholder="Заметка" value={values[key]?.note || ''} onChange={(e) => onChange(key, 'note', e.target.value)} />
-            </div>
-          ))}
-          <div className="real-diary-schedule-actions"><button type="button" className="btn-primary-gold" onClick={onSave}>Сохранить</button></div>
+    <article className="cab-card fade-in" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 20 }}>
+      {/* Header section */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: 16 }}>
+        <h4 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: '#fff', letterSpacing: '-0.01em' }}>{title}</h4>
+        {editing ? (
+          <button type="button" className="cab-btn-accent-sm" onClick={onSave} style={{ padding: '8px 16px', fontSize: 13, fontWeight: 600 }}>Сохранить</button>
+        ) : (
+          <button type="button" className="cab-btn-glass" onClick={onEdit} style={{ padding: '8px 16px', fontSize: 13, minWidth: 'unset' }}>Изменить</button>
+        )}
+      </div>
+
+      <div style={{ display: 'grid', gap: 0 }}>
+        {/* Table Header */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(120px, 1fr) 100px 2fr', gap: 16, fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.05em', paddingBottom: 12 }}>
+          <div>Пункт расписания</div>
+          <div>Время</div>
+          <div>Заметка</div>
         </div>
-      ) : (
-        <>
-          <div className="real-diary-schedule-list">
-            {items.map(({ key, label }) => (
-              <div key={String(key)} className="real-diary-schedule-row">
-                <div className="real-diary-schedule-label">{label}</div>
-                <div className="real-diary-schedule-time">{text(values[key]?.time) || '—'}</div>
-                <div className="real-diary-schedule-note">{text(values[key]?.note) || '—'}</div>
+
+        {/* Rows */}
+        <div style={{ display: 'grid', gap: 0 }}>
+          {items.map(({ key, label }, index) => {
+            const isLast = index === items.length - 1;
+            return (
+              <div key={String(key)} style={{ 
+                display: 'grid', 
+                gridTemplateColumns: 'minmax(120px, 1fr) 100px 2fr', 
+                gap: 16, 
+                alignItems: 'center',
+                padding: '16px 0',
+                borderBottom: isLast ? 'none' : '1px solid rgba(255,255,255,0.05)',
+                transition: 'background 0.2s',
+              }}>
+                <div style={{ fontSize: 14, fontWeight: 500, color: 'rgba(255,255,255,0.85)' }}>{label}</div>
+                {editing ? (
+                  <>
+                    <input className="cab-input" placeholder="00:00" style={{ padding: '8px 12px', fontSize: 13, textAlign: 'center', background: 'rgba(255,255,255,0.03)' }} value={values[key]?.time || ''} onChange={(e) => onChange(key, 'time', e.target.value)} />
+                    <input className="cab-input" placeholder="Что будем делать?" style={{ padding: '8px 12px', fontSize: 13, background: 'rgba(255,255,255,0.03)' }} value={values[key]?.note || ''} onChange={(e) => onChange(key, 'note', e.target.value)} />
+                  </>
+                ) : (
+                  <>
+                    <div style={{ color: 'var(--cabin-neon-cyan)', fontWeight: 600, fontSize: 14 }}>{text(values[key]?.time) || '—'}</div>
+                    <div style={{ color: '#fff', fontSize: 14, lineHeight: 1.4 }}>{text(values[key]?.note) || <span style={{ opacity: 0.3 }}>—</span>}</div>
+                  </>
+                )}
               </div>
-            ))}
-          </div>
-          <div className="real-diary-schedule-actions"><button type="button" className="btn-secondary" onClick={onEdit}>Редактировать</button></div>
-        </>
-      )}
+            );
+          })}
+        </div>
+      </div>
     </article>
   );
 
   const scheduleTab = (
     <div className={sectionClass} style={variant === 'accordion' ? sectionWrapStyle : {}}>
-      <div className="real-diary-schedule-columns">
+      <div style={{ display: 'grid', gap: 16 }}>
         {scheduleCard('План дня', SHIFT_ITEMS, localShift, editingShift, () => setEditingShift(true), saveShift, (k, f, v) => patchCell(setLocalShift, k, f, v))}
         {scheduleCard('Мои занятия (кружки/тренировки)', ACTIVITY_ITEMS, localActivities, editingActivities, () => setEditingActivities(true), saveActivities, (k, f, v) => patchCell(setLocalActivities, k, f, v))}
       </div>
       {canExportSchedules ? (
-        <div className="real-diary-schedule-export">
-          <button type="button" className="btn-secondary" onClick={saveSchedulesToDevice}>Сохранить на устройство</button>
-          {scheduleSavedToast ? <span className="real-diary-schedule-export__hint">Картинка сохранена</span> : null}
+        <div style={{ marginTop: 16, display: 'flex', alignItems: 'center', gap: 12 }}>
+          <button type="button" className="cab-btn-glass" onClick={saveSchedulesToDevice} style={{ minWidth: 'unset', padding: '10px 20px' }}>Сохранить на устройство</button>
+          {scheduleSavedToast ? <span style={{ fontSize: 13, color: 'var(--cabin-neon-cyan)' }}>Картинка сохранена</span> : null}
         </div>
       ) : null}
     </div>
@@ -676,22 +801,17 @@ export const RealDiaryDashboard: React.FC<RealDiaryDashboardProps> = ({ variant 
       {(variant === 'cabin' || presentationExpanded) && (
         <div style={{
           display: 'grid',
-          gridTemplateColumns: '3fr 2fr',
-          gridTemplateRows: 'auto auto',
-          gap: 12,
+          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+          gap: 16,
           marginTop: variant === 'accordion' ? 12 : 0,
-          maxWidth: 640,
         }}>
-          {/* Cell A — Photo (left, spans 2 rows) */}
-          <div style={{
-            gridRow: '1 / 3',
-            padding: 14, borderRadius: 16,
-            background: 'rgba(15, 10, 42, 0.12)',
-            backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
-            border: '1px solid rgba(255, 255, 255, 0.08)',
-            display: 'grid', gap: 8, alignContent: 'start',
+          {/* Cell A — Photo (left, may span rows if grid allows) */}
+          <div className="cab-card fade-in" style={{
+            gridRow: 'span 2',
+            padding: 24,
+            display: 'flex', flexDirection: 'column', gap: 16,
           }}>
-            <span style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.8)', letterSpacing: '0.03em' }}>Фото для карточки</span>
+            <span style={{ fontSize: 13, fontWeight: 500, color: 'rgba(255,255,255,0.9)', letterSpacing: '0.02em', textTransform: 'uppercase' }}>Фото для карточки</span>
             <ImageSourceBlock
               className="squad-corner-image-source-block"
               context="diary_photo"
@@ -706,79 +826,67 @@ export const RealDiaryDashboard: React.FC<RealDiaryDashboardProps> = ({ variant 
           </div>
 
           {/* Cell B — Custom text toggle (right top) */}
-          <div style={{
-            padding: 14, borderRadius: 16,
-            background: 'rgba(15, 10, 42, 0.12)',
-            backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
-            border: '1px solid rgba(255, 255, 255, 0.08)',
-            display: 'grid', gap: 10, alignContent: 'start',
+          <div className="cab-card fade-in" style={{
+            padding: 24,
+            display: 'flex', flexDirection: 'column', gap: 16,
           }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.9)' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer', fontSize: 14, fontWeight: 500, color: '#fff' }}>
               <span
                 role="switch"
                 aria-checked={useCustomCardText}
                 onClick={() => setUseCustomCardText(v => !v)}
                 style={{
-                  width: 40, height: 22, borderRadius: 11, position: 'relative', flexShrink: 0,
-                  background: useCustomCardText ? 'rgba(245,158,11,0.7)' : 'rgba(255,255,255,0.15)',
+                  width: 44, height: 24, borderRadius: 12, position: 'relative', flexShrink: 0,
+                  background: useCustomCardText ? 'var(--cabin-neon-cyan)' : 'rgba(255,255,255,0.15)',
                   transition: 'background .2s', cursor: 'pointer',
                 }}
               >
                 <span style={{
-                  position: 'absolute', top: 2, left: useCustomCardText ? 20 : 2,
-                  width: 18, height: 18, borderRadius: '50%', background: '#fff',
+                  position: 'absolute', top: 2, left: useCustomCardText ? 22 : 2,
+                  width: 20, height: 20, borderRadius: '50%', background: '#fff',
                   transition: 'left .2s', boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
                 }} />
               </span>
               Свой текст
             </label>
             {!useCustomCardText && (
-              <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', lineHeight: 1.4 }}>
+              <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', lineHeight: 1.5 }}>
                 Тексты из дневника и рефлексии
               </span>
             )}
             {useCustomCardText && (
-              <>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 <textarea
+                  className="cab-input"
                   placeholder="Чем запомнился день"
                   value={customMemorable}
                   onChange={(ev) => setCustomMemorable(ev.target.value)}
                   rows={2}
-                  style={{
-                    width: '100%', padding: '8px 10px', borderRadius: 10,
-                    background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.15)',
-                    color: '#fff', resize: 'vertical', fontSize: 12, fontFamily: 'inherit',
-                  }}
+                  style={{ resize: 'vertical' }}
                 />
                 <textarea
+                  className="cab-input"
                   placeholder="Какие выводы сделал"
                   value={customConclusions}
                   onChange={(ev) => setCustomConclusions(ev.target.value)}
                   rows={2}
-                  style={{
-                    width: '100%', padding: '8px 10px', borderRadius: 10,
-                    background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.15)',
-                    color: '#fff', resize: 'vertical', fontSize: 12, fontFamily: 'inherit',
-                  }}
+                  style={{ resize: 'vertical' }}
                 />
-              </>
+              </div>
             )}
           </div>
 
           {/* Cell C — Generate button (right bottom) */}
-          <div style={{
-            padding: 14, borderRadius: 16,
-            background: 'rgba(15, 10, 42, 0.12)',
-            backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
-            border: '1px solid rgba(255, 255, 255, 0.08)',
+          <div className="cab-card fade-in" style={{
+            padding: 24,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
             <button
               type="button"
               onClick={() => { generateDiaryCardImage(); setPresentationText(buildPresentationText()); }}
-              className="btn-primary-gold"
+              className="cab-btn-accent"
               disabled={generatingCard}
-              style={{ width: '100%', opacity: generatingCard ? 0.6 : 1 }}
+              style={{ width: '100%', opacity: generatingCard ? 0.6 : 1, padding: '14px 24px', fontSize: 14 }}
             >
               {generatingCard ? 'Генерация...' : 'Создать карточку'}
             </button>
@@ -786,22 +894,19 @@ export const RealDiaryDashboard: React.FC<RealDiaryDashboardProps> = ({ variant 
 
           {/* Cell D — Result preview (full width) */}
           {cardImageUrl && (
-            <div style={{
+            <div className="cab-card fade-in" style={{
               gridColumn: '1 / -1',
-              padding: 14, borderRadius: 16,
-              background: 'rgba(15, 10, 42, 0.12)',
-              backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
-              display: 'grid', gap: 14, justifyItems: 'center',
+              padding: 24,
+              display: 'flex', flexDirection: 'column', gap: 20, alignItems: 'center',
             }}>
-              <div style={{ borderRadius: 14, overflow: 'hidden', border: '1px solid rgba(245, 158, 11, 0.25)', maxWidth: 300 }}>
+              <div style={{ borderRadius: 16, overflow: 'hidden', border: '1px solid rgba(255, 255, 255, 0.1)', maxWidth: 320, boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}>
                 <img src={cardImageUrl} alt="Карточка дневника" style={{ width: '100%', display: 'block' }} />
               </div>
-              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'center', paddingBottom: 80 }}>
-                <button type="button" className="btn-secondary" onClick={downloadCardImage}>Сохранить на устройство</button>
-                <button type="button" className="btn-secondary" onClick={onTelegram}>Отправить в Telegram</button>
-                {cardSavedToast && <span style={{ fontSize: 12, color: 'var(--cabin-neon-purple)' }}>Картинка сохранена!</span>}
-                {telegramToast && <span style={{ fontSize: 12, color: 'var(--cabin-neon-purple)' }}>Картинка скачана — прикрепи в чат</span>}
+              <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center' }}>
+                <button type="button" className="cab-btn-glass" onClick={downloadCardImage} style={{ minWidth: 'unset', padding: '10px 20px' }}>Сохранить на устройство</button>
+                <button type="button" className="cab-btn-glass" onClick={onTelegram} style={{ minWidth: 'unset', padding: '10px 20px', color: '#c4b5fd', borderColor: 'rgba(196, 181, 253, 0.3)' }}>Отправить в Telegram</button>
+                {cardSavedToast && <span style={{ width: '100%', textAlign: 'center', fontSize: 12, color: 'var(--cabin-neon-cyan)', marginTop: 8 }}>Картинка сохранена!</span>}
+                {telegramToast && <span style={{ width: '100%', textAlign: 'center', fontSize: 12, color: 'var(--cabin-neon-purple)', marginTop: 8 }}>Картинка скачана — прикрепи в чат</span>}
               </div>
             </div>
           )}
@@ -812,10 +917,60 @@ export const RealDiaryDashboard: React.FC<RealDiaryDashboardProps> = ({ variant 
 
   const daySwitcher = (
     <div className={sectionClass} style={variant === 'accordion' ? sectionWrapStyle : {}}>
-      <div className="real-diary-day-switcher" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-        {dayKeys.map((d) => <button key={d} type="button" onClick={() => setDiaryDay(d)} className="btn-secondary" style={{ border: currentDay === d ? `1px solid ${DIARY_ACCENT}` : undefined }}>День {d}</button>)}
-        <button type="button" className="btn-secondary" onClick={() => setDiaryDay((dayKeys.length ? Math.max(...dayKeys) : 0) + 1)}>+ День</button>
+      <div className="real-diary-day-switcher" style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 16, alignItems: 'flex-end' }}>
+        {dayKeys.map((d) => {
+          const dayEntry = entries[String(d)] || {};
+          const moodEmoji = (dayEntry as any).dayMoodEmoji || '';
+          const hasContent = dayEntry.morningText || dayEntry.dayText || dayEntry.eveningText || dayEntry.memorableText;
+          const isActive = currentDay === d;
+          return (
+            <button
+              key={d}
+              type="button"
+              onClick={() => setDiaryDay(d)}
+              style={{
+                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
+                padding: '8px 14px 6px',
+                fontSize: 12, fontWeight: isActive ? 700 : 500,
+                minWidth: 54, cursor: 'pointer', fontFamily: 'inherit',
+                border: isActive
+                  ? `2px solid rgba(199, 119, 48, 0.8)`
+                  : '1.5px solid rgba(255,255,255,0.18)',
+                borderBottom: 'none',
+                borderRadius: '10px 10px 0 0',
+                background: isActive
+                  ? 'linear-gradient(160deg, rgba(199, 119, 48, 0.4) 0%, rgba(120, 53, 15, 0.5) 100%)'
+                  : 'rgba(255,255,255,0.08)',
+                backdropFilter: 'blur(12px)',
+                WebkitBackdropFilter: 'blur(12px)',
+                color: isActive ? '#fde68a' : 'rgba(255,255,255,0.75)',
+                boxShadow: isActive ? '0 -4px 12px rgba(199,119,48,0.2)' : 'none',
+                transition: 'all 0.15s',
+                position: 'relative',
+                marginBottom: isActive ? -1 : 0,
+              }}
+            >
+              {moodEmoji ? <span style={{ fontSize: 16, lineHeight: 1 }}>{moodEmoji}</span> : hasContent ? <span style={{ fontSize: 10, opacity: 0.6, color: '#fde68a' }}>●</span> : null}
+              <span>День {d}</span>
+            </button>
+          );
+        })}
+        <button
+          type="button"
+          onClick={() => setDiaryDay((dayKeys.length ? Math.max(...dayKeys) : 0) + 1)}
+          style={{
+            padding: '8px 14px 6px',
+            fontSize: 12, fontWeight: 500, minWidth: 54, cursor: 'pointer', fontFamily: 'inherit',
+            border: '1.5px dashed rgba(255,255,255,0.2)', borderBottom: 'none',
+            borderRadius: '10px 10px 0 0',
+            background: 'rgba(255,255,255,0.05)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
+            color: 'rgba(255,255,255,0.45)', transition: 'all 0.15s',
+          }}
+        >+ День</button>
       </div>
+      <div style={{ height: 2, background: `linear-gradient(to right, ${DIARY_ACCENT_LIGHT}, transparent 80%)`, marginBottom: 12, borderRadius: 2, marginTop: -14 }} />
     </div>
   );
 
@@ -830,17 +985,72 @@ export const RealDiaryDashboard: React.FC<RealDiaryDashboardProps> = ({ variant 
     document.body
   ) : null;
 
-  const diaryTab = <div className={sectionClass} style={variant === 'accordion' ? sectionWrapStyle : {}}><article className="real-diary-schedule-card"><div style={{ display: 'grid', gap: 16 }}><DiaryRow label="Утро" value={localMorningText} emoji={localMorningEmoji} onText={setLocalMorningText} onEmoji={setLocalMorningEmoji} /><DiaryRow label="День" value={localDayText} emoji={localDayEmoji} onText={setLocalDayText} onEmoji={setLocalDayEmoji} /><DiaryRow label="Вечер" value={localEveningText} emoji={localEveningEmoji} onText={setLocalEveningText} onEmoji={setLocalEveningEmoji} /><DiaryRow label="Мем дня" value={localMemeText} emoji={localMemeEmoji} onText={setLocalMemeText} onEmoji={setLocalMemeEmoji} /><DiaryRow label="Чем запомнился день" value={localMemorableText} emoji={localMemorableEmoji} onText={setLocalMemorableText} onEmoji={setLocalMemorableEmoji} /></div>{variant === 'cabin' ? <div style={{ marginTop: 12, display: 'flex', gap: 12, flexWrap: 'wrap' }}><button type="button" className="btn-primary-gold" onClick={saveDiary}>Сохранить</button></div> : null}</article></div>;
-  const reflectionTab = <div className={sectionClass} style={variant === 'accordion' ? sectionWrapStyle : {}}><article className="real-diary-schedule-card"><div style={{ display: 'grid', gap: 16 }}><div style={{ display: 'grid', gap: 8 }}><label style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255, 255, 255, 0.9)' }}>Что хорошего я сделал(а) сегодня?</label><textarea className="w-input real-diary-entry-textarea" placeholder="Любое доброе дело, помощь, поступок…" rows={3} value={localMain} onChange={(e) => setLocalMain(e.target.value)} /></div><div style={{ display: 'grid', gap: 8 }}><label style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255, 255, 255, 0.9)' }}>За что я могу себя похвалить?</label><textarea className="w-input real-diary-entry-textarea" placeholder="Чем ты можешь гордиться — пусть даже мелочью…" rows={3} value={localFriends} onChange={(e) => setLocalFriends(e.target.value)} /></div><div style={{ display: 'grid', gap: 8 }}><label style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255, 255, 255, 0.9)' }}>Чем я горжусь сегодня?</label><textarea className="w-input real-diary-entry-textarea" placeholder="Момент, достижение или решение, которым гордишься…" rows={3} value={localConclusions} onChange={(e) => setLocalConclusions(e.target.value)} /></div><div style={{ display: 'grid', gap: 8 }}><label style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255, 255, 255, 0.9)' }}>Мой вклад в наш отряд сегодня</label><textarea className="w-input real-diary-entry-textarea" placeholder="Что я сделал(а) для ребят, для нашей команды…" rows={3} value={localContribution} onChange={(e) => setLocalContribution(e.target.value)} /></div></div>{variant === 'cabin' ? <div style={{ marginTop: 12, display: 'flex', gap: 12, flexWrap: 'wrap' }}><button type="button" className="btn-primary-gold" onClick={saveDiary}>Сохранить</button></div> : null}</article></div>;
+  const diaryTab = <div className={sectionClass} style={variant === 'accordion' ? sectionWrapStyle : {}}><article className="cab-card fade-in" style={{ padding: 24 }}><div style={{ display: 'grid', gap: 16 }}><DiaryRow label="Утро" value={localMorningText} emoji={localMorningEmoji} onText={setLocalMorningText} onEmoji={setLocalMorningEmoji} /><DiaryRow label="День" value={localDayText} emoji={localDayEmoji} onText={setLocalDayText} onEmoji={setLocalDayEmoji} /><DiaryRow label="Вечер" value={localEveningText} emoji={localEveningEmoji} onText={setLocalEveningText} onEmoji={setLocalEveningEmoji} /><DiaryRow label="Мем дня" value={localMemeText} emoji={localMemeEmoji} onText={setLocalMemeText} onEmoji={setLocalMemeEmoji} /><DiaryRow label="Чем запомнился день" value={localMemorableText} emoji={localMemorableEmoji} onText={setLocalMemorableText} onEmoji={setLocalMemorableEmoji} /></div>{variant === 'cabin' ? <div style={{ marginTop: 24, display: 'flex', gap: 12, flexWrap: 'wrap' }}><button type="button" className="cab-btn-accent" onClick={saveDiary} style={{ padding: '12px 32px' }}>Сохранить</button></div> : null}</article></div>;
+  const reflectionTab = <div className={sectionClass} style={variant === 'accordion' ? sectionWrapStyle : {}}><article className="cab-card fade-in" style={{ padding: 24 }}><div style={{ display: 'grid', gap: 20 }}><div style={{ display: 'grid', gap: 8 }}><label style={{ fontSize: 13, fontWeight: 500, color: 'rgba(255, 255, 255, 0.9)' }}>Что хорошего я сделал(а) сегодня?</label><textarea className="cab-input" placeholder="Любое доброе дело, помощь, поступок…" rows={3} style={{ resize: 'vertical' }} value={localMain} onChange={(e) => setLocalMain(e.target.value)} /></div><div style={{ display: 'grid', gap: 8 }}><label style={{ fontSize: 13, fontWeight: 500, color: 'rgba(255, 255, 255, 0.9)' }}>За что я могу себя похвалить?</label><textarea className="cab-input" placeholder="Чем ты можешь гордиться — пусть даже мелочью…" rows={3} style={{ resize: 'vertical' }} value={localFriends} onChange={(e) => setLocalFriends(e.target.value)} /></div><div style={{ display: 'grid', gap: 8 }}><label style={{ fontSize: 13, fontWeight: 500, color: 'rgba(255, 255, 255, 0.9)' }}>Чем я горжусь сегодня?</label><textarea className="cab-input" placeholder="Момент, достижение или решение, которым гордишься…" rows={3} style={{ resize: 'vertical' }} value={localConclusions} onChange={(e) => setLocalConclusions(e.target.value)} /></div><div style={{ display: 'grid', gap: 8 }}><label style={{ fontSize: 13, fontWeight: 500, color: 'rgba(255, 255, 255, 0.9)' }}>Мой вклад в наш отряд сегодня</label><textarea className="cab-input" placeholder="Что я сделал(а) для ребят, для нашей команды…" rows={3} style={{ resize: 'vertical' }} value={localContribution} onChange={(e) => setLocalContribution(e.target.value)} /></div></div>{variant === 'cabin' ? <div style={{ marginTop: 24, display: 'flex', gap: 12, flexWrap: 'wrap' }}><button type="button" className="cab-btn-accent" onClick={saveDiary} style={{ padding: '12px 32px' }}>Сохранить</button></div> : null}</article></div>;
+
+  const weekdayNames = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
+  const campStartDate = new Date('2026-06-01'); // placeholder; diary days are relative
+  const dayDate = new Date(campStartDate.getTime() + (currentDay - 1) * 86400000);
+  const weekday = weekdayNames[dayDate.getDay()];
 
   const summary = isShiftScheduleTab ? null : (
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: variant === 'accordion' && isExpanded ? 20 : 12 }}>
-      <div onClick={variant === 'accordion' ? () => setIsExpanded((v) => !v) : undefined} style={{ cursor: variant === 'accordion' ? 'pointer' : 'default', flex: 1 }}>
-        <div style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', color: DIARY_ACCENT, letterSpacing: '0.1em', marginBottom: 4 }}>Реальный Дневник</div>
-        <h3 style={{ margin: 0, fontSize: 18 }}>{`День ${currentDay}`}</h3>
-        {(variant === 'cabin' || !isExpanded) ? <div style={{ marginTop: 8, fontSize: 12, opacity: 0.7 }}>День {currentDay}, записей: {entriesCountForPreview}</div> : null}
+    <div style={{ marginBottom: variant === 'accordion' && isExpanded ? 20 : 12 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div onClick={variant === 'accordion' ? () => setIsExpanded((v) => !v) : undefined} style={{ cursor: variant === 'accordion' ? 'pointer' : 'default', flex: 1 }}>
+          <div style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', color: DIARY_ACCENT, letterSpacing: '0.1em', marginBottom: 4 }}>Реальный Дневник</div>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
+            <h3 style={{ margin: 0, fontSize: 22, fontWeight: 800 }}>{`День ${currentDay}`}</h3>
+            <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', fontWeight: 500 }}>{weekday} · {entriesCountForPreview > 0 ? `${entriesCountForPreview} ${entriesCountForPreview === 1 ? 'запись' : 'записей'}` : 'пусто'}</span>
+          </div>
+        </div>
+        {/* Day mood picker */}
+        {variant === 'cabin' && (
+          <div style={{ position: 'relative', flexShrink: 0, marginLeft: 12 }}>
+            <button
+              type="button"
+              onClick={() => setDayMoodPopover(v => !v)}
+              title="Настроение дня"
+              style={{
+                width: 52, height: 52, borderRadius: 16, fontSize: 28,
+                border: localDayMoodEmoji ? `2px solid ${DIARY_ACCENT}` : '1.5px solid rgba(255,255,255,0.15)',
+                background: localDayMoodEmoji ? DIARY_ACCENT_LIGHT : 'rgba(255,255,255,0.05)',
+                cursor: 'pointer', transition: 'all 0.15s',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}
+            >
+              {localDayMoodEmoji || '☀️'}
+            </button>
+            {dayMoodPopover && (
+              <div style={{
+                position: 'absolute', top: 58, right: 0, zIndex: 300,
+                background: 'rgba(8, 20, 40, 0.97)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
+                border: '1px solid rgba(93, 228, 255, 0.2)', borderRadius: 16,
+                padding: 12, display: 'flex', flexWrap: 'wrap', gap: 6, width: 220,
+                boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
+              }}>
+                <div style={{ width: '100%', fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>Настроение дня</div>
+                {localDayMoodEmoji && (
+                  <button type="button" onClick={() => { setLocalDayMoodEmoji(''); setDayMoodPopover(false); }}
+                    style={{ width: '100%', padding: '4px 0', fontSize: 11, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, color: 'rgba(255,255,255,0.5)', cursor: 'pointer' }}
+                  >Убрать</button>
+                )}
+                {EMOJI_OPTIONS.map((em) => (
+                  <button key={em} type="button"
+                    onClick={() => { setLocalDayMoodEmoji(em); setDayMoodPopover(false); }}
+                    style={{
+                      width: 38, height: 38, borderRadius: 10, fontSize: 22,
+                      border: localDayMoodEmoji === em ? `2px solid ${DIARY_ACCENT}` : '1px solid rgba(255,255,255,0.1)',
+                      background: localDayMoodEmoji === em ? DIARY_ACCENT_LIGHT : 'rgba(255,255,255,0.04)',
+                      cursor: 'pointer',
+                    }}
+                  >{em}</button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+        {variant === 'accordion' ? <button type="button" onClick={() => setIsExpanded((v) => !v)} style={{ background: 'none', border: 'none', color: DIARY_ACCENT, fontSize: 20, cursor: 'pointer', transform: isExpanded ? 'rotate(180deg)' : 'none' }}>▾</button> : null}
       </div>
-      {variant === 'accordion' ? <button type="button" onClick={() => setIsExpanded((v) => !v)} style={{ background: 'none', border: 'none', color: DIARY_ACCENT, fontSize: 20, cursor: 'pointer', transform: isExpanded ? 'rotate(180deg)' : 'none' }}>▾</button> : null}
     </div>
   );
 
@@ -848,7 +1058,7 @@ export const RealDiaryDashboard: React.FC<RealDiaryDashboardProps> = ({ variant 
     return (
       <div className="real-diary-dashboard" style={{ background: DIARY_GRADIENT, borderRadius: 24, padding: 20, border: `1px solid ${mvpFilledCount === 3 ? DIARY_ACCENT : DIARY_ACCENT_LIGHT}`, marginBottom: 24, position: 'relative', overflow: 'hidden' }}>
         {summary}
-        {isExpanded ? <div className="fade-in" style={{ display: 'grid', gap: 20 }}>{diaryCard}{daySwitcher}{diaryTab}{reflectionTab}{scheduleTab}<div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}><button type="button" className="btn-primary-gold" onClick={saveDiary}>Сохранить</button>{onNavigateToBadge ? <button type="button" className="btn-secondary" onClick={() => onNavigateToBadge('2.6')}>Требования значка 2.6</button> : null}</div></div> : null}
+        {isExpanded ? <div className="fade-in" style={{ display: 'grid', gap: 20 }}>{diaryCard}{daySwitcher}{diaryTab}{reflectionTab}{scheduleTab}<div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}><button type="button" className="cab-btn-accent" onClick={saveDiary} style={{ padding: '12px 32px' }}>Сохранить</button>{onNavigateToBadge ? <button type="button" className="cab-btn-glass" onClick={() => onNavigateToBadge('2.6')} style={{ padding: '12px 24px', minWidth: 'unset' }}>Требования значка 2.6</button> : null}</div></div> : null}
         {floatingToast}
       </div>
     );
@@ -864,26 +1074,58 @@ export const RealDiaryDashboard: React.FC<RealDiaryDashboardProps> = ({ variant 
 
   const photosTab = (
     <div className={sectionClass}>
-      <div className="real-diary-schedule-columns">
-        {DIARY_PHOTO_SLOTS.map(({ key, label, description }) => (
-          <article key={key} className="real-diary-schedule-card">
-            <h4 className="real-diary-schedule-card__title">{label}</h4>
-            <p style={{ margin: 0, fontSize: 12, opacity: 0.7, textAlign: 'center' }}>{description}</p>
-            <ImageSourceBlock
-              className="squad-corner-image-source-block"
-              context="diary_photo"
-              value={diaryPhotos[key] || null}
-              onChange={(url) => updateDiaryPhotos({ [key]: url || undefined })}
-              aspect="square"
-              labels={{ placeholder: label }}
-            />
-          </article>
-        ))}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 20 }}>
+        {DIARY_PHOTO_SLOTS.map(({ key, label, description }) => {
+          const photoUrl = diaryPhotos[key];
+          return (
+            <article key={key} className="cab-card fade-in" style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
+              {/* Image Preview Block - Premium 4:3 Aspect Ratio */}
+              <div style={{
+                width: '100%',
+                aspectRatio: '4 / 3',
+                borderRadius: 12,
+                overflow: 'hidden',
+                background: 'rgba(0,0,0,0.2)',
+                border: '1px dashed rgba(255,255,255,0.15)',
+                position: 'relative',
+                display: 'flex', alignItems: 'center', justifyContent: 'center'
+              }}>
+                {photoUrl ? (
+                  <img src={photoUrl} alt={label} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, opacity: 0.35 }}>
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M4 16L8.586 11.414C8.96106 11.0391 9.46967 10.8284 10 10.8284C10.5303 10.8284 11.0389 11.0391 11.414 11.414L16 16M14 14L15.586 12.414C15.9611 12.0391 16.4697 11.8284 17 11.8284C17.5303 11.8284 18.0389 12.0391 18.414 12.414L20 14M14 8H14.01M6 20H18C18.5304 20 19.0391 19.7893 19.4142 19.4142C19.7893 19.0391 20 18.5304 20 18V6C20 5.46957 19.7893 4.96086 19.4142 4.58579C19.0391 4.21071 18.5304 4 18 4H6C5.46957 4 4.96086 4.21071 4.58579 4.58579C4.21071 4.96086 4 5.46957 4 6V18C4 18.5304 4.21071 19.0391 4.58579 19.4142C4.96086 19.7893 5.46957 20 6 20Z"/></svg>
+                    <span style={{ fontSize: 13, fontWeight: 500, letterSpacing: '0.02em', textTransform: 'uppercase' }}>{label}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Title & Description */}
+              <div style={{ flex: 1 }}>
+                <h4 style={{ margin: 0, fontSize: 17, fontWeight: 600, color: '#fff', letterSpacing: '0.01em' }}>{label}</h4>
+                <p style={{ margin: '6px 0 0 0', fontSize: 13, color: 'rgba(255,255,255,0.6)', lineHeight: 1.45 }}>{description}</p>
+              </div>
+
+              {/* Upload Button */}
+              <div style={{ marginTop: 'auto' }}>
+                <ImageSourceBlock
+                  className="squad-corner-image-source-block"
+                  context="diary_photo"
+                  value={photoUrl || null}
+                  onChange={(url) => updateDiaryPhotos({ [key]: url || undefined })}
+                  hidePreview={true}
+                  buttonLayout="column"
+                  labels={{ placeholder: label, upload: 'Добавить фото', uploadReplace: 'Изменить фото' }}
+                />
+              </div>
+            </article>
+          );
+        })}
       </div>
     </div>
   );
 
   const tabContent = activeTab === 'diary' ? diaryTab : activeTab === 'reflection' ? reflectionTab : activeTab === 'schedule' ? scheduleTab : activeTab === 'photos' ? photosTab : diaryCard;
   const wrappedTab = <div key={activeTab}>{tabContent}</div>;
-  return <div className="real-diary-cabin-content" style={{ display: 'grid', gap: 16 }}>{summary}{isShiftScheduleTab ? null : daySwitcher}{wrappedTab}{floatingToast}</div>;
+  return <div className="real-diary-cabin-content" style={{ display: 'grid', gap: 16, paddingBottom: 120 }}>{summary}{isShiftScheduleTab ? null : daySwitcher}{wrappedTab}{floatingToast}</div>;
 };
