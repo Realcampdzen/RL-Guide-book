@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ROLE_LABELS } from '../types/authRole';
 import { NAV_HOME_IMAGE } from '../utils/imageSources';
 import type { UserRole } from '../types/authRole';
@@ -10,6 +10,7 @@ import type { UserRole } from '../types/authRole';
 export type RoleFlowResult =
     | { type: 'code-redeemed'; role: UserRole; accessToken: string }
     | { type: 'request-sent'; role: UserRole }
+    | { type: 'request-approved'; role: UserRole; accessToken: string }
     | { type: 'developer-oauth' }
     | { type: 'dev-pin-ok' }
     | { type: 'cancelled' };
@@ -52,6 +53,11 @@ function getApiBase(): string {
 // Component
 // ---------------------------------------------------------------------------
 
+interface SubmittedRequest {
+    id: string;
+    desiredRole: string;
+}
+
 export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({ onResult, deviceId }) => {
     const [step, setStep] = useState<Step>('select');
     const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
@@ -68,10 +74,35 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({ onResult
     const [reqBusy, setReqBusy] = useState(false);
     const [reqDone, setReqDone] = useState(false);
     const [reqError, setReqError] = useState<string | null>(null);
+    const [submittedReq, setSubmittedReq] = useState<SubmittedRequest | null>(null);
 
     // Dev PIN state
     const [devPin, setDevPin] = useState('');
     const [devPinError, setDevPinError] = useState<string | null>(null);
+
+    // Poll for approval after request submitted
+    const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+    useEffect(() => {
+        if (step !== 'done' || !submittedReq || !deviceId) return;
+        const base = getApiBase();
+        const check = async () => {
+            try {
+                const res = await fetch(`${base}/api/role-requests?deviceId=${encodeURIComponent(deviceId)}`);
+                if (!res.ok) return;
+                const data = await res.json() as { requests?: Array<{ id: string; status: string; desiredRole: string }> };
+                const req = (data.requests || []).find(r => r.id === submittedReq.id);
+                if (req?.status === 'approved') {
+                    if (pollRef.current) clearInterval(pollRef.current);
+                    onResult({ type: 'request-approved', role: req.desiredRole as UserRole, accessToken: '' });
+                }
+            } catch { /* retry next poll */ }
+        };
+        void check();
+        pollRef.current = setInterval(() => { void check(); }, 10_000);
+        return () => { if (pollRef.current) clearInterval(pollRef.current); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [step, submittedReq?.id, deviceId]);
+
 
     const handleSelectRole = useCallback((roleId: UserRole) => {
         try { localStorage.setItem(LS_KEY, roleId); } catch { /* */ }
@@ -133,6 +164,8 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({ onResult
                 setReqError(typeof data.error === 'string' ? data.error : 'Ошибка отправки');
                 return;
             }
+            const rr = (data.roleRequest || {}) as { id?: string; desiredRole?: string };
+            setSubmittedReq(rr.id ? { id: rr.id, desiredRole: rr.desiredRole || selectedRole || '' } : null);
             setReqDone(true);
             setStep('done');
         } catch {
@@ -421,9 +454,20 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({ onResult
                         <div style={{ textAlign: 'center', padding: '10px 0' }}>
                             <div style={{ fontSize: 40, marginBottom: 10 }}>✅</div>
                             <div style={{ fontSize: 16, fontWeight: 700, color: '#22c55e', marginBottom: 6 }}>Заявка отправлена!</div>
-                            <div style={{ fontSize: 13, opacity: 0.6, lineHeight: 1.5 }}>
+                            <div style={{ fontSize: 13, opacity: 0.6, lineHeight: 1.5, marginBottom: 16 }}>
                                 Ожидайте подтверждения. Вы получите<br />роль <b style={{ color: '#f59e0b' }}>{roleLabel}</b> после одобрения.
                             </div>
+                            {/* Polling indicator */}
+                            {submittedReq && (
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontSize: 12, color: 'rgba(255,255,255,0.4)' }}>
+                                    <span style={{
+                                        width: 8, height: 8, borderRadius: '50%',
+                                        background: '#22c55e',
+                                        animation: 'pulse 1.5s ease-in-out infinite',
+                                    }} />
+                                    Страница автоматически обновится при одобрении
+                                </div>
+                            )}
                         </div>
                         <button type="button" onClick={() => onResult({ type: 'request-sent', role: selectedRole! })}
                             style={{
@@ -431,7 +475,7 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({ onResult
                                 background: 'rgba(255,255,255,0.08)', color: '#fff',
                                 fontSize: 14, fontWeight: 600, cursor: 'pointer',
                             }}>
-                            Закрыть
+                            Закрыть (войти позже)
                         </button>
                     </>
                 )}

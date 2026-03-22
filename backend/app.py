@@ -6415,20 +6415,31 @@ def api_vozh_guiding_lights():
 
 @app.route('/api/role-requests', methods=['POST'])
 def api_role_request_create():
-    """POST — create a role request."""
-    claims = _require_jwt()
-    if isinstance(claims, tuple):
-        return claims
+    """POST — create a role request. No auth required — anyone can submit."""
     body = request.get_json(silent=True) or {}
     desired_role = (body.get("desiredRole") or "").strip()
     if not desired_role:
         return jsonify({"error": "desiredRole required"}), 400
+    # deviceId from body (sent by unauthenticated users from modal)
+    device_id = (body.get("deviceId") or "").strip()
+    if not device_id:
+        # Try JWT as fallback (if already authenticated)
+        auth_header = (request.headers.get("Authorization") or "").strip()
+        if auth_header.startswith("Bearer ") and AUTH_JWT_SECRET:
+            try:
+                claims = jwt.decode(auth_header[7:], AUTH_JWT_SECRET, algorithms=["HS256"])
+                device_id = (claims.get("deviceId") or claims.get("sub") or "").strip()
+            except Exception:
+                pass
+    if not device_id:
+        return jsonify({"error": "deviceId required"}), 400
     store = get_store("role_requests")
     data = store.load()
     items = data.get("items", [])
     new_item = {
         "id": str(uuid.uuid4()),
-        "deviceId": claims.get("sub", ""),
+        "deviceId": device_id,
+        "name": (body.get("name") or "").strip()[:100],
         "desiredRole": desired_role,
         "comment": (body.get("comment") or "").strip()[:300],
         "status": "pending",
@@ -6449,7 +6460,14 @@ def api_role_request_list():
     items = data.get("items", [])
     if device_id:
         items = [i for i in items if i.get("deviceId") == device_id]
-    return jsonify({"requests": items})
+    # For approved requests: include a fresh accessToken so client can auto-login
+    result = []
+    for item in items:
+        row = dict(item)
+        if row.get("status") == "approved" and AUTH_JWT_SECRET:
+            row["accessToken"] = _issue_role_jwt(row.get("desiredRole", "participant"), row.get("deviceId", ""))
+        result.append(row)
+    return jsonify({"requests": result})
 
 
 # ── 4К навыки — маппинг и расчёт (M13-4K-ENGINE-C) ───────────────────
@@ -7632,7 +7650,16 @@ def admin_action():
         if comment:
             target["resolutionNote"] = comment[:2000]
         _save_role_requests(rr_list)
-        return jsonify({"ok": True, "item_type": item_type, "item_id": item_id, "action": action})
+        resp: dict = {"ok": True, "item_type": item_type, "item_id": item_id, "action": action}
+        # On approve: generate a JWT token so admin can share it with the user
+        if action == "approve" and AUTH_JWT_SECRET:
+            approved_role = target.get("desiredRole", "participant")
+            approved_device = target.get("deviceId", "")
+            resp["accessToken"] = _issue_role_jwt(approved_role, approved_device)
+            resp["approvedRole"] = approved_role
+            resp["approvedDeviceId"] = approved_device
+        return jsonify(resp)
+
 
     elif item_type == "bro_submission":
         # Route to existing BRO submission review logic
@@ -7902,7 +7929,14 @@ def role_requests_list():
         rr for rr in all_requests
         if isinstance(rr, dict) and rr.get("deviceId") == device_id
     ]
-    return jsonify({"requests": user_requests})
+    # For approved requests: generate fresh JWT so client can auto-login
+    result = []
+    for rr in user_requests:
+        row = dict(rr)
+        if row.get("status") == "approved" and AUTH_JWT_SECRET:
+            row["accessToken"] = _issue_role_jwt(row.get("desiredRole", "participant"), device_id)
+        result.append(row)
+    return jsonify({"requests": result})
 
 
 @app.route('/api/auth/resolve', methods=['POST'])

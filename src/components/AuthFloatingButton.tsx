@@ -187,7 +187,14 @@ export const AuthFloatingButton: React.FC = () => {
                 break;
 
             case 'request-sent':
-                // User stays as traveler, modal closes
+                // User stays as traveler, modal stays open (polling for approval)
+                // Don't close modal — we want to show the "waiting" screen
+                break;
+
+            case 'request-approved':
+                // Admin approved the request — auto-login with the approved role
+                setRole(result.role);
+                auth.setAuth({ role: result.role as UserRole, accessToken: result.accessToken || undefined });
                 setActiveModal('none');
                 break;
 
@@ -211,6 +218,7 @@ export const AuthFloatingButton: React.FC = () => {
                 break;
         }
     }, [auth]);
+
 
     const handleSignOut = useCallback(async () => {
         await supabase.auth.signOut();
