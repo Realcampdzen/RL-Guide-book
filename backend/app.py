@@ -7943,14 +7943,16 @@ def role_requests_list():
 def auth_resolve():
     """
     POST /api/auth/resolve — determine role by email (OAuth login).
-    Body: { "email": "...", "supabaseToken": "..." }
+    Body: { "email": "...", "supabaseToken": "...", "deviceId": "...", "desiredRole": "..." }
     - If email in DEV_EMAILS -> developer
-    - If approved role_request for email -> that role
-    - Otherwise -> traveler
+    - If approved role_request for email/deviceId -> that role
+    - If desiredRole given -> create pending request + return pending
+    - Otherwise -> participant
     """
     body = request.get_json() or {}
     email = (body.get("email") or "").strip().lower()
     device_id = (body.get("deviceId") or "").strip() or uuid.uuid4().hex[:16]
+    desired_role = _normalize_role((body.get("desiredRole") or "").strip())
 
     if not email:
         return jsonify({"error": "email is required"}), 400
@@ -7967,17 +7969,55 @@ def auth_resolve():
             continue
         if rr.get("status") != "approved":
             continue
-        # Match by email or deviceId
         rr_email = (rr.get("email") or "").strip().lower()
         rr_device = (rr.get("deviceId") or "").strip()
         if (rr_email and rr_email == email) or (rr_device and rr_device == device_id):
-            role = rr.get("desiredRole", "traveler")
+            role = rr.get("desiredRole", "participant")
             token = _issue_role_jwt(role, device_id, email=email)
             return jsonify({"role": role, "accessToken": token})
 
-    # 3) Default: traveler (no JWT needed for traveler, but issue one for consistency)
-    token = _issue_role_jwt("traveler", device_id, email=email)
-    return jsonify({"role": "traveler", "accessToken": token})
+    # 3) If desiredRole given: create/update pending request so admin can approve
+    if desired_role and desired_role not in ("traveler", ""):
+        # Check if there's already a pending request for this email/device
+        existing = None
+        for rr in all_rr:
+            if not isinstance(rr, dict) or rr.get("status") != "pending":
+                continue
+            rr_email = (rr.get("email") or "").strip().lower()
+            rr_device = (rr.get("deviceId") or "").strip()
+            if (rr_email and rr_email == email) or (rr_device and rr_device == device_id):
+                existing = rr
+                break
+
+        if not existing:
+            new_rr = {
+                "id": f"rr-{uuid.uuid4().hex[:12]}",
+                "deviceId": device_id,
+                "email": email,
+                "desiredRole": desired_role,
+                "name": email.split("@")[0],  # Use email prefix as name
+                "comment": "Запрос через OAuth",
+                "status": "pending",
+                "createdAt": datetime.now(timezone.utc).isoformat(),
+            }
+            all_rr.append(new_rr)
+            _save_role_requests(all_rr)
+        else:
+            # Update email in existing request if not set
+            if not existing.get("email"):
+                existing["email"] = email
+                _save_role_requests(all_rr)
+
+        return jsonify({
+            "role": "pending",
+            "message": "Заявка создана. Ожидайте одобрения администратором.",
+            "desiredRole": desired_role,
+        })
+
+    # 4) Default: participant (issue JWT)
+    token = _issue_role_jwt("participant", device_id, email=email)
+    return jsonify({"role": "participant", "accessToken": token})
+
 
 
 # Для Vercel

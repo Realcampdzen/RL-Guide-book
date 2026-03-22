@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { supabase } from '../utils/supabaseClient';
 import { LoginModal } from './LoginModal';
-import { RoleSelectionModal } from './RoleSelectionModal';
+import { RoleSelectionModal, getPendingOAuthRole, clearPendingOAuthRole } from './RoleSelectionModal';
 import type { RoleFlowResult } from './RoleSelectionModal';
 import type { Session } from '@supabase/supabase-js';
 import { useAuth } from '../context/AuthContext';
@@ -63,6 +63,7 @@ export const AuthFloatingButton: React.FC = () => {
     const [activeModal, setActiveModal] = useState<ActiveModal>('none');
     const [showMenu, setShowMenu] = useState(false);
     const [loading, setLoading] = useState(true);
+    const [pendingToast, setPendingToast] = useState<string | null>(null);
 
     // Hide when PersonalCabinet is open (sets data-cabinet-open on body)
     const [cabinetOpen, setCabinetOpen] = useState(() =>
@@ -96,21 +97,31 @@ export const AuthFloatingButton: React.FC = () => {
             console.log('[AUTH] getSession result:', s ? `email=${s.user?.email}, has_token=${!!s.access_token}` : 'null');
             console.log('[AUTH] isPendingDevOAuth:', isPendingDevOAuth());
             setSession(s);
-            if (s?.access_token && isPendingDevOAuth()) {
-                // Developer OAuth callback after page reload
-                console.log('[AUTH] ✅ Pending dev OAuth detected! Calling resolveDevOAuth...');
-                setPendingDevOAuth(false);
-                void resolveDevOAuth(s);
+            if (s?.access_token) {
+                const pendingRole = getPendingOAuthRole();
+                if (pendingRole || isPendingDevOAuth()) {
+                    if (isPendingDevOAuth()) {
+                        console.log('[AUTH] ✅ Pending dev OAuth detected! Calling resolveDevOAuth...');
+                        setPendingDevOAuth(false);
+                        void resolveDevOAuth(s);
+                    } else {
+                        // Regular role OAuth
+                        void resolveAllRolesOAuth(s);
+                    }
+                }
             }
             setLoading(false);
         });
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, s) => {
             console.log('[AUTH] onAuthStateChange:', _event, s ? `email=${s.user?.email}` : 'null');
-            console.log('[AUTH] isPendingDevOAuth:', isPendingDevOAuth());
             setSession(s);
             if (s?.access_token) {
-                if (isPendingDevOAuth()) {
+                const pendingRole = getPendingOAuthRole();
+                if (pendingRole) {
+                    // Regular role OAuth callback
+                    void resolveAllRolesOAuth(s);
+                } else if (isPendingDevOAuth()) {
                     // Developer OAuth callback
                     console.log('[AUTH] ✅ onAuthStateChange: Pending dev OAuth! Resolving...');
                     setPendingDevOAuth(false);
@@ -127,6 +138,39 @@ export const AuthFloatingButton: React.FC = () => {
     }, []);
 
 
+
+    // ── B-4b: Resolve OAuth for ALL roles ──
+    const resolveAllRolesOAuth = useCallback(async (s: Session) => {
+        const email = s.user?.email;
+        if (!email) return false;
+        const desiredRole = getPendingOAuthRole();
+        clearPendingOAuthRole();
+        const base = getApiBase();
+        try {
+            const res = await fetch(`${base}/api/auth/resolve`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, deviceId, desiredRole: desiredRole || undefined }),
+            });
+            const data = await res.json().catch(() => ({})) as Record<string, unknown>;
+            if (!res.ok) return false;
+            const resolvedRole = data.role as string;
+            if (resolvedRole === 'pending') {
+                const label = desiredRole || 'роль';
+                setPendingToast(`Заявка отправлена! Ожидайте одобрения для роли «${label}»`);
+                setTimeout(() => setPendingToast(null), 6000);
+                setActiveModal('none');
+                return true;
+            }
+            if (resolvedRole && resolvedRole !== 'traveler') {
+                setRole(resolvedRole);
+                auth.setAuth({ role: resolvedRole as UserRole, accessToken: data.accessToken as string || undefined });
+                setActiveModal('none');
+                return true;
+            }
+        } catch { /* ignore */ }
+        return false;
+    }, [auth, deviceId]);
 
     // ── B-4: Resolve OAuth for developer ──
     const resolveDevOAuth = async (s: Session) => {
@@ -189,6 +233,11 @@ export const AuthFloatingButton: React.FC = () => {
             case 'request-sent':
                 // User stays as traveler, modal stays open (polling for approval)
                 // Don't close modal — we want to show the "waiting" screen
+                break;
+
+            case 'oauth-started':
+                // OAuth redirect started — close modal, redirect handles the rest
+                setActiveModal('none');
                 break;
 
             case 'request-approved':
@@ -388,6 +437,25 @@ export const AuthFloatingButton: React.FC = () => {
                     {oauthError}
                     <button type="button" onClick={() => setOauthError(null)}
                         style={{ marginLeft: 8, background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)', cursor: 'pointer', fontSize: 10 }}>
+                        ✕
+                    </button>
+                </div>
+            )}
+
+            {/* Pending role toast (shown after OAuth creates a pending request) */}
+            {pendingToast && (
+                <div style={{
+                    position: 'fixed', bottom: 70, left: 16, zIndex: 10000,
+                    padding: '10px 16px', borderRadius: 10,
+                    background: 'rgba(15,12,41,0.95)', border: '1px solid rgba(245,158,11,0.4)',
+                    color: '#f59e0b', fontSize: 12, maxWidth: 300,
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+                    display: 'flex', alignItems: 'center', gap: 8,
+                }}>
+                    <span>✉️</span>
+                    <span>{pendingToast}</span>
+                    <button type="button" onClick={() => setPendingToast(null)}
+                        style={{ marginLeft: 'auto', background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)', cursor: 'pointer', fontSize: 10 }}>
                         ✕
                     </button>
                 </div>
