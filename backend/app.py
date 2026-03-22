@@ -7750,12 +7750,41 @@ def _save_role_codes(data: dict):
             json.dump(data, f, ensure_ascii=False, indent=2)
 
 
+_RR_TMP_FILE = "/tmp/role_requests.json"
+
+
 def _load_role_requests() -> list:
-    return get_store('role_requests').load()
+    """Load role requests: Supabase first, /tmp fallback."""
+    try:
+        result = get_store('role_requests').load()
+        if isinstance(result, list):
+            return result
+    except Exception:
+        pass
+    # fallback: /tmp
+    try:
+        if os.path.exists(_RR_TMP_FILE):
+            with open(_RR_TMP_FILE, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            if isinstance(data, list):
+                return data
+    except Exception:
+        pass
+    return []
 
 
 def _save_role_requests(data: list):
-    get_store('role_requests').save(data)
+    """Save role requests: Supabase + /tmp fallback."""
+    try:
+        get_store('role_requests').save(data)
+    except Exception:
+        pass
+    # Always also write to /tmp as local cache / fallback
+    try:
+        with open(_RR_TMP_FILE, 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False)
+    except Exception:
+        pass
 
 
 @app.route('/api/role-codes/generate', methods=['POST'])

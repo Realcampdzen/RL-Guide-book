@@ -1250,15 +1250,18 @@ class SupabaseRoleRequestsStore(RoleRequestsStore):
     """
 
     def load(self) -> list:
-        sb = _client()
         try:
+            sb = _client()
             rows = sb.table("role_requests").select("*").order("created_at", desc=False).execute().data or []
+            return [self._row_to_rr(r) for r in rows]
         except Exception:
             return []
-        return [self._row_to_rr(r) for r in rows]
 
     def save(self, data: list) -> None:
-        sb = _client()
+        try:
+            sb = _client()
+        except Exception:
+            return
         for rr in (data or []):
             if not isinstance(rr, dict):
                 continue
