@@ -403,7 +403,7 @@ export const ProfileView: React.FC<any> = (props) => {
     if (typeof window === 'undefined') return '';
     const hostname = window.location.hostname;
     const useLocal = import.meta.env.DEV || hostname === 'localhost' || hostname === '127.0.0.1';
-    return useLocal ? '' : (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
+    return useLocal ? '' : ((import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || '')).replace(/\/$/, '');
   }, []);
   const canUseOrganizerApiForRead = canReadShiftsAndSquads && (Boolean(accessToken) || (organizerApiBase === '' && role === 'developer'));
   const canUseOrganizerApiForManage = canManageShiftsAndSquads && (Boolean(accessToken) || (organizerApiBase === '' && role === 'developer'));
@@ -1488,7 +1488,7 @@ export const ProfileView: React.FC<any> = (props) => {
     if (!code?.trim()) return;
     const hostname = typeof window !== 'undefined' ? window.location.hostname : '';
     const useLocalApi = import.meta.env.DEV || hostname === 'localhost' || hostname === '127.0.0.1';
-    const apiUrl = useLocalApi ? '/api/parent-snapshot' : `${(import.meta.env.VITE_API_URL || '').replace(/\/$/, '')}/api/parent-snapshot`;
+    const apiUrl = useLocalApi ? '/api/parent-snapshot' : `${((import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || '')).replace(/\/$/, '')}/api/parent-snapshot`;
     fetch(`${apiUrl}?code=${encodeURIComponent(code.trim())}`)
       .then(res => {
         if (!res.ok) {
@@ -1542,7 +1542,7 @@ export const ProfileView: React.FC<any> = (props) => {
     if (role !== 'parent' || !parentSnapshotCode) return;
     const hostname = typeof window !== 'undefined' ? window.location.hostname : '';
     const useLocalApi = import.meta.env.DEV || hostname === 'localhost' || hostname === '127.0.0.1';
-    const apiUrl = useLocalApi ? '/api/parent-insights' : `${(import.meta.env.VITE_API_URL || '').replace(/\/$/, '')}/api/parent-insights`;
+    const apiUrl = useLocalApi ? '/api/parent-insights' : `${((import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || '')).replace(/\/$/, '')}/api/parent-insights`;
     let cancelled = false;
     setParentInsightsLoading(true);
     fetch(`${apiUrl}?code=${encodeURIComponent(parentSnapshotCode)}`)
@@ -6365,7 +6365,7 @@ export const ProfileView: React.FC<any> = (props) => {
                     if (!payload) return;
                     const hostname = typeof window !== 'undefined' ? window.location.hostname : '';
                     const useLocalApi = import.meta.env.DEV || hostname === 'localhost' || hostname === '127.0.0.1';
-                    const apiUrl = useLocalApi ? '/api/parent-snapshot' : `${(import.meta.env.VITE_API_URL || '').replace(/\/$/, '')}/api/parent-snapshot`;
+                    const apiUrl = useLocalApi ? '/api/parent-snapshot' : `${((import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || '')).replace(/\/$/, '')}/api/parent-snapshot`;
                     setParentCodeBusy(true);
                     setParentCodeResult(null);
                     try {
@@ -7122,7 +7122,7 @@ export const ProfileView: React.FC<any> = (props) => {
                     if (!code) return;
                     const hostname = typeof window !== 'undefined' ? window.location.hostname : '';
                     const useLocalApi = import.meta.env.DEV || hostname === 'localhost' || hostname === '127.0.0.1';
-                    const apiUrl = useLocalApi ? '/api/parent-snapshot' : `${(import.meta.env.VITE_API_URL || '').replace(/\/$/, '')}/api/parent-snapshot`;
+                    const apiUrl = useLocalApi ? '/api/parent-snapshot' : `${((import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || '')).replace(/\/$/, '')}/api/parent-snapshot`;
                     try {
                       const res = await fetch(`${apiUrl}?code=${encodeURIComponent(code)}`);
                       const data = await res.json().catch(() => ({}));

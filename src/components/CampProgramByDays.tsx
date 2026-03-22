@@ -10,7 +10,7 @@ const getApiBase = () => {
   if (typeof window === 'undefined') return '';
   const h = window.location.hostname;
   return (import.meta.env.DEV || h === 'localhost' || h === '127.0.0.1')
-    ? '' : (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
+    ? '' : ((import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || '')).replace(/\/$/, '');
 };
 
 export interface Skill4kDetail { skill: string; via: string[]; }
