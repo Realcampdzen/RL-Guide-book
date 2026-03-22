@@ -248,12 +248,31 @@ export const AuthFloatingButton: React.FC = () => {
                 break;
 
             case 'dev-pin-ok':
-                // Developer authenticated via PIN
-                console.log('[AUTH] ✅ Dev PIN ok! Setting role to developer');
+                // Developer authenticated via PIN — exchange PIN for JWT token
+                console.log('[AUTH] ✅ Dev PIN ok! Getting JWT from backend...');
                 setRole('developer');
                 auth.setAuth({ role: 'developer' as UserRole });
                 setActiveModal('none');
+                // Async: exchange PIN for JWT (non-blocking, updates token when received)
+                void (async () => {
+                    try {
+                        const pin = (import.meta.env.VITE_DEV_PIN as string) || '';
+                        if (!pin) return;
+                        const base = getApiBase();
+                        const res = await fetch(`${base}/api/auth/dev-pin`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ pin, deviceId }),
+                        });
+                        const data = await res.json().catch(() => ({})) as Record<string, unknown>;
+                        if (res.ok && data.accessToken) {
+                            auth.setAuth({ role: 'developer' as UserRole, accessToken: data.accessToken as string });
+                            console.log('[AUTH] ✅ Developer JWT obtained via PIN exchange');
+                        }
+                    } catch { /* ignore, developer is still set */ }
+                })();
                 break;
+
 
             case 'developer-oauth':
                 // Legacy OAuth flow (kept for compatibility)

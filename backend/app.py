@@ -6413,7 +6413,7 @@ def api_vozh_guiding_lights():
 
 # ── Запрос роли (M18-ROLE-REQUEST-C) ─────────────────────────────────
 
-@app.route('/api/role-requests', methods=['POST'])
+@app.route('/api/role-requests-v1', methods=['POST'])  # Legacy - superseded by role_requests_create
 def api_role_request_create():
     """POST — create a role request. No auth required — anyone can submit."""
     body = request.get_json(silent=True) or {}
@@ -6451,7 +6451,7 @@ def api_role_request_create():
     return jsonify({"roleRequest": new_item}), 201
 
 
-@app.route('/api/role-requests', methods=['GET'])
+@app.route('/api/role-requests-v1', methods=['GET'])  # Legacy - superseded by role_requests_list
 def api_role_request_list():
     """GET — list role requests, optional ?deviceId= filter."""
     device_id = request.args.get("deviceId", "")
@@ -8017,6 +8017,35 @@ def auth_resolve():
     # 4) Default: participant (issue JWT)
     token = _issue_role_jwt("participant", device_id, email=email)
     return jsonify({"role": "participant", "accessToken": token})
+
+
+@app.route('/api/auth/dev-pin', methods=['POST'])
+def auth_dev_pin():
+    """
+    POST /api/auth/dev-pin — exchange a developer PIN for a JWT token.
+    Body: { "pin": "1234", "deviceId": "..." }
+    Returns JWT with developer role if PIN matches DEV_PIN env var.
+    """
+    body = request.get_json() or {}
+    pin = (body.get("pin") or "").strip()
+    device_id = (body.get("deviceId") or "").strip() or uuid.uuid4().hex[:16]
+
+    if not pin:
+        return jsonify({"error": "pin is required"}), 400
+
+    dev_pin_env = os.getenv("DEV_PIN", "").strip()
+    if not dev_pin_env:
+        # Fallback: if DEV_PIN not configured, allow if AUTH_JWT_SECRET exists
+        if not AUTH_JWT_SECRET:
+            return jsonify({"error": "DEV_PIN not configured"}), 503
+        # Allow empty PIN check to be lenient in dev environments
+        return jsonify({"error": "DEV_PIN not configured"}), 503
+
+    if pin != dev_pin_env:
+        return jsonify({"error": "Invalid PIN"}), 401
+
+    token = _issue_role_jwt("developer", device_id)
+    return jsonify({"role": "developer", "accessToken": token})
 
 
 
