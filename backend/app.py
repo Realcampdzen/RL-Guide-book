@@ -113,7 +113,10 @@ LEVEL_ID_RE = re.compile(r'^\d+\.\d+(?:\.\d+)?$')
 # ---------------------------------------------------------------------------
 ROLE_CODES_FILE = os.path.join(os.path.dirname(__file__), "data", "role_codes.json")
 _ROLE_CODES_LOCK = threading.Lock()
-ROLE_REQUESTS_FILE = os.path.join(os.path.dirname(__file__), "data", "role_requests.json")
+_ROLE_REQUESTS_DATA_FILE = os.path.join(os.path.dirname(__file__), "data", "role_requests.json")
+# On Vercel serverless, /backend/data/ is read-only. Use /tmp for writes.
+_IS_VERCEL = bool(os.getenv("VERCEL") or os.getenv("VERCEL_ENV"))
+ROLE_REQUESTS_FILE = "/tmp/role_requests.json" if _IS_VERCEL else _ROLE_REQUESTS_DATA_FILE
 _ROLE_REQUESTS_LOCK = threading.Lock()
 
 ROLE_PREFIX_MAP = {
@@ -7754,6 +7757,13 @@ def _save_role_codes(data: dict):
 
 def _load_role_requests() -> list:
     with _ROLE_REQUESTS_LOCK:
+        # On Vercel: seed /tmp from committed data file if not yet written
+        if _IS_VERCEL and not os.path.exists(ROLE_REQUESTS_FILE) and os.path.exists(_ROLE_REQUESTS_DATA_FILE):
+            try:
+                import shutil
+                shutil.copy2(_ROLE_REQUESTS_DATA_FILE, ROLE_REQUESTS_FILE)
+            except Exception:
+                pass
         if os.path.exists(ROLE_REQUESTS_FILE):
             with open(ROLE_REQUESTS_FILE, 'r', encoding='utf-8') as f:
                 data = json.load(f)
