@@ -26,6 +26,7 @@ from .base import (
     ParentSuggestionsStore,
     UsersStore,
     WorkshopProposalsStore,
+    RoleRequestsStore,
 )
 
 _sb_client = None
@@ -1240,6 +1241,64 @@ class SupabaseWorkshopProposalsStore(WorkshopProposalsStore):
 
 
 # ---------------------------------------------------------------------------
+# RoleRequestsStore — таблица role_requests (M19-ROLE-REQUESTS)
+# ---------------------------------------------------------------------------
+
+class SupabaseRoleRequestsStore(RoleRequestsStore):
+    """
+    Формат load(): list of {id, deviceId, desiredRole, name, comment, status, createdAt, email?, accessToken?}
+    """
+
+    def load(self) -> list:
+        sb = _client()
+        try:
+            rows = sb.table("role_requests").select("*").order("created_at", desc=False).execute().data or []
+        except Exception:
+            return []
+        return [self._row_to_rr(r) for r in rows]
+
+    def save(self, data: list) -> None:
+        sb = _client()
+        for rr in (data or []):
+            if not isinstance(rr, dict):
+                continue
+            try:
+                sb.table("role_requests").upsert(self._rr_to_row(rr)).execute()
+            except Exception:
+                pass
+
+    @staticmethod
+    def _row_to_rr(r: dict) -> dict:
+        return {
+            "id": r.get("id", ""),
+            "deviceId": r.get("device_id", ""),
+            "desiredRole": r.get("desired_role", ""),
+            "name": r.get("name") or "",
+            "comment": r.get("comment") or "",
+            "status": r.get("status", "pending"),
+            "createdAt": _ts(r.get("created_at")),
+            "email": r.get("email") or None,
+            "accessToken": r.get("access_token") or None,
+        }
+
+    @staticmethod
+    def _rr_to_row(rr: dict) -> dict:
+        row = {
+            "id": rr.get("id") or uuid.uuid4().hex[:16],
+            "device_id": rr.get("deviceId", ""),
+            "desired_role": rr.get("desiredRole", ""),
+            "name": rr.get("name") or "",
+            "comment": rr.get("comment") or "",
+            "status": rr.get("status", "pending"),
+        }
+        if rr.get("email"):
+            row["email"] = rr["email"]
+        if rr.get("accessToken"):
+            row["access_token"] = rr["accessToken"]
+        return row
+
+
+# ---------------------------------------------------------------------------
 # Реестр экземпляров
 # ---------------------------------------------------------------------------
 
@@ -1266,5 +1325,6 @@ SUPABASE_STORES = {
     "parent_suggestions": SupabaseParentSuggestionsStore(),
     "users":              SupabaseUsersStore(),
     "workshop_proposals": SupabaseWorkshopProposalsStore(),
+    "role_requests":      SupabaseRoleRequestsStore(),
 }
 

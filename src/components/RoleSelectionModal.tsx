@@ -137,10 +137,18 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({ onResult
         if (!selectedRole) return;
         try { localStorage.setItem(LS_OAUTH_ROLE, selectedRole); } catch { /* */ }
         try {
-            await supabase.auth.signInWithOAuth({
+            const { error } = await supabase.auth.signInWithOAuth({
                 provider: provider === 'yandex' ? ('yandex' as 'google') : provider === 'vk' ? ('vk' as 'google') : provider,
                 options: { redirectTo: window.location.origin + window.location.pathname },
             });
+            if (error) {
+                // OAuth failed — show error, don't close modal
+                try { localStorage.removeItem(LS_OAUTH_ROLE); } catch { /* */ }
+                console.error('OAuth error:', error.message);
+                alert(`Ошибка входа: ${error.message}`);
+                return;
+            }
+            // If successful, the browser redirects — onResult won't be called here
             onResult({ type: 'oauth-started' });
         } catch {
             try { localStorage.removeItem(LS_OAUTH_ROLE); } catch { /* */ }

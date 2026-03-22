@@ -7389,12 +7389,7 @@ def _collect_inbox_items(type_filter: str = ""):
 
     # 6) M19: Role requests — status == "pending"
     try:
-        with _ROLE_REQUESTS_LOCK:
-            if os.path.exists(ROLE_REQUESTS_FILE):
-                with open(ROLE_REQUESTS_FILE, 'r', encoding='utf-8') as f:
-                    rr_data = json.load(f)
-            else:
-                rr_data = []
+        rr_data = get_store('role_requests').load()
         if not isinstance(rr_data, list):
             rr_data = []
         pending_rr = []
@@ -7756,27 +7751,11 @@ def _save_role_codes(data: dict):
 
 
 def _load_role_requests() -> list:
-    with _ROLE_REQUESTS_LOCK:
-        # On Vercel: seed /tmp from committed data file if not yet written
-        if _IS_VERCEL and not os.path.exists(ROLE_REQUESTS_FILE) and os.path.exists(_ROLE_REQUESTS_DATA_FILE):
-            try:
-                import shutil
-                shutil.copy2(_ROLE_REQUESTS_DATA_FILE, ROLE_REQUESTS_FILE)
-            except Exception:
-                pass
-        if os.path.exists(ROLE_REQUESTS_FILE):
-            with open(ROLE_REQUESTS_FILE, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-            if isinstance(data, list):
-                return data
-        return []
+    return get_store('role_requests').load()
 
 
 def _save_role_requests(data: list):
-    with _ROLE_REQUESTS_LOCK:
-        os.makedirs(os.path.dirname(ROLE_REQUESTS_FILE), exist_ok=True)
-        with open(ROLE_REQUESTS_FILE, 'w', encoding='utf-8') as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
+    get_store('role_requests').save(data)
 
 
 @app.route('/api/role-codes/generate', methods=['POST'])
