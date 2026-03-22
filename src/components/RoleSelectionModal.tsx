@@ -133,18 +133,16 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({ onResult
         setStep('method');
     }, [onResult]);
 
-    const handleOAuth = useCallback(async (provider: 'google' | 'yandex') => {
+    const handleOAuth = useCallback(async (provider: 'google' | 'yandex' | 'vk') => {
         if (!selectedRole) return;
-        // Persist desired role so we can read it after OAuth redirect
         try { localStorage.setItem(LS_OAUTH_ROLE, selectedRole); } catch { /* */ }
         try {
             await supabase.auth.signInWithOAuth({
-                provider: provider === 'yandex' ? ('yandex' as 'google') : provider,
+                provider: provider === 'yandex' ? ('yandex' as 'google') : provider === 'vk' ? ('vk' as 'google') : provider,
                 options: { redirectTo: window.location.origin + window.location.pathname },
             });
             onResult({ type: 'oauth-started' });
         } catch {
-            // If OAuth fails, remove the stored role
             try { localStorage.removeItem(LS_OAUTH_ROLE); } catch { /* */ }
         }
     }, [selectedRole, onResult]);
@@ -555,6 +553,15 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({ onResult
                                 }}>
                                 <span style={{ fontSize: 16, fontWeight: 900 }}>Я</span>
                                 Подтвердить через Яндекс
+                            </button>
+                            <button type="button" onClick={() => void handleOAuth('vk')}
+                                style={{
+                                    width: '100%', padding: '13px 16px', borderRadius: 12, border: 'none',
+                                    background: '#0077ff', color: '#fff', fontSize: 14, fontWeight: 600,
+                                    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+                                }}>
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><path d="M12.785 16.241s.288-.032.436-.194c.136-.148.132-.427.132-.427s-.02-1.304.587-1.496c.596-.19 1.362 1.259 2.174 1.815.613.42 1.08.328 1.08.328l2.172-.03s1.136-.07.598-.964c-.044-.073-.314-.661-1.618-1.869-1.365-1.263-1.183-1.058.462-3.241.999-1.328 1.398-2.14 1.273-2.487-.12-.331-.86-.244-.86-.244l-2.443.015s-.181-.025-.316.056c-.133.079-.218.264-.218.264s-.392 1.044-.914 1.932c-1.103 1.876-1.544 1.976-1.724 1.86-.419-.27-.314-1.086-.314-1.665 0-1.81.274-2.564-.534-2.76-.268-.065-.466-.107-1.152-.115-.88-.009-1.624.003-2.046.209-.28.137-.496.443-.364.46.163.022.532.1.728.364.253.342.244 1.108.244 1.108s.145 2.13-.34 2.394c-.332.18-.789-.188-1.767-1.872-.502-.863-.88-1.816-.88-1.816s-.073-.179-.203-.275c-.158-.116-.378-.153-.378-.153l-2.322.015s-.349.01-.477.162c-.114.134-.009.413-.009.413s1.839 4.304 3.924 6.478c1.91 1.994 4.08 1.862 4.08 1.862h.983z" /></svg>
+                                Подтвердить через VK ID
                             </button>
                         </div>
                         {/* Skip link — for code flow, email is optional */}
