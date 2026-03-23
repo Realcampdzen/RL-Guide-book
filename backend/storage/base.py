@@ -341,3 +341,15 @@ class WorkshopProposalsStore(ABC):
 
     @abstractmethod
     def save(self, data: dict) -> None: ...
+
+
+class RoleRequestsStore(ABC):
+    """
+    Хранилище заявок на роль.
+    Формат: list of {id, deviceId, desiredRole, name, comment, status, createdAt, email?, accessToken?}
+    """
+    @abstractmethod
+    def load(self) -> list: ...
+
+    @abstractmethod
+    def save(self, data: list) -> None: ...
