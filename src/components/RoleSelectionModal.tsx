@@ -205,9 +205,8 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({ onResult
             }
             const role = (data.role as UserRole) || selectedRole;
             const accessToken = (data.accessToken as string) || '';
-            // Store result and proceed to OAuth identity confirmation
-            setPendingCodeResult({ role, accessToken });
-            setStep('oauth-verify');
+            // Code provides a valid JWT — apply immediately, no OAuth needed
+            onResult({ type: 'code-redeemed', role, accessToken });
         } catch {
             setCodeError('Ошибка сети. Попробуйте позже.');
         } finally {
