@@ -135,9 +135,7 @@ export const SquadCornerDashboard: React.FC<SquadCornerDashboardProps> = ({
     setLocalPlanGridB(s.planGridB ? { shiftLength: s.planGridB.shiftLength, days: { ...s.planGridB.days } } : defaultPlanGrid());
   }, [progress.squad]);
 
-  React.useEffect(() => {
-    if (variant === 'cabin' && onTabChange) onTabChange(activeTab);
-  }, [variant, activeTab, onTabChange]);
+
 
   const getPhoto = (k: typeof PHOTO_FIELDS[number]['key']) => (k === 'photoCorner' ? localPhotoCorner : k === 'photoFlag' ? localPhotoFlag : k === 'photoSquad' ? localPhotoSquad : localPhotoWithCounselors);
   const setPhoto = (k: typeof PHOTO_FIELDS[number]['key'], v: string) => {
