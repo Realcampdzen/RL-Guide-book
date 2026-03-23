@@ -617,7 +617,7 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({ onResult
                         </div>
                         <button type="button"
                             onClick={() => onResult({ type: 'request-sent', role: selectedRole! })}
-                            style={{ display: 'block', margin: '12px auto 0', background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', fontSize: 11, cursor: 'pointer' }}>
+                            style={{ display: 'block', margin: '16px auto 0', padding: '10px 24px', background: 'none', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, color: 'rgba(255,255,255,0.5)', fontSize: 12, cursor: 'pointer', position: 'relative', zIndex: 10 }}>
                             Закрыть (войти позже)
                         </button>
                     </>

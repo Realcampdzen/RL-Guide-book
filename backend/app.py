@@ -2949,7 +2949,30 @@ def squads_create(shift_id: str):
             squad["createdBy"] = created_by
         doc["squads"].append(squad)
         _shifts_save(doc)
-        return jsonify({"squad": squad})
+
+        # ── Auto-join: creator becomes a member of the new squad ──
+        membership = None
+        if created_by:
+            now_iso = created_at
+            membership_role = actor_role
+            mdoc = _memberships_load()
+            # Remove any previous membership for this device (same logic as squad_join)
+            members = [
+                row for row in (mdoc.get("members") or [])
+                if not (isinstance(row, dict) and (row.get("deviceId") or "").strip() == created_by)
+            ]
+            membership = {
+                "deviceId": created_by,
+                "campId": sid,
+                "squadId": squad_id,
+                "role": membership_role,
+                "joinedAt": now_iso,
+            }
+            members.append(membership)
+            mdoc["members"] = members
+            _memberships_save(mdoc)
+
+        return jsonify({"squad": squad, "membership": membership})
     except ShiftSeedError:
         traceback.print_exc()
         return jsonify({"error": "Failed to seed default shift", "reason": "seed_error"}), 500
