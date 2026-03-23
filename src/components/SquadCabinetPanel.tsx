@@ -22,7 +22,7 @@ interface SquadCabinetPanelProps {
   onRefresh: () => Promise<void> | void;
   onAfterLeave?: () => void;
   onShowHint?: (opts: { title: string; content: string }) => void;
-  onEditCorner?: (targetTab?: 'photos' | 'planner') => void;
+  onEditCorner?: (targetTab?: 'photos' | 'planner' | 'squad') => void;
   diaryCorner?: Partial<SquadCorner> | null;
 }
 
@@ -356,8 +356,9 @@ export const SquadCabinetPanel: React.FC<SquadCabinetPanelProps> = ({
             </div>
             {canEditCorner && onEditCorner && (
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                <button type="button" className="cab-btn-glass" style={{ padding: '6px 14px', fontSize: 12, borderRadius: 10, background: 'rgba(255,255,255,0.06)' }} onClick={() => onEditCorner('photos')}>Фото</button>
-                <button type="button" className="cab-btn-glass" style={{ padding: '6px 14px', fontSize: 12, borderRadius: 10, background: 'rgba(255,255,255,0.06)' }} onClick={() => onEditCorner('planner')}>Планёрка</button>
+                <button type="button" className="cab-btn-glass" style={{ padding: '6px 14px', fontSize: 12, borderRadius: 10, background: 'rgba(255,255,255,0.06)' }} onClick={() => onEditCorner('squad')}>✏️ Отряд</button>
+                <button type="button" className="cab-btn-glass" style={{ padding: '6px 14px', fontSize: 12, borderRadius: 10, background: 'rgba(255,255,255,0.06)' }} onClick={() => onEditCorner('photos')}>📷 Фото</button>
+                <button type="button" className="cab-btn-glass" style={{ padding: '6px 14px', fontSize: 12, borderRadius: 10, background: 'rgba(255,255,255,0.06)' }} onClick={() => onEditCorner('planner')}>📅 Планёрка</button>
               </div>
             )}
           </div>

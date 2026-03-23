@@ -1625,7 +1625,7 @@ export const PersonalCabinet: React.FC<{
                                                 mySquadInfo={mySquadInfo}
                                                 onRefresh={loadSquadInfo}
                                                 onAfterLeave={() => setSquadCornerTab('squad')}
-                                                onEditCorner={canEditSquadCorner ? ((t) => setSquadCornerTab(t === 'planner' ? 'planner' : 'photos')) : undefined}
+                                                onEditCorner={canEditSquadCorner ? ((t) => setSquadCornerTab(t === 'planner' ? 'planner' : t === 'squad' ? 'edit-squad' : 'photos')) : undefined}
                                                 diaryCorner={userData?.diaryProgress?.squad || null}
                                             />
                                         )
@@ -1666,6 +1666,27 @@ export const PersonalCabinet: React.FC<{
                                         />
                                     ) : squadCornerTab === 'program' ? (
                                         <CampProgramByDays defaultShiftLength={defaultShiftLength} />
+                                    ) : squadCornerTab === 'edit-squad' ? (
+                                        <SquadCornerDashboard
+                                            key="edit-squad"
+                                            variant="cabin"
+                                            activeTab="squad"
+                                            onTabChange={(tab) => {
+                                                // 'squad' tab in editor means go back to cabinet view
+                                                if (tab === 'squad') setSquadCornerTab('squad');
+                                                else setSquadCornerTab(tab);
+                                            }}
+                                            onNavigateToBadge={navigateToBadge}
+                                            hasSquadMembership={hasSquadMembership}
+                                            mySquadName={userData?.diaryProgress?.squad?.name || undefined}
+                                            canEditCorner={canEditSquadCorner}
+                                            canCreateSquadFromCorner={false}
+                                            onOpenCabinet={() => setSquadCornerTab('squad')}
+                                            onOpenShiftsAndSquads={() => setActiveSection('shifts')}
+                                            onPersistCorner={accessToken && mySquadInfo?.membership?.squadId ? async (payload: Partial<SquadCorner>) => {
+                                                await patchSquadCorner(accessToken, mySquadInfo!.membership!.squadId, payload);
+                                            } : undefined}
+                                        />
                                     ) : (
                                         <SquadCornerDashboard
                                             key={squadCornerTab}
