@@ -89,8 +89,6 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({ onResult
     const [reqError, setReqError] = useState<string | null>(null);
     const [submittedReq, setSubmittedReq] = useState<SubmittedRequest | null>(null);
 
-    // After code redeemed — pending result stored until OAuth done (or skipped)
-    const [pendingCodeResult, setPendingCodeResult] = useState<{ role: UserRole; accessToken: string } | null>(null);
 
     // Dev PIN state
     const [devPin, setDevPin] = useState('');
@@ -552,26 +550,15 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({ onResult
                         </button>
                     </>
                 )}
-                {/* ── Step oauth-verify: Email Identity Confirmation ── */}
+                {/* ── Step oauth-verify: Email Identity Confirmation (for role requests only) ── */}
                 {step === 'oauth-verify' && (
                     <>
                         <div style={{ textAlign: 'center', marginBottom: 16 }}>
                             <div style={{ fontSize: 28, marginBottom: 8 }}>🔑</div>
-                            {pendingCodeResult ? (
-                                <>
-                                    <div style={{ fontSize: 15, fontWeight: 700, color: '#22c55e', marginBottom: 4 }}>  Код принят!</div>
-                                    <div style={{ fontSize: 12, opacity: 0.55, lineHeight: 1.5 }}>
-                                        Подтвердите свою личность<br />через почту, чтобы запомнить ваш аккаунт
-                                    </div>
-                                </>
-                            ) : (
-                                <>
-                                    <div style={{ fontSize: 15, fontWeight: 700, color: '#3b82f6', marginBottom: 4 }}>Заявка отправлена!</div>
-                                    <div style={{ fontSize: 12, opacity: 0.55, lineHeight: 1.5 }}>
-                                        Войдите через почту, чтобы мы знали кто вы.<br />Админ одобрит заявку на <b style={{ color: '#f59e0b' }}>{roleLabel}</b>
-                                    </div>
-                                </>
-                            )}
+                            <div style={{ fontSize: 15, fontWeight: 700, color: '#3b82f6', marginBottom: 4 }}>Заявка отправлена!</div>
+                            <div style={{ fontSize: 12, opacity: 0.55, lineHeight: 1.5 }}>
+                                Войдите через почту, чтобы мы знали кто вы.<br />Админ одобрит заявку на <b style={{ color: '#f59e0b' }}>{roleLabel}</b>
+                            </div>
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                             <button type="button" onClick={() => void handleOAuth('google')}
@@ -581,7 +568,7 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({ onResult
                                     cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
                                 }}>
                                 <svg width="18" height="18" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" /><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" /><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" /><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" /></svg>
-                                Подтвердить через Google
+                                Войти через Google
                             </button>
                             {/* Divider */}
                             <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '4px 0' }}>
@@ -628,21 +615,11 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({ onResult
                                 <div style={{ fontSize: 11, color: '#ef4444', textAlign: 'center' }}>{emailError}</div>
                             )}
                         </div>
-                        {/* Skip link — for code flow, email is optional */}
-                        {pendingCodeResult && (
-                            <button type="button"
-                                onClick={() => onResult({ type: 'code-redeemed', role: pendingCodeResult.role, accessToken: pendingCodeResult.accessToken })}
-                                style={{ display: 'block', margin: '12px auto 0', background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', fontSize: 11, cursor: 'pointer' }}>
-                                Пропустить (войти без почты)
-                            </button>
-                        )}
-                        {!pendingCodeResult && (
-                            <button type="button"
-                                onClick={() => onResult({ type: 'request-sent', role: selectedRole! })}
-                                style={{ display: 'block', margin: '12px auto 0', background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', fontSize: 11, cursor: 'pointer' }}>
-                                Закрыть (войти позже)
-                            </button>
-                        )}
+                        <button type="button"
+                            onClick={() => onResult({ type: 'request-sent', role: selectedRole! })}
+                            style={{ display: 'block', margin: '12px auto 0', background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', fontSize: 11, cursor: 'pointer' }}>
+                            Закрыть (войти позже)
+                        </button>
                     </>
                 )}
             </div>
