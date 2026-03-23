@@ -550,7 +550,7 @@ export const PersonalCabinet: React.FC<{
     }, [progress, favorites, badgeLookupMap, allBadges]);
 
     // Squad membership & role-based permissions (matches ProfileView)
-    const hasSquadMembership = Boolean(userData?.diaryProgress?.squad?.name);
+    const hasSquadMembership = Boolean(mySquadInfoApi?.membership?.squadId || userData?.diaryProgress?.squad?.name);
     const canEditSquadCorner = currentRole === 'counselor' || currentRole === 'developer';
 
     // Fallback: build mySquadInfo from local diary when API unavailable
