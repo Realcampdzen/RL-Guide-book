@@ -248,13 +248,16 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({ onResult
     const roleLabel = selectedRole ? ROLE_LABELS[selectedRole] : '';
 
     return (
-        <div style={{
+        <div
+            onClick={() => onResult({ type: 'cancelled' })}
+            style={{
             position: 'fixed', inset: 0, zIndex: 1000,
             background: 'rgba(9,9,15,0.88)', backdropFilter: 'blur(12px)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             padding: 16,
         }}>
             <div
+                onClick={e => e.stopPropagation()}
                 ref={(el) => {
                     if (el) {
                         // Hide webkit scrollbar via JS (no external CSS needed)
