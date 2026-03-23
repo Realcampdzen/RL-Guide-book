@@ -7734,20 +7734,27 @@ def _issue_role_jwt(role: str, device_id: str, email: str = "") -> str:
 
 
 def _load_role_codes() -> dict:
-    with _ROLE_CODES_LOCK:
-        if os.path.exists(ROLE_CODES_FILE):
-            with open(ROLE_CODES_FILE, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-            if isinstance(data, dict):
-                return data
-        return {}
+    for path in ["/tmp/role_codes.json", ROLE_CODES_FILE]:
+        try:
+            if os.path.exists(path):
+                with open(path, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                if isinstance(data, dict):
+                    return data
+        except Exception:
+            pass
+    return {}
 
 
 def _save_role_codes(data: dict):
-    with _ROLE_CODES_LOCK:
-        os.makedirs(os.path.dirname(ROLE_CODES_FILE), exist_ok=True)
-        with open(ROLE_CODES_FILE, 'w', encoding='utf-8') as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
+    # Write to /tmp (always writable) + try original path
+    for path in ["/tmp/role_codes.json", ROLE_CODES_FILE]:
+        try:
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+            with open(path, 'w', encoding='utf-8') as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+        except Exception:
+            pass
 
 
 _RR_TMP_FILE = "/tmp/role_requests.json"

@@ -51,9 +51,11 @@ async function requestJson<T>(path: string, options: RequestInit = {}): Promise<
 // ---------------------------------------------------------------------------
 
 /** Fetch inbox items with optional type filter. */
-export async function fetchInbox(filter?: InboxItemType): Promise<InboxItem[]> {
+export async function fetchInbox(filter?: InboxItemType, accessToken?: string): Promise<InboxItem[]> {
     const qs = filter ? `?type=${encodeURIComponent(filter)}` : '';
-    const data = await requestJson<{ items: InboxItem[] }>(`/api/admin/inbox${qs}`);
+    const headers: Record<string, string> = {};
+    if (accessToken) headers['Authorization'] = `Bearer ${accessToken}`;
+    const data = await requestJson<{ items: InboxItem[] }>(`/api/admin/inbox${qs}`, { headers });
     return data.items || [];
 }
 

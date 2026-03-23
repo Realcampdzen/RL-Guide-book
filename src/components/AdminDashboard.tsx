@@ -289,11 +289,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ accessToken, onC
         setLoading(true);
         try {
             // Always fetch ALL items so tab counts stay accurate
-            const data = await fetchInbox(undefined);
+            const data = await fetchInbox(undefined, accessToken);
             setItems(data as unknown as RawInboxItem[]);
         } catch { setItems([]); }
         finally { setLoading(false); }
-    }, []);
+    }, [accessToken]);
 
     useEffect(() => { void load(); }, [load]);
 

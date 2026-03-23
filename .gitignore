@@ -209,3 +209,4 @@ _m6_*.py
 # Task files
 # tasks.json
 # tasks/ 
+.vercel
