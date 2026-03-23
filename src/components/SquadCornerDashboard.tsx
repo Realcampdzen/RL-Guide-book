@@ -44,7 +44,7 @@ const COUNSELOR_TELEGRAM = 'https://t.me/Stivanovv';
 export const SquadCornerDashboard: React.FC<SquadCornerDashboardProps> = ({
   variant = 'accordion',
   activeTab = 'squad',
-  onTabChange,
+  onTabChange: _onTabChange,
   onNavigateToBadge,
   hasSquadMembership,
   mySquadName,
@@ -185,8 +185,9 @@ export const SquadCornerDashboard: React.FC<SquadCornerDashboardProps> = ({
         }
       }
 
-      setSaveStatus('Сохранено.');
-      setTimeout(() => setSaveStatus(null), 1600);
+      setSaveStatus('Сохранено. ✓');
+      // In cabin edit mode — navigate back to the corner overview after a short moment
+      setTimeout(() => { setSaveStatus(null); onOpenCabinet?.(); }, 900);
     } catch (e) {
       setSaveStatus(e instanceof Error ? e.message : 'Не удалось сохранить.');
     } finally {
@@ -429,7 +430,160 @@ export const SquadCornerDashboard: React.FC<SquadCornerDashboardProps> = ({
     );
   }
 
-  const cabinContent = activeTab === 'squad' ? squadSection : activeTab === 'photos' ? photosSection : activeTab === 'planner' ? plannerSection : flagsSection;
+  // ── Cabin variant ──────────────────────────────────────────────────────────
+
+  // Premium redesigned editing form for squad info (name/motto/chants/greeting/memes)
+  if (activeTab === 'squad') {
+    const FIELD_LABEL: React.CSSProperties = {
+      display: 'block',
+      fontSize: 11,
+      fontWeight: 700,
+      textTransform: 'uppercase',
+      letterSpacing: '0.08em',
+      color: `${ACCENT}cc`,
+      marginBottom: 6,
+    };
+    const FIELD_INPUT: React.CSSProperties = {
+      width: '100%',
+      padding: '12px 16px',
+      borderRadius: 12,
+      border: '1px solid rgba(255,255,255,0.1)',
+      background: 'rgba(255,255,255,0.05)',
+      color: '#e8f0ff',
+      fontSize: 14,
+      fontFamily: "'Inter', system-ui, sans-serif",
+      outline: 'none',
+      transition: 'border-color 0.15s, background 0.15s',
+      boxSizing: 'border-box',
+    };
+    return (
+      <div className="fade-in" style={{ maxWidth: 720, margin: '0 auto', width: '100%' }}>
+        {/* Header */}
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20,
+          padding: '14px 20px',
+          background: 'rgba(217,119,6,0.08)',
+          borderRadius: 16,
+          border: `1px solid ${ACCENT_LIGHT}`,
+        }}>
+          {onOpenCabinet && (
+            <button
+              type="button"
+              onClick={onOpenCabinet}
+              style={{
+                background: 'rgba(255,255,255,0.06)',
+                border: '1px solid rgba(255,255,255,0.12)',
+                borderRadius: 10,
+                color: '#e8f0ff',
+                fontSize: 13, fontWeight: 600,
+                padding: '6px 12px',
+                cursor: 'pointer',
+                flexShrink: 0,
+                transition: 'background 0.15s',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.12)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; }}
+            >← Уголок</button>
+          )}
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: ACCENT, marginBottom: 2 }}>Редактирование</div>
+            <div style={{ fontSize: 16, fontWeight: 800, color: '#fff' }}>{localSquadName.trim() || mySquadName || 'Отряд'}</div>
+          </div>
+        </div>
+
+        {/* Form card */}
+        <div style={{
+          background: 'rgba(8, 20, 40, 0.3)',
+          backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
+          borderRadius: 20,
+          border: '1px solid rgba(255,255,255,0.08)',
+          overflow: 'hidden',
+        }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+            {([
+              { emoji: '🏕️', label: 'Название отряда', value: localSquadName, onChange: setLocalSquadName, multiline: false, placeholder: 'Как называется ваш отряд?' },
+              { emoji: '💬', label: 'Девиз', value: localSquadMotto, onChange: setLocalSquadMotto, multiline: false, placeholder: 'Девиз отряда — короткая фраза' },
+              { emoji: '📣', label: 'Кричалки', value: localSquadChants, onChange: setLocalSquadChants, multiline: true, placeholder: 'Кричалки, речёвки, слоганы...', rows: 3 },
+              { emoji: '👋', label: 'Приветствие', value: localSquadGreeting, onChange: setLocalSquadGreeting, multiline: false, placeholder: 'Как отряд приветствует гостей?' },
+              { emoji: '😄', label: 'Мемы / традиции', value: localSquadMemes, onChange: setLocalSquadMemes, multiline: true, placeholder: 'Внутренние шутки, традиции, особенности...', rows: 3 },
+            ] as const).map((f, i, arr) => (
+              <div
+                key={f.label}
+                style={{
+                  padding: '18px 24px',
+                  borderBottom: i < arr.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none',
+                }}
+              >
+                <label style={FIELD_LABEL}><span style={{ marginRight: 6 }}>{f.emoji}</span>{f.label}</label>
+                {f.multiline ? (
+                  <textarea
+                    className="squad-chat-input"
+                    rows={(f as any).rows || 3}
+                    value={f.value}
+                    onChange={e => f.onChange(e.target.value)}
+                    placeholder={f.placeholder}
+                    disabled={!canEditCorner || saveBusy}
+                    style={{ ...FIELD_INPUT, resize: 'vertical', minHeight: 72 }}
+                    onFocus={e => { e.currentTarget.style.borderColor = ACCENT; e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; }}
+                    onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; }}
+                  />
+                ) : (
+                  <input
+                    type="text"
+                    value={f.value}
+                    onChange={e => f.onChange(e.target.value)}
+                    placeholder={f.placeholder}
+                    disabled={!canEditCorner || saveBusy}
+                    style={FIELD_INPUT}
+                    onFocus={e => { e.currentTarget.style.borderColor = ACCENT; e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; }}
+                    onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; }}
+                  />
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Save bar */}
+        <div style={{
+          marginTop: 16,
+          display: 'flex', gap: 12, alignItems: 'center',
+          padding: '14px 20px',
+          background: 'rgba(217,119,6,0.06)',
+          borderRadius: 16,
+          border: `1px solid ${ACCENT_LIGHT}`,
+        }}>
+          <button
+            type="button"
+            onClick={saveSquad}
+            disabled={!canEditCorner || saveBusy}
+            style={{
+              padding: '12px 28px',
+              borderRadius: 12,
+              border: 'none',
+              background: saveBusy ? 'rgba(217,119,6,0.3)' : `linear-gradient(135deg, ${ACCENT}, #f59e0b)`,
+              color: '#fff',
+              fontSize: 14, fontWeight: 800,
+              cursor: canEditCorner && !saveBusy ? 'pointer' : 'default',
+              letterSpacing: '0.02em',
+              transition: 'opacity 0.15s',
+              opacity: !canEditCorner ? 0.5 : 1,
+              boxShadow: saveBusy ? 'none' : '0 4px 16px rgba(217,119,6,0.35)',
+            }}
+          >
+            {saveBusy ? 'Сохраняем...' : 'Сохранить отряд'}
+          </button>
+          {saveStatus && (
+            <span style={{ fontSize: 13, fontWeight: 600, color: saveStatus.includes('✓') ? '#86efac' : '#fca5a5' }}>
+              {saveStatus}
+            </span>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  const cabinContent = activeTab === 'photos' ? photosSection : activeTab === 'planner' ? plannerSection : flagsSection;
   return (
     <div className="fade-in squad-corner-cabin-content" style={{
       maxWidth: 720, margin: '0 auto', width: '100%',
