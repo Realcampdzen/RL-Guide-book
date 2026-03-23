@@ -356,9 +356,21 @@ export const SquadCabinetPanel: React.FC<SquadCabinetPanelProps> = ({
             </div>
             {canEditCorner && onEditCorner && (
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                <button type="button" className="cab-btn-glass" style={{ padding: '6px 14px', fontSize: 12, borderRadius: 10, background: 'rgba(255,255,255,0.06)' }} onClick={() => onEditCorner('squad')}>✏️ Отряд</button>
-                <button type="button" className="cab-btn-glass" style={{ padding: '6px 14px', fontSize: 12, borderRadius: 10, background: 'rgba(255,255,255,0.06)' }} onClick={() => onEditCorner('photos')}>📷 Фото</button>
-                <button type="button" className="cab-btn-glass" style={{ padding: '6px 14px', fontSize: 12, borderRadius: 10, background: 'rgba(255,255,255,0.06)' }} onClick={() => onEditCorner('planner')}>📅 Планёрка</button>
+                <button type="button" style={{
+                  padding: '7px 14px', fontSize: 12, fontWeight: 700, borderRadius: 12, border: 'none', cursor: 'pointer',
+                  background: 'linear-gradient(135deg, #4f46e5, #7c3aed)',
+                  color: '#fff', letterSpacing: '0.02em', boxShadow: '0 2px 8px rgba(79,70,229,0.4)',
+                }} onClick={() => onEditCorner('squad')}>✏️ Отряд</button>
+                <button type="button" style={{
+                  padding: '7px 14px', fontSize: 12, fontWeight: 700, borderRadius: 12, border: 'none', cursor: 'pointer',
+                  background: 'linear-gradient(135deg, #0891b2, #0e7490)',
+                  color: '#fff', letterSpacing: '0.02em', boxShadow: '0 2px 8px rgba(8,145,178,0.4)',
+                }} onClick={() => onEditCorner('photos')}>📷 Фото</button>
+                <button type="button" style={{
+                  padding: '7px 14px', fontSize: 12, fontWeight: 700, borderRadius: 12, border: 'none', cursor: 'pointer',
+                  background: 'linear-gradient(135deg, #059669, #047857)',
+                  color: '#fff', letterSpacing: '0.02em', boxShadow: '0 2px 8px rgba(5,150,105,0.4)',
+                }} onClick={() => onEditCorner('planner')}>📅 Планёрка</button>
               </div>
             )}
           </div>
@@ -489,24 +501,20 @@ export const SquadCabinetPanel: React.FC<SquadCabinetPanelProps> = ({
                     </div>
                     <div style={{ display: 'flex', gap: 8 }}>
                       {m.deviceId === deviceId ? (
-                        <button type="button" className="cab-btn-glass" style={{ 
-                          padding: '6px 14px', fontSize: 12, fontWeight: 700,
-                          border: '1px solid rgba(239, 68, 68, 0.6)', 
-                          background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.25), rgba(239, 68, 68, 0.15))', 
-                          color: '#fca5a5',
-                          boxShadow: '0 0 10px rgba(239, 68, 68, 0.2)',
-                          backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)'
+                        <button type="button" style={{
+                          padding: '6px 14px', fontSize: 12, fontWeight: 700, borderRadius: 10, border: 'none', cursor: busy ? 'default' : 'pointer',
+                          background: busy ? '#7f1d1d' : 'linear-gradient(135deg, #dc2626, #b91c1c)',
+                          color: '#fff', boxShadow: busy ? 'none' : '0 2px 8px rgba(220,38,38,0.45)',
+                          opacity: busy ? 0.6 : 1,
                         }} onClick={() => void handleLeave()} disabled={busy}>
                           Выйти
                         </button>
                       ) : canManage ? (
-                        <button type="button" className="cab-btn-glass" style={{ 
-                          padding: '6px 14px', fontSize: 12, fontWeight: 700,
-                          border: '1px solid rgba(245, 158, 11, 0.6)', 
-                          background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.25), rgba(245, 158, 11, 0.15))', 
-                          color: '#fcd34d',
-                          boxShadow: '0 0 10px rgba(245, 158, 11, 0.2)',
-                          backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)'
+                        <button type="button" style={{
+                          padding: '6px 14px', fontSize: 12, fontWeight: 700, borderRadius: 10, border: 'none', cursor: busy ? 'default' : 'pointer',
+                          background: busy ? '#78350f' : 'linear-gradient(135deg, #d97706, #b45309)',
+                          color: '#fff', boxShadow: busy ? 'none' : '0 2px 8px rgba(217,119,6,0.45)',
+                          opacity: busy ? 0.6 : 1,
                         }} onClick={() => void handleKick(m.deviceId)} disabled={busy}>
                           Исключить
                         </button>
@@ -523,12 +531,21 @@ export const SquadCabinetPanel: React.FC<SquadCabinetPanelProps> = ({
         <div className="fade-in cab-card">
           <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 10 }}>Пригласить в отряд</div>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-            <button type="button" className="cab-btn-glass" style={{ padding: '7px 14px', fontSize: 12 }} onClick={() => void copyText(inviteLink, 'Ссылка скопирована!')}>
-              Копировать ссылку
+            <button type="button" style={{
+              padding: '8px 16px', fontSize: 12, fontWeight: 700, borderRadius: 10, border: 'none', cursor: 'pointer',
+              background: 'linear-gradient(135deg, #1d4ed8, #1e40af)',
+              color: '#fff', boxShadow: '0 2px 8px rgba(29,78,216,0.4)',
+            }} onClick={() => void copyText(inviteLink, 'Ссылка скопирована!')}>
+              🔗 Ссылка
             </button>
             {canManage && (
-              <button type="button" className="cab-btn-glass" style={{ padding: '7px 14px', fontSize: 12 }} onClick={() => void handleCreateInviteCode()} disabled={busy}>
-                Создать код приглашения
+              <button type="button" style={{
+                padding: '8px 16px', fontSize: 12, fontWeight: 700, borderRadius: 10, border: 'none', cursor: busy ? 'default' : 'pointer',
+                background: busy ? '#1e3a5f' : 'linear-gradient(135deg, #0891b2, #0e7490)',
+                color: '#fff', boxShadow: busy ? 'none' : '0 2px 8px rgba(8,145,178,0.4)',
+                opacity: busy ? 0.6 : 1,
+              }} onClick={() => void handleCreateInviteCode()} disabled={busy}>
+                🎟️ Создать код
               </button>
             )}
           </div>
@@ -538,8 +555,12 @@ export const SquadCabinetPanel: React.FC<SquadCabinetPanelProps> = ({
               <div style={{ fontSize: 11, opacity: 0.6, marginTop: 4 }}>
                 Действует до: {inviteMeta ? new Date(inviteMeta.expiresAt).toLocaleString('ru-RU') : '—'}
               </div>
-              <button type="button" className="cab-btn-glass" style={{ padding: '5px 10px', fontSize: 11, marginTop: 10 }} onClick={() => void copyText(inviteCode, 'Код скопирован!')}>
-                Копировать код
+              <button type="button" style={{
+                  padding: '6px 12px', fontSize: 11, fontWeight: 700, marginTop: 10, borderRadius: 8, border: 'none', cursor: 'pointer',
+                  background: 'linear-gradient(135deg, #1d4ed8, #1e40af)',
+                  color: '#fff', boxShadow: '0 2px 6px rgba(29,78,216,0.4)',
+                }} onClick={() => void copyText(inviteCode, 'Код скопирован!')}>
+                📋 Скопировать код
               </button>
             </div>
           )}
@@ -547,19 +568,19 @@ export const SquadCabinetPanel: React.FC<SquadCabinetPanelProps> = ({
 
         {/* Actions */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, padding: '8px 0', marginTop: 12 }}>
-          <button type="button" className="cab-btn-accent" style={{ 
-            padding: '10px 20px', fontSize: 13, fontWeight: 700, borderRadius: 14,
-            boxShadow: '0 4px 16px rgba(93, 228, 255, 0.2)'
+          <button type="button" style={{
+            padding: '10px 20px', fontSize: 13, fontWeight: 700, borderRadius: 12, border: 'none', cursor: busy ? 'default' : 'pointer',
+            background: busy ? '#1e3a5f' : 'linear-gradient(135deg, #1d4ed8, #1e40af)',
+            color: '#fff', boxShadow: busy ? 'none' : '0 4px 14px rgba(29,78,216,0.4)',
+            opacity: busy ? 0.6 : 1,
           }} onClick={() => void onRefresh()} disabled={busy}>
-            Обновить данные
+            🔄 Обновить
           </button>
-          <button type="button" className="cab-btn-glass" style={{ 
-            padding: '10px 20px', fontSize: 13, fontWeight: 700, borderRadius: 14,
-            border: '1px solid rgba(239, 68, 68, 0.4)', 
-            background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.25), rgba(239, 68, 68, 0.1))', 
-            color: '#fca5a5',
-            boxShadow: '0 4px 16px rgba(239, 68, 68, 0.25)',
-            backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)'
+          <button type="button" style={{
+            padding: '10px 20px', fontSize: 13, fontWeight: 700, borderRadius: 12, border: 'none', cursor: busy ? 'default' : 'pointer',
+            background: busy ? '#7f1d1d' : 'linear-gradient(135deg, #dc2626, #b91c1c)',
+            color: '#fff', boxShadow: busy ? 'none' : '0 4px 14px rgba(220,38,38,0.45)',
+            opacity: busy ? 0.6 : 1,
           }} onClick={() => void handleLeave()} disabled={busy}>
             Выйти из отряда
           </button>
@@ -586,7 +607,11 @@ export const SquadCabinetPanel: React.FC<SquadCabinetPanelProps> = ({
             <div className="proof-modal proof-modal--mobile-sheet proof-modal--wide fade-in" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()} style={{ width: 'min(92vw, 860px)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, marginBottom: 14 }}>
                 <h3 style={{ fontSize: 18, fontWeight: 700, color: '#e8f0ff', margin: 0 }}>Программа смены</h3>
-                <button type="button" className="cab-btn-glass" style={{ padding: '6px 10px' }} onClick={() => setPlannerOpen(false)}>Закрыть</button>
+                <button type="button" style={{
+                  padding: '6px 10px', fontSize: 12, fontWeight: 700, borderRadius: 8, border: 'none', cursor: 'pointer',
+                  background: 'linear-gradient(135deg, #374151, #1f2937)',
+                  color: '#9ca3af', boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
+                }} onClick={() => setPlannerOpen(false)}>✕ Закрыть</button>
               </div>
               {(() => {
                 const grid = corner?.planGridA;
@@ -597,7 +622,13 @@ export const SquadCabinetPanel: React.FC<SquadCabinetPanelProps> = ({
                   <>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 14 }}>
                       {dayKeys.map((d) => (
-                        <button key={d} type="button" className="cab-btn-glass" style={{ padding: '6px 12px', background: plannerDay === d ? 'rgba(255,255,255,0.12)' : undefined, color: plannerDay === d ? '#fff' : undefined }} onClick={() => setPlannerDay(d)}>
+                        <button key={d} type="button" style={{
+                          padding: '6px 12px', fontSize: 12, fontWeight: 700, borderRadius: 8, border: 'none', cursor: 'pointer',
+                          background: plannerDay === d ? 'linear-gradient(135deg, #4f46e5, #7c3aed)' : 'rgba(255,255,255,0.07)',
+                          color: plannerDay === d ? '#fff' : 'rgba(255,255,255,0.55)',
+                          boxShadow: plannerDay === d ? '0 2px 8px rgba(124,58,237,0.45)' : 'none',
+                          transition: 'all 0.15s',
+                        }} onClick={() => setPlannerDay(d)}>
                           День {d}
                         </button>
                       ))}
