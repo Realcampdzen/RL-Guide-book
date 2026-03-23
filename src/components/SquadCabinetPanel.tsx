@@ -360,17 +360,17 @@ export const SquadCabinetPanel: React.FC<SquadCabinetPanelProps> = ({
                   padding: '7px 14px', fontSize: 12, fontWeight: 700, borderRadius: 12, border: 'none', cursor: 'pointer',
                   background: 'linear-gradient(135deg, #4f46e5, #7c3aed)',
                   color: '#fff', letterSpacing: '0.02em', boxShadow: '0 2px 8px rgba(79,70,229,0.4)',
-                }} onClick={() => onEditCorner('squad')}>✏️ Отряд</button>
+                }} onClick={() => onEditCorner('squad')}>Отряд</button>
                 <button type="button" style={{
                   padding: '7px 14px', fontSize: 12, fontWeight: 700, borderRadius: 12, border: 'none', cursor: 'pointer',
                   background: 'linear-gradient(135deg, #0891b2, #0e7490)',
                   color: '#fff', letterSpacing: '0.02em', boxShadow: '0 2px 8px rgba(8,145,178,0.4)',
-                }} onClick={() => onEditCorner('photos')}>📷 Фото</button>
+                }} onClick={() => onEditCorner('photos')}>Фото</button>
                 <button type="button" style={{
                   padding: '7px 14px', fontSize: 12, fontWeight: 700, borderRadius: 12, border: 'none', cursor: 'pointer',
                   background: 'linear-gradient(135deg, #059669, #047857)',
                   color: '#fff', letterSpacing: '0.02em', boxShadow: '0 2px 8px rgba(5,150,105,0.4)',
-                }} onClick={() => onEditCorner('planner')}>📅 Планёрка</button>
+                }} onClick={() => onEditCorner('planner')}>Планёрка</button>
               </div>
             )}
           </div>
@@ -536,7 +536,7 @@ export const SquadCabinetPanel: React.FC<SquadCabinetPanelProps> = ({
               background: 'linear-gradient(135deg, #1d4ed8, #1e40af)',
               color: '#fff', boxShadow: '0 2px 8px rgba(29,78,216,0.4)',
             }} onClick={() => void copyText(inviteLink, 'Ссылка скопирована!')}>
-              🔗 Ссылка
+              Ссылка
             </button>
             {canManage && (
               <button type="button" style={{
@@ -545,7 +545,7 @@ export const SquadCabinetPanel: React.FC<SquadCabinetPanelProps> = ({
                 color: '#fff', boxShadow: busy ? 'none' : '0 2px 8px rgba(8,145,178,0.4)',
                 opacity: busy ? 0.6 : 1,
               }} onClick={() => void handleCreateInviteCode()} disabled={busy}>
-                🎟️ Создать код
+                Создать код
               </button>
             )}
           </div>
@@ -560,7 +560,7 @@ export const SquadCabinetPanel: React.FC<SquadCabinetPanelProps> = ({
                   background: 'linear-gradient(135deg, #1d4ed8, #1e40af)',
                   color: '#fff', boxShadow: '0 2px 6px rgba(29,78,216,0.4)',
                 }} onClick={() => void copyText(inviteCode, 'Код скопирован!')}>
-                📋 Скопировать код
+                Скопировать код
               </button>
             </div>
           )}
@@ -574,7 +574,7 @@ export const SquadCabinetPanel: React.FC<SquadCabinetPanelProps> = ({
             color: '#fff', boxShadow: busy ? 'none' : '0 4px 14px rgba(29,78,216,0.4)',
             opacity: busy ? 0.6 : 1,
           }} onClick={() => void onRefresh()} disabled={busy}>
-            🔄 Обновить
+            Обновить
           </button>
           <button type="button" style={{
             padding: '10px 20px', fontSize: 13, fontWeight: 700, borderRadius: 12, border: 'none', cursor: busy ? 'default' : 'pointer',
@@ -611,7 +611,7 @@ export const SquadCabinetPanel: React.FC<SquadCabinetPanelProps> = ({
                   padding: '6px 10px', fontSize: 12, fontWeight: 700, borderRadius: 8, border: 'none', cursor: 'pointer',
                   background: 'linear-gradient(135deg, #374151, #1f2937)',
                   color: '#9ca3af', boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
-                }} onClick={() => setPlannerOpen(false)}>✕ Закрыть</button>
+                }} onClick={() => setPlannerOpen(false)}>Закрыть</button>
               </div>
               {(() => {
                 const grid = corner?.planGridA;
