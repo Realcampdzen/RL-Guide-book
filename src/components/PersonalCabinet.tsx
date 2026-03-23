@@ -1448,6 +1448,7 @@ export const PersonalCabinet: React.FC<{
                                             }}>
                                                 <ShiftsAndSquadsDashboard
                                                     onNavigateToSquadCorner={() => setActiveSection('squad-corner')}
+                                                    onSquadCreated={async () => { await loadSquadInfo(); setActiveSection('squad-corner'); }}
                                                 />
                                             </div>
                                         )}
@@ -2345,6 +2346,7 @@ export const PersonalCabinet: React.FC<{
                                     }}>
                                     <ShiftsAndSquadsDashboard
                                         onNavigateToSquadCorner={() => setActiveSection('squad-corner')}
+                                        onSquadCreated={async () => { await loadSquadInfo(); setActiveSection('squad-corner'); }}
                                     />
                                     </div>
                                 ) : activeSection === 'parents' ? (

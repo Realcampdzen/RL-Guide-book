@@ -25,6 +25,7 @@ interface Squad {
 
 interface ShiftsAndSquadsDashboardProps {
     onNavigateToSquadCorner?: () => void;
+    onSquadCreated?: () => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -51,6 +52,7 @@ function getApiBase(): string {
 
 export const ShiftsAndSquadsDashboard: React.FC<ShiftsAndSquadsDashboardProps> = ({
     onNavigateToSquadCorner,
+    onSquadCreated,
 }) => {
     const { role, accessToken } = useAuth();
 
@@ -164,6 +166,7 @@ export const ShiftsAndSquadsDashboard: React.FC<ShiftsAndSquadsDashboardProps> =
             setSquadFormShiftId('');
             setSquadFormName('');
             await loadData();
+            onSquadCreated?.();
         } catch (e) {
             setError(e instanceof Error ? e.message : 'Ошибка');
         }

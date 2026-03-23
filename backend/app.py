@@ -3043,7 +3043,8 @@ def shift_delete(shift_id: str):
     shift = _find_shift(shifts_doc, sid)
     if not shift:
         return jsonify({"error": "Shift not found"}), 404
-    if _is_default_seeded_shift_name(shift.get("name") or ""):
+    actor_role = _normalize_role((payload.get("role") or "").strip())
+    if _is_default_seeded_shift_name(shift.get("name") or "") and actor_role != "developer":
         return jsonify({"error": "Default shift cannot be deleted", "reason": "default_shift"}), 409
 
     squads = shifts_doc.get("squads") or []
