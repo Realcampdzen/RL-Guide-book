@@ -5,6 +5,13 @@ import { useAuth } from './AuthContext';
 import { fireOn401 } from '../utils/authStorage';
 import { getRank } from '../types/userProgress';
 
+function getApiBase(): string {
+  if (typeof window === 'undefined') return '';
+  const hostname = window.location.hostname;
+  const useLocal = import.meta.env.DEV || hostname === 'localhost' || hostname === '127.0.0.1';
+  return useLocal ? '' : ((import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || '')).replace(/\/$/, '');
+}
+
 const TeamContext = createContext<TeamContextType | undefined>(undefined);
 
 const TEAMS_STORAGE_KEY = 'rl_my_teams_v2';
@@ -86,7 +93,7 @@ export const TeamProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   useEffect(() => {
     setLoadError(null);
     setIsLoading(true);
-    fetch('/api/teams/mine', { headers: authHeaders() })
+    fetch(`${getApiBase()}/api/teams/mine`, { headers: authHeaders() })
       .then(res => {
         if (res.status === 401) { if (accessToken) fireOn401(); return Promise.reject(new Error('auth')); }
         if (res.ok) return res.json();
@@ -128,7 +135,7 @@ export const TeamProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setLoadError(null);
     setIsLoading(true);
     try {
-      const res = await fetch('/api/teams/mine', { headers: authHeaders() });
+      const res = await fetch(`${getApiBase()}/api/teams/mine`, { headers: authHeaders() });
       if (res.status === 401) { if (accessToken) fireOn401(); return; }
       if (res.ok) {
         const data = await res.json();
@@ -160,7 +167,7 @@ export const TeamProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     setIsLoading(true);
     try {
-      const res = await fetch('/api/teams', {
+      const res = await fetch(`${getApiBase()}/api/teams`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...authHeaders() },
         body: JSON.stringify({
@@ -194,7 +201,7 @@ export const TeamProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const joinTeam = async (teamId: string, options?: { nickname?: string; avatar?: string }) => {
     setIsLoading(true);
     try {
-      const res = await fetch(`/api/teams/${encodeURIComponent(teamId)}/join`, {
+      const res = await fetch(`${getApiBase()}/api/teams/${encodeURIComponent(teamId)}/join`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...authHeaders() },
         body: JSON.stringify({
@@ -230,7 +237,7 @@ export const TeamProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const allowed = ['name', 'motto', 'logo', 'goals', 'achievements', 'flagImage', 'gerbImage', 'planGridA', 'planGridB'];
     allowed.forEach(k => { if (k in patch && patch[k as keyof TeamData] !== undefined) body[k] = patch[k as keyof TeamData]; });
     if (Object.keys(body).length === 0) return;
-    fetch(`/api/teams/${encodeURIComponent(targetId)}`, {
+    fetch(`${getApiBase()}/api/teams/${encodeURIComponent(targetId)}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', ...authHeaders() },
       body: JSON.stringify(body)
@@ -252,7 +259,7 @@ export const TeamProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (!targetId) return;
 
     try {
-      const res = await fetch(`/api/teams/${encodeURIComponent(targetId)}/leave`, {
+      const res = await fetch(`${getApiBase()}/api/teams/${encodeURIComponent(targetId)}/leave`, {
         method: 'POST',
         headers: authHeaders()
       });
@@ -279,7 +286,7 @@ export const TeamProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (!team) return;
 
     try {
-      const res = await fetch(`/api/teams/${encodeURIComponent(targetId)}`, {
+      const res = await fetch(`${getApiBase()}/api/teams/${encodeURIComponent(targetId)}`, {
         method: 'DELETE',
         headers: authHeaders()
       });

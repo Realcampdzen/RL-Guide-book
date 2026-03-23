@@ -67,8 +67,16 @@ const CUSTOM_BADGES_KEY = 'rl_custom_badges_v1';
 const COMMUNITY_BADGES_CACHE_KEY = 'rl_community_badges_cache_v1';
 const COMMUNITY_PUBLISH_QUEUE_KEY = 'rl_community_publish_queue_v1';
 const COMMUNITY_LIKES_KEY = 'rl_community_badge_likes_v1';
-const COMMUNITY_API_URL = '/api/community/badges';
-const BRO_MISSIONS_API_URL = '/api/bro-missions';
+
+function getApiBase(): string {
+  if (typeof window === 'undefined') return '';
+  const hostname = window.location.hostname;
+  const useLocal = import.meta.env.DEV || hostname === 'localhost' || hostname === '127.0.0.1';
+  return useLocal ? '' : ((import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || '')).replace(/\/$/, '');
+}
+
+const COMMUNITY_API_URL = () => `${getApiBase()}/api/community/badges`;
+const BRO_MISSIONS_API_URL = () => `${getApiBase()}/api/bro-missions`;
 
 function getCommunityPublishQueue(): Array<{ badge: Badge; timestamp: number }> {
   try {
@@ -262,7 +270,7 @@ export const useDataLoader = () => {
       } catch (_) { /* ignore */ }
     }
     try {
-      const res = await fetch(COMMUNITY_API_URL);
+      const res = await fetch(COMMUNITY_API_URL());
       if (res.ok) {
         const data = await res.json();
         const list = (Array.isArray(data) ? data : []).slice(0, 10);
@@ -279,7 +287,7 @@ export const useDataLoader = () => {
   // Sync Bro-Missions (Passport)
   const syncBroMissions = useCallback(async () => {
     try {
-      const res = await fetch(BRO_MISSIONS_API_URL);
+      const res = await fetch(BRO_MISSIONS_API_URL());
       if (res.ok) {
         const data = await res.json();
         setDynamicBroMissions(data);
@@ -291,7 +299,7 @@ export const useDataLoader = () => {
 
   const updateBroMissionsOnServer = useCallback(async (missions: any[]) => {
     try {
-      const res = await fetch(BRO_MISSIONS_API_URL, {
+      const res = await fetch(BRO_MISSIONS_API_URL(), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(missions)
@@ -367,7 +375,7 @@ export const useDataLoader = () => {
     const remaining: Array<{ badge: Badge; timestamp: number }> = [];
     for (const { badge, timestamp } of queue) {
       try {
-        const res = await fetch(COMMUNITY_API_URL, {
+        const res = await fetch(COMMUNITY_API_URL(), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(badge)
@@ -413,7 +421,7 @@ export const useDataLoader = () => {
       return { ok: true, queued: true };
     }
     try {
-      const res = await fetch(COMMUNITY_API_URL, {
+      const res = await fetch(COMMUNITY_API_URL(), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(badge)
