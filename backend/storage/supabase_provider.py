@@ -77,6 +77,18 @@ class SupabaseShiftsStore(ShiftsStore):
                 continue
             sb.table("squads").upsert(_squad_to_row(squad)).execute()
 
+    def delete_shift_by_id(self, shift_id: str) -> None:
+        sb = _client()
+        sb.table("shifts").delete().eq("id", shift_id).execute()
+
+    def delete_squad_by_id(self, squad_id: str) -> None:
+        sb = _client()
+        sb.table("squads").delete().eq("id", squad_id).execute()
+
+    def delete_squads_by_shift_id(self, shift_id: str) -> None:
+        sb = _client()
+        sb.table("squads").delete().eq("shift_id", shift_id).execute()
+
 
 def _row_to_shift(r: dict) -> dict:
     return {

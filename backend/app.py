@@ -3010,6 +3010,8 @@ def squad_delete(squad_id: str):
         if not (isinstance(row, dict) and (row.get("id") or "").strip() == sid)
     ]
     _shifts_save(shifts_doc)
+    # Direct delete from DB (Supabase save() only upserts, never deletes rows)
+    get_store("shifts").delete_squad_by_id(sid)
 
     cleanup = _cleanup_squad_related_data({sid}, {(target.get("shiftId") or "").strip()})
     return jsonify({
@@ -3065,6 +3067,10 @@ def shift_delete(shift_id: str):
         if not (isinstance(row, dict) and ((row.get("shiftId") or "").strip() == sid or (row.get("id") or "").strip() in target_squad_ids))
     ]
     _shifts_save(shifts_doc)
+    # Direct delete from DB (Supabase save() only upserts, never deletes rows)
+    store = get_store("shifts")
+    store.delete_squads_by_shift_id(sid)
+    store.delete_shift_by_id(sid)
 
     cleanup = _cleanup_squad_related_data(target_squad_ids, {sid})
     return jsonify({

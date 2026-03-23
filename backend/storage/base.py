@@ -19,6 +19,18 @@ class ShiftsStore(ABC):
     @abstractmethod
     def save(self, data: dict) -> None: ...
 
+    def delete_shift_by_id(self, shift_id: str) -> None:
+        """Delete a shift row by ID. Override in providers that need direct deletes (e.g. Supabase)."""
+        pass  # JSON provider relies on save(); Supabase overrides this.
+
+    def delete_squad_by_id(self, squad_id: str) -> None:
+        """Delete a squad row by ID. Override in providers that need direct deletes (e.g. Supabase)."""
+        pass  # JSON provider relies on save(); Supabase overrides this.
+
+    def delete_squads_by_shift_id(self, shift_id: str) -> None:
+        """Delete all squads belonging to a shift. Override in providers that need direct deletes."""
+        pass
+
 
 class MembershipsStore(ABC):
     """
