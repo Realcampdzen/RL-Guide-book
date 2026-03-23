@@ -8820,37 +8820,5 @@ if __name__ == '__main__':
     
     app.run(debug=False, host='0.0.0.0', port=4000)
 
-
-# ── Temporary diagnostic endpoint (remove after debugging) ──
-@app.route('/api/diag/supabase', methods=['GET'])
-def diag_supabase():
-    import traceback
-    info = {}
-    info['USE_SUPABASE'] = os.environ.get('USE_SUPABASE', '<not set>')
-    url = os.environ.get('SUPABASE_URL', '')
-    key = os.environ.get('SUPABASE_SERVICE_ROLE_KEY', '')
-    info['SUPABASE_URL'] = url[:40] + '...' if url else '<not set>'
-    info['KEY_present'] = bool(key)
-    info['KEY_length'] = len(key)
-    info['KEY_prefix'] = key[:20] + '...' if key else '<empty>'
-    try:
-        from supabase import create_client
-        sb = create_client(url, key)
-        result = sb.table('role_requests').select('id').limit(1).execute()
-        info['supabase_ok'] = True
-        info['role_requests_count'] = len(result.data)
-    except Exception as e:
-        info['supabase_ok'] = False
-        info['error'] = str(e)
-        info['traceback'] = traceback.format_exc()[-500:]
-    try:
-        store = get_store('role_requests')
-        info['store_class'] = type(store).__name__
-        data = store.load()
-        info['store_load_count'] = len(data) if isinstance(data, list) else str(type(data))
-    except Exception as e:
-        info['store_error'] = str(e)
-    return jsonify(info)
-
 # Для Vercel - экспортируем app
 # Vercel будет использовать это как WSGI приложение
