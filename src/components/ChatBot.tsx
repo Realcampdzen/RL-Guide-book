@@ -30,6 +30,13 @@ interface ChatBotProps {
   };
   currentLevel?: string;
   currentLevelBadgeTitle?: string;
+  /** Active section/tab inside PersonalCabinet */
+  cabinetContext?: {
+    section: string;
+    sectionLabel: string;
+    tab: string;
+    tabLabel: string;
+  };
 }
 
 interface ViewportState {
@@ -55,7 +62,8 @@ const ChatBot: React.FC<ChatBotProps> = ({
   currentCategory, 
   currentBadge,
   currentLevel,
-  currentLevelBadgeTitle
+  currentLevelBadgeTitle,
+  cabinetContext,
 }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
@@ -361,7 +369,11 @@ const ChatBot: React.FC<ChatBotProps> = ({
             current_category: currentCategory,
             current_badge: currentBadge,
             current_level: currentLevel,
-            current_level_badge_title: currentLevelBadgeTitle
+            current_level_badge_title: currentLevelBadgeTitle,
+            cabinet_section: cabinetContext?.section,
+            cabinet_section_label: cabinetContext?.sectionLabel,
+            cabinet_tab: cabinetContext?.tab,
+            cabinet_tab_label: cabinetContext?.tabLabel,
           }
         }),
       });
@@ -660,6 +672,7 @@ const ChatBot: React.FC<ChatBotProps> = ({
   return (
     <Dialog.Root
       open={isOpen}
+      modal={false}
       onOpenChange={(open) => {
         if (!open) onClose();
       }}
@@ -676,11 +689,17 @@ const ChatBot: React.FC<ChatBotProps> = ({
               position: 'fixed',
               inset: 0,
               background: mobileOverlayBackground,
-              pointerEvents: 'auto',
+              pointerEvents: 'none',
             }}
           />
 
-          <Dialog.Content className="chatbot-container" style={containerStyle} aria-labelledby="chatbot-dialog-title">
+          <Dialog.Content
+            className="chatbot-container"
+            style={containerStyle}
+            aria-labelledby="chatbot-dialog-title"
+            onPointerDownOutside={(e) => e.preventDefault()}
+            onInteractOutside={(e) => e.preventDefault()}
+          >
             {!isMobile && (
               <div
                 className="chatbot-drag-handle"
@@ -792,7 +811,7 @@ const ChatBot: React.FC<ChatBotProps> = ({
             </div>
 
             {/* Контекстная информация */}
-            {(currentView || currentCategory || currentBadge || currentLevel) && (
+            {(currentView || currentCategory || currentBadge || currentLevel || cabinetContext) && (
               <div
                 className="chatbot-context"
                 style={{
@@ -839,7 +858,18 @@ const ChatBot: React.FC<ChatBotProps> = ({
                       </span>
                     </div>
                   )}
-                  {currentCategory && (
+                  {cabinetContext && (
+                    <div className="chatbot-context-item" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span className="chatbot-context-icon" style={{ fontSize: '14px' }}>
+                        📍
+                      </span>
+                      <span>
+                        {cabinetContext.sectionLabel}
+                        {cabinetContext.tabLabel ? ` → ${cabinetContext.tabLabel}` : ''}
+                      </span>
+                    </div>
+                  )}
+                  {currentCategory && !cabinetContext && (
                     <div className="chatbot-context-item" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <span className="chatbot-context-icon" style={{ fontSize: '14px' }}>
                         📁
@@ -849,7 +879,7 @@ const ChatBot: React.FC<ChatBotProps> = ({
                       </span>
                     </div>
                   )}
-                  {currentBadge && (
+                  {currentBadge && !cabinetContext && (
                     <div
                       className="chatbot-context-item chatbot-context-item-with-margin"
                       style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: currentCategory ? '3px' : '0' }}
@@ -862,7 +892,7 @@ const ChatBot: React.FC<ChatBotProps> = ({
                       </span>
                     </div>
                   )}
-                  {currentLevel && (
+                  {currentLevel && !cabinetContext && (
                     <div className="chatbot-context-item" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <span className="chatbot-context-icon" style={{ fontSize: '14px' }}>
                         🎯

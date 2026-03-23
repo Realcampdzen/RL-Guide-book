@@ -311,6 +311,29 @@ class SupabaseSquadMessagesStore(SquadMessagesStore):
                     row["id"] = msg["id"]
                 sb.table("squad_messages").upsert(row).execute()
 
+    def insert_message(self, msg: dict) -> dict:
+        """Direct single-row INSERT — lets Supabase auto-generate the UUID id."""
+        sb = _client()
+        row = {
+            "squad_id": (msg.get("squadId") or "").strip(),
+            "device_id": msg.get("deviceId") or "",
+            "role": msg.get("role") or "participant",
+            "text": msg.get("text") or "",
+        }
+        if msg.get("nickname"):
+            row["nickname"] = msg["nickname"]
+        result = sb.table("squad_messages").insert(row).execute()
+        inserted = (result.data or [{}])[0]
+        return {
+            "id": str(inserted.get("id", msg.get("id", ""))),
+            "squadId": (inserted.get("squad_id") or msg.get("squadId") or ""),
+            "deviceId": (inserted.get("device_id") or msg.get("deviceId") or ""),
+            "nickname": (inserted.get("nickname") or msg.get("nickname") or None),
+            "role": (inserted.get("role") or msg.get("role") or "participant"),
+            "text": (inserted.get("text") or msg.get("text") or ""),
+            "createdAt": _ts(inserted.get("created_at")) or msg.get("createdAt") or "",
+        }
+
 
 # ---------------------------------------------------------------------------
 # BadgeRequestsStore — таблица badge_requests

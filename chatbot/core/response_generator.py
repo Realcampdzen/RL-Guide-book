@@ -36,6 +36,27 @@ class ResponseGenerator:
         self.openai_client = openai_client
         self.data_loader = data_loader
         self.context_manager = context_manager
+
+    def _prompt_kwargs(self, context: UserContext) -> dict:
+        """Extracts common kwargs for get_system_prompt_with_context from session_data."""
+        sd = context.session_data
+        return dict(
+            user_level=context.level,
+            user_interests=context.interests,
+            current_view=sd.get('current_view'),
+            current_level=sd.get('current_level'),
+            current_level_badge_title=sd.get('current_level_badge_title'),
+            user_role=sd.get('user_role'),
+            nickname=sd.get('nickname'),
+            squad_name=sd.get('squad_name'),
+            shift_name=sd.get('shift_name'),
+            pending_badge_count=sd.get('pending_badge_count'),
+            pending_badge_titles=sd.get('pending_badge_titles'),
+            cabinet_section=sd.get('cabinet_section'),
+            cabinet_section_label=sd.get('cabinet_section_label'),
+            cabinet_tab=sd.get('cabinet_tab'),
+            cabinet_tab_label=sd.get('cabinet_tab_label'),
+        )
     
     def generate_response(
         self,
@@ -201,6 +222,7 @@ class ResponseGenerator:
 
     def _generate_where_am_i(self, context: UserContext) -> str:
         """Отвечает, где пользователь находится, по данным веб-контекста."""
+        from prompts.system_prompt import CABINET_SECTION_DESCRIPTIONS
         view_names = {
             'intro': 'Главная страница',
             'categories': 'Список категорий',
@@ -218,23 +240,36 @@ class ResponseGenerator:
 
         parts = [f"Сейчас ты на экране: {view_human}."]
 
-        if context.current_category:
-            cat = self.data_loader.get_category(context.current_category)
-            if cat:
-                parts.append(f"Категория: {cat.emoji} {cat.title}.")
+        # Контекст Личного кабинета (раздел + таб)
+        cab_section = context.session_data.get('cabinet_section')
+        cab_section_label = context.session_data.get('cabinet_section_label')
+        cab_tab_label = context.session_data.get('cabinet_tab_label')
+        if cab_section:
+            loc = cab_section_label or cab_section
+            if cab_tab_label:
+                loc += f" → {cab_tab_label}"
+            parts.append(f"Раздел кабинета: {loc}.")
+            desc = CABINET_SECTION_DESCRIPTIONS.get(cab_section)
+            if desc:
+                parts.append(f"Это {desc}.")
+        else:
+            if context.current_category:
+                cat = self.data_loader.get_category(context.current_category)
+                if cat:
+                    parts.append(f"Категория: {cat.emoji} {cat.title}.")
 
-        if context.current_badge:
-            badge = self.data_loader.get_badge(context.current_badge)
-            if badge:
-                parts.append(f"Значок: {badge.emoji} {badge.title}.")
+            if context.current_badge:
+                badge = self.data_loader.get_badge(context.current_badge)
+                if badge:
+                    parts.append(f"Значок: {badge.emoji} {badge.title}.")
 
-        cur_level = context.session_data.get('current_level')
-        cur_level_title = context.session_data.get('current_level_badge_title')
-        if cur_level:
-            lvl_line = f"Уровень: {cur_level}"
-            if cur_level_title:
-                lvl_line += f" — {cur_level_title}"
-            parts.append(lvl_line + ".")
+            cur_level = context.session_data.get('current_level')
+            cur_level_title = context.session_data.get('current_level_badge_title')
+            if cur_level:
+                lvl_line = f"Уровень: {cur_level}"
+                if cur_level_title:
+                    lvl_line += f" — {cur_level_title}"
+                parts.append(lvl_line + ".")
 
         # Дружелюбная подсказка по действиям
         tips = []
@@ -246,8 +281,10 @@ class ResponseGenerator:
             tips.append("Могу объяснить значок, уровни или предложить идеи, как его получить.")
         if current_view == 'registration-form':
             tips.append("Могу помочь заполнить важные поля анкеты.")
-        if current_view == 'profile':
+        if current_view == 'profile' and not cab_section:
             tips.append("Могу подсказать про прогресс, Мой путь, рефлексию и подтверждение уровней.")
+        if cab_section:
+            tips.append("Спроси меня, что делать в этом разделе, и я подскажу!")
 
         if tips:
             parts.append("Подсказка: " + " ".join(tips))
@@ -636,16 +673,7 @@ class ResponseGenerator:
         system_prompt = get_system_prompt_with_context(
             current_category=context.current_category or "",
             current_badge=context.current_badge or "",
-            user_level=context.level,
-            user_interests=context.interests,
-            current_view=context.session_data.get('current_view'),
-            current_level=context.session_data.get('current_level'),
-            user_role=context.session_data.get('user_role'),
-            nickname=context.session_data.get('nickname'),
-            squad_name=context.session_data.get('squad_name'),
-            shift_name=context.session_data.get('shift_name'),
-            pending_badge_count=context.session_data.get('pending_badge_count'),
-            pending_badge_titles=context.session_data.get('pending_badge_titles'),
+            **self._prompt_kwargs(context),
         )
         
         # Дополнительные указания по стилю даются в системном промпте; без жёстких ограничений длины здесь

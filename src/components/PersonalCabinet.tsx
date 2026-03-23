@@ -34,7 +34,7 @@ import { SquadCornerDashboard } from './SquadCornerDashboard';
 import { SquadCabinetPanel } from './SquadCabinetPanel';
 import { SquadChat } from './SquadChat';
 
-import { loadMySquad, type SquadMineResponse } from '../utils/badgeApprovalApi';
+import { loadMySquad, patchSquadCorner, type SquadMineResponse, type SquadCorner } from '../utils/badgeApprovalApi';
 import { VozhatifikatorChecklist } from './VozhatifikatorChecklist';
 
 import { CommunityRankingPanel } from './CommunityRankingPanel';
@@ -47,6 +47,7 @@ import { CampProgramByDays } from './CampProgramByDays';
 import { ShiftsAndSquadsDashboard } from './ShiftsAndSquadsDashboard';
 import { QRCodeSVG } from 'qrcode.react';
 import { parseMarkdownToc, markdownToHtmlWithHeadingIds } from '../utils/markdown';
+import '../styles/additional-material.css';
 import '../styles/cabinet-carousel.css';
 import '../styles/cabinet-tokens.css';
 
@@ -256,7 +257,7 @@ const CAROUSEL_STATIC_MAX = 5;
 // Markdown document tab viewer (for Inspector reference materials)
 // ---------------------------------------------------------------------------
 
-const MarkdownDocTab: React.FC<{ mdPath: string }> = ({ mdPath }) => {
+const MarkdownDocTab: React.FC<{ title: string; mdPath: string }> = ({ title, mdPath }) => {
     const [html, setHtml] = React.useState<string | null>(null);
     const [loading, setLoading] = React.useState(true);
     const [error, setError] = React.useState<string | null>(null);
@@ -279,43 +280,53 @@ const MarkdownDocTab: React.FC<{ mdPath: string }> = ({ mdPath }) => {
     }, [mdPath]);
 
     return (
-        <div style={{
-            position: 'relative',
-            marginTop: 16,
-            minHeight: '200px', // Fallback for very short content to still have a glassy frame
-            color: '#e8f0ff'
-        }}>
-            {/* 
-              This is the secret sauce: a sticky glass pane inside an absolute wrapper.
-              It visually sticks to the screen while you scroll native long text, 
-              preventing Chromium backdrop-filter crash on 4000px+ height elements.
-            */}
+        <div style={{ marginTop: 8 }}>
+            {/* Glass card wrapper */}
             <div style={{
-                position: 'absolute', top: 0, bottom: 0, left: 0, right: 0,
-                pointerEvents: 'none', zIndex: 0
+                background: 'rgba(8, 20, 40, 0.25)',
+                backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                borderRadius: 20,
+                boxShadow: '0 16px 40px rgba(0,0,0,0.35)',
+                overflow: 'hidden',
             }}>
+                {/* Title bar */}
                 <div style={{
-                    position: 'sticky',
-                    top: 16,
-                    height: '100%', 
-                    maxHeight: '120vh', // Extends far below the screen so the bottom edge is hidden while scrolling long text!
-                    background: 'rgba(8, 20, 40, 0.15)',
-                    backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
-                    border: '1px solid rgba(255, 255, 255, 0.08)',
-                    borderRadius: 24,
-                    boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.02), 0 16px 40px rgba(0,0,0,0.3)',
-                }} />
-            </div>
+                    padding: '16px 24px',
+                    borderBottom: '1px solid rgba(255,255,255,0.08)',
+                    background: 'rgba(255,255,255,0.04)',
+                }}>
+                    <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#e8f0ff', letterSpacing: '0.02em' }}>{title}</h3>
+                </div>
 
-            <div style={{ position: 'relative', zIndex: 1, padding: '32px 40px', paddingBottom: 64 }}>
-                {loading && <div style={{ padding: 40, textAlign: 'center', color: 'rgba(255,255,255,0.4)', fontSize: 14 }}>Загрузка документа...</div>}
-                {error && <div style={{ padding: 32, textAlign: 'center', color: '#ef4444', fontSize: 14 }}>Не удалось загрузить: {error}</div>}
-                {html && (
-                    <div
-                        className="markdown-body inspector-doc"
-                        dangerouslySetInnerHTML={{ __html: html }}
-                    />
-                )}
+                {/* Content area */}
+                <div style={{ padding: '4px 8px 16px' }}>
+                    {loading && (
+                        <div style={{ padding: 40, textAlign: 'center', color: 'rgba(255,255,255,0.35)', fontSize: 13 }}>
+                            Загрузка документа…
+                        </div>
+                    )}
+                    {error && (
+                        <div style={{ padding: 28, textAlign: 'center', color: '#f87171', fontSize: 13 }}>
+                            Не удалось загрузить: {error}
+                        </div>
+                    )}
+                    {html && (
+                        <div
+                            className="additional-material-prose"
+                            style={{
+                                background: 'none',
+                                border: 'none',
+                                boxShadow: 'none',
+                                borderRadius: 0,
+                                padding: '16px 20px',
+                                backdropFilter: 'none',
+                                WebkitBackdropFilter: 'none',
+                            }}
+                            dangerouslySetInnerHTML={{ __html: html }}
+                        />
+                    )}
+                </div>
             </div>
         </div>
     );
@@ -474,6 +485,46 @@ export const PersonalCabinet: React.FC<{
         document.body.setAttribute('data-cabinet-open', '1');
         return () => { document.body.removeAttribute('data-cabinet-open'); };
     }, []);
+
+    // Expose active section/tab context for ChatBot via CustomEvent
+    const activeCabinetTab = useMemo(() => {
+        const tabMap: Record<string, string> = {
+            home: homeTab,
+            diary: diaryTab,
+            engine: teamTab,
+            council: councilTab,
+            bro: broTab,
+            workshop: workshopTab,
+            'counselor-squad': counselorTab,
+            profile4k: profile4kTab,
+            'squad-corner': squadCornerTab,
+            share: shareTab,
+            parents: parentsTab,
+            events: eventsTab,
+            vozhatifikator: vozhatifikatorTab,
+            inspector: inspectorTab,
+        };
+        return tabMap[activeSection] || '';
+    }, [activeSection, homeTab, diaryTab, teamTab, councilTab, broTab, workshopTab, counselorTab, profile4kTab, squadCornerTab, shareTab, parentsTab, eventsTab, vozhatifikatorTab, inspectorTab]);
+
+    useEffect(() => {
+        const sectionInfo = SECTION_INFO[activeSection];
+        const tabDefs = SECTION_TABS[activeSection];
+        const tabDef = tabDefs?.find(t => t.id === activeCabinetTab && !t.isDivider);
+
+        window.dispatchEvent(new CustomEvent('cabinet-context', {
+            detail: {
+                section: activeSection,
+                sectionLabel: sectionInfo?.title || activeSection,
+                tab: activeCabinetTab,
+                tabLabel: tabDef?.label || activeCabinetTab,
+            },
+        }));
+
+        return () => {
+            window.dispatchEvent(new CustomEvent('cabinet-context', { detail: null }));
+        };
+    }, [activeSection, activeCabinetTab]);
 
     const navigateToBadge = useCallback(async (badgeId: string, _action?: 'plan' | 'confirm') => {
         // Ensure badge & category data is loaded
@@ -1628,6 +1679,9 @@ export const PersonalCabinet: React.FC<{
                                             canCreateSquadFromCorner={canEditSquadCorner}
                                             onOpenCabinet={() => setSquadCornerTab('squad')}
                                             onOpenShiftsAndSquads={() => setActiveSection('shifts')}
+                                            onPersistCorner={accessToken && mySquadInfo?.membership?.squadId ? async (payload: Partial<SquadCorner>) => {
+                                                await patchSquadCorner(accessToken, mySquadInfo!.membership!.squadId, payload);
+                                            } : undefined}
                                         />
                                     )}
                                 </div>
@@ -2512,13 +2566,13 @@ export const PersonalCabinet: React.FC<{
                                             );
                                         })()}
                                         {['intro-doc', 'methodology-doc', 'active-checklist-doc'].includes(inspectorTab) && (() => {
-                                            const DOC_CONFIG: Record<string, { path: string }> = {
-                                                'intro-doc': { path: '/RL-Guide-book/ai-data/category-14/introduction.md' },
-                                                'methodology-doc': { path: '/RL-Guide-book/ai-data/category-14/methodology/inspector-methodology.md' },
-                                                'active-checklist-doc': { path: '/RL-Guide-book/ai-data/category-14/checklists/active-checklist.md' },
+                                            const DOC_CONFIG: Record<string, { title: string; path: string }> = {
+                                                'intro-doc': { title: '📖 Введение в Инспектора Пользы', path: '/RL-Guide-book/ai-data/category-14/introduction.md' },
+                                                'methodology-doc': { title: '📘 Методика «Инспектор Пользы»', path: '/RL-Guide-book/ai-data/category-14/methodology/inspector-methodology.md' },
+                                                'active-checklist-doc': { title: '✅ Активный чек-лист', path: '/RL-Guide-book/ai-data/category-14/checklists/active-checklist.md' },
                                             };
                                             const cfg = DOC_CONFIG[inspectorTab];
-                                            return <MarkdownDocTab key={inspectorTab} mdPath={cfg.path} />;
+                                            return <MarkdownDocTab key={inspectorTab} title={cfg.title} mdPath={cfg.path} />;
                                         })()}
                                     </div>
                                 ) : activeSection === 'counselor-squad' ? (

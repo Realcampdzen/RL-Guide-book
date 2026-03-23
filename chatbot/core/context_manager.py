@@ -459,6 +459,10 @@ class ContextManager:
         context.session_data['shift_name']  = getattr(web_context, 'shift_name',  None)
         context.session_data['pending_badge_count']  = getattr(web_context, 'pending_badge_count',  None)
         context.session_data['pending_badge_titles'] = getattr(web_context, 'pending_badge_titles', None)
+        context.session_data['cabinet_section']       = getattr(web_context, 'cabinet_section',       None)
+        context.session_data['cabinet_section_label']  = getattr(web_context, 'cabinet_section_label',  None)
+        context.session_data['cabinet_tab']           = getattr(web_context, 'cabinet_tab',           None)
+        context.session_data['cabinet_tab_label']     = getattr(web_context, 'cabinet_tab_label',     None)
         
         # Сохраняем обновленный контекст
         self._save_context(context)
@@ -470,3 +474,7 @@ class ContextManager:
         print(f"  badge: {context.current_badge}")
         if web_context.current_level_badge_title:
             print(f"  level_title: {web_context.current_level_badge_title}")
+        cabinet_section = getattr(web_context, 'cabinet_section_label', None)
+        cabinet_tab = getattr(web_context, 'cabinet_tab_label', None)
+        if cabinet_section:
+            print(f"  cabinet: {cabinet_section} -> {cabinet_tab or ''}")

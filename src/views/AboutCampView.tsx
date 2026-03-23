@@ -1,11 +1,10 @@
-import React, { Suspense, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useScrollReveal } from '../hooks/useScrollReveal';
 import { useTiltCard } from '../hooks/useTiltCard';
 import { aboutCampSession } from '../data/aboutCampSession';
 import '../styles/about-camp.css';
 
-const loadChatBot = () => import('../components/ChatBot');
-const ChatBot = React.lazy(loadChatBot);
+
 
 interface AboutCampViewProps {
   onBack: () => void;
@@ -29,7 +28,7 @@ const AboutCampView: React.FC<AboutCampViewProps> = ({
   onTelegramContact,
   onChatToggle,
   isChatOpen,
-  onChatClose
+  onChatClose: _onChatClose
 }) => {
   const { initReveal } = useScrollReveal();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -472,9 +471,7 @@ const AboutCampView: React.FC<AboutCampViewProps> = ({
 
        </main>
 
-       <Suspense fallback={null}>
-         <ChatBot isOpen={isChatOpen} onClose={onChatClose} currentView="about-camp" />
-       </Suspense>
+
     </div>
   );
 };

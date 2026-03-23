@@ -3579,12 +3579,13 @@ def squad_messages_get_or_post(squad_id: str):
         "role": role,
         "text": clean_text
     }
-    rows.append(msg)
-    rows = rows[-SQUAD_MESSAGES_MAX_HISTORY:]
-    by_squad[sid] = rows
-    doc["bySquadId"] = by_squad
-    _squad_messages_save(doc)
-    return jsonify({"message": msg})
+    try:
+        stored = get_store("squad_messages").insert_message(msg)
+    except Exception as exc:
+        import traceback as _tb
+        print(f"[squad_messages INSERT error] {exc}\n{_tb.format_exc()}")
+        return jsonify({"error": "Не удалось сохранить сообщение"}), 500
+    return jsonify({"message": stored})
 
 
 # ── Delete message ──

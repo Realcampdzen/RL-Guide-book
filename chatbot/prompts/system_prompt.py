@@ -27,6 +27,27 @@ ROLE_LABELS = {
     'developer': 'Разработчик',
 }
 
+# Описания разделов Личного кабинета для LLM-контекста
+CABINET_SECTION_DESCRIPTIONS = {
+    'home': 'Главная — паспорт значков, карта путешественника, избранное, коллекция и журнал',
+    'squad-corner': 'Мой отряд — кабинет отряда, чат, беспорядок дня, программа смены, фото, флаговые значки',
+    'diary': 'Реальный дневник — ежедневные записи, рефлексия, фото и сторис от участника',
+    'engine': 'Движок — проекты развития, движки для развития навыков, ОДэ Генератор (конструктор отрядных дел)',
+    'council': 'Совет лагеря — инициативы и голосования, решения совета, управление лагерем',
+    'bro': 'БРО — Бросвящение (посвящение в БРО), Крыло (сообщество), Бродела (дела БРО), Броотряд, чат, создание посвящений',
+    'workshop': 'Мастерская — Кузница Смыслов, конструктор значков и категорий, арты сообщества',
+    'counselor-squad': 'Вожатский отряд — управление вожатским отрядом, карточка, программа',
+    'vozhatifikator': 'Вожатификатор — чек-лист подготовки вожатого, путеводные огни, история эпох лагеря',
+    'profile4k': '4К — четыре ключевых компетенции: критическое мышление, коммуникация, коллаборация, креативность',
+    'progress': 'Карточки прогресса — прогресс-карты значков, текущие цели, уровни',
+    'inspector': 'Инспектор Пользы — ежедневные миссии по категориям пользы (дружба, вежливость, уют, помощь, вовлечение, спокойствие, настроение)',
+    'shifts': 'Смены и Отряды — управление сменами, создание отрядов, коды вступления',
+    'share': 'Поделиться — пригласи друзей, QR-код путеводителя',
+    'events': 'События — заявки на значки, объявления, задания',
+    'parents': 'Для родителей — программа смены, прогресс ребёнка, контакты',
+    'admin': 'Пульт управления — входящие запросы, генерация кодов, панель разработчика',
+}
+
 def get_system_prompt_with_context(
     current_category: str = None,
     current_badge: str = None,
@@ -41,6 +62,10 @@ def get_system_prompt_with_context(
     shift_name: Optional[str] = None,
     pending_badge_count: Optional[int] = None,
     pending_badge_titles: Optional[list] = None,
+    cabinet_section: Optional[str] = None,
+    cabinet_section_label: Optional[str] = None,
+    cabinet_tab: Optional[str] = None,
+    cabinet_tab_label: Optional[str] = None,
 ) -> str:
     """
     Получает системный промпт с дополнительным контекстом
@@ -53,10 +78,14 @@ def get_system_prompt_with_context(
         current_view: Текущий экран приложения
         current_level: Текущий уровень значка
         current_level_badge_title: Название конкретного уровня значка
-        user_role: Роль пользователя из JWT (participant, parent, counselor, shift_leader, organizer, developer)
-        nickname: Никнейм участника (из JWT / membership)
-        squad_name: Название отряда (из membership lookup)
-        shift_name: Название смены (из membership lookup)
+        user_role: Роль пользователя из JWT
+        nickname: Никнейм участника
+        squad_name: Название отряда
+        shift_name: Название смены
+        cabinet_section: ID раздела Личного кабинета
+        cabinet_section_label: Человекочитаемое название раздела
+        cabinet_tab: ID таба внутри раздела
+        cabinet_tab_label: Человекочитаемое название таба
         
     Returns:
         Системный промпт с контекстом
@@ -110,6 +139,19 @@ def get_system_prompt_with_context(
         }
         view_name = view_names.get(current_view, current_view)
         context_parts.append(f"Пользователь находится на экране: {view_name}")
+    
+    # Контекст Личного кабинета (раздел и таб)
+    if cabinet_section:
+        section_desc = CABINET_SECTION_DESCRIPTIONS.get(cabinet_section, cabinet_section_label or cabinet_section)
+        location = cabinet_section_label or cabinet_section
+        if cabinet_tab_label:
+            location += f" → {cabinet_tab_label}"
+        context_parts.append(
+            f"Пользователь находится в Личном кабинете, раздел: {location}. "
+            f"Описание раздела: {section_desc}. "
+            "Если пользователь спрашивает что это за раздел или как им пользоваться — "
+            "объясни его назначение и возможности."
+        )
     
     if current_level:
         context_parts.append(f"Текущий уровень значка: {current_level}")

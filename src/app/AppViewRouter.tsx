@@ -1,9 +1,12 @@
-import React, { Suspense } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 import type { AppController } from './useAppController';
 import AdditionalMaterialView from '../views/AdditionalMaterialView';
 import IntroductionView from '../views/IntroductionView';
 import RegistrationFormView from '../views/RegistrationFormView';
 import GlobalCursor from '../components/GlobalCursor';
+
+const ChatBot = React.lazy(() => import('../components/ChatBot'));
+const ChatAvatar = React.lazy(() => import('../components/ChatAvatar'));
 
 // Lazy load views for better performance
 const BlueNestLanding = React.lazy(() => import('../components/BlueNestLanding'));
@@ -21,6 +24,20 @@ type Props = {
 };
 
 export const AppViewRouter: React.FC<Props> = ({ controller, fallback }) => {
+  // Read PersonalCabinet context via lightweight CustomEvent (set by PersonalCabinet.tsx)
+  const [cabinetDataset, setCabinetDataset] = useState<{
+    section: string; sectionLabel: string; tab: string; tabLabel: string;
+  } | null>(null);
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      setCabinetDataset(detail || null);
+    };
+    window.addEventListener('cabinet-context', handler);
+    return () => window.removeEventListener('cabinet-context', handler);
+  }, []);
+
   const {
     currentView,
     categories,
@@ -268,7 +285,24 @@ export const AppViewRouter: React.FC<Props> = ({ controller, fallback }) => {
         />
       )}
 
-      {/* ChatBot and ChatAvatar are handled inside BlueNestLanding and CategoriesGrid */}
+      {/* Global ChatBot overlay + floating avatar — works on every view */}
+      {!loading && currentView !== 'intro' && currentView !== 'categories' && currentView !== 'about-camp' && (
+        <Suspense fallback={null}>
+          <ChatAvatar onClick={toggleChat} isOpen={isChatOpen} />
+        </Suspense>
+      )}
+      <Suspense fallback={null}>
+        <ChatBot
+          isOpen={isChatOpen}
+          onClose={closeChat}
+          currentView={currentView}
+          currentCategory={selectedCategory ? { id: selectedCategory.id, title: selectedCategory.title, emoji: selectedCategory.emoji } : undefined}
+          currentBadge={selectedBadge ? { id: selectedBadge.id, title: selectedBadge.title, emoji: selectedBadge.emoji, categoryId: selectedBadge.category_id } : undefined}
+          currentLevel={selectedLevel || undefined}
+          currentLevelBadgeTitle={currentLevelBadgeTitle}
+          cabinetContext={cabinetDataset || undefined}
+        />
+      </Suspense>
       {!loading && (
         <MobileBottomNav
           currentView={currentView}

@@ -47,6 +47,10 @@ class WebContext(BaseModel):
     shift_name: Optional[str] = Field(None, description="Название смены (из membership lookup)")
     pending_badge_count: Optional[int] = Field(None, description="Количество заявок на значки в статусе pending")
     pending_badge_titles: Optional[list] = Field(None, description="Названия значков из pending заявок (max 3)")
+    cabinet_section: Optional[str] = Field(None, description="ID раздела Личного кабинета (home, bro, engine, etc.)")
+    cabinet_section_label: Optional[str] = Field(None, description="Человекочитаемое название раздела")
+    cabinet_tab: Optional[str] = Field(None, description="ID таба внутри раздела")
+    cabinet_tab_label: Optional[str] = Field(None, description="Человекочитаемое название таба")
 
 
 class ChatRequest(BaseModel):

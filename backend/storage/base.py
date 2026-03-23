@@ -82,6 +82,21 @@ class SquadMessagesStore(ABC):
     @abstractmethod
     def save(self, data: dict) -> None: ...
 
+    def insert_message(self, msg: dict) -> dict:
+        """Direct single-message insert. Override in providers that support it.
+        Default: delegates to load+save (JSON provider path).
+        Returns the stored message (may have server-generated id)."""
+        sid = (msg.get('squadId') or '').strip()
+        doc = self.load()
+        by_squad = doc.get('bySquadId') or {}
+        rows = by_squad.get(sid) if isinstance(by_squad.get(sid), list) else []
+        rows.append(msg)
+        rows = rows[-1000:]
+        by_squad[sid] = rows
+        doc['bySquadId'] = by_squad
+        self.save(doc)
+        return msg
+
 
 class BadgeRequestsStore(ABC):
     """
