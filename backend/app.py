@@ -3094,7 +3094,7 @@ def squad_join(squad_id: str):
     Auth: participant|counselor|educator|shift_leader|camp_director|developer
     Body: { nickname?: string, role?: participant|counselor|shift_leader|camp_director (for developer only) }
     """
-    payload, err = _require_roles(("participant", "counselor", "educator", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
+    payload, err = _require_roles(("participant", "parent", "counselor", "educator", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
     if err is not None:
         return err[0], err[1]
     device_id = (payload.get("deviceId") or "").strip()
@@ -3150,7 +3150,7 @@ def squads_mine():
     Auth: participant|counselor|educator|shift_leader|camp_director|developer
     Returns: membership + squad/shift meta.
     """
-    payload, err = _require_roles(("participant", "counselor", "educator", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
+    payload, err = _require_roles(("participant", "parent", "counselor", "educator", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
     if err is not None:
         return err[0], err[1]
     device_id = (payload.get("deviceId") or "").strip()
@@ -3188,7 +3188,7 @@ def squad_corner_get_or_patch(squad_id: str):
     if request.method == 'PATCH':
         payload, err = _require_roles(("counselor", "educator", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
     else:
-        payload, err = _require_roles(("participant", "counselor", "educator", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
+        payload, err = _require_roles(("participant", "parent", "counselor", "educator", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
     if err is not None:
         return err[0], err[1]
 
@@ -3387,7 +3387,7 @@ def squad_preview(squad_id: str):
     GET /api/squads/<squadId>/preview — minimal squad info for join modal.
     Auth required.
     """
-    payload, err = _require_roles(("participant", "counselor", "educator", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
+    payload, err = _require_roles(("participant", "parent", "counselor", "educator", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
     if err is not None:
         return err[0], err[1]
     sid = (squad_id or "").strip()
