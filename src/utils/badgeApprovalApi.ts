@@ -43,6 +43,7 @@ export interface SquadMembership {
   role: string;
   joinedAt: string;
   nickname?: string;
+  avatarUrl?: string | null;
 }
 
 export interface SquadMeta {
@@ -66,8 +67,8 @@ export interface SquadMineResponse {
   membership: SquadMembership | null;
   squad: SquadMeta | null;
   shift: ShiftMeta | null;
-  participants: Array<{ deviceId: string; nickname?: string | null; joinedAt?: string }>;
-  members?: Array<{ deviceId: string; nickname?: string | null; role: string; joinedAt?: string }>;
+  participants: Array<{ deviceId: string; nickname?: string | null; joinedAt?: string; avatarUrl?: string | null }>;
+  members?: Array<{ deviceId: string; nickname?: string | null; role: string; joinedAt?: string; avatarUrl?: string | null }>;
 }
 
 export type SquadCornerPlanGrid = {
@@ -128,6 +129,7 @@ export interface SquadMessage {
   deviceId?: string | null;
   nickname?: string | null;
   role?: string | null;
+  avatarUrl?: string | null;
   text: string;
 }
 

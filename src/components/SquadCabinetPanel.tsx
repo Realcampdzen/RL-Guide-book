@@ -13,6 +13,10 @@ import {
 import { SquadChat } from './SquadChat';
 import { getSquadCornerReadiness, getSquadCornerReadinessLabel, getSquadCornerReadinessTone } from '../utils/squadCornerReadiness';
 
+const isImageAvatar = (value?: string | null): boolean => Boolean(
+  value && (value.startsWith('data:') || value.startsWith('http') || value.startsWith('/'))
+);
+
 interface SquadCabinetPanelProps {
   role: string;
   deviceId?: string;
@@ -135,7 +139,7 @@ export const SquadCabinetPanel: React.FC<SquadCabinetPanelProps> = ({
     if (membersData && membersData.length > 0) {
       for (const m of membersData) {
         if (!m?.deviceId) continue;
-        fallback.push({ deviceId: m.deviceId, nickname: m.nickname || null, role: m.role || 'participant', joinedAt: m.joinedAt, avatarUrl: (m as any).avatarUrl || null });
+        fallback.push({ deviceId: m.deviceId, nickname: m.nickname || null, role: m.role || 'participant', joinedAt: m.joinedAt, avatarUrl: m.avatarUrl || null });
       }
     }
 
@@ -155,7 +159,7 @@ export const SquadCabinetPanel: React.FC<SquadCabinetPanelProps> = ({
     for (const p of mySquadInfo?.participants || []) {
       if (!p?.deviceId) continue;
       if (fallback.some((x) => x.deviceId === p.deviceId)) continue;
-      fallback.push({ deviceId: p.deviceId, nickname: p.nickname || null, role: 'participant', joinedAt: p.joinedAt, avatarUrl: (p as any).avatarUrl || null });
+      fallback.push({ deviceId: p.deviceId, nickname: p.nickname || null, role: 'participant', joinedAt: p.joinedAt, avatarUrl: p.avatarUrl || null });
     }
 
     // Final pass: ensure current user always has the correct nickname and avatar from profile
@@ -169,7 +173,7 @@ export const SquadCabinetPanel: React.FC<SquadCabinetPanelProps> = ({
     }
 
     return fallback;
-  }, [mySquadInfo, myNickname, deviceId]);
+  }, [mySquadInfo, myNickname, deviceId, userData?.profile?.avatar]);
 
   const inviteLink = useMemo(() => {
     if (!squadId || typeof window === 'undefined') return '';
@@ -476,13 +480,24 @@ export const SquadCabinetPanel: React.FC<SquadCabinetPanelProps> = ({
                     marginBottom: 8
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                      {m.avatarUrl ? (
+                      {m.avatarUrl && isImageAvatar(m.avatarUrl) ? (
                         <div style={{ 
                           width: 40, height: 40, borderRadius: '50%', overflow: 'hidden', 
                           border: `1px solid ${isCounselor ? 'rgba(244,114,182,0.3)' : 'rgba(93,228,255,0.2)'}`,
                           flexShrink: 0
                         }}>
                           <img src={m.avatarUrl} alt={m.nickname || ''} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        </div>
+                      ) : m.avatarUrl ? (
+                        <div style={{ 
+                          width: 40, height: 40, borderRadius: '50%', 
+                          background: isCounselor ? 'linear-gradient(135deg, rgba(244,114,182,0.2), rgba(251,146,60,0.2))' : 'linear-gradient(135deg, rgba(93,228,255,0.15), rgba(165,180,252,0.15))',
+                          border: `1px solid ${isCounselor ? 'rgba(244,114,182,0.3)' : 'rgba(93,228,255,0.2)'}`,
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                          fontSize: 18, color: isCounselor ? '#fdf2f8' : '#e8f0ff',
+                          flexShrink: 0
+                        }}>
+                          {m.avatarUrl}
                         </div>
                       ) : (
                         <div style={{ 

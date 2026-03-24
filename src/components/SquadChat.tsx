@@ -12,6 +12,10 @@ const ROLE_LABELS: Record<string, string> = {
   developer: 'Разработчик',
 };
 
+const isImageAvatar = (value?: string | null): boolean => Boolean(
+  value && (value.startsWith('data:') || value.startsWith('http') || value.startsWith('/'))
+);
+
 
 interface SquadChatProps {
   squadId: string;
@@ -217,9 +221,9 @@ export const SquadChat: React.FC<SquadChatProps> = ({ squadId, accessToken, nick
         ) : (
           messages.map((m) => {
             const writer = members.find(x => x.deviceId === m.deviceId || (x.nickname && x.nickname === m.nickname));
-            const writerAvatar = writer?.avatarUrl;
+            const writerAvatar = m.avatarUrl || writer?.avatarUrl;
             const isCounselor = m.role === 'counselor' || m.role === 'shift_leader' || m.role === 'developer';
-            const initial = (m.nickname || 'У')[0].toUpperCase();
+            const initial = (m.nickname || writer?.nickname || 'У')[0].toUpperCase();
 
             return (
               <div key={m.id}
@@ -229,9 +233,20 @@ export const SquadChat: React.FC<SquadChatProps> = ({ squadId, accessToken, nick
                   border: isPinned(m) ? '1px solid rgba(139, 0, 255, 0.15)' : '1px solid rgba(255, 255, 255, 0.06)',
                 }}>
                 <div style={{ display: 'flex', gap: 12 }}>
-                  {writerAvatar ? (
+                  {writerAvatar && isImageAvatar(writerAvatar) ? (
                     <div style={{ width: 34, height: 34, borderRadius: '50%', overflow: 'hidden', flexShrink: 0, border: `1px solid ${isCounselor ? 'rgba(244,114,182,0.3)' : 'rgba(93,228,255,0.2)'}` }}>
                       <img src={writerAvatar} alt={m.nickname || ''} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    </div>
+                  ) : writerAvatar ? (
+                    <div style={{
+                      width: 34, height: 34, borderRadius: '50%',
+                      background: isCounselor ? 'linear-gradient(135deg, rgba(244,114,182,0.2), rgba(251,146,60,0.2))' : 'linear-gradient(135deg, rgba(93,228,255,0.15), rgba(165,180,252,0.15))',
+                      border: `1px solid ${isCounselor ? 'rgba(244,114,182,0.3)' : 'rgba(93,228,255,0.2)'}`,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: 16, color: isCounselor ? '#fdf2f8' : '#e8f0ff',
+                      flexShrink: 0
+                    }}>
+                      {writerAvatar}
                     </div>
                   ) : (
                     <div style={{ 

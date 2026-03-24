@@ -18,6 +18,10 @@ interface BroWing {
   leaderNickname: string;
 }
 
+const isImageAvatar = (value?: string | null): boolean => Boolean(
+  value && (value.startsWith('data:') || value.startsWith('http') || value.startsWith('/'))
+);
+
 const glassCard: React.CSSProperties = {
   padding: '18px 20px', borderRadius: 16,
   background: 'rgba(15, 10, 42, 0.35)',
@@ -140,9 +144,9 @@ export const BroSquadPanel: React.FC = () => {
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontSize: 14, flexShrink: 0,
                   }}>
-                    {m.avatar ? (
+                    {m.avatar && isImageAvatar(m.avatar) ? (
                       <img src={m.avatar} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    ) : '👤'}
+                    ) : m.avatar || '👤'}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 13, fontWeight: 600, color: '#e8f0ff' }}>{m.nickname}</div>

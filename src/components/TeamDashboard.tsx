@@ -338,6 +338,14 @@ export const TeamDashboard: React.FC<TeamDashboardProps> = ({
     myTeam?.members.find((m) => m.id === myTeam.leaderId)?.nickname ??
     userData?.profile?.nickname ??
     'Искатель';
+  const teamChatMembers = useMemo(
+    () => (myTeam?.members || []).map((member) => ({
+      deviceId: member.id,
+      nickname: member.nickname || null,
+      avatarUrl: member.avatar || null,
+    })),
+    [myTeam]
+  );
 
   const currentPlannerGrid = activePlannerGrid === 'planGridA' ? localPlanGridA : localPlanGridB;
   const plannerDays = useMemo(
@@ -666,7 +674,28 @@ export const TeamDashboard: React.FC<TeamDashboardProps> = ({
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 200, overflowY: 'auto' }}>
               {myTeam.members.map((member) => (
                 <div key={member.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, padding: '6px 10px', borderRadius: 10, background: 'rgba(255,255,255,0.04)' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div style={{
+                      width: 34,
+                      height: 34,
+                      borderRadius: '50%',
+                      overflow: 'hidden',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      background: 'rgba(139,0,255,0.15)',
+                      border: '1px solid rgba(139,0,255,0.28)',
+                      color: '#fff',
+                      flexShrink: 0,
+                      fontSize: member.avatar && !isImageUrl(member.avatar) ? 16 : 13,
+                      fontWeight: 700,
+                    }}>
+                      {member.avatar
+                        ? isImageUrl(member.avatar)
+                          ? <img src={member.avatar} alt={member.nickname || ''} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          : member.avatar
+                        : (member.nickname || 'У')[0].toUpperCase()}
+                    </div>
                     <span style={{ fontSize: 13, fontWeight: 600 }}>{member.id === myTeam.leaderId ? '👑 ' : ''}{member.nickname || 'Участник'}</span>
                     {member.rank && (
                       <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: 6, background: 'rgba(139,0,255,0.12)', color: 'rgba(139,0,255,0.9)', fontWeight: 600 }}>{member.rank}</span>
@@ -930,6 +959,7 @@ export const TeamDashboard: React.FC<TeamDashboardProps> = ({
           deviceId={deviceId}
           role={undefined}
           chatType="team"
+          members={teamChatMembers}
         />
       </div>
     );

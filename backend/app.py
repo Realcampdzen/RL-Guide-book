@@ -583,6 +583,110 @@ def _membership_for_device(doc: dict, device_id: str) -> Optional[dict]:
     return None
 
 
+def _users_profiles_by_device() -> dict[str, dict]:
+    users_by_device: dict[str, dict] = {}
+    try:
+        users_doc = get_store("users").load()
+    except Exception:
+        return users_by_device
+    for row in (users_doc.get("users") or []):
+        if not isinstance(row, dict):
+            continue
+        device_id = (row.get("legacy_device_id") or "").strip()
+        if device_id:
+            users_by_device[device_id] = row
+    return users_by_device
+
+
+def _extract_avatar_value(source: Optional[dict]) -> str:
+    if not isinstance(source, dict):
+        return ""
+    for key in ("avatarUrl", "avatar_url", "avatar"):
+        value = source.get(key)
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+    return ""
+
+
+def _extract_nickname_value(source: Optional[dict]) -> str:
+    if not isinstance(source, dict):
+        return ""
+    value = source.get("nickname")
+    return value.strip() if isinstance(value, str) else ""
+
+
+def _resolve_identity(
+    device_id: str,
+    *,
+    fallback_nickname: str = "",
+    fallback_avatar: str = "",
+    membership: Optional[dict] = None,
+    user_profile: Optional[dict] = None,
+) -> dict:
+    identity: dict = {}
+    nickname = fallback_nickname.strip() or _extract_nickname_value(membership) or _extract_nickname_value(user_profile)
+    avatar_url = _extract_avatar_value(user_profile) or _extract_avatar_value(membership) or fallback_avatar.strip()
+    if nickname:
+        identity["nickname"] = nickname
+    if avatar_url:
+        identity["avatarUrl"] = avatar_url
+    return identity
+
+
+def _enrich_chat_messages(
+    rows: list[dict],
+    *,
+    membership_by_device: Optional[dict[str, dict]] = None,
+    team_member_by_device: Optional[dict[str, dict]] = None,
+    users_by_device: Optional[dict[str, dict]] = None,
+) -> list[dict]:
+    enriched: list[dict] = []
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        item = dict(row)
+        device_id = (item.get("deviceId") or "").strip()
+        if device_id:
+            identity = _resolve_identity(
+                device_id,
+                fallback_nickname=(item.get("nickname") or ""),
+                fallback_avatar=_extract_avatar_value(item),
+                membership=(team_member_by_device or {}).get(device_id) or (membership_by_device or {}).get(device_id),
+                user_profile=(users_by_device or {}).get(device_id),
+            )
+            if identity.get("nickname") and not (item.get("nickname") or "").strip():
+                item["nickname"] = identity["nickname"]
+            if identity.get("avatarUrl"):
+                item["avatarUrl"] = identity["avatarUrl"]
+        enriched.append(item)
+    return enriched
+
+
+def _enrich_team_doc_identities(team_doc: dict, users_by_device: Optional[dict[str, dict]] = None) -> dict:
+    normalized = _normalize_team_doc(team_doc)
+    members = []
+    for member in (normalized.get("members") or []):
+        if not isinstance(member, dict):
+            continue
+        item = dict(member)
+        device_id = (item.get("id") or "").strip()
+        if device_id:
+            identity = _resolve_identity(
+                device_id,
+                fallback_nickname=(item.get("nickname") or ""),
+                fallback_avatar=_extract_avatar_value(item),
+                membership=item,
+                user_profile=(users_by_device or {}).get(device_id),
+            )
+            if identity.get("nickname"):
+                item["nickname"] = identity["nickname"]
+            if identity.get("avatarUrl"):
+                item["avatar"] = identity["avatarUrl"]
+        members.append(item)
+    normalized["members"] = members
+    return normalized
+
+
 def _resolve_membership_context(device_id: str) -> tuple[str, str]:
     """
     Returns: (campId, squadId) for device from memberships, or ('', '').
@@ -678,6 +782,7 @@ def _build_squad_members_lists(squad_id: str, camp_id: str) -> tuple[list[dict],
     cid = (camp_id or "").strip()
     members: list[dict] = []
     participants: list[dict] = []
+    users_by_device = _users_profiles_by_device()
     mdoc = _memberships_load()
     for row in (mdoc.get("members") or []):
         if not isinstance(row, dict):
@@ -693,13 +798,26 @@ def _build_squad_members_lists(squad_id: str, camp_id: str) -> tuple[list[dict],
             "role": role,
             "joinedAt": (row.get("joinedAt") or "").strip()
         }
+        identity = _resolve_identity(
+            item["deviceId"],
+            fallback_nickname=item.get("nickname") or "",
+            membership=row,
+            user_profile=users_by_device.get(item["deviceId"]),
+        )
+        if identity.get("nickname"):
+            item["nickname"] = identity["nickname"]
+        if identity.get("avatarUrl"):
+            item["avatarUrl"] = identity["avatarUrl"]
         members.append(item)
         if role == "participant":
-            participants.append({
+            participant = {
                 "deviceId": item["deviceId"],
                 "nickname": item["nickname"],
                 "joinedAt": item["joinedAt"]
-            })
+            }
+            if identity.get("avatarUrl"):
+                participant["avatarUrl"] = identity["avatarUrl"]
+            participants.append(participant)
     members.sort(key=lambda item: _parse_iso_ts(item.get("joinedAt") or ""), reverse=False)
     participants.sort(key=lambda item: _parse_iso_ts(item.get("joinedAt") or ""), reverse=False)
     return members, participants
@@ -1180,24 +1298,26 @@ def _teams_save(teams):
 
 
 def _find_team_by_member(teams, device_id):
+    users_by_device = _users_profiles_by_device()
     for tid, doc in teams.items():
         if not isinstance(doc, dict):
             continue
         members = doc.get('members') or []
         for m in members:
             if isinstance(m, dict) and (m.get('id') or '').strip() == device_id:
-                return _normalize_team_doc(doc)
+                return _enrich_team_doc_identities(doc, users_by_device)
     return None
 
 
 def _find_member_teams(teams, device_id):
     found = []
+    users_by_device = _users_profiles_by_device()
     for _, doc in teams.items():
         if not isinstance(doc, dict):
             continue
         members = doc.get('members') or []
         if any(isinstance(m, dict) and (m.get('id') or '').strip() == device_id for m in members):
-            found.append(_normalize_team_doc(doc))
+            found.append(_enrich_team_doc_identities(doc, users_by_device))
     return found
 
 
@@ -1281,7 +1401,7 @@ def handle_teams():
                     team_doc[plan_key] = normalized_plan
             teams[new_id] = team_doc
             _teams_save(teams)
-            return jsonify(team_doc), 201
+            return jsonify(_enrich_team_doc_identities(team_doc, _users_profiles_by_device())), 201
 
         teams = _teams_load()
         teams[team_id] = _normalize_team_doc(data)
@@ -1353,7 +1473,7 @@ def teams_join(team_id):
     members.append(member)
     doc['members'] = members
     _teams_save(teams)
-    return jsonify(doc)
+    return jsonify(_enrich_team_doc_identities(doc, _users_profiles_by_device()))
 
 
 @app.route('/api/teams/<team_id>/leave', methods=['POST'])
@@ -1764,7 +1884,16 @@ def team_messages_get_or_post(team_id: str):
             if before_index is not None:
                 ordered = ordered[:before_index]
         has_more = len(ordered) > limit
-        out = ordered[-limit:]
+        team_members_by_device = {
+            (member.get('id') or '').strip(): member
+            for member in (team_doc.get('members') or [])
+            if isinstance(member, dict) and (member.get('id') or '').strip()
+        }
+        out = _enrich_chat_messages(
+            ordered[-limit:],
+            team_member_by_device=team_members_by_device,
+            users_by_device=_users_profiles_by_device(),
+        )
         return jsonify({'squadId': team_id, 'messages': out, 'hasMore': has_more})
 
     # POST
@@ -1806,7 +1935,17 @@ def team_messages_get_or_post(team_id: str):
     by_team[team_id] = rows
     doc['byTeamId'] = by_team
     _team_messages_save(doc)
-    return jsonify({'message': msg})
+    team_members_by_device = {
+        (member.get('id') or '').strip(): member
+        for member in (team_doc.get('members') or [])
+        if isinstance(member, dict) and (member.get('id') or '').strip()
+    }
+    enriched = _enrich_chat_messages(
+        [msg],
+        team_member_by_device=team_members_by_device,
+        users_by_device=_users_profiles_by_device(),
+    )
+    return jsonify({'message': enriched[0] if enriched else msg})
 
 
 @app.route('/api/teams/<team_id>/messages/<msg_id>', methods=['DELETE'])
@@ -2009,7 +2148,7 @@ def handle_team(team_id):
     teams[team_id] = doc
 
     if request.method == 'GET':
-        return jsonify(doc)
+        return jsonify(_enrich_team_doc_identities(doc, _users_profiles_by_device()))
 
     if request.method == 'PATCH':
         payload, err = _require_teams_auth()
@@ -2043,7 +2182,7 @@ def handle_team(team_id):
 
         teams[team_id] = doc
         _teams_save(teams)
-        return jsonify(doc)
+        return jsonify(_enrich_team_doc_identities(doc, _users_profiles_by_device()))
 
     if request.method == 'DELETE':
         payload, err = _require_teams_auth()
@@ -3168,9 +3307,20 @@ def squads_mine():
     squad = _find_squad(shifts_doc, squad_id)
     shift = _find_shift(shifts_doc, camp_id) or _find_shift(shifts_doc, (squad or {}).get("shiftId") or "")
     members, participants = _build_squad_members_lists(squad_id, camp_id or ((squad or {}).get("shiftId") or ""))
+    membership_response = dict(membership)
+    membership_identity = _resolve_identity(
+        (membership.get("deviceId") or "").strip(),
+        fallback_nickname=(membership.get("nickname") or ""),
+        membership=membership,
+        user_profile=_users_profiles_by_device().get((membership.get("deviceId") or "").strip()),
+    )
+    if membership_identity.get("nickname"):
+        membership_response["nickname"] = membership_identity["nickname"]
+    if membership_identity.get("avatarUrl"):
+        membership_response["avatarUrl"] = membership_identity["avatarUrl"]
 
     return jsonify({
-        "membership": membership,
+        "membership": membership_response,
         "squad": squad,
         "shift": shift,
         "participants": participants,
@@ -3540,7 +3690,15 @@ def squad_messages_get_or_post(squad_id: str):
             if before_index is not None:
                 ordered = ordered[:before_index]
         has_more = len(ordered) > limit
-        out = ordered[-limit:]
+        out = _enrich_chat_messages(
+            ordered[-limit:],
+            membership_by_device={
+                (row.get("deviceId") or "").strip(): row
+                for row in (_memberships_load().get("members") or [])
+                if isinstance(row, dict) and (row.get("deviceId") or "").strip()
+            },
+            users_by_device=_users_profiles_by_device(),
+        )
         return jsonify({"squadId": sid, "messages": out, "hasMore": has_more})
 
     # Per-minute rate limit (in addition to daily limit)
@@ -3578,7 +3736,16 @@ def squad_messages_get_or_post(squad_id: str):
         import traceback as _tb
         print(f"[squad_messages INSERT error] {exc}\n{_tb.format_exc()}")
         return jsonify({"error": "Не удалось сохранить сообщение"}), 500
-    return jsonify({"message": stored})
+    enriched = _enrich_chat_messages(
+        [stored],
+        membership_by_device={
+            (row.get("deviceId") or "").strip(): row
+            for row in (_memberships_load().get("members") or [])
+            if isinstance(row, dict) and (row.get("deviceId") or "").strip()
+        },
+        users_by_device=_users_profiles_by_device(),
+    )
+    return jsonify({"message": enriched[0] if enriched else stored})
 
 
 # ── Delete message ──
@@ -9040,6 +9207,7 @@ def get_bro_squad():
     """Return all members who completed BRO + all wings."""
     passports_data = get_store("bro_passports").load()
     passports = passports_data.get("passports", [])
+    users_by_device = _users_profiles_by_device()
 
     # Build memberships lookup (deviceId -> member data)
     mem_data = get_store("memberships").load()
@@ -9074,14 +9242,20 @@ def get_bro_squad():
         seen_devices.add(did)
         # Look up nickname/avatar from memberships
         mem = mem_by_device.get(did, {})
+        identity = _resolve_identity(
+            did,
+            fallback_nickname=(p.get("nickname") or ""),
+            membership=mem,
+            user_profile=users_by_device.get(did),
+        )
         # Look up wing name from bro_events
         bro_event_id = p.get("broEventId", "")
         wing_ev = ev_by_id.get(bro_event_id, {})
         wing_name = wing_ev.get("wingName") or wing_ev.get("title") or ""
         members.append({
             "deviceId": did,
-            "nickname": mem.get("nickname") or p.get("nickname") or "Участник",
-            "avatar": mem.get("avatarUrl") or "",
+            "nickname": identity.get("nickname") or "Участник",
+            "avatar": identity.get("avatarUrl") or "",
             "squadId": mem.get("squadId") or p.get("squadId") or "",
             "wingId": bro_event_id,
             "wingName": wing_name,
