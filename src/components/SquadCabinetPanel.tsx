@@ -173,7 +173,8 @@ export const SquadCabinetPanel: React.FC<SquadCabinetPanelProps> = ({
 
   const inviteLink = useMemo(() => {
     if (!squadId || typeof window === 'undefined') return '';
-    return `${window.location.origin}/?join_squad=${encodeURIComponent(squadId)}`;
+    const baseUrl = (import.meta.env.VITE_APP_URL as string | undefined)?.replace(/\/$/, '') || window.location.origin;
+    return `${baseUrl}/?join_squad=${encodeURIComponent(squadId)}`;
   }, [squadId]);
 
   const copyText = async (value: string, okText: string) => {
