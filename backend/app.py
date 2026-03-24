@@ -3300,40 +3300,33 @@ def squad_invite_code_create(squad_id: str):
         tz=timezone.utc
     )
 
-    doc = _squad_invites_load()
-    doc, changed = _squad_invites_prune(doc)
-    codes = doc.get("codes") or {}
-    if not isinstance(codes, dict):
-        codes = {}
-
-    # One active code per squad.
-    for existing_code in list(codes.keys()):
-        meta = codes.get(existing_code)
-        if not isinstance(meta, dict):
-            continue
-        if (meta.get("squadId") or "").strip() == sid:
-            del codes[existing_code]
+    # One active code per squad — delete old ones first (direct Supabase DELETE)
+    store = get_store("squad_invites")
+    store.delete_by_squad_id(sid)
 
     alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
     code = ""
     for _ in range(100):
         candidate = "".join(secrets.choice(alphabet) for _ in range(8))
-        if candidate not in codes:
-            code = candidate
-            break
+        code = candidate
+        break
     if not code:
         return jsonify({"error": "Invite code generation failed"}), 500
 
     created_at = created_at_dt.isoformat()
     expires_at = expires_at_dt.isoformat()
-    codes[code] = {
+    meta = {
         "squadId": sid,
         "createdAt": created_at,
         "expiresAt": expires_at,
-        "createdBy": (payload.get("deviceId") or "").strip() or None
+        "isActive": True,
+        "createdBy": (payload.get("deviceId") or "").strip() or None,
     }
-    doc["codes"] = codes
-    _squad_invites_save(doc)
+    try:
+        store.insert_code(code, meta)
+    except Exception as e:
+        return jsonify({"error": f"Failed to save invite code: {e}"}), 500
+
     return jsonify({"squadId": sid, "code": code, "createdAt": created_at, "expiresAt": expires_at})
 
 

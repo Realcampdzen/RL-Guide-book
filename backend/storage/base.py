@@ -69,6 +69,28 @@ class SquadInvitesStore(ABC):
     @abstractmethod
     def save(self, data: dict) -> None: ...
 
+    def delete_by_squad_id(self, squad_id: str) -> None:
+        """Delete all invite codes for a squad. Override in Supabase provider."""
+        doc = self.load()
+        codes = doc.get('codes') or {}
+        changed = False
+        for code in list(codes.keys()):
+            meta = codes.get(code)
+            if isinstance(meta, dict) and (meta.get('squadId') or '').strip() == squad_id:
+                del codes[code]
+                changed = True
+        if changed:
+            doc['codes'] = codes
+            self.save(doc)
+
+    def insert_code(self, code: str, meta: dict) -> None:
+        """Insert a single invite code. Override in Supabase provider for direct INSERT."""
+        doc = self.load()
+        codes = doc.get('codes') or {}
+        codes[code] = meta
+        doc['codes'] = codes
+        self.save(doc)
+
 
 class SquadMessagesStore(ABC):
     """

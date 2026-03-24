@@ -254,6 +254,25 @@ class SupabaseSquadInvitesStore(SquadInvitesStore):
                 row["created_by_device_id"] = meta["createdBy"]
             sb.table("squad_invite_codes").upsert(row).execute()
 
+    def delete_by_squad_id(self, squad_id: str) -> None:
+        """Delete all invite codes for a squad directly in Supabase."""
+        sb = _client()
+        sb.table("squad_invite_codes").delete().eq("squad_id", squad_id).execute()
+
+    def insert_code(self, code: str, meta: dict) -> None:
+        """Insert a single invite code directly — avoids bulk upsert."""
+        sb = _client()
+        row = {
+            "code": code,
+            "squad_id": meta.get("squadId", ""),
+            "is_active": meta.get("isActive", True),
+        }
+        if meta.get("expiresAt"):
+            row["expires_at"] = meta["expiresAt"]
+        if meta.get("createdBy"):
+            row["created_by_device_id"] = meta["createdBy"]
+        sb.table("squad_invite_codes").insert(row).execute()
+
 
 # ---------------------------------------------------------------------------
 # SquadMessagesStore — таблица squad_messages

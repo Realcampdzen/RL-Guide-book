@@ -419,6 +419,16 @@ export const PersonalCabinet: React.FC<{
     const [eventsLoading, setEventsLoading] = useState(false);
     const [homeTab, setHomeTab] = useState<'active' | 'favorites' | 'collection' | 'journal' | 'squads'>('active');
     const [hamburgerOpen, setHamburgerOpen] = useState(false);
+    const [isMobileTabsOpen, setIsMobileTabsOpen] = useState(false);
+    const [isMobile, setIsMobile] = useState(
+        () => typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches
+    );
+    useEffect(() => {
+        const mq = window.matchMedia('(max-width: 767px)');
+        const handler = () => setIsMobile(mq.matches);
+        mq.addEventListener('change', handler);
+        return () => mq.removeEventListener('change', handler);
+    }, []);
     const [pathCarouselSteps, setPathCarouselSteps] = useState(0);
     const [favCarouselSteps, setFavCarouselSteps] = useState(0);
     const [vozhatifikatorTab, setVozhatifikatorTab] = useState<string>('book');
@@ -734,7 +744,7 @@ export const PersonalCabinet: React.FC<{
                 display: 'flex', fontFamily: FONT, color: '#e8f0ff',
             }}>
                 {/* ═══ Колонка 1: Навигация разделов ═══ */}
-                <div style={{
+                <div className="cabinet-col1" style={{
                     width: 180, flexShrink: 0,
                     background: 'linear-gradient(180deg, rgba(120,80,255,0.04) 0%, transparent 40%), linear-gradient(270deg, rgba(80,140,255,0.05) 0%, transparent 40%), linear-gradient(180deg, #111827 0%, #0B1020 100%)',
                     backgroundColor: '#111827',
@@ -761,7 +771,12 @@ export const PersonalCabinet: React.FC<{
                     {/* Section buttons — main */}
                     {mainSections.map(s => (
                         <button key={s.id} type="button" className="cabinet-sidebar-btn"
-                            onClick={() => { setActiveSection(s.id); setHamburgerOpen(false); }}
+                            onClick={() => {
+                                setActiveSection(s.id);
+                                setHamburgerOpen(false);
+                                // On mobile: open the tabs overlay so user can pick a tab
+                                if (isMobile && SECTION_TABS[s.id]) setIsMobileTabsOpen(true);
+                            }}
                             style={{
                                 width: '100%', border: 'none', borderRadius: 8,
                                 padding: '9px 12px', textAlign: 'left',
@@ -792,7 +807,11 @@ export const PersonalCabinet: React.FC<{
                     {/* Section buttons — staff */}
                     {staffSections.map(s => (
                         <button key={s.id} type="button" className="cabinet-sidebar-btn"
-                            onClick={() => { setActiveSection(s.id); setHamburgerOpen(false); }}
+                            onClick={() => {
+                                setActiveSection(s.id);
+                                setHamburgerOpen(false);
+                                if (isMobile && SECTION_TABS[s.id]) setIsMobileTabsOpen(true);
+                            }}
                             style={{
                                 width: '100%', border: 'none', borderRadius: 8,
                                 padding: '9px 12px', textAlign: 'left',
@@ -813,7 +832,11 @@ export const PersonalCabinet: React.FC<{
                             <div style={{ height: 1, background: 'rgba(255,255,255,0.08)', margin: '6px 10px' }} />
                             {systemSections.map(s => (
                                 <button key={s.id} type="button" className="cabinet-sidebar-btn"
-                                    onClick={() => { setActiveSection(s.id); setHamburgerOpen(false); }}
+                                    onClick={() => {
+                                        setActiveSection(s.id);
+                                        setHamburgerOpen(false);
+                                        if (isMobile && SECTION_TABS[s.id]) setIsMobileTabsOpen(true);
+                                    }}
                                     style={{
                                         width: '100%', border: 'none', borderRadius: 8,
                                         padding: '9px 12px', textAlign: 'left',
@@ -908,111 +931,224 @@ export const PersonalCabinet: React.FC<{
                     </>
                 )}
 
-                {/* ═══ Колонка 2: Список табов (160px) ═══ */}
-                <div style={{
-                    width: 160, flexShrink: 0,
-                    background: 'rgba(8, 20, 40, 0.12)',
-                    backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
-                    borderRight: '1px solid rgba(93,228,255,0.08)',
-                    display: 'flex', flexDirection: 'column',
-                    overflowY: 'auto',
-                }}>
-
-                    {/* Section title */}
+                {/* ═══ Колонка 2: Список табов (160px) — только десктоп ═══ */}
+                {/* On mobile this column is rendered as a fixed overlay (see below) */}
+                {!isMobile && (
                     <div style={{
-                        padding: '14px 16px 10px', fontSize: 12, fontWeight: 700,
-                        color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase',
-                        letterSpacing: '0.06em',
+                        width: 160, flexShrink: 0,
+                        background: 'rgba(8, 20, 40, 0.12)',
+                        backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
+                        borderRight: '1px solid rgba(93,228,255,0.08)',
+                        display: 'flex', flexDirection: 'column',
+                        overflowY: 'auto',
                     }}>
-                        {currentInfo.title}
-                    </div>
+                        {/* Section title */}
+                        <div style={{
+                            padding: '14px 16px 10px', fontSize: 12, fontWeight: 700,
+                            color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase',
+                            letterSpacing: '0.06em',
+                        }}>
+                            {currentInfo.title}
+                        </div>
 
-                    {/* Tab list items */}
-                    {(() => {
-                        const tabs = SECTION_TABS[activeSection];
-                        if (!tabs) return (
-                            <div style={{ padding: '12px 16px', fontSize: 13, color: 'rgba(255,255,255,0.4)' }}>
-                                {currentInfo.description}
-                            </div>
-                        );
-
-                        // Determine current active tab for this section
-                        const getActiveTabId = (): string => {
-                            switch (activeSection) {
-                                case 'home': return homeTab;
-                                case 'squad-corner': return squadCornerTab;
-                                case 'diary': return diaryTab;
-                                case 'engine': return teamTab;
-                                case 'council': return councilTab;
-                                case 'bro': return broTab;
-                                case 'workshop': return workshopTab;
-                                case 'share': return shareTab;
-                                case 'parents': return parentsTab;
-                                case 'events': return eventsTab as string;
-                                case 'profile4k': return profile4kTab;
-                                case 'vozhatifikator': return vozhatifikatorTab;
-                                case 'inspector': return inspectorTab;
-                                default: return tabs[0]?.id || '';
-                            }
-                        };
-                        const setActiveTabId = (tabId: string) => {
-                            switch (activeSection) {
-                                case 'home': setHomeTab(tabId as any); break;
-                                case 'squad-corner': setSquadCornerTab(tabId); break;
-                                case 'diary': setDiaryTab(tabId as any); break;
-                                case 'engine': setTeamTab(tabId as any); break;
-                                case 'council': setCouncilTab(tabId as any); break;
-                                case 'bro': setBroTab(tabId as any); break;
-                                case 'workshop': setWorkshopTab(tabId); break;
-                                case 'share': setShareTab(tabId as any); break;
-                                case 'parents': setParentsTab(tabId as any); break;
-                                case 'events': setEventsTab(tabId as 'requests' | 'announcements' | 'tasks'); break;
-                                case 'profile4k': setProfile4kTab(tabId as any); break;
-                                case 'vozhatifikator': setVozhatifikatorTab(tabId as any); break;
-                                case 'inspector': setInspectorTab(tabId); break;
-                            }
-                        };
-                        const activeTabId = getActiveTabId();
-
-                        const isStaff = canModerateBadgeApprovals(currentRole as UserRole);
-                        const visibleTabs = activeSection === 'squad-corner'
-                            ? tabs.filter(t => !t.editorOnly || canEditSquadCorner)
-                            : activeSection === 'council'
-                              ? tabs.filter(t => !t.staffOnly || isStaff)
-                              : tabs;
-                        return visibleTabs.map(tab => {
-                            if (tab.isDivider) {
-                                return (
-                                    <div key={tab.id} style={{
-                                        height: 1,
-                                        background: 'rgba(255,255,255,0.06)',
-                                        margin: '8px 16px'
-                                    }} />
-                                );
-                            }
-                            return (
-                                <button key={tab.id} type="button"
-                                    onClick={() => setActiveTabId(tab.id)}
-                                    style={{
-                                        padding: '10px 16px', border: 'none', textAlign: 'left',
-                                        background: activeTabId === tab.id ? 'rgba(93,228,255,0.12)' : 'transparent',
-                                        borderLeft: activeTabId === tab.id ? '3px solid #5de4ff' : '3px solid transparent',
-                                        cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10,
-                                        color: activeTabId === tab.id ? '#fff' : 'rgba(255,255,255,0.6)',
-                                        fontSize: 14, fontWeight: activeTabId === tab.id ? 600 : 400,
-                                        fontFamily: FONT, transition: 'all 0.15s',
-                                    }}
-                                    onMouseEnter={e => { if (activeTabId !== tab.id) (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.05)'; }}
-                                    onMouseLeave={e => { if (activeTabId !== tab.id) (e.currentTarget as HTMLElement).style.background = 'transparent'; }}>
-                                    {tab.icon && <span style={{ fontSize: 16 }}>{tab.icon}</span>}
-                                    {tab.label}
-                                </button>
+                        {/* Tab list items */}
+                        {(() => {
+                            const tabs = SECTION_TABS[activeSection];
+                            if (!tabs) return (
+                                <div style={{ padding: '12px 16px', fontSize: 13, color: 'rgba(255,255,255,0.4)' }}>
+                                    {currentInfo.description}
+                                </div>
                             );
-                        });
-                    })()}
-                </div>
+                            const getActiveTabId = (): string => {
+                                switch (activeSection) {
+                                    case 'home': return homeTab;
+                                    case 'squad-corner': return squadCornerTab;
+                                    case 'diary': return diaryTab;
+                                    case 'engine': return teamTab;
+                                    case 'council': return councilTab;
+                                    case 'bro': return broTab;
+                                    case 'workshop': return workshopTab;
+                                    case 'share': return shareTab;
+                                    case 'parents': return parentsTab;
+                                    case 'events': return eventsTab as string;
+                                    case 'profile4k': return profile4kTab;
+                                    case 'vozhatifikator': return vozhatifikatorTab;
+                                    case 'inspector': return inspectorTab;
+                                    default: return tabs[0]?.id || '';
+                                }
+                            };
+                            const setActiveTabId = (tabId: string) => {
+                                switch (activeSection) {
+                                    case 'home': setHomeTab(tabId as any); break;
+                                    case 'squad-corner': setSquadCornerTab(tabId); break;
+                                    case 'diary': setDiaryTab(tabId as any); break;
+                                    case 'engine': setTeamTab(tabId as any); break;
+                                    case 'council': setCouncilTab(tabId as any); break;
+                                    case 'bro': setBroTab(tabId as any); break;
+                                    case 'workshop': setWorkshopTab(tabId); break;
+                                    case 'share': setShareTab(tabId as any); break;
+                                    case 'parents': setParentsTab(tabId as any); break;
+                                    case 'events': setEventsTab(tabId as 'requests' | 'announcements' | 'tasks'); break;
+                                    case 'profile4k': setProfile4kTab(tabId as any); break;
+                                    case 'vozhatifikator': setVozhatifikatorTab(tabId as any); break;
+                                    case 'inspector': setInspectorTab(tabId); break;
+                                }
+                            };
+                            const activeTabId = getActiveTabId();
+                            const isStaff = canModerateBadgeApprovals(currentRole as UserRole);
+                            const visibleTabs = activeSection === 'squad-corner'
+                                ? tabs.filter(t => !t.editorOnly || canEditSquadCorner)
+                                : activeSection === 'council'
+                                  ? tabs.filter(t => !t.staffOnly || isStaff)
+                                  : tabs;
+                            return visibleTabs.map(tab => {
+                                if (tab.isDivider) {
+                                    return (
+                                        <div key={tab.id} style={{
+                                            height: 1,
+                                            background: 'rgba(255,255,255,0.06)',
+                                            margin: '8px 16px'
+                                        }} />
+                                    );
+                                }
+                                return (
+                                    <button key={tab.id} type="button"
+                                        onClick={() => setActiveTabId(tab.id)}
+                                        style={{
+                                            padding: '10px 16px', border: 'none', textAlign: 'left',
+                                            background: activeTabId === tab.id ? 'rgba(93,228,255,0.12)' : 'transparent',
+                                            borderLeft: activeTabId === tab.id ? '3px solid #5de4ff' : '3px solid transparent',
+                                            cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10,
+                                            color: activeTabId === tab.id ? '#fff' : 'rgba(255,255,255,0.6)',
+                                            fontSize: 14, fontWeight: activeTabId === tab.id ? 600 : 400,
+                                            fontFamily: FONT, transition: 'all 0.15s',
+                                        }}
+                                        onMouseEnter={e => { if (activeTabId !== tab.id) (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.05)'; }}
+                                        onMouseLeave={e => { if (activeTabId !== tab.id) (e.currentTarget as HTMLElement).style.background = 'transparent'; }}>
+                                        {tab.icon && <span style={{ fontSize: 16 }}>{tab.icon}</span>}
+                                        {tab.label}
+                                    </button>
+                                );
+                            });
+                        })()}
+                    </div>
+                )}
 
-                <div style={{ flex: 1, overflowY: 'auto', padding: '24px 32px 120px' }}>
+                {/* ═══ Mobile Tabs Overlay (только на мобиле, z-index > контент) ═══ */}
+                {isMobile && isMobileTabsOpen && (
+                    <>
+                        {/* Backdrop */}
+                        <div
+                            onClick={() => setIsMobileTabsOpen(false)}
+                            className="cabinet-mobile-tabs-backdrop"
+                        />
+                        {/* Slide-in tabs panel */}
+                        <div className="cabinet-mobile-tabs-overlay">
+                            {/* Header row with section title + close button */}
+                            <div style={{
+                                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                                padding: '14px 16px 10px',
+                                borderBottom: '1px solid rgba(93,228,255,0.08)',
+                            }}>
+                                <div style={{ fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                                    {currentInfo.title}
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => setIsMobileTabsOpen(false)}
+                                    style={{
+                                        width: 28, height: 28, border: 'none', borderRadius: 8,
+                                        background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.6)',
+                                        cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        fontSize: 16, lineHeight: 1, fontFamily: FONT, flexShrink: 0,
+                                    }}
+                                    aria-label="Закрыть"
+                                >✕</button>
+                            </div>
+
+                            {/* Tab list */}
+                            {(() => {
+                                const tabs = SECTION_TABS[activeSection];
+                                if (!tabs) return (
+                                    <div style={{ padding: '12px 16px', fontSize: 13, color: 'rgba(255,255,255,0.4)' }}>
+                                        {currentInfo.description}
+                                    </div>
+                                );
+                                const getActiveTabId = (): string => {
+                                    switch (activeSection) {
+                                        case 'home': return homeTab;
+                                        case 'squad-corner': return squadCornerTab;
+                                        case 'diary': return diaryTab;
+                                        case 'engine': return teamTab;
+                                        case 'council': return councilTab;
+                                        case 'bro': return broTab;
+                                        case 'workshop': return workshopTab;
+                                        case 'share': return shareTab;
+                                        case 'parents': return parentsTab;
+                                        case 'events': return eventsTab as string;
+                                        case 'profile4k': return profile4kTab;
+                                        case 'vozhatifikator': return vozhatifikatorTab;
+                                        case 'inspector': return inspectorTab;
+                                        default: return tabs[0]?.id || '';
+                                    }
+                                };
+                                const setActiveTabId = (tabId: string) => {
+                                    switch (activeSection) {
+                                        case 'home': setHomeTab(tabId as any); break;
+                                        case 'squad-corner': setSquadCornerTab(tabId); break;
+                                        case 'diary': setDiaryTab(tabId as any); break;
+                                        case 'engine': setTeamTab(tabId as any); break;
+                                        case 'council': setCouncilTab(tabId as any); break;
+                                        case 'bro': setBroTab(tabId as any); break;
+                                        case 'workshop': setWorkshopTab(tabId); break;
+                                        case 'share': setShareTab(tabId as any); break;
+                                        case 'parents': setParentsTab(tabId as any); break;
+                                        case 'events': setEventsTab(tabId as 'requests' | 'announcements' | 'tasks'); break;
+                                        case 'profile4k': setProfile4kTab(tabId as any); break;
+                                        case 'vozhatifikator': setVozhatifikatorTab(tabId as any); break;
+                                        case 'inspector': setInspectorTab(tabId); break;
+                                    }
+                                    // Auto-close overlay after selecting a tab
+                                    setIsMobileTabsOpen(false);
+                                };
+                                const activeTabId = getActiveTabId();
+                                const isStaff = canModerateBadgeApprovals(currentRole as UserRole);
+                                const visibleTabs = activeSection === 'squad-corner'
+                                    ? tabs.filter(t => !t.editorOnly || canEditSquadCorner)
+                                    : activeSection === 'council'
+                                      ? tabs.filter(t => !t.staffOnly || isStaff)
+                                      : tabs;
+                                return visibleTabs.map(tab => {
+                                    if (tab.isDivider) {
+                                        return (
+                                            <div key={tab.id} style={{
+                                                height: 1, background: 'rgba(255,255,255,0.06)', margin: '8px 16px'
+                                            }} />
+                                        );
+                                    }
+                                    return (
+                                        <button key={tab.id} type="button"
+                                            onClick={() => setActiveTabId(tab.id)}
+                                            style={{
+                                                padding: '12px 16px', border: 'none', textAlign: 'left', width: '100%',
+                                                background: activeTabId === tab.id ? 'rgba(93,228,255,0.12)' : 'transparent',
+                                                borderLeft: activeTabId === tab.id ? '3px solid #5de4ff' : '3px solid transparent',
+                                                cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10,
+                                                color: activeTabId === tab.id ? '#fff' : 'rgba(255,255,255,0.75)',
+                                                fontSize: 15, fontWeight: activeTabId === tab.id ? 600 : 400,
+                                                fontFamily: FONT, transition: 'all 0.15s',
+                                            }}>
+                                            {tab.icon && <span style={{ fontSize: 16 }}>{tab.icon}</span>}
+                                            {tab.label}
+                                        </button>
+                                    );
+                                });
+                            })()}
+                        </div>
+                    </>
+                )}
+
+                <div className="cabinet-content-area" style={{ flex: 1, overflowY: 'auto', padding: '24px 32px 120px' }}>
                     <div style={{ width: '100%', maxWidth: (activeSection === 'council' && (councilTab === 'camp-management' || councilTab === 'management')) ? 'none' : 680, margin: '0 auto' }}>
 
 
