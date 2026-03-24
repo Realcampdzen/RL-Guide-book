@@ -434,3 +434,161 @@
   position: relative;
   z-index: 1;
 }
+
+/* ── Mobile nav row (below carousel, prev + next in a horizontal row) ── */
+.path-carousel__nav-row {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 32px;
+  margin-top: 12px;
+}
+
+/* ══════════════════════════════════════════════════
+   MOBILE overrides (≤ 767px)
+   ══════════════════════════════════════════════════ */
+@media (max-width: 767px) {
+  /* ── Cylinder carousel: smaller card + lower track ── */
+  .cabinet-carousel .path-carousel__item--cylinder {
+    width: 130px;
+    height: 230px;
+    margin-left: -65px;
+    margin-top: -115px;
+  }
+
+  .cabinet-carousel .path-carousel__track--cylinder {
+    height: 230px;
+  }
+
+  /* Carousel outer: flex-wrap so buttons flow to a second row below the track */
+  .cabinet-carousel .path-carousel--cylinder {
+    max-width: 100%;
+    padding: 0;
+    box-sizing: border-box;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+  }
+
+  /* Viewport fills the whole first row */
+  .cabinet-carousel .path-carousel__viewport--cylinder {
+    flex: 0 0 100%;
+    order: 1;
+  }
+
+  /* ── Navigation buttons: second row, centered ── */
+  .cabinet-carousel .path-carousel__btn {
+    position: static !important;
+    transform: none !important;
+    top: unset !important;
+    order: 2;
+    flex: 0 0 auto;
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    min-height: 48px;
+    font-size: 16px;
+  }
+
+  /* Override the specific --prev / --next absolute positioning */
+  .cabinet-carousel .path-carousel__btn--prev {
+    position: static !important;
+    left: unset !important;
+    transform: none !important;
+  }
+
+  .cabinet-carousel .path-carousel__btn--next {
+    position: static !important;
+    right: unset !important;
+    transform: none !important;
+  }
+
+  /* Gap between the two buttons in the second row */
+  .cabinet-carousel .path-carousel__btn--prev {
+    margin-right: 24px;
+  }
+
+  /* ── Static row: horizontal scroll snap ── */
+  .cabinet-carousel .path-carousel--static {
+    padding: 12px 0;
+  }
+
+  .cabinet-carousel .path-carousel__static-track {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 12px;
+    padding: 0 12px 12px;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    /* hide scrollbar */
+    scrollbar-width: none;
+  }
+
+  .cabinet-carousel .path-carousel__static-track::-webkit-scrollbar {
+    display: none;
+  }
+
+  .cabinet-carousel .path-carousel__item--static {
+    scroll-snap-align: center;
+    flex-shrink: 0;
+    width: 140px;
+    min-width: 140px;
+  }
+
+  .cabinet-carousel .path-carousel__item--static > .path-card {
+    width: 140px;
+    min-width: 140px;
+    min-height: 248px;
+  }
+
+  /* ── Card internals: tighter on mobile ── */
+  .cabinet-carousel .path-card.path-card--vertical {
+    padding-bottom: 8px;
+  }
+
+  .cabinet-carousel .path-card__avatar .badge-icon-wrap,
+  .cabinet-carousel .path-card__avatar > div {
+    width: 64px;
+    height: 64px;
+  }
+
+  .cabinet-carousel .path-card__avatar {
+    min-height: 64px;
+  }
+
+  .cabinet-carousel .path-card__actions {
+    gap: 4px;
+    padding: 0 6px 2px;
+  }
+
+  .cabinet-carousel .path-card__actions .btn-pill {
+    font-size: 10px;
+    padding: 5px 6px;
+    min-height: 28px;
+  }
+
+  .cabinet-carousel .path-card__footer {
+    padding: 2px 6px 8px;
+    gap: 4px;
+  }
+
+  .cabinet-carousel .path-card__footer .path-card__star {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    min-height: 32px;
+    padding: 6px;
+  }
+
+  .cabinet-carousel .path-card__footer .path-card__star svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .cabinet-carousel .btn-action-round {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+  }
+}

@@ -4684,16 +4684,86 @@
 
 /* ═══════════════════════════════════════════════════════════════════════════
    PersonalCabinet — Mobile layout (≤ 767px)
-   The second sidebar column becomes a slide-in overlay (higher z-index than content).
-   The first sidebar column stays in the normal flex flow but is narrower.
+   Column 1 is removed from flex flow on mobile.
+   A fixed hamburger button occupies zero flex space.
+   Both left nav + right tab list slide in as fixed overlays.
    Desktop (≥ 768px) layout is UNCHANGED.
    ═══════════════════════════════════════════════════════════════════════════ */
 
-/* Mobile: backdrop behind the tabs overlay */
-.cabinet-mobile-tabs-backdrop {
+/* ── Content area: push below hamburger on mobile ── */
+@media (max-width: 767px) {
+  .cabinet-content-area {
+    padding-top: 56px !important;
+  }
+}
+
+/* ── Hamburger FAB: position:fixed, zero flex space, no container ── */
+.cabinet-mobile-hamburger-btn {
+  position: fixed;
+  top: 14px;
+  left: 14px;
+  z-index: 100000;
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.75);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: color 0.15s, opacity 0.15s;
+  filter: drop-shadow(0 1px 3px rgba(0,0,0,0.6));
+}
+
+.cabinet-mobile-hamburger-btn:active {
+  color: #5de4ff;
+  opacity: 0.8;
+  transform: scale(0.9);
+}
+
+/* ── Left sidebar backdrop ── */
+.cabinet-mobile-sidebar-backdrop {
   position: fixed;
   inset: 0;
   z-index: 100001;
+  background: rgba(0, 0, 0, 0.5);
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+  animation: cabinet-backdrop-in 0.18s ease-out;
+}
+
+/* ── Left sidebar overlay ── */
+.cabinet-mobile-sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 220px;
+  z-index: 100002;
+  background: linear-gradient(180deg, rgba(120,80,255,0.06) 0%, transparent 40%),
+              linear-gradient(180deg, #111827 0%, #0B1020 100%);
+  -webkit-backdrop-filter: blur(24px);
+  backdrop-filter: blur(24px);
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  box-shadow: 8px 0 40px rgba(0, 0, 0, 0.6);
+  animation: cabinet-sidebar-slide-in 0.22s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+@keyframes cabinet-sidebar-slide-in {
+  from { transform: translateX(-100%); opacity: 0; }
+  to   { transform: translateX(0);     opacity: 1; }
+}
+
+/* ── Tab list backdrop (reused class) ── */
+.cabinet-mobile-tabs-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100003;
   background: rgba(0, 0, 0, 0.45);
   -webkit-backdrop-filter: blur(2px);
   backdrop-filter: blur(2px);
@@ -4705,23 +4775,22 @@
   to   { opacity: 1; }
 }
 
-/* Mobile: slide-in tabs overlay panel */
+/* ── Tab list overlay (slides in beside the open nav sidebar) ── */
 .cabinet-mobile-tabs-overlay {
   position: fixed;
   top: 0;
-  /* left is right after the first sidebar column (≈ 150px) */
-  left: 150px;
+  left: 220px;  /* right edge of nav sidebar overlay */
   bottom: 0;
   width: 200px;
-  z-index: 100002;
-  background: rgba(8, 18, 38, 0.96);
+  z-index: 100004;
+  background: rgba(8, 18, 38, 0.97);
   -webkit-backdrop-filter: blur(20px);
   backdrop-filter: blur(20px);
   border-right: 1px solid rgba(93, 228, 255, 0.15);
   display: flex;
   flex-direction: column;
   overflow-y: auto;
-  box-shadow: 6px 0 32px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(93, 228, 255, 0.06) inset;
+  box-shadow: 8px 0 32px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(93, 228, 255, 0.06) inset;
   animation: cabinet-tabs-slide-in 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
@@ -4730,29 +4799,16 @@
   to   { transform: translateX(0);     opacity: 1; }
 }
 
-/* On mobile: adjust the main content area padding to fill up more space */
+/* On mobile: tighter padding for content (fills 100% width without col1) */
 @media (max-width: 767px) {
-  /* Narrow the first sidebar column so more space is left for content */
-  .cabinet-col1 {
-    width: 150px !important;
-    min-width: 130px !important;
-  }
-
-  /* Reduce text size of first sidebar buttons so they fit in 150px */
-  .cabinet-col1 .cabinet-sidebar-btn {
-    font-size: 12px !important;
-    padding: 8px 8px !important;
-  }
-
-  /* Reduce the hamburger button text/size in the narrow sidebar */
-  .cabinet-col1 button:first-child {
-    font-size: 12px !important;
-    padding: 0 8px !important;
-  }
-
-  /* Tighter padding for content on mobile */
   .cabinet-content-area {
     padding: 16px 12px 100px !important;
   }
+
+  /* Remove old col1 overrides (no longer needed — col1 not rendered on mobile) */
+  .cabinet-col1 {
+    display: none !important;
+  }
 }
+
 

@@ -5,7 +5,7 @@
   --avatar-bot-highlight-rgb: 168, 85, 247;
   --avatar-bot-highlight-secondary-rgb: 192, 132, 252;
   position: fixed;
-  bottom: calc(18px + env(safe-area-inset-bottom));
+  bottom: calc(18px + env(safe-area-inset-bottom) + var(--mobile-nav-height, 68px));
   right: calc(16px + env(safe-area-inset-right));
   z-index: 10002;
   background: transparent;

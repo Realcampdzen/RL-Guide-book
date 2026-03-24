@@ -35,7 +35,7 @@ const ChatAvatar: React.FC<ChatAvatarProps> = ({ onClick, isOpen = false }) => {
             onContextMenu={(e) => e.preventDefault()}
           />
         </picture>
-        <div className="chat-avatar-status" />
+
       </div>
     </button>
   );

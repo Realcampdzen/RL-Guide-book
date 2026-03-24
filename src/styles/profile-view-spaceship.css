@@ -9845,3 +9845,25 @@
     overflow: visible;
   }
 }
+/* ── PersonalCabinet mobile: push section content below hamburger button ── */
+@media (max-width: 767px) {
+  .real-diary-cabin-content {
+    padding-top: 48px !important;
+  }
+  .cabinet-content-area {
+    padding-top: 56px !important;
+  }
+}
+
+
+/* ── PersonalCabinet: Camp Program section top padding on mobile ── */
+@media (max-width: 767px) {
+  .cabinet-content-area > div > div:first-child {
+    padding-top: 40px;
+  }
+  .cabinet-content-area .real-diary-cabin-content,
+  .cabinet-content-area .real-diary-dashboard {
+    padding-top: 40px;
+  }
+}
+

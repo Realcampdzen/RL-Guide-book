@@ -1502,9 +1502,7 @@ export const PersonalCabinet: React.FC<{
                                         case 'vozhatifikator': setVozhatifikatorTab(tabId as any); break;
                                         case 'inspector': setInspectorTab(tabId); break;
                                     }
-                                    // Auto-close both overlays after selecting a tab
-                                    setIsMobileTabsOpen(false);
-                                    setIsMobileSidebarOpen(false);
+                                    // Keep both sidebars open — user can continue browsing tabs
                                 };
                                 const activeTabId = getActiveTabId();
                                 const isStaff = canModerateBadgeApprovals(currentRole as UserRole);
@@ -1543,7 +1541,7 @@ export const PersonalCabinet: React.FC<{
                     </>
                 )}
 
-                <div className="cabinet-content-area" style={{ flex: 1, overflowY: 'auto', padding: '24px 32px 120px' }}>
+                <div className="cabinet-content-area" style={{ flex: 1, overflowY: 'auto', padding: isMobile ? '56px 20px 120px' : '24px 32px 120px' }}>
                     <div style={{ width: '100%', maxWidth: (activeSection === 'council' && (councilTab === 'camp-management' || councilTab === 'management')) ? 'none' : 680, margin: '0 auto' }}>
 
 

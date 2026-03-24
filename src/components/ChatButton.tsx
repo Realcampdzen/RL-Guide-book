@@ -166,7 +166,6 @@ const ChatButton: React.FC<ChatButtonProps> = ({ onClick, isOpen = false, classN
     : '2px solid rgba(78, 205, 196, 0.6)';
   const buttonOpacity = isOpen ? 1 : (isScrolling ? 0.62 : 0.9);
   const avatarSize = isMobile ? 48 : 52;
-  const statusDotSize = isMobile ? 14 : 16;
 
   return (
     <button
@@ -265,22 +264,7 @@ const ChatButton: React.FC<ChatButtonProps> = ({ onClick, isOpen = false, classN
               transition: 'all 0.3s ease'
             }}
           />
-          <div
-            style={{
-              position: 'absolute',
-              bottom: '-2px',
-              right: '-2px',
-              width: `${statusDotSize}px`,
-              height: `${statusDotSize}px`,
-              background: isOpen ? '#ff6b6b' : '#4ecdc4',
-              borderRadius: '50%',
-              border: '2px solid rgba(12, 12, 12, 0.95)',
-              boxShadow: isOpen
-                ? '0 0 10px rgba(255, 107, 107, 0.6)'
-                : '0 0 10px rgba(78, 205, 196, 0.6)',
-              transition: 'all 0.3s ease'
-            }}
-          />
+
         </div>
         {!isMobile && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
