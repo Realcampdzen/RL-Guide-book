@@ -33,6 +33,7 @@ backend/storage/__init__.py — фабрика get_store().
     'shift_schedule'      — ShiftScheduleStore
     'workshops'           — WorkshopsStore
     'parent_suggestions'  — ParentSuggestionsStore
+    'family_links'        — FamilyLinksStore
 """
 
 import os
@@ -58,7 +59,7 @@ def get_store(name: str):
             f"Valid names: shifts, memberships, squad_corners, squad_invites, "
             f"squad_messages, badge_requests, badge_plans, parent_snapshots, chat_daily_usage, "
             f"council_initiatives, council_members, council_protocols, teams, badge_arts, engines, engine_members, inspector_progress, "
-            f"bro_events, bro_passports, bro_submissions, bro_initiatives, shift_schedule, workshops, parent_suggestions, users, workshop_proposals, role_requests"
+            f"bro_events, bro_passports, bro_submissions, bro_initiatives, shift_schedule, workshops, parent_suggestions, users, workshop_proposals, role_requests, family_links"
         )
     return store
 

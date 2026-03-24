@@ -186,7 +186,8 @@ const SECTION_TABS: Partial<Record<SectionId, TabDef[]>> = {
     ],
     parents: [
         { id: 'program', label: 'Программа' },
-        { id: 'child', label: 'Прогресс ребёнка' },
+        { id: 'squad', label: 'Отряд' },
+        { id: 'child', label: 'Мой ребёнок' },
         { id: 'contacts', label: 'Контакты' },
     ],
     profile4k: [
@@ -333,6 +334,255 @@ const MarkdownDocTab: React.FC<{ title: string; mdPath: string }> = ({ title, md
 };
 
 // ---------------------------------------------------------------------------
+// Sub-components for Parents section (М20-PARENT-SQUAD)
+// ---------------------------------------------------------------------------
+
+interface SquadJoinTabProps {
+    accessToken: string;
+    nickname: string;
+}
+const SquadJoinTab: React.FC<SquadJoinTabProps> = ({ accessToken, nickname }) => {
+    const [squadCode, setSquadCode] = useState('');
+    const [squadPreview, setSquadPreview] = useState<null | { squadId: string; squadName: string; shiftName?: string; shiftId?: string }>(null);
+    const [lookupErr, setLookupErr] = useState('');
+    const [lookupLoading, setLookupLoading] = useState(false);
+    const [joinLoading, setJoinLoading] = useState(false);
+    const [joinResult, setJoinResult] = useState<null | string>(null);
+
+    const apiBase = (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1')
+        ? ((import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || '') as string).replace(/\/$/, '')
+        : '';
+    const authHeaders: Record<string, string> = accessToken ? { Authorization: `Bearer ${accessToken}` } : {};
+
+    const lookupCode = async () => {
+        const c = squadCode.trim().toUpperCase();
+        if (!c) return;
+        setLookupLoading(true); setLookupErr(''); setSquadPreview(null);
+        try {
+            const r = await fetch(`${apiBase}/api/squads/by-invite-code?code=${encodeURIComponent(c)}`, { headers: authHeaders });
+            if (!r.ok) { setLookupErr('Код не найден или недействителен'); return; }
+            const d = await r.json();
+            setSquadPreview({ squadId: d.squadId, squadName: d.squadName, shiftId: d.shiftId, shiftName: d.shiftName });
+        } catch { setLookupErr('Ошибка соединения'); }
+        finally { setLookupLoading(false); }
+    };
+
+    const joinSquad = async () => {
+        if (!squadPreview) return;
+        setJoinLoading(true);
+        try {
+            const r = await fetch(`${apiBase}/api/squads/join-by-code`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...authHeaders },
+                body: JSON.stringify({ code: squadCode.trim().toUpperCase(), nickname }),
+            });
+            const d = await r.json();
+            if (!r.ok) { setLookupErr(d.error || 'Ошибка вступления'); }
+            else {
+                setJoinResult(d.status === 'already_member' ? 'Вы уже состоите в этом отряде' : `Вы вступили в отряд «${squadPreview.squadName}»!`);
+                setSquadPreview(null); setSquadCode('');
+            }
+        } catch { setLookupErr('Ошибка соединения'); }
+        finally { setJoinLoading(false); }
+    };
+
+    return (
+        <div style={{ padding: 24, borderRadius: 16, background: 'rgba(8, 20, 40, 0.15)', border: '1px solid rgba(93, 228, 255, 0.12)' }}>
+            <h3 style={{ margin: '0 0 8px', fontSize: 18, color: '#e8f0ff' }}>Вступить в отряд</h3>
+            <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', margin: '0 0 20px', lineHeight: 1.6 }}>
+                Введите код-приглашение, который вам дал вожатый или старший вожатый.
+            </p>
+            {joinResult && (
+                <div style={{ padding: 14, borderRadius: 10, background: 'rgba(34,197,94,0.12)', border: '1px solid rgba(34,197,94,0.25)', color: '#4ade80', fontSize: 13, marginBottom: 16 }}>
+                    {joinResult}
+                </div>
+            )}
+            <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+                <input
+                    value={squadCode}
+                    onChange={e => setSquadCode(e.target.value.toUpperCase())}
+                    onKeyDown={e => e.key === 'Enter' && void lookupCode()}
+                    placeholder="Код-приглашение (8 символов)"
+                    maxLength={8}
+                    style={{
+                        flex: 1, padding: '10px 14px', borderRadius: 10,
+                        border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.04)',
+                        color: '#e8f0ff', fontSize: 14, fontFamily: 'inherit',
+                        letterSpacing: '0.12em', textTransform: 'uppercase',
+                    }}
+                />
+                <button type="button" disabled={!squadCode.trim() || lookupLoading} onClick={() => void lookupCode()}
+                    style={{ padding: '10px 16px', borderRadius: 10, background: 'rgba(93,228,255,0.15)', border: '1px solid rgba(93,228,255,0.25)', color: '#5de4ff', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                    {lookupLoading ? '...' : 'Найти'}
+                </button>
+            </div>
+            {lookupErr && (
+                <div style={{ padding: 12, borderRadius: 8, background: 'rgba(255,107,107,0.1)', border: '1px solid rgba(255,107,107,0.2)', color: '#ff6b6b', fontSize: 12, marginBottom: 12 }}>
+                    {lookupErr}
+                </div>
+            )}
+            {squadPreview && (
+                <div style={{ padding: 18, borderRadius: 14, background: 'rgba(93,228,255,0.06)', border: '1px solid rgba(93,228,255,0.2)', marginBottom: 12 }}>
+                    <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>Найден отряд</div>
+                    <div style={{ fontSize: 18, fontWeight: 700, color: '#e8f0ff', marginBottom: 4 }}>{squadPreview.squadName}</div>
+                    {squadPreview.shiftName && <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)' }}>Смена: {squadPreview.shiftName}</div>}
+                    <button type="button" disabled={joinLoading} onClick={() => void joinSquad()}
+                        style={{ marginTop: 14, padding: '10px 20px', borderRadius: 10, background: 'rgba(93,228,255,0.18)', border: '1px solid rgba(93,228,255,0.3)', color: '#5de4ff', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', width: '100%' }}>
+                        {joinLoading ? 'Вступаем...' : `Вступить в отряд «${squadPreview.squadName}»`}
+                    </button>
+                </div>
+            )}
+        </div>
+    );
+};
+
+interface ChildLinksTabProps {
+    accessToken: string;
+}
+const ChildLinksTab: React.FC<ChildLinksTabProps> = ({ accessToken }) => {
+    const [childLinks, setChildLinks] = useState<Array<{ id: string; childDeviceId: string; parentDeviceId: string; label?: string; createdAt: string }>>([]);
+    const [linksLoaded, setLinksLoaded] = useState(false);
+    const [childIdInput, setChildIdInput] = useState('');
+    const [childLabelInput, setChildLabelInput] = useState('');
+    const [linkErr, setLinkErr] = useState('');
+    const [linkLoading, setLinkLoading] = useState(false);
+    const [childSnapshot, setChildSnapshot] = useState<null | { progress: Record<string, { status: string }>; exportedAt: string }>(null);
+    const [snapshotErr, setSnapshotErr] = useState('');
+
+    const apiBase = (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1')
+        ? ((import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || '') as string).replace(/\/$/, '')
+        : '';
+    const authHeaders: Record<string, string> = accessToken ? { Authorization: `Bearer ${accessToken}` } : {};
+
+    useEffect(() => {
+        if (linksLoaded || !accessToken) return;
+        setLinksLoaded(true);
+        fetch(`${apiBase}/api/family/links`, { headers: authHeaders })
+            .then(r => r.ok ? r.json() : { links: [] })
+            .then((d: { links: typeof childLinks }) => setChildLinks(d.links || []))
+            .catch(() => {});
+    }, [linksLoaded, accessToken]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    const loadChildSnapshot = async (cid: string) => {
+        setChildSnapshot(null); setSnapshotErr('');
+        try {
+            const r = await fetch(`${apiBase}/api/family/child-snapshot/${encodeURIComponent(cid)}`, { headers: authHeaders });
+            if (!r.ok) {
+                const d = await r.json();
+                setSnapshotErr(d.hint === 'child_must_share'
+                    ? 'Попросите ребёнка поделиться прогрессом через раздел «Профиль → Поделиться»'
+                    : (d.error || 'Снэпшот не найден'));
+            } else {
+                setChildSnapshot(await r.json());
+            }
+        } catch { setSnapshotErr('Ошибка соединения'); }
+    };
+
+    const addLink = async () => {
+        const cid = childIdInput.trim();
+        if (!cid) return;
+        setLinkLoading(true); setLinkErr('');
+        try {
+            const r = await fetch(`${apiBase}/api/family/links`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...authHeaders },
+                body: JSON.stringify({ childDeviceId: cid, label: childLabelInput.trim() || undefined }),
+            });
+            const d = await r.json();
+            if (!r.ok && r.status !== 200) { setLinkErr(d.error || 'Ошибка'); return; }
+            const link: typeof childLinks[0] = d.link;
+            setChildLinks(prev => prev.find(l => l.childDeviceId === cid) ? prev : [...prev, link]);
+            setChildIdInput(''); setChildLabelInput('');
+        } catch { setLinkErr('Ошибка соединения'); }
+        finally { setLinkLoading(false); }
+    };
+
+    const removeLink = async (cid: string) => {
+        try {
+            await fetch(`${apiBase}/api/family/links/${encodeURIComponent(cid)}`, { method: 'DELETE', headers: authHeaders });
+            setChildLinks(prev => prev.filter(l => l.childDeviceId !== cid));
+            setChildSnapshot(null); setSnapshotErr('');
+        } catch { /* ignore */ }
+    };
+
+    return (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div style={{ padding: 20, borderRadius: 14, background: 'rgba(8, 20, 40, 0.15)', border: '1px solid rgba(93, 228, 255, 0.12)' }}>
+                <h3 style={{ margin: '0 0 6px', fontSize: 17, color: '#e8f0ff' }}>Связать с ребёнком</h3>
+                <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)', margin: '0 0 14px', lineHeight: 1.6 }}>
+                    Попросите ребёнка открыть Личный кабинет → Профиль → скопировать свой Device ID и передать вам.
+                </p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 12 }}>
+                    <input value={childIdInput} onChange={e => setChildIdInput(e.target.value)} placeholder="Device ID ребёнка"
+                        style={{ padding: '9px 13px', borderRadius: 9, border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.04)', color: '#e8f0ff', fontSize: 13, fontFamily: 'inherit' }} />
+                    <input value={childLabelInput} onChange={e => setChildLabelInput(e.target.value)} placeholder="Имя или пометка (необязательно)"
+                        style={{ padding: '9px 13px', borderRadius: 9, border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.04)', color: '#e8f0ff', fontSize: 13, fontFamily: 'inherit' }} />
+                </div>
+                {linkErr && <div style={{ padding: 10, borderRadius: 8, background: 'rgba(255,107,107,0.1)', color: '#ff6b6b', fontSize: 12, marginBottom: 10 }}>{linkErr}</div>}
+                <button type="button" disabled={!childIdInput.trim() || linkLoading} onClick={() => void addLink()}
+                    style={{ padding: '9px 18px', borderRadius: 9, background: 'rgba(93,228,255,0.15)', border: '1px solid rgba(93,228,255,0.25)', color: '#5de4ff', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                    {linkLoading ? 'Сохраняем...' : 'Добавить связь'}
+                </button>
+            </div>
+
+            {childLinks.length > 0 && (
+                <div style={{ padding: 20, borderRadius: 14, background: 'rgba(8, 20, 40, 0.15)', border: '1px solid rgba(93, 228, 255, 0.12)' }}>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: '#e8f0ff', marginBottom: 12 }}>Мои дети</div>
+                    {childLinks.map(lnk => (
+                        <div key={lnk.childDeviceId} style={{ marginBottom: 10 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px', borderRadius: 10, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
+                                <div style={{ flex: 1 }}>
+                                    <div style={{ fontSize: 13, fontWeight: 600, color: '#e8f0ff' }}>{lnk.label || 'Ребёнок'}</div>
+                                    <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', marginTop: 2, fontFamily: 'monospace' }}>{lnk.childDeviceId}</div>
+                                </div>
+                                <button type="button" onClick={() => void loadChildSnapshot(lnk.childDeviceId)}
+                                    style={{ padding: '6px 12px', borderRadius: 7, background: 'rgba(93,228,255,0.1)', border: '1px solid rgba(93,228,255,0.2)', color: '#5de4ff', fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                                    Прогресс
+                                </button>
+                                <button type="button" onClick={() => void removeLink(lnk.childDeviceId)}
+                                    style={{ padding: '6px 10px', borderRadius: 7, background: 'transparent', border: '1px solid rgba(255,107,107,0.2)', color: '#ff6b6b', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>
+                                    ×
+                                </button>
+                            </div>
+                            {snapshotErr && !childSnapshot && (
+                                <div style={{ marginTop: 8, padding: '8px 12px', borderRadius: 8, background: 'rgba(255,215,0,0.07)', border: '1px solid rgba(255,215,0,0.2)', fontSize: 12, color: 'rgba(255,215,0,0.8)', lineHeight: 1.5 }}>
+                                    {snapshotErr}
+                                </div>
+                            )}
+                            {childSnapshot && (() => {
+                                const prog = childSnapshot.progress || {};
+                                const done = Object.values(prog).filter(p => p.status === 'achieved').length;
+                                const inProg = Object.values(prog).filter(p => p.status === 'in_progress').length;
+                                return (
+                                    <div style={{ marginTop: 8, padding: '12px 14px', borderRadius: 10, background: 'rgba(34,197,94,0.07)', border: '1px solid rgba(34,197,94,0.18)' }}>
+                                        <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', marginBottom: 8 }}>Обновлено: {childSnapshot.exportedAt ? new Date(childSnapshot.exportedAt).toLocaleDateString('ru-RU') : '—'}</div>
+                                        <div style={{ display: 'flex', gap: 12 }}>
+                                            <div style={{ textAlign: 'center' }}>
+                                                <div style={{ fontSize: 22, fontWeight: 700, color: '#4ade80' }}>{done}</div>
+                                                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>Завершено</div>
+                                            </div>
+                                            <div style={{ textAlign: 'center' }}>
+                                                <div style={{ fontSize: 22, fontWeight: 700, color: '#5de4ff' }}>{inProg}</div>
+                                                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>В пути</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })()}
+                        </div>
+                    ))}
+                </div>
+            )}
+            {childLinks.length === 0 && linksLoaded && (
+                <div style={{ padding: 20, borderRadius: 14, background: 'rgba(8,20,40,0.15)', border: '1px solid rgba(255,255,255,0.06)', textAlign: 'center', color: 'rgba(255,255,255,0.4)', fontSize: 13 }}>
+                    Нет связей. Добавьте Device ID ребёнка выше.
+                </div>
+            )}
+        </div>
+    );
+};
+
+// ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 
@@ -413,13 +663,14 @@ export const PersonalCabinet: React.FC<{
         setWsBusy(false);
     };
     const [shareTab, setShareTab] = useState<'invite' | 'qr'>('invite');
-    const [parentsTab, setParentsTab] = useState<'program' | 'child' | 'contacts'>('program');
+    const [parentsTab, setParentsTab] = useState<'program' | 'squad' | 'child' | 'contacts'>('program');
     const [eventsTab, setEventsTab] = useState<'requests' | 'announcements' | 'tasks'>('requests');
     const [myRequests, setMyRequests] = useState<BadgeRequestItem[]>([]);
     const [eventsLoading, setEventsLoading] = useState(false);
     const [homeTab, setHomeTab] = useState<'active' | 'favorites' | 'collection' | 'journal' | 'squads'>('active');
     const [hamburgerOpen, setHamburgerOpen] = useState(false);
     const [isMobileTabsOpen, setIsMobileTabsOpen] = useState(false);
+    const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
     const [isMobile, setIsMobile] = useState(
         () => typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches
     );
@@ -744,114 +995,257 @@ export const PersonalCabinet: React.FC<{
                 display: 'flex', fontFamily: FONT, color: '#e8f0ff',
             }}>
                 {/* ═══ Колонка 1: Навигация разделов ═══ */}
-                <div className="cabinet-col1" style={{
-                    width: 180, flexShrink: 0,
-                    background: 'linear-gradient(180deg, rgba(120,80,255,0.04) 0%, transparent 40%), linear-gradient(270deg, rgba(80,140,255,0.05) 0%, transparent 40%), linear-gradient(180deg, #111827 0%, #0B1020 100%)',
-                    backgroundColor: '#111827',
-                    backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
-                    borderRight: '1px solid rgba(255,255,255,0.04)',
-                    display: 'flex', flexDirection: 'column',
-                    padding: '8px 6px', gap: 1, overflowY: 'auto',
-                }}>
-                    {/* Hamburger button */}
-                    <button type="button" onClick={() => setHamburgerOpen(!hamburgerOpen)}
-                        style={{
-                            width: '100%', height: 40, border: 'none', borderRadius: 10,
-                            background: hamburgerOpen ? 'rgba(93,228,255,0.15)' : 'transparent',
-                            cursor: 'pointer', fontSize: 13, fontWeight: 600,
-                            display: 'flex', alignItems: 'center', gap: 10,
-                            padding: '0 12px', fontFamily: FONT,
-                            color: hamburgerOpen ? '#5de4ff' : 'rgba(255,255,255,0.6)',
-                            transition: 'all 0.15s', marginBottom: 6,
-                        }}>
-                        <span style={{ fontSize: 16 }}>☰</span>
-                        Профиль
+                {/* DESKTOP: обычный flex-child */}
+                {!isMobile && (
+                    <div className="cabinet-col1" style={{
+                        width: 180, flexShrink: 0,
+                        background: 'linear-gradient(180deg, rgba(120,80,255,0.04) 0%, transparent 40%), linear-gradient(270deg, rgba(80,140,255,0.05) 0%, transparent 40%), linear-gradient(180deg, #111827 0%, #0B1020 100%)',
+                        backgroundColor: '#111827',
+                        backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
+                        borderRight: '1px solid rgba(255,255,255,0.04)',
+                        display: 'flex', flexDirection: 'column',
+                        padding: '8px 6px', gap: 1, overflowY: 'auto',
+                    }}>
+                        {/* Hamburger button */}
+                        <button type="button" onClick={() => setHamburgerOpen(!hamburgerOpen)}
+                            style={{
+                                width: '100%', height: 40, border: 'none', borderRadius: 10,
+                                background: hamburgerOpen ? 'rgba(93,228,255,0.15)' : 'transparent',
+                                cursor: 'pointer', fontSize: 13, fontWeight: 600,
+                                display: 'flex', alignItems: 'center', gap: 10,
+                                padding: '0 12px', fontFamily: FONT,
+                                color: hamburgerOpen ? '#5de4ff' : 'rgba(255,255,255,0.6)',
+                                transition: 'all 0.15s', marginBottom: 6,
+                            }}>
+                            <span style={{ fontSize: 16 }}>☰</span>
+                            Профиль
+                        </button>
+
+                        {/* Section buttons — main */}
+                        {mainSections.map(s => (
+                            <button key={s.id} type="button" className="cabinet-sidebar-btn"
+                                onClick={() => {
+                                    setActiveSection(s.id);
+                                    setHamburgerOpen(false);
+                                }}
+                                style={{
+                                    width: '100%', border: 'none', borderRadius: 8,
+                                    padding: '9px 12px', textAlign: 'left',
+                                    background: activeSection === s.id ? 'rgba(93,228,255,0.15)' : 'transparent',
+                                    cursor: 'pointer', fontSize: 13, fontWeight: activeSection === s.id ? 600 : 400,
+                                    fontFamily: FONT,
+                                    color: activeSection === s.id ? '#5de4ff' : 'rgba(255,255,255,0.6)',
+                                    transition: 'all 0.15s', letterSpacing: '-0.01em',
+                                }}>
+                                {s.label}
+                            </button>
+                        ))}
+
+                        {/* Separator + label */}
+                        {staffSections.length > 0 && (
+                            <>
+                                <div style={{ height: 1, background: 'rgba(255,255,255,0.1)', margin: '8px 10px' }} />
+                                <div style={{
+                                    padding: '4px 12px', fontSize: 10, fontWeight: 600,
+                                    color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase',
+                                    letterSpacing: '0.08em',
+                                }}>
+                                    Инструменты
+                                </div>
+                            </>
+                        )}
+
+                        {/* Section buttons — staff */}
+                        {staffSections.map(s => (
+                            <button key={s.id} type="button" className="cabinet-sidebar-btn"
+                                onClick={() => {
+                                    setActiveSection(s.id);
+                                    setHamburgerOpen(false);
+                                }}
+                                style={{
+                                    width: '100%', border: 'none', borderRadius: 8,
+                                    padding: '9px 12px', textAlign: 'left',
+                                    background: activeSection === s.id ? 'rgba(93,228,255,0.15)' : 'transparent',
+                                    cursor: 'pointer', fontSize: 13, fontWeight: activeSection === s.id ? 600 : 400,
+                                    fontFamily: FONT,
+                                    color: activeSection === s.id ? '#5de4ff' : 'rgba(255,255,255,0.6)',
+                                    transition: 'all 0.15s', letterSpacing: '-0.01em',
+                                }}>
+                                {s.label}
+                            </button>
+                        ))}
+
+                        {/* System sections at bottom */}
+                        {systemSections.length > 0 && (
+                            <>
+                                <div style={{ flex: 1 }} />
+                                <div style={{ height: 1, background: 'rgba(255,255,255,0.08)', margin: '6px 10px' }} />
+                                {systemSections.map(s => (
+                                    <button key={s.id} type="button" className="cabinet-sidebar-btn"
+                                        onClick={() => {
+                                            setActiveSection(s.id);
+                                            setHamburgerOpen(false);
+                                        }}
+                                        style={{
+                                            width: '100%', border: 'none', borderRadius: 8,
+                                            padding: '9px 12px', textAlign: 'left',
+                                            background: activeSection === s.id ? 'rgba(93,228,255,0.15)' : 'transparent',
+                                            cursor: 'pointer', fontSize: 13, fontWeight: activeSection === s.id ? 600 : 400,
+                                            fontFamily: FONT,
+                                            color: activeSection === s.id ? '#5de4ff' : 'rgba(255,255,255,0.6)',
+                                            transition: 'all 0.15s', letterSpacing: '-0.01em',
+                                        }}>
+                                        {s.label}
+                                    </button>
+                                ))}
+                            </>
+                        )}
+                    </div>
+                )}
+
+                {/* MOBILE: кнопка-гамбургер — НЕ занимает место (position:fixed через CSS) */}
+                {isMobile && (
+                    <button
+                        type="button"
+                        onClick={() => setIsMobileSidebarOpen(true)}
+                        className="cabinet-mobile-hamburger-btn"
+                        aria-label="Открыть меню"
+                    >
+                        <svg width="18" height="14" viewBox="0 0 18 14" fill="none">
+                            <rect y="0" width="18" height="2" rx="1" fill="currentColor"/>
+                            <rect y="6" width="14" height="2" rx="1" fill="currentColor"/>
+                            <rect y="12" width="18" height="2" rx="1" fill="currentColor"/>
+                        </svg>
                     </button>
+                )}
 
-                    {/* Section buttons — main */}
-                    {mainSections.map(s => (
-                        <button key={s.id} type="button" className="cabinet-sidebar-btn"
-                            onClick={() => {
-                                setActiveSection(s.id);
-                                setHamburgerOpen(false);
-                                // On mobile: open the tabs overlay so user can pick a tab
-                                if (isMobile && SECTION_TABS[s.id]) setIsMobileTabsOpen(true);
-                            }}
-                            style={{
-                                width: '100%', border: 'none', borderRadius: 8,
-                                padding: '9px 12px', textAlign: 'left',
-                                background: activeSection === s.id ? 'rgba(93,228,255,0.15)' : 'transparent',
-                                cursor: 'pointer', fontSize: 13, fontWeight: activeSection === s.id ? 600 : 400,
-                                fontFamily: FONT,
-                                color: activeSection === s.id ? '#5de4ff' : 'rgba(255,255,255,0.6)',
-                                transition: 'all 0.15s', letterSpacing: '-0.01em',
-                            }}>
-                            {s.label}
-                        </button>
-                    ))}
-
-                    {/* Separator + label */}
-                    {staffSections.length > 0 && (
-                        <>
-                            <div style={{ height: 1, background: 'rgba(255,255,255,0.1)', margin: '8px 10px' }} />
+                {/* MOBILE: overlay левого сайдбара */}
+                {isMobile && isMobileSidebarOpen && (
+                    <>
+                        {/* Backdrop */}
+                        <div
+                            onClick={() => setIsMobileSidebarOpen(false)}
+                            className="cabinet-mobile-sidebar-backdrop"
+                        />
+                        {/* Slide-in nav panel */}
+                        <div className="cabinet-mobile-sidebar-overlay">
+                            {/* Header: Профиль + кнопка закрыть */}
                             <div style={{
-                                padding: '4px 12px', fontSize: 10, fontWeight: 600,
-                                color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase',
-                                letterSpacing: '0.08em',
+                                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                                padding: '12px 12px 8px',
+                                borderBottom: '1px solid rgba(255,255,255,0.06)',
+                                marginBottom: 4,
                             }}>
-                                Инструменты
+                                <button type="button" onClick={() => { setIsMobileSidebarOpen(false); setHamburgerOpen(true); }}
+                                    style={{
+                                        flex: 1, height: 38, border: 'none', borderRadius: 10,
+                                        background: hamburgerOpen ? 'rgba(93,228,255,0.15)' : 'transparent',
+                                        cursor: 'pointer', fontSize: 13, fontWeight: 600,
+                                        display: 'flex', alignItems: 'center', gap: 8,
+                                        padding: '0 10px', fontFamily: FONT,
+                                        color: hamburgerOpen ? '#5de4ff' : 'rgba(255,255,255,0.7)',
+                                        transition: 'all 0.15s',
+                                    }}>
+                                    <span style={{ fontSize: 16 }}>☰</span>
+                                    Профиль
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setIsMobileSidebarOpen(false)}
+                                    style={{
+                                        width: 32, height: 32, border: 'none', borderRadius: 8, flexShrink: 0,
+                                        background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.5)',
+                                        cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        fontSize: 16, fontFamily: FONT, marginLeft: 8,
+                                    }}
+                                    aria-label="Закрыть"
+                                >✕</button>
                             </div>
-                        </>
-                    )}
 
-                    {/* Section buttons — staff */}
-                    {staffSections.map(s => (
-                        <button key={s.id} type="button" className="cabinet-sidebar-btn"
-                            onClick={() => {
-                                setActiveSection(s.id);
-                                setHamburgerOpen(false);
-                                if (isMobile && SECTION_TABS[s.id]) setIsMobileTabsOpen(true);
-                            }}
-                            style={{
-                                width: '100%', border: 'none', borderRadius: 8,
-                                padding: '9px 12px', textAlign: 'left',
-                                background: activeSection === s.id ? 'rgba(93,228,255,0.15)' : 'transparent',
-                                cursor: 'pointer', fontSize: 13, fontWeight: activeSection === s.id ? 600 : 400,
-                                fontFamily: FONT,
-                                color: activeSection === s.id ? '#5de4ff' : 'rgba(255,255,255,0.6)',
-                                transition: 'all 0.15s', letterSpacing: '-0.01em',
-                            }}>
-                            {s.label}
-                        </button>
-                    ))}
-
-                    {/* System sections at bottom */}
-                    {systemSections.length > 0 && (
-                        <>
-                            <div style={{ flex: 1 }} />
-                            <div style={{ height: 1, background: 'rgba(255,255,255,0.08)', margin: '6px 10px' }} />
-                            {systemSections.map(s => (
+                            {/* Section buttons — main */}
+                            {mainSections.map(s => (
                                 <button key={s.id} type="button" className="cabinet-sidebar-btn"
                                     onClick={() => {
                                         setActiveSection(s.id);
                                         setHamburgerOpen(false);
-                                        if (isMobile && SECTION_TABS[s.id]) setIsMobileTabsOpen(true);
+                                        // Nav sidebar stays open; tabs slide in beside it
+                                        if (SECTION_TABS[s.id]) setIsMobileTabsOpen(true);
                                     }}
                                     style={{
                                         width: '100%', border: 'none', borderRadius: 8,
-                                        padding: '9px 12px', textAlign: 'left',
+                                        padding: '11px 14px', textAlign: 'left',
                                         background: activeSection === s.id ? 'rgba(93,228,255,0.15)' : 'transparent',
-                                        cursor: 'pointer', fontSize: 13, fontWeight: activeSection === s.id ? 600 : 400,
+                                        cursor: 'pointer', fontSize: 14, fontWeight: activeSection === s.id ? 600 : 400,
                                         fontFamily: FONT,
-                                        color: activeSection === s.id ? '#5de4ff' : 'rgba(255,255,255,0.6)',
+                                        color: activeSection === s.id ? '#5de4ff' : 'rgba(255,255,255,0.75)',
                                         transition: 'all 0.15s', letterSpacing: '-0.01em',
                                     }}>
                                     {s.label}
                                 </button>
                             ))}
-                        </>
-                    )}
-                </div>
+
+                            {/* Separator + label */}
+                            {staffSections.length > 0 && (
+                                <>
+                                    <div style={{ height: 1, background: 'rgba(255,255,255,0.1)', margin: '8px 10px' }} />
+                                    <div style={{
+                                        padding: '4px 14px', fontSize: 10, fontWeight: 600,
+                                        color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase',
+                                        letterSpacing: '0.08em',
+                                    }}>Инструменты</div>
+                                </>
+                            )}
+
+                            {/* Section buttons — staff */}
+                            {staffSections.map(s => (
+                                <button key={s.id} type="button" className="cabinet-sidebar-btn"
+                                    onClick={() => {
+                                        setActiveSection(s.id);
+                                        setHamburgerOpen(false);
+                                        if (SECTION_TABS[s.id]) setIsMobileTabsOpen(true);
+                                    }}
+                                    style={{
+                                        width: '100%', border: 'none', borderRadius: 8,
+                                        padding: '11px 14px', textAlign: 'left',
+                                        background: activeSection === s.id ? 'rgba(93,228,255,0.15)' : 'transparent',
+                                        cursor: 'pointer', fontSize: 14, fontWeight: activeSection === s.id ? 600 : 400,
+                                        fontFamily: FONT,
+                                        color: activeSection === s.id ? '#5de4ff' : 'rgba(255,255,255,0.75)',
+                                        transition: 'all 0.15s', letterSpacing: '-0.01em',
+                                    }}>
+                                    {s.label}
+                                </button>
+                            ))}
+
+                            {/* System sections at bottom */}
+                            {systemSections.length > 0 && (
+                                <>
+                                    <div style={{ flex: 1 }} />
+                                    <div style={{ height: 1, background: 'rgba(255,255,255,0.08)', margin: '6px 10px' }} />
+                                    {systemSections.map(s => (
+                                        <button key={s.id} type="button" className="cabinet-sidebar-btn"
+                                            onClick={() => {
+                                                setActiveSection(s.id);
+                                                setHamburgerOpen(false);
+                                                if (SECTION_TABS[s.id]) setIsMobileTabsOpen(true);
+                                            }}
+                                            style={{
+                                                width: '100%', border: 'none', borderRadius: 8,
+                                                padding: '11px 14px', textAlign: 'left',
+                                                background: activeSection === s.id ? 'rgba(93,228,255,0.15)' : 'transparent',
+                                                cursor: 'pointer', fontSize: 14, fontWeight: activeSection === s.id ? 600 : 400,
+                                                fontFamily: FONT,
+                                                color: activeSection === s.id ? '#5de4ff' : 'rgba(255,255,255,0.75)',
+                                                transition: 'all 0.15s', letterSpacing: '-0.01em',
+                                            }}>
+                                            {s.label}
+                                        </button>
+                                    ))}
+                                </>
+                            )}
+                        </div>
+                    </>
+                )}
 
                 {/* ═══ Гармошка: панель профиля (выезжает поверх Колонки 1) ═══ */}
                 {hamburgerOpen && (
@@ -1037,9 +1431,9 @@ export const PersonalCabinet: React.FC<{
                 {/* ═══ Mobile Tabs Overlay (только на мобиле, z-index > контент) ═══ */}
                 {isMobile && isMobileTabsOpen && (
                     <>
-                        {/* Backdrop */}
+                        {/* Backdrop — closes both overlays */}
                         <div
-                            onClick={() => setIsMobileTabsOpen(false)}
+                            onClick={() => { setIsMobileTabsOpen(false); setIsMobileSidebarOpen(false); }}
                             className="cabinet-mobile-tabs-backdrop"
                         />
                         {/* Slide-in tabs panel */}
@@ -1108,8 +1502,9 @@ export const PersonalCabinet: React.FC<{
                                         case 'vozhatifikator': setVozhatifikatorTab(tabId as any); break;
                                         case 'inspector': setInspectorTab(tabId); break;
                                     }
-                                    // Auto-close overlay after selecting a tab
+                                    // Auto-close both overlays after selecting a tab
                                     setIsMobileTabsOpen(false);
+                                    setIsMobileSidebarOpen(false);
                                 };
                                 const activeTabId = getActiveTabId();
                                 const isStaff = canModerateBadgeApprovals(currentRole as UserRole);
@@ -1150,6 +1545,7 @@ export const PersonalCabinet: React.FC<{
 
                 <div className="cabinet-content-area" style={{ flex: 1, overflowY: 'auto', padding: '24px 32px 120px' }}>
                     <div style={{ width: '100%', maxWidth: (activeSection === 'council' && (councilTab === 'camp-management' || councilTab === 'management')) ? 'none' : 680, margin: '0 auto' }}>
+
 
 
                         {/* ── Profile Editor (when profileEditing is true) ── */}
@@ -1312,80 +1708,100 @@ export const PersonalCabinet: React.FC<{
                                                 <button type="button" onClick={(e) => { e.stopPropagation(); const fn = (window as any).__openBadgePlan__; if (typeof fn === 'function') { fn({ id: levelId, title: badgeTitle, level: badgeMeta?.level, criteria: (badgeMeta as any)?.criteria || (badgeMeta as any)?.howToBecome, nameExplanation: (badgeMeta as any)?.nameExplanation, skillTips: (badgeMeta as any)?.skillTips, confirmation: (badgeMeta as any)?.confirmation }); } else { navigateToBadge(baseId); } }} className="btn-pill btn-pill--secondary">Составить план</button>
                                                 <button type="button" onClick={(e) => { e.stopPropagation(); const fn = (window as any).__openBadgeProof__; if (typeof fn === 'function') { fn({ id: levelId, title: badgeTitle }); } else { navigateToBadge(baseId); } }} className="btn-pill btn-pill--primary">Подтвердить <CabIcons.Send /></button>
                                             </div>
-                                            <div className="path-card__footer">
-                                                {isPath ? (
-                                                    <button type="button" onClick={(e) => { e.stopPropagation(); if (confirm('Удалить?')) removeRoute(baseId); }} className="btn-action-round trash" aria-label="Удалить из пути"><CabIcons.Trash /></button>
-                                                ) : (
-                                                    <button type="button" onClick={(e) => { e.stopPropagation(); toggleFavorite(baseId); }} className="btn-action-round trash" aria-label="Убрать из избранного"><CabIcons.Trash /></button>
-                                                )}
-                                                <button type="button" onClick={(e) => { e.stopPropagation(); toggleFavorite(baseId); }} className={`path-card__star ${isFav ? 'fav' : ''}`} aria-label={isFav ? 'Убрать из избранного' : 'В избранное'}><CabIcons.Star filled={isFav} /></button>
-                                                <button type="button" className="btn-action-round btn-go-badge" onClick={(e) => { e.stopPropagation(); navigateToBadge(baseId); }} title="Перейти к значку" aria-label="Перейти к значку"><CabIcons.ArrowRight /></button>
-                                            </div>
-                                        </div>
-                                    );
-                                };
+                                             <div className="path-card__footer">
+                                                 {isPath ? (
+                                                     <button type="button" onClick={(e) => { e.stopPropagation(); if (confirm('\u0423\u0434\u0430\u043b\u0438\u0442\u044c?')) removeRoute(baseId); }} className="btn-action-round trash" aria-label="\u0423\u0434\u0430\u043b\u0438\u0442\u044c \u0438\u0437 \u043f\u0443\u0442\u0438"><CabIcons.Trash /></button>
+                                                 ) : (
+                                                     <button type="button" onClick={(e) => { e.stopPropagation(); toggleFavorite(baseId); }} className="btn-action-round trash" aria-label="\u0423\u0431\u0440\u0430\u0442\u044c \u0438\u0437 \u0438\u0437\u0431\u0440\u0430\u043d\u043d\u043e\u0433\u043e"><CabIcons.Trash /></button>
+                                                 )}
+                                                 <button type="button" onClick={(e) => { e.stopPropagation(); toggleFavorite(baseId); }} className={`path-card__star ${isFav ? 'fav' : ''}`} aria-label={isFav ? '\u0423\u0431\u0440\u0430\u0442\u044c \u0438\u0437 \u0438\u0437\u0431\u0440\u0430\u043d\u043d\u043e\u0433\u043e' : '\u0412 \u0438\u0437\u0431\u0440\u0430\u043d\u043d\u043e\u0435'}><CabIcons.Star filled={isFav} /></button>
+                                                 <button type="button" className="btn-action-round btn-go-badge" onClick={(e) => { e.stopPropagation(); navigateToBadge(baseId); }} title="\u041f\u0435\u0440\u0435\u0439\u0442\u0438 \u043a \u0437\u043d\u0430\u0447\u043a\u0443" aria-label="\u041f\u0435\u0440\u0435\u0439\u0442\u0438 \u043a \u0437\u043d\u0430\u0447\u043a\u0443"><CabIcons.ArrowRight /></button>
+                                             </div>
+                                         </div>
+                                     );
+                                 };
 
-                                const renderCarousel = (
-                                    items: typeof uniquePath,
-                                    isPath: boolean,
-                                    rotationSteps: number,
-                                    setRotationSteps: React.Dispatch<React.SetStateAction<number>>,
-                                ) => {
-                                    if (items.length <= CAROUSEL_STATIC_MAX) {
-                                        return (
-                                            <div className="cabinet-carousel">
-                                                <div className="path-carousel path-carousel--static">
-                                                    <div className="path-carousel__static-track">
-                                                        {items.map((item, idx) => (
-                                                            <div key={`static-${idx}-${item.baseId}`} className="path-carousel__item path-carousel__item--static">
-                                                                {renderPathCard(item, isPath)}
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        );
-                                    }
-                                    const n = items.length;
-                                    const stepDeg = `${360 / Math.max(1, n)}deg`;
-                                    const radius = `${(180 + 20) / (2 * Math.sin(Math.PI / Math.max(1, n)))}px`;
-                                    return (
-                                        <div className="cabinet-carousel">
-                                            <div className="path-carousel path-carousel--cylinder">
-                                                <button type="button" className="path-carousel__btn path-carousel__btn--prev"
-                                                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setRotationSteps(s => s - 1); }}
-                                                    aria-label="Вращать влево"><CabIcons.ArrowLeft /></button>
-                                                <div className="path-carousel__viewport path-carousel__viewport--cylinder">
-                                                    <div className="path-carousel__track path-carousel__track--cylinder"
-                                                        style={{
-                                                            ['--path-rotation-steps' as string]: rotationSteps,
-                                                            ['--step-deg' as string]: stepDeg,
-                                                            ['--radius' as string]: radius,
-                                                        }}>
-                                                        {items.map((item, idx) => (
-                                                            <div key={`cyl-${idx}-${item.baseId}`}
-                                                                className="path-carousel__item path-carousel__item--cylinder"
-                                                                style={{ ['--slot-offset' as string]: idx }}>
-                                                                {renderPathCard(item, isPath)}
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                                <button type="button" className="path-carousel__btn path-carousel__btn--next"
-                                                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setRotationSteps(s => s + 1); }}
-                                                    aria-label="Вращать вправо"><CabIcons.ArrowRight /></button>
-                                            </div>
-                                        </div>
-                                    );
-                                };
+                                 const renderCarousel = (
+                                     items: typeof uniquePath,
+                                     isPath: boolean,
+                                     rotationSteps: number,
+                                     setRotationSteps: React.Dispatch<React.SetStateAction<number>>,
+                                 ) => {
+                                     if (items.length <= CAROUSEL_STATIC_MAX) {
+                                         return (
+                                             <div className="cabinet-carousel">
+                                                 <div className="path-carousel path-carousel--static">
+                                                     <div className="path-carousel__static-track">
+                                                         {items.map((item, idx) => (
+                                                             <div key={`static-${idx}-${item.baseId}`} className="path-carousel__item path-carousel__item--static">
+                                                                 {renderPathCard(item, isPath)}
+                                                             </div>
+                                                         ))}
+                                                     </div>
+                                                 </div>
+                                             </div>
+                                         );
+                                     }
+                                     const n = items.length;
+                                     const stepDeg = `${360 / Math.max(1, n)}deg`;
+                                     const radius = `${(180 + 20) / (2 * Math.sin(Math.PI / Math.max(1, n)))}px`;
+                                     const touchStartX = { current: 0 };
+                                     const navBtn = (dir: 'prev' | 'next') => (
+                                         <button type="button"
+                                             className={`path-carousel__btn path-carousel__btn--${dir}`}
+                                             onClick={(e) => { e.preventDefault(); e.stopPropagation(); setRotationSteps(s => dir === 'prev' ? s - 1 : s + 1); }}
+                                             aria-label={dir === 'prev' ? '\u0412\u0440\u0430\u0449\u0430\u0442\u044c \u0432\u043b\u0435\u0432\u043e' : '\u0412\u0440\u0430\u0449\u0430\u0442\u044c \u0432\u043f\u0440\u0430\u0432\u043e'}>
+                                             {dir === 'prev' ? <CabIcons.ArrowLeft /> : <CabIcons.ArrowRight />}
+                                         </button>
+                                     );
+                                     return (
+                                         <div className="cabinet-carousel">
+                                             <div className="path-carousel path-carousel--cylinder">
+                                                 {!isMobile && navBtn('prev')}
+                                                 <div className="path-carousel__viewport path-carousel__viewport--cylinder"
+                                                     onTouchStart={(e) => { touchStartX.current = e.touches[0].clientX; }}
+                                                     onTouchEnd={(e) => {
+                                                         const dx = e.changedTouches[0].clientX - touchStartX.current;
+                                                         if (Math.abs(dx) > 40) {
+                                                             if (dx < 0) setRotationSteps(s => s - 1);
+                                                             else setRotationSteps(s => s + 1);
+                                                         }
+                                                     }}
+                                                 >
+                                                     <div className="path-carousel__track path-carousel__track--cylinder"
+                                                         style={{
+                                                             ['--path-rotation-steps' as string]: rotationSteps,
+                                                             ['--step-deg' as string]: stepDeg,
+                                                             ['--radius' as string]: radius,
+                                                         }}>
+                                                         {items.map((item, idx) => (
+                                                             <div key={`cyl-${idx}-${item.baseId}`}
+                                                                 className="path-carousel__item path-carousel__item--cylinder"
+                                                                 style={{ ['--slot-offset' as string]: idx }}>
+                                                                 {renderPathCard(item, isPath)}
+                                                             </div>
+                                                         ))}
+                                                     </div>
+                                                 </div>
+                                                 {!isMobile && navBtn('next')}
+                                             </div>
+                                             {isMobile && (
+                                                 <div className="path-carousel__nav-row">
+                                                     {navBtn('prev')}
+                                                     {navBtn('next')}
+                                                 </div>
+                                             )}
+                                         </div>
+                                     );
+                                 };
 
-                                const svgIcons: Record<string, React.ReactNode> = {
-                                    compass: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88" fill="currentColor" opacity=".3" /></svg>,
-                                    star: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>,
-                                    medal: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="14" r="6" /><path d="M8.21 3.32L7 8h10l-1.21-4.68A2 2 0 0 0 13.85 2h-3.7a2 2 0 0 0-1.94 1.32z" /><line x1="12" y1="11" x2="12" y2="17" /></svg>,
-                                    book: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" /></svg>,
-                                };
-
+                                 const svgIcons: Record<string, React.ReactNode> = {
+                                     compass: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88" fill="currentColor" opacity=".3" /></svg>,
+                                     star: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>,
+                                     medal: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="14" r="6" /><path d="M8.21 3.32L7 8h10l-1.21-4.68A2 2 0 0 0 13.85 2h-3.7a2 2 0 0 0-1.94 1.32z" /><line x1="12" y1="11" x2="12" y2="17" /></svg>,
+                                     book: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" /></svg>,
+                                 };
+
                                 const emptyState = (iconKey: string, title: string, desc: string) => (
                                     <div className="cab-empty-state fade-in">
                                         <div className="cab-empty-state__icon">{svgIcons[iconKey] || svgIcons.star}</div>
@@ -2580,47 +2996,13 @@ export const PersonalCabinet: React.FC<{
                                                 <CampProgramByDays defaultShiftLength={defaultShiftLength} />
                                             </div>
                                         )}
-                                        {parentsTab === 'child' && (() => {
-                                            const achieved = Object.entries(progress).filter(([, p]) => p.status === 'achieved');
-                                            const inProgress = Object.entries(progress).filter(([, p]) => p.status === 'in_progress');
-                                            return (
-                                                <div style={{
-                                                    padding: 24, borderRadius: 16,
-                                                    background: 'rgba(8, 20, 40, 0.15)', border: '1px solid rgba(93, 228, 255, 0.12)',
-                                                }}>
-                                                    <h3 style={{ margin: '0 0 16px', fontSize: 18, color: '#e8f0ff' }}>Прогресс ребёнка</h3>
-                                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
-                                                        <div style={{ padding: 16, borderRadius: 12, background: 'rgba(34,197,94,0.12)', textAlign: 'center' }}>
-                                                            <div style={{ fontSize: 28, fontWeight: 700, color: '#4ade80' }}>{achieved.length}</div>
-                                                            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', marginTop: 4 }}>Завершено</div>
-                                                        </div>
-                                                        <div style={{ padding: 16, borderRadius: 12, background: 'rgba(93,228,255,0.08)', textAlign: 'center' }}>
-                                                            <div style={{ fontSize: 28, fontWeight: 700, color: '#5de4ff' }}>{inProgress.length}</div>
-                                                            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', marginTop: 4 }}>В пути</div>
-                                                        </div>
-                                                    </div>
-                                                    {achieved.length > 0 && (
-                                                        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                                                            <div style={{ fontSize: 13, fontWeight: 600, color: '#e8f0ff', marginBottom: 4 }}>Последние достижения</div>
-                                                            {achieved.slice(0, 5).map(([id]) => {
-                                                                const parts = id.split('.');
-                                                                const baseId = parts.length >= 2 ? `${parts[0]}.${parts[1]}` : id;
-                                                                const meta = badgeLookupMap.get(id) || badgeLookupMap.get(baseId);
-                                                                return (
-                                                                    <div key={id} style={{
-                                                                        padding: '8px 12px', borderRadius: 8,
-                                                                        background: 'rgba(255,255,255,0.04)',
-                                                                        fontSize: 13, color: '#e8f0ff',
-                                                                    }}>
-                                                                        ✅ {meta?.title || baseId}
-                                                                    </div>
-                                                                );
-                                                            })}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            );
-                                        })()}
+                                        {parentsTab === 'squad' && (
+                                            <SquadJoinTab accessToken={accessToken || ''} nickname={nickname} />
+                                        )}
+                                        {parentsTab === 'child' && (
+                                            <ChildLinksTab accessToken={accessToken || ''} />
+                                        )}
+
                                         {parentsTab === 'contacts' && (
                                             <div style={{
                                                 padding: 24, borderRadius: 16,

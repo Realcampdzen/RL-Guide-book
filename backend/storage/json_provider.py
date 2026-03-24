@@ -24,6 +24,7 @@ from .base import (
     UsersStore,
     WorkshopProposalsStore,
     RoleRequestsStore,
+    FamilyLinksStore,
 )
 
 _DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
@@ -636,6 +637,28 @@ class JsonRoleRequestsStore(RoleRequestsStore):
             _write_json(_ROLE_REQUESTS_FILE, data if isinstance(data, list) else [])
 
 
+# --- FamilyLinksStore (M20-PARENT-SQUAD) ---
+
+_FAMILY_LINKS_FILE = os.path.join(_DATA_DIR, "family_links.json")
+_FAMILY_LINKS_LOCK = threading.Lock()
+
+class JsonFamilyLinksStore(FamilyLinksStore):
+    def load(self) -> dict:
+        _ensure_data_dir()
+        with _FAMILY_LINKS_LOCK:
+            data = _read_json(_FAMILY_LINKS_FILE, {"links": []})
+            if not isinstance(data, dict):
+                data = {"links": []}
+            if not isinstance(data.get("links"), list):
+                data["links"] = []
+            return data
+
+    def save(self, data: dict) -> None:
+        _ensure_data_dir()
+        with _FAMILY_LINKS_LOCK:
+            _write_json(_FAMILY_LINKS_FILE, data if isinstance(data, dict) else {})
+
+
 JSON_STORES = {
     "shifts":          JsonShiftsStore(),
     "memberships":     JsonMembershipsStore(),
@@ -664,5 +687,6 @@ JSON_STORES = {
     "users":             JsonUsersStore(),
     "workshop_proposals": JsonWorkshopProposalsStore(),
     "role_requests":    JsonRoleRequestsStore(),
+    "family_links":     JsonFamilyLinksStore(),
 }
 

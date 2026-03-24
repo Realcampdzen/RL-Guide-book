@@ -27,6 +27,7 @@ from .base import (
     UsersStore,
     WorkshopProposalsStore,
     RoleRequestsStore,
+    FamilyLinksStore,
 )
 
 _sb_client = None
@@ -1359,6 +1360,82 @@ class SupabaseRoleRequestsStore(RoleRequestsStore):
 # Реестр экземпляров
 # ---------------------------------------------------------------------------
 
+# ---------------------------------------------------------------------------
+# SupabaseFamilyLinksStore (M20-PARENT-SQUAD)
+# ---------------------------------------------------------------------------
+
+class SupabaseFamilyLinksStore(FamilyLinksStore):
+    """
+    Хранилище семейных связей родитель ↔ ребёнок.
+    Таблица: family_links
+    """
+
+    def load(self) -> dict:
+        sb = _client()
+        rows = sb.table("family_links").select("*").order("created_at", desc=False).execute().data or []
+        links = [self._row_to_link(r) for r in rows]
+        return {"links": links}
+
+    def save(self, data: dict) -> None:
+        sb = _client()
+        for lnk in (data.get("links") or []):
+            if not isinstance(lnk, dict):
+                continue
+            sb.table("family_links").upsert(self._link_to_row(lnk)).execute()
+
+    def get_by_parent(self, parent_device_id: str) -> list:
+        sb = _client()
+        rows = (
+            sb.table("family_links")
+            .select("*")
+            .eq("parent_device_id", parent_device_id.strip())
+            .order("created_at", desc=False)
+            .execute()
+            .data or []
+        )
+        return [self._row_to_link(r) for r in rows]
+
+    def insert_link(self, link: dict) -> dict:
+        sb = _client()
+        row = self._link_to_row(link)
+        result = sb.table("family_links").insert(row).execute()
+        inserted = (result.data or [{}])[0]
+        return self._row_to_link(inserted) if inserted else link
+
+    def delete_link(self, parent_device_id: str, child_device_id: str) -> bool:
+        sb = _client()
+        result = (
+            sb.table("family_links")
+            .delete()
+            .eq("parent_device_id", parent_device_id.strip())
+            .eq("child_device_id", child_device_id.strip())
+            .execute()
+        )
+        return bool(result.data)
+
+    @staticmethod
+    def _row_to_link(r: dict) -> dict:
+        return {
+            "id": str(r.get("id", "")),
+            "parentDeviceId": r.get("parent_device_id", ""),
+            "childDeviceId": r.get("child_device_id", ""),
+            "label": r.get("label") or None,
+            "createdAt": _ts(r.get("created_at")),
+        }
+
+    @staticmethod
+    def _link_to_row(lnk: dict) -> dict:
+        row = {
+            "parent_device_id": lnk.get("parentDeviceId", ""),
+            "child_device_id": lnk.get("childDeviceId", ""),
+        }
+        if lnk.get("id"):
+            row["id"] = lnk["id"]
+        if lnk.get("label"):
+            row["label"] = lnk["label"]
+        return row
+
+
 SUPABASE_STORES = {
     "shifts":           SupabaseShiftsStore(),
     "memberships":      SupabaseMembershipsStore(),
@@ -1383,5 +1460,5 @@ SUPABASE_STORES = {
     "users":              SupabaseUsersStore(),
     "workshop_proposals": SupabaseWorkshopProposalsStore(),
     "role_requests":      SupabaseRoleRequestsStore(),
+    "family_links":       SupabaseFamilyLinksStore(),
 }
-

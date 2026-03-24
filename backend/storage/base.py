@@ -402,3 +402,49 @@ class RoleRequestsStore(ABC):
 
     @abstractmethod
     def save(self, data: list) -> None: ...
+
+
+class FamilyLinksStore(ABC):
+    """
+    Хранилище семейных связей родитель ↔ ребёнок.
+    Формат: {'links': [{id, parentDeviceId, childDeviceId, label, createdAt}]}
+    """
+    @abstractmethod
+    def load(self) -> dict: ...
+
+    @abstractmethod
+    def save(self, data: dict) -> None: ...
+
+    def get_by_parent(self, parent_device_id: str) -> list:
+        """Return all links where parentDeviceId == parent_device_id."""
+        doc = self.load()
+        return [
+            lnk for lnk in (doc.get('links') or [])
+            if isinstance(lnk, dict) and lnk.get('parentDeviceId', '').strip() == parent_device_id.strip()
+        ]
+
+    def insert_link(self, link: dict) -> dict:
+        """Insert a link (load-modify-save). Override in Supabase for direct INSERT."""
+        doc = self.load()
+        links = doc.get('links') or []
+        links.append(link)
+        doc['links'] = links
+        self.save(doc)
+        return link
+
+    def delete_link(self, parent_device_id: str, child_device_id: str) -> bool:
+        """Remove a link. Returns True if something was removed."""
+        doc = self.load()
+        before = len(doc.get('links') or [])
+        doc['links'] = [
+            lnk for lnk in (doc.get('links') or [])
+            if not (
+                isinstance(lnk, dict)
+                and lnk.get('parentDeviceId', '').strip() == parent_device_id.strip()
+                and lnk.get('childDeviceId', '').strip() == child_device_id.strip()
+            )
+        ]
+        if len(doc['links']) < before:
+            self.save(doc)
+            return True
+        return False

@@ -3363,7 +3363,7 @@ def squad_invite_code_resolve():
     """
     Legacy alias for code resolving.
     """
-    payload, err = _require_roles(("participant", "counselor", "educator", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
+    payload, err = _require_roles(("participant", "parent", "counselor", "educator", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
     if err is not None:
         return err[0], err[1]
     return _resolve_invite_code_response(request.args.get("code") or "")
@@ -3373,9 +3373,9 @@ def squad_invite_code_resolve():
 def squad_invite_code_resolve_v2():
     """
     GET /api/squads/by-invite-code?code=XXXXXX — resolve invite code to squad meta.
-    Auth: participant|counselor|shift_leader|camp_director|developer
+    Auth: participant|parent|counselor|shift_leader|camp_director|developer
     """
-    payload, err = _require_roles(("participant", "counselor", "educator", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
+    payload, err = _require_roles(("participant", "parent", "counselor", "educator", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
     if err is not None:
         return err[0], err[1]
     return _resolve_invite_code_response(request.args.get("code") or "")
@@ -4713,6 +4713,278 @@ def parent_snapshot_get():
     out = {
         "progress": entry.get("progress", {}),
         "exportedAt": entry.get("exportedAt", ""),
+    }
+    if entry.get("profile") is not None:
+        out["profile"] = entry["profile"]
+    return jsonify(out)
+
+
+
+# ---------------------------------------------------------------------------
+# M20-PARENT-SQUAD: Squad join via invite code (supports parent role)
+# ---------------------------------------------------------------------------
+
+@app.route('/api/squads/join-by-code', methods=['POST'])
+def squad_join_by_code():
+    """
+    POST /api/squads/join-by-code
+    Auth: participant|parent|counselor|educator|shift_leader|camp_director|developer
+    Body: { code: string, nickname?: string }
+    Joins the squad identified by the invite code for the requesting user.
+    Allows parents to join squads (same flow as participants).
+    """
+    payload, err = _require_roles(
+        ("participant", "parent", "counselor", "educator", "shift_leader", "camp_director", "developer"),
+        allow_localhost_dev=True,
+    )
+    if err is not None:
+        return err[0], err[1]
+
+    body = request.get_json(silent=True) or {}
+    code = (body.get("code") or "").strip().upper()
+    if not code:
+        return jsonify({"error": "code required"}), 400
+
+    # Resolve the code
+    doc = _squad_invites_load()
+    doc, changed = _squad_invites_prune(doc)
+    if changed:
+        _squad_invites_save(doc)
+        doc = _squad_invites_load()
+    meta = (doc.get("codes") or {}).get(code)
+    if not isinstance(meta, dict):
+        return jsonify({"error": "Код не найден или истёк срок действия"}), 404
+    squad_id = (meta.get("squadId") or "").strip()
+    if not squad_id:
+        return jsonify({"error": "Invite code invalid"}), 404
+
+    # Look up squad & shift
+    shifts_doc = _shifts_load()
+    squad = _find_squad(shifts_doc, squad_id)
+    if not squad:
+        return jsonify({"error": "Squad not found"}), 404
+    shift = _find_shift(shifts_doc, (squad.get("shiftId") or "").strip())
+
+    device_id = (payload.get("deviceId") or "").strip()
+    role = _normalize_role((payload.get("role") or "").strip())
+    nickname = (body.get("nickname") or "").strip() or None
+
+    if device_id:
+        # Check if already a member of this squad
+        existing = _membership_in_squad(device_id, squad_id)
+        if existing:
+            return jsonify({
+                "status": "already_member",
+                "squadId": squad_id,
+                "squadName": squad.get("name"),
+                "shiftId": shift.get("id") if isinstance(shift, dict) else squad.get("shiftId"),
+                "shiftName": shift.get("name") if isinstance(shift, dict) else None,
+                "membership": existing,
+            })
+
+        # Create membership
+        now_iso = datetime.now(timezone.utc).isoformat()
+        camp_id = (squad.get("shiftId") or "").strip()
+        new_membership = {
+            "deviceId": device_id,
+            "campId": camp_id,
+            "squadId": squad_id,
+            "role": role,
+            "joinedAt": now_iso,
+        }
+        if nickname:
+            new_membership["nickname"] = nickname
+
+        try:
+            mdoc = _memberships_load()
+            members = mdoc.get("members") or []
+            members.append(new_membership)
+            mdoc["members"] = members
+            _memberships_save(mdoc)
+        except Exception as exc:
+            print(f"[squad_join_by_code] memberships save error: {exc}")
+            return jsonify({"error": "Не удалось сохранить членство"}), 500
+
+        return jsonify({
+            "status": "joined",
+            "squadId": squad_id,
+            "squadName": squad.get("name"),
+            "shiftId": shift.get("id") if isinstance(shift, dict) else squad.get("shiftId"),
+            "shiftName": shift.get("name") if isinstance(shift, dict) else None,
+            "membership": new_membership,
+        })
+
+    return jsonify({
+        "status": "ok",
+        "squadId": squad_id,
+        "squadName": squad.get("name"),
+        "shiftId": shift.get("id") if isinstance(shift, dict) else squad.get("shiftId"),
+        "shiftName": shift.get("name") if isinstance(shift, dict) else None,
+    })
+
+
+# ---------------------------------------------------------------------------
+# M20-PARENT-SQUAD: Family links (parent ↔ child device)
+# ---------------------------------------------------------------------------
+
+def _family_links_load_for_parent(device_id: str) -> list:
+    """Load family links for a given parent device_id."""
+    try:
+        store = get_store("family_links")
+        return store.get_by_parent(device_id)
+    except Exception as exc:
+        print(f"[family_links] load error: {exc}")
+        return []
+
+
+@app.route('/api/family/links', methods=['GET', 'POST'])
+def family_links():
+    """
+    GET  /api/family/links  — list my child links (as parent).
+    POST /api/family/links  — add a child link.
+    Auth: any authenticated role.
+    POST body: { childDeviceId: string, label?: string }
+    """
+    payload, err = _require_roles(
+        ("participant", "parent", "counselor", "educator", "shift_leader", "camp_director", "developer"),
+        allow_localhost_dev=True,
+    )
+    if err is not None:
+        return err[0], err[1]
+
+    device_id = (payload.get("deviceId") or "").strip()
+    if not device_id:
+        return jsonify({"error": "deviceId missing in token"}), 400
+
+    if request.method == 'GET':
+        links = _family_links_load_for_parent(device_id)
+        return jsonify({"links": links})
+
+    # POST — add link
+    body = request.get_json(silent=True) or {}
+    child_device_id = (body.get("childDeviceId") or "").strip()
+    if not child_device_id:
+        return jsonify({"error": "childDeviceId required"}), 400
+    if child_device_id == device_id:
+        return jsonify({"error": "Нельзя добавить себя как ребёнка"}), 409
+    label = (body.get("label") or "").strip() or None
+
+    # Check for duplicate
+    existing = _family_links_load_for_parent(device_id)
+    for lnk in existing:
+        if (lnk.get("childDeviceId") or "").strip() == child_device_id:
+            return jsonify({"link": lnk, "status": "already_exists"}), 200
+
+    new_link = {
+        "id": uuid.uuid4().hex,
+        "parentDeviceId": device_id,
+        "childDeviceId": child_device_id,
+        "label": label,
+        "createdAt": datetime.now(timezone.utc).isoformat(),
+    }
+    try:
+        store = get_store("family_links")
+        inserted = store.insert_link(new_link)
+    except Exception as exc:
+        print(f"[family_links POST] insert error: {exc}")
+        return jsonify({"error": "Не удалось сохранить связь"}), 500
+
+    return jsonify({"link": inserted, "status": "created"}), 201
+
+
+@app.route('/api/family/links/<child_device_id>', methods=['DELETE'])
+def family_links_delete(child_device_id: str):
+    """
+    DELETE /api/family/links/<childDeviceId> — remove a child link.
+    Auth: any authenticated role.
+    """
+    payload, err = _require_roles(
+        ("participant", "parent", "counselor", "educator", "shift_leader", "camp_director", "developer"),
+        allow_localhost_dev=True,
+    )
+    if err is not None:
+        return err[0], err[1]
+
+    device_id = (payload.get("deviceId") or "").strip()
+    if not device_id:
+        return jsonify({"error": "deviceId missing in token"}), 400
+
+    child_id = (child_device_id or "").strip()
+    if not child_id:
+        return jsonify({"error": "childDeviceId required"}), 400
+
+    try:
+        store = get_store("family_links")
+        removed = store.delete_link(device_id, child_id)
+    except Exception as exc:
+        print(f"[family_links DELETE] error: {exc}")
+        return jsonify({"error": "Не удалось удалить связь"}), 500
+
+    return jsonify({"status": "deleted" if removed else "not_found", "childDeviceId": child_id})
+
+
+@app.route('/api/family/child-snapshot/<child_device_id>', methods=['GET'])
+def family_child_snapshot(child_device_id: str):
+    """
+    GET /api/family/child-snapshot/<childDeviceId>
+    Returns the most recent parent snapshot for the child, if requested by a linked parent.
+    Auth: any authenticated role.
+    """
+    payload, err = _require_roles(
+        ("participant", "parent", "counselor", "educator", "shift_leader", "camp_director", "developer"),
+        allow_localhost_dev=True,
+    )
+    if err is not None:
+        return err[0], err[1]
+
+    device_id = (payload.get("deviceId") or "").strip()
+    role = _normalize_role((payload.get("role") or "").strip())
+    child_id = (child_device_id or "").strip()
+
+    if not child_id:
+        return jsonify({"error": "childDeviceId required"}), 400
+
+    # Parents must have an established family link to view child data
+    # Developers/shift_leaders can bypass for admin purposes
+    bypass_roles = ("shift_leader", "camp_director", "developer")
+    if role not in bypass_roles:
+        links = _family_links_load_for_parent(device_id)
+        linked_ids = {(lnk.get("childDeviceId") or "").strip() for lnk in links}
+        if child_id not in linked_ids:
+            return jsonify({"error": "Нет связи с этим ребёнком"}), 403
+
+    # Find the most recent non-expired snapshot for the child device
+    snapshots = _parent_snapshots_load()
+    best = None
+    best_ts = 0
+    now_ts = int(time.time())
+    for code, entry in (snapshots.items() if isinstance(snapshots, dict) else []):
+        if not isinstance(entry, dict):
+            continue
+        if entry.get("expiresAt", 0) < now_ts:
+            continue
+        # Match child device via profile.deviceId or deviceId field
+        snap_device = (
+            (entry.get("profile") or {}).get("deviceId")
+            or entry.get("deviceId")
+            or ""
+        ).strip()
+        if snap_device != child_id:
+            continue
+        exported = entry.get("exportedAt") or entry.get("createdAt") or ""
+        ts = _parse_iso_ts(exported)
+        if ts > best_ts:
+            best_ts = ts
+            best = {"code": code, "entry": entry}
+
+    if not best:
+        return jsonify({"error": "Снэпшот не найден", "hint": "child_must_share"}), 404
+
+    entry = best["entry"]
+    out = {
+        "progress": entry.get("progress", {}),
+        "exportedAt": entry.get("exportedAt", ""),
+        "childDeviceId": child_id,
     }
     if entry.get("profile") is not None:
         out["profile"] = entry["profile"]
