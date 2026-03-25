@@ -154,7 +154,7 @@ export const TeamProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   }, [accessToken, authHeaders]);
 
-  const createTeam = async (data: Omit<TeamData, 'id' | 'createdAt' | 'members' | 'achievements'>) => {
+  const createTeam = async (data: Omit<TeamData, 'id' | 'createdAt' | 'members' | 'achievements'>): Promise<TeamData | undefined> => {
     const profile = userData?.profile;
     const memberNickname = profile?.nickname ?? 'Искатель';
     const memberAvatar = profile?.avatar;
@@ -183,7 +183,7 @@ export const TeamProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           rank
         })
       });
-      if (res.status === 401) { if (accessToken) fireOn401(); return; }
+      if (res.status === 401) { if (accessToken) fireOn401(); return undefined; }
       if (res.status === 409) {
         const err = await res.json().catch(() => ({}));
         const code = (err?.code || err?.error || '').toLowerCase();
@@ -193,6 +193,7 @@ export const TeamProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const team = await res.json();
       setMyTeams(prev => [...prev, team]);
       setActiveTeam(team.id);
+      return team as TeamData;
     } finally {
       setIsLoading(false);
     }

@@ -78,7 +78,7 @@ export interface TeamContextType {
   myTeam: TeamData | null;
   isLoading: boolean;
   loadError: string | null;
-  createTeam: (data: Omit<TeamData, 'id' | 'createdAt' | 'members' | 'achievements'>) => Promise<void>;
+  createTeam: (data: Omit<TeamData, 'id' | 'createdAt' | 'members' | 'achievements'>) => Promise<TeamData | undefined>;
   updateTeam: (patch: Partial<TeamData>, teamId?: string) => void;
   joinTeam: (teamId: string, options?: { nickname?: string; avatar?: string }) => Promise<boolean>;
   leaveTeam: (teamId?: string) => Promise<void>;

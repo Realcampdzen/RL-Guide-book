@@ -13,6 +13,13 @@ import { SquadChat } from './SquadChat';
 import { EMOJI_CATEGORIES } from '../utils/emojiData';
 import { ODeConstructorPanel } from './ODeConstructorPanel';
 
+function getApiBase(): string {
+  if (typeof window === 'undefined') return '';
+  const hostname = window.location.hostname;
+  const useLocal = import.meta.env.DEV || hostname === 'localhost' || hostname === '127.0.0.1';
+  return useLocal ? '' : ((import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || '') as string).replace(/\/$/, '');
+}
+
 const TEAM_ACCENT = '#8b00ff';
 const STORAGE_KEY = 'putevoditel_profile_team_collapsed';
 const TEAM_GRADIENT = 'linear-gradient(135deg, rgba(139, 0, 255, 0.1) 0%, rgba(77, 166, 255, 0.15) 100%)';
@@ -134,7 +141,7 @@ export const TeamDashboard: React.FC<TeamDashboardProps> = ({
   useEffect(() => {
     if (!myTeam?.id || !accessToken) return;
     setProjectsLoading(true);
-    fetch(`/api/teams/${encodeURIComponent(myTeam.id)}/projects`, { headers: { Authorization: `Bearer ${accessToken}` } })
+    fetch(`${getApiBase()}/api/teams/${encodeURIComponent(myTeam.id)}/projects`, { headers: { Authorization: `Bearer ${accessToken}` } })
       .then(r => r.ok ? r.json() : [])
       .then(data => { if (Array.isArray(data)) setEngineProjects(data); })
       .catch(() => {})
@@ -252,7 +259,7 @@ export const TeamDashboard: React.FC<TeamDashboardProps> = ({
       return;
     }
     try {
-      await createTeam({
+      const createdTeam = await createTeam({
         name: teamForm.name.trim(),
         motto: teamForm.motto.trim(),
         logo: teamForm.logo.trim() || '🚀',
@@ -262,6 +269,20 @@ export const TeamDashboard: React.FC<TeamDashboardProps> = ({
         shiftId: teamForm.shiftId.trim() || undefined,
         squadId: teamForm.squadId.trim() || undefined
       });
+      // Auto-create first project for badge 8.1
+      if (teamForm.firstProject.trim() && createdTeam?.id) {
+        try {
+          const projRes = await fetch(`${getApiBase()}/api/teams/${encodeURIComponent(createdTeam.id)}/projects`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+            body: JSON.stringify({ title: teamForm.firstProject.trim(), targetBadgeId: '8.1' })
+          });
+          if (projRes.ok) {
+            const proj = await projRes.json();
+            setEngineProjects(prev => [...prev, proj]);
+          }
+        } catch { /* ignore — engine is already created */ }
+      }
       setIsCreating(false);
     } catch (error) {
       const message = error instanceof Error ? error.message : '';
@@ -976,7 +997,7 @@ export const TeamDashboard: React.FC<TeamDashboardProps> = ({
     if (!myTeam) return;
     setIniLoading(true);
     try {
-      const res = await fetch(`/api/teams/${encodeURIComponent(myTeam.id)}/initiatives`, { headers: { Authorization: `Bearer ${accessToken || ''}`, 'X-Device-Id': deviceId } });
+      const res = await fetch(`${getApiBase()}/api/teams/${encodeURIComponent(myTeam.id)}/initiatives`, { headers: { Authorization: `Bearer ${accessToken || ''}`, 'X-Device-Id': deviceId } });
       if (res.ok) {
         const data = await res.json();
         setInitiatives(Array.isArray(data) ? data : []);
@@ -990,7 +1011,7 @@ export const TeamDashboard: React.FC<TeamDashboardProps> = ({
   const createInitiative = async () => {
     if (!myTeam || !iniTitle.trim()) return;
     try {
-      const res = await fetch(`/api/teams/${encodeURIComponent(myTeam.id)}/initiatives`, {
+      const res = await fetch(`${getApiBase()}/api/teams/${encodeURIComponent(myTeam.id)}/initiatives`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken || ''}`, 'X-Device-Id': deviceId },
         body: JSON.stringify({ title: iniTitle.trim(), description: iniDesc.trim() })
@@ -1009,7 +1030,7 @@ export const TeamDashboard: React.FC<TeamDashboardProps> = ({
   const voteOnInitiative = async (iniId: string) => {
     if (!myTeam) return;
     try {
-      const res = await fetch(`/api/teams/${encodeURIComponent(myTeam.id)}/initiatives/${encodeURIComponent(iniId)}/vote`, {
+      const res = await fetch(`${getApiBase()}/api/teams/${encodeURIComponent(myTeam.id)}/initiatives/${encodeURIComponent(iniId)}/vote`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken || ''}`, 'X-Device-Id': deviceId },
         body: JSON.stringify({ vote: true })
@@ -1024,7 +1045,7 @@ export const TeamDashboard: React.FC<TeamDashboardProps> = ({
   const sendInitiativeToCouncil = async (iniId: string) => {
     if (!myTeam) return;
     try {
-      const res = await fetch(`/api/teams/${encodeURIComponent(myTeam.id)}/initiatives/${encodeURIComponent(iniId)}/send`, {
+      const res = await fetch(`${getApiBase()}/api/teams/${encodeURIComponent(myTeam.id)}/initiatives/${encodeURIComponent(iniId)}/send`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken || ''}`, 'X-Device-Id': deviceId },
         body: '{}'
@@ -1194,7 +1215,7 @@ export const TeamDashboard: React.FC<TeamDashboardProps> = ({
       if (!projectForm.title.trim()) return;
       try {
         const payload = { ...projectForm, targetBadgeId: badgeIdOverride || projectForm.targetBadgeId };
-        const res = await fetch(`/api/teams/${encodeURIComponent(teamId)}/projects`, {
+        const res = await fetch(`${getApiBase()}/api/teams/${encodeURIComponent(teamId)}/projects`, {
           method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
           body: JSON.stringify(payload)
         });
@@ -1210,7 +1231,7 @@ export const TeamDashboard: React.FC<TeamDashboardProps> = ({
 
     const updateProject = async (projectId: string, patch: Record<string, unknown>) => {
       try {
-        const res = await fetch(`/api/teams/${encodeURIComponent(teamId)}/projects/${encodeURIComponent(projectId)}`, {
+        const res = await fetch(`${getApiBase()}/api/teams/${encodeURIComponent(teamId)}/projects/${encodeURIComponent(projectId)}`, {
           method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
           body: JSON.stringify(patch)
         });
