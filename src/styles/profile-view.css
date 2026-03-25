@@ -4740,7 +4740,8 @@
   top: 0;
   left: 0;
   bottom: 0;
-  width: 220px;
+  width: 265px;
+  max-width: 85vw;
   z-index: 100002;
   background: linear-gradient(180deg, rgba(120,80,255,0.06) 0%, transparent 40%),
               linear-gradient(180deg, #111827 0%, #0B1020 100%);
@@ -4752,6 +4753,9 @@
   overflow-y: auto;
   box-shadow: 8px 0 40px rgba(0, 0, 0, 0.6);
   animation: cabinet-sidebar-slide-in 0.22s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  /* Respect safe-area */
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
 @keyframes cabinet-sidebar-slide-in {
@@ -4775,29 +4779,11 @@
   to   { opacity: 1; }
 }
 
-/* ── Tab list overlay (slides in beside the open nav sidebar) ── */
+/* ── Unused old tab overlay — kept for reference, not rendered ── */
 .cabinet-mobile-tabs-overlay {
-  position: fixed;
-  top: 0;
-  left: 220px;  /* right edge of nav sidebar overlay */
-  bottom: 0;
-  width: 200px;
-  z-index: 100004;
-  background: rgba(8, 18, 38, 0.97);
-  -webkit-backdrop-filter: blur(20px);
-  backdrop-filter: blur(20px);
-  border-right: 1px solid rgba(93, 228, 255, 0.15);
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-  box-shadow: 8px 0 32px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(93, 228, 255, 0.06) inset;
-  animation: cabinet-tabs-slide-in 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  display: none;
 }
 
-@keyframes cabinet-tabs-slide-in {
-  from { transform: translateX(-100%); opacity: 0; }
-  to   { transform: translateX(0);     opacity: 1; }
-}
 
 /* On mobile: tighter padding for content (fills 100% width without col1) */
 @media (max-width: 767px) {

@@ -1222,78 +1222,108 @@ export const PersonalCabinet: React.FC<{
                             className="cabinet-mobile-sidebar-backdrop"
                         />
                         <div className="cabinet-mobile-sidebar-overlay">
-                            <div style={{
-                                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                                padding: '12px 12px 8px',
-                                borderBottom: '1px solid rgba(255,255,255,0.06)',
-                                marginBottom: 4,
-                            }}>
-                                {mobileDrawerLevel === 'tabs' ? (
-                                    <button
-                                        type="button"
-                                        onClick={() => setMobileDrawerLevel('sections')}
-                                        style={{
-                                            height: 38, border: 'none', borderRadius: 10,
-                                            background: 'rgba(255,255,255,0.06)',
-                                            cursor: 'pointer', fontSize: 13, fontWeight: 600,
-                                            display: 'flex', alignItems: 'center', gap: 8,
-                                            padding: '0 12px', fontFamily: FONT,
-                                            color: 'rgba(255,255,255,0.8)',
-                                            transition: 'all 0.15s',
-                                        }}
-                                    >
-                                        <span style={{ fontSize: 16, lineHeight: 1 }}>←</span>
-                                        Разделы
-                                    </button>
-                                ) : (
+                            {/* ── Header: зависит от уровня ── */}
+                            {mobileDrawerLevel === 'sections' ? (
+                                /* Sections: аватар + имя + кнопка закрыть */
+                                <div style={{
+                                    display: 'flex', alignItems: 'center', gap: 10,
+                                    padding: '14px 12px 12px',
+                                    borderBottom: '1px solid rgba(255,255,255,0.06)',
+                                    marginBottom: 4,
+                                }}>
+                                    {/* Avatar — клик открывает профиль */}
                                     <button
                                         type="button"
                                         onClick={() => { closeMobileDrawer(); setHamburgerOpen(true); }}
                                         style={{
-                                            flex: 1, height: 38, border: 'none', borderRadius: 10,
-                                            background: hamburgerOpen ? 'rgba(93,228,255,0.15)' : 'transparent',
-                                            cursor: 'pointer', fontSize: 13, fontWeight: 600,
-                                            display: 'flex', alignItems: 'center', gap: 8,
-                                            padding: '0 10px', fontFamily: FONT,
-                                            color: hamburgerOpen ? '#5de4ff' : 'rgba(255,255,255,0.7)',
-                                            transition: 'all 0.15s',
+                                            flexShrink: 0, border: 'none', padding: 0, background: 'transparent',
+                                            cursor: 'pointer', borderRadius: '50%',
+                                        }}
+                                        aria-label="Открыть профиль"
+                                    >
+                                        <div style={{
+                                            width: 38, height: 38, borderRadius: '50%',
+                                            background: 'rgba(93,228,255,0.12)',
+                                            border: '1.5px solid rgba(93,228,255,0.3)',
+                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                            fontSize: avatar.length <= 2 ? 16 : 11, fontWeight: 600,
+                                            color: '#5de4ff', overflow: 'hidden',
+                                        }}>
+                                            {(avatar.startsWith('http') || avatar.startsWith('/') || avatar.startsWith('data:'))
+                                                ? <img src={avatar} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                                : (avatar || nickname.charAt(0).toUpperCase())
+                                            }
+                                        </div>
+                                    </button>
+                                    {/* Name + role */}
+                                    <button
+                                        type="button"
+                                        onClick={() => { closeMobileDrawer(); setHamburgerOpen(true); }}
+                                        style={{
+                                            flex: 1, border: 'none', background: 'transparent',
+                                            cursor: 'pointer', textAlign: 'left', padding: 0, minWidth: 0,
                                         }}
                                     >
-                                        <span style={{ fontSize: 16 }}>☰</span>
-                                        Профиль
+                                        <div style={{ fontSize: 14, fontWeight: 600, color: '#e8f0ff', fontFamily: FONT, lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{nickname}</div>
+                                        <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', fontFamily: FONT, marginTop: 1 }}>{roleInfo.label}</div>
                                     </button>
-                                )}
-                                <div style={{
-                                    flex: 1,
-                                    padding: '0 12px',
-                                    fontSize: 12,
-                                    fontWeight: 700,
-                                    color: 'rgba(255,255,255,0.45)',
-                                    textTransform: 'uppercase',
-                                    letterSpacing: '0.06em',
-                                    textAlign: 'center',
-                                }}>
-                                    {mobileDrawerLevel === 'tabs' ? currentInfo.title : 'Навигация'}
-                                </div>
-                                {mobileDrawerLevel === 'tabs' ? (
-                                    <div
-                                        aria-hidden="true"
-                                        style={{ width: 32, height: 32, marginLeft: 8, flexShrink: 0 }}
-                                    />
-                                ) : (
+                                    {/* Close */}
                                     <button
                                         type="button"
                                         onClick={closeMobileDrawer}
                                         style={{
-                                            width: 32, height: 32, border: 'none', borderRadius: 8, flexShrink: 0,
-                                            background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.5)',
+                                            flexShrink: 0, width: 30, height: 30, border: 'none', borderRadius: 8,
+                                            background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.45)',
                                             cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                            fontSize: 16, fontFamily: FONT, marginLeft: 8,
+                                            fontSize: 15, fontFamily: FONT,
                                         }}
                                         aria-label="Закрыть"
                                     >✕</button>
-                                )}
-                            </div>
+                                </div>
+                            ) : (
+                                /* Tabs: ← Назад + заголовок раздела + ✕ */
+                                <div style={{
+                                    display: 'flex', alignItems: 'center',
+                                    padding: '10px 10px 8px',
+                                    borderBottom: '1px solid rgba(93,228,255,0.1)',
+                                    marginBottom: 4, gap: 6,
+                                }}>
+                                    <button
+                                        type="button"
+                                        onClick={() => setMobileDrawerLevel('sections')}
+                                        style={{
+                                            flexShrink: 0, height: 32, border: 'none', borderRadius: 8,
+                                            background: 'rgba(255,255,255,0.06)',
+                                            cursor: 'pointer', fontSize: 13, fontWeight: 600,
+                                            display: 'flex', alignItems: 'center', gap: 6,
+                                            padding: '0 10px', fontFamily: FONT,
+                                            color: 'rgba(255,255,255,0.75)',
+                                        }}
+                                    >
+                                        <span style={{ fontSize: 15 }}>←</span>
+                                    </button>
+                                    <div style={{
+                                        flex: 1, fontSize: 13, fontWeight: 700,
+                                        color: '#5de4ff',
+                                        textTransform: 'uppercase', letterSpacing: '0.05em',
+                                        textAlign: 'center', whiteSpace: 'nowrap',
+                                        overflow: 'hidden', textOverflow: 'ellipsis',
+                                    }}>
+                                        {currentInfo.title}
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={closeMobileDrawer}
+                                        style={{
+                                            flexShrink: 0, width: 30, height: 30, border: 'none', borderRadius: 8,
+                                            background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.45)',
+                                            cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                            fontSize: 15, fontFamily: FONT,
+                                        }}
+                                        aria-label="Закрыть"
+                                    >✕</button>
+                                </div>
+                            )}
 
                             {mobileDrawerLevel === 'sections' ? (
                                 <>
