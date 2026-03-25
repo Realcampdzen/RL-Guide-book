@@ -333,10 +333,12 @@ export async function postSquadMessage(
   squadId: string,
   text: string,
   nickname?: string,
-  extraHeaders?: Record<string, string>
+  extraHeaders?: Record<string, string>,
+  avatarUrl?: string
 ): Promise<{ squadId: string; message: SquadMessage }> {
   const payload: Record<string, string> = { text };
   if (nickname) payload.nickname = nickname;
+  if (avatarUrl) payload.avatarUrl = avatarUrl;
   const headers: Record<string, string> = { 'Content-Type': 'application/json', ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}), ...extraHeaders };
   const created = await requestJson<{ squadId?: string; message: SquadMessage }>(`/api/squads/${encodeURIComponent(squadId)}/messages`, {
     method: 'POST',
@@ -407,10 +409,12 @@ export async function postTeamMessage(
   teamId: string,
   text: string,
   nickname?: string,
-  extraHeaders?: Record<string, string>
+  extraHeaders?: Record<string, string>,
+  avatarUrl?: string
 ): Promise<{ squadId: string; message: SquadMessage }> {
   const payload: Record<string, string> = { text };
   if (nickname) payload.nickname = nickname;
+  if (avatarUrl) payload.avatarUrl = avatarUrl;
   const headers: Record<string, string> = { 'Content-Type': 'application/json', ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}), ...extraHeaders };
   const created = await requestJson<{ squadId?: string; message: SquadMessage }>(`/api/teams/${encodeURIComponent(teamId)}/messages`, {
     method: 'POST',

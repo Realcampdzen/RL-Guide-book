@@ -44,6 +44,7 @@ import { requestImageGenerate } from '../utils/imageGenerateApi';
 import { parseMarkdownToc, markdownToHtmlWithHeadingIds } from '../utils/markdown';
 import { getBadgeImagePath } from '../utils/badgeImages';
 import { pluralizeRu } from '../utils/textFormatting';
+import { syncAuthProfile } from '../utils/authProfileApi';
 import {
   ApiError,
   approveBadgeRequest,
@@ -265,6 +266,7 @@ export const ProfileView: React.FC<any> = (props) => {
   const [_eduReviewBusy, _setEduReviewBusy] = useState<string | null>(null);
   const importInputRef = useRef<HTMLInputElement | null>(null);
   const avatarUploadInputRef = useRef<HTMLInputElement | null>(null);
+  const profileSyncRef = useRef<{ nickname: string; avatar: string }>({ nickname: '', avatar: '' });
 
   const [planFormBadge, setPlanFormBadge] = useState<{ id: string; title: string; level?: string; criteria?: string; nameExplanation?: string; skillTips?: string; confirmation?: string } | null>(null);
   const [planForm, setPlanForm] = useState({
@@ -730,6 +732,26 @@ export const ProfileView: React.FC<any> = (props) => {
   const seeOtradBlocksInView = isSpaceshipMode || seeOtradBlocks;
 
   const { profile, progress, favorites = [] } = userData || { profile: {}, progress: {}, favorites: [] };
+  const syncProfileToServer = useCallback(async (nextNickname: string, nextAvatar: string) => {
+    if (!accessToken) return;
+    await syncAuthProfile(accessToken, {
+      nickname: String(nextNickname || '').trim(),
+      avatar_url: String(nextAvatar || '').trim(),
+    });
+  }, [accessToken]);
+  const saveProfileEditor = useCallback(() => {
+    const nextNickname = String(nicknameInput || '').trim();
+    const nextAvatar = String(avatarInput || '').trim();
+    setNickname(nextNickname);
+    setAvatar(nextAvatar);
+    setProfileStatus(statusInput);
+    setProfileBio(bioInput.trim().slice(0, 160));
+    setShowProfileEditor(false);
+    if (accessToken) {
+      profileSyncRef.current = { nickname: nextNickname, avatar: nextAvatar };
+      void syncProfileToServer(nextNickname, nextAvatar).catch(() => {});
+    }
+  }, [accessToken, avatarInput, bioInput, nicknameInput, setAvatar, setNickname, setProfileBio, setProfileStatus, statusInput, syncProfileToServer]);
 
   useEffect(() => {
     if (favorites.length === 0) setCarouselRotationSteps(0);
@@ -815,6 +837,19 @@ export const ProfileView: React.FC<any> = (props) => {
       setBioInput(userData.profile.bio || '');
     }
   }, [userData]);
+
+  useEffect(() => {
+    if (!accessToken) {
+      profileSyncRef.current = { nickname: '', avatar: '' };
+      return;
+    }
+    const nextNickname = String(profile?.nickname || '').trim();
+    const nextAvatar = String(profile?.avatar || '').trim();
+    if (!nextNickname && !nextAvatar) return;
+    if (profileSyncRef.current.nickname === nextNickname && profileSyncRef.current.avatar === nextAvatar) return;
+    profileSyncRef.current = { nickname: nextNickname, avatar: nextAvatar };
+    void syncProfileToServer(nextNickname, nextAvatar).catch(() => {});
+  }, [accessToken, profile?.avatar, profile?.nickname, syncProfileToServer]);
 
   useEffect(() => {
     if (hasTouchedCabinProfilePanel) return;
@@ -2750,13 +2785,7 @@ export const ProfileView: React.FC<any> = (props) => {
                     <button
                       type="button"
                       className="btn-primary-gold"
-                      onClick={() => {
-                        setNickname(nicknameInput);
-                        setAvatar(avatarInput);
-                        setProfileStatus(statusInput);
-                        setProfileBio(bioInput.trim().slice(0, 160));
-                        setShowProfileEditor(false);
-                      }}
+                      onClick={saveProfileEditor}
                     >
                       Сохранить
                     </button>
@@ -4074,6 +4103,12 @@ export const ProfileView: React.FC<any> = (props) => {
                       if (!result) return;
                       setAvatar(result);
                       setAvatarInput(result);
+                      if (accessToken) {
+                        const nextNickname = String((showProfileEditor ? nicknameInput : profile?.nickname) || '').trim();
+                        const nextAvatar = String(result).trim();
+                        profileSyncRef.current = { nickname: nextNickname, avatar: nextAvatar };
+                        void syncProfileToServer(nextNickname, nextAvatar).catch(() => {});
+                      }
                     };
                     reader.readAsDataURL(file);
                     e.target.value = '';
@@ -4969,13 +5004,7 @@ export const ProfileView: React.FC<any> = (props) => {
                       <button
                         type="button"
                         className="btn-primary-gold"
-                        onClick={() => {
-                          setNickname(nicknameInput);
-                          setAvatar(avatarInput);
-                          setProfileStatus(statusInput);
-                          setProfileBio(bioInput.trim().slice(0, 160));
-                          setShowProfileEditor(false);
-                        }}
+                        onClick={saveProfileEditor}
                       >
                         Сохранить
                       </button>

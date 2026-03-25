@@ -231,8 +231,9 @@ export const AuthFloatingButton: React.FC = () => {
                 break;
 
             case 'request-sent':
-                // User stays as traveler, modal stays open (polling for approval)
-                // Don't close modal — we want to show the "waiting" screen
+                setActiveModal('none');
+                setPendingToast(`Заявка на роль «${ROLE_DISPLAY[result.role]?.label || result.role}» отправлена. Ожидайте одобрения.`);
+                setTimeout(() => setPendingToast(null), 6000);
                 break;
 
             case 'oauth-started':

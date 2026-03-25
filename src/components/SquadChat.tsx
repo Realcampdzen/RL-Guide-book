@@ -38,6 +38,18 @@ export const SquadChat: React.FC<SquadChatProps> = ({ squadId, accessToken, nick
     if (import.meta.env.DEV && deviceId) return { 'X-Device-Id': deviceId };
     return {};
   }, [accessToken, deviceId, isRealJwt]);
+  const myAvatarUrl = useMemo(() => {
+    if (deviceId) {
+      const byDevice = members.find(x => x.deviceId === deviceId && x.avatarUrl);
+      if (byDevice?.avatarUrl) return byDevice.avatarUrl;
+    }
+    const nick = (myNickname || '').trim();
+    if (nick) {
+      const byNickname = members.find(x => (x.nickname || '').trim() === nick && x.avatarUrl);
+      if (byNickname?.avatarUrl) return byNickname.avatarUrl;
+    }
+    return undefined;
+  }, [deviceId, members, myNickname]);
   const [messages, setMessages] = useState<SquadMessage[]>([]);
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
@@ -113,8 +125,8 @@ export const SquadChat: React.FC<SquadChatProps> = ({ squadId, accessToken, nick
     setEmojiOpen(false);
     try {
       const created = chatType === 'squad'
-        ? await postSquadMessage(isRealJwt ? accessToken : '', squadId, clean, myNickname, authHeaders)
-        : await postTeamMessage(isRealJwt ? accessToken : '', squadId, clean, myNickname, authHeaders);
+        ? await postSquadMessage(isRealJwt ? accessToken : '', squadId, clean, myNickname, authHeaders, myAvatarUrl)
+        : await postTeamMessage(isRealJwt ? accessToken : '', squadId, clean, myNickname, authHeaders, myAvatarUrl);
       setMessages((prev) => [...prev, created.message]);
       setText('');
       requestAnimationFrame(scrollToBottom);
@@ -123,7 +135,7 @@ export const SquadChat: React.FC<SquadChatProps> = ({ squadId, accessToken, nick
     } finally {
       setSending(false);
     }
-  }, [accessToken, myNickname, sending, scrollToBottom, squadId, text, authHeaders, isRealJwt]);
+  }, [accessToken, myAvatarUrl, myNickname, sending, scrollToBottom, squadId, text, authHeaders, isRealJwt]);
 
   const handleDelete = useCallback(async (msgId: string) => {
     try {

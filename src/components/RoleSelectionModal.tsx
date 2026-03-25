@@ -135,12 +135,12 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({ onResult
             try {
                 const res = await fetch(`${base}/api/role-requests?deviceId=${encodeURIComponent(deviceId)}`);
                 if (!res.ok) return;
-                const data = await res.json() as { requests?: Array<{ id: string; status: string; desiredRole: string }> };
-                const req = (data.requests || []).find(r => r.id === submittedReq.id);
-                if (req?.status === 'approved') {
-                    if (pollRef.current) clearInterval(pollRef.current);
-                    onResult({ type: 'request-approved', role: req.desiredRole as UserRole, accessToken: '' });
-                }
+                const data = await res.json() as { requests?: Array<{ id: string; status: string; desiredRole: string; accessToken?: string }> };
+                const req = (data.requests || []).find(r => r.id === submittedReq.id);
+                if (req?.status === 'approved') {
+                    if (pollRef.current) clearInterval(pollRef.current);
+                    onResult({ type: 'request-approved', role: req.desiredRole as UserRole, accessToken: req.accessToken || '' });
+                }
             } catch { /* retry next poll */ }
         };
         void check();
@@ -213,23 +213,29 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({ onResult
         }
     }, [code, deviceId, selectedRole, onResult]);
 
-    const handleSubmitRequest = useCallback(async () => {
-        if (!reqName.trim() || !selectedRole) return;
-        setReqBusy(true);
-        setReqError(null);
-        try {
-            const base = getApiBase();
-            const res = await fetch(`${base}/api/role-requests`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    deviceId,
-                    desiredRole: selectedRole,
-                    name: reqName.trim(),
-                    email: reqEmail.trim() || undefined,
-                    comment: reqComment.trim() || undefined,
-                }),
-            });
+    const handleSubmitRequest = useCallback(async () => {
+        const trimmedName = reqName.trim();
+        const trimmedEmail = reqEmail.trim().toLowerCase();
+        if (!trimmedName || !selectedRole) return;
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+            setReqError('Введите корректный email');
+            return;
+        }
+        setReqBusy(true);
+        setReqError(null);
+        try {
+            const base = getApiBase();
+            const res = await fetch(`${base}/api/role-requests`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    deviceId,
+                    desiredRole: selectedRole,
+                    name: trimmedName,
+                    email: trimmedEmail,
+                    comment: reqComment.trim() || undefined,
+                }),
+            });
             const data = await res.json().catch(() => ({})) as Record<string, unknown>;
             if (!res.ok) {
                 setReqError(typeof data.error === 'string' ? data.error : 'Ошибка отправки');
@@ -242,12 +248,14 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({ onResult
             setStep('done');
         } catch {
             setReqError('Ошибка сети. Попробуйте позже.');
-        } finally {
-            setReqBusy(false);
-        }
-    }, [reqName, reqComment, deviceId, selectedRole]);
-
-    const roleLabel = selectedRole ? ROLE_LABELS[selectedRole] : '';
+        } finally {
+            setReqBusy(false);
+        }
+    }, [reqName, reqComment, reqEmail, deviceId, selectedRole]);
+
+    const roleLabel = selectedRole ? ROLE_LABELS[selectedRole] : '';
+    const isReqEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(reqEmail.trim());
+    const canSubmitRequest = Boolean(reqName.trim() && isReqEmailValid);
 
     return (
         <div
@@ -464,15 +472,15 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({ onResult
                         {reqError && (
                             <div style={{ fontSize: 12, color: '#ef4444', marginTop: 6, textAlign: 'center' }}>{reqError}</div>
                         )}
-                        <button type="button" disabled={reqBusy || !reqName.trim() || !reqEmail.trim()} onClick={() => void handleSubmitRequest()}
-                            style={{
-                                width: '100%', padding: '12px', borderRadius: 10, border: 'none', marginTop: 12,
-                                background: (reqName.trim() && reqEmail.trim()) ? 'rgba(59,130,246,0.2)' : 'rgba(255,255,255,0.05)',
-                                color: (reqName.trim() && reqEmail.trim()) ? '#3b82f6' : 'rgba(255,255,255,0.3)',
-                                fontSize: 14, fontWeight: 700, cursor: (reqName.trim() && reqEmail.trim()) ? 'pointer' : 'default',
-                            }}>
-                            {reqBusy ? 'Отправка…' : 'Отправить заявку'}
-                        </button>
+                        <button type="button" disabled={reqBusy || !canSubmitRequest} onClick={() => void handleSubmitRequest()}
+                            style={{
+                                width: '100%', padding: '12px', borderRadius: 10, border: 'none', marginTop: 12,
+                                background: canSubmitRequest ? 'rgba(59,130,246,0.2)' : 'rgba(255,255,255,0.05)',
+                                color: canSubmitRequest ? '#3b82f6' : 'rgba(255,255,255,0.3)',
+                                fontSize: 14, fontWeight: 700, cursor: canSubmitRequest ? 'pointer' : 'default',
+                            }}>
+                            {reqBusy ? 'Отправка…' : 'Отправить заявку'}
+                        </button>
                         <button type="button" onClick={() => { setStep('method'); setReqError(null); }}
                             style={{ display: 'block', margin: '12px auto 0', background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', fontSize: 11, cursor: 'pointer' }}>
                             ← Назад

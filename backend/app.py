@@ -1850,7 +1850,7 @@ def _require_team_membership_for_chat(device_id: str, team_id: str):
 
 
 @app.route('/api/teams/<team_id>/messages', methods=['GET', 'POST'])
-def team_messages_get_or_post(team_id: str):
+def team_messages_get_or_post(team_id: str):
     """GET/POST team chat messages. Auth: any role, must be team member."""
     payload, err = _require_teams_auth()
     if err is not None:
@@ -1904,10 +1904,11 @@ def team_messages_get_or_post(team_id: str):
     if not ok and rate_err is not None:
         return rate_err[0], rate_err[1]
 
-    body = request.get_json() or {}
-    text = (body.get('text') or '').strip()
-    if not text:
-        return jsonify({'error': 'text required'}), 400
+    body = request.get_json() or {}
+    text = (body.get('text') or '').strip()
+    avatar_url = _extract_avatar_value(body)
+    if not text:
+        return jsonify({'error': 'text required'}), 400
 
     clean_text, validation_error = _validate_squad_message(text)
     if validation_error:
@@ -1921,16 +1922,18 @@ def team_messages_get_or_post(team_id: str):
                 nickname = (m.get('nickname') or '').strip() or nickname
                 break
 
-    msg = {
-        'id': uuid.uuid4().hex[:12],
-        'squadId': team_id,
-        'createdAt': datetime.now(timezone.utc).isoformat(),
-        'deviceId': device_id or None,
-        'nickname': nickname or None,
-        'role': role,
-        'text': clean_text
-    }
-    rows.append(msg)
+    msg = {
+        'id': uuid.uuid4().hex[:12],
+        'squadId': team_id,
+        'createdAt': datetime.now(timezone.utc).isoformat(),
+        'deviceId': device_id or None,
+        'nickname': nickname or None,
+        'role': role,
+        'text': clean_text
+    }
+    if avatar_url:
+        msg['avatarUrl'] = avatar_url
+    rows.append(msg)
     rows = rows[-SQUAD_MESSAGES_MAX_HISTORY:]
     by_team[team_id] = rows
     doc['byTeamId'] = by_team
@@ -3650,7 +3653,7 @@ def squad_kick_member(squad_id: str):
 
 
 @app.route('/api/squads/<squad_id>/messages', methods=['GET', 'POST'])
-def squad_messages_get_or_post(squad_id: str):
+def squad_messages_get_or_post(squad_id: str):
     """
     GET /api/squads/<squadId>/messages?limit=50 — get squad chat messages.
     POST /api/squads/<squadId>/messages — post message.
@@ -3711,38 +3714,45 @@ def squad_messages_get_or_post(squad_id: str):
         _log_rate_limit_event('/api/squads/messages/daily', device_id)
         return rate_err[0], rate_err[1]
 
-    body = request.get_json() or {}
-    text = (body.get("text") or "").strip()
-    if not text:
-        return jsonify({"error": "text required"}), 400
+    body = request.get_json() or {}
+    text = (body.get("text") or "").strip()
+    avatar_url = _extract_avatar_value(body)
+    if not text:
+        return jsonify({"error": "text required"}), 400
 
     # Safety validation: length, URL filter, profanity filter
     clean_text, validation_error = _validate_squad_message(text)
     if validation_error:
         return jsonify({"error": validation_error}), 400
 
-    msg = {
-        "id": uuid.uuid4().hex[:12],
-        "squadId": sid,
-        "createdAt": datetime.now(timezone.utc).isoformat(),
-        "deviceId": device_id or None,
-        "nickname": ((membership or {}).get("nickname") or "").strip() or (body.get("nickname") or "").strip() or None,
-        "role": role,
-        "text": clean_text
-    }
-    try:
-        stored = get_store("squad_messages").insert_message(msg)
+    msg = {
+        "id": uuid.uuid4().hex[:12],
+        "squadId": sid,
+        "createdAt": datetime.now(timezone.utc).isoformat(),
+        "deviceId": device_id or None,
+        "nickname": ((membership or {}).get("nickname") or "").strip() or (body.get("nickname") or "").strip() or None,
+        "role": role,
+        "text": clean_text
+    }
+    if avatar_url:
+        msg["avatarUrl"] = avatar_url
+    try:
+        stored = get_store("squad_messages").insert_message(msg)
     except Exception as exc:
         import traceback as _tb
         print(f"[squad_messages INSERT error] {exc}\n{_tb.format_exc()}")
         return jsonify({"error": "Не удалось сохранить сообщение"}), 500
-    enriched = _enrich_chat_messages(
-        [stored],
-        membership_by_device={
-            (row.get("deviceId") or "").strip(): row
-            for row in (_memberships_load().get("members") or [])
-            if isinstance(row, dict) and (row.get("deviceId") or "").strip()
-        },
+    stored_for_enrich = stored
+    if avatar_url and isinstance(stored_for_enrich, dict) and not _extract_avatar_value(stored_for_enrich):
+        stored_for_enrich = dict(stored_for_enrich)
+        stored_for_enrich["avatarUrl"] = avatar_url
+    enriched = _enrich_chat_messages(
+        [stored_for_enrich],
+        membership_by_device={
+            (row.get("deviceId") or "").strip(): row
+            for row in (_memberships_load().get("members") or [])
+            if isinstance(row, dict) and (row.get("deviceId") or "").strip()
+        },
         users_by_device=_users_profiles_by_device(),
     )
     return jsonify({"message": enriched[0] if enriched else stored})
@@ -5884,6 +5894,13 @@ def council_members_add():
     if member_role not in ("member", "chair", "secretary"):
         member_role = "member"
 
+    store = get_store("council_members")
+    data_pre = store.load()
+    existing_members = data_pre.get("members") or []
+    for _em in existing_members:
+        if isinstance(_em, dict) and (_em.get("nickname") or "").strip().lower() == nickname.lower():
+            return jsonify({"error": "Вы уже состоите в Совете Лагеря", "member": _em}), 409
+
     import secrets as _secrets
     member_id = f"CM-{_secrets.token_hex(5)}"
     now_iso = datetime.now(timezone.utc).isoformat()
@@ -5897,12 +5914,9 @@ def council_members_add():
         "addedBy": (payload.get("deviceId") or "").strip(),
     }
 
-    store = get_store("council_members")
-    data = store.load()
-    members = data.get("members") or []
-    members.append(new_member)
-    data["members"] = members
-    store.save(data)
+    existing_members.append(new_member)
+    data_pre["members"] = existing_members
+    store.save(data_pre)
 
     return jsonify({"member": new_member}), 201
 
@@ -7556,30 +7570,34 @@ def auth_me():
 
 
 @app.route('/api/auth/me', methods=['PATCH'])
-def auth_me_update():
-    """PATCH /api/auth/me — update nickname / avatar_url."""
-    user, err = resolve_user()
-    if err is not None:
-        return err[0], err[1]
-    body = request.get_json() or {}
-    nickname = body.get("nickname")
-    avatar_url = body.get("avatar_url")
-    if nickname is None and avatar_url is None:
-        return jsonify({"error": "Nothing to update (nickname or avatar_url expected)"}), 400
+def auth_me_update():
+    """PATCH /api/auth/me — update nickname / avatar_url."""
+    user, err = resolve_user()
+    if err is not None:
+        return err[0], err[1]
+    body = request.get_json() or {}
+    nickname = body.get("nickname")
+    avatar_url = body.get("avatar_url")
+    if avatar_url is None:
+        avatar_url = body.get("avatarUrl")
+    if avatar_url is None:
+        avatar_url = body.get("avatar")
+    if nickname is None and avatar_url is None:
+        return jsonify({"error": "Nothing to update (nickname or avatar_url expected)"}), 400
 
     store = get_store("users")
     data = store.load()
     users = data.get("users") or []
     updated_user = None
     for u in users:
-        if isinstance(u, dict) and u.get("id") == user["id"]:
-            if nickname is not None:
-                u["nickname"] = str(nickname).strip()[:100]
-            if avatar_url is not None:
-                u["avatar_url"] = str(avatar_url).strip()[:500]
-            u["updatedAt"] = datetime.now(timezone.utc).isoformat()
-            updated_user = u
-            break
+        if isinstance(u, dict) and u.get("id") == user["id"]:
+            if nickname is not None:
+                u["nickname"] = str(nickname).strip()[:100]
+            if avatar_url is not None:
+                u["avatar_url"] = str(avatar_url).strip()[:2000000]
+            u["updatedAt"] = datetime.now(timezone.utc).isoformat()
+            updated_user = u
+            break
     if updated_user:
         data["users"] = users
         store.save(data)
@@ -7850,11 +7868,11 @@ def _collect_inbox_items(type_filter: str = ""):
     except Exception:
         counts.setdefault("inspector_task", 0)
 
-    # 6) M19: Role requests — status == "pending"
-    try:
-        rr_data = get_store('role_requests').load()
-        if not isinstance(rr_data, list):
-            rr_data = []
+    # 6) M19: Role requests — status == "pending"
+    try:
+        rr_data = _load_role_requests()
+        if not isinstance(rr_data, list):
+            rr_data = []
         pending_rr = []
         for rr in rr_data:
             if not isinstance(rr, dict):
@@ -8223,24 +8241,27 @@ def _save_role_codes(data: dict):
 _RR_TMP_FILE = "/tmp/role_requests.json"
 
 
-def _load_role_requests() -> list:
-    """Load role requests: Supabase first, /tmp fallback."""
-    try:
-        result = get_store('role_requests').load()
-        if isinstance(result, list):
-            return result
-    except Exception:
-        pass
-    # fallback: /tmp
-    try:
-        if os.path.exists(_RR_TMP_FILE):
-            with open(_RR_TMP_FILE, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-            if isinstance(data, list):
-                return data
-    except Exception:
-        pass
-    return []
+def _load_role_requests() -> list:
+    """Load role requests: Supabase first, /tmp fallback."""
+    store_rows = None
+    try:
+        result = get_store('role_requests').load()
+        if isinstance(result, list):
+            if result:
+                return result
+            store_rows = []
+    except Exception:
+        pass
+    # fallback: /tmp
+    try:
+        if os.path.exists(_RR_TMP_FILE):
+            with open(_RR_TMP_FILE, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            if isinstance(data, list):
+                return data
+    except Exception:
+        pass
+    return store_rows if isinstance(store_rows, list) else []
 
 
 def _save_role_requests(data: list):

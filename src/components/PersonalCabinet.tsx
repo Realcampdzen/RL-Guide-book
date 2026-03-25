@@ -35,6 +35,7 @@ import { SquadCabinetPanel } from './SquadCabinetPanel';
 import { SquadChat } from './SquadChat';
 
 import { loadMySquad, patchSquadCorner, type SquadMineResponse, type SquadCorner } from '../utils/badgeApprovalApi';
+import { syncAuthProfile } from '../utils/authProfileApi';
 import { VozhatifikatorChecklist } from './VozhatifikatorChecklist';
 
 import { CommunityRankingPanel } from './CommunityRankingPanel';
@@ -812,8 +813,21 @@ export const PersonalCabinet: React.FC<{
     const avatar = (profile as any)?.avatar || '';
     const profileStatus = (profile as any)?.status || '';
     const profileBio = (profile as any)?.bio || '';
+    const profileSyncRef = React.useRef<{ nickname: string; avatar: string }>({ nickname: '', avatar: '' });
     const currentRole = role || 'traveler';
     const roleInfo = ROLE_DISPLAY[currentRole] || ROLE_DISPLAY.traveler;
+    useEffect(() => {
+        if (!accessToken) {
+            profileSyncRef.current = { nickname: '', avatar: '' };
+            return;
+        }
+        const nextNickname = String(nickname || '').trim();
+        const nextAvatar = String(avatar || '').trim();
+        if (!nextNickname && !nextAvatar) return;
+        if (profileSyncRef.current.nickname === nextNickname && profileSyncRef.current.avatar === nextAvatar) return;
+        profileSyncRef.current = { nickname: nextNickname, avatar: nextAvatar };
+        void syncAuthProfile(accessToken, { nickname: nextNickname, avatar_url: nextAvatar }).catch(() => {});
+    }, [accessToken, nickname, avatar]);
 
     // Rank/progress calculation
     const progress = userData?.progress || {};
@@ -886,6 +900,21 @@ export const PersonalCabinet: React.FC<{
             participants: [],
         } : null
     );
+    const squadChatMembers = useMemo(() => {
+        const source = (mySquadInfo?.members || mySquadInfo?.participants || []) as Array<{ deviceId: string; nickname?: string | null; avatarUrl?: string | null }>;
+        const members = source
+            .filter((m) => Boolean(m?.deviceId))
+            .map((m) => ({ deviceId: m.deviceId, nickname: m.nickname || null, avatarUrl: m.avatarUrl || null }));
+        const myDeviceId = (deviceId || '').trim();
+        if (myDeviceId && !members.some((m) => m.deviceId === myDeviceId)) {
+            members.push({
+                deviceId: myDeviceId,
+                nickname: nickname || null,
+                avatarUrl: userData?.profile?.avatar || null,
+            });
+        }
+        return members;
+    }, [mySquadInfo?.members, mySquadInfo?.participants, deviceId, nickname, userData?.profile?.avatar]);
 
     // Derive default shift length (9 or 21 days) from the user's shift data
     const defaultShiftLength: 9 | 21 = (() => {
@@ -912,11 +941,17 @@ export const PersonalCabinet: React.FC<{
     };
 
     const saveProfile = () => {
-        setNickname(nicknameInput);
-        setAvatar(avatarInput);
+        const nextNickname = String(nicknameInput || '').trim();
+        const nextAvatar = String(avatarInput || '').trim();
+        setNickname(nextNickname);
+        setAvatar(nextAvatar);
         setProfileStatus(statusInput);
         setProfileBio(bioInput.trim().slice(0, 160));
         setProfileEditing(false);
+        if (accessToken) {
+            profileSyncRef.current = { nickname: nextNickname, avatar: nextAvatar };
+            void syncAuthProfile(accessToken, { nickname: nextNickname, avatar_url: nextAvatar }).catch(() => {});
+        }
     };
 
     const handleAvatarFile = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -2246,7 +2281,7 @@ export const PersonalCabinet: React.FC<{
                                                     </div>
                                                 </div>
                                             );
-                                            return <SquadChat key="chat-active" squadId={sid} accessToken={accessToken || ''} nickname={nickname} deviceId={deviceId} role={currentRole} members={[{ deviceId: deviceId || '', nickname: nickname || null, avatarUrl: userData?.profile?.avatar || null }]} height="calc(100vh - 126px)" minHeight={0} />;
+                                            return <SquadChat key="chat-active" squadId={sid} accessToken={accessToken || ''} nickname={nickname} deviceId={deviceId} role={currentRole} members={squadChatMembers} height="calc(100vh - 126px)" minHeight={0} />;
                                         })()
                                     ) : squadCornerTab === 'schedule' ? (
                                         <RealDiaryDashboard
