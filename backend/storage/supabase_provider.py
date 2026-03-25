@@ -1436,6 +1436,112 @@ class SupabaseFamilyLinksStore(FamilyLinksStore):
         return row
 
 
+# ---------------------------------------------------------------------------
+# SupabaseBroInitiativesStore (BRO Initiatives / ОДэ)
+# ---------------------------------------------------------------------------
+
+class SupabaseBroInitiativesStore(BroInitiativesStore):
+    """
+    Формат load(): {'initiatives': [...]}
+    Таблица: bro_initiatives
+    """
+
+    def load(self) -> dict:
+        sb = _client()
+        rows = sb.table("bro_initiatives").select("*").order("created_at", desc=False).execute().data or []
+        initiatives = []
+        for r in rows:
+            initiatives.append({
+                "id": str(r.get("id", "")),
+                "title": r.get("title", ""),
+                "description": r.get("description", ""),
+                "createdBy": r.get("created_by", ""),
+                "createdAt": _ts(r.get("created_at")),
+                "votes": r.get("votes_json") if isinstance(r.get("votes_json"), dict) else {},
+                "status": r.get("status", "voting"),
+            })
+        return {"initiatives": initiatives}
+
+    def save(self, data: dict) -> None:
+        sb = _client()
+        for ini in (data.get("initiatives") or []):
+            if not isinstance(ini, dict):
+                continue
+            row = {
+                "id": ini.get("id") or str(uuid.uuid4()),
+                "title": ini.get("title", ""),
+                "description": ini.get("description", ""),
+                "created_by": ini.get("createdBy", ""),
+                "status": ini.get("status", "voting"),
+                "votes_json": ini.get("votes") if isinstance(ini.get("votes"), dict) else {},
+            }
+            sb.table("bro_initiatives").upsert(row).execute()
+
+
+# ---------------------------------------------------------------------------
+# SupabaseBroSubmissionsStore (BRO Task Submissions)
+# ---------------------------------------------------------------------------
+
+class SupabaseBroSubmissionsStore(BroSubmissionsStore):
+    """
+    Формат load(): {'submissions': [...]}
+    Таблица: bro_submissions
+    """
+
+    def load(self) -> dict:
+        sb = _client()
+        rows = sb.table("bro_submissions").select("*").order("submitted_at", desc=False).execute().data or []
+        submissions = []
+        for r in rows:
+            submissions.append({
+                "id": str(r.get("id", "")),
+                "passportId": r.get("passport_id", ""),
+                "taskId": r.get("task_id", ""),
+                "taskTitle": r.get("task_title", ""),
+                "deviceId": r.get("device_id", ""),
+                "squadId": r.get("squad_id", ""),
+                "text": r.get("text", ""),
+                "photoUrl": r.get("photo_url") or None,
+                "nickname": r.get("nickname") or None,
+                "userRole": r.get("user_role") or None,
+                "status": r.get("status", "pending"),
+                "comment": r.get("comment") or None,
+                "submittedAt": _ts(r.get("submitted_at")),
+                "reviewedAt": _ts(r.get("reviewed_at")) if r.get("reviewed_at") else None,
+                "reviewedBy": r.get("reviewed_by") or None,
+            })
+        return {"submissions": submissions}
+
+    def save(self, data: dict) -> None:
+        sb = _client()
+        for s in (data.get("submissions") or []):
+            if not isinstance(s, dict):
+                continue
+            row = {
+                "id": s.get("id") or str(uuid.uuid4()),
+                "passport_id": s.get("passportId", ""),
+                "task_id": s.get("taskId", ""),
+                "task_title": s.get("taskTitle", ""),
+                "device_id": s.get("deviceId", ""),
+                "squad_id": s.get("squadId", ""),
+                "text": s.get("text", ""),
+                "status": s.get("status", "pending"),
+            }
+            if s.get("photoUrl"):
+                row["photo_url"] = s["photoUrl"]
+            if s.get("nickname"):
+                row["nickname"] = s["nickname"]
+            if s.get("userRole"):
+                row["user_role"] = s["userRole"]
+            if s.get("comment"):
+                row["comment"] = s["comment"]
+            if s.get("reviewedAt"):
+                row["reviewed_at"] = s["reviewedAt"]
+            if s.get("reviewedBy"):
+                row["reviewed_by"] = s["reviewedBy"]
+            sb.table("bro_submissions").upsert(row).execute()
+
+
 SUPABASE_STORES = {
     "shifts":           SupabaseShiftsStore(),
     "memberships":      SupabaseMembershipsStore(),
@@ -1454,6 +1560,8 @@ SUPABASE_STORES = {
     "inspector_progress": SupabaseInspectorProgressStore(),
     "bro_events":        SupabaseBroEventsStore(),
     "bro_passports":     SupabaseBroPassportsStore(),
+    "bro_initiatives":   SupabaseBroInitiativesStore(),
+    "bro_submissions":   SupabaseBroSubmissionsStore(),
     "shift_schedule":    SupabaseShiftScheduleStore(),
     "workshops":         SupabaseWorkshopsStore(),
     "parent_suggestions": SupabaseParentSuggestionsStore(),
@@ -1462,3 +1570,4 @@ SUPABASE_STORES = {
     "role_requests":      SupabaseRoleRequestsStore(),
     "family_links":       SupabaseFamilyLinksStore(),
 }
+

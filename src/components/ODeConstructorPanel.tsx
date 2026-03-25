@@ -65,6 +65,13 @@ const AUDIENCE_OPTIONS = ['свой отряд', 'другой отряд', 'м�
 
 const uid = () => `ode_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`;
 
+function getApiBase(): string {
+  if (typeof window === 'undefined') return '';
+  const hostname = window.location.hostname;
+  const useLocal = import.meta.env.DEV || hostname === 'localhost' || hostname === '127.0.0.1';
+  return useLocal ? '' : ((import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || '') as string).replace(/\/$/, '');
+}
+
 const DRAFT_KEY = 'ode-constructor-draft';
 const DRAFT_STEP_KEY = 'ode-constructor-step';
 
@@ -195,7 +202,7 @@ export const ODeConstructorPanel: React.FC = () => {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/bro/initiatives', { headers });
+      const res = await fetch(`${getApiBase()}/api/bro/initiatives`, { headers });
       if (res.ok) {
         const data = await res.json();
         setItems(data.initiatives || []);
@@ -209,7 +216,7 @@ export const ODeConstructorPanel: React.FC = () => {
   // -- Initiative CRUD --
   const vote = async (id: string, direction: boolean) => {
     try {
-      const res = await fetch(`/api/bro/initiatives/${id}/vote`, {
+      const res = await fetch(`${getApiBase()}/api/bro/initiatives/${id}/vote`, {
         method: 'POST', headers, body: JSON.stringify({ vote: direction }),
       });
       if (res.ok) {
@@ -222,7 +229,7 @@ export const ODeConstructorPanel: React.FC = () => {
 
   const sendToCouncil = async (id: string) => {
     try {
-      const res = await fetch(`/api/bro/initiatives/${id}/send`, {
+      const res = await fetch(`${getApiBase()}/api/bro/initiatives/${id}/send`, {
         method: 'POST', headers, body: '{}',
       });
       if (res.ok) {
@@ -235,7 +242,7 @@ export const ODeConstructorPanel: React.FC = () => {
 
   const deleteIni = async (id: string) => {
     try {
-      const res = await fetch(`/api/bro/initiatives/${id}`, {
+      const res = await fetch(`${getApiBase()}/api/bro/initiatives/${id}`, {
         method: 'DELETE', headers,
       });
       if (res.ok) {
@@ -334,7 +341,7 @@ export const ODeConstructorPanel: React.FC = () => {
         stepsMd,
       ].filter(Boolean).join('\n');
 
-      const res = await fetch('/api/bro/initiatives', {
+      const res = await fetch(`${getApiBase()}/api/bro/initiatives`, {
         method: 'POST', headers,
         body: JSON.stringify({ title: `[ОДэ] ${state.name.trim()}`, description: fullDesc }),
       });
@@ -342,7 +349,7 @@ export const ODeConstructorPanel: React.FC = () => {
         const ini = await res.json();
         // Auto-send to council so it appears in Совет лагеря + Пульт управления
         try {
-          const sendRes = await fetch(`/api/bro/initiatives/${ini.id}/send`, {
+          const sendRes = await fetch(`${getApiBase()}/api/bro/initiatives/${ini.id}/send`, {
             method: 'POST', headers, body: '{}',
           });
           if (sendRes.ok) {
