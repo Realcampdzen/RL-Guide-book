@@ -2170,6 +2170,26 @@ export const PersonalCabinet: React.FC<{
                                                 maxWidth: 720, margin: '0 auto', width: '100%',
                                             }}>
                                                 <ShiftsAndSquadsDashboard
+                                                    onRequestJoinSquad={async (squad) => {
+                                                        const base = (import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || '').replace(/\/$/, '');
+                                                        const h: Record<string, string> = { 'Content-Type': 'application/json' };
+                                                        if (accessToken) h.Authorization = `Bearer ${accessToken}`;
+                                                        else { try { const pin = localStorage.getItem('rl-dev-pin'); if (pin) h['X-Dev-Pin'] = pin; } catch {} }
+                                                        const res = await fetch(`${base}/api/squads/${squad.id}/join-requests`, {
+                                                            method: 'POST', headers: h,
+                                                            body: JSON.stringify({ nickname: userData?.profile?.nickname || '' }),
+                                                        });
+                                                        const data = await res.json().catch(() => ({}));
+                                                        if (data.status === 'already_member') {
+                                                            alert('Вы уже в этом отряде!');
+                                                        } else if (data.status === 'duplicate') {
+                                                            alert('Заявка уже отправлена, ожидайте ответа.');
+                                                        } else if (res.ok) {
+                                                            alert('Заявка на вступление отправлена!');
+                                                        } else {
+                                                            alert(data.error || 'Ошибка при отправке заявки');
+                                                        }
+                                                    }}
                                                     onRequestLogin={() => setShowRoleModal(true)}
                                                     onNavigateToSquadCorner={() => setActiveSection('squad-corner')}
                                                     onSquadCreated={async () => { await loadSquadInfo(); setActiveSection('squad-corner'); }}
@@ -3093,6 +3113,26 @@ export const PersonalCabinet: React.FC<{
                                         padding: '24px 28px',
                                     }}>
                                     <ShiftsAndSquadsDashboard
+                                        onRequestJoinSquad={async (squad) => {
+                                            const base = (import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || '').replace(/\/$/, '');
+                                            const h: Record<string, string> = { 'Content-Type': 'application/json' };
+                                            if (accessToken) h.Authorization = `Bearer ${accessToken}`;
+                                            else { try { const pin = localStorage.getItem('rl-dev-pin'); if (pin) h['X-Dev-Pin'] = pin; } catch {} }
+                                            const res = await fetch(`${base}/api/squads/${squad.id}/join-requests`, {
+                                                method: 'POST', headers: h,
+                                                body: JSON.stringify({ nickname: userData?.profile?.nickname || '' }),
+                                            });
+                                            const data = await res.json().catch(() => ({}));
+                                            if (data.status === 'already_member') {
+                                                alert('Вы уже в этом отряде!');
+                                            } else if (data.status === 'duplicate') {
+                                                alert('Заявка уже отправлена, ожидайте ответа.');
+                                            } else if (res.ok) {
+                                                alert('Заявка на вступление отправлена!');
+                                            } else {
+                                                alert(data.error || 'Ошибка при отправке заявки');
+                                            }
+                                        }}
                                         onRequestLogin={() => setShowRoleModal(true)}
                                         onNavigateToSquadCorner={() => setActiveSection('squad-corner')}
                                         onSquadCreated={async () => { await loadSquadInfo(); setActiveSection('squad-corner'); }}
