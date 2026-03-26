@@ -62,9 +62,10 @@ export const ShiftsAndSquadsDashboard: React.FC<ShiftsAndSquadsDashboardProps> =
 
     const apiBase = useMemo(() => getApiBase(), []);
     const devFallback = apiBase === '' && import.meta.env.DEV;
-    const canRead = CAN_READ_ROLES.has(role || '') && (Boolean(accessToken) || devFallback);
-    const canManageShifts = CAN_MANAGE_SHIFTS_ROLES.has(role || '') && (Boolean(accessToken) || devFallback);
-    const canManageSquads = CAN_MANAGE_SQUADS_ROLES.has(role || '') && (Boolean(accessToken) || devFallback);
+    const hasAccess = Boolean(accessToken) || devFallback || role === 'developer';
+    const canRead = CAN_READ_ROLES.has(role || '') && hasAccess;
+    const canManageShifts = CAN_MANAGE_SHIFTS_ROLES.has(role || '') && hasAccess;
+    const canManageSquads = CAN_MANAGE_SQUADS_ROLES.has(role || '') && hasAccess;
 
     const [shifts, setShifts] = useState<Shift[]>([]);
     const [squadsMap, setSquadsMap] = useState<Record<string, Squad[]>>({});
