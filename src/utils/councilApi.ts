@@ -208,7 +208,6 @@ export interface CouncilMember {
     nickname: string;
     role: 'member' | 'chair' | 'secretary';
     deviceId?: string;
-    avatarUrl?: string;
     joinedAt: string;
     addedBy?: string;
 }
