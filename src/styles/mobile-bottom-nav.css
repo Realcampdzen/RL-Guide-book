@@ -233,3 +233,44 @@ html[data-perf="lite"] .mobile-bottom-nav {
     height: 16px;
   }
 }
+
+/* ── Login CTA: «Войти» accent when not logged in ── */
+
+.mobile-nav-login-cta {
+  color: #f59e0b !important;
+}
+
+.mobile-nav-login-cta .mobile-nav-icon-wrap {
+  background: rgba(245, 158, 11, 0.15);
+  border-color: rgba(245, 158, 11, 0.4);
+}
+
+.mobile-nav-login-cta .mobile-nav-icon {
+  color: #fbbf24;
+}
+
+.mobile-nav-login-cta .mobile-nav-label {
+  color: #f59e0b;
+}
+
+.mobile-nav-login-dot {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #f59e0b;
+  box-shadow: 0 0 6px rgba(245, 158, 11, 0.6);
+  animation: login-dot-pulse 2s ease-in-out infinite;
+  z-index: 2;
+}
+
+.mobile-nav-login-cta .mobile-nav-icon-wrap {
+  position: relative;
+}
+
+@keyframes login-dot-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.7); }
+}

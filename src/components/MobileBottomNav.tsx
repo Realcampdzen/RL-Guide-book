@@ -23,6 +23,8 @@ interface MobileBottomNavProps {
   onTelegramContact: () => void;
   onProfile: () => void;
   onOpenVk?: () => void;
+  /** When false, «Мой путь» becomes «Войти» with accent styling */
+  isLoggedIn?: boolean;
 }
 
 const getActiveKey = (view: MobileNavView): ActiveKey => {
@@ -46,6 +48,7 @@ const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
   onTelegramContact,
   onProfile,
   onOpenVk,
+  isLoggedIn = false,
 }) => {
   const activeKey = useMemo(() => getActiveKey(currentView), [currentView]);
   const isCategoriesView = currentView === 'categories';
@@ -139,11 +142,12 @@ const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
       </button>
       <button
         type="button"
-        className={`mobile-nav-item${activeKey === 'profile' ? ' is-active' : ''}`}
+        className={`mobile-nav-item${activeKey === 'profile' ? ' is-active' : ''}${!isLoggedIn ? ' mobile-nav-login-cta' : ''}`}
         aria-current={activeKey === 'profile' ? 'page' : undefined}
         onClick={handleProfile}
       >
         <span className="mobile-nav-icon-wrap">
+          {!isLoggedIn && <span className="mobile-nav-login-dot" />}
           <svg className="mobile-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
             <path
               d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
@@ -155,7 +159,7 @@ const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
             />
           </svg>
         </span>
-        <span className="mobile-nav-label">Мой путь</span>
+        <span className="mobile-nav-label">{isLoggedIn ? 'Мой путь' : 'Войти'}</span>
       </button>
       <button
         type="button"

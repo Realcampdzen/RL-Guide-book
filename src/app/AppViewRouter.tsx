@@ -1,9 +1,13 @@
-import React, { Suspense, useEffect, useState } from 'react';
+import React, { Suspense, useCallback, useEffect, useState } from 'react';
 import type { AppController } from './useAppController';
 import AdditionalMaterialView from '../views/AdditionalMaterialView';
 import IntroductionView from '../views/IntroductionView';
 import RegistrationFormView from '../views/RegistrationFormView';
 import GlobalCursor from '../components/GlobalCursor';
+import { useAuth } from '../context/AuthContext';
+import type { UserRole } from '../types/authRole';
+import { RoleSelectionModal } from '../components/RoleSelectionModal';
+import type { RoleFlowResult } from '../components/RoleSelectionModal';
 
 const ChatBot = React.lazy(() => import('../components/ChatBot'));
 const ChatAvatar = React.lazy(() => import('../components/ChatAvatar'));
@@ -24,6 +28,65 @@ type Props = {
 };
 
 export const AppViewRouter: React.FC<Props> = ({ controller, fallback }) => {
+  // ---------- Auth state for nav integration ----------
+  const auth = useAuth();
+  const isLoggedIn = !!(auth.role && auth.role !== 'traveler');
+  const [showRoleModal, setShowRoleModal] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    const dismissed = localStorage.getItem('rl-welcome-dismissed');
+    const hasRole = localStorage.getItem('rl-selected-role');
+    return !dismissed && !hasRole;
+  });
+
+  const handleProfileOrLogin = useCallback(() => {
+    if (isLoggedIn) {
+      controller.setCurrentView('profile');
+    } else {
+      setShowRoleModal(true);
+    }
+  }, [isLoggedIn, controller]);
+
+  const handleRoleResult = useCallback((result: RoleFlowResult) => {
+    switch (result.type) {
+      case 'code-redeemed':
+        auth.setAuth({ role: result.role as UserRole, accessToken: result.accessToken });
+        setShowRoleModal(false);
+        setShowWelcome(false);
+        break;
+      case 'request-sent':
+        setShowRoleModal(false);
+        setShowWelcome(false);
+        break;
+      case 'request-approved':
+        auth.setAuth({ role: result.role as UserRole, accessToken: result.accessToken || undefined });
+        setShowRoleModal(false);
+        setShowWelcome(false);
+        break;
+      case 'dev-pin-ok':
+        auth.setAuth({ role: 'developer' as UserRole });
+        setShowRoleModal(false);
+        setShowWelcome(false);
+        break;
+      case 'developer-oauth':
+        // Legacy OAuth — handle redirect
+        setShowRoleModal(false);
+        break;
+      case 'cancelled':
+        setShowRoleModal(false);
+        break;
+    }
+  }, [auth]);
+
+  const dismissWelcome = useCallback(() => {
+    setShowWelcome(false);
+    try { localStorage.setItem('rl-welcome-dismissed', '1'); } catch { /* */ }
+  }, []);
+
+  const deviceId = typeof window !== 'undefined'
+    ? (localStorage.getItem('rl-device-id') || (() => { const id = 'dev-' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36); localStorage.setItem('rl-device-id', id); return id; })())
+    : 'anon';
+
   // Read PersonalCabinet context via lightweight CustomEvent (set by PersonalCabinet.tsx)
   const [cabinetDataset, setCabinetDataset] = useState<{
     section: string; sectionLabel: string; tab: string; tabLabel: string;
@@ -308,12 +371,66 @@ export const AppViewRouter: React.FC<Props> = ({ controller, fallback }) => {
           currentView={currentView}
           onHome={handleBackToIntro}
           onCategories={handleBackToCategories}
-          onProfile={() => setCurrentView('profile')}
+          onProfile={handleProfileOrLogin}
           onAboutCamp={() => setCurrentView('about-camp')}
           onTelegramContact={handleTelegramContact}
           onOpenVk={handleOpenVk}
+          isLoggedIn={isLoggedIn}
         />
       )}
+
+      {/* Role Selection Modal (triggered by nav "Войти") */}
+      {showRoleModal && (
+        <RoleSelectionModal
+          onResult={handleRoleResult}
+          deviceId={deviceId}
+        />
+      )}
+
+      {/* Welcome banner for first-time visitors */}
+      {!loading && showWelcome && !isLoggedIn && currentView === 'intro' && (
+        <div style={{
+          position: 'fixed', bottom: 90, left: '50%', transform: 'translateX(-50%)',
+          zIndex: 1099, width: 'min(360px, calc(100% - 32px))',
+          background: 'linear-gradient(135deg, rgba(30,27,55,0.96), rgba(20,17,42,0.98))',
+          border: '1px solid rgba(245,158,11,0.25)',
+          borderRadius: 16, padding: '20px 24px',
+          boxShadow: '0 12px 40px rgba(0,0,0,0.5)',
+          textAlign: 'center',
+          animation: 'rl-welcome-slide-in 0.5s ease-out',
+          fontFamily: "'Inter', system-ui, sans-serif",
+        }}>
+          <div style={{ fontSize: 15, fontWeight: 700, color: '#fff', marginBottom: 6 }}>
+            🏕️ Добро пожаловать!
+          </div>
+          <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)', lineHeight: 1.5, marginBottom: 14 }}>
+            Выберите роль, чтобы открыть доступ к Личному Кабинету
+          </div>
+          <button type="button" onClick={() => { dismissWelcome(); setShowRoleModal(true); }}
+            style={{
+              width: '100%', padding: '11px 0', borderRadius: 10, border: 'none',
+              background: 'rgba(245,158,11,0.2)', color: '#f59e0b',
+              fontSize: 14, fontWeight: 700, cursor: 'pointer',
+              transition: 'background 0.2s',
+            }}>
+            Войти / Выбрать роль
+          </button>
+          <button type="button" onClick={dismissWelcome}
+            style={{
+              display: 'block', margin: '10px auto 0', background: 'none', border: 'none',
+              color: 'rgba(255,255,255,0.3)', fontSize: 11, cursor: 'pointer',
+            }}>
+            Пропустить
+          </button>
+        </div>
+      )}
+
+      <style>{`
+        @keyframes rl-welcome-slide-in {
+          from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+          to { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+      `}</style>
 
       {!loading && currentView === 'introduction' && selectedCategory?.introduction?.has_introduction && introductionHtml && (
         <IntroductionView title={`💡 Подсказка: ${selectedCategory.title}`} contentHtml={introductionHtml} onBack={handleBackToCategoryFromIntroduction} />
