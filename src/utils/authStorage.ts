@@ -58,7 +58,9 @@ function decodeTokenClaims(token: string | undefined): TokenClaims {
     const parts = token.split('.');
     if (parts.length < 2) return {};
     const payload = parts[1].replace(/-/g, '+').replace(/_/g, '/');
-    const json = atob(payload);
+    const padLength = (4 - (payload.length % 4)) % 4;
+    const padded = payload + '='.repeat(padLength);
+    const json = atob(padded);
     const parsed = JSON.parse(json) as Record<string, unknown>;
     return {
       exp: typeof parsed.exp === 'number' ? parsed.exp : undefined,
@@ -144,7 +146,10 @@ export function loadAuthStorage(): AuthStorage {
 export function saveAuthStorage(data: Partial<AuthStorage>): void {
   if (typeof window === 'undefined') return;
   const current = loadAuthStorage();
-  const tokenClaims = decodeTokenClaims(data.accessToken ?? current.accessToken);
+  const hasIncomingToken = Object.prototype.hasOwnProperty.call(data, 'accessToken');
+  const resolvedToken = hasIncomingToken ? data.accessToken : current.accessToken;
+  const tokenClaims = decodeTokenClaims(resolvedToken);
+  const keepCurrentIdentity = !hasIncomingToken || !resolvedToken;
 
   const nextRole = normalizeRole(data.role ?? tokenClaims.role ?? current.role);
   const nextBaseDeviceId = (
@@ -157,7 +162,7 @@ export function saveAuthStorage(data: Partial<AuthStorage>): void {
   let nextDeviceId = (
     data.deviceId ||
     tokenClaims.deviceId ||
-    current.deviceId ||
+    (keepCurrentIdentity ? current.deviceId : '') ||
     nextBaseDeviceId
   ).trim();
 
@@ -171,13 +176,17 @@ export function saveAuthStorage(data: Partial<AuthStorage>): void {
 
   const next: AuthStorage = {
     role: nextRole,
-    accessToken: data.accessToken ?? current.accessToken,
+    accessToken: resolvedToken,
     campId: data.campId ?? current.campId,
     exp: data.exp ?? tokenClaims.exp ?? current.exp,
     deviceId: nextDeviceId || nextBaseDeviceId,
     baseDeviceId: nextBaseDeviceId,
-    personId: (data.personId ?? tokenClaims.personId ?? current.personId)?.trim() || undefined,
-    accountId: (data.accountId ?? tokenClaims.accountId ?? current.accountId)?.trim() || undefined,
+    personId:
+      (data.personId ?? tokenClaims.personId ?? (keepCurrentIdentity ? current.personId : undefined))?.trim() ||
+      undefined,
+    accountId:
+      (data.accountId ?? tokenClaims.accountId ?? (keepCurrentIdentity ? current.accountId : undefined))?.trim() ||
+      undefined,
     legacyRoleOwner:
       normalizeLegacyRoleOwner(data.legacyRoleOwner) ??
       normalizeLegacyRoleOwner(tokenClaims.legacyOwnerRole) ??
