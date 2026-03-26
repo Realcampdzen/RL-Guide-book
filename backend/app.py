@@ -2953,10 +2953,7 @@ def _shifts_save(data: dict):
 
 @app.route('/api/shifts', methods=['GET'])
 def shifts_list():
-    """GET /api/shifts — list shifts. Auth: participant/parent/counselor/educator/shift_leader/camp_director/developer."""
-    payload, err = _require_roles(("participant", "parent", "counselor", "educator", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
-    if err is not None:
-        return err[0], err[1]
+    """GET /api/shifts — list shifts. Public (read-only view for all visitors)."""
     try:
         data = _shifts_load()
         return jsonify({"shifts": data.get("shifts", [])})
@@ -3015,10 +3012,7 @@ def shifts_create():
 
 @app.route('/api/shifts/<shift_id>/squads', methods=['GET'])
 def squads_list(shift_id: str):
-    """GET /api/shifts/<shiftId>/squads — list squads in shift. Auth: participant/parent/counselor/educator/shift_leader/camp_director/developer."""
-    payload, err = _require_roles(("participant", "parent", "counselor", "educator", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
-    if err is not None:
-        return err[0], err[1]
+    """GET /api/shifts/<shiftId>/squads — list squads in shift. Public (read-only)."""
     sid = (shift_id or "").strip()
     if not sid:
         return jsonify({"error": "shiftId required"}), 400

@@ -2170,6 +2170,7 @@ export const PersonalCabinet: React.FC<{
                                                 maxWidth: 720, margin: '0 auto', width: '100%',
                                             }}>
                                                 <ShiftsAndSquadsDashboard
+                                                    onRequestLogin={() => setShowRoleModal(true)}
                                                     onNavigateToSquadCorner={() => setActiveSection('squad-corner')}
                                                     onSquadCreated={async () => { await loadSquadInfo(); setActiveSection('squad-corner'); }}
                                                 />
@@ -3092,6 +3093,7 @@ export const PersonalCabinet: React.FC<{
                                         padding: '24px 28px',
                                     }}>
                                     <ShiftsAndSquadsDashboard
+                                        onRequestLogin={() => setShowRoleModal(true)}
                                         onNavigateToSquadCorner={() => setActiveSection('squad-corner')}
                                         onSquadCreated={async () => { await loadSquadInfo(); setActiveSection('squad-corner'); }}
                                     />

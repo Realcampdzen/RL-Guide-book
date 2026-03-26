@@ -27,6 +27,7 @@ interface ShiftsAndSquadsDashboardProps {
     onNavigateToSquadCorner?: () => void;
     onSquadCreated?: () => void;
     onRequestJoinSquad?: (squad: { id: string; name: string }) => Promise<void>;
+    onRequestLogin?: () => void;
     mySquadId?: string;
 }
 
@@ -37,7 +38,7 @@ interface ShiftsAndSquadsDashboardProps {
 const FONT = "'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif";
 const DEFAULT_SHIFT_NAME = 'Весенняя Смена 2026';
 
-const CAN_READ_ROLES = new Set(['participant', 'parent', 'traveler', 'counselor', 'educator', 'shift_leader', 'camp_director', 'developer']);
+// CAN_READ_ROLES removed — shifts/squads are public read
 const CAN_MANAGE_SHIFTS_ROLES = new Set(['camp_director', 'developer']);
 const CAN_MANAGE_SQUADS_ROLES = new Set(['counselor', 'shift_leader', 'camp_director', 'developer']);
 
@@ -56,6 +57,7 @@ export const ShiftsAndSquadsDashboard: React.FC<ShiftsAndSquadsDashboardProps> =
     onNavigateToSquadCorner,
     onSquadCreated,
     onRequestJoinSquad,
+    onRequestLogin,
     mySquadId,
 }) => {
     const { role, accessToken } = useAuth();
@@ -63,7 +65,9 @@ export const ShiftsAndSquadsDashboard: React.FC<ShiftsAndSquadsDashboardProps> =
     const apiBase = useMemo(() => getApiBase(), []);
     const devFallback = apiBase === '' && import.meta.env.DEV;
     const hasAccess = Boolean(accessToken) || devFallback || role === 'developer';
-    const canRead = CAN_READ_ROLES.has(role || '') && hasAccess;
+    // Shifts/squads API is public — everyone can read
+    const canRead = true;
+    const isGuest = !role || role === 'traveler';
     const canManageShifts = CAN_MANAGE_SHIFTS_ROLES.has(role || '') && hasAccess;
     const canManageSquads = CAN_MANAGE_SQUADS_ROLES.has(role || '') && hasAccess;
 
@@ -295,7 +299,22 @@ export const ShiftsAndSquadsDashboard: React.FC<ShiftsAndSquadsDashboardProps> =
                                         Создан {new Date(s.createdAt).toLocaleDateString('ru-RU')}
                                     </div>
                                 </div>
-                                {onRequestJoinSquad && accessToken && !canManageSquads && (mySquadId || '') !== s.id && (
+                                {/* Guest: Подать заявку opens role modal */}
+                                {isGuest && onRequestLogin && (
+                                    <button type="button"
+                                        onClick={(e) => { e.stopPropagation(); onRequestLogin(); }}
+                                        style={{
+                                            ...btnStyle,
+                                            padding: '6px 14px',
+                                            background: 'rgba(245,158,11,0.15)',
+                                            color: '#f59e0b',
+                                            borderColor: 'rgba(245,158,11,0.3)',
+                                        }}>
+                                        Подать заявку
+                                    </button>
+                                )}
+                                {/* Authenticated non-admin: squad join request */}
+                                {onRequestJoinSquad && accessToken && !isGuest && !canManageSquads && (mySquadId || '') !== s.id && (
                                     <button type="button"
                                         disabled={joinBusyId === s.id}
                                         onClick={(e) => {
