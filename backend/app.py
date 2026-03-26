@@ -6071,6 +6071,19 @@ def council_members_list():
 
     normalized = [m for m in items if isinstance(m, dict)]
     normalized.sort(key=lambda x: x.get("joinedAt", ""), reverse=True)
+
+    # Enrich members with avatarUrl from user profiles
+    users_by_device = _users_profiles_by_device()
+    for m in normalized:
+        device_id = (m.get("deviceId") or "").strip()
+        if device_id and device_id in users_by_device:
+            avatar = _extract_avatar_value(users_by_device[device_id])
+            if avatar:
+                m["avatarUrl"] = avatar
+            nickname_from_profile = _extract_nickname_value(users_by_device[device_id])
+            if nickname_from_profile and not (m.get("nickname") or "").strip():
+                m["nickname"] = nickname_from_profile
+
     return jsonify({"members": normalized})
 
 

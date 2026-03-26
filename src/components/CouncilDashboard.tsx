@@ -18,6 +18,13 @@ import {
 } from '../utils/councilApi';
 import type { CouncilProtocol, CouncilMember, InitiativeComment } from '../utils/councilApi';
 
+function getApiBase(): string {
+  if (typeof window === 'undefined') return '';
+  const hostname = window.location.hostname;
+  const useLocal = import.meta.env.DEV || hostname === 'localhost' || hostname === '127.0.0.1';
+  return useLocal ? '' : ((import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || '')).replace(/\/$/, '');
+}
+
 const COUNCIL_ACCENT = '#FFD700';
 const COUNCIL_ACCENT_LIGHT = 'rgba(255, 215, 0, 0.2)';
 const COUNCIL_GRADIENT = 'linear-gradient(135deg, rgba(255, 215, 0, 0.08) 0%, rgba(184, 134, 11, 0.12) 100%)';
@@ -179,7 +186,7 @@ export const CouncilDashboard: React.FC<CouncilDashboardProps> = ({
     let cancelled = false;
     setTeamsLoading(true);
     setTeamsError(null);
-    fetch('/api/teams')
+    fetch(`${getApiBase()}/api/teams`)
       .then(async (res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json();
@@ -495,9 +502,13 @@ export const CouncilDashboard: React.FC<CouncilDashboardProps> = ({
               const isMe = m.nickname === nick;
               return (
                 <div key={m.id} style={{ padding: '10px 14px', borderRadius: 10, background: isMe ? 'rgba(46,204,113,0.06)' : 'rgba(15, 10, 42, 0.12)', border: isMe ? '1px solid rgba(46,204,113,0.15)' : '1px solid rgba(255, 255, 255, 0.08)', display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'rgba(255,215,0,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: MEMBER_ROLE_COLORS[m.role] || '#fff', flexShrink: 0 }}>
-                    {m.role === 'chair' ? 'П' : m.role === 'secretary' ? 'С' : 'У'}
-                  </div>
+                  {m.avatarUrl ? (
+                    <img src={m.avatarUrl} alt={m.nickname} style={{ width: 30, height: 30, borderRadius: '50%', objectFit: 'cover', flexShrink: 0, border: `2px solid ${MEMBER_ROLE_COLORS[m.role] || 'rgba(255,255,255,0.2)'}` }} />
+                  ) : (
+                    <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'rgba(255,215,0,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: MEMBER_ROLE_COLORS[m.role] || '#fff', flexShrink: 0 }}>
+                      {m.role === 'chair' ? 'П' : m.role === 'secretary' ? 'С' : 'У'}
+                    </div>
+                  )}
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 13, fontWeight: 600, color: '#e8f0ff' }}>{m.nickname}{isMe ? ' (вы)' : ''}</div>
                     <div style={{ fontSize: 11, color: MEMBER_ROLE_COLORS[m.role] || 'rgba(255,255,255,0.5)' }}>{MEMBER_ROLE_LABELS[m.role] || m.role}</div>
