@@ -21,7 +21,7 @@ from .base import (
     ChatDailyUsageStore, CouncilInitiativesStore, TeamsStore,
     BadgeArtsStore, EnginesStore, EngineMembersStore,
     InspectorProgressStore,
-    BroEventsStore, BroPassportsStore, ShiftScheduleStore,
+    BroEventsStore, BroPassportsStore, BroSubmissionsStore, BroInitiativesStore, ShiftScheduleStore,
     WorkshopsStore,
     ParentSuggestionsStore,
     UsersStore,
