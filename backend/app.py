@@ -2966,9 +2966,9 @@ def shifts_list():
     except OSError:
         traceback.print_exc()
         return jsonify({"error": "Storage error", "reason": "storage_error"}), 500
-    except Exception:
+    except Exception as exc:
         traceback.print_exc()
-        return jsonify({"error": "Internal server error", "reason": "internal_error"}), 500
+        return jsonify({"error": "Internal server error", "reason": "internal_error", "detail": f"{type(exc).__name__}: {exc}"}), 500
 
 
 @app.route('/api/shifts', methods=['POST'])
@@ -5188,6 +5188,31 @@ def family_child_snapshot(child_device_id: str):
 def api_health():
     """Liveness probe: always 200, no auth. For monitoring, Vercel, CI."""
     return jsonify({"status": "ok"}), 200
+
+
+@app.route('/api/diag/supabase', methods=['GET'])
+def diag_supabase():
+    """Temporary diagnostic: check Supabase configuration and connectivity."""
+    result = {
+        "USE_SUPABASE": os.environ.get("USE_SUPABASE", "(not set)"),
+        "SUPABASE_URL_set": bool(os.environ.get("SUPABASE_URL", "").strip()),
+        "SUPABASE_SERVICE_ROLE_KEY_set": bool(os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "").strip()),
+        "SUPABASE_URL_prefix": (os.environ.get("SUPABASE_URL", "") or "")[:30] + "..." if os.environ.get("SUPABASE_URL") else "(empty)",
+    }
+    # Try loading shifts
+    try:
+        from storage import USE_SUPABASE as _use_sb
+        result["storage_USE_SUPABASE"] = _use_sb
+        store = get_store("shifts")
+        result["store_class"] = type(store).__name__
+        data = store.load()
+        result["shifts_count"] = len(data.get("shifts", []))
+        result["squads_count"] = len(data.get("squads", []))
+        result["status"] = "ok"
+    except Exception as exc:
+        result["status"] = "error"
+        result["error"] = f"{type(exc).__name__}: {exc}"
+    return jsonify(result)
 
 
 @app.route('/health')
