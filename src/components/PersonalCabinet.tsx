@@ -1564,14 +1564,14 @@ export const PersonalCabinet: React.FC<{
                                     { label: 'Мой профиль', action: () => { openProfileEditor(); setHamburgerOpen(false); } },
                                     { label: 'Инспектор Пользы', action: () => { setActiveSection('inspector'); setHamburgerOpen(false); } },
                                     {
-                                        label: 'Залогиниться',
+                                        label: 'Войти в аккаунт',
                                         action: () => { setShowRoleModal(true); setHamburgerOpen(false); },
                                     },
                                     {
-                                        label: 'Разлогиниться',
+                                        label: 'Выйти из аккаунта',
                                         action: () => { void handleSidebarSignOut(); },
                                     },
-                                    ...(onBack ? [{ label: 'Выйти из кабинета', action: () => { setHamburgerOpen(false); onBack(); } }] : []),
+                                    ...(onBack ? [{ label: 'Переключить на демо-кабину', action: () => { setHamburgerOpen(false); onBack(); } }] : []),
                                 ].map((item, i) => (
                                     <button key={i} type="button" onClick={item.action}
                                         style={{
