@@ -9138,8 +9138,8 @@ def _load_role_requests() -> list:
             if result:
                 return result
             store_rows = []
-    except Exception:
-        pass
+    except Exception as exc:
+        app.logger.warning("_load_role_requests: store.load() failed: %s", exc)
     # fallback: /tmp
     try:
         if os.path.exists(_RR_TMP_FILE):
@@ -9147,8 +9147,8 @@ def _load_role_requests() -> list:
                 data = json.load(f)
             if isinstance(data, list):
                 return data
-    except Exception:
-        pass
+    except Exception as exc:
+        app.logger.warning("_load_role_requests: /tmp fallback failed: %s", exc)
     return store_rows if isinstance(store_rows, list) else []
 
 
@@ -9156,14 +9156,14 @@ def _save_role_requests(data: list):
     """Save role requests: Supabase + /tmp fallback."""
     try:
         get_store('role_requests').save(data)
-    except Exception:
-        pass
+    except Exception as exc:
+        app.logger.warning("_save_role_requests: store.save() failed: %s", exc)
     # Always also write to /tmp as local cache / fallback
     try:
         with open(_RR_TMP_FILE, 'w', encoding='utf-8') as f:
             json.dump(data, f, ensure_ascii=False)
-    except Exception:
-        pass
+    except Exception as exc:
+        app.logger.warning("_save_role_requests: /tmp fallback failed: %s", exc)
 
 
 def _role_request_label_ru(role: str) -> str:

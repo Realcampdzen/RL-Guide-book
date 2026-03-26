@@ -9,6 +9,7 @@ backend/storage/supabase_provider.py — Supabase-провайдер храни�
 """
 
 import json
+import logging
 import os
 import uuid
 from datetime import datetime, timezone
@@ -1428,26 +1429,32 @@ class SupabaseRoleRequestsStore(RoleRequestsStore):
     Формат load(): list of {id, deviceId, desiredRole, name, comment, status, createdAt, email?, accessToken?}
     """
 
+    _logger = logging.getLogger("storage.role_requests")
+
     def load(self) -> list:
         try:
             sb = _client()
             rows = sb.table("role_requests").select("*").order("created_at", desc=False).execute().data or []
             return [self._row_to_rr(r) for r in rows]
-        except Exception:
+        except Exception as exc:
+            self._logger.warning("load() failed: %s", exc)
             return []
 
     def save(self, data: list) -> None:
         try:
             sb = _client()
-        except Exception:
+        except Exception as exc:
+            self._logger.warning("save() — cannot get client: %s", exc)
             return
         for rr in (data or []):
             if not isinstance(rr, dict):
                 continue
             try:
-                sb.table("role_requests").upsert(self._rr_to_row(rr)).execute()
-            except Exception:
-                pass
+                row = self._rr_to_row(rr)
+                sb.table("role_requests").upsert(row).execute()
+            except Exception as exc:
+                self._logger.warning("save() upsert failed for id=%s: %s  row=%r",
+                                     rr.get("id", "?"), exc, self._rr_to_row(rr) if isinstance(rr, dict) else rr)
 
     @staticmethod
     def _row_to_rr(r: dict) -> dict:
@@ -1477,6 +1484,8 @@ class SupabaseRoleRequestsStore(RoleRequestsStore):
             row["email"] = rr["email"]
         if rr.get("accessToken"):
             row["access_token"] = rr["accessToken"]
+        if rr.get("createdAt"):
+            row["created_at"] = rr["createdAt"]
         return row
 
 
