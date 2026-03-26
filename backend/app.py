@@ -4422,6 +4422,55 @@ def _workshop_proposals_save(data: dict):
     get_store("workshop_proposals").save(data)
 
 
+WORKSHOP_PROPOSAL_TYPES = ("badge", "category", "version", "art")
+SQUAD_JOIN_REQUEST_TYPE = "squad_join_request"
+
+
+def _is_regular_workshop_proposal_type(value: str) -> bool:
+    return (value or "").strip() in WORKSHOP_PROPOSAL_TYPES
+
+
+def _parse_squad_join_request_meta(description: str) -> dict:
+    raw = (description or "").strip()
+    if not raw:
+        return {}
+    try:
+        parsed = json.loads(raw)
+        return parsed if isinstance(parsed, dict) else {}
+    except Exception:
+        return {"message": raw[:500]}
+
+
+def _normalize_join_request_role(raw_role: str) -> str:
+    role = _normalize_role((raw_role or "").strip())
+    return role if role in CHAT_ALLOWED_ROLES else "parent"
+
+
+def _to_squad_join_request_response(row: dict) -> dict:
+    created_by = row.get("createdBy") if isinstance(row.get("createdBy"), dict) else {}
+    meta = _parse_squad_join_request_meta((row.get("description") or "").strip())
+    requester_role = _normalize_join_request_role((meta.get("requesterRole") or "").strip())
+    requester_email = (meta.get("requesterEmail") or "").strip().lower()
+    message = (meta.get("message") or "").strip()
+    return {
+        "id": (row.get("id") or "").strip(),
+        "status": (row.get("status") or "pending").strip() or "pending",
+        "createdAt": (row.get("createdAt") or "").strip(),
+        "resolvedAt": (row.get("resolvedAt") or "").strip() or None,
+        "resolutionNote": (row.get("resolutionNote") or "").strip() or None,
+        "campId": (row.get("campId") or "").strip(),
+        "squadId": (row.get("squadId") or "").strip(),
+        "squadName": (row.get("title") or "").strip(),
+        "requester": {
+            "deviceId": (created_by.get("deviceId") or "").strip(),
+            "nickname": (created_by.get("nickname") or "").strip(),
+            "role": requester_role,
+            "email": requester_email,
+        },
+        "message": message,
+    }
+
+
 @app.route('/api/workshop/proposals', methods=['POST'])
 def workshop_proposal_create():
     """
@@ -4439,7 +4488,7 @@ def workshop_proposal_create():
 
     body = request.get_json() or {}
     proposal_type = (body.get("type") or "").strip()
-    if proposal_type not in ("badge", "category", "version", "art"):
+    if not _is_regular_workshop_proposal_type(proposal_type):
         return jsonify({"error": "type must be badge|category|version|art"}), 400
 
     title = (body.get("title") or "").strip()[:200]
@@ -4509,6 +4558,8 @@ def workshop_proposal_mine():
     for p in (doc.get("proposals") or []):
         if not isinstance(p, dict):
             continue
+        if not _is_regular_workshop_proposal_type((p.get("type") or "").strip()):
+            continue
         cb = p.get("createdBy") if isinstance(p.get("createdBy"), dict) else {}
         if (cb.get("deviceId") or "").strip() != device_id:
             continue
@@ -4543,6 +4594,8 @@ def workshop_proposal_inbox():
     rows = []
     for p in (doc.get("proposals") or []):
         if not isinstance(p, dict):
+            continue
+        if not _is_regular_workshop_proposal_type((p.get("type") or "").strip()):
             continue
         if status_filter and (p.get("status") or "").strip() != status_filter:
             continue
@@ -4613,6 +4666,136 @@ def workshop_proposal_approve(proposal_id: str):
 @app.route('/api/workshop/proposals/<proposal_id>/reject', methods=['POST'])
 def workshop_proposal_reject(proposal_id: str):
     return _workshop_proposal_resolve(proposal_id, "rejected")
+
+
+@app.route('/api/squads/<squad_id>/join-requests', methods=['POST'])
+def squad_join_request_create(squad_id: str):
+    """
+    POST /api/squads/<squadId>/join-requests
+    Create a pending request to join a specific squad.
+    Auth: participant|parent|counselor|educator|shift_leader|camp_director|developer
+    Body: { nickname?: string, message?: string }
+    """
+    payload, err = _require_roles(
+        ("participant", "parent", "counselor", "educator", "shift_leader", "camp_director", "developer"),
+        allow_localhost_dev=True,
+    )
+    if err is not None:
+        return err[0], err[1]
+
+    device_id = (payload.get("deviceId") or "").strip()
+    if not device_id:
+        return jsonify({"error": "deviceId missing in token"}), 400
+    sid = (squad_id or "").strip()
+    if not sid:
+        return jsonify({"error": "squadId required"}), 400
+
+    shifts_doc = _shifts_load()
+    squad = _find_squad(shifts_doc, sid)
+    if not squad:
+        return jsonify({"error": "Squad not found"}), 404
+    shift = _find_shift(shifts_doc, (squad.get("shiftId") or "").strip())
+
+    existing_membership = _membership_in_squad(device_id, sid)
+    if existing_membership:
+        return jsonify({
+            "status": "already_member",
+            "request": None,
+            "membership": existing_membership,
+            "squadId": sid,
+            "squadName": (squad.get("name") or "").strip(),
+        }), 200
+
+    body = request.get_json(silent=True) or {}
+    nickname = (body.get("nickname") or "").strip()[:120]
+    message = (body.get("message") or "").strip()[:500]
+    actor_role = _normalize_join_request_role((payload.get("role") or "").strip())
+    requester_email = (payload.get("email") or "").strip().lower()[:200]
+    now_iso = datetime.now(timezone.utc).isoformat()
+
+    doc = _workshop_proposals_load()
+    proposals = doc.get("proposals") or []
+    for row in proposals:
+        if not isinstance(row, dict):
+            continue
+        if (row.get("type") or "").strip() != SQUAD_JOIN_REQUEST_TYPE:
+            continue
+        if (row.get("status") or "").strip() != "pending":
+            continue
+        if (row.get("squadId") or "").strip() != sid:
+            continue
+        created_by = row.get("createdBy") if isinstance(row.get("createdBy"), dict) else {}
+        if (created_by.get("deviceId") or "").strip() != device_id:
+            continue
+        return jsonify({
+            "status": "already_pending",
+            "request": _to_squad_join_request_response(row),
+        }), 200
+
+    meta = {
+        "requesterRole": actor_role,
+        "requesterEmail": requester_email,
+        "message": message,
+    }
+    request_doc = {
+        "id": f"SJR-{uuid.uuid4().hex[:10].upper()}",
+        "type": SQUAD_JOIN_REQUEST_TYPE,
+        "title": (squad.get("name") or sid).strip(),
+        "description": json.dumps(meta, ensure_ascii=False),
+        "status": "pending",
+        "createdBy": {
+            "deviceId": device_id,
+            "nickname": nickname or None,
+        },
+        "campId": ((squad.get("shiftId") or "").strip() or (shift.get("id") if isinstance(shift, dict) else "") or ""),
+        "squadId": sid,
+        "createdAt": now_iso,
+        "resolvedAt": None,
+        "resolvedBy": None,
+        "resolutionNote": None,
+    }
+
+    proposals.append(request_doc)
+    doc["proposals"] = proposals
+    _workshop_proposals_save(doc)
+
+    return jsonify({
+        "status": "pending",
+        "request": _to_squad_join_request_response(request_doc),
+    }), 201
+
+
+@app.route('/api/squads/join-requests/mine', methods=['GET'])
+def squad_join_requests_mine():
+    """
+    GET /api/squads/join-requests/mine
+    Returns own squad-join requests, newest-first.
+    """
+    payload, err = _require_roles(
+        ("participant", "parent", "counselor", "educator", "shift_leader", "camp_director", "developer"),
+        allow_localhost_dev=True,
+    )
+    if err is not None:
+        return err[0], err[1]
+
+    device_id = (payload.get("deviceId") or "").strip()
+    if not device_id:
+        return jsonify({"error": "deviceId missing in token"}), 400
+
+    doc = _workshop_proposals_load()
+    rows: list[dict] = []
+    for proposal in (doc.get("proposals") or []):
+        if not isinstance(proposal, dict):
+            continue
+        if (proposal.get("type") or "").strip() != SQUAD_JOIN_REQUEST_TYPE:
+            continue
+        created_by = proposal.get("createdBy") if isinstance(proposal.get("createdBy"), dict) else {}
+        if (created_by.get("deviceId") or "").strip() != device_id:
+            continue
+        rows.append(_to_squad_join_request_response(proposal))
+
+    rows.sort(key=lambda item: _parse_iso_ts(item.get("createdAt") or ""), reverse=True)
+    return jsonify({"requests": rows})
 
 
 @app.route('/api/organizer/generate-code', methods=['POST'])
@@ -7582,7 +7765,7 @@ def resolve_user():
 
     # Legacy fallback: only allowed for unmigrated rows and only for owner role.
     if user is None and account_id and role_from_jwt:
-        can_attach_legacy = (not owner_role) or owner_role == role_from_jwt
+        can_attach_legacy = bool(owner_role and owner_role == role_from_jwt)
         if can_attach_legacy:
             for u in users:
                 if not isinstance(u, dict):
@@ -8080,6 +8263,42 @@ def _collect_inbox_items(type_filter: str = ""):
     except Exception:
         counts.setdefault("badge_plan", 0)
 
+    # 9) Squad join requests — status == "pending"
+    try:
+        wp_doc = _workshop_proposals_load()
+        pending_sjr = []
+        for row in (wp_doc.get("proposals") or []):
+            if not isinstance(row, dict):
+                continue
+            if (row.get("type") or "").strip() != SQUAD_JOIN_REQUEST_TYPE:
+                continue
+            if (row.get("status") or "").strip() != "pending":
+                continue
+            created_by = row.get("createdBy") if isinstance(row.get("createdBy"), dict) else {}
+            meta = _parse_squad_join_request_meta((row.get("description") or "").strip())
+            pending_sjr.append({
+                "type": "squad_join_request",
+                "id": row.get("id", ""),
+                "user": {
+                    "device_id": (created_by.get("deviceId") or "").strip(),
+                    "nickname": (created_by.get("nickname") or "").strip(),
+                    "email": (meta.get("requesterEmail") or "").strip().lower(),
+                },
+                "data": {
+                    "squad_id": (row.get("squadId") or "").strip(),
+                    "squad_name": (row.get("title") or "").strip(),
+                    "camp_id": (row.get("campId") or "").strip(),
+                    "message": (meta.get("message") or "").strip(),
+                    "requester_role": _normalize_join_request_role((meta.get("requesterRole") or "").strip()),
+                    "requester_email": (meta.get("requesterEmail") or "").strip().lower(),
+                },
+                "status": "pending",
+                "created_at": row.get("createdAt", ""),
+            })
+        _add("squad_join_request", pending_sjr)
+    except Exception:
+        counts.setdefault("squad_join_request", 0)
+
     # Sort by created_at descending
     items.sort(key=lambda x: x.get("created_at", ""), reverse=True)
     counts["total"] = sum(v for k, v in counts.items() if k != "total")
@@ -8307,6 +8526,80 @@ def admin_action():
         store.save(data)
         return jsonify({"ok": True, "item_type": item_type, "item_id": item_id, "action": action})
 
+    elif item_type == "squad_join_request":
+        next_status = "approved" if action == "approve" else "rejected"
+        doc = _workshop_proposals_load()
+        proposals = doc.get("proposals") or []
+        found_idx = -1
+        for idx, proposal in enumerate(proposals):
+            if not isinstance(proposal, dict):
+                continue
+            if (proposal.get("id") or "").strip() != item_id:
+                continue
+            if (proposal.get("type") or "").strip() != SQUAD_JOIN_REQUEST_TYPE:
+                continue
+            found_idx = idx
+            break
+        if found_idx < 0:
+            return jsonify({"error": "Squad join request not found"}), 404
+
+        row = proposals[found_idx]
+        if (row.get("status") or "").strip() != "pending":
+            return jsonify({"error": f"Already resolved: {row.get('status')}"}), 409
+
+        row["status"] = next_status
+        row["resolvedAt"] = now_iso
+        row["resolvedBy"] = {"deviceId": approver_device, "role": approver_role}
+        if comment:
+            row["resolutionNote"] = comment[:2000]
+
+        applied_membership = None
+        if next_status == "approved":
+            created_by = row.get("createdBy") if isinstance(row.get("createdBy"), dict) else {}
+            requester_device_id = (created_by.get("deviceId") or "").strip()
+            squad_id = (row.get("squadId") or "").strip()
+            if not requester_device_id or not squad_id:
+                return jsonify({"error": "Invalid squad join request payload"}), 409
+
+            shifts_doc = _shifts_load()
+            squad = _find_squad(shifts_doc, squad_id)
+            if not squad:
+                return jsonify({"error": "Squad not found"}), 404
+
+            meta = _parse_squad_join_request_meta((row.get("description") or "").strip())
+            requester_role = _normalize_join_request_role((meta.get("requesterRole") or "").strip())
+            camp_id = (squad.get("shiftId") or "").strip()
+
+            mdoc = _memberships_load()
+            members = [
+                m for m in (mdoc.get("members") or [])
+                if not (isinstance(m, dict) and (m.get("deviceId") or "").strip() == requester_device_id)
+            ]
+            applied_membership = {
+                "deviceId": requester_device_id,
+                "campId": camp_id,
+                "squadId": squad_id,
+                "role": requester_role,
+                "joinedAt": now_iso,
+            }
+            nickname = (created_by.get("nickname") or "").strip()
+            if nickname:
+                applied_membership["nickname"] = nickname
+            members.append(applied_membership)
+            mdoc["members"] = members
+            _memberships_save(mdoc)
+
+        proposals[found_idx] = row
+        doc["proposals"] = proposals
+        _workshop_proposals_save(doc)
+        return jsonify({
+            "ok": True,
+            "item_type": item_type,
+            "item_id": item_id,
+            "action": action,
+            "membership": applied_membership,
+        })
+
     else:
         return jsonify({"error": f"Unknown item_type: {item_type}"}), 400
 
@@ -8396,17 +8689,30 @@ def _infer_legacy_owner_role_from_users(base_device_id: str) -> str:
     if not isinstance(users, list):
         return ""
 
-    # Prefer unmigrated legacy rows for this device.
-    for row in reversed(users):
+    unmigrated_roles = set()
+    migrated_roles = set()
+
+    for row in users:
         if not isinstance(row, dict):
             continue
-        if (row.get("legacy_device_id") or "").strip() != base_id:
-            continue
-        if (row.get("account_id") or "").strip():
+        row_legacy_device_id = (row.get("legacy_device_id") or "").strip()
+        row_base_device_id = (row.get("base_device_id") or "").strip()
+        if row_legacy_device_id != base_id and row_base_device_id != base_id:
             continue
         role = _normalize_role((row.get("role") or "").strip())
-        if role != "traveler":
-            return role
+        if role == "traveler":
+            continue
+        if (row.get("account_id") or "").strip():
+            migrated_roles.add(role)
+        else:
+            unmigrated_roles.add(role)
+
+    if len(unmigrated_roles) == 1:
+        return next(iter(unmigrated_roles))
+    if len(unmigrated_roles) > 1:
+        return ""
+    if len(migrated_roles) == 1:
+        return next(iter(migrated_roles))
     return ""
 
 

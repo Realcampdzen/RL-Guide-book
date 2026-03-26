@@ -43,9 +43,9 @@ export function canModerateBadgeApprovals(role: UserRole): boolean {
   return role === 'counselor' || role === 'educator' || role === 'shift_leader' || role === 'camp_director' || role === 'developer';
 }
 
-/** Показывать панель «Входящие заявки» без песочницы: вожатый, педагог, руководитель смены, начальник лагеря, разработчик. */
+/** Показывать панель «Входящие заявки» без песочницы: родитель + staff роли + разработчик. */
 export function showEventsPanelForRole(role: UserRole): boolean {
-  return role === 'counselor' || role === 'educator' || role === 'shift_leader' || role === 'camp_director' || role === 'developer';
+  return role === 'parent' || role === 'counselor' || role === 'educator' || role === 'shift_leader' || role === 'camp_director' || role === 'developer';
 }
 
 /** Может создавать отряд из вожатых (приглашать вожатых в свой отряд): руководитель смены, начальник лагеря, разработчик. */

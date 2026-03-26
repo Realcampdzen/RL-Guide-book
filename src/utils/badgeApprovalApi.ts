@@ -122,6 +122,26 @@ export interface SquadPreviewResponse {
   shiftName?: string | null;
 }
 
+export interface SquadJoinRequester {
+  deviceId: string;
+  nickname?: string | null;
+  role?: string | null;
+  email?: string | null;
+}
+
+export interface SquadJoinRequestItem {
+  id: string;
+  status: 'pending' | 'approved' | 'rejected';
+  createdAt: string;
+  resolvedAt?: string | null;
+  resolutionNote?: string | null;
+  campId?: string;
+  squadId: string;
+  squadName?: string | null;
+  requester: SquadJoinRequester;
+  message?: string | null;
+}
+
 export interface SquadMessage {
   id: string;
   squadId: string;
@@ -154,15 +174,28 @@ export class ApiError extends Error {
   }
 }
 
+const REQUEST_TIMEOUT_MS = 15000;
+
 async function requestJson<T>(path: string, options: RequestInit = {}): Promise<T> {
   const base = getApiBase();
-  const res = await fetch(`${base}${path}`, options);
-  const data = await res.json().catch(() => ({})) as Record<string, unknown>;
-  if (!res.ok) {
-    const message = (typeof data.error === 'string' && data.error) || `Request failed: ${res.status}`;
-    throw new ApiError(message, res.status, data);
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  try {
+    const res = await fetch(`${base}${path}`, { ...options, signal: controller.signal });
+    const data = await res.json().catch(() => ({})) as Record<string, unknown>;
+    if (!res.ok) {
+      const message = (typeof data.error === 'string' && data.error) || `Request failed: ${res.status}`;
+      throw new ApiError(message, res.status, data);
+    }
+    return data as T;
+  } catch (error) {
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      throw new ApiError('Сервер долго не отвечает. Повторите попытку.', 408, { error: 'request_timeout' });
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
   }
-  return data as T;
 }
 
 export async function createBadgeRequest(
@@ -243,6 +276,25 @@ export async function joinSquad(
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
     body: JSON.stringify(payload || {})
   });
+}
+
+export async function createSquadJoinRequest(
+  accessToken: string,
+  squadId: string,
+  payload?: { nickname?: string; message?: string }
+): Promise<{ status: string; request: SquadJoinRequestItem | null }> {
+  return requestJson<{ status: string; request: SquadJoinRequestItem | null }>(`/api/squads/${encodeURIComponent(squadId)}/join-requests`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+    body: JSON.stringify(payload || {})
+  });
+}
+
+export async function loadMySquadJoinRequests(accessToken: string): Promise<SquadJoinRequestItem[]> {
+  const data = await requestJson<{ requests: SquadJoinRequestItem[] }>('/api/squads/join-requests/mine', {
+    headers: { Authorization: `Bearer ${accessToken}` }
+  });
+  return data.requests || [];
 }
 
 export async function loadMySquad(accessToken: string, deviceId?: string): Promise<SquadMineResponse> {

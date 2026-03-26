@@ -44,6 +44,7 @@ const TYPE_META: Record<string, { letter: string; label: string; color: string }
     bro_submission: { letter: 'Б', label: 'БРО', color: '#F97316' },
     badge_plan: { letter: 'П', label: 'Планы', color: '#14B8A6' },
     vozhatifikator_proof: { letter: 'В', label: 'Вожатификатор', color: '#EC4899' },
+    squad_join_request: { letter: 'О', label: 'Отряды', color: '#0EA5E9' },
 };
 
 const ALL_TYPES = Object.keys(TYPE_META);
@@ -155,6 +156,11 @@ function getItemTitle(item: RawInboxItem): string {
             const lvl = (data.level as string) || '';
             return `Путеводные огни: ${pts} б. — ${lvl}`;
         }
+        case 'squad_join_request': {
+            const squadName = (data.squad_name as string) || '';
+            const squadId = (data.squad_id as string) || '';
+            return squadName ? `Заявка в отряд «${squadName}»` : `Заявка в отряд ${squadId || ''}`.trim();
+        }
         default:
             return item.type;
     }
@@ -224,6 +230,15 @@ function getItemDescription(item: RawInboxItem): string {
         case 'vozhatifikator_proof': {
             const count = Array.isArray(data.completedIds) ? data.completedIds.length : 0;
             return `Отмечено пунктов: ${count}. Ожидает подтверждения вожатого.`;
+        }
+        case 'squad_join_request': {
+            const role = (data.requester_role as string) || '';
+            const roleText = role ? `Роль: ${role}` : '';
+            const msg = (data.message as string) || '';
+            if (msg && roleText) return `${roleText} · ${msg}`;
+            if (msg) return msg;
+            if (roleText) return roleText;
+            return 'Ожидает решения по вступлению в отряд';
         }
         default:
             return '';

@@ -49,6 +49,7 @@ import { syncAuthProfile } from '../utils/authProfileApi';
 import {
   ApiError,
   approveBadgeRequest,
+  createSquadJoinRequest,
   fetchSquadPreview,
   fetchSquadCorner,
   joinSquad,
@@ -56,12 +57,14 @@ import {
   createBadgeRequest,
   loadMyApprovals,
   loadMyBadgeRequests,
+  loadMySquadJoinRequests,
   loadMySquad,
   patchSquadCorner,
   rejectBadgeRequest,
   resolveSquadByInviteCode,
   type BadgeApprovalItem,
   type BadgeRequestItem,
+  type SquadJoinRequestItem,
   type SquadCorner,
   type SquadMineResponse
 } from '../utils/badgeApprovalApi';
@@ -192,6 +195,7 @@ export const ProfileView: React.FC<any> = (props) => {
   const travelerMode = isTraveler(role);
   const expensiveActionsAllowed = canUseExpensiveActions(role);
   const canRequestApprovals = canRequestBadgeApproval(role);
+  const canSeeOwnRequests = canRequestApprovals || role === 'parent';
   const canModerateApprovals = canModerateBadgeApprovals(role);
   const { showHint, startTutorial } = useHintOverlay();
 
@@ -372,11 +376,15 @@ export const ProfileView: React.FC<any> = (props) => {
   const [planRejectExpandedId, setPlanRejectExpandedId] = useState<string | null>(null);
   const [planRejectNote, setPlanRejectNote] = useState('');
   const [badgeRequestsMine, setBadgeRequestsMine] = useState<BadgeRequestItem[]>([]);
+  const [squadJoinRequestsMine, setSquadJoinRequestsMine] = useState<SquadJoinRequestItem[]>([]);
   const [badgeRequestsInbox, setBadgeRequestsInbox] = useState<BadgeRequestItem[]>([]);
   const [wpInbox, setWpInbox] = useState<WorkshopProposal[]>([]);
   const [wpInboxBusy, setWpInboxBusy] = useState(false);
   const [badgeRequestsBusy, setBadgeRequestsBusy] = useState(false);
   const [badgeRequestsError, setBadgeRequestsError] = useState<string | null>(null);
+  const [squadJoinRequestsBusy, setSquadJoinRequestsBusy] = useState(false);
+  const [squadJoinRequestsError, setSquadJoinRequestsError] = useState<string | null>(null);
+  const [squadJoinRequestBusyId, setSquadJoinRequestBusyId] = useState<string | null>(null);
   const [approvalsSyncBusy, setApprovalsSyncBusy] = useState(false);
   const [approvalsSyncStatus, setApprovalsSyncStatus] = useState<string | null>(null);
   const [pendingApprovalsCount, setPendingApprovalsCount] = useState(0);
@@ -916,7 +924,9 @@ export const ProfileView: React.FC<any> = (props) => {
     if (!accessToken) {
       setBadgeRequestsMine([]);
       setBadgeRequestsInbox([]);
+      setWpInbox([]);
       setBadgeRequestsError('Сначала войдите по коду, чтобы работать с заявками.');
+      setBadgeRequestsBusy(false);
       return;
     }
     setBadgeRequestsBusy(true);
@@ -937,6 +947,26 @@ export const ProfileView: React.FC<any> = (props) => {
       setBadgeRequestsBusy(false);
     }
   }, [accessToken, canRequestApprovals, canModerateApprovals]);
+
+  const loadMySquadJoinRequestsData = useCallback(async () => {
+    if (!accessToken || !canSeeOwnRequests) {
+      setSquadJoinRequestsMine([]);
+      setSquadJoinRequestsError(null);
+      setSquadJoinRequestsBusy(false);
+      return;
+    }
+    setSquadJoinRequestsBusy(true);
+    setSquadJoinRequestsError(null);
+    try {
+      const rows = await loadMySquadJoinRequests(accessToken);
+      setSquadJoinRequestsMine(rows);
+    } catch (e) {
+      setSquadJoinRequestsMine([]);
+      setSquadJoinRequestsError(e instanceof Error ? e.message : 'Не удалось загрузить заявки в отряды.');
+    } finally {
+      setSquadJoinRequestsBusy(false);
+    }
+  }, [accessToken, canSeeOwnRequests]);
 
   useEffect(() => {
     if (!accessToken || !canRequestApprovals || !getLevelProgress) return;
@@ -1077,12 +1107,13 @@ export const ProfileView: React.FC<any> = (props) => {
       setMySquadJoinCode('');
       await loadMySquadInfo();
       await loadBadgeApprovalsData();
+      await loadMySquadJoinRequestsData();
     } catch (e) {
       setMySquadJoinStatus(e instanceof Error ? e.message : 'Не удалось вступить в отряд.');
     } finally {
       setMySquadJoinBusy(false);
     }
-  }, [accessToken, mySquadJoinCode, profile.nickname, loadMySquadInfo, loadBadgeApprovalsData]);
+  }, [accessToken, mySquadJoinCode, profile.nickname, loadMySquadInfo, loadBadgeApprovalsData, loadMySquadJoinRequestsData]);
 
   const joinMySquadById = useCallback(async () => {
     const sid = mySquadJoinId.trim();
@@ -1102,12 +1133,49 @@ export const ProfileView: React.FC<any> = (props) => {
       setMySquadJoinId('');
       await loadMySquadInfo();
       await loadBadgeApprovalsData();
+      await loadMySquadJoinRequestsData();
     } catch (e) {
       setMySquadJoinStatus(e instanceof Error ? e.message : 'Не удалось вступить в отряд.');
     } finally {
       setMySquadJoinBusy(false);
     }
-  }, [accessToken, mySquadJoinId, profile.nickname, loadMySquadInfo, loadBadgeApprovalsData]);
+  }, [accessToken, mySquadJoinId, profile.nickname, loadMySquadInfo, loadBadgeApprovalsData, loadMySquadJoinRequestsData]);
+
+  const requestJoinSquad = useCallback(async (squad: { id: string; name: string }) => {
+    const sid = (squad.id || '').trim();
+    if (!sid) return;
+    if (!accessToken) {
+      setMySquadJoinStatus('Сначала войдите по коду.');
+      return;
+    }
+    if ((mySquadInfo?.membership?.squadId || '').trim() === sid) {
+      setMySquadJoinStatus('Вы уже состоите в этом отряде.');
+      return;
+    }
+    setSquadJoinRequestBusyId(sid);
+    setSquadJoinRequestsError(null);
+    setMySquadJoinStatus(null);
+    try {
+      const result = await createSquadJoinRequest(accessToken, sid, {
+        nickname: profile.nickname || undefined,
+      });
+      if (result.status === 'already_pending') {
+        setMySquadJoinStatus(`Заявка в отряд «${squad.name}» уже отправлена и ожидает решения.`);
+      } else if (result.status === 'already_member') {
+        setMySquadJoinStatus(`Вы уже состоите в отряде «${squad.name}».`);
+      } else {
+        setMySquadJoinStatus(`Заявка в отряд «${squad.name}» отправлена.`);
+        showHint({ title: 'Заявка отправлена', content: 'Ожидайте подтверждения в пульте управления.' });
+      }
+      await loadMySquadJoinRequestsData();
+    } catch (e) {
+      const message = e instanceof Error ? e.message : 'Не удалось отправить заявку в отряд.';
+      setSquadJoinRequestsError(message);
+      setMySquadJoinStatus(message);
+    } finally {
+      setSquadJoinRequestBusyId(null);
+    }
+  }, [accessToken, mySquadInfo?.membership?.squadId, profile.nickname, loadMySquadJoinRequestsData, showHint]);
 
   const hasSquadMembership = Boolean(mySquadInfo?.membership?.squadId);
   // Staff must have a real JWT; developer can use sandbox fallback.
@@ -1190,12 +1258,12 @@ export const ProfileView: React.FC<any> = (props) => {
     await patchSquadCorner(accessToken, squadId, payload);
 
     // 4) Refresh and open cabinet
-    await Promise.all([loadMySquadInfo(), loadOrganizerData(), loadBadgeApprovalsData()]);
+    await Promise.all([loadMySquadInfo(), loadOrganizerData(), loadBadgeApprovalsData(), loadMySquadJoinRequestsData()]);
     setActiveTab('active');
     setSquadCornerActiveTab('squad');
     setSquadCornerReturnToOrganizer(false);
     openCabinPanel('squad-corner', 'left');
-  }, [accessToken, resolveShiftIdForCornerCreate, organizerApiBase, getOrganizerHeaders, profile.nickname, loadMySquadInfo, loadOrganizerData, loadBadgeApprovalsData, openCabinPanel]);
+  }, [accessToken, resolveShiftIdForCornerCreate, organizerApiBase, getOrganizerHeaders, profile.nickname, loadMySquadInfo, loadOrganizerData, loadBadgeApprovalsData, loadMySquadJoinRequestsData, openCabinPanel]);
 
   const openSquadFromOrganizer = useCallback(async (squad: { id: string; name: string }) => {
     if (!accessToken) {
@@ -1214,7 +1282,7 @@ export const ProfileView: React.FC<any> = (props) => {
         const confirmed = window.confirm(`Вступить в отряд «${squad.name}» и открыть кабинет?`);
         if (!confirmed) return;
         await joinSquad(accessToken, squad.id, { nickname: profile.nickname || undefined });
-        await Promise.all([loadMySquadInfo(), loadBadgeApprovalsData()]);
+        await Promise.all([loadMySquadInfo(), loadBadgeApprovalsData(), loadMySquadJoinRequestsData()]);
       }
       setOrganizerError(null);
       setActiveTab('active');
@@ -1228,7 +1296,7 @@ export const ProfileView: React.FC<any> = (props) => {
     } finally {
       setOpeningSquadId(null);
     }
-  }, [accessToken, openingSquadId, mySquadInfo?.membership?.squadId, profile.nickname, loadMySquadInfo, loadBadgeApprovalsData, openCabinPanel, showHint]);
+  }, [accessToken, openingSquadId, mySquadInfo?.membership?.squadId, profile.nickname, loadMySquadInfo, loadBadgeApprovalsData, loadMySquadJoinRequestsData, openCabinPanel, showHint]);
 
   const removeShiftWithCleanup = useCallback(async (shift: { id: string; name: string }) => {
     if (!canDeleteShiftsAndSquads || organizerLoading) return;
@@ -1344,6 +1412,10 @@ export const ProfileView: React.FC<any> = (props) => {
   }, [loadMySquadInfo]);
 
   useEffect(() => {
+    void loadMySquadJoinRequestsData();
+  }, [loadMySquadJoinRequestsData]);
+
+  useEffect(() => {
     if (typeof window === 'undefined') return;
 
     const dropJoinSquadQueryParam = () => {
@@ -1437,7 +1509,18 @@ export const ProfileView: React.FC<any> = (props) => {
     if (openBubble !== 'events') return;
     if (eventsTab !== 'approvals') return;
     void loadBadgeApprovalsData();
-  }, [openBubble, eventsTab, loadBadgeApprovalsData]);
+    void loadMySquadJoinRequestsData();
+  }, [openBubble, eventsTab, loadBadgeApprovalsData, loadMySquadJoinRequestsData]);
+
+  useEffect(() => {
+    if (openBubble !== 'events' || eventsTab !== 'approvals') return;
+    if (!accessToken || !canSeeOwnRequests) return;
+    const timer = window.setInterval(() => {
+      void loadMySquadJoinRequestsData();
+      if (canRequestApprovals) void loadBadgeApprovalsData();
+    }, 15000);
+    return () => window.clearInterval(timer);
+  }, [openBubble, eventsTab, accessToken, canSeeOwnRequests, canRequestApprovals, loadBadgeApprovalsData, loadMySquadJoinRequestsData]);
 
   useEffect(() => {
     if (role !== 'parent') return;
@@ -2065,14 +2148,41 @@ export const ProfileView: React.FC<any> = (props) => {
                           type="button"
                           className="organizer-squad-row__main"
                           aria-label={`Открыть кабинет отряда ${s.name}`}
-                          disabled={openingSquadId === s.id}
-                          onClick={() => void openSquadFromOrganizer(s)}
+                          disabled={openingSquadId === s.id || squadJoinRequestBusyId === s.id}
+                          onClick={() => {
+                            if (role === 'parent') {
+                              showHint({
+                                title: 'Отряд',
+                                content: 'Для родителя вступление доступно по коду приглашения или через кнопку «Подать заявку».',
+                              });
+                              return;
+                            }
+                            void openSquadFromOrganizer(s);
+                          }}
                         >
                           <span className="organizer-squad-row__avatar" aria-hidden>
                             {s.avatarUrl ? <img src={s.avatarUrl} alt="" /> : <span>🏕️</span>}
                           </span>
                           <span className="organizer-squad-row__name">{openingSquadId === s.id ? 'Открываем...' : s.name}</span>
                         </button>
+                        {role === 'parent' && (
+                          <button
+                            type="button"
+                            className="btn-secondary organizer-squad-row__delete"
+                            style={{ padding: '4px 10px' }}
+                            disabled={Boolean(squadJoinRequestBusyId) || (mySquadInfo?.membership?.squadId || '') === s.id}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              void requestJoinSquad(s);
+                            }}
+                          >
+                            {(mySquadInfo?.membership?.squadId || '') === s.id
+                              ? 'Вы в отряде'
+                              : squadJoinRequestBusyId === s.id
+                                ? 'Отправляем...'
+                                : 'Подать заявку'}
+                          </button>
+                        )}
                         {canDeleteShiftsAndSquads && (
                           <button
                             type="button"
@@ -5659,7 +5769,7 @@ export const ProfileView: React.FC<any> = (props) => {
       {openBubble === 'events' && (
         <div id="profile-events-panel" className="profile-utility-panel" role="dialog" aria-modal="true" aria-labelledby="profile-panel-events-title" onClick={e => e.stopPropagation()}>
           <div className="profile-utility-panel-header">
-            <span id="profile-panel-events-title">Входящие заявки {showSandbox ? <span style={{ fontSize: 11, opacity: 0.7 }}>(песочница)</span> : showEventsForRole ? <span style={{ fontSize: 11, opacity: 0.7 }}>(вожатый/орг.)</span> : null}</span>
+            <span id="profile-panel-events-title">Входящие заявки {showSandbox ? <span style={{ fontSize: 11, opacity: 0.7 }}>(песочница)</span> : showEventsForRole ? <span style={{ fontSize: 11, opacity: 0.7 }}>{role === 'parent' ? '(родитель)' : '(вожатый/орг.)'}</span> : null}</span>
             <button type="button" className="profile-utility-panel-close" onClick={() => setOpenBubble(null)} aria-label="Закрыть"><Icons.Close /></button>
           </div>
           <div className="profile-utility-panel-body">
@@ -5770,8 +5880,8 @@ export const ProfileView: React.FC<any> = (props) => {
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                    <button type="button" className="btn-secondary" style={{ padding: '8px 14px' }} disabled={badgeRequestsBusy || mySquadBusy} onClick={async () => { await loadBadgeApprovalsData(); await loadMySquadInfo(); }}>
-                      {badgeRequestsBusy || mySquadBusy ? 'Загрузка...' : 'Обновить'}
+                    <button type="button" className="btn-secondary" style={{ padding: '8px 14px' }} disabled={badgeRequestsBusy || squadJoinRequestsBusy || mySquadBusy} onClick={async () => { await loadBadgeApprovalsData(); await loadMySquadJoinRequestsData(); await loadMySquadInfo(); }}>
+                      {badgeRequestsBusy || squadJoinRequestsBusy || mySquadBusy ? 'Загрузка...' : 'Обновить'}
                     </button>
                     {canRequestApprovals && (
                       <button type="button" className="btn-secondary" style={{ padding: '8px 14px' }} disabled={approvalsSyncBusy} onClick={() => void syncApprovedLevels()}>
@@ -5818,7 +5928,7 @@ export const ProfileView: React.FC<any> = (props) => {
                         ) : (
                           <div style={{ fontSize: 12, opacity: 0.8, marginBottom: 8 }}>Вы пока не состоите в отряде.</div>
                         )}
-                        {(role === 'participant' || role === 'counselor' || role === 'shift_leader' || role === 'developer') && (
+                        {(role === 'participant' || role === 'parent' || role === 'counselor' || role === 'shift_leader' || role === 'developer') && (
                           <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginTop: 8 }}>
                             <input
                               type="text"
@@ -5861,71 +5971,117 @@ export const ProfileView: React.FC<any> = (props) => {
                     )}
                   </div>
 
-                  {canRequestApprovals && !isParentChildReadonlyView && (
+                  {canSeeOwnRequests && !isParentChildReadonlyView && (
                     <div id="profile-badge-requests-mine" style={{ padding: 12, borderRadius: 12, background: 'rgba(0,0,0,0.32)', border: '1px solid rgba(255,255,255,0.06)' }}>
                       <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 8, opacity: 0.9 }}>Мои заявки</div>
-                      {badgeRequestsBusy ? (
+                      {(badgeRequestsBusy || squadJoinRequestsBusy) ? (
                         <div style={{ fontSize: 12, opacity: 0.7 }}>Загружаем заявки…</div>
-                      ) : badgeRequestsError ? (
-                        <div style={{ fontSize: 12 }}>
-                          <span style={{ opacity: 0.8 }}>{badgeRequestsError}</span>
-                          <button type="button" className="btn-secondary" style={{ marginLeft: 8, padding: '4px 10px', fontSize: 11 }} onClick={loadBadgeApprovalsData}>Повторить</button>
-                        </div>
-                      ) : badgeRequestsMine.length === 0 ? (
-                        <div style={{ fontSize: 12, opacity: 0.8 }}>
-                          Заявок пока нет. Подтверди уровень значка, чтобы отправить первую.{' '}
-                          <button
-                            type="button"
-                            className="btn-secondary"
-                            style={{ padding: '4px 10px', fontSize: 11, marginTop: 6 }}
-                            onClick={() => {
-                              setActiveTab('active');
-                              setTimeout(() => {
-                                document.getElementById('profile-tab-active')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                              }, 80);
-                            }}
-                          >
-                            К значкам «В пути»
-                          </button>
-                        </div>
                       ) : (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 260, overflowY: 'auto' }}>
-                          {badgeRequestsMine.map((req) => {
-                            const statusTone = req.status === 'approved' ? 'approved' : req.status === 'rejected' ? 'rejected' : 'pending';
-                            const statusLabel = req.status === 'approved' ? 'Одобрено' : req.status === 'rejected' ? 'Отклонено' : 'На проверке';
-                            return (
-                              <div key={req.id} style={{ padding: 8, borderRadius: 8, background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.08)' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8, flexWrap: 'wrap', marginBottom: 4 }}>
-                                  <div style={{ fontSize: 12, fontWeight: 700 }}>
-                                    {req.badgeTitle || req.levelId}
-                                    {req.badgeTitle && <span style={{ fontSize: 11, opacity: 0.6, fontWeight: 400, marginLeft: 4 }}>{req.levelId}</span>}
+                        <>
+                          {squadJoinRequestsError && (
+                            <div style={{ fontSize: 12, marginBottom: 8 }}>
+                              <span style={{ opacity: 0.8 }}>{squadJoinRequestsError}</span>
+                              <button type="button" className="btn-secondary" style={{ marginLeft: 8, padding: '4px 10px', fontSize: 11 }} onClick={loadMySquadJoinRequestsData}>Повторить</button>
+                            </div>
+                          )}
+                          <div style={{ fontSize: 11, opacity: 0.7, marginBottom: 6 }}>Заявки в отряды</div>
+                          {squadJoinRequestsMine.length === 0 ? (
+                            <div style={{ fontSize: 12, opacity: 0.8, marginBottom: canRequestApprovals ? 12 : 0 }}>
+                              Заявок в отряды пока нет.
+                            </div>
+                          ) : (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 220, overflowY: 'auto', marginBottom: canRequestApprovals ? 12 : 0 }}>
+                              {squadJoinRequestsMine.map((req) => {
+                                const statusTone = req.status === 'approved' ? 'approved' : req.status === 'rejected' ? 'rejected' : 'pending';
+                                const statusLabel = req.status === 'approved' ? 'Одобрено' : req.status === 'rejected' ? 'Отклонено' : 'На проверке';
+                                return (
+                                  <div key={req.id} style={{ padding: 8, borderRadius: 8, background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8, flexWrap: 'wrap', marginBottom: 4 }}>
+                                      <div style={{ fontSize: 12, fontWeight: 700 }}>
+                                        Отряд: {req.squadName || req.squadId}
+                                      </div>
+                                      <span className={`m3-status-chip badge-request-status-chip tone-${statusTone}`}>{statusLabel}</span>
+                                    </div>
+                                    <div style={{ fontSize: 11, opacity: 0.6 }}>{new Date(req.createdAt).toLocaleString('ru-RU')}</div>
+                                    {req.message && <div style={{ fontSize: 11, opacity: 0.72, marginTop: 4 }}>{req.message}</div>}
+                                    {req.status === 'rejected' && req.resolutionNote && (
+                                      <div style={{ fontSize: 11, opacity: 0.55, marginTop: 4 }}>
+                                        Причина: {req.resolutionNote}
+                                      </div>
+                                    )}
                                   </div>
-                                  <span className={`m3-status-chip badge-request-status-chip tone-${statusTone}`}>{statusLabel}</span>
+                                );
+                              })}
+                            </div>
+                          )}
+
+                          {canRequestApprovals && (
+                            <>
+                              <div style={{ fontSize: 11, opacity: 0.7, marginBottom: 6 }}>Заявки на значки</div>
+                              {badgeRequestsError ? (
+                                <div style={{ fontSize: 12 }}>
+                                  <span style={{ opacity: 0.8 }}>{badgeRequestsError}</span>
+                                  <button type="button" className="btn-secondary" style={{ marginLeft: 8, padding: '4px 10px', fontSize: 11 }} onClick={loadBadgeApprovalsData}>Повторить</button>
                                 </div>
-                                <div style={{ fontSize: 11, opacity: 0.6 }}>{new Date(req.createdAt).toLocaleString('ru-RU')}</div>
-                                {req.status === 'rejected' && req.resolutionNote && (
-                                  <div
-                                    style={{ fontSize: 11, opacity: 0.55, marginTop: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100%' }}
-                                    title={req.resolutionNote}
-                                  >
-                                    Причина: {req.resolutionNote.length > 100 ? req.resolutionNote.slice(0, 100) + '…' : req.resolutionNote}
-                                  </div>
-                                )}
-                                {req.status === 'approved' && (
+                              ) : badgeRequestsMine.length === 0 ? (
+                                <div style={{ fontSize: 12, opacity: 0.8 }}>
+                                  Заявок пока нет. Подтверди уровень значка, чтобы отправить первую.{' '}
                                   <button
                                     type="button"
                                     className="btn-secondary"
-                                    style={{ marginTop: 8, padding: '5px 12px', fontSize: 11 }}
-                                    disabled={approvalsSyncBusy}
-                                    onClick={syncApprovedLevels}
+                                    style={{ padding: '4px 10px', fontSize: 11, marginTop: 6 }}
+                                    onClick={() => {
+                                      setActiveTab('active');
+                                      setTimeout(() => {
+                                        document.getElementById('profile-tab-active')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                      }, 80);
+                                    }}
                                   >
-                                    {approvalsSyncBusy ? 'Синхронизируем…' : 'Синхронизировать'}
+                                    К значкам «В пути»
                                   </button>
-                                )}
-                              </div>
-                            );
-                          })}
-                        </div>
+                                </div>
+                              ) : (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 260, overflowY: 'auto' }}>
+                                  {badgeRequestsMine.map((req) => {
+                                    const statusTone = req.status === 'approved' ? 'approved' : req.status === 'rejected' ? 'rejected' : 'pending';
+                                    const statusLabel = req.status === 'approved' ? 'Одобрено' : req.status === 'rejected' ? 'Отклонено' : 'На проверке';
+                                    return (
+                                      <div key={req.id} style={{ padding: 8, borderRadius: 8, background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8, flexWrap: 'wrap', marginBottom: 4 }}>
+                                          <div style={{ fontSize: 12, fontWeight: 700 }}>
+                                            {req.badgeTitle || req.levelId}
+                                            {req.badgeTitle && <span style={{ fontSize: 11, opacity: 0.6, fontWeight: 400, marginLeft: 4 }}>{req.levelId}</span>}
+                                          </div>
+                                          <span className={`m3-status-chip badge-request-status-chip tone-${statusTone}`}>{statusLabel}</span>
+                                        </div>
+                                        <div style={{ fontSize: 11, opacity: 0.6 }}>{new Date(req.createdAt).toLocaleString('ru-RU')}</div>
+                                        {req.status === 'rejected' && req.resolutionNote && (
+                                          <div
+                                            style={{ fontSize: 11, opacity: 0.55, marginTop: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100%' }}
+                                            title={req.resolutionNote}
+                                          >
+                                            Причина: {req.resolutionNote.length > 100 ? req.resolutionNote.slice(0, 100) + '…' : req.resolutionNote}
+                                          </div>
+                                        )}
+                                        {req.status === 'approved' && (
+                                          <button
+                                            type="button"
+                                            className="btn-secondary"
+                                            style={{ marginTop: 8, padding: '5px 12px', fontSize: 11 }}
+                                            disabled={approvalsSyncBusy}
+                                            onClick={syncApprovedLevels}
+                                          >
+                                            {approvalsSyncBusy ? 'Синхронизируем…' : 'Синхронизировать'}
+                                          </button>
+                                        )}
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              )}
+                            </>
+                          )}
+                        </>
                       )}
                     </div>
                   )}
@@ -6457,8 +6613,8 @@ export const ProfileView: React.FC<any> = (props) => {
               squadMembers={(mySquadInfo?.members || mySquadInfo?.participants || []).map(m => ({ deviceId: m.deviceId, nickname: m.nickname, role: ('role' in m ? (m as { role?: string }).role : undefined) }))}
               onOpenRequestsInbox={() => { setOpenBubble('events'); setEventsTab('approvals'); }}
               onOpenPlansInbox={() => { setOpenBubble('events'); setEventsTab('plans'); if (plansInbox.length === 0 && !plansInboxBusy && accessToken) { setPlansInboxBusy(true); setPlansInboxError(null); fetchPlansInbox(accessToken).then(plans => setPlansInbox(plans)).catch(e => setPlansInboxError(e instanceof Error ? e.message : 'Ошибка')).finally(() => setPlansInboxBusy(false)); } }}
-              onRefresh={async () => { if (!accessToken) return; await loadBadgeApprovalsData(); await loadMySquadInfo(); if (canModerateApprovals) { setPlansInboxBusy(true); fetchPlansInbox(accessToken).then(plans => setPlansInbox(plans)).catch(() => { }).finally(() => setPlansInboxBusy(false)); } }}
-              busy={badgeRequestsBusy || plansInboxBusy || mySquadBusy}
+                onRefresh={async () => { if (!accessToken) return; await loadBadgeApprovalsData(); await loadMySquadJoinRequestsData(); await loadMySquadInfo(); if (canModerateApprovals) { setPlansInboxBusy(true); fetchPlansInbox(accessToken).then(plans => setPlansInbox(plans)).catch(() => { }).finally(() => setPlansInboxBusy(false)); } }}
+                busy={badgeRequestsBusy || squadJoinRequestsBusy || plansInboxBusy || mySquadBusy}
             />
           </div>
         </div>
