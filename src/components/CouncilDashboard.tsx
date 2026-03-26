@@ -16,6 +16,7 @@ import {
   getInitiativeComments,
   postInitiativeComment,
 } from '../utils/councilApi';
+import { submitEngineJoinRequest } from '../utils/adminApi';
 import type { CouncilProtocol, CouncilMember, InitiativeComment } from '../utils/councilApi';
 
 const COUNCIL_ACCENT = '#FFD700';
@@ -145,6 +146,7 @@ export const CouncilDashboard: React.FC<CouncilDashboardProps> = ({
   const [toast, setToast] = useState<string | null>(null);
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3500); };
   const [expandedProtocol, setExpandedProtocol] = useState<string | null>(null);
+  const [joinEngineBusyId, setJoinEngineBusyId] = useState<string | null>(null);
 
   useEffect(() => {
     if (variant === 'cabin' && onTabChange) onTabChange(activeTab);
@@ -280,6 +282,26 @@ export const CouncilDashboard: React.FC<CouncilDashboardProps> = ({
     ];
     return `https://t.me/Stivanovv?text=${encodeURIComponent(lines.join('\n'))}`;
   };
+
+  const handleRequestJoinEngine = useCallback(async (team: TeamListItem) => {
+    if (!accessToken || joinEngineBusyId) return;
+    setJoinEngineBusyId(team.id);
+    try {
+      const result = await submitEngineJoinRequest({
+        engineId: team.id,
+        nickname: displayNickname,
+      }, accessToken);
+      if (result.status === 'already_pending') {
+        showToast('Заявка уже отправлена. Ожидайте подтверждения.');
+      } else {
+        showToast('Заявка отправлена! Ожидайте одобрения.');
+      }
+    } catch (e) {
+      showToast(e instanceof Error ? e.message : 'Ошибка отправки заявки');
+    } finally {
+      setJoinEngineBusyId(null);
+    }
+  }, [accessToken, displayNickname, joinEngineBusyId]);
 
   // --- Dashboard helpers ---
   const initStats = useMemo(() => {
@@ -635,6 +657,13 @@ export const CouncilDashboard: React.FC<CouncilDashboardProps> = ({
                   {isMine ? (
                     <button type="button" className="btn-secondary" onClick={openTeamPanel} style={{ borderColor: 'rgba(255,255,255,0.2)', color: '#fff' }}>
                       К моему Движку
+                    </button>
+                  ) : accessToken ? (
+                    <button type="button" className="btn-secondary"
+                      disabled={joinEngineBusyId === team.id}
+                      onClick={() => void handleRequestJoinEngine(team)}
+                      style={{ borderColor: 'rgba(255,255,255,0.2)', color: '#fff', opacity: joinEngineBusyId === team.id ? 0.5 : 1 }}>
+                      {joinEngineBusyId === team.id ? 'Отправляем...' : 'Подать заявку'}
                     </button>
                   ) : (
                     <a href={buildJoinRequestUrl(team)} target="_blank" rel="noopener noreferrer" className="btn-secondary" style={{ borderColor: 'rgba(255,255,255,0.2)', color: '#fff', textDecoration: 'none' }}>

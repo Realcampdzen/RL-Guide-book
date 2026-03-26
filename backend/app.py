@@ -4802,6 +4802,128 @@ def squad_join_requests_mine():
     return jsonify({"requests": rows})
 
 
+# ---------------------------------------------------------------------------
+# Engine (Движок) join requests
+# ---------------------------------------------------------------------------
+
+ENGINE_JOIN_REQUEST_TYPE = "engine_join_request"
+
+
+def _engine_join_requests_load():
+    return get_store("engine_join_requests").load()
+
+
+def _engine_join_requests_save(doc):
+    get_store("engine_join_requests").save(doc)
+
+
+@app.route('/api/engines/<engine_id>/join-requests', methods=['POST'])
+def engine_join_request_create(engine_id: str):
+    """
+    POST /api/engines/<engineId>/join-requests
+    Body: { "nickname": "...", "message": "..." }
+    Creates a pending join-request for the given engine/team.
+    """
+    payload, err = _require_roles(
+        ("participant", "parent", "counselor", "educator", "shift_leader", "camp_director", "developer"),
+        allow_localhost_dev=True,
+    )
+    if err is not None:
+        return err[0], err[1]
+
+    device_id = (payload.get("deviceId") or "").strip()
+    actor_role = _normalize_role((payload.get("role") or "").strip())
+    body = request.get_json() or {}
+    nickname = (body.get("nickname") or "").strip()[:100]
+    message = (body.get("message") or "").strip()[:500]
+
+    engine_id = engine_id.strip()
+    if not engine_id:
+        return jsonify({"error": "engine_id required"}), 400
+
+    # Look up engine name from engines store
+    engine_name = ""
+    try:
+        eng_data = get_store("engines").load()
+        for eng in (eng_data.get("engines") or []):
+            if isinstance(eng, dict) and (eng.get("id") or "").strip() == engine_id:
+                engine_name = (eng.get("title") or eng.get("name") or "").strip()
+                break
+    except Exception:
+        pass
+
+    # Check for existing pending request
+    doc = _engine_join_requests_load()
+    requests_list = doc.get("requests") or []
+    for row in requests_list:
+        if not isinstance(row, dict):
+            continue
+        if (row.get("deviceId") or "").strip() != device_id:
+            continue
+        if (row.get("engineId") or "").strip() != engine_id:
+            continue
+        if (row.get("status") or "").strip() == "pending":
+            return jsonify({
+                "status": "already_pending",
+                "request": row,
+            }), 200
+
+    now_iso = datetime.now(timezone.utc).isoformat()
+    request_doc = {
+        "id": uuid.uuid4().hex[:16],
+        "type": ENGINE_JOIN_REQUEST_TYPE,
+        "engineId": engine_id,
+        "engineName": engine_name,
+        "deviceId": device_id,
+        "nickname": nickname,
+        "role": actor_role,
+        "message": message,
+        "status": "pending",
+        "createdAt": now_iso,
+        "resolvedAt": None,
+        "resolvedBy": None,
+    }
+
+    requests_list.append(request_doc)
+    doc["requests"] = requests_list
+    _engine_join_requests_save(doc)
+
+    return jsonify({
+        "status": "pending",
+        "request": request_doc,
+    }), 201
+
+
+@app.route('/api/engines/join-requests/mine', methods=['GET'])
+def engine_join_requests_mine():
+    """
+    GET /api/engines/join-requests/mine
+    Returns own engine-join requests, newest-first.
+    """
+    payload, err = _require_roles(
+        ("participant", "parent", "counselor", "educator", "shift_leader", "camp_director", "developer"),
+        allow_localhost_dev=True,
+    )
+    if err is not None:
+        return err[0], err[1]
+
+    device_id = (payload.get("deviceId") or "").strip()
+    if not device_id:
+        return jsonify({"error": "deviceId missing in token"}), 400
+
+    doc = _engine_join_requests_load()
+    rows = []
+    for row in (doc.get("requests") or []):
+        if not isinstance(row, dict):
+            continue
+        if (row.get("deviceId") or "").strip() != device_id:
+            continue
+        rows.append(row)
+
+    rows.sort(key=lambda item: item.get("createdAt") or "", reverse=True)
+    return jsonify({"requests": rows})
+
+
 @app.route('/api/organizer/generate-code', methods=['POST'])
 def organizer_generate_code():
     """
@@ -8307,6 +8429,36 @@ def _collect_inbox_items(type_filter: str = ""):
     except Exception:
         counts.setdefault("squad_join_request", 0)
 
+    # 10) Engine join requests — status == "pending"
+    try:
+        ejr_doc = _engine_join_requests_load()
+        pending_ejr = []
+        for row in (ejr_doc.get("requests") or []):
+            if not isinstance(row, dict):
+                continue
+            if (row.get("status") or "").strip() != "pending":
+                continue
+            pending_ejr.append({
+                "type": "engine_join_request",
+                "id": row.get("id", ""),
+                "user": {
+                    "device_id": (row.get("deviceId") or "").strip(),
+                    "nickname": (row.get("nickname") or "").strip(),
+                },
+                "data": {
+                    "engine_id": (row.get("engineId") or "").strip(),
+                    "engine_name": (row.get("engineName") or "").strip(),
+                    "message": (row.get("message") or "").strip(),
+                    "requester_role": (row.get("role") or "").strip(),
+                    "userRole": (row.get("role") or "").strip(),
+                },
+                "status": "pending",
+                "created_at": row.get("createdAt", ""),
+            })
+        _add("engine_join_request", pending_ejr)
+    except Exception:
+        counts.setdefault("engine_join_request", 0)
+
     # Sort by created_at descending
     items.sort(key=lambda x: x.get("created_at", ""), reverse=True)
     counts["total"] = sum(v for k, v in counts.items() if k != "total")
@@ -8607,6 +8759,54 @@ def admin_action():
             "action": action,
             "membership": applied_membership,
         })
+
+    elif item_type == "engine_join_request":
+        next_status = "approved" if action == "approve" else "rejected"
+        doc = _engine_join_requests_load()
+        requests_list = doc.get("requests") or []
+        target = None
+        for row in requests_list:
+            if isinstance(row, dict) and (row.get("id") or "").strip() == item_id:
+                target = row
+                break
+        if target is None:
+            return jsonify({"error": "Engine join request not found"}), 404
+        if (target.get("status") or "").strip() != "pending":
+            return jsonify({"error": f"Already resolved: {target.get('status')}"}), 409
+        target["status"] = next_status
+        target["resolvedAt"] = now_iso
+        target["resolvedBy"] = {"deviceId": approver_device, "role": approver_role}
+        if comment:
+            target["resolutionNote"] = comment[:2000]
+
+        # On approve: add user to engine members
+        if next_status == "approved":
+            engine_id = (target.get("engineId") or "").strip()
+            requester_device = (target.get("deviceId") or "").strip()
+            if engine_id and requester_device:
+                try:
+                    eng_store = get_store("engines")
+                    eng_data = eng_store.load()
+                    for eng in (eng_data.get("engines") or []):
+                        if isinstance(eng, dict) and (eng.get("id") or "").strip() == engine_id:
+                            members = eng.get("members") or []
+                            if not any(isinstance(m, dict) and (m.get("deviceId") or m.get("id") or "").strip() == requester_device for m in members):
+                                members.append({
+                                    "id": requester_device,
+                                    "deviceId": requester_device,
+                                    "nickname": (target.get("nickname") or "").strip(),
+                                    "role": (target.get("role") or "").strip(),
+                                    "joinedAt": now_iso,
+                                })
+                                eng["members"] = members
+                            break
+                    eng_store.save(eng_data)
+                except Exception as exc:
+                    print(f"[engine_join_request] add member error: {exc}")
+
+        doc["requests"] = requests_list
+        _engine_join_requests_save(doc)
+        return jsonify({"ok": True, "item_type": item_type, "item_id": item_id, "action": action})
 
     else:
         return jsonify({"error": f"Unknown item_type: {item_type}"}), 400

@@ -26,6 +26,8 @@ interface Squad {
 interface ShiftsAndSquadsDashboardProps {
     onNavigateToSquadCorner?: () => void;
     onSquadCreated?: () => void;
+    onRequestJoinSquad?: (squad: { id: string; name: string }) => Promise<void>;
+    mySquadId?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -53,6 +55,8 @@ function getApiBase(): string {
 export const ShiftsAndSquadsDashboard: React.FC<ShiftsAndSquadsDashboardProps> = ({
     onNavigateToSquadCorner,
     onSquadCreated,
+    onRequestJoinSquad,
+    mySquadId,
 }) => {
     const { role, accessToken } = useAuth();
 
@@ -66,6 +70,7 @@ export const ShiftsAndSquadsDashboard: React.FC<ShiftsAndSquadsDashboardProps> =
     const [squadsMap, setSquadsMap] = useState<Record<string, Squad[]>>({});
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [joinBusyId, setJoinBusyId] = useState<string | null>(null);
 
     // forms
     const [shiftFormOpen, setShiftFormOpen] = useState(false);
@@ -289,6 +294,33 @@ export const ShiftsAndSquadsDashboard: React.FC<ShiftsAndSquadsDashboardProps> =
                                         Создан {new Date(s.createdAt).toLocaleDateString('ru-RU')}
                                     </div>
                                 </div>
+                                {onRequestJoinSquad && accessToken && !canManageSquads && (mySquadId || '') !== s.id && (
+                                    <button type="button"
+                                        disabled={joinBusyId === s.id}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setJoinBusyId(s.id);
+                                            onRequestJoinSquad(s).finally(() => setJoinBusyId(null));
+                                        }}
+                                        style={{
+                                            ...btnStyle,
+                                            padding: '6px 14px',
+                                            background: 'rgba(93,228,255,0.12)',
+                                            color: '#5de4ff',
+                                            borderColor: 'rgba(93,228,255,0.25)',
+                                            opacity: joinBusyId === s.id ? 0.5 : 1,
+                                        }}>
+                                        {joinBusyId === s.id ? 'Отправляем...' : 'Подать заявку'}
+                                    </button>
+                                )}
+                                {(mySquadId || '') === s.id && (
+                                    <span style={{
+                                        padding: '4px 10px', borderRadius: 8,
+                                        fontSize: 11, fontWeight: 600,
+                                        background: 'rgba(46,204,113,0.12)', color: '#2ecc71',
+                                        border: '1px solid rgba(46,204,113,0.25)',
+                                    }}>Вы в отряде</span>
+                                )}
                                 {canManageSquads && (
                                     <button type="button" title="Удалить отряд"
                                         onClick={(e) => { e.stopPropagation(); void deleteSquad(s.id, s.name); }}

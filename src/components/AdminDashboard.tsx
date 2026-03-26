@@ -45,6 +45,7 @@ const TYPE_META: Record<string, { letter: string; label: string; color: string }
     badge_plan: { letter: 'П', label: 'Планы', color: '#14B8A6' },
     vozhatifikator_proof: { letter: 'В', label: 'Вожатификатор', color: '#EC4899' },
     squad_join_request: { letter: 'О', label: 'Отряды', color: '#0EA5E9' },
+    engine_join_request: { letter: 'Д', label: 'В Движок', color: '#10B981' },
 };
 
 const ALL_TYPES = Object.keys(TYPE_META);
@@ -161,6 +162,10 @@ function getItemTitle(item: RawInboxItem): string {
             const squadId = (data.squad_id as string) || '';
             return squadName ? `Заявка в отряд «${squadName}»` : `Заявка в отряд ${squadId || ''}`.trim();
         }
+        case 'engine_join_request': {
+            const engineName = (data.engine_name as string) || '';
+            return engineName ? `Заявка в Движок «${engineName}»` : 'Заявка в Движок';
+        }
         default:
             return item.type;
     }
@@ -239,6 +244,15 @@ function getItemDescription(item: RawInboxItem): string {
             if (msg) return msg;
             if (roleText) return roleText;
             return 'Ожидает решения по вступлению в отряд';
+        }
+        case 'engine_join_request': {
+            const eRole = (data.requester_role as string) || '';
+            const eRoleText = eRole ? `Роль: ${eRole}` : '';
+            const eMsg = (data.message as string) || '';
+            if (eMsg && eRoleText) return `${eRoleText} · ${eMsg}`;
+            if (eMsg) return eMsg;
+            if (eRoleText) return eRoleText;
+            return 'Ожидает решения по вступлению в Движок';
         }
         default:
             return '';

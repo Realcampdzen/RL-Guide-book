@@ -448,3 +448,17 @@ class FamilyLinksStore(ABC):
             self.save(doc)
             return True
         return False
+
+
+class EngineJoinRequestsStore(ABC):
+    """
+    Хранилище заявок на вступление в Движок.
+    Формат: {'requests': [...]}
+    Каждый: {id, type, engineId, engineName, deviceId, nickname, role, message, status, createdAt, resolvedAt, resolvedBy}
+    Статусы: pending | approved | rejected.
+    """
+    @abstractmethod
+    def load(self) -> dict: ...
+
+    @abstractmethod
+    def save(self, data: dict) -> None: ...

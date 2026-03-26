@@ -9,7 +9,7 @@ import { ApiError } from './badgeApprovalApi';
 // Types
 // ---------------------------------------------------------------------------
 
-export type InboxItemType = 'badge' | 'initiative' | 'art' | 'engine' | 'inspector' | 'ugc' | 'tradition' | 'role_request' | 'bro_submission' | 'badge_plan' | 'vozhatifikator_proof' | 'squad_join_request';
+export type InboxItemType = 'badge' | 'initiative' | 'art' | 'engine' | 'inspector' | 'ugc' | 'tradition' | 'role_request' | 'bro_submission' | 'badge_plan' | 'vozhatifikator_proof' | 'squad_join_request' | 'engine_join_request';
 
 export interface InboxItem {
     id: string;
@@ -72,6 +72,28 @@ export interface ActionResult {
         provider: string;
         error?: string;
     };
+}
+
+/** Submit an engine join request. */
+export async function submitEngineJoinRequest(payload: {
+    engineId: string;
+    nickname: string;
+    message?: string;
+}, accessToken: string): Promise<{ status: string; request: Record<string, unknown> | null }> {
+    return requestJson<{ status: string; request: Record<string, unknown> | null }>(
+        `/api/engines/${encodeURIComponent(payload.engineId)}/join-requests`,
+        {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${accessToken}`,
+            },
+            body: JSON.stringify({
+                nickname: payload.nickname,
+                message: payload.message || '',
+            }),
+        },
+    );
 }
 
 export async function performAction(

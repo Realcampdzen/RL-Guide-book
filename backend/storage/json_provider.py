@@ -25,6 +25,7 @@ from .base import (
     WorkshopProposalsStore,
     RoleRequestsStore,
     FamilyLinksStore,
+    EngineJoinRequestsStore,
 )
 
 _DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
@@ -659,6 +660,28 @@ class JsonFamilyLinksStore(FamilyLinksStore):
             _write_json(_FAMILY_LINKS_FILE, data if isinstance(data, dict) else {})
 
 
+# --- EngineJoinRequestsStore (M21-ENGINE-JOIN) ---
+
+_ENGINE_JOIN_REQUESTS_FILE = os.path.join(_DATA_DIR, "engine_join_requests.json")
+_ENGINE_JOIN_REQUESTS_LOCK = threading.Lock()
+
+class JsonEngineJoinRequestsStore(EngineJoinRequestsStore):
+    def load(self) -> dict:
+        _ensure_data_dir()
+        with _ENGINE_JOIN_REQUESTS_LOCK:
+            data = _read_json(_ENGINE_JOIN_REQUESTS_FILE, {"requests": []})
+            if not isinstance(data, dict):
+                data = {"requests": []}
+            if not isinstance(data.get("requests"), list):
+                data["requests"] = []
+            return data
+
+    def save(self, data: dict) -> None:
+        _ensure_data_dir()
+        with _ENGINE_JOIN_REQUESTS_LOCK:
+            _write_json(_ENGINE_JOIN_REQUESTS_FILE, data if isinstance(data, dict) else {})
+
+
 JSON_STORES = {
     "shifts":          JsonShiftsStore(),
     "memberships":     JsonMembershipsStore(),
@@ -688,5 +711,6 @@ JSON_STORES = {
     "workshop_proposals": JsonWorkshopProposalsStore(),
     "role_requests":    JsonRoleRequestsStore(),
     "family_links":     JsonFamilyLinksStore(),
+    "engine_join_requests": JsonEngineJoinRequestsStore(),
 }
 

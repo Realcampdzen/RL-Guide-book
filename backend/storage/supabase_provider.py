@@ -28,6 +28,7 @@ from .base import (
     WorkshopProposalsStore,
     RoleRequestsStore,
     FamilyLinksStore,
+    EngineJoinRequestsStore,
 )
 
 _sb_client = None
@@ -1665,6 +1666,44 @@ class SupabaseBroSubmissionsStore(BroSubmissionsStore):
             sb.table("bro_submissions").upsert(row).execute()
 
 
+# ---------------------------------------------------------------------------
+# EngineJoinRequestsStore — kv_store fallback (no dedicated table)
+# ---------------------------------------------------------------------------
+
+class SupabaseEngineJoinRequestsStore(EngineJoinRequestsStore):
+    """
+    Stores engine join requests in the kv_store table
+    (key = 'engine_join_requests', value = JSON blob).
+    This avoids requiring a DB migration for a new feature.
+    """
+    _KEY = "engine_join_requests"
+
+    def load(self) -> dict:
+        sb = _client()
+        try:
+            rows = sb.table("kv_store").select("value").eq("key", self._KEY).execute().data or []
+        except Exception:
+            return {"requests": []}
+        if rows:
+            val = rows[0].get("value")
+            if isinstance(val, dict):
+                return val
+            if isinstance(val, str):
+                import json as _json
+                try:
+                    return _json.loads(val)
+                except Exception:
+                    pass
+        return {"requests": []}
+
+    def save(self, data: dict) -> None:
+        sb = _client()
+        try:
+            sb.table("kv_store").upsert({"key": self._KEY, "value": data}).execute()
+        except Exception:
+            pass  # best-effort
+
+
 SUPABASE_STORES = {
     "shifts":           SupabaseShiftsStore(),
     "memberships":      SupabaseMembershipsStore(),
@@ -1694,5 +1733,5 @@ SUPABASE_STORES = {
     "workshop_proposals": SupabaseWorkshopProposalsStore(),
     "role_requests":      SupabaseRoleRequestsStore(),
     "family_links":       SupabaseFamilyLinksStore(),
+    "engine_join_requests": SupabaseEngineJoinRequestsStore(),
 }
-

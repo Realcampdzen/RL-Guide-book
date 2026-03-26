@@ -2165,7 +2165,7 @@ export const ProfileView: React.FC<any> = (props) => {
                           </span>
                           <span className="organizer-squad-row__name">{openingSquadId === s.id ? 'Открываем...' : s.name}</span>
                         </button>
-                        {role === 'parent' && (
+                        {accessToken && !canDeleteShiftsAndSquads && (
                           <button
                             type="button"
                             className="btn-secondary organizer-squad-row__delete"
