@@ -316,12 +316,30 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ accessToken, onC
     const handleAction = useCallback(async (itemId: string, itemType: string, action: 'approve' | 'reject', comment?: string) => {
         setBusy(itemId);
         try {
-            await performAction(accessToken, itemType as any, itemId, action, comment);
+            const result = await performAction(accessToken, itemType as any, itemId, action, comment);
             setItems(prev => prev.filter(i => i.id !== itemId));
-            setToast(action === 'approve' ? 'Одобрено' : 'Отклонено');
+            if (action === 'approve' && itemType === 'role_request') {
+                const parts: string[] = ['Одобрено'];
+                if (result.roleCode) {
+                    parts.push(`Код: ${result.roleCode}`);
+                    try { void navigator.clipboard.writeText(result.roleCode); } catch { /* */ }
+                }
+                if (result.emailDelivery) {
+                    if (result.emailDelivery.sent) {
+                        parts.push('Email отправлен');
+                    } else {
+                        const reason = result.emailDelivery.error ? `: ${result.emailDelivery.error}` : '';
+                        parts.push(`Email не отправлен${reason}`);
+                    }
+                }
+                setToast(parts.join(' • '));
+                setTimeout(() => setToast(null), 9000);
+            } else {
+                setToast(action === 'approve' ? 'Одобрено' : 'Отклонено');
+                setTimeout(() => setToast(null), 2500);
+            }
             setRejectTarget(null);
             setRejectComment('');
-            setTimeout(() => setToast(null), 2500);
         } catch { /* silent */ }
         finally { setBusy(null); }
     }, [accessToken]);

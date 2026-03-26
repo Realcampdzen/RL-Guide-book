@@ -60,14 +60,28 @@ export async function fetchInbox(filter?: InboxItemType, accessToken?: string): 
 }
 
 /** Perform action on inbox item. */
+export interface ActionResult {
+    ok: true;
+    roleCode?: string;
+    accessToken?: string;
+    approvedRole?: string;
+    approvedDeviceId?: string;
+    emailDelivery?: {
+        attempted: boolean;
+        sent: boolean;
+        provider: string;
+        error?: string;
+    };
+}
+
 export async function performAction(
     accessToken: string,
     itemType: InboxItemType,
     itemId: string,
     action: 'approve' | 'reject',
     comment?: string
-): Promise<{ ok: true }> {
-    return requestJson<{ ok: true }>('/api/admin/action', {
+): Promise<ActionResult> {
+    return requestJson<ActionResult>('/api/admin/action', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
         body: JSON.stringify({ item_type: itemType, item_id: itemId, action, comment }),

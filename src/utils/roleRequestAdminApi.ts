@@ -20,6 +20,12 @@ export interface RoleRequestAdmin {
     reviewedBy?: string;
     roleCode?: string;
     accessToken?: string;
+    emailDelivery?: {
+        attempted: boolean;
+        sent: boolean;
+        provider: string;
+        error?: string;
+    };
 }
 
 export interface ReviewResult {
@@ -27,6 +33,12 @@ export interface ReviewResult {
     request: RoleRequestAdmin;
     roleCode?: string;
     accessToken?: string;
+    emailDelivery?: {
+        attempted: boolean;
+        sent: boolean;
+        provider: string;
+        error?: string;
+    };
 }
 
 // ---------------------------------------------------------------------------

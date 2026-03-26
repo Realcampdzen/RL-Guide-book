@@ -141,6 +141,9 @@ export const CouncilDashboard: React.FC<CouncilDashboardProps> = ({
   const [protoBusy, setProtoBusy] = useState(false);
   // Member add
   const [memberBusy, setMemberBusy] = useState(false);
+  // Toast
+  const [toast, setToast] = useState<string | null>(null);
+  const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3500); };
   const [expandedProtocol, setExpandedProtocol] = useState<string | null>(null);
 
   useEffect(() => {
@@ -313,14 +316,32 @@ export const CouncilDashboard: React.FC<CouncilDashboardProps> = ({
   };
 
   const handleJoinCouncil = async () => {
-    if (!myTeam) return;
+    if (!myTeam) {
+      showToast('Сначала вступите в Движок, чтобы войти в Совет');
+      return;
+    }
+    const nick = (userData?.profile?.nickname || 'Искатель').trim() || 'Искатель';
+    // Prevent duplicate join on frontend side
+    if (members.some(m => m.nickname === nick)) {
+      showToast('Вы уже состоите в Совете Лагеря');
+      return;
+    }
+    if (!accessToken) {
+      showToast('Для вступления необходимо войти в систему');
+      return;
+    }
     setMemberBusy(true);
     try {
-      const nick = (userData?.profile?.nickname || 'Искатель').trim() || 'Искатель';
-      const m = await addMember(accessToken || '', { nickname: nick, role: 'member' });
+      const m = await addMember(accessToken, { nickname: nick, role: 'member' });
       setMembers(prev => [m, ...prev]);
-    } catch (err) { console.error('Join council error:', err); }
-    finally { setMemberBusy(false); }
+      showToast('Вы вступили в Совет Лагеря!');
+    } catch (err) {
+      console.error('Join council error:', err);
+      const msg = err instanceof Error ? err.message : 'Неизвестная ошибка';
+      showToast(`Не удалось вступить: ${msg}`);
+    } finally {
+      setMemberBusy(false);
+    }
   };
 
   const handleLeaveCouncil = async () => {
@@ -330,7 +351,11 @@ export const CouncilDashboard: React.FC<CouncilDashboardProps> = ({
     try {
       await removeMember(accessToken || '', myMember.id);
       setMembers(prev => prev.filter(m => m.id !== myMember.id));
-    } catch (err) { console.error('Leave council error:', err); }
+      showToast('Вы покинули Совет Лагеря');
+    } catch (err) {
+      console.error('Leave council error:', err);
+      showToast('Не удалось покинуть Совет');
+    }
   };
 
   const handleRemoveMember = async (id: string) => {
@@ -358,6 +383,16 @@ export const CouncilDashboard: React.FC<CouncilDashboardProps> = ({
 
   const councilMainSection = (
     <div className={variant === 'cabin' ? 'council-cabin-section fade-in' : 'fade-in'} style={{ display: 'grid', gap: 16, padding: '16px 18px', borderRadius: 14, background: 'rgba(15, 10, 42, 0.12)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+      {/* Toast */}
+      {toast && (
+        <div style={{
+          position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)', zIndex: 9999,
+          padding: '10px 24px', borderRadius: 12,
+          background: 'rgba(255,215,0,0.92)',
+          color: '#1a1a2e', fontSize: 13, fontWeight: 600,
+          boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
+        }}>{toast}</div>
+      )}
       {/* Statistics cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
         <div style={statCardStyle}>

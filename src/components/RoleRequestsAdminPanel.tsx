@@ -50,7 +50,15 @@ export const RoleRequestsAdminPanel: React.FC<RoleRequestsAdminPanelProps> = ({ 
             const result = await approveRoleRequest(accessToken, id);
             // Update local state
             setRequests(prev => prev.map(r =>
-                r.id === id ? { ...r, ...result.request, roleCode: result.roleCode } : r
+                r.id === id
+                    ? {
+                        ...r,
+                        ...result.request,
+                        roleCode: result.roleCode || result.request.roleCode,
+                        accessToken: result.accessToken || result.request.accessToken,
+                        emailDelivery: result.emailDelivery || result.request.emailDelivery,
+                    }
+                    : r
             ));
             if (result.roleCode) {
                 setCopiedCode(result.roleCode);
@@ -235,6 +243,16 @@ export const RoleRequestsAdminPanel: React.FC<RoleRequestsAdminPanelProps> = ({ 
                                         >
                                             Копировать
                                         </button>
+                                    </div>
+                                )}
+                                {req.status === 'approved' && req.emailDelivery && (
+                                    <div style={{
+                                        marginTop: 6, fontSize: 11,
+                                        color: req.emailDelivery.sent ? '#22c55e' : '#f59e0b',
+                                    }}>
+                                        {req.emailDelivery.sent
+                                            ? 'Email отправлен'
+                                            : `Email не отправлен${req.emailDelivery.error ? `: ${req.emailDelivery.error}` : ''}`}
                                     </div>
                                 )}
 

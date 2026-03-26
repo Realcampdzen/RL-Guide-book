@@ -66,7 +66,12 @@ OPENAI_API_KEY = os.getenv('OPENAI_API_KEY', '').strip()
 IMAGE_PROVIDER = os.getenv('IMAGE_PROVIDER', 'openai').strip().lower()
 
 # M15: Dev email whitelist — emails that auto-get developer role
-DEV_EMAILS = [e.strip().lower() for e in os.getenv('DEV_EMAILS', '').split(',') if e.strip()]
+DEV_EMAILS = [e.strip().lower() for e in os.getenv('DEV_EMAILS', '').split(',') if e.strip()]
+
+# Resend email delivery (role approval notifications)
+RESEND_API_KEY = os.getenv('RESEND_API_KEY', '').strip()
+RESEND_FROM_EMAIL = (os.getenv('RESEND_FROM_EMAIL', '').strip() or os.getenv('FROM_EMAIL', '').strip())
+RESEND_API_URL = os.getenv('RESEND_API_URL', 'https://api.resend.com/emails').strip() or 'https://api.resend.com/emails'
 
 # 10-min slots для stateless HMAC кодов; код валиден ~40 мин (4 слота)
 AUTH_SLOT_SEC = 600
@@ -127,7 +132,16 @@ ROLE_PREFIX_MAP = {
     'camp_director': 'NAC',
     'parent': 'ROD',
 }
-VALID_ROLE_CODE_ROLES = tuple(ROLE_PREFIX_MAP.keys())
+VALID_ROLE_CODE_ROLES = tuple(ROLE_PREFIX_MAP.keys())
+
+ROLE_REQUEST_LABELS_RU = {
+    'participant': 'Участник',
+    'counselor': 'Вожатый',
+    'educator': 'Педагог',
+    'shift_leader': 'Ст. Вожатый',
+    'camp_director': 'Нач. Лагеря',
+    'parent': 'Родитель',
+}
 ROLE_CODE_TTL_DAYS = 7
 
 # ---------------------------------------------------------------------------
@@ -8111,9 +8125,24 @@ def admin_action():
         store.save(data)
         return jsonify({"ok": True, "item_type": item_type, "item_id": item_id, "action": action})
 
-    elif item_type == "role_request":
-        next_status = "approved" if action == "approve" else "rejected"
-        rr_list = _load_role_requests()
+    elif item_type == "role_request":
+        next_status = "approved" if action == "approve" else "rejected"
+        reviewer_email = (payload.get("email") or "").strip().lower()
+        resp, status_code = _resolve_role_request_review(
+            request_id=item_id,
+            new_status=next_status,
+            approver_device=approver_device,
+            approver_role=approver_role,
+            approver_email=reviewer_email,
+            comment=comment,
+        )
+        if status_code >= 400:
+            return jsonify(resp), status_code
+        resp["item_type"] = item_type
+        resp["item_id"] = item_id
+        resp["action"] = action
+        return jsonify(resp), status_code
+        rr_list = _load_role_requests()
         target = None
         for rr in rr_list:
             if isinstance(rr, dict) and rr.get("id") == item_id:
@@ -8278,7 +8307,196 @@ def _save_role_requests(data: list):
         pass
 
 
-@app.route('/api/role-codes/generate', methods=['POST'])
+def _role_request_label_ru(role: str) -> str:
+    role_norm = _normalize_role((role or "").strip())
+    return ROLE_REQUEST_LABELS_RU.get(role_norm, role_norm or "—")
+
+
+def _send_role_approval_email(email: str, desired_role: str, role_code: str, name: str = "") -> dict:
+    """Send role approval code via Resend. Returns delivery metadata for UI/admin."""
+    delivery = {"attempted": False, "sent": False, "provider": "resend"}
+    to_email = (email or "").strip().lower()
+    if not to_email:
+        delivery["error"] = "email_missing"
+        return delivery
+    if not RESEND_API_KEY:
+        delivery["error"] = "resend_api_key_missing"
+        return delivery
+    if not RESEND_FROM_EMAIL:
+        delivery["error"] = "resend_from_email_missing"
+        return delivery
+
+    role_label = _role_request_label_ru(desired_role)
+    user_name = (name or "").strip()
+    greeting = f"{user_name},\n\n" if user_name else "Здравствуйте!\n\n"
+    text_body = (
+        f"{greeting}"
+        f"Ваша заявка на роль «{role_label}» одобрена.\n"
+        f"Код доступа: {role_code}\n\n"
+        "Как войти:\n"
+        "1) Откройте страницу входа.\n"
+        "2) Введите этот код в поле \"Код роли\".\n"
+        "3) Подтвердите вход.\n\n"
+        "Если вы не отправляли заявку, просто проигнорируйте это письмо."
+    )
+    payload = {
+        "from": RESEND_FROM_EMAIL,
+        "to": [to_email],
+        "subject": "Заявка одобрена: код доступа",
+        "text": text_body,
+    }
+    headers = {
+        "Authorization": f"Bearer {RESEND_API_KEY}",
+        "Content-Type": "application/json",
+    }
+
+    delivery["attempted"] = True
+    try:
+        resp = requests.post(RESEND_API_URL, headers=headers, json=payload, timeout=20)
+        if 200 <= resp.status_code < 300:
+            delivery["sent"] = True
+            return delivery
+
+        err_msg = ""
+        try:
+            err_data = resp.json()
+            if isinstance(err_data, dict):
+                err_msg = str(err_data.get("message") or err_data.get("error") or "")
+            elif err_data:
+                err_msg = str(err_data)
+        except Exception:
+            err_msg = (resp.text or "").strip()
+        err_msg = err_msg.replace("\n", " ")[:300]
+        delivery["error"] = f"http_{resp.status_code}" + (f": {err_msg}" if err_msg else "")
+    except Exception as exc:
+        delivery["error"] = f"request_failed: {str(exc)[:300]}"
+    return delivery
+
+
+def _resolve_role_request_review(
+    request_id: str,
+    new_status: str,
+    approver_device: str,
+    approver_role: str,
+    approver_email: str = "",
+    comment: str = "",
+):
+    """
+    Shared role-request review logic for both:
+    - PATCH /api/role-requests/<id>
+    - POST /api/admin/action (item_type=role_request)
+    """
+    next_status = (new_status or "").strip().lower()
+    if next_status not in ("approved", "rejected"):
+        return {"error": "status must be 'approved' or 'rejected'"}, 400
+
+    rid = (request_id or "").strip()
+    if not rid:
+        return {"error": "request_id is required"}, 400
+
+    rr_list = _load_role_requests()
+    target = None
+    for rr in rr_list:
+        if isinstance(rr, dict) and (rr.get("id") or "").strip() == rid:
+            target = rr
+            break
+
+    if target is None:
+        return {"error": "Role request not found"}, 404
+    if target.get("status") != "pending":
+        return {"error": f"Already resolved: {target.get('status')}"}, 409
+
+    now_iso = datetime.now(timezone.utc).isoformat()
+    reviewer = (approver_device or approver_email or "admin").strip()
+    target["status"] = next_status
+    target["reviewedAt"] = now_iso
+    target["reviewedBy"] = reviewer
+    # Keep legacy fields for compatibility with existing dashboard code.
+    target["resolvedAt"] = now_iso
+    target["resolvedBy"] = {"deviceId": reviewer, "role": _normalize_role((approver_role or "").strip())}
+    if comment:
+        target["resolutionNote"] = comment[:2000]
+
+    role_code = None
+    access_token = None
+    email_delivery = None
+
+    if next_status == "approved":
+        desired_role = _normalize_role((target.get("desiredRole") or "participant").strip())
+        if desired_role not in ROLE_PREFIX_MAP:
+            desired_role = "participant"
+        target["desiredRole"] = desired_role
+
+        device_id = (target.get("deviceId") or "").strip()
+        prefix = ROLE_PREFIX_MAP.get(desired_role, "USR")
+        suffix = secrets.token_hex(2).upper()
+        role_code = f"RL-{prefix}-{suffix}"
+        from datetime import timedelta
+        expires_at = (datetime.now(timezone.utc) + timedelta(days=ROLE_CODE_TTL_DAYS)).isoformat()
+        code_entry = {
+            "code": role_code,
+            "role": desired_role,
+            "createdAt": now_iso,
+            "expiresAt": expires_at,
+            "used": False,
+            "usedBy": None,
+            "usedAt": None,
+        }
+        codes = _load_role_codes()
+        codes[role_code] = code_entry
+        _save_role_codes(codes)
+        target["roleCode"] = role_code
+
+        if AUTH_JWT_SECRET and device_id:
+            access_token = _issue_role_jwt(desired_role, device_id, email=(target.get("email") or "").strip().lower())
+            target["accessToken"] = access_token
+
+        email_delivery = _send_role_approval_email(
+            email=(target.get("email") or "").strip().lower(),
+            desired_role=desired_role,
+            role_code=role_code,
+            name=(target.get("name") or "").strip(),
+        )
+
+        role_label = _role_request_label_ru(desired_role)
+        email_status = "доставлено"
+        if not email_delivery.get("sent"):
+            email_status = f"не отправлено ({email_delivery.get('error') or 'unknown_error'})"
+        tg_text = (
+            f"✅ Заявка одобрена\n"
+            f"Роль: {role_label}\n"
+            f"Имя: {(target.get('name') or '—')}\n"
+            f"Email: {(target.get('email') or '—')}\n"
+            f"Код доступа: {role_code}\n"
+            f"Письмо: {email_status}"
+        )
+        try:
+            send_telegram_message(tg_text)
+        except Exception:
+            pass
+    else:
+        role_label = _role_request_label_ru(target.get("desiredRole", ""))
+        tg_text = f"❌ Заявка отклонена — {(target.get('name') or '—')} ({role_label})"
+        try:
+            send_telegram_message(tg_text)
+        except Exception:
+            pass
+
+    _save_role_requests(rr_list)
+
+    response_data = {"ok": True, "request": target}
+    if role_code:
+        response_data["roleCode"] = role_code
+        response_data["approvedRole"] = target.get("desiredRole", "participant")
+        response_data["approvedDeviceId"] = (target.get("deviceId") or "").strip()
+    if access_token:
+        response_data["accessToken"] = access_token
+    if email_delivery is not None:
+        response_data["emailDelivery"] = email_delivery
+    return response_data, 200
+
+
+@app.route('/api/role-codes/generate', methods=['POST'])
 def role_codes_generate():
     """
     POST /api/role-codes/generate — generate a one-time role code.
@@ -8500,14 +8718,23 @@ def role_requests_review(request_id):
     PATCH /api/role-requests/:id — approve or reject a role request.
     Body: { "status": "approved" | "rejected" }
     Auth: JWT with staff role (shift_leader, camp_director, developer).
-    On approve: generates a role code (RL-XXX-YYYY) and notifies via Telegram.
+    On approve: generates a role code (RL-XXX-YYYY), sends email via Resend, and notifies via Telegram.
     """
     payload, err = _require_roles(ORGANIZER_ROLES, allow_localhost_dev=True)
     if err is not None:
         return err[0], err[1]
 
     body = request.get_json() or {}
-    new_status = (body.get("status") or "").strip().lower()
+    new_status = (body.get("status") or "").strip().lower()
+    response_data, status_code = _resolve_role_request_review(
+        request_id=request_id,
+        new_status=new_status,
+        approver_device=(payload.get("deviceId") or "").strip(),
+        approver_role=_normalize_role((payload.get("role") or "").strip()),
+        approver_email=(payload.get("email") or "").strip().lower(),
+        comment=(body.get("comment") or "").strip(),
+    )
+    return jsonify(response_data), status_code
     if new_status not in ("approved", "rejected"):
         return jsonify({"error": "status must be 'approved' or 'rejected'"}), 400
 

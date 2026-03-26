@@ -180,15 +180,33 @@ const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
       >
         <span className="mobile-nav-icon-wrap">
           <svg className="mobile-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            {/* Paper sheet */}
             <path
-              d="M4 11.5l15.5-6.2c0.7-0.3 1.4 0.4 1.1 1.1l-5.8 13.6c-0.2 0.6-1 0.7-1.4 0.2l-3.1-3.8-4.4 1.6c-0.6 0.2-1.2-0.4-1-1l1.1-5.5"
+              d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"
               fill="none"
               stroke="currentColor"
-              strokeWidth="1.6"
+              strokeWidth="1.7"
               strokeLinecap="round"
               strokeLinejoin="round"
             />
-            <path d="M9.8 13.6l9-8.1" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+            {/* Folded corner */}
+            <path
+              d="M14 3v5h5"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.7"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            {/* Pen stroke */}
+            <path
+              d="M9 15l2-2 3 3"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.7"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
           </svg>
         </span>
         <span className="mobile-nav-label">Записаться</span>
