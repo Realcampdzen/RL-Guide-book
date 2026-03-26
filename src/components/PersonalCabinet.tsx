@@ -2171,7 +2171,7 @@ export const PersonalCabinet: React.FC<{
                                             }}>
                                                 <ShiftsAndSquadsDashboard
                                                     onRequestJoinSquad={async (squad) => {
-                                                        const base = (import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || '').replace(/\/$/, '');
+                                                        const hn = window.location.hostname; const base = (import.meta.env.DEV || hn === 'localhost' || hn === '127.0.0.1') ? '' : ((import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || '') as string).replace(/\/$/, '');
                                                         const h: Record<string, string> = { 'Content-Type': 'application/json' };
                                                         if (accessToken) h.Authorization = `Bearer ${accessToken}`;
                                                         else { try { const pin = localStorage.getItem('rl-dev-pin'); if (pin) h['X-Dev-Pin'] = pin; } catch {} }
@@ -2187,7 +2187,7 @@ export const PersonalCabinet: React.FC<{
                                                         } else if (res.ok) {
                                                             alert('Заявка на вступление отправлена!');
                                                         } else {
-                                                            alert(data.error || 'Ошибка при отправке заявки');
+                                                            alert(`Ошибка: ${data.error || res.status}`);
                                                         }
                                                     }}
                                                     onRequestLogin={() => setShowRoleModal(true)}
@@ -3114,7 +3114,7 @@ export const PersonalCabinet: React.FC<{
                                     }}>
                                     <ShiftsAndSquadsDashboard
                                         onRequestJoinSquad={async (squad) => {
-                                            const base = (import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || '').replace(/\/$/, '');
+                                            const hn = window.location.hostname; const base = (import.meta.env.DEV || hn === 'localhost' || hn === '127.0.0.1') ? '' : ((import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || '') as string).replace(/\/$/, '');
                                             const h: Record<string, string> = { 'Content-Type': 'application/json' };
                                             if (accessToken) h.Authorization = `Bearer ${accessToken}`;
                                             else { try { const pin = localStorage.getItem('rl-dev-pin'); if (pin) h['X-Dev-Pin'] = pin; } catch {} }
@@ -3130,7 +3130,7 @@ export const PersonalCabinet: React.FC<{
                                             } else if (res.ok) {
                                                 alert('Заявка на вступление отправлена!');
                                             } else {
-                                                alert(data.error || 'Ошибка при отправке заявки');
+                                                alert(`Ошибка: ${data.error || res.status}`);
                                             }
                                         }}
                                         onRequestLogin={() => setShowRoleModal(true)}
