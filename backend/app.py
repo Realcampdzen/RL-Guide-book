@@ -479,6 +479,14 @@ def _require_roles(allowed_roles: tuple[str, ...], allow_localhost_dev: bool = F
             return payload, None
         return None, (jsonify({"error": "Access denied for this role"}), 403)
 
+    # Dev-PIN header fallback: allows developer auth in production without JWT
+    if not token and "developer" in allowed_roles:
+        dev_pin_header = (request.headers.get("X-Dev-Pin") or "").strip()
+        dev_pin_env = os.getenv("DEV_PIN", "").strip()
+        if dev_pin_header and dev_pin_env and dev_pin_header == dev_pin_env:
+            device_id = (request.headers.get("X-Device-Id") or "").strip() or remote or "dev"
+            return {"role": "developer", "deviceId": device_id}, None
+
     if not auth_header.startswith("Bearer ") or not token:
         return None, (jsonify({"error": "Authorization required"}), 401)
     if not AUTH_JWT_SECRET:

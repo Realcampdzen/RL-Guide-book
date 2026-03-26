@@ -46,6 +46,17 @@ async function requestJson<T>(path: string, options: RequestInit = {}): Promise<
     return data as T;
 }
 
+/** Get stored dev PIN for X-Dev-Pin header fallback (developer role without JWT). */
+function devPinHeaders(accessToken?: string): Record<string, string> {
+    const h: Record<string, string> = {};
+    if (accessToken) {
+        h['Authorization'] = `Bearer ${accessToken}`;
+    } else {
+        try { const pin = localStorage.getItem('rl-dev-pin'); if (pin) h['X-Dev-Pin'] = pin; } catch {}
+    }
+    return h;
+}
+
 // ---------------------------------------------------------------------------
 // API Functions
 // ---------------------------------------------------------------------------
@@ -53,8 +64,7 @@ async function requestJson<T>(path: string, options: RequestInit = {}): Promise<
 /** Fetch inbox items with optional type filter. */
 export async function fetchInbox(filter?: InboxItemType, accessToken?: string): Promise<InboxItem[]> {
     const qs = filter ? `?type=${encodeURIComponent(filter)}` : '';
-    const headers: Record<string, string> = {};
-    if (accessToken) headers['Authorization'] = `Bearer ${accessToken}`;
+    const headers = devPinHeaders(accessToken);
     const data = await requestJson<{ items: InboxItem[] }>(`/api/admin/inbox${qs}`, { headers });
     return data.items || [];
 }
@@ -86,7 +96,7 @@ export async function submitEngineJoinRequest(payload: {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                Authorization: `Bearer ${accessToken}`,
+                ...devPinHeaders(accessToken),
             },
             body: JSON.stringify({
                 nickname: payload.nickname,
@@ -105,7 +115,7 @@ export async function performAction(
 ): Promise<ActionResult> {
     return requestJson<ActionResult>('/api/admin/action', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+        headers: { 'Content-Type': 'application/json', ...devPinHeaders(accessToken) },
         body: JSON.stringify({ item_type: itemType, item_id: itemId, action, comment }),
     });
 }
@@ -117,7 +127,7 @@ export async function generateRoleCode(
 ): Promise<{ code: string; role: string; expiresAt: string }> {
     return requestJson<{ code: string; role: string; expiresAt: string }>('/api/role-codes/generate', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+        headers: { 'Content-Type': 'application/json', ...devPinHeaders(accessToken) },
         body: JSON.stringify({ role }),
     });
 }

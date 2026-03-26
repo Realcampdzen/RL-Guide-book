@@ -87,6 +87,7 @@ export const ShiftsAndSquadsDashboard: React.FC<ShiftsAndSquadsDashboardProps> =
         const h: Record<string, string> = {};
         if (withJson) h['Content-Type'] = 'application/json';
         if (accessToken) h.Authorization = `Bearer ${accessToken}`;
+        else { try { const pin = localStorage.getItem('rl-dev-pin'); if (pin) h['X-Dev-Pin'] = pin; } catch {} }
         return h;
     }, [accessToken]);
 
