@@ -32,6 +32,7 @@ type TokenClaims = {
   baseDeviceId?: string;
   personId?: string;
   accountId?: string;
+  legacyOwnerRole?: string;
 };
 
 function normalizeRole(input: unknown): UserRole {
@@ -66,6 +67,7 @@ function decodeTokenClaims(token: string | undefined): TokenClaims {
       baseDeviceId: typeof parsed.baseDeviceId === 'string' ? parsed.baseDeviceId : undefined,
       personId: typeof parsed.personId === 'string' ? parsed.personId : undefined,
       accountId: typeof parsed.accountId === 'string' ? parsed.accountId : undefined,
+      legacyOwnerRole: typeof parsed.legacyOwnerRole === 'string' ? parsed.legacyOwnerRole : undefined,
     };
   } catch {
     return {};
@@ -120,7 +122,7 @@ export function loadAuthStorage(): AuthStorage {
     const resolvedBaseDeviceId = (data.baseDeviceId || tokenClaims.baseDeviceId || baseDeviceId).trim() || baseDeviceId;
     const personId = (data.personId || tokenClaims.personId || '').trim() || undefined;
     const accountId = (data.accountId || tokenClaims.accountId || '').trim() || undefined;
-    const legacyRoleOwner = normalizeLegacyRoleOwner(data.legacyRoleOwner) ?? (role !== 'traveler' ? role : undefined);
+    const legacyRoleOwner = normalizeLegacyRoleOwner(data.legacyRoleOwner ?? tokenClaims.legacyOwnerRole);
 
     return {
       role,
@@ -178,8 +180,9 @@ export function saveAuthStorage(data: Partial<AuthStorage>): void {
     accountId: (data.accountId ?? tokenClaims.accountId ?? current.accountId)?.trim() || undefined,
     legacyRoleOwner:
       normalizeLegacyRoleOwner(data.legacyRoleOwner) ??
+      normalizeLegacyRoleOwner(tokenClaims.legacyOwnerRole) ??
       current.legacyRoleOwner ??
-      (nextRole !== 'traveler' ? nextRole : undefined),
+      undefined,
     legacyMigrated: data.legacyMigrated ?? current.legacyMigrated ?? false,
   };
 

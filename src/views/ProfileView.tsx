@@ -179,7 +179,14 @@ export const ProfileView: React.FC<any> = (props) => {
   const { activeSquadName: counselorSquadName, activeSquadCard: counselorSquadCard } = useCounselorSquad();
   const seeOtradBlocks = canSeeOtradBlocks(role);
   const showEventsForRole = showEventsPanelForRole(role);
-  const canReadShiftsAndSquads = role === 'participant' || role === 'counselor' || role === 'shift_leader' || role === 'camp_director' || role === 'developer';
+  const canReadShiftsAndSquads =
+    role === 'participant' ||
+    role === 'parent' ||
+    role === 'counselor' ||
+    role === 'educator' ||
+    role === 'shift_leader' ||
+    role === 'camp_director' ||
+    role === 'developer';
   const canManageShiftsAndSquads = canCreateShiftsAndSquads(role);
   const showOrganizerPanel = true;
   const travelerMode = isTraveler(role);

@@ -35,7 +35,7 @@ interface ShiftsAndSquadsDashboardProps {
 const FONT = "'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif";
 const DEFAULT_SHIFT_NAME = 'Весенняя Смена 2026';
 
-const CAN_READ_ROLES = new Set(['participant', 'traveler', 'counselor', 'educator', 'shift_leader', 'camp_director', 'developer']);
+const CAN_READ_ROLES = new Set(['participant', 'parent', 'traveler', 'counselor', 'educator', 'shift_leader', 'camp_director', 'developer']);
 const CAN_MANAGE_SHIFTS_ROLES = new Set(['camp_director', 'developer']);
 const CAN_MANAGE_SQUADS_ROLES = new Set(['counselor', 'shift_leader', 'camp_director', 'developer']);
 

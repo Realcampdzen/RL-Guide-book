@@ -2953,8 +2953,8 @@ def _shifts_save(data: dict):
 
 @app.route('/api/shifts', methods=['GET'])
 def shifts_list():
-    """GET /api/shifts — list shifts. Auth: participant/counselor/educator/shift_leader/camp_director/developer."""
-    payload, err = _require_roles(("participant", "counselor", "educator", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
+    """GET /api/shifts — list shifts. Auth: participant/parent/counselor/educator/shift_leader/camp_director/developer."""
+    payload, err = _require_roles(("participant", "parent", "counselor", "educator", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
     if err is not None:
         return err[0], err[1]
     try:
@@ -3015,8 +3015,8 @@ def shifts_create():
 
 @app.route('/api/shifts/<shift_id>/squads', methods=['GET'])
 def squads_list(shift_id: str):
-    """GET /api/shifts/<shiftId>/squads — list squads in shift. Auth: participant/counselor/educator/shift_leader/camp_director/developer."""
-    payload, err = _require_roles(("participant", "counselor", "educator", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
+    """GET /api/shifts/<shiftId>/squads — list squads in shift. Auth: participant/parent/counselor/educator/shift_leader/camp_director/developer."""
+    payload, err = _require_roles(("participant", "parent", "counselor", "educator", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
     if err is not None:
         return err[0], err[1]
     sid = (shift_id or "").strip()
@@ -8407,16 +8407,6 @@ def _infer_legacy_owner_role_from_users(base_device_id: str) -> str:
         role = _normalize_role((row.get("role") or "").strip())
         if role != "traveler":
             return role
-
-    # Fallback: any row for this base device.
-    for row in reversed(users):
-        if not isinstance(row, dict):
-            continue
-        if (row.get("base_device_id") or row.get("legacy_device_id") or "").strip() != base_id:
-            continue
-        role = _normalize_role((row.get("role") or "").strip())
-        if role != "traveler":
-            return role
     return ""
 
 
@@ -8498,13 +8488,16 @@ def _resolve_identity_context_for_role(
     person_id = _normalize_person_id(person_input, base_device_id)
 
     existing_owner = _get_legacy_owner_role(person_id, base_device_id)
+    inferred_owner = _infer_legacy_owner_role_from_users(base_device_id)
+    if inferred_owner and inferred_owner != existing_owner:
+        existing_owner = inferred_owner
+        _set_legacy_owner_role(person_id, base_device_id, inferred_owner)
+
     owner_hint = _normalize_role((payload.get("legacyRoleOwner") or fallback_legacy_owner_role or "").strip())
     if owner_hint == "traveler":
         owner_hint = ""
 
     legacy_owner_role = existing_owner or owner_hint
-    if not legacy_owner_role:
-        legacy_owner_role = _infer_legacy_owner_role_from_users(base_device_id)
 
     if legacy_owner_role and not existing_owner:
         _set_legacy_owner_role(person_id, base_device_id, legacy_owner_role)
@@ -8575,6 +8568,7 @@ def _issue_role_jwt(
         "baseDeviceId": claims["baseDeviceId"],
         "personId": claims["personId"],
         "accountId": claims["accountId"],
+        "legacyOwnerRole": claims.get("legacyOwnerRole"),
         "email": email,
         "iat": int(time.time()),
         "exp": int(time.time()) + 30 * 24 * 3600,
