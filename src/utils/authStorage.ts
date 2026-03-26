@@ -1,19 +1,46 @@
 /**
- * Auth storage: role, deviceId, accessToken in localStorage.
- * Key: rl_auth_v1
+ * Auth storage: role, identity claims, access token in localStorage.
+ * Keys:
+ * - rl_auth_v1
+ * - rl_device_id_v1 (canonical installation id)
  */
 import type { UserRole } from '../types/authRole';
 import { DEFAULT_ROLE } from '../types/authRole';
 
 const AUTH_STORAGE_KEY = 'rl_auth_v1';
 const DEVICE_ID_KEY = 'rl_device_id_v1';
+const LEGACY_DEVICE_ID_KEY = 'rl-device-id';
 
 export interface AuthStorage {
   role: UserRole;
   accessToken?: string;
   campId?: string;
   exp?: number;
-  deviceId: string;
+  // v2 identity model
+  deviceId: string; // scoped actor id from JWT (defaults to baseDeviceId when no token)
+  baseDeviceId: string; // stable installation id
+  personId?: string;
+  accountId?: string;
+  legacyRoleOwner?: UserRole;
+  legacyMigrated?: boolean;
+}
+
+type TokenClaims = {
+  exp?: number;
+  role?: string;
+  deviceId?: string;
+  baseDeviceId?: string;
+  personId?: string;
+  accountId?: string;
+};
+
+function normalizeRole(input: unknown): UserRole {
+  const raw = typeof input === 'string' ? input : '';
+  if (raw === 'organizer') return 'shift_leader';
+  if ((['traveler', 'participant', 'parent', 'counselor', 'educator', 'shift_leader', 'camp_director', 'developer'] as const).includes(raw as UserRole)) {
+    return raw as UserRole;
+  }
+  return DEFAULT_ROLE;
 }
 
 function generateDeviceId(): string {
@@ -24,62 +51,138 @@ function generateDeviceId(): string {
   });
 }
 
-function getOrCreateDeviceId(): string {
+function decodeTokenClaims(token: string | undefined): TokenClaims {
+  if (!token) return {};
+  try {
+    const parts = token.split('.');
+    if (parts.length < 2) return {};
+    const payload = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    const json = atob(payload);
+    const parsed = JSON.parse(json) as Record<string, unknown>;
+    return {
+      exp: typeof parsed.exp === 'number' ? parsed.exp : undefined,
+      role: typeof parsed.role === 'string' ? parsed.role : undefined,
+      deviceId: typeof parsed.deviceId === 'string' ? parsed.deviceId : undefined,
+      baseDeviceId: typeof parsed.baseDeviceId === 'string' ? parsed.baseDeviceId : undefined,
+      personId: typeof parsed.personId === 'string' ? parsed.personId : undefined,
+      accountId: typeof parsed.accountId === 'string' ? parsed.accountId : undefined,
+    };
+  } catch {
+    return {};
+  }
+}
+
+function getOrCreateBaseDeviceId(): string {
   if (typeof window === 'undefined') return '';
   let id = localStorage.getItem(DEVICE_ID_KEY);
   if (!id) {
-    id = generateDeviceId();
+    // Legacy migration: older code used rl-device-id.
+    const legacy = localStorage.getItem(LEGACY_DEVICE_ID_KEY);
+    if (legacy) {
+      id = legacy;
+    } else {
+      id = generateDeviceId();
+    }
     localStorage.setItem(DEVICE_ID_KEY, id);
   }
   return id;
 }
 
+function normalizeLegacyRoleOwner(input: unknown): UserRole | undefined {
+  const role = normalizeRole(input);
+  if (role === 'traveler') return undefined;
+  return role;
+}
+
 export function loadAuthStorage(): AuthStorage {
   if (typeof window === 'undefined') {
-    return { role: DEFAULT_ROLE, deviceId: '' };
+    return { role: DEFAULT_ROLE, deviceId: '', baseDeviceId: '' };
   }
-  const deviceId = getOrCreateDeviceId();
+
+  const baseDeviceId = getOrCreateBaseDeviceId();
   try {
     const raw = localStorage.getItem(AUTH_STORAGE_KEY);
-    if (!raw) return { role: DEFAULT_ROLE, deviceId };
+    if (!raw) {
+      return { role: DEFAULT_ROLE, deviceId: baseDeviceId, baseDeviceId };
+    }
+
     const data = JSON.parse(raw) as Partial<AuthStorage>;
-    const rawRoleValue: unknown = (data as { role?: unknown }).role;
-    // Keep as plain string to support legacy values (e.g. "organizer") without fighting TS unions.
-    const rawRole: string = typeof rawRoleValue === 'string' ? rawRoleValue : '';
-    const role: UserRole =
-      rawRole === 'organizer'
-        ? 'shift_leader'
-        : (['traveler', 'participant', 'parent', 'counselor', 'educator', 'shift_leader', 'camp_director', 'developer'] as const).includes(rawRole as UserRole)
-          ? (rawRole as UserRole)
-          : DEFAULT_ROLE;
-    const exp = data.exp;
+    const tokenClaims = decodeTokenClaims(data.accessToken);
+    const role = normalizeRole(data.role ?? tokenClaims.role);
+    const exp = typeof data.exp === 'number' ? data.exp : tokenClaims.exp;
     const expired = exp != null && exp * 1000 < Date.now();
     if (expired) {
       clearAuthStorage();
-      return { role: DEFAULT_ROLE, deviceId };
+      return { role: DEFAULT_ROLE, deviceId: baseDeviceId, baseDeviceId };
     }
-    // Role is stored as-is; auth is gated by PIN / code redemption flow
-    const effectiveRole = role;
+
+    const scopedDeviceId = (data.deviceId || tokenClaims.deviceId || baseDeviceId).trim();
+    const resolvedBaseDeviceId = (data.baseDeviceId || tokenClaims.baseDeviceId || baseDeviceId).trim() || baseDeviceId;
+    const personId = (data.personId || tokenClaims.personId || '').trim() || undefined;
+    const accountId = (data.accountId || tokenClaims.accountId || '').trim() || undefined;
+    const legacyRoleOwner = normalizeLegacyRoleOwner(data.legacyRoleOwner) ?? (role !== 'traveler' ? role : undefined);
+
     return {
-      role: effectiveRole,
+      role,
       accessToken: data.accessToken,
       campId: data.campId,
-      exp: data.exp,
-      deviceId
+      exp,
+      deviceId: scopedDeviceId || resolvedBaseDeviceId,
+      baseDeviceId: resolvedBaseDeviceId,
+      personId,
+      accountId,
+      legacyRoleOwner,
+      legacyMigrated: data.legacyMigrated === true,
     };
   } catch {
-    return { role: DEFAULT_ROLE, deviceId };
+    return { role: DEFAULT_ROLE, deviceId: baseDeviceId, baseDeviceId };
   }
 }
 
 export function saveAuthStorage(data: Partial<AuthStorage>): void {
   if (typeof window === 'undefined') return;
   const current = loadAuthStorage();
+  const tokenClaims = decodeTokenClaims(data.accessToken ?? current.accessToken);
+
+  const nextRole = normalizeRole(data.role ?? tokenClaims.role ?? current.role);
+  const nextBaseDeviceId = (
+    data.baseDeviceId ||
+    tokenClaims.baseDeviceId ||
+    current.baseDeviceId ||
+    getOrCreateBaseDeviceId()
+  ).trim();
+
+  let nextDeviceId = (
+    data.deviceId ||
+    tokenClaims.deviceId ||
+    current.deviceId ||
+    nextBaseDeviceId
+  ).trim();
+
+  if (!data.accessToken && !current.accessToken) {
+    nextDeviceId = nextBaseDeviceId;
+  }
+  if (!data.accessToken && data.role) {
+    // Manual role switch before token exchange: keep actor id at base device.
+    nextDeviceId = nextBaseDeviceId;
+  }
+
   const next: AuthStorage = {
-    ...current,
-    ...data,
-    deviceId: current.deviceId
+    role: nextRole,
+    accessToken: data.accessToken ?? current.accessToken,
+    campId: data.campId ?? current.campId,
+    exp: data.exp ?? tokenClaims.exp ?? current.exp,
+    deviceId: nextDeviceId || nextBaseDeviceId,
+    baseDeviceId: nextBaseDeviceId,
+    personId: (data.personId ?? tokenClaims.personId ?? current.personId)?.trim() || undefined,
+    accountId: (data.accountId ?? tokenClaims.accountId ?? current.accountId)?.trim() || undefined,
+    legacyRoleOwner:
+      normalizeLegacyRoleOwner(data.legacyRoleOwner) ??
+      current.legacyRoleOwner ??
+      (nextRole !== 'traveler' ? nextRole : undefined),
+    legacyMigrated: data.legacyMigrated ?? current.legacyMigrated ?? false,
   };
+
   localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(next));
 }
 
@@ -88,8 +191,17 @@ export function clearAuthStorage(): void {
   localStorage.removeItem(AUTH_STORAGE_KEY);
 }
 
+export function getBaseDeviceId(): string {
+  return getOrCreateBaseDeviceId();
+}
+
+// Backward-compatible alias (returns base installation device id).
 export function getDeviceId(): string {
-  return getOrCreateDeviceId();
+  return getOrCreateBaseDeviceId();
+}
+
+export function markLegacyProgressMigrated(): void {
+  saveAuthStorage({ legacyMigrated: true });
 }
 
 let _on401: (() => void) | null = null;

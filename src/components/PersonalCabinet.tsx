@@ -597,7 +597,7 @@ export const PersonalCabinet: React.FC<{
     customBadges?: any[];
 }> = ({ onBack, communityBadges = [], customBadges = [] }) => {
     const { userData, updateVozhatifikatorChecklist, toggleFavorite, removeRoute, setNickname, setAvatar, setProfileStatus, setProfileBio } = useUserProgress();
-    const { role, accessToken, deviceId, setAuth, clearAuth } = useAuth();
+    const { role, accessToken, deviceId, baseDeviceId, legacyRoleOwner, setAuth, clearAuth } = useAuth();
     const { myTeam, generateInviteUrl } = useTeam();
     const { badges: allBadges, ensureBadgeLoaded, ensureCategoryBadgesLoaded } = useDataLoader();
 
@@ -3264,7 +3264,8 @@ export const PersonalCabinet: React.FC<{
             {showRoleModal && (
                 <RoleSelectionModal
                     onResult={handleRoleResult}
-                    deviceId={deviceId}
+                    deviceId={baseDeviceId || deviceId}
+                    legacyRoleOwner={legacyRoleOwner}
                 />
             )}
         </>

@@ -83,9 +83,7 @@ export const AppViewRouter: React.FC<Props> = ({ controller, fallback }) => {
     try { localStorage.setItem('rl-welcome-dismissed', '1'); } catch { /* */ }
   }, []);
 
-  const deviceId = typeof window !== 'undefined'
-    ? (localStorage.getItem('rl-device-id') || (() => { const id = 'dev-' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36); localStorage.setItem('rl-device-id', id); return id; })())
-    : 'anon';
+  const deviceId = auth.baseDeviceId || auth.deviceId || 'anon';
 
   // Read PersonalCabinet context via lightweight CustomEvent (set by PersonalCabinet.tsx)
   const [cabinetDataset, setCabinetDataset] = useState<{
@@ -381,10 +379,11 @@ export const AppViewRouter: React.FC<Props> = ({ controller, fallback }) => {
 
       {/* Role Selection Modal (triggered by nav "Войти") */}
       {showRoleModal && (
-        <RoleSelectionModal
-          onResult={handleRoleResult}
-          deviceId={deviceId}
-        />
+            <RoleSelectionModal
+              onResult={handleRoleResult}
+              deviceId={deviceId}
+              legacyRoleOwner={auth.legacyRoleOwner}
+            />
       )}
 
       {/* Welcome banner for first-time visitors */}

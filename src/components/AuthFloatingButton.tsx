@@ -6,6 +6,7 @@ import type { RoleFlowResult } from './RoleSelectionModal';
 import type { Session } from '@supabase/supabase-js';
 import { useAuth } from '../context/AuthContext';
 import type { UserRole } from '../types/authRole';
+import { getBaseDeviceId } from '../utils/authStorage';
 
 // ---------------------------------------------------------------------------
 // Role display config
@@ -32,19 +33,6 @@ function getApiBase(): string {
     const hostname = window.location.hostname;
     const useLocal = import.meta.env.DEV || hostname === 'localhost' || hostname === '127.0.0.1';
     return useLocal ? '' : ((import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || '')).replace(/\/$/, '');
-}
-
-function getDeviceId(): string {
-    try {
-        let id = localStorage.getItem('rl-device-id');
-        if (!id) {
-            id = 'dev-' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
-            localStorage.setItem('rl-device-id', id);
-        }
-        return id;
-    } catch {
-        return 'anon';
-    }
 }
 
 // ---------------------------------------------------------------------------
@@ -78,7 +66,7 @@ export const AuthFloatingButton: React.FC = () => {
     }, []);
     const [oauthError, setOauthError] = useState<string | null>(null);
 
-    const deviceId = getDeviceId();
+    const baseDeviceId = auth.baseDeviceId || getBaseDeviceId() || 'anon';
 
     // Persist dev OAuth pending flag in localStorage (survives page reload)
     const LS_PENDING_DEV = 'rl-pending-dev-oauth';
@@ -150,7 +138,14 @@ export const AuthFloatingButton: React.FC = () => {
             const res = await fetch(`${base}/api/auth/resolve`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, deviceId, desiredRole: desiredRole || undefined }),
+                body: JSON.stringify({
+                    email,
+                    deviceId: baseDeviceId,
+                    baseDeviceId,
+                    desiredRole: desiredRole || undefined,
+                    supabaseUserId: s.user?.id || undefined,
+                    legacyRoleOwner: auth.legacyRoleOwner || undefined,
+                }),
             });
             const data = await res.json().catch(() => ({})) as Record<string, unknown>;
             if (!res.ok) return false;
@@ -170,7 +165,7 @@ export const AuthFloatingButton: React.FC = () => {
             }
         } catch { /* ignore */ }
         return false;
-    }, [auth, deviceId]);
+    }, [auth, baseDeviceId]);
 
     // ── B-4: Resolve OAuth for developer ──
     const resolveDevOAuth = async (s: Session) => {
@@ -202,7 +197,14 @@ export const AuthFloatingButton: React.FC = () => {
             const res = await fetch(`${base}/api/auth/resolve`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, supabaseToken: token }),
+                body: JSON.stringify({
+                    email,
+                    supabaseToken: token,
+                    supabaseUserId: s.user?.id || undefined,
+                    deviceId: baseDeviceId,
+                    baseDeviceId,
+                    legacyRoleOwner: auth.legacyRoleOwner || undefined,
+                }),
             });
             const data = await res.json().catch(() => ({})) as Record<string, unknown>;
             if (res.ok && data.role === 'developer') {
@@ -263,7 +265,7 @@ export const AuthFloatingButton: React.FC = () => {
                         const res = await fetch(`${base}/api/auth/dev-pin`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ pin, deviceId }),
+                            body: JSON.stringify({ pin, deviceId: baseDeviceId, baseDeviceId }),
                         });
                         const data = await res.json().catch(() => ({})) as Record<string, unknown>;
                         if (res.ok && data.accessToken) {
@@ -434,7 +436,8 @@ export const AuthFloatingButton: React.FC = () => {
             {activeModal === 'role-select' && (
                 <RoleSelectionModal
                     onResult={handleRoleResult}
-                    deviceId={deviceId}
+                    deviceId={baseDeviceId}
+                    legacyRoleOwner={auth.legacyRoleOwner || undefined}
                 />
             )}
 

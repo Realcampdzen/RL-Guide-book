@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useRef, useState, ReactNode } from 'react';
+import { useAuth } from './AuthContext';
 import {
   IUserData,
   ILevelProgress,
@@ -98,8 +99,14 @@ interface ProgressContextType {
   updateVozhatifikatorChecklist: (itemId: string, completed: boolean) => void;
 }
 
-const STORAGE_KEY = 'rl_guide_progress_v1';
+const LEGACY_STORAGE_KEY = 'rl_guide_progress_v1';
+const STORAGE_KEY_PREFIX = 'rl_guide_progress_v2:';
 const SCHEMA_VERSION = 2;
+
+export function getProgressStorageKey(accountId?: string): string {
+  const normalized = (accountId || '').trim();
+  return normalized ? `${STORAGE_KEY_PREFIX}${normalized}` : LEGACY_STORAGE_KEY;
+}
 
 const MAX_PATH_BADGES = 10;
 const MAX_FAVORITES = 10;
@@ -519,6 +526,14 @@ function countPathBadges(progress: Record<string, ILevelProgress>): number {
 }
 
 export const ProgressProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const {
+    role: authRole,
+    accountId,
+    personId,
+    legacyRoleOwner,
+    legacyMigrated,
+    setAuth,
+  } = useAuth();
   const [isTestMode, setIsTestMode] = useState(() => {
     const stored = localStorage.getItem('rl_guide_test_mode');
     return stored === 'true'; // Default false if not set
@@ -528,6 +543,11 @@ export const ProgressProvider: React.FC<{ children: ReactNode }> = ({ children }
   const [isLoading, setIsLoading] = useState(true);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingDataRef = useRef<IUserData | null>(null);
+  const hydratedKeyRef = useRef<string>('');
+
+  const resolvedPersonId = (personId || '').trim();
+  const resolvedAccountId = (accountId || '').trim();
+  const storageKey = getProgressStorageKey(resolvedAccountId || undefined);
 
   const applyTestDefaults = (data: IUserData, enabled: boolean): IUserData => {
     if (!enabled || TEST_DEFAULT_ACHIEVED_LEVELS.length === 0) {
@@ -567,25 +587,59 @@ export const ProgressProvider: React.FC<{ children: ReactNode }> = ({ children }
     }
   };
 
-  // Load from LocalStorage
+  // One-time migration policy:
+  // legacy rl_guide_progress_v1 is copied to the legacy owner role account namespace.
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
+    if (legacyMigrated) return;
+    if (!legacyRoleOwner || !resolvedPersonId || !authRole) return;
+
+    try {
+      const ownerAccountId = `${resolvedPersonId}:${legacyRoleOwner}`;
+      const ownerStorageKey = getProgressStorageKey(ownerAccountId);
+      const legacyRaw = localStorage.getItem(LEGACY_STORAGE_KEY);
+      if (legacyRaw && !localStorage.getItem(ownerStorageKey)) {
+        localStorage.setItem(ownerStorageKey, legacyRaw);
+      }
+      setAuth({
+        role: authRole,
+        legacyRoleOwner,
+        legacyMigrated: true,
+      });
+    } catch {
+      // ignore migration write errors
+    }
+  }, [authRole, legacyMigrated, legacyRoleOwner, resolvedPersonId, setAuth]);
+
+  // Load from LocalStorage (account-scoped for v2).
+  useEffect(() => {
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+      saveTimeoutRef.current = null;
+    }
+    pendingDataRef.current = null;
+    hydratedKeyRef.current = '';
+    setIsLoading(true);
+
+    const stored = localStorage.getItem(storageKey);
     if (stored) {
       try {
         const parsed = JSON.parse(stored);
         setUserData(normalizeUserData(parsed));
       } catch (e) {
         console.error('Failed to parse user progress', e);
+        setUserData(applyTestDefaults(initialData, isTestMode));
       }
     } else {
       setUserData(applyTestDefaults(initialData, isTestMode));
     }
+    hydratedKeyRef.current = storageKey;
     setIsLoading(false);
-  }, []);
+  }, [storageKey]);
 
   // Save to LocalStorage on change (debounced to avoid blocking main thread during rapid updates)
   useEffect(() => {
     if (isLoading) return;
+    if (hydratedKeyRef.current !== storageKey) return;
     pendingDataRef.current = userData;
     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
     saveTimeoutRef.current = setTimeout(() => {
@@ -593,7 +647,7 @@ export const ProgressProvider: React.FC<{ children: ReactNode }> = ({ children }
       const data = pendingDataRef.current;
       if (!data) return;
       try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        localStorage.setItem(storageKey, JSON.stringify(data));
       } catch (e) {
         if (e instanceof DOMException && (e.name === 'QuotaExceededError' || e.code === 22)) {
           console.error('Слишком много данных (например, фото). Удалите некоторые фото или сделайте резервную копию и очистите прогресс.');
@@ -610,14 +664,14 @@ export const ProgressProvider: React.FC<{ children: ReactNode }> = ({ children }
         const data = pendingDataRef.current;
         if (data) {
           try {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+            localStorage.setItem(storageKey, JSON.stringify(data));
           } catch {
             /* ignore on unmount */
           }
         }
       }
     };
-  }, [userData, isLoading]);
+  }, [isLoading, storageKey, userData]);
 
   const completeTutorial = () => {
     setUserData(prev => ({

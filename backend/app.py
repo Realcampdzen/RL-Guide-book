@@ -6962,7 +6962,22 @@ def api_role_request_list():
     for item in items:
         row = dict(item)
         if row.get("status") == "approved" and AUTH_JWT_SECRET:
-            row["accessToken"] = _issue_role_jwt(row.get("desiredRole", "participant"), row.get("deviceId", ""))
+            desired_role = _normalize_role((row.get("desiredRole") or "participant").strip())
+            identity = _resolve_identity_context_for_role(
+                desired_role,
+                {
+                    "deviceId": (row.get("baseDeviceId") or row.get("deviceId") or "").strip(),
+                    "baseDeviceId": (row.get("baseDeviceId") or row.get("deviceId") or "").strip(),
+                    "personId": (row.get("personId") or "").strip(),
+                    "accountId": (row.get("accountId") or "").strip(),
+                    "legacyRoleOwner": (row.get("legacyOwnerRole") or "").strip(),
+                },
+                fallback_device_id=(row.get("baseDeviceId") or row.get("deviceId") or "").strip(),
+                fallback_person_id=(row.get("personId") or "").strip(),
+                fallback_account_id=(row.get("accountId") or "").strip(),
+                fallback_legacy_owner_role=(row.get("legacyOwnerRole") or "").strip(),
+            )
+            row["accessToken"] = _issue_role_jwt_for_identity(desired_role, (row.get("email") or "").strip().lower(), identity)
         result.append(row)
     return jsonify({"requests": result})
 
@@ -7489,13 +7504,15 @@ def _get_permissions(role: str) -> dict:
 
 def resolve_user():
     """
-    M15: Resolve current user from JWT (deviceId) or X-Device-Id header.
+    M15: Resolve current user from JWT (device/account claims) or X-Device-Id header.
     Auto-creates user if not found (migration path).
     Returns: (user_dict, None) on success, or (None, (response, status)) on error.
-    user_dict: {id, email, role, nickname, avatar_url, deviceId, permissions}
+    user_dict: {id, email, role, nickname, avatar_url, deviceId, baseDeviceId, personId, accountId, permissions}
     """
-    device_id = None
-    email = None
+    device_id = None          # actor scope id (legacy alias)
+    base_device_id = None     # stable installation id
+    person_id = None
+    account_id = None
     role_from_jwt = None
 
     # 1) Try JWT
@@ -7505,24 +7522,37 @@ def resolve_user():
         if token:
             try:
                 payload = jwt.decode(token, AUTH_JWT_SECRET, algorithms=["HS256"])
-                raw_device_id = payload.get("deviceId")
-                raw_role = payload.get("role")
-                if raw_device_id is not None and not isinstance(raw_device_id, str):
-                    return None, (jsonify({"error": "Invalid or expired token"}), 401)
-                if raw_role is not None and not isinstance(raw_role, str):
-                    return None, (jsonify({"error": "Invalid or expired token"}), 401)
-                device_id = (raw_device_id or "").strip() or None
-                role_from_jwt = _normalize_role((raw_role or "").strip())
+                device_id = (payload.get("deviceId") or "").strip() or None
+                base_device_id = (payload.get("baseDeviceId") or "").strip() or device_id
+                person_id = (payload.get("personId") or "").strip() or None
+                account_id = (payload.get("accountId") or "").strip() or None
+                role_from_jwt = _normalize_role((payload.get("role") or "").strip())
+                if not person_id and base_device_id:
+                    person_id = f"device:{base_device_id}"
+                if not account_id and person_id and role_from_jwt:
+                    account_id = f"{person_id}:{role_from_jwt}"
             except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
                 return None, (jsonify({"error": "Invalid or expired token"}), 401)
 
     # 2) Fallback: X-Device-Id header
     if not device_id:
         device_id = (request.headers.get("X-Device-Id") or "").strip() or None
+    if not base_device_id:
+        base_device_id = device_id
+    if not person_id and base_device_id:
+        person_id = f"device:{base_device_id}"
+    if not account_id and person_id and role_from_jwt:
+        account_id = f"{person_id}:{role_from_jwt}"
 
     # 3) Localhost fallback
     if not device_id and _is_localhost_request():
         device_id = "dev-local"
+    if not base_device_id:
+        base_device_id = device_id
+    if not person_id and base_device_id:
+        person_id = f"device:{base_device_id}"
+    if not account_id and person_id and role_from_jwt:
+        account_id = f"{person_id}:{role_from_jwt}"
 
     if not device_id:
         return None, (jsonify({"error": "Authorization required (JWT or X-Device-Id)"}), 401)
@@ -7532,11 +7562,54 @@ def resolve_user():
     data = store.load()
     users = data.get("users") or []
 
+    owner_role = ""
+    if role_from_jwt and base_device_id:
+        try:
+            owner_role = _get_legacy_owner_role(person_id or "", base_device_id)
+            if not owner_role:
+                owner_role = _infer_legacy_owner_role_from_users(base_device_id)
+                if owner_role and person_id:
+                    _set_legacy_owner_role(person_id, base_device_id, owner_role)
+        except Exception:
+            owner_role = ""
+
     user = None
-    for u in users:
-        if isinstance(u, dict) and u.get("legacy_device_id") == device_id:
-            user = u
-            break
+    if account_id:
+        for u in users:
+            if isinstance(u, dict) and (u.get("account_id") or "").strip() == account_id:
+                user = u
+                break
+
+    # Legacy fallback: only allowed for unmigrated rows and only for owner role.
+    if user is None and account_id and role_from_jwt:
+        can_attach_legacy = (not owner_role) or owner_role == role_from_jwt
+        if can_attach_legacy:
+            for u in users:
+                if not isinstance(u, dict):
+                    continue
+                if (u.get("account_id") or "").strip():
+                    continue
+                row_role = _normalize_role((u.get("role") or "").strip())
+                if owner_role and row_role != owner_role:
+                    continue
+                legacy_id = (u.get("legacy_device_id") or "").strip()
+                if legacy_id and (legacy_id == device_id or legacy_id == base_device_id):
+                    user = u
+                    break
+
+    if user is None and not account_id:
+        for u in users:
+            if isinstance(u, dict) and (u.get("legacy_device_id") or "").strip() == device_id:
+                user = u
+                break
+
+    if user is None and not account_id and base_device_id and base_device_id != device_id:
+        for u in users:
+            if isinstance(u, dict) and (u.get("legacy_device_id") or "").strip() == base_device_id:
+                user = u
+                break
+
+    now_iso = datetime.now(timezone.utc).isoformat()
 
     # Auto-create if not found
     if user is None:
@@ -7544,12 +7617,15 @@ def resolve_user():
             "id": uuid.uuid4().hex,
             "supabase_auth_id": None,
             "legacy_device_id": device_id,
+            "base_device_id": base_device_id or device_id,
+            "person_id": person_id or f"device:{(base_device_id or device_id)}",
+            "account_id": account_id or None,
             "email": "",
             "nickname": "",
             "avatar_url": "",
             "role": role_from_jwt or "participant",
-            "createdAt": datetime.now(timezone.utc).isoformat(),
-            "updatedAt": datetime.now(timezone.utc).isoformat(),
+            "createdAt": now_iso,
+            "updatedAt": now_iso,
         }
         users.append(user)
         data["users"] = users
@@ -7557,6 +7633,25 @@ def resolve_user():
             store.save(data)
         except Exception:
             traceback.print_exc()
+    else:
+        # Backfill identity fields for legacy rows.
+        changed = False
+        if account_id and not (user.get("account_id") or "").strip():
+            user["account_id"] = account_id
+            changed = True
+        if base_device_id and not (user.get("base_device_id") or "").strip():
+            user["base_device_id"] = base_device_id
+            changed = True
+        if person_id and not (user.get("person_id") or "").strip():
+            user["person_id"] = person_id
+            changed = True
+        if changed:
+            user["updatedAt"] = now_iso
+            data["users"] = users
+            try:
+                store.save(data)
+            except Exception:
+                traceback.print_exc()
 
     # DEV_EMAILS override
     user_email = (user.get("email") or "").strip().lower()
@@ -7570,6 +7665,9 @@ def resolve_user():
         effective_role = override
 
     permissions = _get_permissions(effective_role)
+    resolved_person_id = (user.get("person_id") or person_id or "").strip() or None
+    resolved_account_id = (user.get("account_id") or account_id or "").strip() or None
+    resolved_base_device_id = (user.get("base_device_id") or base_device_id or device_id or "").strip()
 
     return {
         "id": user.get("id", ""),
@@ -7579,9 +7677,11 @@ def resolve_user():
         "nickname": user.get("nickname", ""),
         "avatar_url": user.get("avatar_url", ""),
         "deviceId": device_id,
+        "baseDeviceId": resolved_base_device_id,
+        "personId": resolved_person_id,
+        "accountId": resolved_account_id,
         "permissions": permissions,
     }, None
-
 
 @app.route('/api/auth/me', methods=['GET'])
 def auth_me():
@@ -8285,6 +8385,41 @@ def _set_legacy_owner_role(person_id: str, base_device_id: str, role: str) -> st
     return role_norm
 
 
+def _infer_legacy_owner_role_from_users(base_device_id: str) -> str:
+    base_id = (base_device_id or "").strip()
+    if not base_id:
+        return ""
+    try:
+        users = (get_store("users").load().get("users") or [])
+    except Exception:
+        return ""
+    if not isinstance(users, list):
+        return ""
+
+    # Prefer unmigrated legacy rows for this device.
+    for row in reversed(users):
+        if not isinstance(row, dict):
+            continue
+        if (row.get("legacy_device_id") or "").strip() != base_id:
+            continue
+        if (row.get("account_id") or "").strip():
+            continue
+        role = _normalize_role((row.get("role") or "").strip())
+        if role != "traveler":
+            return role
+
+    # Fallback: any row for this base device.
+    for row in reversed(users):
+        if not isinstance(row, dict):
+            continue
+        if (row.get("base_device_id") or row.get("legacy_device_id") or "").strip() != base_id:
+            continue
+        role = _normalize_role((row.get("role") or "").strip())
+        if role != "traveler":
+            return role
+    return ""
+
+
 def _extract_supabase_user_id(supabase_user_id: str, supabase_token: str) -> str:
     explicit = (supabase_user_id or "").strip()
     if explicit:
@@ -8329,6 +8464,62 @@ def _resolve_identity_claims(
         "accountId": account,
         "legacyOwnerRole": owner_role or None,
     }
+
+
+def _resolve_identity_context_for_role(
+    role: str,
+    body: Optional[dict] = None,
+    *,
+    fallback_device_id: str = "",
+    fallback_person_id: str = "",
+    fallback_account_id: str = "",
+    fallback_legacy_owner_role: str = "",
+    supabase_user_id: str = "",
+    supabase_token: str = "",
+    force_legacy_scope: bool = False,
+) -> dict:
+    payload = body if isinstance(body, dict) else {}
+    role_norm = _normalize_role((role or "").strip())
+
+    requested_base = (
+        (payload.get("baseDeviceId") or payload.get("deviceId") or "").strip()
+        or (fallback_device_id or "").strip()
+    )
+    base_device_id = _normalize_base_device_id(requested_base)
+
+    extracted_supabase_user_id = _extract_supabase_user_id(
+        (payload.get("supabaseUserId") or supabase_user_id or "").strip(),
+        (payload.get("supabaseToken") or supabase_token or "").strip(),
+    )
+
+    person_input = (payload.get("personId") or fallback_person_id or "").strip()
+    if not person_input and extracted_supabase_user_id:
+        person_input = f"supabase:{extracted_supabase_user_id}"
+    person_id = _normalize_person_id(person_input, base_device_id)
+
+    existing_owner = _get_legacy_owner_role(person_id, base_device_id)
+    owner_hint = _normalize_role((payload.get("legacyRoleOwner") or fallback_legacy_owner_role or "").strip())
+    if owner_hint == "traveler":
+        owner_hint = ""
+
+    legacy_owner_role = existing_owner or owner_hint
+    if not legacy_owner_role:
+        legacy_owner_role = _infer_legacy_owner_role_from_users(base_device_id)
+
+    if legacy_owner_role and not existing_owner:
+        _set_legacy_owner_role(person_id, base_device_id, legacy_owner_role)
+
+    account_id = (payload.get("accountId") or fallback_account_id or "").strip()
+    claims = _resolve_identity_claims(
+        role=role_norm,
+        base_device_id=base_device_id,
+        person_id=person_id,
+        account_id=account_id,
+        legacy_owner_role=legacy_owner_role,
+        force_legacy_scope=force_legacy_scope,
+    )
+    claims["supabaseUserId"] = extracted_supabase_user_id or None
+    return claims
 
 
 def _issue_role_jwt(
@@ -8389,6 +8580,18 @@ def _issue_role_jwt(
         "exp": int(time.time()) + 30 * 24 * 3600,
     }
     return jwt.encode(payload, AUTH_JWT_SECRET, algorithm="HS256")
+
+
+def _issue_role_jwt_for_identity(role: str, email: str, identity: dict) -> str:
+    return _issue_role_jwt(
+        role=role,
+        device_id=(identity.get("deviceId") or "").strip(),
+        email=(email or "").strip().lower(),
+        person_id=(identity.get("personId") or "").strip(),
+        account_id=(identity.get("accountId") or "").strip(),
+        base_device_id=(identity.get("baseDeviceId") or "").strip(),
+        legacy_owner_role=(identity.get("legacyOwnerRole") or "").strip(),
+    )
 
 
 def _load_role_codes() -> dict:
@@ -8567,7 +8770,26 @@ def _resolve_role_request_review(
             desired_role = "participant"
         target["desiredRole"] = desired_role
 
-        device_id = (target.get("deviceId") or "").strip()
+        identity = _resolve_identity_context_for_role(
+            desired_role,
+            {
+                "deviceId": (target.get("baseDeviceId") or target.get("deviceId") or "").strip(),
+                "baseDeviceId": (target.get("baseDeviceId") or target.get("deviceId") or "").strip(),
+                "personId": (target.get("personId") or "").strip(),
+                "accountId": (target.get("accountId") or "").strip(),
+                "legacyRoleOwner": (target.get("legacyOwnerRole") or "").strip(),
+            },
+            fallback_device_id=(target.get("baseDeviceId") or target.get("deviceId") or "").strip(),
+            fallback_person_id=(target.get("personId") or "").strip(),
+            fallback_account_id=(target.get("accountId") or "").strip(),
+            fallback_legacy_owner_role=(target.get("legacyOwnerRole") or "").strip(),
+        )
+        target["deviceId"] = identity.get("baseDeviceId") or target.get("deviceId") or ""
+        target["baseDeviceId"] = identity.get("baseDeviceId")
+        target["personId"] = identity.get("personId")
+        target["accountId"] = identity.get("accountId")
+        target["legacyOwnerRole"] = identity.get("legacyOwnerRole")
+
         prefix = ROLE_PREFIX_MAP.get(desired_role, "USR")
         suffix = secrets.token_hex(2).upper()
         role_code = f"RL-{prefix}-{suffix}"
@@ -8581,14 +8803,22 @@ def _resolve_role_request_review(
             "used": False,
             "usedBy": None,
             "usedAt": None,
+            "baseDeviceId": identity.get("baseDeviceId"),
+            "personId": identity.get("personId"),
+            "accountId": identity.get("accountId"),
+            "legacyOwnerRole": identity.get("legacyOwnerRole"),
         }
         codes = _load_role_codes()
         codes[role_code] = code_entry
         _save_role_codes(codes)
         target["roleCode"] = role_code
 
-        if AUTH_JWT_SECRET and device_id:
-            access_token = _issue_role_jwt(desired_role, device_id, email=(target.get("email") or "").strip().lower())
+        if AUTH_JWT_SECRET:
+            access_token = _issue_role_jwt_for_identity(
+                desired_role,
+                (target.get("email") or "").strip().lower(),
+                identity,
+            )
             target["accessToken"] = access_token
 
         email_delivery = _send_role_approval_email(
@@ -8628,7 +8858,8 @@ def _resolve_role_request_review(
     if role_code:
         response_data["roleCode"] = role_code
         response_data["approvedRole"] = target.get("desiredRole", "participant")
-        response_data["approvedDeviceId"] = (target.get("deviceId") or "").strip()
+        response_data["approvedDeviceId"] = (target.get("baseDeviceId") or target.get("deviceId") or "").strip()
+        response_data["approvedAccountId"] = (target.get("accountId") or "").strip()
     if access_token:
         response_data["accessToken"] = access_token
     if email_delivery is not None:
@@ -8682,16 +8913,16 @@ def role_codes_redeem():
     """
     POST /api/role-codes/redeem — redeem a one-time role code.
     No auth required (traveler enters the code).
-    Body: { "code": "RL-VOZ-7X3K", "deviceId": "xxx" }
+    Body: { "code": "RL-VOZ-7X3K", "deviceId|baseDeviceId": "xxx", "legacyRoleOwner?": "..." }
     """
     body = request.get_json() or {}
     code = (body.get("code") or "").strip().upper()
-    device_id = (body.get("deviceId") or "").strip()
+    requested_base_device_id = (body.get("baseDeviceId") or body.get("deviceId") or "").strip()
 
     if not code:
         return jsonify({"error": "code is required"}), 400
-    if not device_id:
-        return jsonify({"error": "deviceId is required"}), 400
+    if not requested_base_device_id:
+        return jsonify({"error": "deviceId/baseDeviceId is required"}), 400
 
     codes = _load_role_codes()
     entry = codes.get(code)
@@ -8716,48 +8947,88 @@ def role_codes_redeem():
         except ValueError:
             pass
 
+    role = _normalize_role((entry.get("role") or "participant").strip())
+    identity = _resolve_identity_context_for_role(
+        role,
+        body,
+        fallback_device_id=requested_base_device_id,
+        fallback_person_id=(entry.get("personId") or "").strip(),
+        fallback_account_id=(entry.get("accountId") or "").strip(),
+        fallback_legacy_owner_role=(entry.get("legacyOwnerRole") or "").strip(),
+        supabase_user_id=(body.get("supabaseUserId") or "").strip(),
+        supabase_token=(body.get("supabaseToken") or "").strip(),
+    )
+
     # Mark as used (skip for reusable test codes)
     if not is_reusable:
         entry["used"] = True
-        entry["usedBy"] = device_id
+        entry["usedBy"] = identity.get("baseDeviceId") or requested_base_device_id
         entry["usedAt"] = datetime.now(timezone.utc).isoformat()
+        entry["usedByAccountId"] = identity.get("accountId")
         codes[code] = entry
         _save_role_codes(codes)
 
-    role = entry.get("role", "participant")
-    token = _issue_role_jwt(role, device_id)
+    token = _issue_role_jwt_for_identity(role, (body.get("email") or "").strip().lower(), identity)
 
-    return jsonify({"role": role, "accessToken": token, "campId": "default"})
+    return jsonify({
+        "role": role,
+        "accessToken": token,
+        "campId": "default",
+        "deviceId": identity.get("deviceId"),
+        "baseDeviceId": identity.get("baseDeviceId"),
+        "personId": identity.get("personId"),
+        "accountId": identity.get("accountId"),
+        "legacyOwnerRole": identity.get("legacyOwnerRole"),
+    })
 
 
 @app.route('/api/role-requests', methods=['POST'])
 def role_requests_create():
     """
     POST /api/role-requests — submit a role request.
-    Body: { "deviceId": "xxx", "desiredRole": "counselor", "name": "...", "comment": "..." }
+    Body: { "deviceId|baseDeviceId": "xxx", "desiredRole": "counselor", "name": "...", "comment": "...", "legacyRoleOwner?": "..." }
     Or with Authorization header (JWT): body needs only desiredRole + comment.
     """
     body = request.get_json() or {}
 
-    # Try to get deviceId from JWT first, fallback to body
-    device_id = ""
+    # Try to get identity hints from JWT first, fallback to body.
+    jwt_device_id = ""
+    jwt_base_device_id = ""
+    jwt_person_id = ""
     auth_header = (request.headers.get("Authorization") or "").strip()
     if auth_header.startswith("Bearer ") and AUTH_JWT_SECRET:
         token = auth_header[7:].strip()
         if token:
             try:
                 jwt_payload = jwt.decode(token, AUTH_JWT_SECRET, algorithms=["HS256"])
-                device_id = (jwt_payload.get("deviceId") or "").strip()
+                jwt_device_id = (jwt_payload.get("deviceId") or "").strip()
+                jwt_base_device_id = (jwt_payload.get("baseDeviceId") or "").strip() or jwt_device_id
+                jwt_person_id = (jwt_payload.get("personId") or "").strip()
             except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
                 pass
-    if not device_id:
-        device_id = (body.get("deviceId") or "").strip()
-    if not device_id:
-        return jsonify({"error": "deviceId is required"}), 400
 
     desired_role = _normalize_role((body.get("desiredRole") or "").strip())
     if desired_role not in VALID_ROLE_CODE_ROLES:
         return jsonify({"error": f"Invalid desiredRole: {desired_role}"}), 400
+
+    incoming_base_device_id = (
+        (body.get("baseDeviceId") or body.get("deviceId") or "").strip()
+        or jwt_base_device_id
+        or jwt_device_id
+    )
+    if not incoming_base_device_id:
+        return jsonify({"error": "deviceId/baseDeviceId is required"}), 400
+
+    identity = _resolve_identity_context_for_role(
+        desired_role,
+        body,
+        fallback_device_id=incoming_base_device_id,
+        fallback_person_id=jwt_person_id,
+        fallback_legacy_owner_role=(body.get("legacyRoleOwner") or "").strip(),
+    )
+    base_device_id = (identity.get("baseDeviceId") or "").strip()
+    if not base_device_id:
+        return jsonify({"error": "deviceId/baseDeviceId is required"}), 400
 
     name = (body.get("name") or "").strip()[:200]
     email = (body.get("email") or "").strip().lower()[:200]
@@ -8773,7 +9044,12 @@ def role_requests_create():
 
     new_request = {
         "id": rr_id,
-        "deviceId": device_id,
+        # Keep deviceId for backward compatibility, but store stable identity fields too.
+        "deviceId": base_device_id,
+        "baseDeviceId": base_device_id,
+        "personId": identity.get("personId"),
+        "accountId": identity.get("accountId"),
+        "legacyOwnerRole": identity.get("legacyOwnerRole"),
         "desiredRole": desired_role,
         "name": name,
         "email": email,
@@ -8808,10 +9084,28 @@ def role_requests_create():
 @app.route('/api/role-requests', methods=['GET'])
 def role_requests_list():
     """
-    GET /api/role-requests?deviceId=xxx — list role requests for a device.
+    GET /api/role-requests?deviceId=xxx — list role requests for a base device.
     GET /api/role-requests?all=true — list ALL requests (admin only, requires JWT).
     """
     show_all = (request.args.get("all") or "").strip().lower() == "true"
+
+    def _token_for_request_row(row: dict) -> str:
+        desired_role = _normalize_role((row.get("desiredRole") or "participant").strip())
+        identity = _resolve_identity_context_for_role(
+            desired_role,
+            {
+                "deviceId": (row.get("baseDeviceId") or row.get("deviceId") or "").strip(),
+                "baseDeviceId": (row.get("baseDeviceId") or row.get("deviceId") or "").strip(),
+                "personId": (row.get("personId") or "").strip(),
+                "accountId": (row.get("accountId") or "").strip(),
+                "legacyRoleOwner": (row.get("legacyOwnerRole") or "").strip(),
+            },
+            fallback_device_id=(row.get("baseDeviceId") or row.get("deviceId") or "").strip(),
+            fallback_person_id=(row.get("personId") or "").strip(),
+            fallback_account_id=(row.get("accountId") or "").strip(),
+            fallback_legacy_owner_role=(row.get("legacyOwnerRole") or "").strip(),
+        )
+        return _issue_role_jwt_for_identity(desired_role, (row.get("email") or "").strip().lower(), identity)
 
     if show_all:
         # Admin mode: requires staff JWT
@@ -8825,29 +9119,29 @@ def role_requests_list():
                 continue
             row = dict(rr)
             if row.get("status") == "approved" and AUTH_JWT_SECRET:
-                row["accessToken"] = _issue_role_jwt(
-                    row.get("desiredRole", "participant"),
-                    row.get("deviceId", "")
-                )
+                row["accessToken"] = _token_for_request_row(row)
             result.append(row)
         return jsonify({"requests": result})
 
-    # Regular user mode: filter by deviceId
-    device_id = (request.args.get("deviceId") or "").strip()
-    if not device_id:
+    # Regular user mode: filter by base device id.
+    query_device_id = (request.args.get("deviceId") or "").strip()
+    if not query_device_id:
         return jsonify({"error": "deviceId query param required"}), 400
 
     all_requests = _load_role_requests()
     user_requests = [
         rr for rr in all_requests
-        if isinstance(rr, dict) and rr.get("deviceId") == device_id
+        if isinstance(rr, dict) and (
+            (rr.get("baseDeviceId") or "").strip() == query_device_id
+            or (rr.get("deviceId") or "").strip() == query_device_id
+        )
     ]
     # For approved requests: generate fresh JWT so client can auto-login
     result = []
     for rr in user_requests:
         row = dict(rr)
         if row.get("status") == "approved" and AUTH_JWT_SECRET:
-            row["accessToken"] = _issue_role_jwt(row.get("desiredRole", "participant"), device_id)
+            row["accessToken"] = _token_for_request_row(row)
         result.append(row)
     return jsonify({"requests": result})
 
@@ -8875,115 +9169,20 @@ def role_requests_review(request_id):
         comment=(body.get("comment") or "").strip(),
     )
     return jsonify(response_data), status_code
-    if new_status not in ("approved", "rejected"):
-        return jsonify({"error": "status must be 'approved' or 'rejected'"}), 400
-
-    request_id = (request_id or "").strip()
-    if not request_id:
-        return jsonify({"error": "request_id is required"}), 400
-
-    all_rr = _load_role_requests()
-    target = None
-    for rr in all_rr:
-        if isinstance(rr, dict) and rr.get("id") == request_id:
-            target = rr
-            break
-
-    if target is None:
-        return jsonify({"error": "Request not found"}), 404
-
-    if target.get("status") != "pending":
-        return jsonify({"error": f"Request already {target.get('status')}"}), 409
-
-    now_iso = datetime.now(timezone.utc).isoformat()
-    reviewer = (payload.get("deviceId") or payload.get("email") or "admin").strip()
-    target["status"] = new_status
-    target["reviewedAt"] = now_iso
-    target["reviewedBy"] = reviewer
-
-    _RR_LABELS = {
-        'participant': 'Участник', 'counselor': 'Вожатый', 'educator': 'Педагог',
-        'shift_leader': 'Ст. Вожатый', 'camp_director': 'Нач. Лагеря', 'parent': 'Родитель',
-    }
-
-    role_code = None
-    access_token = None
-
-    if new_status == "approved":
-        desired_role = target.get("desiredRole", "participant")
-        device_id = target.get("deviceId", "")
-
-        # Generate a one-time role code for the user
-        prefix = ROLE_PREFIX_MAP.get(desired_role, "USR")
-        suffix = secrets.token_hex(2).upper()
-        role_code = f"RL-{prefix}-{suffix}"
-        from datetime import timedelta
-        expires_at = (datetime.now(timezone.utc) + timedelta(days=ROLE_CODE_TTL_DAYS)).isoformat()
-
-        code_entry = {
-            "code": role_code,
-            "role": desired_role,
-            "createdAt": now_iso,
-            "expiresAt": expires_at,
-            "used": False,
-            "usedBy": None,
-            "usedAt": None,
-        }
-        codes = _load_role_codes()
-        codes[role_code] = code_entry
-        _save_role_codes(codes)
-
-        target["roleCode"] = role_code
-
-        # Also issue a JWT directly (for auto-login if user is online)
-        if AUTH_JWT_SECRET and device_id:
-            access_token = _issue_role_jwt(desired_role, device_id, email=target.get("email", ""))
-            target["accessToken"] = access_token
-
-        # Telegram notification: approval
-        role_label = _RR_LABELS.get(desired_role, desired_role)
-        name = target.get("name", "")
-        email = target.get("email", "")
-        tg_text = (
-            f"✅ Заявка одобрена\n"
-            f"Роль: {role_label}\n"
-            f"Имя: {name or '—'}\n"
-            f"Email: {email or '—'}\n"
-            f"Код доступа: {role_code}"
-        )
-        try:
-            send_telegram_message(tg_text)
-        except Exception:
-            pass
-    else:
-        # Rejected
-        role_label = _RR_LABELS.get(target.get("desiredRole", ""), target.get("desiredRole", ""))
-        name = target.get("name", "")
-        tg_text = f"❌ Заявка отклонена — {name or '—'} ({role_label})"
-        try:
-            send_telegram_message(tg_text)
-        except Exception:
-            pass
-
-    _save_role_requests(all_rr)
-
-    response_data = {
-        "ok": True,
-        "request": target,
-    }
-    if role_code:
-        response_data["roleCode"] = role_code
-    if access_token:
-        response_data["accessToken"] = access_token
-
-    return jsonify(response_data)
 
 
 @app.route('/api/auth/resolve', methods=['POST'])
 def auth_resolve():
     """
     POST /api/auth/resolve — determine role by email (OAuth login).
-    Body: { "email": "...", "supabaseToken": "...", "deviceId": "...", "desiredRole": "..." }
+    Body: {
+      "email": "...",
+      "supabaseToken": "...",
+      "supabaseUserId": "...",
+      "deviceId|baseDeviceId": "...",
+      "desiredRole": "...",
+      "legacyRoleOwner?": "..."
+    }
     - If email in DEV_EMAILS -> developer
     - If approved role_request for email/deviceId -> that role
     - If desiredRole given -> create pending request + return pending
@@ -8991,48 +9190,111 @@ def auth_resolve():
     """
     body = request.get_json() or {}
     email = (body.get("email") or "").strip().lower()
-    device_id = (body.get("deviceId") or "").strip() or uuid.uuid4().hex[:16]
+    requested_device_id = (body.get("baseDeviceId") or body.get("deviceId") or "").strip()
     desired_role = _normalize_role((body.get("desiredRole") or "").strip())
 
     if not email:
         return jsonify({"error": "email is required"}), 400
 
+    def _auth_success_payload(role_name: str) -> dict:
+        identity = _resolve_identity_context_for_role(
+            role_name,
+            body,
+            fallback_device_id=requested_device_id,
+            supabase_user_id=(body.get("supabaseUserId") or "").strip(),
+            supabase_token=(body.get("supabaseToken") or "").strip(),
+        )
+        token = _issue_role_jwt_for_identity(role_name, email, identity)
+        return {
+            "role": role_name,
+            "accessToken": token,
+            "campId": "default",
+            "deviceId": identity.get("deviceId"),
+            "baseDeviceId": identity.get("baseDeviceId"),
+            "personId": identity.get("personId"),
+            "accountId": identity.get("accountId"),
+            "legacyOwnerRole": identity.get("legacyOwnerRole"),
+        }
+
     # 1) DEV_EMAILS check
     if email in DEV_EMAILS:
-        token = _issue_role_jwt("developer", device_id, email=email)
-        return jsonify({"role": "developer", "accessToken": token})
+        return jsonify(_auth_success_payload("developer"))
 
     # 2) Check approved role_requests for this email/deviceId
     all_rr = _load_role_requests()
+    desired_match = None
+    fallback_match = None
     for rr in reversed(all_rr):
         if not isinstance(rr, dict):
             continue
         if rr.get("status") != "approved":
             continue
         rr_email = (rr.get("email") or "").strip().lower()
-        rr_device = (rr.get("deviceId") or "").strip()
-        if (rr_email and rr_email == email) or (rr_device and rr_device == device_id):
-            role = rr.get("desiredRole", "participant")
-            token = _issue_role_jwt(role, device_id, email=email)
-            return jsonify({"role": role, "accessToken": token})
+        rr_device = (rr.get("baseDeviceId") or rr.get("deviceId") or "").strip()
+        if (rr_email and rr_email == email) or (requested_device_id and rr_device and rr_device == requested_device_id):
+            rr_role = _normalize_role((rr.get("desiredRole") or "participant").strip())
+            if desired_role and desired_role not in ("traveler", "") and rr_role == desired_role:
+                desired_match = rr
+                break
+            if fallback_match is None:
+                fallback_match = rr
+
+    approved_rr = desired_match or fallback_match
+    if approved_rr is not None:
+        role = _normalize_role((approved_rr.get("desiredRole") or "participant").strip())
+        rr_device = (approved_rr.get("baseDeviceId") or approved_rr.get("deviceId") or "").strip()
+        identity = _resolve_identity_context_for_role(
+            role,
+            body,
+            fallback_device_id=(requested_device_id or rr_device),
+            fallback_person_id=(approved_rr.get("personId") or "").strip(),
+            fallback_account_id=(approved_rr.get("accountId") or "").strip(),
+            fallback_legacy_owner_role=(approved_rr.get("legacyOwnerRole") or "").strip(),
+            supabase_user_id=(body.get("supabaseUserId") or "").strip(),
+            supabase_token=(body.get("supabaseToken") or "").strip(),
+        )
+        token = _issue_role_jwt_for_identity(role, email, identity)
+        return jsonify({
+            "role": role,
+            "accessToken": token,
+            "campId": "default",
+            "deviceId": identity.get("deviceId"),
+            "baseDeviceId": identity.get("baseDeviceId"),
+            "personId": identity.get("personId"),
+            "accountId": identity.get("accountId"),
+            "legacyOwnerRole": identity.get("legacyOwnerRole"),
+        })
 
     # 3) If desiredRole given: create/update pending request so admin can approve
     if desired_role and desired_role not in ("traveler", ""):
+        identity = _resolve_identity_context_for_role(
+            desired_role,
+            body,
+            fallback_device_id=requested_device_id,
+            supabase_user_id=(body.get("supabaseUserId") or "").strip(),
+            supabase_token=(body.get("supabaseToken") or "").strip(),
+        )
+        base_device_id = (identity.get("baseDeviceId") or "").strip()
+
         # Check if there's already a pending request for this email/device
         existing = None
         for rr in all_rr:
             if not isinstance(rr, dict) or rr.get("status") != "pending":
                 continue
             rr_email = (rr.get("email") or "").strip().lower()
-            rr_device = (rr.get("deviceId") or "").strip()
-            if (rr_email and rr_email == email) or (rr_device and rr_device == device_id):
+            rr_device = (rr.get("baseDeviceId") or rr.get("deviceId") or "").strip()
+            if (rr_email and rr_email == email) or (base_device_id and rr_device and rr_device == base_device_id):
                 existing = rr
                 break
 
         if not existing:
             new_rr = {
                 "id": f"rr-{uuid.uuid4().hex[:12]}",
-                "deviceId": device_id,
+                "deviceId": base_device_id,
+                "baseDeviceId": base_device_id,
+                "personId": identity.get("personId"),
+                "accountId": identity.get("accountId"),
+                "legacyOwnerRole": identity.get("legacyOwnerRole"),
                 "email": email,
                 "desiredRole": desired_role,
                 "name": email.split("@")[0],  # Use email prefix as name
@@ -9044,19 +9306,38 @@ def auth_resolve():
             _save_role_requests(all_rr)
         else:
             # Update email in existing request if not set
+            changed = False
             if not existing.get("email"):
                 existing["email"] = email
+                changed = True
+            if not existing.get("baseDeviceId") and base_device_id:
+                existing["baseDeviceId"] = base_device_id
+                existing["deviceId"] = base_device_id
+                changed = True
+            if not existing.get("personId") and identity.get("personId"):
+                existing["personId"] = identity.get("personId")
+                changed = True
+            if not existing.get("accountId") and identity.get("accountId"):
+                existing["accountId"] = identity.get("accountId")
+                changed = True
+            if not existing.get("legacyOwnerRole") and identity.get("legacyOwnerRole"):
+                existing["legacyOwnerRole"] = identity.get("legacyOwnerRole")
+                changed = True
+            if changed:
                 _save_role_requests(all_rr)
 
         return jsonify({
             "role": "pending",
             "message": "Заявка создана. Ожидайте одобрения администратором.",
             "desiredRole": desired_role,
+            "baseDeviceId": identity.get("baseDeviceId"),
+            "personId": identity.get("personId"),
+            "accountId": identity.get("accountId"),
+            "legacyOwnerRole": identity.get("legacyOwnerRole"),
         })
 
     # 4) Default: participant (issue JWT)
-    token = _issue_role_jwt("participant", device_id, email=email)
-    return jsonify({"role": "participant", "accessToken": token})
+    return jsonify(_auth_success_payload("participant"))
 
 
 @app.route('/api/auth/dev-pin', methods=['POST'])
@@ -9084,8 +9365,23 @@ def auth_dev_pin():
     if pin != dev_pin_env:
         return jsonify({"error": "Invalid PIN"}), 401
 
-    token = _issue_role_jwt("developer", device_id)
-    return jsonify({"role": "developer", "accessToken": token})
+    identity = _resolve_identity_context_for_role(
+        "developer",
+        body,
+        fallback_device_id=device_id,
+        fallback_legacy_owner_role=(body.get("legacyRoleOwner") or "").strip(),
+    )
+    token = _issue_role_jwt_for_identity("developer", "", identity)
+    return jsonify({
+        "role": "developer",
+        "accessToken": token,
+        "campId": "default",
+        "deviceId": identity.get("deviceId"),
+        "baseDeviceId": identity.get("baseDeviceId"),
+        "personId": identity.get("personId"),
+        "accountId": identity.get("accountId"),
+        "legacyOwnerRole": identity.get("legacyOwnerRole"),
+    })
 
 
 

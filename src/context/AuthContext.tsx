@@ -6,11 +6,27 @@ import { loadAuthStorage, saveAuthStorage, clearAuthStorage, setOn401, type Auth
 interface AuthContextType {
   role: UserRole;
   deviceId: string;
+  baseDeviceId: string;
+  personId?: string;
+  accountId?: string;
+  legacyRoleOwner?: UserRole;
+  legacyMigrated?: boolean;
   accessToken: string | undefined;
   campId: string | undefined;
   canUseChat: boolean;
   setRole: (role: UserRole) => void;
-  setAuth: (data: { role: UserRole; accessToken?: string; campId?: string; exp?: number }) => void;
+  setAuth: (data: {
+    role: UserRole;
+    accessToken?: string;
+    campId?: string;
+    exp?: number;
+    personId?: string;
+    accountId?: string;
+    baseDeviceId?: string;
+    deviceId?: string;
+    legacyRoleOwner?: UserRole;
+    legacyMigrated?: boolean;
+  }) => void;
   clearAuth: () => void;
 }
 
@@ -29,7 +45,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setAuthState(loadAuthStorage());
   }, []);
 
-  const setAuth = useCallback((data: { role: UserRole; accessToken?: string; campId?: string; exp?: number }) => {
+  const setAuth = useCallback((data: {
+    role: UserRole;
+    accessToken?: string;
+    campId?: string;
+    exp?: number;
+    personId?: string;
+    accountId?: string;
+    baseDeviceId?: string;
+    deviceId?: string;
+    legacyRoleOwner?: UserRole;
+    legacyMigrated?: boolean;
+  }) => {
     saveAuthStorage(data);
     setAuthState(loadAuthStorage());
   }, []);
@@ -49,6 +76,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const value: AuthContextType = {
     role: auth.role,
     deviceId: auth.deviceId,
+    baseDeviceId: auth.baseDeviceId,
+    personId: auth.personId,
+    accountId: auth.accountId,
+    legacyRoleOwner: auth.legacyRoleOwner,
+    legacyMigrated: auth.legacyMigrated,
     accessToken: auth.accessToken,
     campId: auth.campId,
     canUseChat,

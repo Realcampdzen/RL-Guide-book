@@ -6,6 +6,7 @@ import { useUserProgress } from '../hooks/useUserProgress';
 import { useTeam } from '../context/TeamContext';
 import { useCounselorSquad } from '../context/CounselorSquadContext';
 import { useAuth } from '../context/AuthContext';
+import { getProgressStorageKey } from '../context/ProgressContext';
 import { fireOn401 } from '../utils/authStorage';
 import { canSeeOtradBlocks, showEventsPanelForRole, ROLE_ORDER, getRoleDisplay, ROLE_LABELS, canCreateShiftsAndSquads, isTraveler, canUseExpensiveActions, canRequestBadgeApproval, canModerateBadgeApprovals } from '../types/authRole';
 import type { UserRole } from '../types/authRole';
@@ -173,7 +174,8 @@ export const ProfileView: React.FC<any> = (props) => {
   const { onBack, onNavigateToBadge, badges, ensureBadgeLoaded, addCustomBadge: _addCustomBadge, restoreCustomBadges, removeCustomBadge, customBadges = [], communityBadges = [], communityPendingCount: _communityPendingCount = 0, communitySyncing: _communitySyncing = false, communityLikedIds: _communityLikedIds = new Set<string>(), toggleCommunityLike: _toggleCommunityLike, publishBadgeToCommunity, setCustomBadgeImage: _setCustomBadgeImage, onChatToggle: _onChatToggle, onChatClose: _onChatClose, isChatOpen: _isChatOpen, lastUpdated, onNavigateToRegistrationForm, onNavigateHome, onNavigateCategories, onNavigateAboutCamp, onTelegramContact, onOpenVk } = props;
   const { userData, setNickname, setAvatar, setProfileStatus, setProfileBio, toggleFavorite, removeRoute, exportData, importData, resetProgress, applyApprovedLevel, getLevelProgress, markRankUpSeen, completeTutorial, isLoading, updateLevelEvidence, updateLevelStatus, saveBadgePlan, updateBadgePlanStatus, updateVozhatifikatorChecklist, updateDiarySquad, setPathFavToast } = useUserProgress();
   const { myTeam, generateInviteUrl } = useTeam();
-  const { canUseChat, role, deviceId, setAuth, accessToken, campId } = useAuth();
+  const { canUseChat, role, deviceId, accountId, setAuth, accessToken, campId } = useAuth();
+  const progressStorageKey = getProgressStorageKey(accountId);
   const { activeSquadName: counselorSquadName, activeSquadCard: counselorSquadCard } = useCounselorSquad();
   const seeOtradBlocks = canSeeOtradBlocks(role);
   const showEventsForRole = showEventsPanelForRole(role);
@@ -6297,10 +6299,10 @@ export const ProfileView: React.FC<any> = (props) => {
                           createdAt: new Date().toISOString(),
                         };
                         try {
-                          const raw = localStorage.getItem('rl_guide_progress_v1');
+                          const raw = localStorage.getItem(progressStorageKey);
                           const data = raw ? JSON.parse(raw) : {};
                           data.educatorTasks = [...(data.educatorTasks || []), newTask];
-                          localStorage.setItem('rl_guide_progress_v1', JSON.stringify(data));
+                          localStorage.setItem(progressStorageKey, JSON.stringify(data));
                         } catch (_) { /* ignore */ }
                         setEduTaskForm({ title: '', description: '', badgeId: '' });
                         showHint({ title: 'Задание создано', content: `«${newTask.title}» добавлено в черновики.` });

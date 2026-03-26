@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { supabase } from '../utils/supabaseClient';
 import type { Session, User } from '@supabase/supabase-js';
+import { getBaseDeviceId } from '../utils/authStorage';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -76,7 +77,7 @@ export function useAuth(): AuthState {
 
         // Link existing localStorage device_id if present
         if (!linked.current) {
-            const deviceId = localStorage.getItem('rl-device-id');
+            const deviceId = getBaseDeviceId();
             if (deviceId) {
                 linked.current = true;
                 void linkDevice(token, deviceId);

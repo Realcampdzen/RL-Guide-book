@@ -30,7 +30,9 @@ export function clearPendingOAuthRole(): void {
 
 interface RoleSelectionModalProps {
     onResult: (result: RoleFlowResult) => void;
-    deviceId: string;
+    deviceId: string;
+
+    legacyRoleOwner?: UserRole;
 }
 
 // ---------------------------------------------------------------------------
@@ -71,7 +73,7 @@ interface SubmittedRequest {
     desiredRole: string;
 }
 
-export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({ onResult, deviceId }) => {
+export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({ onResult, deviceId, legacyRoleOwner }) => {
     const [step, setStep] = useState<Step>('select');
     const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
     const [hoveredId, setHoveredId] = useState<string | null>(null);
@@ -195,7 +197,11 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({ onResult
             const res = await fetch(`${base}/api/role-codes/redeem`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ code: code.trim(), deviceId }),
+                body: JSON.stringify({
+                    code: code.trim(),
+                    deviceId,
+                    legacyRoleOwner: legacyRoleOwner || undefined,
+                }),
             });
             const data = await res.json().catch(() => ({})) as Record<string, unknown>;
             if (!res.ok) {
@@ -211,7 +217,7 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({ onResult
         } finally {
             setCodeBusy(false);
         }
-    }, [code, deviceId, selectedRole, onResult]);
+    }, [code, deviceId, legacyRoleOwner, selectedRole, onResult]);
 
     const handleSubmitRequest = useCallback(async () => {
         const trimmedName = reqName.trim();
@@ -234,6 +240,7 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({ onResult
                     name: trimmedName,
                     email: trimmedEmail,
                     comment: reqComment.trim() || undefined,
+                    legacyRoleOwner: legacyRoleOwner || undefined,
                 }),
             });
             const data = await res.json().catch(() => ({})) as Record<string, unknown>;
@@ -251,7 +258,7 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({ onResult
         } finally {
             setReqBusy(false);
         }
-    }, [reqName, reqComment, reqEmail, deviceId, selectedRole]);
+    }, [reqName, reqComment, reqEmail, deviceId, legacyRoleOwner, selectedRole]);
 
     const roleLabel = selectedRole ? ROLE_LABELS[selectedRole] : '';
     const isReqEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(reqEmail.trim());
@@ -671,3 +678,7 @@ export function getSelectedRole(): string | null {
 }
 
 export default RoleSelectionModal;
+
+
+
+
