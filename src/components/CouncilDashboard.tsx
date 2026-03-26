@@ -23,6 +23,13 @@ const COUNCIL_ACCENT = '#FFD700';
 const COUNCIL_ACCENT_LIGHT = 'rgba(255, 215, 0, 0.2)';
 const COUNCIL_GRADIENT = 'linear-gradient(135deg, rgba(255, 215, 0, 0.08) 0%, rgba(184, 134, 11, 0.12) 100%)';
 
+function getApiBase(): string {
+    if (typeof window === 'undefined') return '';
+    const h = window.location.hostname;
+    const useLocal = import.meta.env.DEV || h === 'localhost' || h === '127.0.0.1';
+    return useLocal ? '' : ((import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || '')).replace(/\/$/, '');
+}
+
 const mapLegacyInitiativeStatus = (raw?: string): InitiativeStatus => {
   const s = (raw || '').trim().toLowerCase();
   if (s === 'new' || s === 'reviewing' || s === 'accepted' || s === 'rejected' || s === 'done') return s;
@@ -181,7 +188,7 @@ export const CouncilDashboard: React.FC<CouncilDashboardProps> = ({
     let cancelled = false;
     setTeamsLoading(true);
     setTeamsError(null);
-    fetch('/api/teams')
+    fetch(`${getApiBase()}/api/teams`)
       .then(async (res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json();
