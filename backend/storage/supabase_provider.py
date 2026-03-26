@@ -18,7 +18,7 @@ from .base import (
     ShiftsStore, MembershipsStore, SquadCornersStore,
     SquadInvitesStore, SquadMessagesStore,
     BadgeRequestsStore, BadgePlansStore, ParentSnapshotsStore,
-    ChatDailyUsageStore, CouncilInitiativesStore, TeamsStore,
+    ChatDailyUsageStore, CouncilInitiativesStore, CouncilMembersStore, CouncilProtocolsStore, TeamsStore,
     BadgeArtsStore, EnginesStore, EngineMembersStore,
     InspectorProgressStore,
     BroEventsStore, BroPassportsStore, BroSubmissionsStore, BroInitiativesStore, ShiftScheduleStore,
@@ -46,6 +46,17 @@ def _client():
             )
         _sb_client = create_client(url, key)
     return _sb_client
+
+
+def _is_missing_table_error(exc: Exception) -> bool:
+    """True when Supabase/PostgREST says table is missing from schema cache."""
+    code = getattr(exc, "code", None)
+    if isinstance(code, str) and code.upper() == "PGRST205":
+        return True
+    message = str(exc)
+    return "PGRST205" in message or (
+        "Could not find the table" in message and "schema cache" in message
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -667,6 +678,108 @@ def _initiative_to_row(item: dict) -> dict:
 
 
 # ---------------------------------------------------------------------------
+# CouncilMembersStore — таблица council_members
+# ---------------------------------------------------------------------------
+
+class SupabaseCouncilMembersStore(CouncilMembersStore):
+    def load(self) -> dict:
+        sb = _client()
+        try:
+            rows = sb.table("council_members").select("*").order("joined_at", desc=True).execute().data or []
+        except Exception as exc:
+            if _is_missing_table_error(exc):
+                return {"members": []}
+            raise
+        members = []
+        for r in rows:
+            members.append({
+                "id": r.get("id", ""),
+                "nickname": r.get("nickname", ""),
+                "role": r.get("role", "member"),
+                "deviceId": r.get("device_id", ""),
+                "joinedAt": _ts(r.get("joined_at")),
+                "addedBy": r.get("added_by", ""),
+            })
+        return {"members": members}
+
+    def save(self, data: dict) -> None:
+        sb = _client()
+        for m in (data.get("members") or []):
+            if not isinstance(m, dict):
+                continue
+            row = {
+                "id": m.get("id") or str(uuid.uuid4()),
+                "nickname": m.get("nickname", ""),
+                "role": m.get("role", "member"),
+                "device_id": m.get("deviceId", ""),
+                "joined_at": m.get("joinedAt") or None,
+                "added_by": m.get("addedBy", ""),
+            }
+            try:
+                sb.table("council_members").upsert(row).execute()
+            except Exception as exc:
+                if _is_missing_table_error(exc):
+                    return
+                raise
+
+
+# ---------------------------------------------------------------------------
+# CouncilProtocolsStore — таблица council_protocols
+# ---------------------------------------------------------------------------
+
+class SupabaseCouncilProtocolsStore(CouncilProtocolsStore):
+    def load(self) -> dict:
+        sb = _client()
+        try:
+            rows = sb.table("council_protocols").select("*").order("date", desc=True).execute().data or []
+        except Exception as exc:
+            if _is_missing_table_error(exc):
+                return {"protocols": []}
+            raise
+        protocols = []
+        for r in rows:
+            protocols.append({
+                "id": r.get("id", ""),
+                "title": r.get("title", ""),
+                "date": r.get("date", ""),
+                "summary": r.get("summary", ""),
+                "decisions": r.get("decisions") or [],
+                "participants": r.get("participants") or [],
+                "createdBy": r.get("created_by", ""),
+                "createdByNickname": r.get("created_by_nickname", ""),
+                "createdAt": _ts(r.get("created_at")),
+                "updatedAt": _ts(r.get("updated_at")),
+            })
+        return {"protocols": protocols}
+
+    def save(self, data: dict) -> None:
+        sb = _client()
+        for p in (data.get("protocols") or []):
+            if not isinstance(p, dict):
+                continue
+            row = {
+                "id": p.get("id") or str(uuid.uuid4()),
+                "title": p.get("title", ""),
+                "date": p.get("date", ""),
+                "summary": p.get("summary", ""),
+                "decisions": p.get("decisions") or [],
+                "participants": p.get("participants") or [],
+                "created_by": p.get("createdBy", ""),
+                "created_by_nickname": p.get("createdByNickname", ""),
+            }
+            if p.get("createdAt"):
+                row["created_at"] = p["createdAt"]
+            if p.get("updatedAt"):
+                row["updated_at"] = p["updatedAt"]
+            try:
+                sb.table("council_protocols").upsert(row).execute()
+            except Exception as exc:
+                if _is_missing_table_error(exc):
+                    return
+                raise
+
+
+# ---------------------------------------------------------------------------
 # TeamsStore — таблица teams
 # ---------------------------------------------------------------------------
 
@@ -1078,7 +1191,7 @@ class SupabaseWorkshopsStore(WorkshopsStore):
         }
 
     def load(self) -> dict:
-        sb = _get_sb()
+        sb = _client()
         w_rows = sb.table("workshops").select("*").execute().data or []
         p_rows = sb.table("workshop_participants").select("*").execute().data or []
         b_rows = sb.table("workshop_badges").select("*").execute().data or []
@@ -1091,7 +1204,7 @@ class SupabaseWorkshopsStore(WorkshopsStore):
         }
 
     def save(self, data: dict) -> None:
-        sb = _get_sb()
+        sb = _client()
         for w in (data.get("workshops") or []):
             if not isinstance(w, dict):
                 continue
@@ -1153,12 +1266,12 @@ class SupabaseParentSuggestionsStore(ParentSuggestionsStore):
         }
 
     def load(self) -> dict:
-        sb = _get_sb()
+        sb = _client()
         rows = sb.table("parent_suggestions").select("*").execute().data or []
         return {"suggestions": [self._row_to_suggestion(r) for r in rows]}
 
     def save(self, data: dict) -> None:
-        sb = _get_sb()
+        sb = _client()
         for s in (data.get("suggestions") or []):
             if not isinstance(s, dict):
                 continue
@@ -1192,12 +1305,12 @@ class SupabaseUsersStore(UsersStore):
         }
 
     def load(self) -> dict:
-        sb = _get_sb()
+        sb = _client()
         rows = sb.table("users").select("*").execute().data or []
         return {"users": [self._row_to_user(r) for r in rows]}
 
     def save(self, data: dict) -> None:
-        sb = _get_sb()
+        sb = _client()
         for u in (data.get("users") or []):
             if not isinstance(u, dict):
                 continue
@@ -1225,7 +1338,12 @@ class SupabaseWorkshopProposalsStore(WorkshopProposalsStore):
 
     def load(self) -> dict:
         sb = _client()
-        rows = sb.table("workshop_proposals").select("*").order("created_at", desc=False).execute().data or []
+        try:
+            rows = sb.table("workshop_proposals").select("*").order("created_at", desc=False).execute().data or []
+        except Exception as exc:
+            if _is_missing_table_error(exc):
+                return {"proposals": []}
+            raise
         proposals = [self._row_to_proposal(r) for r in rows]
         return {"proposals": proposals}
 
@@ -1234,7 +1352,12 @@ class SupabaseWorkshopProposalsStore(WorkshopProposalsStore):
         for p in (data.get("proposals") or []):
             if not isinstance(p, dict):
                 continue
-            sb.table("workshop_proposals").upsert(self._proposal_to_row(p)).execute()
+            try:
+                sb.table("workshop_proposals").upsert(self._proposal_to_row(p)).execute()
+            except Exception as exc:
+                if _is_missing_table_error(exc):
+                    return
+                raise
 
     @staticmethod
     def _row_to_proposal(r: dict) -> dict:
@@ -1553,6 +1676,8 @@ SUPABASE_STORES = {
     "parent_snapshots": SupabaseParentSnapshotsStore(),
     "chat_daily_usage": SupabaseChatDailyUsageStore(),
     "council_initiatives": SupabaseCouncilInitiativesStore(),
+    "council_members":     SupabaseCouncilMembersStore(),
+    "council_protocols":   SupabaseCouncilProtocolsStore(),
     "teams":             SupabaseTeamsStore(),
     "badge_arts":        SupabaseBadgeArtsStore(),
     "engines":           SupabaseEnginesStore(),

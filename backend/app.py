@@ -7505,8 +7505,14 @@ def resolve_user():
         if token:
             try:
                 payload = jwt.decode(token, AUTH_JWT_SECRET, algorithms=["HS256"])
-                device_id = (payload.get("deviceId") or "").strip() or None
-                role_from_jwt = _normalize_role((payload.get("role") or "").strip())
+                raw_device_id = payload.get("deviceId")
+                raw_role = payload.get("role")
+                if raw_device_id is not None and not isinstance(raw_device_id, str):
+                    return None, (jsonify({"error": "Invalid or expired token"}), 401)
+                if raw_role is not None and not isinstance(raw_role, str):
+                    return None, (jsonify({"error": "Invalid or expired token"}), 401)
+                device_id = (raw_device_id or "").strip() or None
+                role_from_jwt = _normalize_role((raw_role or "").strip())
             except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
                 return None, (jsonify({"error": "Invalid or expired token"}), 401)
 
@@ -8209,12 +8215,175 @@ def admin_action():
 # M19: Role Codes + Role Requests + Auth Resolve
 # ---------------------------------------------------------------------------
 
-def _issue_role_jwt(role: str, device_id: str, email: str = "") -> str:
-    """Issue a JWT with role, deviceId, email. Expires in 30 days."""
-    import datetime as _dt
+def _normalize_base_device_id(device_id: str) -> str:
+    value = (device_id or "").strip()
+    if value:
+        return value[:200]
+    return uuid.uuid4().hex[:16]
+
+
+def _normalize_person_id(person_id: str, base_device_id: str) -> str:
+    value = (person_id or "").strip()
+    if value:
+        return value[:260]
+    return f"device:{base_device_id}"
+
+
+def _identity_subject_key(person_id: str, base_device_id: str) -> str:
+    return (person_id or "").strip() or f"device:{(base_device_id or '').strip()}"
+
+
+def _load_identity_meta() -> tuple:
+    """
+    Returns: (store, data, identity_meta_dict)
+    Stored inside users store for simplicity:
+      data["identity_meta"][subject_key] = {"legacyOwnerRole": "...", "legacyMigrated": bool, ...}
+    """
+    store = get_store("users")
+    data = store.load()
+    if not isinstance(data, dict):
+        data = {}
+    meta = data.get("identity_meta") or {}
+    if not isinstance(meta, dict):
+        meta = {}
+    return store, data, meta
+
+
+def _get_legacy_owner_role(person_id: str, base_device_id: str) -> str:
+    subject_key = _identity_subject_key(person_id, base_device_id)
+    if not subject_key:
+        return ""
+    try:
+        _, _, meta = _load_identity_meta()
+        row = meta.get(subject_key)
+        if isinstance(row, dict):
+            role = _normalize_role((row.get("legacyOwnerRole") or "").strip())
+            return role if role != "traveler" else ""
+    except Exception:
+        pass
+    return ""
+
+
+def _set_legacy_owner_role(person_id: str, base_device_id: str, role: str) -> str:
+    role_norm = _normalize_role((role or "").strip())
+    if role_norm == "traveler":
+        return ""
+    subject_key = _identity_subject_key(person_id, base_device_id)
+    if not subject_key:
+        return ""
+    try:
+        store, data, meta = _load_identity_meta()
+        row = meta.get(subject_key) if isinstance(meta.get(subject_key), dict) else {}
+        row["legacyOwnerRole"] = role_norm
+        row["legacyMigrated"] = True
+        row["updatedAt"] = datetime.now(timezone.utc).isoformat()
+        meta[subject_key] = row
+        data["identity_meta"] = meta
+        store.save(data)
+    except Exception:
+        pass
+    return role_norm
+
+
+def _extract_supabase_user_id(supabase_user_id: str, supabase_token: str) -> str:
+    explicit = (supabase_user_id or "").strip()
+    if explicit:
+        return explicit[:200]
+    token = (supabase_token or "").strip()
+    if not token:
+        return ""
+    try:
+        # We only need "sub" identifier; signature verification is not required for this optional mapping hint.
+        decoded = jwt.decode(token, options={"verify_signature": False, "verify_exp": False})
+        sub = (decoded.get("sub") or "").strip() if isinstance(decoded, dict) else ""
+        return sub[:200] if sub else ""
+    except Exception:
+        return ""
+
+
+def _resolve_identity_claims(
+    role: str,
+    base_device_id: str = "",
+    person_id: str = "",
+    account_id: str = "",
+    legacy_owner_role: str = "",
+    force_legacy_scope: bool = False,
+) -> dict:
+    role_norm = _normalize_role((role or "").strip())
+    base_id = _normalize_base_device_id(base_device_id)
+    person = _normalize_person_id(person_id, base_id)
+    account = (account_id or f"{person}:{role_norm}").strip()[:400]
+
+    owner_role = _normalize_role((legacy_owner_role or "").strip())
+    if owner_role == "traveler":
+        owner_role = ""
+
+    use_legacy_scope = bool(force_legacy_scope or (owner_role and owner_role == role_norm))
+    scoped_device_id = base_id if use_legacy_scope else account
+
+    return {
+        "role": role_norm,
+        "deviceId": scoped_device_id,
+        "baseDeviceId": base_id,
+        "personId": person,
+        "accountId": account,
+        "legacyOwnerRole": owner_role or None,
+    }
+
+
+def _issue_role_jwt(
+    role: str,
+    device_id: str,
+    email: str = "",
+    *,
+    person_id: str = "",
+    account_id: str = "",
+    base_device_id: str = "",
+    legacy_owner_role: str = "",
+    force_legacy_scope: bool = False,
+) -> str:
+    """
+    Issue a JWT with v2 identity claims.
+    Backward compatibility:
+    - legacy call style _issue_role_jwt(role, device_id) keeps deviceId scope as provided device_id.
+    """
+    role_norm = _normalize_role((role or "").strip())
+    legacy_call = bool(
+        (device_id or "").strip()
+        and not (base_device_id or "").strip()
+        and not (person_id or "").strip()
+        and not (account_id or "").strip()
+        and not (legacy_owner_role or "").strip()
+        and not force_legacy_scope
+    )
+
+    if legacy_call:
+        base_id = _normalize_base_device_id(device_id)
+        person = _normalize_person_id("", base_id)
+        account = f"{person}:{role_norm}"
+        claims = {
+            "role": role_norm,
+            "deviceId": (device_id or "").strip()[:400],
+            "baseDeviceId": base_id,
+            "personId": person,
+            "accountId": account,
+        }
+    else:
+        claims = _resolve_identity_claims(
+            role=role_norm,
+            base_device_id=(base_device_id or device_id or "").strip(),
+            person_id=person_id,
+            account_id=account_id,
+            legacy_owner_role=legacy_owner_role,
+            force_legacy_scope=force_legacy_scope,
+        )
+
     payload = {
-        "role": role,
-        "deviceId": device_id,
+        "role": claims["role"],
+        "deviceId": claims["deviceId"],  # legacy alias for actor scope
+        "baseDeviceId": claims["baseDeviceId"],
+        "personId": claims["personId"],
+        "accountId": claims["accountId"],
         "email": email,
         "iat": int(time.time()),
         "exp": int(time.time()) + 30 * 24 * 3600,
