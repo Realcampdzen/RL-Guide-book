@@ -42,8 +42,10 @@ import { CommunityRankingPanel } from './CommunityRankingPanel';
 import { ArtInboxTab } from './ArtInboxTab';
 import { ImageSourceBlock } from './ImageSourceBlock';
 import { requestImageGenerate } from '../utils/imageGenerateApi';
+import { supabase } from '../utils/supabaseClient';
 import { useTeam } from '../context/TeamContext';
 import { CampProgramByDays } from './CampProgramByDays';
+import { RoleSelectionModal, type RoleFlowResult } from './RoleSelectionModal';
 
 import { ShiftsAndSquadsDashboard } from './ShiftsAndSquadsDashboard';
 import { QRCodeSVG } from 'qrcode.react';
@@ -595,7 +597,7 @@ export const PersonalCabinet: React.FC<{
     customBadges?: any[];
 }> = ({ onBack, communityBadges = [], customBadges = [] }) => {
     const { userData, updateVozhatifikatorChecklist, toggleFavorite, removeRoute, setNickname, setAvatar, setProfileStatus, setProfileBio } = useUserProgress();
-    const { role, accessToken, deviceId } = useAuth();
+    const { role, accessToken, deviceId, setAuth, clearAuth } = useAuth();
     const { myTeam, generateInviteUrl } = useTeam();
     const { badges: allBadges, ensureBadgeLoaded, ensureCategoryBadgesLoaded } = useDataLoader();
 
@@ -672,6 +674,7 @@ export const PersonalCabinet: React.FC<{
     const [eventsLoading, setEventsLoading] = useState(false);
     const [homeTab, setHomeTab] = useState<'active' | 'favorites' | 'collection' | 'journal' | 'squads'>('active');
     const [hamburgerOpen, setHamburgerOpen] = useState(false);
+    const [showRoleModal, setShowRoleModal] = useState(false);
     const [mobileDrawerLevel, setMobileDrawerLevel] = useState<MobileDrawerLevel | null>(null);
     const [isMobile, setIsMobile] = useState(
         () => typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches
@@ -816,6 +819,34 @@ export const PersonalCabinet: React.FC<{
     const profileSyncRef = React.useRef<{ nickname: string; avatar: string }>({ nickname: '', avatar: '' });
     const currentRole = role || 'traveler';
     const roleInfo = ROLE_DISPLAY[currentRole] || ROLE_DISPLAY.traveler;
+    const handleRoleResult = useCallback((result: RoleFlowResult) => {
+        switch (result.type) {
+            case 'code-redeemed':
+                setAuth({ role: result.role as UserRole, accessToken: result.accessToken });
+                setShowRoleModal(false);
+                break;
+            case 'request-approved':
+                setAuth({ role: result.role as UserRole, accessToken: result.accessToken || undefined });
+                setShowRoleModal(false);
+                break;
+            case 'dev-pin-ok':
+                setAuth({ role: 'developer' as UserRole });
+                setShowRoleModal(false);
+                break;
+            case 'request-sent':
+            case 'developer-oauth':
+            case 'oauth-started':
+            case 'cancelled':
+                setShowRoleModal(false);
+                break;
+        }
+    }, [setAuth]);
+    const handleSidebarSignOut = useCallback(async () => {
+        try { await supabase.auth.signOut(); } catch { /* ignore */ }
+        clearAuth();
+        setShowRoleModal(false);
+        setHamburgerOpen(false);
+    }, [clearAuth]);
     useEffect(() => {
         if (!accessToken) {
             profileSyncRef.current = { nickname: '', avatar: '' };
@@ -1118,7 +1149,7 @@ export const PersonalCabinet: React.FC<{
 .cabinet-sidebar-btn:active { transform: scale(0.95) !important; }
 .cabinet-sidebar-btn:hover { background: rgba(93,228,255,0.08) !important; }`}</style>
             <div style={{
-                position: 'fixed', inset: 0, zIndex: 99999,
+                position: 'fixed', inset: 0, zIndex: showRoleModal ? 900 : 99999,
                 backgroundImage: `url('/RL-Guide-book/фон кабина.png')`,
                 backgroundSize: 'cover', backgroundPosition: 'center',
                 backgroundColor: '#0a1628',
@@ -1532,6 +1563,14 @@ export const PersonalCabinet: React.FC<{
                                 {[
                                     { label: 'Мой профиль', action: () => { openProfileEditor(); setHamburgerOpen(false); } },
                                     { label: 'Инспектор Пользы', action: () => { setActiveSection('inspector'); setHamburgerOpen(false); } },
+                                    {
+                                        label: 'Залогиниться',
+                                        action: () => { setShowRoleModal(true); setHamburgerOpen(false); },
+                                    },
+                                    {
+                                        label: 'Разлогиниться',
+                                        action: () => { void handleSidebarSignOut(); },
+                                    },
                                     ...(onBack ? [{ label: 'Выйти из кабинета', action: () => { setHamburgerOpen(false); onBack(); } }] : []),
                                 ].map((item, i) => (
                                     <button key={i} type="button" onClick={item.action}
@@ -1541,7 +1580,7 @@ export const PersonalCabinet: React.FC<{
                                             display: 'flex', alignItems: 'center', gap: 10,
                                             color: '#111827', fontSize: 14, fontWeight: 500,
                                             fontFamily: 'inherit', transition: 'background 0.15s', textAlign: 'left',
-                                            width: '100%'
+                                            width: '100%',
                                         }}
                                         onMouseEnter={e => { 
                                             e.currentTarget.style.background = 'rgba(0,0,0,0.05)'; 
@@ -3222,6 +3261,12 @@ export const PersonalCabinet: React.FC<{
                     </div>{/* close maxWidth wrapper */}
                 </div>{/* close content column */}
             </div>{/* close root layout */}
+            {showRoleModal && (
+                <RoleSelectionModal
+                    onResult={handleRoleResult}
+                    deviceId={deviceId}
+                />
+            )}
         </>
     );
 };
