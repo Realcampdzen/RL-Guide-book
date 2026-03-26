@@ -17,7 +17,7 @@ export type RoleFlowResult =
     | { type: 'request-approved'; role: UserRole; accessToken: string }
     | { type: 'oauth-started' }
     | { type: 'developer-oauth' }
-    | { type: 'dev-pin-ok' }
+    | { type: 'dev-pin-ok'; accessToken: string }
     | { type: 'cancelled' };
 
 /** Retrieve and clear the pending OAuth desired role */
@@ -96,6 +96,45 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({ onResult
     // Dev PIN state
     const [devPin, setDevPin] = useState('');
     const [devPinError, setDevPinError] = useState<string | null>(null);
+    const [devPinBusy, setDevPinBusy] = useState(false);
+
+    const handleDevPinSubmit = useCallback(async () => {
+        const trimmed = devPin.trim();
+        if (!trimmed) return;
+        // Client-side quick check (optional, for instant feedback in dev mode)
+        const clientPin = (import.meta.env.VITE_DEV_PIN as string) || '';
+        // Always try backend first to get a real JWT
+        setDevPinBusy(true);
+        setDevPinError(null);
+        try {
+            const base = getApiBase();
+            const res = await fetch(`${base}/api/auth/dev-pin`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ pin: trimmed, deviceId }),
+            });
+            const data = await res.json().catch(() => ({})) as Record<string, unknown>;
+            if (res.ok && data.accessToken) {
+                onResult({ type: 'dev-pin-ok', accessToken: data.accessToken as string });
+                return;
+            }
+            // Backend rejected — fallback to client-side check (dev only)
+            if (clientPin && trimmed === clientPin) {
+                onResult({ type: 'dev-pin-ok', accessToken: '' });
+                return;
+            }
+            setDevPinError((typeof data.error === 'string' && data.error) || 'Неверный PIN-код');
+        } catch {
+            // Network error — fallback to client-side check
+            if (clientPin && trimmed === clientPin) {
+                onResult({ type: 'dev-pin-ok', accessToken: '' });
+                return;
+            }
+            setDevPinError('Ошибка сети');
+        } finally {
+            setDevPinBusy(false);
+        }
+    }, [devPin, deviceId, onResult]);
 
     // Email magic link state
     const [emailInput, setEmailInput] = useState('');
@@ -517,36 +556,22 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({ onResult
                                 outline: 'none',
                             }}
                             onKeyDown={e => {
-                                if (e.key === 'Enter') {
-                                    const pin = (import.meta.env.VITE_DEV_PIN as string) || '';
-                                    if (pin && devPin.trim() === pin) {
-                                        onResult({ type: 'dev-pin-ok' });
-                                    } else {
-                                        setDevPinError('Неверный PIN-код');
-                                    }
-                                }
+                                if (e.key === 'Enter') void handleDevPinSubmit();
                             }}
                         />
                         {devPinError && (
                             <div style={{ color: '#ef4444', fontSize: 12, textAlign: 'center', marginTop: 8 }}>{devPinError}</div>
                         )}
                         <button type="button"
-                            onClick={() => {
-                                const pin = (import.meta.env.VITE_DEV_PIN as string) || '';
-                                if (pin && devPin.trim() === pin) {
-                                    onResult({ type: 'dev-pin-ok' });
-                                } else {
-                                    setDevPinError('Неверный PIN-код');
-                                }
-                            }}
-                            disabled={!devPin.trim()}
+                            onClick={() => void handleDevPinSubmit()}
+                            disabled={devPinBusy || !devPin.trim()}
                             style={{
                                 width: '100%', padding: '12px', borderRadius: 10, border: 'none', marginTop: 12,
                                 background: devPin.trim() ? 'rgba(6,182,212,0.2)' : 'rgba(255,255,255,0.05)',
                                 color: devPin.trim() ? '#06b6d4' : 'rgba(255,255,255,0.3)',
                                 fontSize: 14, fontWeight: 700, cursor: devPin.trim() ? 'pointer' : 'default',
                             }}>
-                            Войти
+                            {devPinBusy ? 'Проверка…' : 'Войти'}
                         </button>
                         <button type="button" onClick={() => { setStep('select'); setDevPin(''); setDevPinError(null); }}
                             style={{ display: 'block', margin: '12px auto 0', background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', fontSize: 11, cursor: 'pointer' }}>

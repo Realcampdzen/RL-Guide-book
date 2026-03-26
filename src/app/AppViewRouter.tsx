@@ -64,7 +64,7 @@ export const AppViewRouter: React.FC<Props> = ({ controller, fallback }) => {
         setShowWelcome(false);
         break;
       case 'dev-pin-ok':
-        auth.setAuth({ role: 'developer' as UserRole });
+        auth.setAuth({ role: 'developer' as UserRole, accessToken: result.accessToken || undefined });
         setShowRoleModal(false);
         setShowWelcome(false);
         break;

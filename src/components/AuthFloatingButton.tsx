@@ -254,7 +254,7 @@ export const AuthFloatingButton: React.FC = () => {
                 // Developer authenticated via PIN — exchange PIN for JWT token
                 console.log('[AUTH] ✅ Dev PIN ok! Getting JWT from backend...');
                 setRole('developer');
-                auth.setAuth({ role: 'developer' as UserRole });
+                auth.setAuth({ role: 'developer' as UserRole, accessToken: result.accessToken || undefined });
                 setActiveModal('none');
                 // Async: exchange PIN for JWT (non-blocking, updates token when received)
                 void (async () => {
