@@ -4553,19 +4553,23 @@ def workshop_proposal_mine():
     if not device_id:
         return jsonify({"error": "deviceId missing in token"}), 400
 
-    doc = _workshop_proposals_load()
-    rows = []
-    for p in (doc.get("proposals") or []):
-        if not isinstance(p, dict):
-            continue
-        if not _is_regular_workshop_proposal_type((p.get("type") or "").strip()):
-            continue
-        cb = p.get("createdBy") if isinstance(p.get("createdBy"), dict) else {}
-        if (cb.get("deviceId") or "").strip() != device_id:
-            continue
-        rows.append(p)
-    rows.sort(key=lambda item: _parse_iso_ts(item.get("createdAt") or ""), reverse=True)
-    return jsonify({"proposals": rows})
+    try:
+        doc = _workshop_proposals_load()
+        rows = []
+        for p in (doc.get("proposals") or []):
+            if not isinstance(p, dict):
+                continue
+            if not _is_regular_workshop_proposal_type((p.get("type") or "").strip()):
+                continue
+            cb = p.get("createdBy") if isinstance(p.get("createdBy"), dict) else {}
+            if (cb.get("deviceId") or "").strip() != device_id:
+                continue
+            rows.append(p)
+        rows.sort(key=lambda item: _parse_iso_ts(item.get("createdAt") or ""), reverse=True)
+        return jsonify({"proposals": rows})
+    except Exception as exc:
+        traceback.print_exc()
+        return jsonify({"error": "Internal server error", "reason": "internal_error", "detail": f"{type(exc).__name__}: {exc}"}), 500
 
 
 @app.route('/api/workshop/proposals/inbox', methods=['GET'])
@@ -7869,10 +7873,14 @@ def resolve_user():
 @app.route('/api/auth/me', methods=['GET'])
 def auth_me():
     """GET /api/auth/me — current user profile + permissions."""
-    user, err = resolve_user()
-    if err is not None:
-        return err[0], err[1]
-    return jsonify(user)
+    try:
+        user, err = resolve_user()
+        if err is not None:
+            return err[0], err[1]
+        return jsonify(user)
+    except Exception as exc:
+        traceback.print_exc()
+        return jsonify({"error": "Internal server error", "reason": "internal_error", "detail": f"{type(exc).__name__}: {exc}"}), 500
 
 
 @app.route('/api/auth/me', methods=['PATCH'])
