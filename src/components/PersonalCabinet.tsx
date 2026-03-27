@@ -119,7 +119,6 @@ const SECTIONS: SidebarSection[] = [
 const ROLE_DISPLAY: Record<string, { label: string; color: string }> = {
     traveler: { label: 'Путешественник', color: '#8B5CF6' },
     participant: { label: 'Участник', color: '#6B7280' },
-    parent: { label: 'Родитель', color: '#F59E0B' },
     counselor: { label: 'Вожатый', color: '#22C55E' },
     educator: { label: 'Педагог', color: '#A855F7' },
     shift_leader: { label: 'Ст. Вожатый', color: '#F59E0B' },
@@ -3490,3 +3489,4 @@ const SectionStub: React.FC<{ sectionId: SectionId }> = ({ sectionId }) => {
 };
 
 export default PersonalCabinet;
+
