@@ -179,6 +179,27 @@ export const SquadChat: React.FC<SquadChatProps> = ({ squadId, accessToken, nick
 
   const isPinned = (m: SquadMessage) => pinnedMsg?.id === m.id;
 
+  const isWingChatLocked = chatType === 'wing' && typeof error === 'string' && error.includes('Authorization');
+
+  if (isWingChatLocked) {
+    return (
+      <div className="fade-in" style={{
+        padding: 32, borderRadius: 16,
+        background: 'rgba(15, 10, 42, 0.12)',
+        border: '1px solid rgba(255, 255, 255, 0.08)',
+        backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
+        display: 'flex', flexDirection: 'column', height, minHeight,
+        alignItems: 'center', justifyContent: 'center', textAlign: 'center'
+      }}>
+         <div style={{ fontSize: 56, marginBottom: 20, filter: 'drop-shadow(0 0 24px rgba(139,0,255,0.4))' }}>🔒</div>
+         <h3 style={{ margin: '0 0 12px', fontSize: 22, color: '#e8f0ff', fontWeight: 700 }}>Чат Крыла недоступен</h3>
+         <p style={{ margin: 0, fontSize: 15, color: 'rgba(255,255,255,0.6)', maxWidth: 340, lineHeight: 1.5 }}>
+           Чтобы открыть доступ к общению, тебе необходимо пройти <strong style={{color: '#fff'}}>Бросвящение</strong> и создать или присоединиться к своему <strong style={{color: '#fff'}}>Крылу</strong>.
+         </p>
+      </div>
+    );
+  }
+
   return (
     <div className="fade-in" style={{
       padding: 16, borderRadius: 16,
