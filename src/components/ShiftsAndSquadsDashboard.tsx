@@ -298,7 +298,7 @@ export const ShiftsAndSquadsDashboard: React.FC<ShiftsAndSquadsDashboardProps> =
                         onClick={(e) => handleAvatarClick(e, selectedShift.id)}
                         title={canManageSquads ? "Изменить аватар смены" : ""}
                         style={{
-                            width: 48, height: 48, borderRadius: 12, flexShrink: 0,
+                            width: 48, height: 48, borderRadius: '50%', flexShrink: 0,
                             background: selectedShift.name.toLowerCase().includes('весен') ? 'linear-gradient(135deg, rgba(77,205,196,0.3), rgba(93,228,255,0.2))'
                                 : selectedShift.name.toLowerCase().includes('лет') ? 'linear-gradient(135deg, rgba(255,215,0,0.3), rgba(255,159,67,0.2))'
                                     : 'linear-gradient(135deg, rgba(138,130,255,0.3), rgba(93,228,255,0.2))',
@@ -496,7 +496,7 @@ export const ShiftsAndSquadsDashboard: React.FC<ShiftsAndSquadsDashboardProps> =
                             onClick={(e) => handleAvatarClick(e, shift.id)}
                             title={canManageSquads ? "Изменить аватар смены" : ""}
                             style={{
-                            width: 56, height: 56, borderRadius: 14, flexShrink: 0,
+                            width: 56, height: 56, borderRadius: '50%', flexShrink: 0,
                             background: shift.name.toLowerCase().includes('весен') ? 'linear-gradient(135deg, rgba(77,205,196,0.3), rgba(93,228,255,0.2))'
                                 : shift.name.toLowerCase().includes('лет') ? 'linear-gradient(135deg, rgba(255,215,0,0.3), rgba(255,159,67,0.2))'
                                     : 'linear-gradient(135deg, rgba(138,130,255,0.3), rgba(93,228,255,0.2))',

@@ -2964,7 +2964,18 @@ def shifts_list():
     """GET /api/shifts — list shifts. Public (read-only view for all visitors)."""
     try:
         data = _shifts_load()
-        return jsonify({"shifts": data.get("shifts", [])})
+        shifts = data.get("shifts", [])
+        
+        # Load avatars from squad_corners since shifts table doesn't have an avatarUrl column
+        corners_doc = _squad_corners_load()
+        corners = corners_doc.get("corners") or {}
+        for shift in shifts:
+            sid = (shift.get("id") or "").strip()
+            corner = corners.get(sid)
+            if isinstance(corner, dict) and corner.get("photoSquad"):
+                shift["avatarUrl"] = corner.get("photoSquad")
+
+        return jsonify({"shifts": shifts})
     except ShiftSeedError:
         traceback.print_exc()
         return jsonify({"error": "Failed to seed default shift", "reason": "seed_error"}), 500
@@ -3053,10 +3064,25 @@ def shift_update(shift_id: str):
             if token_camp_id and token_camp_id != sid:
                 return jsonify({"error": "Access denied", "reason": "camp_mismatch"}), 403
                 
-        allowed_keys = ("name", "startDate", "endDate", "durationDays", "avatarUrl")
+        allowed_keys = ("name", "startDate", "endDate", "durationDays")
         for key in allowed_keys:
             if key in body:
                 shift[key] = body[key]
+                
+        # Handle avatarUrl via squad_corners table
+        if "avatarUrl" in body:
+            doc_corners = _squad_corners_load()
+            corners = doc_corners.get("corners") or {}
+            corner = corners.get(sid)
+            next_corner = dict(corner) if isinstance(corner, dict) else {}
+            next_corner["photoSquad"] = body["avatarUrl"] or None
+            if not next_corner.get("photoSquad"):
+                next_corner.pop("photoSquad", None)
+            next_corner["updatedAt"] = datetime.now(timezone.utc).isoformat()
+            corners[sid] = next_corner
+            doc_corners["corners"] = corners
+            _squad_corners_save(doc_corners)
+            shift["avatarUrl"] = body["avatarUrl"]
                 
         _shifts_save(doc)
         return jsonify({"shift": shift})
