@@ -3204,7 +3204,21 @@ export const PersonalCabinet: React.FC<{
                                             </div>
                                         )}
                                         {parentsTab === 'squad' && (
-                                            <SquadJoinTab accessToken={accessToken || ''} nickname={nickname} />
+                                            !(mySquadInfo?.membership?.squadId || userData?.diaryProgress?.squad?.name) ? (
+                                                <SquadJoinTab accessToken={accessToken || ''} nickname={nickname} />
+                                            ) : (
+                                                <div style={{ padding: 32, borderRadius: 16, background: 'rgba(8, 20, 40, 0.15)', border: '1px solid rgba(93, 228, 255, 0.12)', textAlign: 'center' }}>
+                                                    <div style={{ fontSize: 48, marginBottom: 16 }}>🏕️</div>
+                                                    <h3 style={{ margin: '0 0 8px', fontSize: 18, color: '#e8f0ff' }}>Вы уже состоите в отряде</h3>
+                                                    <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)', margin: '0 auto 24px', lineHeight: 1.6, maxWidth: 400 }}>
+                                                        Отрядный уголок, чат участников и расписание доступны в специальном разделе главного меню.
+                                                    </p>
+                                                    <button type="button" onClick={() => setActiveSection('squad-corner')}
+                                                        style={{ padding: '12px 24px', borderRadius: 12, background: 'rgba(93,228,255,0.15)', border: '1px solid rgba(93,228,255,0.3)', color: '#5de4ff', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+                                                        Перейти в «Мой отряд»
+                                                    </button>
+                                                </div>
+                                            )
                                         )}
                                         {parentsTab === 'child' && (
                                             <ChildLinksTab accessToken={accessToken || ''} />
