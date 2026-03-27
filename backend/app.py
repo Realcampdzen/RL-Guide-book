@@ -4772,7 +4772,7 @@ def squad_join_request_create(squad_id: str):
         }), 201
     except Exception as exc:
         traceback.print_exc()
-        return jsonify({"error": "Internal server error", "detail": f"{type(exc).__name__}: {exc}"}), 500
+        return jsonify({"error": f"Internal server error: {type(exc).__name__} - {exc}"}), 500
 
 
 @app.route('/api/squads/join-requests/mine', methods=['GET'])
