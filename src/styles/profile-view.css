@@ -119,7 +119,7 @@
 /* Mobile: use a dedicated portrait background for the profile page (single layer) */
 @media (max-width: 768px) {
   .profile-view.profile-view--mobile-scope {
-    min-height: 100dvh !important;
+    min-height: 100svh !important;
     height: auto !important;
     overflow: visible !important;
   }

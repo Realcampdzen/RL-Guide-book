@@ -373,7 +373,7 @@
   .about-camp-screen,
   .registration-form-screen {
     height: 100vh !important;
-    height: 100dvh !important; /* Динамическая высота viewport */
+    height: 100svh !important; /* Стабильная высота, не прыгает при вызове клавиатуры Android */
     overflow-x: hidden !important;
     overflow-y: auto !important;
     -webkit-overflow-scrolling: touch !important;

@@ -234,6 +234,11 @@ html[data-perf="lite"] .mobile-bottom-nav {
   }
 }
 
+/* ── Скрытие навигации при открытой клавиатуре ── */
+body.keyboard-open .mobile-bottom-nav {
+  display: none !important;
+}
+
 /* ── Login CTA: «Войти» accent when not logged in ── */
 
 .mobile-nav-login-cta {
