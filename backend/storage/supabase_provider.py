@@ -165,10 +165,21 @@ class SupabaseMembershipsStore(MembershipsStore):
 
     def save(self, data: dict) -> None:
         sb = _client()
+        rows = []
         for member in (data.get("members") or []):
-            if not isinstance(member, dict):
-                continue
-            sb.table("memberships").upsert(_member_to_row(member)).execute()
+            if isinstance(member, dict):
+                rows.append(_member_to_row(member))
+        
+        if not rows:
+            return
+            
+        try:
+            chunk_size = 50
+            for i in range(0, len(rows), chunk_size):
+                chunk = rows[i:i + chunk_size]
+                sb.table("memberships").upsert(chunk).execute()
+        except Exception:
+            raise
 
 
 def _row_to_member(r: dict) -> dict:
@@ -1351,15 +1362,24 @@ class SupabaseWorkshopProposalsStore(WorkshopProposalsStore):
 
     def save(self, data: dict) -> None:
         sb = _client()
+        rows = []
         for p in (data.get("proposals") or []):
-            if not isinstance(p, dict):
-                continue
-            try:
-                sb.table("workshop_proposals").upsert(self._proposal_to_row(p)).execute()
-            except Exception as exc:
-                if _is_missing_table_error(exc):
-                    return
-                raise
+            if isinstance(p, dict):
+                rows.append(self._proposal_to_row(p))
+
+        if not rows:
+            return
+
+        try:
+            # Batch upsert in chunks to avoid URL too long or payload too large
+            chunk_size = 50
+            for i in range(0, len(rows), chunk_size):
+                chunk = rows[i:i + chunk_size]
+                sb.table("workshop_proposals").upsert(chunk).execute()
+        except Exception as exc:
+            if _is_missing_table_error(exc):
+                return
+            raise
 
     @staticmethod
     def _row_to_proposal(r: dict) -> dict:
@@ -1446,15 +1466,22 @@ class SupabaseRoleRequestsStore(RoleRequestsStore):
         except Exception as exc:
             self._logger.warning("save() — cannot get client: %s", exc)
             return
+            
+        rows = []
         for rr in (data or []):
-            if not isinstance(rr, dict):
-                continue
-            try:
-                row = self._rr_to_row(rr)
-                sb.table("role_requests").upsert(row).execute()
-            except Exception as exc:
-                self._logger.warning("save() upsert failed for id=%s: %s  row=%r",
-                                     rr.get("id", "?"), exc, self._rr_to_row(rr) if isinstance(rr, dict) else rr)
+            if isinstance(rr, dict):
+                rows.append(self._rr_to_row(rr))
+                
+        if not rows:
+            return
+            
+        try:
+            chunk_size = 50
+            for i in range(0, len(rows), chunk_size):
+                chunk = rows[i:i + chunk_size]
+                sb.table("role_requests").upsert(chunk).execute()
+        except Exception as exc:
+            self._logger.warning("save() upsert failed: %s", exc)
 
     @staticmethod
     def _row_to_rr(r: dict) -> dict:
