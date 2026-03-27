@@ -270,7 +270,7 @@ export const SquadChat: React.FC<SquadChatProps> = ({ squadId, accessToken, nick
         ) : (
           messages.map((m) => {
             const writer = members.find(x => x.deviceId === m.deviceId || (x.nickname && x.nickname === m.nickname));
-            const writerAvatar = m.avatarUrl || writer?.avatarUrl;
+            const writerAvatar = writer?.avatarUrl || m.avatarUrl;
             const isCounselor = m.role === 'counselor' || m.role === 'shift_leader' || m.role === 'developer';
             const initial = (m.nickname || writer?.nickname || 'У')[0].toUpperCase();
 
@@ -288,8 +288,17 @@ export const SquadChat: React.FC<SquadChatProps> = ({ squadId, accessToken, nick
                 {/* Avatar */}
                 <div style={{ flexShrink: 0 }}>
                   {writerAvatar && isImageAvatar(writerAvatar) ? (
-                    <div style={{ width: 36, height: 36, borderRadius: '50%', overflow: 'hidden', border: `1px solid ${isCounselor ? 'rgba(244,114,182,0.3)' : 'rgba(93,228,255,0.2)'}` }}>
-                      <img src={writerAvatar} alt={m.nickname || ''} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <div style={{ 
+                      width: 36, height: 36, borderRadius: '50%', overflow: 'hidden', 
+                      background: isCounselor ? 'linear-gradient(135deg, rgba(244,114,182,0.2), rgba(251,146,60,0.2))' : 'linear-gradient(135deg, rgba(93,228,255,0.15), rgba(165,180,252,0.15))',
+                      border: `1px solid ${isCounselor ? 'rgba(244,114,182,0.3)' : 'rgba(93,228,255,0.2)'}`,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: 14, fontWeight: 800, color: isCounselor ? '#fdf2f8' : '#e8f0ff',
+                    }}>
+                      <img src={writerAvatar} alt={m.nickname || ''} 
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                        onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.parentElement!.innerHTML = initial; }} 
+                      />
                     </div>
                   ) : writerAvatar ? (
                     <div style={{
