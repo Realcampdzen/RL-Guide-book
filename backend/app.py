@@ -4682,93 +4682,97 @@ def squad_join_request_create(squad_id: str):
     Auth: participant|parent|counselor|educator|shift_leader|camp_director|developer
     Body: { nickname?: string, message?: string }
     """
-    payload, err = _require_roles(
-        ("participant", "parent", "counselor", "educator", "shift_leader", "camp_director", "developer"),
-        allow_localhost_dev=True,
-    )
-    if err is not None:
-        return err[0], err[1]
-
-    device_id = (payload.get("deviceId") or "").strip()
-    if not device_id:
-        return jsonify({"error": "deviceId missing in token"}), 400
-    sid = (squad_id or "").strip()
-    if not sid:
-        return jsonify({"error": "squadId required"}), 400
-
-    shifts_doc = _shifts_load()
-    squad = _find_squad(shifts_doc, sid)
-    if not squad:
-        return jsonify({"error": "Squad not found"}), 404
-    shift = _find_shift(shifts_doc, (squad.get("shiftId") or "").strip())
-
-    existing_membership = _membership_in_squad(device_id, sid)
-    if existing_membership:
-        return jsonify({
-            "status": "already_member",
-            "request": None,
-            "membership": existing_membership,
+    try:
+        payload, err = _require_roles(
+            ("participant", "parent", "counselor", "educator", "shift_leader", "camp_director", "developer"),
+            allow_localhost_dev=True,
+        )
+        if err is not None:
+            return err[0], err[1]
+    
+        device_id = (payload.get("deviceId") or "").strip()
+        if not device_id:
+            return jsonify({"error": "deviceId missing in token"}), 400
+        sid = (squad_id or "").strip()
+        if not sid:
+            return jsonify({"error": "squadId required"}), 400
+    
+        shifts_doc = _shifts_load()
+        squad = _find_squad(shifts_doc, sid)
+        if not squad:
+            return jsonify({"error": "Squad not found"}), 404
+        shift = _find_shift(shifts_doc, (squad.get("shiftId") or "").strip())
+    
+        existing_membership = _membership_in_squad(device_id, sid)
+        if existing_membership:
+            return jsonify({
+                "status": "already_member",
+                "request": None,
+                "membership": existing_membership,
+                "squadId": sid,
+                "squadName": (squad.get("name") or "").strip(),
+            }), 200
+    
+        body = request.get_json(silent=True) or {}
+        nickname = (body.get("nickname") or "").strip()[:120]
+        message = (body.get("message") or "").strip()[:500]
+        actor_role = _normalize_join_request_role((payload.get("role") or "").strip())
+        requester_email = (payload.get("email") or "").strip().lower()[:200]
+        now_iso = datetime.now(timezone.utc).isoformat()
+    
+        doc = _workshop_proposals_load()
+        proposals = doc.get("proposals") or []
+        for row in proposals:
+            if not isinstance(row, dict):
+                continue
+            if (row.get("type") or "").strip() != SQUAD_JOIN_REQUEST_TYPE:
+                continue
+            if (row.get("status") or "").strip() != "pending":
+                continue
+            if (row.get("squadId") or "").strip() != sid:
+                continue
+            created_by = row.get("createdBy") if isinstance(row.get("createdBy"), dict) else {}
+            if (created_by.get("deviceId") or "").strip() != device_id:
+                continue
+            return jsonify({
+                "status": "already_pending",
+                "request": _to_squad_join_request_response(row),
+            }), 200
+    
+        meta = {
+            "requesterRole": actor_role,
+            "requesterEmail": requester_email,
+            "message": message,
+        }
+        request_doc = {
+            "id": f"SJR-{uuid.uuid4().hex[:10].upper()}",
+            "type": SQUAD_JOIN_REQUEST_TYPE,
+            "title": (squad.get("name") or sid).strip(),
+            "description": json.dumps(meta, ensure_ascii=False),
+            "status": "pending",
+            "createdBy": {
+                "deviceId": device_id,
+                "nickname": nickname or None,
+            },
+            "campId": ((squad.get("shiftId") or "").strip() or (shift.get("id") if isinstance(shift, dict) else "") or ""),
             "squadId": sid,
-            "squadName": (squad.get("name") or "").strip(),
-        }), 200
-
-    body = request.get_json(silent=True) or {}
-    nickname = (body.get("nickname") or "").strip()[:120]
-    message = (body.get("message") or "").strip()[:500]
-    actor_role = _normalize_join_request_role((payload.get("role") or "").strip())
-    requester_email = (payload.get("email") or "").strip().lower()[:200]
-    now_iso = datetime.now(timezone.utc).isoformat()
-
-    doc = _workshop_proposals_load()
-    proposals = doc.get("proposals") or []
-    for row in proposals:
-        if not isinstance(row, dict):
-            continue
-        if (row.get("type") or "").strip() != SQUAD_JOIN_REQUEST_TYPE:
-            continue
-        if (row.get("status") or "").strip() != "pending":
-            continue
-        if (row.get("squadId") or "").strip() != sid:
-            continue
-        created_by = row.get("createdBy") if isinstance(row.get("createdBy"), dict) else {}
-        if (created_by.get("deviceId") or "").strip() != device_id:
-            continue
+            "createdAt": now_iso,
+            "resolvedAt": None,
+            "resolvedBy": None,
+            "resolutionNote": None,
+        }
+    
+        proposals.append(request_doc)
+        doc["proposals"] = proposals
+        _workshop_proposals_save(doc)
+    
         return jsonify({
-            "status": "already_pending",
-            "request": _to_squad_join_request_response(row),
-        }), 200
-
-    meta = {
-        "requesterRole": actor_role,
-        "requesterEmail": requester_email,
-        "message": message,
-    }
-    request_doc = {
-        "id": f"SJR-{uuid.uuid4().hex[:10].upper()}",
-        "type": SQUAD_JOIN_REQUEST_TYPE,
-        "title": (squad.get("name") or sid).strip(),
-        "description": json.dumps(meta, ensure_ascii=False),
-        "status": "pending",
-        "createdBy": {
-            "deviceId": device_id,
-            "nickname": nickname or None,
-        },
-        "campId": ((squad.get("shiftId") or "").strip() or (shift.get("id") if isinstance(shift, dict) else "") or ""),
-        "squadId": sid,
-        "createdAt": now_iso,
-        "resolvedAt": None,
-        "resolvedBy": None,
-        "resolutionNote": None,
-    }
-
-    proposals.append(request_doc)
-    doc["proposals"] = proposals
-    _workshop_proposals_save(doc)
-
-    return jsonify({
-        "status": "pending",
-        "request": _to_squad_join_request_response(request_doc),
-    }), 201
+            "status": "pending",
+            "request": _to_squad_join_request_response(request_doc),
+        }), 201
+    except Exception as exc:
+        traceback.print_exc()
+        return jsonify({"error": "Internal server error", "detail": f"{type(exc).__name__}: {exc}"}), 500
 
 
 @app.route('/api/squads/join-requests/mine', methods=['GET'])
