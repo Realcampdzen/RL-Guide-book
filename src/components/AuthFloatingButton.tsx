@@ -14,6 +14,7 @@ import { getBaseDeviceId } from '../utils/authStorage';
 
 const ROLE_DISPLAY: Record<string, { label: string; icon: string; color: string }> = {
     participant: { label: 'Участник', icon: '👤', color: '#6b7280' },
+    parent: { label: 'Родитель', icon: '🧑‍🍼', color: '#f59e0b' },
     counselor: { label: 'Вожатый', icon: '🏕️', color: '#22c55e' },
     educator: { label: 'Педагог', icon: '📚', color: '#a855f7' },
     shift_leader: { label: 'Ст. Вожатый', icon: '⭐', color: '#f59e0b' },
@@ -500,3 +501,4 @@ export const AuthFloatingButton: React.FC = () => {
 };
 
 export default AuthFloatingButton;
+

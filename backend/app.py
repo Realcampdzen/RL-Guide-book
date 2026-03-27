@@ -3294,37 +3294,6 @@ def shift_delete(shift_id: str):
     })
 
 
-@app.route('/api/squads/<squad_id>/preview', methods=['GET'])
-def squad_preview(squad_id: str):
-    """
-    GET /api/squads/<squad_id>/preview
-    Public/Authenticated endpoint to get basic squad info for join link preview.
-    """
-    try:
-        sid = (squad_id or "").strip()
-        if not sid:
-            return jsonify({"error": "squadId required"}), 400
-
-        shifts_doc = _shifts_load()
-        squad = _find_squad(shifts_doc, sid)
-        if not squad:
-            return jsonify({"error": "Squad not found"}), 404
-            
-        camp_id = (squad.get("shiftId") or "").strip()
-        shift = _find_shift(shifts_doc, camp_id)
-        
-        return jsonify({
-            "squadId": squad.get("id"),
-            "squadName": squad.get("name"),
-            "shiftId": shift.get("id") if shift else None,
-            "shiftName": shift.get("name") if shift else None
-        })
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        return jsonify({"error": str(e)}), 500
-
-
 @app.route('/api/squads/<squad_id>/join', methods=['POST'])
 def squad_join(squad_id: str):
     """

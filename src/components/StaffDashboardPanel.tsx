@@ -43,6 +43,7 @@ const roleBadge = (role?: string) => {
         shift_leader: { label: 'Ст. вожатый', color: 'rgba(167,139,250,0.7)' },
         camp_director: { label: 'Директор', color: 'rgba(248,113,113,0.7)' },
         participant: { label: 'Участник', color: 'rgba(255,255,255,0.25)' },
+        parent: { label: 'Родитель', color: 'rgba(245,158,11,0.7)' },
         developer: { label: 'Dev', color: 'rgba(52,211,153,0.7)' },
     };
     const entry = map[role] || { label: role, color: 'rgba(255,255,255,0.25)' };

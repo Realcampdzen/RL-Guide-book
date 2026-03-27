@@ -107,6 +107,7 @@ const ROLE_LABELS_RU: Record<string, string> = {
     camp_director: 'Нач. лагеря',
     developer: 'Dev',
     participant: 'Участник',
+    parent: 'Родитель',
 };
 
 function getUserRole(item: RawInboxItem): string | null {

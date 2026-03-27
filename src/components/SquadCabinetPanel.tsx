@@ -465,6 +465,7 @@ export const SquadCabinetPanel: React.FC<SquadCabinetPanelProps> = ({
                   participant: 'Участник', traveler: 'Путешественник', counselor: 'Вожатый',
                   educator: 'Воспитатель', shift_leader: 'Начальник смены',
                   camp_director: 'Директор лагеря', developer: 'Разработчик',
+                  parent: 'Родитель',
                 };
                 const roleLabel = roleLabels[m.role] || m.role;
                 const isCounselor = m.role === 'counselor' || m.role === 'shift_leader' || m.role === 'developer';
