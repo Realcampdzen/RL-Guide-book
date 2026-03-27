@@ -3018,6 +3018,53 @@ def shifts_create():
         return jsonify({"error": "Internal server error", "reason": "internal_error"}), 500
 
 
+@app.route('/api/shifts/<shift_id>', methods=['PATCH'])
+def shift_update(shift_id: str):
+    """
+    PATCH /api/shifts/<shiftId> — update shift (e.g. avatarUrl, name, dates).
+    Auth: counselor|educator|shift_leader|camp_director|developer
+    (counselor/educator can only update their own shift).
+    """
+    payload, err = _require_roles(("counselor", "educator", "shift_leader", "camp_director", "developer"), allow_localhost_dev=True)
+    if err is not None:
+        return err[0], err[1]
+    sid = (shift_id or "").strip()
+    if not sid:
+        return jsonify({"error": "shiftId required"}), 400
+
+    try:
+        content_len = request.content_length
+        if isinstance(content_len, int) and content_len > SQUAD_CORNER_PATCH_LIMIT_BYTES:
+            return jsonify({"error": "Payload too large"}), 413
+        
+        body = request.get_json(silent=True) or {}
+        if not isinstance(body, dict):
+            return jsonify({"error": "Invalid payload"}), 400
+
+        doc = _shifts_load()
+        shift = _find_shift(doc, sid)
+        if not shift:
+            return jsonify({"error": "Shift not found"}), 404
+
+        actor_role = _normalize_role((payload.get("role") or "").strip())
+        token_camp_id = (payload.get("campId") or "").strip()
+        
+        if actor_role in ("counselor", "educator"):
+            if token_camp_id and token_camp_id != sid:
+                return jsonify({"error": "Access denied", "reason": "camp_mismatch"}), 403
+                
+        allowed_keys = ("name", "startDate", "endDate", "durationDays", "avatarUrl")
+        for key in allowed_keys:
+            if key in body:
+                shift[key] = body[key]
+                
+        _shifts_save(doc)
+        return jsonify({"shift": shift})
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"error": str(e), "reason": "internal_error"}), 500
+
+
 @app.route('/api/shifts/<shift_id>/squads', methods=['GET'])
 def squads_list(shift_id: str):
     """GET /api/shifts/<shiftId>/squads — list squads in shift. Public (read-only)."""

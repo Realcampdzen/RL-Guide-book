@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 
 // ---------------------------------------------------------------------------
@@ -13,6 +13,7 @@ interface Shift {
     durationDays?: number;
     createdAt: string;
     createdBy?: string;
+    avatarUrl?: string | null;
 }
 
 interface Squad {
@@ -76,6 +77,10 @@ export const ShiftsAndSquadsDashboard: React.FC<ShiftsAndSquadsDashboardProps> =
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [joinBusyId, setJoinBusyId] = useState<string | null>(null);
+
+    // avatars
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [uploadingShiftId, setUploadingShiftId] = useState<string | null>(null);
 
     // forms
     const [shiftFormOpen, setShiftFormOpen] = useState(false);
@@ -202,6 +207,47 @@ export const ShiftsAndSquadsDashboard: React.FC<ShiftsAndSquadsDashboardProps> =
         } catch (e) { setError(e instanceof Error ? e.message : 'Ошибка'); }
     }, [apiBase, headers, loadData]);
 
+    const handleAvatarClick = (e: React.MouseEvent, shiftId: string) => {
+        e.stopPropagation();
+        if (!canManageSquads) return;
+        setUploadingShiftId(shiftId);
+        fileInputRef.current?.click();
+    };
+
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file || !uploadingShiftId) return;
+        setLoading(true);
+        try {
+            const bitmap = await createImageBitmap(file);
+            const canvas = document.createElement('canvas');
+            const maxDim = 400;
+            let w = bitmap.width; let h = bitmap.height;
+            if (w > maxDim || h > maxDim) {
+                const ratio = Math.min(maxDim / w, maxDim / h);
+                w *= ratio; h *= ratio;
+            }
+            canvas.width = w; canvas.height = h;
+            const ctx = canvas.getContext('2d');
+            ctx?.drawImage(bitmap, 0, 0, w, h);
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+
+            const res = await fetch(`${apiBase}/api/shifts/${uploadingShiftId}`, {
+                method: 'PATCH',
+                headers: headers(true),
+                body: JSON.stringify({ avatarUrl: dataUrl })
+            });
+            if (!res.ok) throw new Error(`Ошибка загрузки аватара: ${res.status}`);
+            await loadData();
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Ошибка обработки изображения');
+        } finally {
+            setLoading(false);
+            setUploadingShiftId(null);
+            if (fileInputRef.current) fileInputRef.current.value = '';
+        }
+    };
+
     // ---------------------------------------------------------------------------
     // Render
     // ---------------------------------------------------------------------------
@@ -248,6 +294,23 @@ export const ShiftsAndSquadsDashboard: React.FC<ShiftsAndSquadsDashboardProps> =
                         onClick={() => setSelectedShiftId(null)}>
                         ← Назад
                     </button>
+                    <div
+                        onClick={(e) => handleAvatarClick(e, selectedShift.id)}
+                        title={canManageSquads ? "Изменить аватар смены" : ""}
+                        style={{
+                            width: 48, height: 48, borderRadius: 12, flexShrink: 0,
+                            background: selectedShift.name.toLowerCase().includes('весен') ? 'linear-gradient(135deg, rgba(77,205,196,0.3), rgba(93,228,255,0.2))'
+                                : selectedShift.name.toLowerCase().includes('лет') ? 'linear-gradient(135deg, rgba(255,215,0,0.3), rgba(255,159,67,0.2))'
+                                    : 'linear-gradient(135deg, rgba(138,130,255,0.3), rgba(93,228,255,0.2))',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontSize: 18, fontWeight: 700, color: '#e8f0ff',
+                            overflow: 'hidden', cursor: canManageSquads ? 'pointer' : 'default',
+                            boxShadow: '0 4px 12px rgba(0,0,0,0.1)', border: '1px solid rgba(255,255,255,0.08)'
+                        }}>
+                        {selectedShift.avatarUrl ?
+                            <img src={selectedShift.avatarUrl} alt="" style={{width: '100%', height: '100%', objectFit: 'cover'}} /> :
+                            (selectedShift.name || '?')[0].toUpperCase()}
+                    </div>
                     <div style={{ flex: 1 }}>
                         <div style={{ fontSize: 18, fontWeight: 700, color: '#e8f0ff' }}>{selectedShift.name}</div>
                         <div style={{ fontSize: 14, color: '#c97730', fontWeight: 700 }}>
@@ -429,15 +492,21 @@ export const ShiftsAndSquadsDashboard: React.FC<ShiftsAndSquadsDashboardProps> =
                             fontFamily: FONT, transition: 'all 0.15s',
                         }}
                     >
-                        <div style={{
+                        <div 
+                            onClick={(e) => handleAvatarClick(e, shift.id)}
+                            title={canManageSquads ? "Изменить аватар смены" : ""}
+                            style={{
                             width: 56, height: 56, borderRadius: 14, flexShrink: 0,
                             background: shift.name.toLowerCase().includes('весен') ? 'linear-gradient(135deg, rgba(77,205,196,0.3), rgba(93,228,255,0.2))'
                                 : shift.name.toLowerCase().includes('лет') ? 'linear-gradient(135deg, rgba(255,215,0,0.3), rgba(255,159,67,0.2))'
                                     : 'linear-gradient(135deg, rgba(138,130,255,0.3), rgba(93,228,255,0.2))',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                             fontSize: 22, fontWeight: 700, color: '#e8f0ff',
+                            overflow: 'hidden',
                         }}>
-                            {(shift.name || '?')[0].toUpperCase()}
+                            {shift.avatarUrl ?
+                                <img src={shift.avatarUrl} alt="" style={{width: '100%', height: '100%', objectFit: 'cover'}} /> :
+                                (shift.name || '?')[0].toUpperCase()}
                         </div>
                         <div style={{ flex: 1 }}>
                             <div style={{ fontSize: 16, fontWeight: 700, color: '#e8f0ff' }}>{shift.name}</div>
@@ -517,6 +586,14 @@ export const ShiftsAndSquadsDashboard: React.FC<ShiftsAndSquadsDashboardProps> =
                     </div>
                 </div>
             )}
+            
+            <input 
+                type="file" 
+                ref={fileInputRef} 
+                onChange={handleFileChange} 
+                accept="image/*" 
+                style={{ display: 'none' }} 
+            />
         </div>
     );
 };
