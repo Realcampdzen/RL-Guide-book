@@ -138,7 +138,7 @@ const SECTION_TABS: Partial<Record<SectionId, TabDef[]>> = {
         { id: 'squads', label: 'Смены и отряды' },
     ],
     'squad-corner': [
-        { id: 'squad', label: 'Редактировать' },
+        { id: 'squad', label: 'Отрядный Уголок' },
         { id: 'chat', label: 'Чат' },
         { id: 'schedule', label: 'Беспорядок дня' },
         { id: 'program', label: 'Программа смены' },
