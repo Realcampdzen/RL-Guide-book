@@ -112,6 +112,7 @@ def _row_to_shift(r: dict) -> dict:
         "endDate": r.get("end_date") or "",
         "createdAt": _ts(r.get("created_at")),
         "createdBy": r.get("created_by_device_id") or "",
+        "avatarUrl": r.get("avatar_url") or "",
     }
 
 
@@ -125,6 +126,8 @@ def _shift_to_row(s: dict) -> dict:
         row["start_date"] = s["startDate"]
     if s.get("endDate"):
         row["end_date"] = s["endDate"]
+    if "avatarUrl" in s:
+        row["avatar_url"] = s["avatarUrl"]
     return row
 
 
@@ -396,10 +399,21 @@ class SupabaseBadgeRequestsStore(BadgeRequestsStore):
 
     def save(self, data: dict) -> None:
         sb = _client()
+        rows = []
         for req in (data.get("requests") or []):
-            if not isinstance(req, dict):
-                continue
-            sb.table("badge_requests").upsert(_badge_request_to_row(req)).execute()
+            if isinstance(req, dict):
+                rows.append(_badge_request_to_row(req))
+                
+        if not rows:
+            return
+            
+        try:
+            chunk_size = 50
+            for i in range(0, len(rows), chunk_size):
+                chunk = rows[i:i + chunk_size]
+                sb.table("badge_requests").upsert(chunk).execute()
+        except Exception:
+            raise
 
     def load_inbox(self, *, camp_id=None, squad_id=None, status_filter=None,
                    include_resolved=True, resolved_ttl_days=30) -> list:
@@ -582,6 +596,7 @@ class SupabaseParentSnapshotsStore(ParentSnapshotsStore):
 
     def save(self, data: dict) -> None:
         sb = _client()
+        rows = []
         for code, snap in data.items():
             if not isinstance(snap, dict):
                 continue
@@ -592,7 +607,18 @@ class SupabaseParentSnapshotsStore(ParentSnapshotsStore):
             }
             if snap.get("createdByDeviceId"):
                 row["created_by_device_id"] = snap["createdByDeviceId"]
-            sb.table("parent_snapshots").upsert(row).execute()
+            rows.append(row)
+            
+        if not rows:
+            return
+            
+        try:
+            chunk_size = 50
+            for i in range(0, len(rows), chunk_size):
+                chunk = rows[i:i + chunk_size]
+                sb.table("parent_snapshots").upsert(chunk).execute()
+        except Exception:
+            raise
 
 
 # ---------------------------------------------------------------------------
@@ -621,15 +647,27 @@ class SupabaseChatDailyUsageStore(ChatDailyUsageStore):
 
     def save(self, data: dict) -> None:
         sb = _client()
+        rows = []
         for day, counts in data.items():
             if not isinstance(counts, dict):
                 continue
             for device_id, count in counts.items():
-                sb.table("chat_daily_usage").upsert({
+                rows.append({
                     "device_id": device_id,
-                    "day": day,
-                    "count": count,
-                }).execute()
+                    "day": str(day),
+                    "count": count
+                })
+                
+        if not rows:
+            return
+            
+        try:
+            chunk_size = 50
+            for i in range(0, len(rows), chunk_size):
+                chunk = rows[i:i + chunk_size]
+                sb.table("chat_daily_usage").upsert(chunk).execute()
+        except Exception:
+            raise
 
 
 # ---------------------------------------------------------------------------
@@ -1324,19 +1362,30 @@ class SupabaseUsersStore(UsersStore):
 
     def save(self, data: dict) -> None:
         sb = _client()
+        rows = []
         for u in (data.get("users") or []):
-            if not isinstance(u, dict):
-                continue
-            row = {
-                "id": u.get("id") or str(uuid.uuid4()),
-                "supabase_auth_id": u.get("supabase_auth_id"),
-                "legacy_device_id": u.get("legacy_device_id", ""),
-                "email": u.get("email", ""),
-                "nickname": u.get("nickname", ""),
-                "avatar_url": u.get("avatar_url", ""),
-                "role": u.get("role", "participant"),
-            }
-            sb.table("users").upsert(row).execute()
+            if isinstance(u, dict):
+                row = {
+                    "id": u.get("id") or str(uuid.uuid4()),
+                    "supabase_auth_id": u.get("supabase_auth_id"),
+                    "legacy_device_id": u.get("legacy_device_id", ""),
+                    "email": u.get("email", ""),
+                    "nickname": u.get("nickname", ""),
+                    "avatar_url": u.get("avatar_url", ""),
+                    "role": u.get("role", "participant"),
+                }
+                rows.append(row)
+                
+        if not rows:
+            return
+            
+        try:
+            chunk_size = 50
+            for i in range(0, len(rows), chunk_size):
+                chunk = rows[i:i + chunk_size]
+                sb.table("users").upsert(chunk).execute()
+        except Exception:
+            raise
 
 
 # ---------------------------------------------------------------------------
@@ -1674,32 +1723,43 @@ class SupabaseBroSubmissionsStore(BroSubmissionsStore):
 
     def save(self, data: dict) -> None:
         sb = _client()
+        rows = []
         for s in (data.get("submissions") or []):
-            if not isinstance(s, dict):
-                continue
-            row = {
-                "id": s.get("id") or str(uuid.uuid4()),
-                "passport_id": s.get("passportId", ""),
-                "task_id": s.get("taskId", ""),
-                "task_title": s.get("taskTitle", ""),
-                "device_id": s.get("deviceId", ""),
-                "squad_id": s.get("squadId", ""),
-                "text": s.get("text", ""),
-                "status": s.get("status", "pending"),
-            }
-            if s.get("photoUrl"):
-                row["photo_url"] = s["photoUrl"]
-            if s.get("nickname"):
-                row["nickname"] = s["nickname"]
-            if s.get("userRole"):
-                row["user_role"] = s["userRole"]
-            if s.get("comment"):
-                row["comment"] = s["comment"]
-            if s.get("reviewedAt"):
-                row["reviewed_at"] = s["reviewedAt"]
-            if s.get("reviewedBy"):
-                row["reviewed_by"] = s["reviewedBy"]
-            sb.table("bro_submissions").upsert(row).execute()
+            if isinstance(s, dict):
+                row = {
+                    "id": s.get("id") or str(uuid.uuid4()),
+                    "passport_id": s.get("passportId", ""),
+                    "task_id": s.get("taskId", ""),
+                    "task_title": s.get("taskTitle", ""),
+                    "device_id": s.get("deviceId", ""),
+                    "squad_id": s.get("squadId", ""),
+                    "text": s.get("text", ""),
+                    "status": s.get("status", "pending"),
+                }
+                if s.get("photoUrl"):
+                    row["photo_url"] = s["photoUrl"]
+                if s.get("nickname"):
+                    row["nickname"] = s["nickname"]
+                if s.get("userRole"):
+                    row["user_role"] = s["userRole"]
+                if s.get("comment"):
+                    row["comment"] = s["comment"]
+                if s.get("reviewedAt"):
+                    row["reviewed_at"] = s["reviewedAt"]
+                if s.get("reviewedBy"):
+                    row["reviewed_by"] = s["reviewedBy"]
+                rows.append(row)
+                
+        if not rows:
+            return
+            
+        try:
+            chunk_size = 50
+            for i in range(0, len(rows), chunk_size):
+                chunk = rows[i:i + chunk_size]
+                sb.table("bro_submissions").upsert(chunk).execute()
+        except Exception:
+            raise
 
 
 # ---------------------------------------------------------------------------
