@@ -764,3 +764,56 @@
     padding: 1.5rem !important;
   }
 }
+
+/* ── План дня и Расписание (Оптимизация мобильных полей ввода) ── */
+
+.cab-card {
+  transform: translateZ(0); /* Форсированный слой композитинга */
+}
+
+body.keyboard-open .cab-card {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  background: rgba(15, 10, 31, 1) !important; /* Убираем баг блюра при вводе текста */
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.6) !important;
+}
+
+.diary-schedule-header, .diary-schedule-row {
+  display: grid;
+  grid-template-columns: minmax(130px, 1.5fr) 100px 2fr;
+  gap: 16px;
+  align-items: center;
+}
+
+.diary-schedule-header {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.3);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding-bottom: 12px;
+}
+
+.diary-schedule-row {
+  padding: 16px 0;
+  transition: background 0.2s;
+}
+
+@media (max-width: 768px) {
+  .diary-schedule-header {
+    display: none;
+  }
+
+  .diary-schedule-row {
+    grid-template-columns: 1fr 90px;
+    gap: 12px;
+    padding: 16px 0;
+  }
+
+  .diary-schedule-row > *:nth-child(3) {
+    grid-column: 1 / -1;
+    width: 100%;
+    margin-top: 4px;
+    box-sizing: border-box;
+  }
+}

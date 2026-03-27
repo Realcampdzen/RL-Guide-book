@@ -730,7 +730,7 @@ export const RealDiaryDashboard: React.FC<RealDiaryDashboardProps> = ({ variant 
 
       <div style={{ display: 'grid', gap: 0 }}>
         {/* Table Header */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(120px, 1fr) 100px 2fr', gap: 16, fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.05em', paddingBottom: 12 }}>
+        <div className="diary-schedule-header">
           <div>Пункт расписания</div>
           <div>Время</div>
           <div>Заметка</div>
@@ -741,14 +741,8 @@ export const RealDiaryDashboard: React.FC<RealDiaryDashboardProps> = ({ variant 
           {items.map(({ key, label }, index) => {
             const isLast = index === items.length - 1;
             return (
-              <div key={String(key)} style={{ 
-                display: 'grid', 
-                gridTemplateColumns: 'minmax(120px, 1fr) 100px 2fr', 
-                gap: 16, 
-                alignItems: 'center',
-                padding: '16px 0',
+              <div key={String(key)} className="diary-schedule-row" style={{ 
                 borderBottom: isLast ? 'none' : '1px solid rgba(255,255,255,0.05)',
-                transition: 'background 0.2s',
               }}>
                 <div style={{ fontSize: 14, fontWeight: 500, color: 'rgba(255,255,255,0.85)' }}>{label}</div>
                 {editing ? (
