@@ -2405,65 +2405,110 @@ export const PersonalCabinet: React.FC<{
                                     backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)',
                                     borderRadius: 18, border: '1px solid rgba(93, 228, 255, 0.12)',
                                     padding: '24px 28px',
-                                    display: 'flex', gap: 20,
+                                    display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: 20,
                                 }}>
                                     {vozhatifikatorTab === 'book' ? (
                                         <>
                                             {/* TOC sidebar */}
-                                            <aside style={{
-                                                width: 220, flexShrink: 0,
-                                                display: 'flex', flexDirection: 'column', gap: 10,
-                                                maxHeight: 'calc(100vh - 120px)', overflowY: 'auto',
-                                            }}>
-                                                <a
-                                                    href="/VZhTFKTR.docx"
-                                                    download="VZhTFKTR.docx"
-                                                    style={{
-                                                        display: 'inline-flex', alignItems: 'center', gap: 6,
-                                                        padding: '8px 14px', borderRadius: 10,
-                                                        background: 'rgba(93,228,255,0.08)',
-                                                        border: '1px solid rgba(93,228,255,0.2)',
-                                                        color: '#5de4ff', fontSize: 12, fontWeight: 600,
-                                                        textDecoration: 'none', transition: 'background 0.15s',
-                                                    }}
-                                                >
-                                                    📥 Скачать DOCX
-                                                </a>
-                                                <nav style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                                                    {vozhatifikatorToc.map(item => (
-                                                        <a
-                                                            key={item.id}
-                                                            href={`#${item.id}`}
-                                                            onClick={e => {
+                                            {isMobile ? (
+                                                <details style={{
+                                                    background: 'rgba(93,228,255,0.05)',
+                                                    borderRadius: 12, padding: '12px 16px',
+                                                    border: '1px solid rgba(93,228,255,0.15)',
+                                                    flexShrink: 0
+                                                }}>
+                                                    <summary style={{
+                                                        fontSize: 15, fontWeight: 700, color: '#5de4ff',
+                                                        cursor: 'pointer', outline: 'none', userSelect: 'none',
+                                                        display: 'flex', alignItems: 'center', gap: 8
+                                                    }}>
+                                                        📖 Оглавление книги
+                                                    </summary>
+                                                    <div style={{
+                                                        display: 'flex', flexDirection: 'column', gap: 8,
+                                                        marginTop: 16, maxHeight: '60vh', overflowY: 'auto',
+                                                    }}>
+                                                        <a href="/VZhTFKTR.docx" download="VZhTFKTR.docx" style={{
+                                                            display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                                                            padding: '10px 14px', borderRadius: 10, background: 'rgba(93,228,255,0.08)',
+                                                            border: '1px solid rgba(93,228,255,0.2)', color: '#5de4ff',
+                                                            fontSize: 13, fontWeight: 600, textDecoration: 'none',
+                                                            marginBottom: 8
+                                                        }}>
+                                                            📥 Скачать DOCX
+                                                        </a>
+                                                        {vozhatifikatorToc.map(item => (
+                                                            <a key={item.id} href={`#${item.id}`} onClick={e => {
                                                                 e.preventDefault();
                                                                 vozhatifikatorBookRef.current?.querySelector(`#${CSS.escape(item.id)}`)?.scrollIntoView({ behavior: 'smooth' });
-                                                            }}
-                                                            style={{
-                                                                padding: '6px 10px', borderRadius: 6,
-                                                                fontSize: 12, lineHeight: 1.4,
-                                                                color: 'rgba(255,255,255,0.65)',
-                                                                textDecoration: 'none',
-                                                                transition: 'color 0.15s, background 0.15s',
-                                                                cursor: 'pointer',
-                                                            }}
-                                                            onMouseEnter={e => {
-                                                                e.currentTarget.style.color = '#5de4ff';
-                                                                e.currentTarget.style.background = 'rgba(93,228,255,0.06)';
-                                                            }}
-                                                            onMouseLeave={e => {
-                                                                e.currentTarget.style.color = 'rgba(255,255,255,0.65)';
-                                                                e.currentTarget.style.background = 'transparent';
-                                                            }}
-                                                        >
-                                                            {item.title}
-                                                        </a>
-                                                    ))}
-                                                </nav>
-                                            </aside>
+                                                                const detailsEl = e.currentTarget.closest('details');
+                                                                if (detailsEl) detailsEl.removeAttribute('open');
+                                                            }} style={{
+                                                                padding: '10px 12px', borderRadius: 8, fontSize: 13, lineHeight: 1.4,
+                                                                color: 'rgba(255,255,255,0.85)', textDecoration: 'none',
+                                                                background: 'rgba(255,255,255,0.05)', fontWeight: 500,
+                                                            }}>
+                                                                {item.title}
+                                                            </a>
+                                                        ))}
+                                                    </div>
+                                                </details>
+                                            ) : (
+                                                <aside style={{
+                                                    width: 220, flexShrink: 0,
+                                                    display: 'flex', flexDirection: 'column', gap: 10,
+                                                    maxHeight: 'calc(100vh - 120px)', overflowY: 'auto',
+                                                }}>
+                                                    <a
+                                                        href="/VZhTFKTR.docx"
+                                                        download="VZhTFKTR.docx"
+                                                        style={{
+                                                            display: 'inline-flex', alignItems: 'center', gap: 6,
+                                                            padding: '8px 14px', borderRadius: 10,
+                                                            background: 'rgba(93,228,255,0.08)',
+                                                            border: '1px solid rgba(93,228,255,0.2)',
+                                                            color: '#5de4ff', fontSize: 12, fontWeight: 600,
+                                                            textDecoration: 'none', transition: 'background 0.15s',
+                                                        }}
+                                                    >
+                                                        📥 Скачать DOCX
+                                                    </a>
+                                                    <nav style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                                                        {vozhatifikatorToc.map(item => (
+                                                            <a
+                                                                key={item.id}
+                                                                href={`#${item.id}`}
+                                                                onClick={e => {
+                                                                    e.preventDefault();
+                                                                    vozhatifikatorBookRef.current?.querySelector(`#${CSS.escape(item.id)}`)?.scrollIntoView({ behavior: 'smooth' });
+                                                                }}
+                                                                style={{
+                                                                    padding: '6px 10px', borderRadius: 6,
+                                                                    fontSize: 12, lineHeight: 1.4,
+                                                                    color: 'rgba(255,255,255,0.65)',
+                                                                    textDecoration: 'none',
+                                                                    transition: 'color 0.15s, background 0.15s',
+                                                                    cursor: 'pointer',
+                                                                }}
+                                                                onMouseEnter={e => {
+                                                                    e.currentTarget.style.color = '#5de4ff';
+                                                                    e.currentTarget.style.background = 'rgba(93,228,255,0.06)';
+                                                                }}
+                                                                onMouseLeave={e => {
+                                                                    e.currentTarget.style.color = 'rgba(255,255,255,0.65)';
+                                                                    e.currentTarget.style.background = 'transparent';
+                                                                }}
+                                                            >
+                                                                {item.title}
+                                                            </a>
+                                                        ))}
+                                                    </nav>
+                                                </aside>
+                                            )}
                                             {/* Book content */}
                                             <div ref={vozhatifikatorBookRef} className="vozhatifikator-book" style={{
-                                                flex: 1, overflowY: 'auto',
-                                                maxHeight: 'calc(100vh - 120px)',
+                                                flex: 1, overflowY: 'auto', width: '100%',
+                                                maxHeight: isMobile ? 'calc(100vh - 200px)' : 'calc(100vh - 120px)',
                                             }}>
                                                 {vozhatifikatorLoading && <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 14 }}>Загрузка книги…</p>}
                                                 {vozhatifikatorError && <p style={{ color: '#f59e0b', fontSize: 14 }}>{vozhatifikatorError}</p>}
