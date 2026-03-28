@@ -463,6 +463,13 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({ onResult
 
             const base = getApiBase();
 
+            // Get supabaseUserId if user has an active session (ensures unique identity per person)
+            let supabaseUserId: string | undefined;
+            try {
+                const { data: { session: currentSession } } = await supabase.auth.getSession();
+                supabaseUserId = currentSession?.user?.id || undefined;
+            } catch { /* no session — fine */ }
+
             const res = await fetch(`${base}/api/role-codes/redeem`, {
 
                 method: 'POST',
@@ -473,6 +480,7 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({ onResult
                     code: code.trim(),
                     deviceId,
                     legacyRoleOwner: legacyRoleOwner || undefined,
+                    supabaseUserId: supabaseUserId || undefined,
                 }),
 
             });
@@ -521,6 +529,14 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({ onResult
         setReqError(null);
         try {
             const base = getApiBase();
+
+            // Get supabaseUserId if user has an active session
+            let supabaseUserId: string | undefined;
+            try {
+                const { data: { session: currentSession } } = await supabase.auth.getSession();
+                supabaseUserId = currentSession?.user?.id || undefined;
+            } catch { /* no session — fine */ }
+
             const res = await fetch(`${base}/api/role-requests`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -531,6 +547,7 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({ onResult
                     email: trimmedEmail,
                     comment: reqComment.trim() || undefined,
                     legacyRoleOwner: legacyRoleOwner || undefined,
+                    supabaseUserId: supabaseUserId || undefined,
                 }),
             });
             const data = await res.json().catch(() => ({})) as Record<string, unknown>;

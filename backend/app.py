@@ -2826,7 +2826,14 @@ def dev_login():
             return jsonify({"error": "Invalid role"}), 400
         device_id = (data.get("deviceId") or "").strip() or (request.headers.get("X-Device-Id") or "").strip() or "dev-local"
         camp_id = (data.get("campId") or "").strip() or ""
-        access_token = _auth_create_jwt(role, camp_id, device_id)
+
+        # Use v2 identity system so each role gets a unique scoped deviceId
+        identity = _resolve_identity_context_for_role(
+            role,
+            body=data,
+            fallback_device_id=device_id,
+        )
+        access_token = _issue_role_jwt_for_identity(role, "", identity)
         if not access_token:
             return jsonify({"error": "Token creation failed"}), 500
         exp_ts = jwt.decode(access_token, AUTH_JWT_SECRET, algorithms=["HS256"]).get("exp", 0)
@@ -2834,7 +2841,11 @@ def dev_login():
             "accessToken": access_token,
             "role": role,
             "campId": camp_id,
-            "exp": exp_ts
+            "exp": exp_ts,
+            "deviceId": identity.get("deviceId"),
+            "baseDeviceId": identity.get("baseDeviceId"),
+            "personId": identity.get("personId"),
+            "accountId": identity.get("accountId"),
         })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
