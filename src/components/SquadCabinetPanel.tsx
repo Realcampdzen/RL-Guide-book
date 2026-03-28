@@ -246,8 +246,8 @@ export const SquadCabinetPanel: React.FC<SquadCabinetPanelProps> = ({
   const handleJoinByCode = async () => {
     if (joinBusy) return;
     const hasRealToken = !!accessToken;
-    const isDevSandbox = import.meta.env.DEV && !hasRealToken && !!deviceId;
-    if (!hasRealToken && !isDevSandbox) {
+    const hasDeviceId = !!deviceId;
+    if (!hasRealToken && !hasDeviceId) {
       setStatus('Для вступления в отряд необходима авторизация. Убедитесь, что бэкенд запущен.');
       return;
     }
@@ -263,9 +263,10 @@ export const SquadCabinetPanel: React.FC<SquadCabinetPanelProps> = ({
       if (hasRealToken) {
         preview = await resolveSquadByInviteCode(accessToken!, code);
       } else {
-        // Dev sandbox: send X-Device-Id header, no Authorization (backend allows localhost dev)
+        // Fallback: send X-Device-Id header without Authorization
+        const apiBase = (import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || '').replace(/\/$/, '');
         const params = new URLSearchParams({ code });
-        const res = await fetch(`/api/squads/by-invite-code?${params.toString()}`, {
+        const res = await fetch(`${apiBase}/api/squads/by-invite-code?${params.toString()}`, {
           headers: { 'X-Device-Id': deviceId! }
         });
         const data = await res.json().catch(() => ({}));
@@ -277,7 +278,8 @@ export const SquadCabinetPanel: React.FC<SquadCabinetPanelProps> = ({
       if (hasRealToken) {
         await joinSquad(accessToken!, preview.squadId);
       } else {
-         const res = await fetch(`/api/squads/${encodeURIComponent(preview.squadId)}/join`, {
+        const apiBase = (import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || '').replace(/\/$/, '');
+         const res = await fetch(`${apiBase}/api/squads/${encodeURIComponent(preview.squadId)}/join`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'X-Device-Id': deviceId! },
           body: JSON.stringify({ role })
