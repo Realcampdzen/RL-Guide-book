@@ -616,9 +616,12 @@ def _users_profiles_by_device() -> dict[str, dict]:
     for row in (users_doc.get("users") or []):
         if not isinstance(row, dict):
             continue
-        device_id = (row.get("legacy_device_id") or "").strip()
-        if device_id:
-            users_by_device[device_id] = row
+        legacy_id = (row.get("legacy_device_id") or "").strip()
+        base_id = (row.get("base_device_id") or "").strip()
+        if legacy_id:
+            users_by_device[legacy_id] = row
+        if base_id and base_id not in users_by_device:
+            users_by_device[base_id] = row
     return users_by_device
 
 
