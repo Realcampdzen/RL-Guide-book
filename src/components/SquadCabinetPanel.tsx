@@ -259,15 +259,19 @@ export const SquadCabinetPanel: React.FC<SquadCabinetPanelProps> = ({
     setJoinBusy(true);
     setStatus(null);
     try {
+      // Build fallback headers for non-JWT auth (developer dev-pin)
+      const fallbackHeaders: Record<string, string> = {};
+      if (deviceId) fallbackHeaders['X-Device-Id'] = deviceId;
+      try { const pin = localStorage.getItem('rl-dev-pin'); if (pin) fallbackHeaders['X-Dev-Pin'] = pin; } catch {}
+      const apiBase = (import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || '').replace(/\/$/, '');
+
       let preview: { squadId: string; squadName?: string | null };
       if (hasRealToken) {
         preview = await resolveSquadByInviteCode(accessToken!, code);
       } else {
-        // Fallback: send X-Device-Id header without Authorization
-        const apiBase = (import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || '').replace(/\/$/, '');
         const params = new URLSearchParams({ code });
         const res = await fetch(`${apiBase}/api/squads/by-invite-code?${params.toString()}`, {
-          headers: { 'X-Device-Id': deviceId! }
+          headers: fallbackHeaders
         });
         const data = await res.json().catch(() => ({}));
         if (!res.ok) throw new Error(data.error || 'Код не найден');
@@ -278,10 +282,9 @@ export const SquadCabinetPanel: React.FC<SquadCabinetPanelProps> = ({
       if (hasRealToken) {
         await joinSquad(accessToken!, preview.squadId);
       } else {
-        const apiBase = (import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || '').replace(/\/$/, '');
-         const res = await fetch(`${apiBase}/api/squads/${encodeURIComponent(preview.squadId)}/join`, {
+        const res = await fetch(`${apiBase}/api/squads/${encodeURIComponent(preview.squadId)}/join`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'X-Device-Id': deviceId! },
+          headers: { 'Content-Type': 'application/json', ...fallbackHeaders },
           body: JSON.stringify({ role })
         });
         const data = await res.json().catch(() => ({}));
