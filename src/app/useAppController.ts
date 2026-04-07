@@ -4,6 +4,7 @@ import { useDataLoader } from '../hooks/useDataLoader';
 import { useNavigation } from '../hooks/useNavigation';
 import { useUserProgress } from '../hooks/useUserProgress';
 import { cleanHtmlContent, markdownToHtml, processIntroductionHtml } from '../utils/markdown';
+import { forceUnlock } from '../utils/scrollLock';
 
 export type AppController = ReturnType<typeof useAppController>;
 
@@ -118,6 +119,13 @@ export function useAppController() {
       window.scrollTo({ top: targetY, behavior: 'auto' as ScrollBehavior });
     });
   }, [getViewKey]);
+
+  // Safety: forcefully clear any leaked scroll locks on every view transition.
+  // This prevents the common bug where body overflow:hidden persists after
+  // overlays (ChatBot, HintOverlay, BroBonfire) unmount during navigation.
+  useEffect(() => {
+    forceUnlock();
+  }, [currentView]);
 
   const wrapForward = useCallback(
     <T extends (...args: any[]) => any>(fn: T) => {

@@ -6,6 +6,7 @@ import type { Category } from '../types/guide';
 import type { MasterIndexMeta } from '../hooks/useDataLoader';
 import { toSiblingImageUrl, NAV_HOME_IMAGE } from '../utils/imageSources';
 import { getBadgeImagePath } from '../utils/badgeImages';
+import { forceUnlock } from '../utils/scrollLock';
 import '../styles/bluenest.css';
 
 
@@ -179,14 +180,9 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
   useTiltCard(featureCard1Ref);
   useTiltCard(featureCard2Ref);
 
-  // Safety: clear stale overflow:hidden on body (can persist after HMR or unclean unmounts of ChatBot/HintOverlay)
+  // Safety: clear ALL stale scroll locks on body (can persist after HMR or unclean unmounts of ChatBot/HintOverlay)
   useEffect(() => {
-    if (document.body.style.overflow === 'hidden') {
-      document.body.style.removeProperty('overflow');
-    }
-    if ((document.body.style as any).overscrollBehavior === 'none') {
-      document.body.style.removeProperty('overscroll-behavior');
-    }
+    forceUnlock();
   }, []);
 
   useEffect(() => {

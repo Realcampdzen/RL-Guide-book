@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useUserProgress } from '../hooks/useUserProgress';
+import { lockScroll, unlockScroll } from '../utils/scrollLock';
 import '../styles/bro-bonfire.css';
 
 interface BroBonfireProps {
@@ -20,14 +21,9 @@ export const BroBonfire: React.FC<BroBonfireProps> = ({ onComplete, onCancel, us
 
   useEffect(() => {
     if (!usePortal || typeof document === 'undefined') return;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
+    lockScroll();
     return () => {
-      if (previousOverflow) {
-        document.body.style.overflow = previousOverflow;
-      } else {
-        document.body.style.removeProperty('overflow');
-      }
+      unlockScroll();
     };
   }, [usePortal]);
 

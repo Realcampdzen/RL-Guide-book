@@ -3,6 +3,7 @@ import * as Dialog from '@radix-ui/react-dialog';
 import '../styles/chatbot.css';
 import { rafThrottle } from '../utils/rafThrottle';
 import { useAuth } from '../context/AuthContext';
+import { lockScroll, unlockScroll } from '../utils/scrollLock';
 
 interface Message {
   id: string;
@@ -148,22 +149,9 @@ const ChatBot: React.FC<ChatBotProps> = ({
   // Lock page scroll while chat is open on mobile to avoid viewport/layout thrash during keyboard toggles.
   useEffect(() => {
     if (!isOpen || !isMobile) return;
-    const body = document.body;
-    const prevOverflow = body.style.overflow;
-    const prevOverscroll = (body.style as any).overscrollBehavior;
-    body.style.overflow = 'hidden';
-    (body.style as any).overscrollBehavior = 'none';
+    lockScroll();
     return () => {
-      if (prevOverflow) {
-        body.style.overflow = prevOverflow;
-      } else {
-        body.style.removeProperty('overflow');
-      }
-      if (prevOverscroll) {
-        (body.style as any).overscrollBehavior = prevOverscroll;
-      } else {
-        body.style.removeProperty('overscroll-behavior');
-      }
+      unlockScroll();
     };
   }, [isMobile, isOpen]);
 

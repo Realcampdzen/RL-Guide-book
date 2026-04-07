@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { SmartHint } from '../components/SmartHint';
+import { lockScroll, unlockScroll } from '../utils/scrollLock';
 
 export interface HintStep {
   title: string;
@@ -86,14 +87,9 @@ export const HintOverlayProvider: React.FC<{ children: React.ReactNode }> = ({ c
   // Prevent scroll when hint is open
   useEffect(() => {
     if (isOpen) {
-      const prevInline = document.body.style.overflow;
-      document.body.style.overflow = 'hidden';
+      lockScroll();
       return () => {
-        if (prevInline) {
-          document.body.style.overflow = prevInline;
-        } else {
-          document.body.style.removeProperty('overflow');
-        }
+        unlockScroll();
       };
     }
   }, [isOpen]);
