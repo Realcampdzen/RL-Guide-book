@@ -5,6 +5,8 @@ export function useProfileModals() {
   const [showAdminDashboard, setShowAdminDashboard] = useState(false);
   const [showPersonalCabinet, setShowPersonalCabinet] = useState(true);
 
+  const [initiativeModalOpen, setInitiativeModalOpen] = useState(false);
+
   // You can add more simple boolean toggles here
   
   return {
@@ -14,5 +16,7 @@ export function useProfileModals() {
     setShowAdminDashboard,
     showPersonalCabinet,
     setShowPersonalCabinet,
+    initiativeModalOpen,
+    setInitiativeModalOpen,
   };
 }

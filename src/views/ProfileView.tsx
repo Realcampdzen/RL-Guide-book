@@ -17,8 +17,10 @@ import { ChildRouteModal } from '../components/profile/ChildRouteModal';
 import { useProfileModals } from '../hooks/profile/useProfileModals';
 import { useProfileForms } from '../hooks/profile/useProfileForms';
 import { PlannerModal } from './profile/modals/PlannerModal';
+import { InitiativeModal } from '../components/profile/modals/InitiativeModal';
 import { ProofModal } from './profile/modals/ProofModal';
-import { canRunParentChildMutation, isParentChildReadonlyMode, PARENT_READONLY_BADGE_TEXT, PARENT_READONLY_TOOLTIP } from '../utils/parentReadonly';
+import { ParentsContainer } from '../components/profile/containers/ParentsContainer';
+import { isParentChildReadonlyMode, PARENT_READONLY_BADGE_TEXT } from '../utils/parentReadonly';
 import { inspectorMissions } from '../types/inspector';
 import type { Badge } from '../types/guide';
 import { useHintOverlay, type HintStep } from '../context/HintOverlayContext';
@@ -37,9 +39,8 @@ import { CouncilContainer } from './profile/containers/CouncilContainer';
 import { WingDashboard } from '../components/WingDashboard';
 
 import { generateSocialCard, shareOrDownloadSocialCard, type SocialCardResult } from '../utils/socialGenerator';
-import { fetchAiSlogan, fetchPedagogy4k, fetchVibeCheck, fetchCouncilInitiative } from '../utils/aiService';
+import { fetchAiSlogan, fetchPedagogy4k, fetchVibeCheck } from '../utils/aiService';
 import { InspectorMonitorCurve } from '../components/InspectorMonitorCurve';
-import { CampProgramByDays } from '../components/CampProgramByDays';
 import { ImageSourceBlock } from '../components/ImageSourceBlock';
 import { FeatureGate } from '../components/FeatureGate';
 import { DevPanel } from '../components/DevPanel';
@@ -252,6 +253,8 @@ export const ProfileView: React.FC<any> = (props) => {
     setShowAdminDashboard,
     showPersonalCabinet,
     setShowPersonalCabinet,
+    initiativeModalOpen,
+    setInitiativeModalOpen,
   } = useProfileModals();
   const [_eduPlansInbox, _setEduPlansInbox] = useState<any[]>([]);
   const [_eduPlansLoading, _setEduPlansLoading] = useState(false);
@@ -278,16 +281,6 @@ export const ProfileView: React.FC<any> = (props) => {
     devLoginError, setDevLoginError,
   } = useProfileForms();
 
-  const [initiativeModalOpen, setInitiativeModalOpen] = useState(false);
-  const [initiativeForm, setInitiativeForm] = useState({
-    topicDraft: '',
-    currentDay: 1,
-    shiftLength: 21 as 21 | 9,
-    campProgram3d: ''
-  });
-  const [initiativeResult, setInitiativeResult] = useState<{ initiativeText: string; steps: string[] } | null>(null);
-  const [initiativeBusy, setInitiativeBusy] = useState(false);
-  const [initiativeError, setInitiativeError] = useState<string | null>(null);
 
 
 
@@ -569,16 +562,10 @@ export const ProfileView: React.FC<any> = (props) => {
   const [parentCodeResult, setParentCodeResult] = useState<{ parentLinkCode: string; expiresAt: number } | null>(null);
   const [parentCodeBusy, setParentCodeBusy] = useState(false);
   const [parentSnapshotCode, setParentSnapshotCode] = useState('');
-  const [parentInsights, setParentInsights] = useState<{ overallProgress?: { percent?: number; stage?: string }; weeklyTrend?: { direction?: 'up' | 'flat' | 'down'; note?: string }; dynamicSignals?: { windowDays?: number; currentWindowAchievements?: number; previousWindowAchievements?: number }; whyThisSuggestion?: string; basedOn?: { trend?: string; strongestAreas?: string[]; weakestAreas?: string[]; activityWindow?: string }; strengthsTop3?: Array<{ title?: string }>; nextSteps?: Array<{ hint?: string }> } | null>(null);
-  const [parentInsightsLoading, setParentInsightsLoading] = useState(false);
-  const [parentSectionMode, setParentSectionMode] = useState<'home' | 'child'>('home');
   const isParentChildReadonlyView = isParentChildReadonlyMode({
     role,
     hasChildProgressSnapshot: showChildBadges || !!childProgressFromFile,
   });
-  const [campFacts, setCampFacts] = useState<{ address?: { campName?: string; base?: string; address?: string; route?: string }; contacts?: { phone?: string; email?: string; vk?: string; site?: string; telegram?: string; organizer?: string }; currentSeason?: { name?: string; dates?: string; price?: string; theme?: string }; documents?: string[] } | null>(null);
-  const [campFactsLoading, setCampFactsLoading] = useState(false);
-  const [campFactsError, setCampFactsError] = useState<string | null>(null);
   const [carouselRotationSteps, setCarouselRotationSteps] = useState(0);
   const [pathCarouselRotationSteps, setPathCarouselRotationSteps] = useState(0);
 
@@ -1423,29 +1410,6 @@ export const ProfileView: React.FC<any> = (props) => {
     return () => window.clearInterval(timer);
   }, [openBubble, eventsTab, accessToken, canSeeOwnRequests, canRequestApprovals, loadBadgeApprovalsData, loadMySquadJoinRequestsData]);
 
-  useEffect(() => {
-    if (role !== 'parent') return;
-    const base = (import.meta.env.BASE_URL || '').replace(/\/*$/, '');
-    const url = `${base}${base ? '/' : ''}ai-data/camp-facts.json`;
-    let cancelled = false;
-    setCampFactsLoading(true);
-    setCampFactsError(null);
-    fetch(url)
-      .then((res) => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return res.json();
-      })
-      .then((json) => {
-        if (!cancelled) setCampFacts(json);
-      })
-      .catch((e) => {
-        if (!cancelled) setCampFactsError(e instanceof Error ? e.message : 'Ошибка загрузки');
-      })
-      .finally(() => {
-        if (!cancelled) setCampFactsLoading(false);
-      });
-    return () => { cancelled = true; };
-  }, [role]);
 
 
   useEffect(() => {
@@ -1531,55 +1495,7 @@ export const ProfileView: React.FC<any> = (props) => {
       .catch(() => showHint({ title: 'Ошибка', content: 'Не удалось загрузить данные по коду.' }));
   }, [role, openCabinPanel]);
 
-  useEffect(() => {
-    if (isParentChildReadonlyView) setParentSectionMode('child');
-  }, [isParentChildReadonlyView]);
 
-  const fallbackParentInsights = useMemo(() => {
-    if (!childProgressFromFile) return null;
-    const entries = Object.values(childProgressFromFile || {});
-    const total = entries.length;
-    const achieved = entries.filter((p) => p?.status === 'achieved').length;
-    const percent = total > 0 ? Math.round((achieved / total) * 100) : 0;
-    return {
-      overallProgress: { percent, stage: percent >= 80 ? 'high' : percent >= 40 ? 'steady' : 'start' },
-      weeklyTrend: { direction: 'flat', note: 'История прогресса только формируется — начните с одного посильного шага на этой неделе.' },
-      whyThisSuggestion: 'Рекомендация помогает поддерживать спокойный и устойчивый темп развития.',
-      basedOn: { trend: 'flat', strongestAreas: [], weakestAreas: [], activityWindow: 'последние 7 дней и предыдущие 7 дней' },
-      strengthsTop3: [
-        { title: percent >= 60 ? 'Ребёнок уверенно завершает начатые шаги' : 'Ребёнок включён в лагерный процесс' },
-        { title: 'Есть стабильный интерес к значкам и заданиям' },
-        { title: 'Прогресс можно усиливать регулярной поддержкой дома' },
-      ],
-      nextSteps: [
-        { hint: 'Обсудите один ближайший значок и мягко поддержите завершение следующего шага.' },
-        { hint: 'Хвалите конкретные усилия ребёнка — это ускоряет движение по маршруту.' },
-      ]
-    };
-  }, [childProgressFromFile]);
-
-  useEffect(() => {
-    if (role !== 'parent' || !parentSnapshotCode) return;
-    const hostname = typeof window !== 'undefined' ? window.location.hostname : '';
-    const useLocalApi = import.meta.env.DEV || hostname === 'localhost' || hostname === '127.0.0.1';
-    const apiUrl = useLocalApi ? '/api/parent-insights' : `${((import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || '')).replace(/\/$/, '')}/api/parent-insights`;
-    let cancelled = false;
-    setParentInsightsLoading(true);
-    fetch(`${apiUrl}?code=${encodeURIComponent(parentSnapshotCode)}`)
-      .then(async (res) => {
-        const data = await res.json().catch(() => ({}));
-        if (!cancelled) setParentInsights((data && typeof data === 'object') ? data : null);
-      })
-      .catch(() => {
-        if (!cancelled) setParentInsights(null);
-      })
-      .finally(() => {
-        if (!cancelled) setParentInsightsLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [role, parentSnapshotCode]);
 
   const initialHashHandledRef = useRef(false);
   useEffect(() => {
@@ -1919,16 +1835,8 @@ export const ProfileView: React.FC<any> = (props) => {
   };
 
   const openInitiativeModal = useCallback(() => {
-    setInitiativeForm({
-      topicDraft: '',
-      currentDay: Math.min(21, Math.max(1, userData?.diaryProgress?.currentDay ?? 1)),
-      shiftLength: 21,
-      campProgram3d: ''
-    });
-    setInitiativeResult(null);
-    setInitiativeError(null);
     setInitiativeModalOpen(true);
-  }, [userData?.diaryProgress?.currentDay]);
+  }, []);
 
   const renderOrganizerShiftsSection = () => (
     <div id="organizer-shifts-tab-section" className="profile-view-parents-section organizer-shifts-section">
@@ -2725,20 +2633,16 @@ export const ProfileView: React.FC<any> = (props) => {
         )
       )}
       {panelActiveView === 'parents' && role === 'parent' && (
-        <div id="parents-section" className="profile-view-parents-section">
-          <h2 style={{ fontSize: 20, fontWeight: 800, color: 'rgba(255,255,255,0.95)', margin: 0 }}>Для родителей</h2>
-          <p style={{ margin: '4px 0 0', fontSize: 12, opacity: 0.75 }}>Режим ребёнка в этом разделе всегда read-only.</p>
-          {campFactsLoading && <p className="parents-section-block__text" style={{ margin: 0 }}>Данные загружаются…</p>}
-          {campFactsError && <p style={{ fontSize: 13, margin: 0, color: '#f59e0b' }}>{campFactsError}</p>}
-          {!campFactsLoading && !campFactsError && campFacts && (
-            <div className="parents-section-block">
-              <h3 className="parents-section-block__heading">Смена</h3>
-              {campFacts.currentSeason?.name && <p className="parents-section-block__text">{campFacts.currentSeason.name}</p>}
-              {campFacts.currentSeason?.dates && <p className="parents-section-block__text">Даты: {campFacts.currentSeason.dates}</p>}
-            </div>
-          )}
-          <CampProgramByDays />
-        </div>
+        <ParentsContainer
+          role={role}
+          setShowChildBadges={setShowChildBadges}
+          childProgressFromFile={childProgressFromFile}
+          parentSnapshotCode={parentSnapshotCode}
+          isParentChildReadonlyView={isParentChildReadonlyView}
+          onOpenParentCodeModal={() => setShowParentCodeModal(true)}
+          onNavigateToRegistrationForm={typeof onNavigateToRegistrationForm === 'function' ? onNavigateToRegistrationForm : undefined}
+          onOpenRouteForm={() => setShowChildRouteForm(true)}
+        />
       )}
     </>
   );
@@ -4126,191 +4030,16 @@ export const ProfileView: React.FC<any> = (props) => {
           </div>
 
           {role === 'parent' && (
-            <div id="parents-section" className="profile-view-parents-section" style={{ marginTop: 24, display: 'flex', flexDirection: 'column', gap: 20 }}>
-              <h2 style={{ fontSize: 20, fontWeight: 800, color: 'rgba(255,255,255,0.95)', margin: 0 }}>Для родителей</h2>
-              <p style={{ margin: '4px 0 0', fontSize: 12, opacity: 0.75 }}>Режим ребёнка в этом разделе всегда read-only.</p>
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                <button
-                  type="button"
-                  className="btn-secondary"
-                  onClick={() => setParentSectionMode('home')}
-                  style={{ opacity: parentSectionMode === 'home' ? 1 : 0.75 }}
-                >
-                  Кабинет родителя
-                </button>
-                <button
-                  type="button"
-                  className="btn-secondary"
-                  onClick={() => setParentSectionMode('child')}
-                  style={{ opacity: parentSectionMode === 'child' ? 1 : 0.75 }}
-                >
-                  Прогресс ребёнка · read-only
-                </button>
-              </div>
-              {parentSectionMode === 'home' && campFactsLoading && <p className="parents-section-block__text" style={{ margin: 0 }}>Данные загружаются…</p>}
-              {parentSectionMode === 'home' && campFactsError && <p style={{ fontSize: 13, margin: 0, color: '#f59e0b' }}>Проверьте подключение. {campFactsError}</p>}
-              {parentSectionMode === 'home' && !campFactsLoading && !campFactsError && campFacts && (
-                <>
-                  <div className="parents-section-block">
-                    <h3 className="parents-section-block__heading">Смена</h3>
-                    {(campFacts.currentSeason?.name || campFacts.currentSeason?.theme) && (
-                      <div>
-                        {campFacts.currentSeason?.name && <p className="parents-section-block__text" style={{ margin: 0, fontWeight: 600 }}>{campFacts.currentSeason.name}</p>}
-                        {campFacts.currentSeason?.theme && <p style={{ fontSize: 12, margin: '4px 0 0' }}>{campFacts.currentSeason.theme}</p>}
-                      </div>
-                    )}
-                    {campFacts.currentSeason?.dates && (
-                      <div>
-                        <span className="parents-section-block__label">Даты смен</span>
-                        <p className="parents-section-block__text">{campFacts.currentSeason.dates}</p>
-                      </div>
-                    )}
-                    {campFacts.currentSeason?.price && (
-                      <div>
-                        <span className="parents-section-block__label">Стоимость</span>
-                        <p className="parents-section-block__text">{campFacts.currentSeason.price}</p>
-                      </div>
-                    )}
-                  </div>
-                  <div className="parents-section-block">
-                    <h3 className="parents-section-block__heading">Документы</h3>
-                    {campFacts.documents && campFacts.documents.length > 0 ? (
-                      <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13, opacity: 0.9 }}>
-                        {campFacts.documents.map((doc, i) => (
-                          <li key={i}>{doc}</li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <p className="parents-section-block__text">Уточняйте у организаторов.</p>
-                    )}
-                  </div>
-                  {campFacts.address && (campFacts.address.campName || campFacts.address.base || campFacts.address.address || campFacts.address.route) && (
-                    <div className="parents-section-block">
-                      <h3 className="parents-section-block__heading">Адрес и как добраться</h3>
-                      <div style={{ fontSize: 13, opacity: 0.9 }}>
-                        {(campFacts.address.campName || campFacts.address.base) && (
-                          <p style={{ margin: 0 }}>{[campFacts.address.campName, campFacts.address.base].filter(Boolean).join(', ')}</p>
-                        )}
-                        {campFacts.address.address && <p style={{ margin: '4px 0 0' }}>{campFacts.address.address}</p>}
-                        {campFacts.address.route && <p style={{ margin: '4px 0 0' }}>Как добраться: {campFacts.address.route}</p>}
-                      </div>
-                    </div>
-                  )}
-                  {campFacts.contacts && (
-                    <div className="parents-section-block">
-                      <h3 className="parents-section-block__heading">Контакты</h3>
-                      <div className="parents-section__contacts">
-                        {campFacts.contacts.phone && (
-                          <a href={`tel:${campFacts.contacts.phone.replace(/\s/g, '')}`}>{campFacts.contacts.phone}</a>
-                        )}
-                        {campFacts.contacts.email && (
-                          <a href={`mailto:${campFacts.contacts.email}`}>{campFacts.contacts.email}</a>
-                        )}
-                        {campFacts.contacts.telegram && (
-                          <a href={campFacts.contacts.telegram} target="_blank" rel="noopener noreferrer">Telegram</a>
-                        )}
-                        {campFacts.contacts.site && (
-                          <a href={campFacts.contacts.site} target="_blank" rel="noopener noreferrer">Сайт</a>
-                        )}
-                        {campFacts.contacts.vk && (
-                          <a href={campFacts.contacts.vk} target="_blank" rel="noopener noreferrer">ВКонтакте</a>
-                        )}
-                        {campFacts.contacts.organizer && (
-                          <a href={campFacts.contacts.organizer} target="_blank" rel="noopener noreferrer">Организатор (Telegram)</a>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </>
-              )}
-              {parentSectionMode === 'home' && !campFactsLoading && !campFactsError && !campFacts && (
-                <p className="parents-section-block__text" style={{ margin: 0 }}>По вопросам документов и бронирования — контакты в разделе «О лагере».</p>
-              )}
-              {parentSectionMode === 'home' && typeof onNavigateToRegistrationForm === 'function' && (
-                <button type="button" onClick={onNavigateToRegistrationForm} className="btn-primary-gold" style={{ alignSelf: 'flex-start', padding: '12px 24px' }}>
-                  Забронировать путевку
-                </button>
-              )}
-              {parentSectionMode === 'home' && <h3 className="parents-section__program-title">Программа смены</h3>}
-              {parentSectionMode === 'home' && <CampProgramByDays />}
-              {parentSectionMode === 'child' && (
-                <>
-                  <div className="parents-section-block" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                    <h3 className="parents-section-block__heading" style={{ margin: 0 }}>Витрина прогресса ребёнка</h3>
-                    <p className="parents-section-block__text" style={{ margin: 0 }}>Здесь только безопасный read-only просмотр. Изменять прогресс ребёнка нельзя.</p>
-                    <button type="button" onClick={() => setShowChildBadges(true)} className="parents-section__btn-child" style={{ alignSelf: 'flex-start' }}>
-                      Открыть прогресс ребёнка (read-only)
-                    </button>
-                  </div>
-                  <div className="parents-section-block" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                    <h3 className="parents-section-block__heading" style={{ margin: 0 }}>Рекомендации для поддержки ребёнка</h3>
-                    {parentInsightsLoading && <p className="parents-section-block__text" style={{ margin: 0 }}>Собираем понятную сводку прогресса и ближайших шагов…</p>}
-                    {!parentInsightsLoading && (
-                      <>
-                        <p className="parents-section-block__text" style={{ margin: 0 }}>
-                          Общий прогресс: <strong>{(parentInsights?.overallProgress?.percent ?? fallbackParentInsights?.overallProgress?.percent ?? 0)}%</strong>
-                        </p>
-                        <p className="parents-section-block__text" style={{ margin: 0 }}>
-                          Тренд недели: <strong>{(parentInsights?.weeklyTrend?.direction ?? fallbackParentInsights?.weeklyTrend?.direction ?? 'flat') === 'up' ? 'рост' : (parentInsights?.weeklyTrend?.direction ?? fallbackParentInsights?.weeklyTrend?.direction ?? 'flat') === 'down' ? 'снижение' : 'стабильно'}</strong>
-                          {' — '}
-                          {(parentInsights?.weeklyTrend?.note ?? fallbackParentInsights?.weeklyTrend?.note ?? 'Темп ровный, поддерживайте регулярный ритм.')}
-                        </p>
-                        <div>
-                          <div className="parents-section-block__label">Что уже хорошо</div>
-                          <ul style={{ margin: '6px 0 0 18px', padding: 0 }}>
-                            {(parentInsights?.strengthsTop3 || fallbackParentInsights?.strengthsTop3 || [{ title: 'Когда будет доступна витрина ребёнка, здесь появятся сильные стороны и достижения.' }]).slice(0, 3).map((s, idx) => (
-                              <li key={`pi-s-${idx}`} className="parents-section-block__text" style={{ margin: 0 }}>{s?.title}</li>
-                            ))}
-                          </ul>
-                        </div>
-                        <div>
-                          <div className="parents-section-block__label">Что поддержать дальше</div>
-                          <ul style={{ margin: '6px 0 0 18px', padding: 0 }}>
-                            {(parentInsights?.nextSteps || fallbackParentInsights?.nextSteps || [{ hint: 'Откройте витрину достижений ребёнка по коду или ссылке, чтобы получить точные рекомендации.' }]).slice(0, 2).map((s, idx) => (
-                              <li key={`pi-n-${idx}`} className="parents-section-block__text" style={{ margin: 0 }}>{s?.hint}</li>
-                            ))}
-                          </ul>
-                        </div>
-                        <div>
-                          <div className="parents-section-block__label">Почему такая рекомендация</div>
-                          <p className="parents-section-block__text" style={{ margin: '6px 0 0 0' }}>
-                            {parentInsights?.whyThisSuggestion || fallbackParentInsights?.whyThisSuggestion || 'Рекомендация собрана из текущего темпа и зон, где поддержка даст наибольший эффект.'}
-                          </p>
-                          <p className="parents-section-block__text" style={{ margin: '4px 0 0 0', opacity: 0.78 }}>
-                            Основа: тренд {((parentInsights?.basedOn?.trend || fallbackParentInsights?.basedOn?.trend || 'flat') === 'up' ? 'рост' : (parentInsights?.basedOn?.trend || fallbackParentInsights?.basedOn?.trend || 'flat') === 'down' ? 'снижение' : 'стабильно')} · окно {(parentInsights?.basedOn?.activityWindow || fallbackParentInsights?.basedOn?.activityWindow || 'последние 7 дней и предыдущие 7 дней')}
-                          </p>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                </>
-              )}
-              {isParentChildReadonlyView && (
-                <div style={{ alignSelf: 'flex-start', fontSize: 12, fontWeight: 700, letterSpacing: 0.2, padding: '6px 10px', borderRadius: 999, border: '1px solid rgba(255,255,255,0.32)', background: 'rgba(26,33,53,0.55)' }}>
-                  {PARENT_READONLY_BADGE_TEXT}
-                </div>
-              )}
-              <div className="parents-section__actions">
-                <button type="button" onClick={() => setShowChildBadges(true)} className="parents-section__btn-child">
-                  Значки моего ребёнка
-                </button>
-                {parentSectionMode === 'home' && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (!canRunParentChildMutation({ role, hasChildProgressSnapshot: showChildBadges || !!childProgressFromFile })) return;
-                      setShowChildRouteForm(true);
-                    }}
-                    className="parents-section__btn-route"
-                    disabled={!canRunParentChildMutation({ role, hasChildProgressSnapshot: showChildBadges || !!childProgressFromFile })}
-                    title={isParentChildReadonlyView ? PARENT_READONLY_TOOLTIP : undefined}
-                  >
-                    Предложить маршрут развития для ребёнка
-                  </button>
-                )}
-                <p style={{ fontSize: 12, opacity: 0.7, margin: 0 }}>Предложить идею для лагеря — в блоке «Совет Лагеря» ниже.</p>
-              </div>
-            </div>
+            <ParentsContainer
+              role={role}
+              setShowChildBadges={setShowChildBadges}
+              childProgressFromFile={childProgressFromFile}
+              parentSnapshotCode={parentSnapshotCode}
+              isParentChildReadonlyView={isParentChildReadonlyView}
+              onOpenParentCodeModal={() => setShowParentCodeModal(true)}
+              onNavigateToRegistrationForm={typeof onNavigateToRegistrationForm === 'function' ? onNavigateToRegistrationForm : undefined}
+              onOpenRouteForm={() => setShowChildRouteForm(true)}
+            />
           )}
 
           {showOrganizerPanel && renderOrganizerShiftsSection()}
@@ -4331,33 +4060,13 @@ export const ProfileView: React.FC<any> = (props) => {
                   <FeatureGate allowed={false} reason={travelerGateReason} ctaLabel="Разблокировать по коду" onCta={openUnlockByCode}>
                     <TeamContainer
                       onNavigateToBadge={onNavigateToBadge}
-                      onSuggestInitiative={seeOtradBlocksInView ? () => {
-                        setInitiativeForm({
-                          topicDraft: '',
-                          currentDay: Math.min(21, Math.max(1, userData?.diaryProgress?.currentDay ?? 1)),
-                          shiftLength: 21,
-                          campProgram3d: ''
-                        });
-                        setInitiativeResult(null);
-                        setInitiativeError(null);
-                        setInitiativeModalOpen(true);
-                      } : undefined}
+                      onSuggestInitiative={seeOtradBlocksInView ? openInitiativeModal : undefined}
                     />
                   </FeatureGate>
                 ) : (
                   <TeamContainer
                     onNavigateToBadge={onNavigateToBadge}
-                    onSuggestInitiative={seeOtradBlocksInView ? () => {
-                      setInitiativeForm({
-                        topicDraft: '',
-                        currentDay: Math.min(21, Math.max(1, userData?.diaryProgress?.currentDay ?? 1)),
-                        shiftLength: 21,
-                        campProgram3d: ''
-                      });
-                      setInitiativeResult(null);
-                      setInitiativeError(null);
-                      setInitiativeModalOpen(true);
-                    } : undefined}
+                    onSuggestInitiative={seeOtradBlocksInView ? openInitiativeModal : undefined}
                   />
                 )
               )}
@@ -4367,17 +4076,7 @@ export const ProfileView: React.FC<any> = (props) => {
                   {travelerMode ? (
                     <FeatureGate allowed={false} reason={travelerGateReason} ctaLabel="Разблокировать по коду" onCta={openUnlockByCode}>
                       <WingDashboard
-                        onSuggestInitiative={() => {
-                          setInitiativeForm({
-                            topicDraft: '',
-                            currentDay: Math.min(21, Math.max(1, userData?.diaryProgress?.currentDay ?? 1)),
-                            shiftLength: 21,
-                            campProgram3d: ''
-                          });
-                          setInitiativeResult(null);
-                          setInitiativeError(null);
-                          setInitiativeModalOpen(true);
-                        }}
+                        onSuggestInitiative={openInitiativeModal}
                       />
                     </FeatureGate>
                   ) : (
@@ -4389,17 +4088,7 @@ export const ProfileView: React.FC<any> = (props) => {
                       mode="replace"
                     >
                       <WingDashboard
-                        onSuggestInitiative={() => {
-                          setInitiativeForm({
-                            topicDraft: '',
-                            currentDay: Math.min(21, Math.max(1, userData?.diaryProgress?.currentDay ?? 1)),
-                            shiftLength: 21,
-                            campProgram3d: ''
-                          });
-                          setInitiativeResult(null);
-                          setInitiativeError(null);
-                          setInitiativeModalOpen(true);
-                        }}
+                        onSuggestInitiative={openInitiativeModal}
                       />
                     </FeatureGate>
                   )}
@@ -5762,91 +5451,13 @@ export const ProfileView: React.FC<any> = (props) => {
 
       <PlannerModal />
 
-      {initiativeModalOpen && (
-        <div className="proof-modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) { setInitiativeModalOpen(false); setInitiativeResult(null); setInitiativeError(null); } }}>
-          <div className="proof-modal proof-modal--mobile-sheet fade-in" role="dialog" aria-modal="true" aria-labelledby="profile-modal-initiative-title" onClick={e => e.stopPropagation()}>
-            <h3 id="profile-modal-initiative-title" style={{ marginTop: 0, marginBottom: 8 }}>💡 Предложить инициативу в совет лагеря</h3>
-            {initiativeError && (
-              <div style={{ padding: 12, marginBottom: 12, background: 'rgba(255,100,100,0.15)', borderRadius: 8, border: '1px solid rgba(255,100,100,0.4)', fontSize: 12 }}>
-                {initiativeError}
-                <button type="button" onClick={() => setInitiativeError(null)} style={{ marginLeft: 8, background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', textDecoration: 'underline', fontSize: 11 }}>Скрыть</button>
-              </div>
-            )}
-            {initiativeResult ? (
-              <>
-                <div style={{ fontSize: 13, lineHeight: 1.6, marginBottom: 12, whiteSpace: 'pre-wrap' }}>{initiativeResult.initiativeText}</div>
-                {initiativeResult.steps.length > 0 && (
-                  <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 16px' }}>{initiativeResult.steps.map((item, i) => <li key={i} style={{ padding: '6px 0', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>• {item}</li>)}</ul>
-                )}
-                <button onClick={() => {
-                  const text = `💡 Инициатива в Совет Лагеря\n\n${initiativeResult.initiativeText}\n\nШаги:\n${initiativeResult.steps.map((s, i) => `${i + 1}. ${s}`).join('\n')}`;
-                  navigator.clipboard.writeText(text).then(() => showHint({ title: 'Скопировано', content: 'Текст инициативы скопирован в буфер обмена.' }));
-                }} className="btn-secondary" style={{ width: '100%', marginBottom: 8 }}>Скопировать</button>
-                <button onClick={() => {
-                  const text = `💡 Инициатива в Совет Лагеря\n\n${initiativeResult.initiativeText}\n\nШаги:\n${initiativeResult.steps.map((s, i) => `${i + 1}. ${s}`).join('\n')}`;
-                  window.open(`https://t.me/Stivanovv?text=${encodeURIComponent(text)}`, '_blank', 'noopener,noreferrer');
-                  showHint({ title: 'Открыто', content: 'Инициатива открыта в Telegram. Отправь в чат Совета или вожатым.' });
-                }} className="btn-primary-gold" style={{ width: '100%' }}>Отправить в Telegram</button>
-              </>
-            ) : (
-              <>
-                <p style={{ fontSize: 12, opacity: 0.75, marginBottom: 16, lineHeight: 1.5 }}>Опиши идею — ИИ поможет оформить её в инициативу для Совета (суть + шаги).</p>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', opacity: 0.9, marginBottom: 4 }}>Идея / тема инициативы</label>
-                    <textarea placeholder="Новая игра, мероприятие, улучшение традиций, идея от Движка…" className="w-input" rows={3} style={{ width: '100%', padding: 10, resize: 'vertical' }} value={initiativeForm.topicDraft} onChange={e => setInitiativeForm({ ...initiativeForm, topicDraft: e.target.value })} />
-                  </div>
-                  <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                    <div>
-                      <label style={{ display: 'block', fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', opacity: 0.9, marginBottom: 4 }}>День смены</label>
-                      <input type="number" min={1} max={initiativeForm.shiftLength} value={initiativeForm.currentDay} onChange={e => setInitiativeForm({ ...initiativeForm, currentDay: Math.min(initiativeForm.shiftLength, Math.max(1, parseInt(e.target.value, 10) || 1)) })} className="w-input" style={{ width: '70px', padding: 8 }} />
-                    </div>
-                    <div>
-                      <label style={{ display: 'block', fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', opacity: 0.9, marginBottom: 4 }}>Смена</label>
-                      <div style={{ display: 'flex', gap: 8 }}>
-                        <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}><input type="radio" checked={initiativeForm.shiftLength === 21} onChange={() => setInitiativeForm({ ...initiativeForm, shiftLength: 21, currentDay: Math.min(21, initiativeForm.currentDay) })} /> 21 дн.</label>
-                        <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}><input type="radio" checked={initiativeForm.shiftLength === 9} onChange={() => setInitiativeForm({ ...initiativeForm, shiftLength: 9, currentDay: Math.min(9, initiativeForm.currentDay) })} /> 9 дн.</label>
-                      </div>
-                    </div>
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', opacity: 0.9, marginBottom: 4 }}>Программа лагеря на 3 дня (по желанию)</label>
-                    <textarea placeholder="План-сетка лагеря на ближайшие дни…" className="w-input" rows={2} style={{ width: '100%', padding: 10, resize: 'vertical' }} value={initiativeForm.campProgram3d} onChange={e => setInitiativeForm({ ...initiativeForm, campProgram3d: e.target.value })} />
-                  </div>
-                </div>
-                <button onClick={async () => {
-                  if (!initiativeForm.topicDraft.trim()) { showHint({ title: 'Напиши идею', content: 'Опиши тему или идею инициативы в поле выше.' }); return; }
-                  setInitiativeBusy(true);
-                  setInitiativeError(null);
-                  try {
-                    const res = await fetchCouncilInitiative({
-                      teamName: myTeam?.name,
-                      topicDraft: initiativeForm.topicDraft.trim(),
-                      currentDay: initiativeForm.currentDay,
-                      shiftLength: initiativeForm.shiftLength,
-                      campProgram3d: initiativeForm.campProgram3d.trim() || undefined
-                    });
-                    if (res) {
-                      setInitiativeResult(res);
-                      setInitiativeError(null);
-                    } else {
-                      setInitiativeError('Не удалось сгенерировать инициативу. Запусти backend: npm run start:backend');
-                      showHint({ title: 'Ошибка API', content: 'Не удалось сгенерировать инициативу. Запусти backend: npm run start:backend' });
-                    }
-                  } catch (e) {
-                    console.error('fetchCouncilInitiative:', e);
-                    setInitiativeError('Ошибка сети или backend не запущен. Запусти: npm run start:backend');
-                    showHint({ title: 'Ошибка API', content: 'Не удалось сгенерировать инициативу. Запусти backend: npm run start:backend' });
-                  } finally {
-                    setInitiativeBusy(false);
-                  }
-                }} disabled={initiativeBusy} className="btn-primary-gold" style={{ width: '100%', marginTop: 16 }}>{initiativeBusy ? 'Генерируем…' : 'Сгенерировать инициативу'}</button>
-              </>
-            )}
-            <button onClick={() => { setInitiativeModalOpen(false); setInitiativeResult(null); setInitiativeError(null); }} style={{ width: '100%', background: 'none', border: 'none', color: 'white', marginTop: 12, cursor: 'pointer', opacity: 0.5, fontSize: 13 }}>Закрыть</button>
-          </div>
-        </div>
-      )}
+      <InitiativeModal
+        isOpen={initiativeModalOpen}
+        onClose={() => setInitiativeModalOpen(false)}
+        myTeam={myTeam}
+        showHint={showHint}
+        defaultDay={userData?.diaryProgress?.currentDay ?? 1}
+      />
 
       <ProofModal />
 
