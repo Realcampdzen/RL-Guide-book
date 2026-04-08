@@ -8,7 +8,7 @@ import { useCounselorSquad } from '../context/CounselorSquadContext';
 import { useAuth } from '../context/AuthContext';
 import { getProgressStorageKey } from '../context/ProgressContext';
 import { fireOn401 } from '../utils/authStorage';
-import { canSeeOtradBlocks, showEventsPanelForRole, ROLE_ORDER, getRoleDisplay, ROLE_LABELS, canCreateShiftsAndSquads, isTraveler, canUseExpensiveActions, canRequestBadgeApproval, canModerateBadgeApprovals } from '../types/authRole';
+import { ROLE_ORDER, getRoleDisplay, ROLE_LABELS } from '../types/authRole';
 import type { UserRole } from '../types/authRole';
 import { getRank, buildParentReportPayload } from '../types/userProgress';
 import type { ParentReportPayload } from '../types/userProgress';
@@ -19,7 +19,7 @@ import { useProfileForms } from '../hooks/profile/useProfileForms';
 import { PlannerModal } from './profile/modals/PlannerModal';
 import { ProofModal } from './profile/modals/ProofModal';
 import { canRunParentChildMutation, isParentChildReadonlyMode, PARENT_READONLY_BADGE_TEXT, PARENT_READONLY_TOOLTIP } from '../utils/parentReadonly';
-import { inspectorMissions, type InspectorTabId, INSPECTOR_TAB_IDS, INSPECTOR_TAB_BADGE_IDS } from '../types/inspector';
+import { inspectorMissions } from '../types/inspector';
 import type { Badge } from '../types/guide';
 import { useHintOverlay, type HintStep } from '../context/HintOverlayContext';
 import { InspectorContainer } from './profile/containers/InspectorContainer';
@@ -61,7 +61,7 @@ import {
   fetchSquadCorner,
   joinSquad,
   loadBadgeRequestsInbox,
-  createBadgeRequest,
+
   loadMyApprovals,
   loadMyBadgeRequests,
   loadMySquadJoinRequests,
@@ -181,7 +181,7 @@ const PROFILE_AUTO_FIT_SELECTOR = [
 
 export const ProfileView: React.FC<any> = (props) => {
   const { onBack, onNavigateToBadge, badges, ensureBadgeLoaded, addCustomBadge: _addCustomBadge, restoreCustomBadges, removeCustomBadge, customBadges = [], communityBadges = [], communityPendingCount: _communityPendingCount = 0, communitySyncing: _communitySyncing = false, communityLikedIds: _communityLikedIds = new Set<string>(), toggleCommunityLike: _toggleCommunityLike, publishBadgeToCommunity, setCustomBadgeImage: _setCustomBadgeImage, onChatToggle: _onChatToggle, onChatClose: _onChatClose, isChatOpen: _isChatOpen, lastUpdated, onNavigateToRegistrationForm, onNavigateHome, onNavigateCategories, onNavigateAboutCamp, onTelegramContact, onOpenVk } = props;
-  const { userData, setNickname, setAvatar, setProfileStatus, setProfileBio, toggleFavorite, removeRoute, exportData, importData, resetProgress, applyApprovedLevel, getLevelProgress, markRankUpSeen, completeTutorial, isLoading, updateLevelEvidence, updateLevelStatus, updateBadgePlanStatus, updateVozhatifikatorChecklist, updateDiarySquad, setPathFavToast } = useUserProgress();
+  const { userData, setNickname, setAvatar, setProfileStatus, setProfileBio, toggleFavorite, removeRoute, exportData, importData, resetProgress, applyApprovedLevel, getLevelProgress, markRankUpSeen, completeTutorial, isLoading, updateLevelStatus, updateBadgePlanStatus, updateVozhatifikatorChecklist, updateDiarySquad, setPathFavToast } = useUserProgress();
   const { myTeam, generateInviteUrl } = useTeam();
   const { canUseChat, role, deviceId, accountId, setAuth, accessToken, campId } = useAuth();
   const progressStorageKey = getProgressStorageKey(accountId);
