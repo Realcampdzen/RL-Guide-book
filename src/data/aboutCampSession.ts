@@ -18,9 +18,9 @@ export interface AboutCampSession {
 
 export const aboutCampSession: AboutCampSession = {
   // Мы сбрасываем заголовок, чтобы AboutCampView не ломался от split(' ')
-  sessionTitle: 'Осенняя смена',
-  dates: 'Даты скоро появятся',
+  sessionTitle: 'Следующая смена',
+  dates: 'Даты уточняются',
   message: 'Здесь скоро появится информация о следующей смене! А пока подписывайтесь на нас, чтобы не пропустить анонс.',
-  buttonText: 'Следить за анонсом в Telegram',
+  buttonText: 'Следить за анонсами в Telegram',
   prices: [],
 };
