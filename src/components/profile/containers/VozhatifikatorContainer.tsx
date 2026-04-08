@@ -7,7 +7,7 @@ const VOZHATIFIKATOR_DOCX_URL = '/' + VOZHATIFIKATOR_DOCX_FILE;
 
 interface VozhatifikatorContainerProps {
   userData: any;
-  updateVozhatifikatorChecklist: (opts: any) => Promise<any>;
+  updateVozhatifikatorChecklist: (itemId: string, completed: boolean) => void;
 }
 
 export const VozhatifikatorContainer: React.FC<VozhatifikatorContainerProps> = ({

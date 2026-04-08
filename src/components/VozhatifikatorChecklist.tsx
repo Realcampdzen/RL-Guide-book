@@ -12,6 +12,7 @@ interface VozhatifikatorChecklistProps {
   userNickname?: string;
   userRole?: string;
   deviceId?: string;
+  era?: '2013-2019' | '2019-2021' | '2021-2023' | '2023-now';
 }
 
 export const VozhatifikatorChecklist: React.FC<VozhatifikatorChecklistProps> = ({

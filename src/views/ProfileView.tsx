@@ -26,6 +26,7 @@ import { InspectorContainer } from './profile/containers/InspectorContainer';
 import { SquadCornerContainer } from '../components/profile/containers/SquadCornerContainer';
 import { BroContainer } from '../components/profile/containers/BroContainer';
 import { WorkshopContainer } from '../components/profile/containers/WorkshopContainer';
+import { VozhatifikatorContainer } from '../components/profile/containers/VozhatifikatorContainer';
 import { BadgeCard } from '../components/BadgeCard';
 import { Profile4KDashboard, type Profile4KTabId } from '../components/Profile4KDashboard';
 import { TeamContainer } from './profile/containers/TeamContainer';
@@ -39,7 +40,6 @@ import { generateSocialCard, shareOrDownloadSocialCard, type SocialCardResult } 
 import { fetchAiSlogan, fetchPedagogy4k, fetchVibeCheck, fetchCouncilInitiative } from '../utils/aiService';
 import { InspectorMonitorCurve } from '../components/InspectorMonitorCurve';
 import { CampProgramByDays } from '../components/CampProgramByDays';
-import { VozhatifikatorChecklist } from '../components/VozhatifikatorChecklist';
 import { ImageSourceBlock } from '../components/ImageSourceBlock';
 import { FeatureGate } from '../components/FeatureGate';
 import { DevPanel } from '../components/DevPanel';
@@ -47,8 +47,6 @@ import { AdminDashboard } from '../components/AdminDashboard';
 import { PersonalCabinet } from '../components/PersonalCabinet';
 import ProfileTabletNav from '../components/ProfileTabletNav';
 import { requestImageGenerate } from '../utils/imageGenerateApi';
-import { parseMarkdownToc, markdownToHtmlWithHeadingIds } from '../utils/markdown';
-import { getBadgeImagePath } from '../utils/badgeImages';
 import { pluralizeRu } from '../utils/textFormatting';
 import { syncAuthProfile } from '../utils/authProfileApi';
 import {
@@ -113,10 +111,6 @@ const getBaseId = (rawId: string) => {
 
 /** При числе элементов не больше этого — показываем статический ряд без карусели (нет вращения, пустого экрана и стрелок). */
 const CAROUSEL_STATIC_MAX = 3;
-
-/** DOCX — редактируемая версия (VZhTFKTR.docx), будет обновляться при редактуре. */
-const VOZHATIFIKATOR_DOCX_FILE = 'VZhTFKTR.docx';
-const VOZHATIFIKATOR_DOCX_URL = '/' + VOZHATIFIKATOR_DOCX_FILE;
 
 type Tab = 'active' | 'favorites' | 'collection' | 'journal' | 'workshop' | 'squads';
 type BroTabId = 'initiation' | 'wing';
@@ -488,45 +482,12 @@ export const ProfileView: React.FC<any> = (props) => {
   const [shareActiveTab, setShareActiveTab] = useState<ShareTabId>('create-card');
 
   const [panelOrigin, setPanelOrigin] = useState<'left' | 'right' | 'top' | null>(null);
-  const [vozhatifikatorToc, setVozhatifikatorToc] = useState<Array<{ id: string; title: string }>>([]);
-  const [vozhatifikatorHtml, setVozhatifikatorHtml] = useState<string | null>(null);
-  const [vozhatifikatorLoading, setVozhatifikatorLoading] = useState(false);
-  const [vozhatifikatorError, setVozhatifikatorError] = useState<string | null>(null);
-  const [vozhatifikatorSubView, setVozhatifikatorSubView] = useState<'book' | 'lights'>('book');
-  const [vozhatifikatorEra, setVozhatifikatorEra] = useState<'2013-2019' | '2019-2021' | '2021-2023' | '2023-now'>('2013-2019');
-  const vozhatifikatorBookRef = useRef<HTMLDivElement | null>(null);
   const avatarWrapRef = useRef<HTMLButtonElement | null>(null);
   const centerScrollRef = useRef<HTMLDivElement | null>(null);
   const profileOuterRef = useRef<HTMLDivElement | null>(null);
   const profileAutoFitInstancesRef = useRef<FittyInstance[]>([]);
   const broTabOnOpenRef = useRef<BroTabId | null>(null);
-  useEffect(() => {
-    if (panelActiveView !== 'vozhatifikator' || vozhatifikatorSubView !== 'book' || vozhatifikatorHtml !== null) return;
-    const base = (import.meta.env.BASE_URL || '').replace(/\/*$/, '');
-    const url = `${base}${base ? '/' : ''}vozhatifikator.md`;
-    let cancelled = false;
-    setVozhatifikatorLoading(true);
-    setVozhatifikatorError(null);
-    fetch(url)
-      .then((res) => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return res.text();
-      })
-      .then((md) => {
-        if (cancelled) return;
-        const toc = parseMarkdownToc(md);
-        const html = markdownToHtmlWithHeadingIds(md, toc);
-        setVozhatifikatorToc(toc);
-        setVozhatifikatorHtml(html);
-      })
-      .catch((e) => {
-        if (!cancelled) setVozhatifikatorError(e instanceof Error ? e.message : 'Ошибка загрузки');
-      })
-      .finally(() => {
-        if (!cancelled) setVozhatifikatorLoading(false);
-      });
-    return () => { cancelled = true; };
-  }, [panelActiveView, vozhatifikatorSubView, vozhatifikatorHtml]);
+
   const openCabinPanel = useCallback((viewId: PanelViewId | null, origin: 'left' | 'right' | 'top' | null) => {
     const nextViewId = panelActiveView === viewId ? null : viewId;
     setPanelOrigin(nextViewId ? origin : null);
@@ -596,11 +557,6 @@ export const ProfileView: React.FC<any> = (props) => {
       /profile-desktop/.test(window.location.pathname || window.location.href || '')
     )
   );
-  useEffect(() => {
-    if (panelActiveView === 'vozhatifikator' && isSpaceshipMode) {
-      setVozhatifikatorSubView('book');
-    }
-  }, [panelActiveView, isSpaceshipMode]);
   const [showRoleSelector, setShowRoleSelector] = useState(() =>
     (typeof window !== 'undefined' && localStorage.getItem('rl_profile_role_selector_seen') === '1') ? false : true
   );
@@ -2749,209 +2705,22 @@ export const ProfileView: React.FC<any> = (props) => {
                   <Icons.Close />
                 </button>
 
-                <div className="vozhatifikator-panel vozhatifikator-panel--spotlight">
-                  <aside className="vozhatifikator-toc" aria-label="Навигация Вожатификатора">
-                    <div className="vozhatifikator-badge-block">
-                      {getBadgeImagePath('9.10', 'Вожатификатор', '9', undefined, undefined) && (
-                        <button
-                          type="button"
-                          className="vozhatifikator-badge-block__img-btn"
-                          onClick={() => onNavigateToBadge('9.10')}
-                          aria-label="Открыть значок Вожатификатор"
-                        >
-                          <img src={getBadgeImagePath('9.10', 'Вожатификатор', '9', undefined, undefined)!} alt="" className="vozhatifikator-badge-block__img" />
-                        </button>
-                      )}
-                      <a href="#" className="vozhatifikator-badge-block__link" onClick={(e) => { e.preventDefault(); onNavigateToBadge('9.10'); }}>
-                        Значок «Вожатификатор» в каталоге
-                      </a>
-                    </div>
-
-                    {/* C-2: Era switcher pills */}
-                    <div className="vozhatifikator-era-nav" role="radiogroup" aria-label="Эпохи Вожатификатора">
-                      {([
-                        { id: '2013-2019' as const, label: '2013–2019', active: true },
-                        { id: '2019-2021' as const, label: '2019–2021', active: false },
-                        { id: '2021-2023' as const, label: '2021–2023', active: false },
-                        { id: '2023-now' as const, label: '2023–н.в.', active: false },
-                      ]).map((era) => (
-                        <button
-                          key={era.id}
-                          type="button"
-                          role="radio"
-                          aria-checked={vozhatifikatorEra === era.id}
-                          disabled={!era.active}
-                          className={`vozhatifikator-era-pill${vozhatifikatorEra === era.id ? ' vozhatifikator-era-pill--active' : ''}${!era.active ? ' vozhatifikator-era-pill--disabled' : ''}`}
-                          onClick={() => era.active && setVozhatifikatorEra(era.id)}
-                        >
-                          {!era.active && <span className="vozhatifikator-era-pill__lock">🔒</span>}
-                          <span>{era.label}</span>
-                          {!era.active && <span className="vozhatifikator-era-pill__badge">скоро</span>}
-                        </button>
-                      ))}
-                    </div>
-
-                    <div className="vozhatifikator-tabs" role="tablist" aria-label="Разделы Вожатификатора">
-                      <button
-                        id="vozhatifikator-tab-book"
-                        type="button"
-                        role="tab"
-                        aria-selected={vozhatifikatorSubView === 'book'}
-                        aria-controls="vozhatifikator-tabpanel-book"
-                        className={`vozhatifikator-tab ${vozhatifikatorSubView === 'book' ? 'vozhatifikator-tab--active' : ''}`}
-                        onClick={() => setVozhatifikatorSubView('book')}
-                      >
-                        Вожатификатор
-                      </button>
-                      <button
-                        id="vozhatifikator-tab-lights"
-                        type="button"
-                        role="tab"
-                        aria-selected={vozhatifikatorSubView === 'lights'}
-                        aria-controls="vozhatifikator-tabpanel-lights"
-                        className={`vozhatifikator-tab ${vozhatifikatorSubView === 'lights' ? 'vozhatifikator-tab--active' : ''}`}
-                        onClick={() => setVozhatifikatorSubView('lights')}
-                      >
-                        Путеводные огни
-                      </button>
-                    </div>
-
-                    {vozhatifikatorSubView === 'book' && (
-                      <>
-                        <div className="vozhatifikator-downloads">
-                          <a
-                            href={VOZHATIFIKATOR_DOCX_URL}
-                            download={VOZHATIFIKATOR_DOCX_FILE}
-                            className="vozhatifikator-download vozhatifikator-download--docx"
-                            title="Редактируемая версия (Word)"
-                          >
-                            Скачать
-                          </a>
-                        </div>
-                        <nav className="vozhatifikator-toc-nav" aria-label="Оглавление книги">
-                          {vozhatifikatorToc.map((item) => (
-                            <a
-                              key={item.id}
-                              href={`#${item.id}`}
-                              className="vozhatifikator-toc-item"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                vozhatifikatorBookRef.current?.querySelector(`#${CSS.escape(item.id)}`)?.scrollIntoView({ behavior: 'smooth' });
-                              }}
-                            >
-                              <span className="vozhatifikator-toc-item-title">{item.title}</span>
-                            </a>
-                          ))}
-                        </nav>
-                      </>
-                    )}
-                  </aside>
-
-                  {vozhatifikatorSubView === 'book' ? (
-                    <div
-                      id="vozhatifikator-tabpanel-book"
-                      role="tabpanel"
-                      aria-labelledby="vozhatifikator-tab-book"
-                      className="vozhatifikator-viewer"
-                    >
-                      <div ref={vozhatifikatorBookRef} className="vozhatifikator-book">
-                        {vozhatifikatorLoading && <p className="vozhatifikator-book__loading">Загрузка книги…</p>}
-                        {vozhatifikatorError && <p className="vozhatifikator-book__error">{vozhatifikatorError}</p>}
-                        {!vozhatifikatorLoading && !vozhatifikatorError && vozhatifikatorHtml && (
-                          <div className="vozhatifikator-book__content" dangerouslySetInnerHTML={{ __html: vozhatifikatorHtml }} />
-                        )}
-                      </div>
-                    </div>
-                  ) : (
-                    <div
-                      id="vozhatifikator-tabpanel-lights"
-                      role="tabpanel"
-                      aria-labelledby="vozhatifikator-tab-lights"
-                      className="vozhatifikator-viewer vozhatifikator-lights-panel"
-                    >
-                      <VozhatifikatorChecklist
-                        completedIds={userData.vozhatifikatorChecklist?.completedIds ?? []}
-                        onToggle={updateVozhatifikatorChecklist}
-                      />
-                    </div>
-                  )}
+                <div className="vozhatifikator-panel vozhatifikator-panel--spotlight" style={{ display: 'flex', flexDirection: 'column' }}>
+                  <VozhatifikatorContainer
+                    userData={userData}
+                    updateVozhatifikatorChecklist={updateVozhatifikatorChecklist}
+                  />
                 </div>
               </div>
             </div>,
             document.body
           )
         ) : (
-          <div className="vozhatifikator-panel">
-            <aside className="vozhatifikator-toc" aria-label="Оглавление">
-              <div className="vozhatifikator-badge-block">
-                {getBadgeImagePath('9.10', 'Вожатификатор', '9', undefined, undefined) && (
-                  <button
-                    type="button"
-                    className="vozhatifikator-badge-block__img-btn"
-                    onClick={() => onNavigateToBadge('9.10')}
-                    aria-label="Открыть значок Вожатификатор"
-                  >
-                    <img src={getBadgeImagePath('9.10', 'Вожатификатор', '9', undefined, undefined)!} alt="" className="vozhatifikator-badge-block__img" />
-                  </button>
-                )}
-                <a href="#" className="vozhatifikator-badge-block__link" onClick={(e) => { e.preventDefault(); onNavigateToBadge('9.10'); }}>Значок «Вожатификатор» в каталоге</a>
-                <button type="button" className="vozhatifikator-badge-block__btn" onClick={() => setVozhatifikatorSubView('lights')}>Путеводные огни — анкета</button>
-              </div>
-              <div className="vozhatifikator-tabs">
-                <button
-                  type="button"
-                  className={`vozhatifikator-tab ${vozhatifikatorSubView === 'book' ? 'vozhatifikator-tab--active' : ''}`}
-                  onClick={() => setVozhatifikatorSubView('book')}
-                >
-                  Книга
-                </button>
-                <button
-                  type="button"
-                  className={`vozhatifikator-tab ${vozhatifikatorSubView === 'lights' ? 'vozhatifikator-tab--active' : ''}`}
-                  onClick={() => setVozhatifikatorSubView('lights')}
-                >
-                  Путеводные огни
-                </button>
-              </div>
-              <div className="vozhatifikator-downloads">
-                <a href={VOZHATIFIKATOR_DOCX_URL} download={VOZHATIFIKATOR_DOCX_FILE} className="vozhatifikator-download vozhatifikator-download--docx" title="Редактируемая версия (Word)">
-                  DOCX
-                </a>
-              </div>
-              {vozhatifikatorSubView === 'book' && (
-                <nav className="vozhatifikator-toc-nav" aria-label="Оглавление книги">
-                  {vozhatifikatorToc.map((item) => (
-                    <a
-                      key={item.id}
-                      href={`#${item.id}`}
-                      className="vozhatifikator-toc-item"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        vozhatifikatorBookRef.current?.querySelector(`#${CSS.escape(item.id)}`)?.scrollIntoView({ behavior: 'smooth' });
-                      }}
-                    >
-                      <span className="vozhatifikator-toc-item-title">{item.title}</span>
-                    </a>
-                  ))}
-                </nav>
-              )}
-            </aside>
-            <div className="vozhatifikator-viewer">
-              {vozhatifikatorSubView === 'book' ? (
-                <div ref={vozhatifikatorBookRef} className="vozhatifikator-book">
-                  {vozhatifikatorLoading && <p className="vozhatifikator-book__loading">Загрузка книги…</p>}
-                  {vozhatifikatorError && <p className="vozhatifikator-book__error">{vozhatifikatorError}</p>}
-                  {!vozhatifikatorLoading && !vozhatifikatorError && vozhatifikatorHtml && (
-                    <div className="vozhatifikator-book__content" dangerouslySetInnerHTML={{ __html: vozhatifikatorHtml }} />
-                  )}
-                </div>
-              ) : (
-                <VozhatifikatorChecklist
-                  completedIds={userData.vozhatifikatorChecklist?.completedIds ?? []}
-                  onToggle={updateVozhatifikatorChecklist}
-                />
-              )}
-            </div>
+          <div className="profile-view-passport-row" role="tabpanel" id="vozhatifikator-tabpanel" style={{ width: '100%', maxWidth: '900px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <VozhatifikatorContainer
+              userData={userData}
+              updateVozhatifikatorChecklist={updateVozhatifikatorChecklist}
+            />
           </div>
         )
       )}
@@ -3016,33 +2785,7 @@ export const ProfileView: React.FC<any> = (props) => {
 
 
 
-  const vozhatifikatorTabItems = [
-    { id: 'book' as const, label: 'Книга', icon: '📖' },
-    { id: 'lights' as const, label: 'Путеводные огни', icon: '🌟' },
-  ] satisfies Array<{ id: 'book' | 'lights'; label: string; icon: string }>;
 
-  // Spotlight modal has its own local tabs; cabin also shows docked tabs for consistency.
-
-  const renderVozhatifikatorTabsNav = (className = 'profile-tabs-nav profile-tabs-nav--docked profile-tabs-nav--vozhatifikator') => (
-    <div className={className} role="tablist" aria-label="Разделы Вожатификатора">
-      {vozhatifikatorTabItems.map((t) => (
-        <button
-          key={t.id}
-          id={`vozhatifikator-tab-${t.id}`}
-          type="button"
-          role="tab"
-          aria-selected={vozhatifikatorSubView === t.id}
-          aria-controls="vozhatifikator-tabpanel"
-          data-label={t.label}
-          className={vozhatifikatorSubView === t.id ? 'active' : ''}
-          onClick={() => setVozhatifikatorSubView(t.id)}
-        >
-          <span className="profile-tabs-nav__icon" aria-hidden="true">{t.icon}</span>
-          <span className="profile-tabs-nav__label">{t.label}</span>
-        </button>
-      ))}
-    </div>
-  );
 
   const renderTabsNav = (className = 'profile-tabs-nav') => (
     <div className={className} role="tablist" aria-label="Разделы личного кабинета">
@@ -3655,9 +3398,7 @@ export const ProfileView: React.FC<any> = (props) => {
                       ? renderRealDiaryTabsNav('profile-tabs-nav profile-tabs-nav--docked profile-tabs-nav--real-diary')
                       : panelActiveView === 'profile4k'
                         ? renderProfile4kTabsNav('profile-tabs-nav profile-tabs-nav--docked profile-tabs-nav--profile4k')
-                        : panelActiveView === 'vozhatifikator'
-                                ? renderVozhatifikatorTabsNav('profile-tabs-nav profile-tabs-nav--docked profile-tabs-nav--vozhatifikator')
-                                : panelActiveView === 'counselor-squad'
+                        : panelActiveView === 'counselor-squad'
                                   ? renderCounselorSquadTabsNav('profile-tabs-nav profile-tabs-nav--docked profile-tabs-nav--counselor-squad')
                                   : panelActiveView === 'share'
                                     ? renderShareTabsNav('profile-tabs-nav profile-tabs-nav--docked profile-tabs-nav--share')
