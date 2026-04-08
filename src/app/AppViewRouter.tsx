@@ -334,17 +334,19 @@ export const AppViewRouter: React.FC<Props> = ({ controller, fallback }) => {
       )}
 
       {!loading && currentView === 'about-camp' && (
-        <AboutCampView
-          onBack={handleBackToIntro}
-          categories={categories}
-          contentYear={masterIndex ? (masterIndex.lastUpdated || '').slice(0, 4) : undefined}
-          onOpenCategory={(category) => handleCategoryClick(category, { origin: 'about-camp' })}
-          onOpenCategories={handleBackToCategories}
-          onTelegramContact={handleTelegramContact}
-          onChatToggle={toggleChat}
-          isChatOpen={isChatOpen}
-          onChatClose={closeChat}
-        />
+        <Suspense fallback={<div style={{ background: '#0a0818', minHeight: '100vh', width: '100%' }} aria-hidden="true" />}>
+          <AboutCampView
+            onBack={handleBackToIntro}
+            categories={categories}
+            contentYear={masterIndex ? (masterIndex.lastUpdated || '').slice(0, 4) : undefined}
+            onOpenCategory={(category) => handleCategoryClick(category, { origin: 'about-camp' })}
+            onOpenCategories={handleBackToCategories}
+            onTelegramContact={handleTelegramContact}
+            onChatToggle={toggleChat}
+            isChatOpen={isChatOpen}
+            onChatClose={closeChat}
+          />
+        </Suspense>
       )}
 
       {/* Global ChatBot overlay + floating avatar — works on every view */}
