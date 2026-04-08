@@ -6,11 +6,8 @@ import { canModerateBadgeApprovals } from '../types/authRole';
 import type { InspectorTabId } from '../types/inspector';
 
 import { getRank } from '../types/userProgress';
-import {
-    loadMyBadgeRequests,
-    type BadgeRequestItem,
-} from '../utils/badgeApprovalApi';
-import { fetchMyProposals, createWorkshopProposal, type WorkshopProposal } from '../utils/workshopProposalsApi';
+import { EventsDashboard } from './personal-cabinet/containers/EventsDashboard';
+import { WorkshopDashboard } from './personal-cabinet/containers/WorkshopDashboard';
 
 import { AdminDashboard } from './AdminDashboard';
 import { RealDiaryDashboard, type RealDiaryTabId } from './RealDiaryDashboard';
@@ -22,28 +19,14 @@ import { InspectorCabinetPanel } from './InspectorCabinetPanel';
 import { useDataLoader } from '../hooks/useDataLoader';
 import { Profile4KDashboard, type Profile4KTabId } from './Profile4KDashboard';
 import { CounselorSquadDashboard, type CounselorSquadTabId } from './CounselorSquadDashboard';
-// BroInitiation removed — server-backed BroPassportPanel is the single source of truth
-import { BroPassportPanel } from './BroPassportPanel';
 import { fetchMyPassport } from '../utils/broApi';
-import { WingDashboard } from './WingDashboard';
-import { InitiationConstructor } from './InitiationConstructor';
-import { BroDelaPanel } from './BroDelaPanel';
-import { BroSquadPanel } from './BroSquadPanel';
-import { ODeConstructorPanel } from './ODeConstructorPanel';
-import { SquadCornerDashboard } from './SquadCornerDashboard';
-import { SquadCabinetPanel } from './SquadCabinetPanel';
-import { SquadChat } from './SquadChat';
-
-import { loadMySquad, patchSquadCorner, type SquadMineResponse, type SquadCorner } from '../utils/badgeApprovalApi';
+import { BroDashboard } from './personal-cabinet/containers/BroDashboard';
+import { SquadCornerContainer } from './personal-cabinet/containers/SquadCornerContainer';
 import { syncAuthProfile } from '../utils/authProfileApi';
-import { VozhatifikatorChecklist } from './VozhatifikatorChecklist';
-
-import { CommunityRankingPanel } from './CommunityRankingPanel';
-import { ArtInboxTab } from './ArtInboxTab';
-import { ImageSourceBlock } from './ImageSourceBlock';
 import { ProfileSettingsContainer } from './personal-cabinet/containers/ProfileSettingsContainer';
 import { ProgressionHubContainer } from './personal-cabinet/containers/ProgressionHubContainer';
-import { requestImageGenerate } from '../utils/imageGenerateApi';
+import { VozhatifikatorDashboard } from './personal-cabinet/containers/VozhatifikatorDashboard';
+import { useSquadData } from './personal-cabinet/hooks/useSquadData';
 import { supabase } from '../utils/supabaseClient';
 import { useTeam } from '../context/TeamContext';
 import { CampProgramByDays } from './CampProgramByDays';
@@ -598,7 +581,7 @@ export const PersonalCabinet: React.FC<{
     communityBadges?: any[];
     customBadges?: any[];
 }> = ({ onBack, communityBadges = [], customBadges = [] }) => {
-    const { userData, updateVozhatifikatorChecklist, toggleFavorite, removeRoute, setNickname, setAvatar, setProfileStatus, setProfileBio } = useUserProgress();
+    const { userData, updateVozhatifikatorChecklist, toggleFavorite, removeRoute } = useUserProgress();
     const { role, accessToken, deviceId, baseDeviceId, legacyRoleOwner, setAuth, clearAuth } = useAuth();
     const { myTeam, generateInviteUrl } = useTeam();
     const { badges: allBadges, ensureBadgeLoaded, ensureCategoryBadgesLoaded } = useDataLoader();
@@ -612,15 +595,6 @@ export const PersonalCabinet: React.FC<{
         return {} as Record<string, string>;
     }, [accessToken, deviceId, isDev]);
     const effectiveToken = accessToken || ''; // pass empty to API fns when in sandbox
-
-    // Workshop proposals from API (used in "Мои проекты" tab)
-    const [cabinetProposals, setCabinetProposals] = useState<WorkshopProposal[]>([]);
-    useEffect(() => {
-        if (!effectiveToken) return;
-        let cancelled = false;
-        fetchMyProposals(effectiveToken).then(rows => { if (!cancelled) setCabinetProposals(rows); }).catch(() => {});
-        return () => { cancelled = true; };
-    }, [effectiveToken]);
 
     // Badge lookup map for image resolution (matches production pattern)
     const badgeLookupMap = React.useMemo(() => {
@@ -643,37 +617,13 @@ export const PersonalCabinet: React.FC<{
     const [broPassportComplete, setBroPassportComplete] = useState(false);
     const [squadCornerTab, setSquadCornerTab] = useState<string>('squad');
     const [workshopTab, setWorkshopTab] = useState<string>('constructor');
-    const [wsProposalType, setWsProposalType] = useState<'badge' | 'category' | 'version'>('badge');
-    const [wsTitle, setWsTitle] = useState('');
-    const [wsDescription, setWsDescription] = useState('');
-    const [wsEmoji, setWsEmoji] = useState('');
-    const [wsBadgeId, setWsBadgeId] = useState('');
-    const [wsImage, setWsImage] = useState<string | null>(null);
-    const [wsBusy, setWsBusy] = useState(false);
-
-    const handleWsSubmit = async () => {
-        if (!wsTitle.trim() || !effectiveToken) return;
-        if (wsProposalType === 'version' && !wsBadgeId.trim()) return;
-        setWsBusy(true);
-        try {
-            const created = await createWorkshopProposal(effectiveToken, {
-                type: wsProposalType,
-                title: wsTitle.trim(),
-                description: wsDescription.trim() || undefined,
-                emoji: wsProposalType === 'category' ? (wsEmoji.trim() || '📁') : undefined,
-                badgeId: wsProposalType === 'version' ? wsBadgeId.trim() : undefined,
-                image: wsImage || undefined,
-            });
-            setCabinetProposals(prev => [created, ...prev]);
-            setWsTitle(''); setWsDescription(''); setWsEmoji(''); setWsBadgeId(''); setWsImage(null);
-        } catch (_) { /* handled silently */ }
-        setWsBusy(false);
-    };
+    const [pathCarouselSteps, setPathCarouselSteps] = useState(0);
+    const [favCarouselSteps, setFavCarouselSteps] = useState(0);
+    const [vozhatifikatorTab, setVozhatifikatorTab] = useState<string>('book');
+    const [inspectorTab, setInspectorTab] = useState<string>('missions');
     const [shareTab, setShareTab] = useState<'invite' | 'qr'>('invite');
     const [parentsTab, setParentsTab] = useState<'program' | 'squad' | 'child' | 'contacts'>('program');
     const [eventsTab, setEventsTab] = useState<'requests' | 'announcements' | 'tasks'>('requests');
-    const [myRequests, setMyRequests] = useState<BadgeRequestItem[]>([]);
-    const [eventsLoading, setEventsLoading] = useState(false);
     const [homeTab, setHomeTab] = useState<'active' | 'favorites' | 'collection' | 'journal' | 'squads'>('active');
     const [hamburgerOpen, setHamburgerOpen] = useState(false);
     const [showRoleModal, setShowRoleModal] = useState(false);
@@ -688,51 +638,26 @@ export const PersonalCabinet: React.FC<{
         mq.addEventListener('change', handler);
         return () => mq.removeEventListener('change', handler);
     }, []);
-    const [pathCarouselSteps, setPathCarouselSteps] = useState(0);
-    const [favCarouselSteps, setFavCarouselSteps] = useState(0);
-    const [vozhatifikatorTab, setVozhatifikatorTab] = useState<string>('book');
-    const [inspectorTab, setInspectorTab] = useState<string>('missions');
-    const [vozhatifikatorHtml, setVozhatifikatorHtml] = useState<string | null>(null);
-    const [vozhatifikatorToc, setVozhatifikatorToc] = useState<Array<{ id: string; title: string }>>([]);
-    const [vozhatifikatorLoading, setVozhatifikatorLoading] = useState(false);
-    const [vozhatifikatorError, setVozhatifikatorError] = useState<string | null>(null);
-    const vozhatifikatorBookRef = React.useRef<HTMLDivElement | null>(null);
 
-    // Squad cabinet state (mirrors production: loadMySquad -> SquadCabinetPanel)
-    const [mySquadInfoApi, setMySquadInfoApi] = useState<SquadMineResponse | null>(null);
-    const loadSquadInfo = useCallback(async () => {
-        if (!accessToken && !deviceId) return;
-        try {
-            const info = await loadMySquad(accessToken || '', deviceId);
-            setMySquadInfoApi(info);
-        } catch {
-            setMySquadInfoApi(null);
-        }
-    }, [accessToken, deviceId]);
-    useEffect(() => { void loadSquadInfo(); }, [loadSquadInfo]);
 
-    // Load Вожатификатор book (markdown → HTML + TOC)
-    useEffect(() => {
-        if (activeSection !== 'vozhatifikator' || vozhatifikatorTab !== 'book' || vozhatifikatorHtml !== null) return;
-        const base = (import.meta.env.BASE_URL || '').replace(/\/*$/, '');
-        const url = `${base}${base ? '/' : ''}vozhatifikator.md`;
-        let cancelled = false;
-        setVozhatifikatorLoading(true);
-        setVozhatifikatorError(null);
-        fetch(url)
-            .then(res => { if (!res.ok) throw new Error(`HTTP ${res.status}`); return res.text(); })
-            .then(md => {
-                if (cancelled) return;
-                const toc = parseMarkdownToc(md);
-                const html = markdownToHtmlWithHeadingIds(md, toc);
-                setVozhatifikatorToc(toc);
-                setVozhatifikatorHtml(html);
-            })
-            .catch(e => { if (!cancelled) setVozhatifikatorError(e instanceof Error ? e.message : 'Ошибка загрузки'); })
-            .finally(() => { if (!cancelled) setVozhatifikatorLoading(false); });
-        return () => { cancelled = true; };
-    }, [activeSection, vozhatifikatorTab, vozhatifikatorHtml]);
+    const profile = userData?.profile || {};
+    const nickname = (profile as any)?.nickname || 'Искатель';
+    const avatar = (profile as any)?.avatar || '';
 
+    const {
+        mySquadInfo,
+        loadSquadInfo,
+        hasSquadMembership,
+        canEditSquadCorner,
+        squadChatMembers,
+        defaultShiftLength
+    } = useSquadData({
+        accessToken: accessToken || undefined,
+        deviceId: deviceId || undefined,
+        userData,
+        currentRole: role || undefined,
+        nickname
+    });
     // Fetch BRO passport completion status from server
     useEffect(() => {
         if (!deviceId) return;
@@ -743,11 +668,6 @@ export const PersonalCabinet: React.FC<{
 
     // Profile editing state
     const [profileEditing, setProfileEditing] = useState(false);
-    const [nicknameInput, setNicknameInput] = useState('');
-    const [avatarInput, setAvatarInput] = useState('');
-    const [statusInput, setStatusInput] = useState('');
-    const [bioInput, setBioInput] = useState('');
-
 
     // Signal to hide AuthFloatingButton while cabinet is open
     useEffect(() => {
@@ -814,11 +734,6 @@ export const PersonalCabinet: React.FC<{
         window.location.href = url.toString();
     }, [ensureBadgeLoaded, ensureCategoryBadgesLoaded]);
 
-    const profile = userData?.profile || {};
-    const nickname = (profile as any)?.nickname || 'Искатель';
-    const avatar = (profile as any)?.avatar || '';
-    const profileStatus = (profile as any)?.status || '';
-    const profileBio = (profile as any)?.bio || '';
     const profileSyncRef = React.useRef<{ nickname: string; avatar: string }>({ nickname: '', avatar: '' });
     const currentRole = role || 'traveler';
     const roleInfo = ROLE_DISPLAY[currentRole] || ROLE_DISPLAY.traveler;
@@ -868,13 +783,6 @@ export const PersonalCabinet: React.FC<{
     const progress = userData?.progress || {};
     const favorites: string[] = (userData as any)?.favorites || [];
     const currentLevels = Object.values(progress).filter((p: any) => p.status === 'achieved').length;
-    const rankThresholds = [0, 5, 15, 30, 50, 75, 100];
-    const currentRankIdx = rankThresholds.findIndex((_, i) => (rankThresholds[i + 1] ?? Infinity) > currentLevels);
-    const nextRankAt = rankThresholds[currentRankIdx + 1] ?? rankThresholds[rankThresholds.length - 1];
-    const prevRankAt = rankThresholds[currentRankIdx] ?? 0;
-    const xpPercent = nextRankAt > prevRankAt ? Math.min(100, ((currentLevels - prevRankAt) / (nextRankAt - prevRankAt)) * 100) : 100;
-    const rankNames = ['Новичок', 'Исследователь', 'Путешественник', 'Мастер', 'Легенда', 'Хранитель', 'Архитектор'];
-    const rank = rankNames[currentRankIdx] || 'Новичок';
     // Use production getRank when possible
     const prodRank = getRank(profile?.stats?.totalLevelsAchieved || currentLevels);
 
@@ -911,94 +819,13 @@ export const PersonalCabinet: React.FC<{
         };
     }, [progress, favorites, badgeLookupMap, allBadges]);
 
-    // Squad membership & role-based permissions (matches ProfileView)
-    const hasSquadMembership = Boolean(mySquadInfoApi?.membership?.squadId || userData?.diaryProgress?.squad?.name);
-    const canEditSquadCorner = currentRole === 'counselor' || currentRole === 'developer';
 
-    // Fallback: build mySquadInfo from local diary when API unavailable
-    const mySquadInfo: SquadMineResponse | null = mySquadInfoApi ?? (
-        hasSquadMembership ? {
-            membership: {
-                deviceId: deviceId || 'local-device',
-                campId: 'local-camp',
-                squadId: userData?.diaryProgress?.squad?.name || 'local-squad',
-                role: currentRole,
-                joinedAt: new Date().toISOString(),
-                nickname: nickname,
-            },
-            squad: {
-                id: userData?.diaryProgress?.squad?.name || 'local-squad',
-                shiftId: 'local-shift',
-                name: userData?.diaryProgress?.squad?.name || 'Отряд',
-            },
-            shift: { id: 'local-shift', name: 'Тестовая смена' },
-            participants: [],
-        } : null
-    );
-    const squadChatMembers = useMemo(() => {
-        const source = (mySquadInfo?.members || mySquadInfo?.participants || []) as Array<{ deviceId: string; nickname?: string | null; avatarUrl?: string | null }>;
-        const members = source
-            .filter((m) => Boolean(m?.deviceId))
-            .map((m) => ({ deviceId: m.deviceId, nickname: m.nickname || null, avatarUrl: m.avatarUrl || null }));
-        const myDeviceId = (deviceId || '').trim();
-        if (myDeviceId && !members.some((m) => m.deviceId === myDeviceId)) {
-            members.push({
-                deviceId: myDeviceId,
-                nickname: nickname || null,
-                avatarUrl: userData?.profile?.avatar || null,
-            });
-        }
-        return members;
-    }, [mySquadInfo?.members, mySquadInfo?.participants, deviceId, nickname, userData?.profile?.avatar]);
-
-    // Derive default shift length (9 or 21 days) from the user's shift data
-    const defaultShiftLength: 9 | 21 = (() => {
-        const shift = mySquadInfo?.shift;
-        if (!shift) return 21;
-        if (shift.durationDays === 9 || shift.durationDays === 21) return shift.durationDays;
-        // Infer from name: летняя = 21 days, everything else (весенняя/осенняя/зимняя) = 9 days
-        if (shift.name) return shift.name.toLowerCase().includes('лет') ? 21 : 9;
-        return 21;
-    })();
 
 
     const openProfileEditor = () => {
-        setNicknameInput(nickname);
-        setAvatarInput(avatar);
-        setStatusInput(profileStatus);
-        setBioInput(profileBio);
         setProfileEditing(true);
         setActiveSection('home'); // profile renders in home content area
     };
-
-    const cancelProfileEditor = () => {
-        setProfileEditing(false);
-    };
-
-    const saveProfile = () => {
-        const nextNickname = String(nicknameInput || '').trim();
-        const nextAvatar = String(avatarInput || '').trim();
-        setNickname(nextNickname);
-        setAvatar(nextAvatar);
-        setProfileStatus(statusInput);
-        setProfileBio(bioInput.trim().slice(0, 160));
-        setProfileEditing(false);
-        if (accessToken) {
-            profileSyncRef.current = { nickname: nextNickname, avatar: nextAvatar };
-            void syncAuthProfile(accessToken, { nickname: nextNickname, avatar_url: nextAvatar }).catch(() => {});
-        }
-    };
-
-    const handleAvatarFile = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = () => { setAvatarInput(reader.result as string); };
-        reader.readAsDataURL(file);
-    };
-
-
-
     // Filter sections by role
     const visibleSections = useMemo(() => {
         return SECTIONS.filter(s => {
@@ -1131,7 +958,6 @@ export const PersonalCabinet: React.FC<{
         if (window.location.hash.startsWith('#workshop')) {
             setActiveSection('workshop');
             setWorkshopTab('constructor');
-            setWsProposalType('badge'); // Default to creating a badge when coming from category
         }
 
         // Clean up URL parameters
@@ -1667,24 +1493,7 @@ export const PersonalCabinet: React.FC<{
 
                         {/* ── Profile Editor (when profileEditing is true) ── */}
                         {profileEditing ? (
-                            <ProfileSettingsContainer
-                                nicknameInput={nicknameInput}
-                                setNicknameInput={setNicknameInput}
-                                statusInput={statusInput}
-                                setStatusInput={setStatusInput}
-                                bioInput={bioInput}
-                                setBioInput={setBioInput}
-                                avatarInput={avatarInput}
-                                handleAvatarFile={handleAvatarFile}
-                                cancelProfileEditor={cancelProfileEditor}
-                                saveProfile={saveProfile}
-                                rank={rank}
-                                currentLevels={currentLevels}
-                                xpPercent={xpPercent}
-                                prevRankAt={prevRankAt}
-                                nextRankAt={nextRankAt}
-                                nickname={nickname}
-                            />
+                            <ProfileSettingsContainer onClose={() => setProfileEditing(false)} />
                         ) :
 
                             activeSection === 'home' ? (
@@ -1738,602 +1547,52 @@ export const PersonalCabinet: React.FC<{
                                     canModerate={role === 'counselor' || role === 'educator' || role === 'shift_leader' || role === 'camp_director' || role === 'developer'}
                                 />
                             ) : activeSection === 'bro' ? (
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                                    {broTab === 'brodela' ? (
-                                        <BroDelaPanel />
-                                    ) : broTab === 'ode' ? (
-                                        <ODeConstructorPanel />
-                                    ) : broTab === 'brosquad' ? (
-                                        <BroSquadPanel />
-                                    ) : broTab === 'chat' ? (
-                                        <SquadChat
-                                            squadId={userData?.broProgress?.wingId || 'wing-default'}
-                                            accessToken={accessToken || deviceId || ''}
-                                            nickname={userData?.profile?.nickname || undefined}
-                                            deviceId={deviceId || ''}
-                                            role={undefined}
-                                            chatType="wing"
-                                            members={[{ deviceId: deviceId || '', nickname: userData?.profile?.nickname || null, avatarUrl: userData?.profile?.avatar || null }]}
-                                        />
-                                    ) : broTab === 'constructor' ? (
-                                        <InitiationConstructor
-                                            onCreated={() => setBroTab('wing')}
-                                            onSwitchToWing={() => setBroTab('wing')}
-                                        />
-                                    ) : broTab === 'wing' ? (
-                                        broPassportComplete ? (
-                                            <WingDashboard variant="cabin" onSuggestInitiative={undefined} />
-                                        ) : (
-                                            <div className="fade-in" style={{
-                                                padding: '48px 24px', textAlign: 'center',
-                                                background: 'rgba(15, 10, 42, 0.12)', backdropFilter: 'blur(8px)',
-                                                WebkitBackdropFilter: 'blur(8px)', borderRadius: 16,
-                                                border: '1px solid rgba(255,255,255,0.08)',
-                                            }}>
-                                                <div style={{ fontSize: 48, marginBottom: 16, opacity: 0.4 }}>🦅</div>
-                                                <div style={{ fontSize: 16, fontWeight: 700, color: 'rgba(255,255,255,0.7)', marginBottom: 8 }}>
-                                                    Крыло БРО
-                                                </div>
-                                                <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.45)', lineHeight: 1.5, maxWidth: 340, margin: '0 auto' }}>
-                                                    Создание своего Крыла откроется после завершения Посвящения.
-                                                    Пройди Бросвящение, чтобы получить доступ к категории БРО и сформировать Крыло.
-                                                </div>
-                                                <button type="button" onClick={() => setBroTab('initiation')}
-                                                    style={{
-                                                        marginTop: 20, padding: '10px 24px', borderRadius: 12,
-                                                        border: '1px solid rgba(124,58,237,0.4)',
-                                                        background: 'rgba(124,58,237,0.15)', color: '#a78bfa',
-                                                        fontSize: 13, fontWeight: 600, cursor: 'pointer',
-                                                        fontFamily: 'inherit', transition: 'background 0.15s',
-                                                    }}>
-                                                    Перейти к Бросвящению →
-                                                </button>
-                                            </div>
-                                        )
-                                    ) : (
-                                        <BroPassportPanel
-                                            squadId={mySquadInfo?.membership?.squadId || userData?.diaryProgress?.squad?.name || 'dev-squad'}
-                                            deviceId={deviceId || 'dev-device'}
-                                            accessToken={accessToken}
-                                            canModerate={role === 'counselor' || role === 'educator' || role === 'shift_leader' || role === 'camp_director' || role === 'developer'}
-                                            nickname={userData?.profile?.nickname || undefined}
-                                            userRole={role || undefined}
-                                            onWingCreated={() => setBroTab('wing')}
-                                        />
-                                    )}
-                                </div>
+                                <BroDashboard
+                                    broTab={broTab}
+                                    setBroTab={setBroTab}
+                                    broPassportComplete={broPassportComplete}
+                                    userData={userData}
+                                    deviceId={deviceId || ''}
+                                    accessToken={accessToken || ''}
+                                    role={role}
+                                    mySquadInfo={mySquadInfo}
+                                />
                             ) : activeSection === 'squad-corner' ? (
-                                <div style={{ width: '100%', paddingBottom: squadCornerTab === 'chat' ? 0 : 100 }}>
-                                    {currentRole !== 'traveler' && squadCornerTab === 'squad' ? (
-                                        !(hasSquadMembership || userData?.diaryProgress?.squad?.name) ? (
-                                            <SquadCabinetPanel
-                                                key="squad-cabinet-join"
-                                                role={currentRole}
-                                                deviceId={deviceId || undefined}
-                                                accessToken={accessToken || undefined}
-                                                mySquadInfo={null}
-                                                onRefresh={loadSquadInfo}
-                                                onAfterLeave={() => setSquadCornerTab('squad')}
-                                                diaryCorner={null}
-                                            />
-                                        ) : (
-                                            <SquadCabinetPanel
-                                                key="squad-cabinet"
-                                                role={currentRole}
-                                                deviceId={deviceId || undefined}
-                                                accessToken={accessToken || undefined}
-                                                mySquadInfo={mySquadInfo}
-                                                onRefresh={loadSquadInfo}
-                                                onAfterLeave={() => setSquadCornerTab('squad')}
-                                                onEditCorner={canEditSquadCorner ? ((t) => setSquadCornerTab(t === 'planner' ? 'planner' : t === 'squad' ? 'edit-squad' : 'photos')) : undefined}
-                                                diaryCorner={userData?.diaryProgress?.squad || null}
-                                            />
-                                        )
-                                    ) : squadCornerTab === 'chat' ? (
-                                        (() => {
-                                            const sid = (mySquadInfo?.membership?.squadId || userData?.diaryProgress?.squad?.name || '').trim();
-                                            const isDev = import.meta.env.DEV;
-                                            if (!sid) return (
-                                                <div key="chat-empty-nosquad" className="cab-empty-state fade-in">
-                                                    <div className="cab-empty-state__icon">
-                                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>
-                                                    </div>
-                                                    <div className="cab-empty-state__title">Чат недоступен</div>
-                                                    <div className="cab-empty-state__desc">Сначала вступите в отряд, чтобы начать общаться.</div>
-                                                </div>
-                                            );
-                                            if (!hasAuth) return (
-                                                <div key="chat-empty-noauth" className="cab-empty-state fade-in">
-                                                    <div className="cab-empty-state__icon">
-                                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>
-                                                    </div>
-                                                    <div className="cab-empty-state__title">Чат недоступен</div>
-                                                    <div className="cab-empty-state__desc">
-                                                        {isDev
-                                                            ? 'Для работы чата необходим бэкенд. Запустите python backend/app.py и авторизуйтесь.'
-                                                            : 'Для доступа к чату необходимо войти в систему.'}
-                                                    </div>
-                                                </div>
-                                            );
-                                            return <SquadChat key="chat-active" squadId={sid} accessToken={accessToken || ''} nickname={nickname} deviceId={deviceId} role={currentRole} members={squadChatMembers} height="calc(100vh - 126px)" minHeight={0} />;
-                                        })()
-                                    ) : squadCornerTab === 'schedule' ? (
-                                        <RealDiaryDashboard
-                                            key="schedule-container"
-                                            variant="cabin"
-                                            activeTab="schedule"
-                                            onNavigateToBadge={navigateToBadge}
-                                        />
-                                    ) : squadCornerTab === 'program' ? (
-                                        <CampProgramByDays defaultShiftLength={defaultShiftLength} />
-                                    ) : squadCornerTab === 'edit-squad' ? (
-                                        <SquadCornerDashboard
-                                            key="edit-squad"
-                                            variant="cabin"
-                                            activeTab="squad"
-                                            onTabChange={(tab) => {
-                                                // 'squad' tab in editor means go back to cabinet view
-                                                if (tab === 'squad') setSquadCornerTab('squad');
-                                                else setSquadCornerTab(tab);
-                                            }}
-                                            onNavigateToBadge={navigateToBadge}
-                                            hasSquadMembership={hasSquadMembership}
-                                            mySquadName={userData?.diaryProgress?.squad?.name || undefined}
-                                            canEditCorner={canEditSquadCorner}
-                                            canCreateSquadFromCorner={false}
-                                            onOpenCabinet={() => setSquadCornerTab('squad')}
-                                            onOpenShiftsAndSquads={() => setActiveSection('shifts')}
-                                            onPersistCorner={accessToken && mySquadInfo?.membership?.squadId ? async (payload: Partial<SquadCorner>) => {
-                                                await patchSquadCorner(accessToken, mySquadInfo!.membership!.squadId, payload);
-                                            } : undefined}
-                                        />
-                                    ) : (
-                                        <SquadCornerDashboard
-                                            key={squadCornerTab}
-                                            variant="cabin"
-                                            activeTab={squadCornerTab as any}
-                                            onTabChange={setSquadCornerTab as any}
-                                            onNavigateToBadge={navigateToBadge}
-                                            hasSquadMembership={hasSquadMembership}
-                                            mySquadName={userData?.diaryProgress?.squad?.name || undefined}
-                                            canEditCorner={canEditSquadCorner}
-                                            canCreateSquadFromCorner={canEditSquadCorner}
-                                            onOpenCabinet={() => setSquadCornerTab('squad')}
-                                            onOpenShiftsAndSquads={() => setActiveSection('shifts')}
-                                            onPersistCorner={accessToken && mySquadInfo?.membership?.squadId ? async (payload: Partial<SquadCorner>) => {
-                                                await patchSquadCorner(accessToken, mySquadInfo!.membership!.squadId, payload);
-                                            } : undefined}
-                                        />
-                                    )}
-                                </div>
+                                <SquadCornerContainer
+                                    squadCornerTab={squadCornerTab}
+                                    setSquadCornerTab={setSquadCornerTab}
+                                    currentRole={currentRole}
+                                    hasSquadMembership={hasSquadMembership}
+                                    mySquadInfo={mySquadInfo}
+                                    userData={userData}
+                                    deviceId={deviceId || ''}
+                                    accessToken={accessToken || null}
+                                    canEditSquadCorner={canEditSquadCorner}
+                                    loadSquadInfo={loadSquadInfo}
+                                    navigateToBadge={navigateToBadge}
+                                    defaultShiftLength={defaultShiftLength}
+                                    nickname={nickname}
+                                    squadChatMembers={squadChatMembers}
+                                    hasAuth={hasAuth}
+                                    setActiveSection={setActiveSection}
+                                />
                             ) : activeSection === 'vozhatifikator' ? (
-                                <div key="vozhatifikator" className="fade-in" style={{
-                                    background: 'rgba(8, 20, 40, 0.45)',
-                                    backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)',
-                                    borderRadius: 18, border: '1px solid rgba(93, 228, 255, 0.12)',
-                                    padding: '24px 28px',
-                                    display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: 20,
-                                }}>
-                                    {vozhatifikatorTab === 'book' ? (
-                                        <>
-                                            {/* TOC sidebar */}
-                                            {isMobile ? (
-                                                <details style={{
-                                                    background: 'rgba(93,228,255,0.05)',
-                                                    borderRadius: 12, padding: '12px 16px',
-                                                    border: '1px solid rgba(93,228,255,0.15)',
-                                                    flexShrink: 0
-                                                }}>
-                                                    <summary style={{
-                                                        fontSize: 15, fontWeight: 700, color: '#5de4ff',
-                                                        cursor: 'pointer', outline: 'none', userSelect: 'none',
-                                                        display: 'flex', alignItems: 'center', gap: 8
-                                                    }}>
-                                                        📖 Оглавление книги
-                                                    </summary>
-                                                    <div style={{
-                                                        display: 'flex', flexDirection: 'column', gap: 8,
-                                                        marginTop: 16, maxHeight: '60vh', overflowY: 'auto',
-                                                    }}>
-                                                        <a href="/VZhTFKTR.docx" download="VZhTFKTR.docx" style={{
-                                                            display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                                                            padding: '10px 14px', borderRadius: 10, background: 'rgba(93,228,255,0.08)',
-                                                            border: '1px solid rgba(93,228,255,0.2)', color: '#5de4ff',
-                                                            fontSize: 13, fontWeight: 600, textDecoration: 'none',
-                                                            marginBottom: 8
-                                                        }}>
-                                                            📥 Скачать DOCX
-                                                        </a>
-                                                        {vozhatifikatorToc.map(item => (
-                                                            <a key={item.id} href={`#${item.id}`} onClick={e => {
-                                                                e.preventDefault();
-                                                                vozhatifikatorBookRef.current?.querySelector(`#${CSS.escape(item.id)}`)?.scrollIntoView({ behavior: 'smooth' });
-                                                                const detailsEl = e.currentTarget.closest('details');
-                                                                if (detailsEl) detailsEl.removeAttribute('open');
-                                                            }} style={{
-                                                                padding: '10px 12px', borderRadius: 8, fontSize: 13, lineHeight: 1.4,
-                                                                color: 'rgba(255,255,255,0.85)', textDecoration: 'none',
-                                                                background: 'rgba(255,255,255,0.05)', fontWeight: 500,
-                                                            }}>
-                                                                {item.title}
-                                                            </a>
-                                                        ))}
-                                                    </div>
-                                                </details>
-                                            ) : (
-                                                <aside style={{
-                                                    width: 220, flexShrink: 0,
-                                                    display: 'flex', flexDirection: 'column', gap: 10,
-                                                    maxHeight: 'calc(100vh - 120px)', overflowY: 'auto',
-                                                }}>
-                                                    <a
-                                                        href="/VZhTFKTR.docx"
-                                                        download="VZhTFKTR.docx"
-                                                        style={{
-                                                            display: 'inline-flex', alignItems: 'center', gap: 6,
-                                                            padding: '8px 14px', borderRadius: 10,
-                                                            background: 'rgba(93,228,255,0.08)',
-                                                            border: '1px solid rgba(93,228,255,0.2)',
-                                                            color: '#5de4ff', fontSize: 12, fontWeight: 600,
-                                                            textDecoration: 'none', transition: 'background 0.15s',
-                                                        }}
-                                                    >
-                                                        📥 Скачать DOCX
-                                                    </a>
-                                                    <nav style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                                                        {vozhatifikatorToc.map(item => (
-                                                            <a
-                                                                key={item.id}
-                                                                href={`#${item.id}`}
-                                                                onClick={e => {
-                                                                    e.preventDefault();
-                                                                    vozhatifikatorBookRef.current?.querySelector(`#${CSS.escape(item.id)}`)?.scrollIntoView({ behavior: 'smooth' });
-                                                                }}
-                                                                style={{
-                                                                    padding: '6px 10px', borderRadius: 6,
-                                                                    fontSize: 12, lineHeight: 1.4,
-                                                                    color: 'rgba(255,255,255,0.65)',
-                                                                    textDecoration: 'none',
-                                                                    transition: 'color 0.15s, background 0.15s',
-                                                                    cursor: 'pointer',
-                                                                }}
-                                                                onMouseEnter={e => {
-                                                                    e.currentTarget.style.color = '#5de4ff';
-                                                                    e.currentTarget.style.background = 'rgba(93,228,255,0.06)';
-                                                                }}
-                                                                onMouseLeave={e => {
-                                                                    e.currentTarget.style.color = 'rgba(255,255,255,0.65)';
-                                                                    e.currentTarget.style.background = 'transparent';
-                                                                }}
-                                                            >
-                                                                {item.title}
-                                                            </a>
-                                                        ))}
-                                                    </nav>
-                                                </aside>
-                                            )}
-                                            {/* Book content */}
-                                            <div ref={vozhatifikatorBookRef} className="vozhatifikator-book" style={{
-                                                flex: 1, overflowY: 'auto', width: '100%',
-                                                maxHeight: isMobile ? 'calc(100vh - 200px)' : 'calc(100vh - 120px)',
-                                            }}>
-                                                {vozhatifikatorLoading && <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 14 }}>Загрузка книги…</p>}
-                                                {vozhatifikatorError && <p style={{ color: '#f59e0b', fontSize: 14 }}>{vozhatifikatorError}</p>}
-                                                {!vozhatifikatorLoading && !vozhatifikatorError && vozhatifikatorHtml && (
-                                                    <div className="vozhatifikator-book__content" dangerouslySetInnerHTML={{ __html: vozhatifikatorHtml }} />
-                                                )}
-                                            </div>
-                                        </>
-                                    ) : vozhatifikatorTab === 'lights' ? (
-                                        <VozhatifikatorChecklist
-                                            completedIds={userData?.vozhatifikatorChecklist?.completedIds ?? []}
-                                            onToggle={updateVozhatifikatorChecklist}
-                                            userNickname={userData?.profile?.nickname || ''}
-                                            userRole={role || 'participant'}
-                                            deviceId={deviceId || ''}
-                                        />
-                                    ) : vozhatifikatorTab === 'bad-advice' ? (
-                                        /* Вредные советы директору — announcement placeholder */
-                                        <div style={{
-                                            flex: 1, display: 'flex', flexDirection: 'column',
-                                            alignItems: 'center', justifyContent: 'center',
-                                            textAlign: 'center', padding: '60px 20px', gap: 16,
-                                        }}>
-                                            <div style={{
-                                                width: 72, height: 72, borderRadius: 20,
-                                                background: 'linear-gradient(135deg, rgba(236,72,153,0.15), rgba(139,92,246,0.15))',
-                                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                                fontSize: 32,
-                                            }}>😈</div>
-                                            <h3 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: '#fff', letterSpacing: '-0.02em' }}>
-                                                Вредные советы директору
-                                            </h3>
-                                            <p style={{ margin: 0, fontSize: 14, color: 'rgba(255,255,255,0.5)', lineHeight: 1.6, maxWidth: 400 }}>
-                                                Новый раздел в разработке. Здесь появятся ироничные «антисоветы» — что <em>не</em> стоит делать, если хотите, чтобы ваш лагерь процветал.
-                                            </p>
-                                            <span style={{
-                                                padding: '6px 16px', borderRadius: 20,
-                                                background: 'rgba(236,72,153,0.12)', border: '1px solid rgba(236,72,153,0.25)',
-                                                color: '#EC4899', fontSize: 12, fontWeight: 600,
-                                            }}>Скоро</span>
-                                        </div>
-                                    ) : (
-                                        /* Era placeholders (era-19-21, era-21-23, era-23-26) */
-                                        <div style={{
-                                            flex: 1, display: 'flex', flexDirection: 'column',
-                                            alignItems: 'center', justifyContent: 'center',
-                                            textAlign: 'center', padding: '60px 20px', gap: 16,
-                                        }}>
-                                            <div style={{
-                                                width: 72, height: 72, borderRadius: 20,
-                                                background: 'linear-gradient(135deg, rgba(93,228,255,0.12), rgba(139,92,246,0.12))',
-                                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                                fontSize: 32,
-                                            }}>📖</div>
-                                            <h3 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: '#fff', letterSpacing: '-0.02em' }}>
-                                                {vozhatifikatorTab === 'era-19-21' ? 'Вожатификатор 2019–2021'
-                                                    : vozhatifikatorTab === 'era-21-23' ? 'Вожатификатор 2021–2023'
-                                                    : 'Вожатификатор 2023–2026'}
-                                            </h3>
-                                            <p style={{ margin: 0, fontSize: 14, color: 'rgba(255,255,255,0.5)', lineHeight: 1.6, maxWidth: 400 }}>
-                                                Эта эпоха Вожатификатора ещё готовится к публикации.
-                                                Следите за обновлениями — скоро здесь появятся новые главы, задания и истории.
-                                            </p>
-                                            <span style={{
-                                                padding: '6px 16px', borderRadius: 20,
-                                                background: 'rgba(93,228,255,0.08)', border: '1px solid rgba(93,228,255,0.2)',
-                                                color: '#5de4ff', fontSize: 12, fontWeight: 600,
-                                            }}>Скоро</span>
-                                        </div>
-                                    )}
-                                </div>
+                                <VozhatifikatorDashboard
+                                    vozhatifikatorTab={vozhatifikatorTab}
+                                    userData={userData}
+                                    updateVozhatifikatorChecklist={updateVozhatifikatorChecklist}
+                                    role={currentRole}
+                                    deviceId={deviceId || ''}
+                                    isMobile={isMobile}
+                                />
                             ) : activeSection === 'workshop' ? (
-                                <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 16 }}>
-
-
-                                    {/* Конструктор */}
-                                    {workshopTab === 'constructor' && (
-                                        <div key="ws-constructor" className="fade-in cab-card" style={{
-                                            padding: '28px 32px', borderRadius: 20,
-                                            display: 'flex', flexDirection: 'column', gap: 24,
-                                        }}>
-                                            {/* Header */}
-                                            <div>
-                                                <h3 style={{ 
-                                                    margin: '0 0 8px 0', fontSize: 18, fontWeight: 700, color: '#e8f0ff',
-                                                    letterSpacing: '-0.01em', display: 'flex', alignItems: 'center', gap: 8
-                                                }}>
-                                                    <span style={{ fontSize: 20 }}>✨</span> Конструктор
-                                                </h3>
-                                                <p style={{ margin: 0, fontSize: 13, color: 'rgba(255,255,255,0.6)', lineHeight: 1.5 }}>
-                                                    Предложи свой значок, категорию или версию. Всё пройдёт проверку вожатым. Ваши лучшие идеи попадут в путеводитель!
-                                                </p>
-                                            </div>
-
-                                            {/* Type selector */}
-                                            <div>
-                                                <div style={{ 
-                                                    display: 'inline-flex', gap: 4, padding: 4, borderRadius: 12, 
-                                                    background: 'rgba(0,0,0,0.25)', border: '1px solid rgba(255,255,255,0.05)',
-                                                    flexWrap: 'wrap'
-                                                }}>
-                                                    {([['badge', 'Новый значок'], ['category', 'Категория'], ['version', 'Версия']] as const).map(([type, label]) => (
-                                                        <button key={type} type="button"
-                                                            className={wsProposalType === type ? 'cab-btn-accent-sm' : ''}
-                                                            onClick={() => setWsProposalType(type)}
-                                                            style={wsProposalType === type ? { padding: '8px 16px', borderRadius: 8 } : {
-                                                                padding: '8px 16px', borderRadius: 8,
-                                                                fontSize: 13, fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s',
-                                                                background: 'transparent',
-                                                                color: 'rgba(255,255,255,0.6)',
-                                                                border: 'none',
-                                                            }}>
-                                                            {label}
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                                <p style={{ margin: '8px 0 0 4px', fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>
-                                                    {wsProposalType === 'badge' ? 'Предложи оригинальный значок в любую категорию'
-                                                        : wsProposalType === 'category' ? 'Предложи новую масштабную категорию для значков'
-                                                        : 'Предложи альтернативную версию существующего значка (например, новогоднюю)'}
-                                                </p>
-                                            </div>
-
-                                            {/* Form common input styles setup */}
-                                            {(() => {
-                                                const labelStyle = { 
-                                                    display: 'block', fontSize: 12, fontWeight: 800, 
-                                                    color: 'rgba(255,255,255,0.85)', textTransform: 'uppercase' as const, 
-                                                    letterSpacing: '0.05em', marginBottom: 8 
-                                                };
-                                                const activeClass = wsProposalType === 'badge' ? 'cab-input--cyan' : wsProposalType === 'category' ? 'cab-input--purple' : 'cab-input--pink';
-
-                                                return (
-                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                                                        {wsProposalType === 'badge' && (
-                                                            <>
-                                                                <div>
-                                                                    <label style={labelStyle}>Название значка</label>
-                                                                    <input value={wsTitle} onChange={e => setWsTitle(e.target.value)}
-                                                                        placeholder="Например: Мастер костра" 
-                                                                        className={`cab-input ${activeClass}`} />
-                                                                </div>
-                                                                <div>
-                                                                    <label style={labelStyle}>Описание и критерии</label>
-                                                                    <textarea value={wsDescription} onChange={e => setWsDescription(e.target.value)}
-                                                                        placeholder="За что выдаётся этот значок? Какие задания нужно выполнить?" 
-                                                                        className={`cab-input ${activeClass}`} style={{ minHeight: 100, resize: 'vertical' }} />
-                                                                </div>
-                                                            </>
-                                                        )}
-
-                                                        {wsProposalType === 'category' && (
-                                                            <>
-                                                                <div>
-                                                                    <label style={labelStyle}>Название категории</label>
-                                                                    <input value={wsTitle} onChange={e => setWsTitle(e.target.value)}
-                                                                        placeholder="Например: Спортивные достижения" 
-                                                                        className={`cab-input ${activeClass}`} />
-                                                                </div>
-                                                                <div>
-                                                                    <label style={labelStyle}>Описание</label>
-                                                                    <textarea value={wsDescription} onChange={e => setWsDescription(e.target.value)}
-                                                                        placeholder="Пиши суть. Какие значки будут в этой категории?" 
-                                                                        className={`cab-input ${activeClass}`} style={{ minHeight: 80, resize: 'vertical' }} />
-                                                                </div>
-                                                            </>
-                                                        )}
-
-                                                        {wsProposalType === 'version' && (
-                                                            <>
-                                                                <div style={{ display: 'flex', gap: 12 }}>
-                                                                    <div style={{ flex: 1 }}>
-                                                                        <label style={labelStyle}>ID оригинала</label>
-                                                                        <input value={wsBadgeId} onChange={e => setWsBadgeId(e.target.value)}
-                                                                            placeholder="Например: 1.1" 
-                                                                            className={`cab-input ${activeClass}`} />
-                                                                    </div>
-                                                                    <div style={{ flex: 2 }}>
-                                                                        <label style={labelStyle}>Название версии</label>
-                                                                        <input value={wsTitle} onChange={e => setWsTitle(e.target.value)}
-                                                                            placeholder="Новогодняя искра" 
-                                                                            className={`cab-input ${activeClass}`} />
-                                                                    </div>
-                                                                </div>
-                                                                <div>
-                                                                    <label style={labelStyle}>Отличия и условия</label>
-                                                                    <textarea value={wsDescription} onChange={e => setWsDescription(e.target.value)}
-                                                                        placeholder="В чём особенность этой версии?" 
-                                                                        className={`cab-input ${activeClass}`} style={{ minHeight: 80, resize: 'vertical' }} />
-                                                                </div>
-                                                            </>
-                                                        )}
-
-                                                        {/* Image Uploader */}
-                                                        <div>
-                                                            <label style={labelStyle}>Изображение (Опционально)</label>
-                                                            <div style={{
-                                                                padding: '16px', borderRadius: 16, background: 'rgba(0,0,0,0.15)',
-                                                                border: '1px dashed rgba(255,255,255,0.06)'
-                                                            }}>
-                                                                <ImageSourceBlock
-                                                                    context="workshop_badge"
-                                                                    value={wsImage}
-                                                                    onChange={(url) => setWsImage(url)}
-                                                                    aspect="free"
-                                                                    onGenerate={async (opts) =>
-                                                                        requestImageGenerate({ mode: 'generate', context: 'workshop', prompt: opts.prompt ?? '' }, effectiveToken || null)
-                                                                    }
-                                                                    onProcess={async (imageBase64, opts) =>
-                                                                        requestImageGenerate({ mode: 'process', context: 'workshop', imageBase64, prompt: opts?.prompt ?? '' }, effectiveToken || null)
-                                                                    }
-                                                                />
-                                                                {wsImage && (
-                                                                    <div style={{ display: 'flex', justifyContent: 'center', marginTop: 12 }}>
-                                                                        <button type="button" className="cab-btn cab-btn--danger"
-                                                                            onClick={() => setWsImage(null)}>
-                                                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                                                                            Удалить
-                                                                        </button>
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        </div>
-
-                                                        {/* Submit Button */}
-                                                        <div style={{ display: 'flex', justifyContent: 'flex-start', marginTop: 8 }}>
-                                                            <button onClick={handleWsSubmit} 
-                                                                disabled={!wsTitle.trim() || (wsProposalType === 'version' && !wsBadgeId.trim()) || wsBusy}
-                                                                className="cab-btn-accent">
-                                                                {wsBusy ? 'Отправка...' : 'Отправить на проверку'}
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                );
-                                            })()}
-                                        </div>
-                                    )}
-
-                                    {/* Арты */}
-                                    {workshopTab === 'arts' && (
-                                        <div key="ws-arts" className="fade-in cab-card" style={{
-                                            padding: '28px 32px', borderRadius: 20,
-                                            display: 'flex', flexDirection: 'column', gap: 16,
-                                        }}>
-                                            <div>
-                                                <h3 style={{ 
-                                                    margin: '0 0 8px 0', fontSize: 18, fontWeight: 700, color: '#e8f0ff',
-                                                    letterSpacing: '-0.01em', display: 'flex', alignItems: 'center', gap: 8
-                                                }}>
-                                                    Арты и скины
-                                                </h3>
-                                                <p style={{ margin: 0, fontSize: 13, color: 'rgba(255,255,255,0.6)', lineHeight: 1.5 }}>
-                                                    Сгенерируй арт для значка с помощью ИИ или загрузи свой.<br/>
-                                                    <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>AI-генерация доступна в основном кабинете.</span>
-                                                </p>
-                                            </div>
-                                            {accessToken && <ArtInboxTab accessToken={accessToken} />}
-                                        </div>
-                                    )}
-
-                                    {/* Мои проекты */}
-                                    {workshopTab === 'my' && (() => {
-                                        const combined = [
-                                            ...cabinetProposals.map((p: any) => ({ ...p, source: 'proposal' })),
-                                            ...customBadges.map((b: any) => ({ ...b, source: 'badge', type: 'badge', status: 'active' })),
-                                        ];
-                                        return (
-                                            <div key="ws-my" className="fade-in cab-card" style={{
-                                                padding: '28px 32px', borderRadius: 20,
-                                                display: 'flex', flexDirection: 'column', gap: 16,
-                                            }}>
-                                                <div>
-                                                    <h3 style={{ 
-                                                        margin: '0 0 8px 0', fontSize: 18, fontWeight: 700, color: '#e8f0ff',
-                                                        letterSpacing: '-0.01em', display: 'flex', alignItems: 'center', gap: 8
-                                                    }}>
-                                                        Мои проекты
-                                                    </h3>
-                                                    {combined.length === 0 && (
-                                                        <p style={{ margin: 0, fontSize: 13, color: 'rgba(255,255,255,0.6)', lineHeight: 1.5 }}>
-                                                            Пока нет проектов. Создай первый в Конструкторе.
-                                                        </p>
-                                                    )}
-                                                </div>
-                                                {combined.length > 0 && (
-                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                                                        {combined.map((item: any) => (
-                                                            <div key={item.id} style={{
-                                                                padding: '12px 16px', borderRadius: 12,
-                                                                background: 'rgba(0,0,0,0.15)',
-                                                                border: '1px solid rgba(255,255,255,0.05)',
-                                                            }}>
-                                                                <div style={{ fontWeight: 600, fontSize: 14, color: '#e8f0ff' }}>
-                                                                    {item.type === 'category' ? '📁' : item.type === 'version' ? '🔄' : (item.emoji || '🏅')} {item.title}
-                                                                </div>
-                                                                <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', marginTop: 4 }}>
-                                                                    {item.type === 'category' ? 'Категория' : item.type === 'version' ? 'Версия значка' : 'Значок'}
-                                                                    {' · '}
-                                                                    {item.status === 'pending' ? '⏳ На проверке' : item.status === 'approved' ? '✅ Одобрено' : item.status === 'rejected' ? '❌ Отклонено' : '📋 Активно'}
-                                                                </div>
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        );
-                                    })()}
-
-                                    {/* Сообщество */}
-                                    {workshopTab === 'community' && (
-                                        <CommunityRankingPanel
-                                            communityBadges={communityBadges}
-                                            customBadges={customBadges}
-                                            onNavigateToBadge={navigateToBadge}
-                                        />
-                                    )}
-
-                                </div>
+                                <WorkshopDashboard
+                                    workshopTab={workshopTab}
+                                    effectiveToken={effectiveToken}
+                                    customBadges={customBadges}
+                                    communityBadges={communityBadges}
+                                    navigateToBadge={navigateToBadge}
+                                />
                             ) : activeSection === 'share' ? (
                                 <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 16 }}>
                                     {shareTab === 'invite' && (
@@ -2390,259 +1649,13 @@ export const PersonalCabinet: React.FC<{
                                     )}
                                 </div>
                             ) : activeSection === 'events' ? (
-                                <div key="events" className="fade-in cab-card" style={{
-                                    display: 'flex', flexDirection: 'column' as const, gap: 16,
-                                    borderRadius: 20, padding: '28px 32px',
-                                }}>
-                                    {/* ── Auto-load when Events section opens ── */}
-                                    {(() => {
-                                        // Auto-load effect via self-invoking render guard
-                                        const shouldLoad = activeSection === 'events' && myRequests.length === 0 && !eventsLoading;
-                                        if (shouldLoad && hasAuth) {
-                                            setTimeout(async () => {
-                                                setEventsLoading(true);
-                                                try {
-                                                    const my = await loadMyBadgeRequests(effectiveToken, devHeaders);
-                                                    setMyRequests(my);
-                                                } catch (e) { console.error(e); }
-                                                setEventsLoading(false);
-                                            }, 0);
-                                        }
-                                        return null;
-                                    })()}
-
-                                    {eventsTab === 'requests' && (
-                                        <div style={{
-                                            display: 'flex', flexDirection: 'column', gap: 12,
-                                        }}>
-                                            <div style={{ marginBottom: 4 }}>
-                                                <h3 style={{ 
-                                                    margin: '0 0 8px 0', fontSize: 18, fontWeight: 700, color: '#e8f0ff',
-                                                    letterSpacing: '-0.01em', display: 'flex', alignItems: 'center', gap: 8
-                                                }}>
-                                                    Мои заявки
-                                                </h3>
-                                                <p style={{ margin: 0, fontSize: 13, color: 'rgba(255,255,255,0.6)', lineHeight: 1.5 }}>
-                                                    Отслеживай статус проверки полученных значков.
-                                                </p>
-                                            </div>
-
-                                            {/* Refresh button */}
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                                                <button type="button" onClick={async () => {
-                                                    if (!hasAuth) return;
-                                                    setEventsLoading(true);
-                                                    try {
-                                                        const my = await loadMyBadgeRequests(effectiveToken, devHeaders);
-                                                        setMyRequests(my);
-                                                    } catch (e) { console.error(e); }
-                                                    setEventsLoading(false);
-                                                }} disabled={eventsLoading} className="cab-btn-accent-sm">
-                                                    {eventsLoading ? 'Загрузка…' : '🔄 Обновить'}
-                                                </button>
-                                                <span style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.5)' }}>
-                                                    {myRequests.length > 0 ? `${myRequests.length} заявок` : ''}
-                                                </span>
-                                            </div>
-
-                                            {/* Loading state */}
-                                            {eventsLoading && myRequests.length === 0 && (
-                                                <div style={{ padding: 32, textAlign: 'center', color: 'rgba(255,255,255,0.4)', fontSize: 13 }}>
-                                                    Загрузка заявок…
-                                                </div>
-                                            )}
-
-                                            {/* Empty state */}
-                                            {!eventsLoading && myRequests.length === 0 && (
-                                                <div style={{
-                                                    padding: 32, textAlign: 'center', borderRadius: 14,
-                                                    background: 'rgba(8, 20, 40, 0.15)',
-                                                    border: '1px solid rgba(93, 228, 255, 0.08)',
-                                                }}>
-                                                    <div style={{ fontSize: 28, marginBottom: 8 }}>📋</div>
-                                                    <div style={{ fontSize: 14, color: '#e8f0ff', fontWeight: 600 }}>Нет заявок</div>
-                                                    <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginTop: 4 }}>
-                                                        Отправь заявку на подтверждение значка — она появится здесь
-                                                    </div>
-                                                </div>
-                                            )}
-
-                                            {/* Request cards */}
-                                            {myRequests.slice(0, 30).map(r => {
-                                                const statusColor = r.status === 'pending' ? '#F59E0B' : r.status === 'approved' ? '#22C55E' : '#EF4444';
-                                                const statusBg = r.status === 'pending' ? 'rgba(245,158,11,0.12)' : r.status === 'approved' ? 'rgba(34,197,94,0.12)' : 'rgba(239,68,68,0.12)';
-                                                const statusText = r.status === 'pending' ? '⏳ Ожидает проверки' : r.status === 'approved' ? '✅ Одобрено' : '❌ Отклонено';
-                                                const ev = r.evidence || {} as Record<string, unknown>;
-                                                const hasDetails = !!(ev.reflection || ev.impact || ev.link || (ev.photos && Array.isArray(ev.photos) && ev.photos.length > 0));
-
-                                                return (
-                                                    <details key={r.id} style={{
-                                                        borderRadius: 12,
-                                                        background: 'rgba(8, 20, 40, 0.2)',
-                                                        border: `1px solid ${statusColor}22`,
-                                                        overflow: 'hidden',
-                                                    }}>
-                                                        <summary style={{
-                                                            padding: '12px 16px', cursor: 'pointer',
-                                                            listStyle: 'none', display: 'flex', alignItems: 'center', gap: 12,
-                                                        }}>
-                                                            {/* Status dot */}
-                                                            <div style={{
-                                                                width: 8, height: 8, borderRadius: '50%', flexShrink: 0,
-                                                                background: statusColor,
-                                                                boxShadow: `0 0 6px ${statusColor}66`,
-                                                            }} />
-                                                            <div style={{ flex: 1, minWidth: 0 }}>
-                                                                <div style={{ fontSize: 14, fontWeight: 600, color: '#e8f0ff' }}>
-                                                                    {r.badgeTitle || r.levelId}
-                                                                </div>
-                                                                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 3 }}>
-                                                                    <span style={{
-                                                                        fontSize: 11, fontWeight: 600, padding: '2px 8px',
-                                                                        borderRadius: 6, background: statusBg, color: statusColor,
-                                                                    }}>
-                                                                        {statusText}
-                                                                    </span>
-                                                                    {r.createdAt && (
-                                                                        <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)' }}>
-                                                                            {new Date(r.createdAt).toLocaleDateString('ru-RU')}
-                                                                        </span>
-                                                                    )}
-                                                                </div>
-                                                            </div>
-                                                            {/* Expand arrow */}
-                                                            {hasDetails && (
-                                                                <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)' }}>▼</span>
-                                                            )}
-                                                        </summary>
-
-                                                        {/* Expanded details */}
-                                                        <div style={{
-                                                            padding: '0 16px 14px',
-                                                            borderTop: '1px solid rgba(255,255,255,0.06)',
-                                                            display: 'flex', flexDirection: 'column', gap: 8,
-                                                            marginTop: 2,
-                                                            paddingTop: 12,
-                                                        }}>
-                                                            {/* Resolution note (rejection/approval reason) */}
-                                                            {r.resolutionNote && (
-                                                                <div style={{
-                                                                    padding: '10px 14px', borderRadius: 10,
-                                                                    background: r.status === 'rejected' ? 'rgba(239,68,68,0.08)' : 'rgba(34,197,94,0.08)',
-                                                                    border: `1px solid ${r.status === 'rejected' ? 'rgba(239,68,68,0.2)' : 'rgba(34,197,94,0.2)'}`,
-                                                                }}>
-                                                                    <div style={{
-                                                                        fontSize: 10, fontWeight: 700, textTransform: 'uppercase',
-                                                                        letterSpacing: '0.06em', marginBottom: 4,
-                                                                        color: r.status === 'rejected' ? '#f87171' : '#4ade80',
-                                                                    }}>
-                                                                        {r.status === 'rejected' ? 'Причина отклонения' : 'Комментарий вожатого'}
-                                                                    </div>
-                                                                    <div style={{ fontSize: 13, color: '#e8f0ff', lineHeight: 1.5 }}>
-                                                                        {r.resolutionNote}
-                                                                    </div>
-                                                                </div>
-                                                            )}
-
-                                                            {/* Evidence: what participant submitted */}
-                                                            {typeof ev.reflection === 'string' && ev.reflection.trim() && (
-                                                                <div>
-                                                                    <div style={{ fontSize: 10, fontWeight: 600, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 2 }}>Чему научился(лась)</div>
-                                                                    <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)', lineHeight: 1.5 }}>{ev.reflection}</div>
-                                                                </div>
-                                                            )}
-                                                            {typeof ev.impact === 'string' && ev.impact.trim() && (
-                                                                <div>
-                                                                    <div style={{ fontSize: 10, fontWeight: 600, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 2 }}>Реальный вклад</div>
-                                                                    <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)', lineHeight: 1.5 }}>{ev.impact}</div>
-                                                                </div>
-                                                            )}
-                                                            {typeof ev.link === 'string' && ev.link.trim() && (
-                                                                <div>
-                                                                    <div style={{ fontSize: 10, fontWeight: 600, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 2 }}>Ссылка</div>
-                                                                    <a href={ev.link} target="_blank" rel="noopener noreferrer"
-                                                                        style={{ fontSize: 12, color: '#5de4ff', wordBreak: 'break-all' }}>{ev.link}</a>
-                                                                </div>
-                                                            )}
-                                                            {Array.isArray(ev.photos) && ev.photos.length > 0 && (
-                                                                <div>
-                                                                    <div style={{ fontSize: 10, fontWeight: 600, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 4 }}>Фото ({(ev.photos as string[]).length})</div>
-                                                                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                                                                        {(ev.photos as string[]).map((url: string, i: number) => (
-                                                                            <img key={i} src={url} alt={`Фото ${i + 1}`} style={{
-                                                                                maxWidth: 120, maxHeight: 120, borderRadius: 8,
-                                                                                objectFit: 'cover', border: '1px solid rgba(255,255,255,0.1)',
-                                                                                cursor: 'pointer',
-                                                                            }} onClick={() => window.open(url, '_blank')} />
-                                                                        ))}
-                                                                    </div>
-                                                                </div>
-                                                            )}
-                                                            {!hasDetails && !r.resolutionNote && (
-                                                                <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)', fontStyle: 'italic' }}>
-                                                                    Детали не приложены
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    </details>
-                                                );
-                                            })}
-                                        </div>
-                                    )}
-
-                                    {eventsTab === 'announcements' && (
-                                        <div style={{
-                                            padding: 32, textAlign: 'center', borderRadius: 14,
-                                            background: 'rgba(8, 20, 40, 0.15)',
-                                            border: '1px solid rgba(93, 228, 255, 0.08)',
-                                        }}>
-                                            <div style={{ fontSize: 28, marginBottom: 8 }}>📢</div>
-                                            <div style={{ fontSize: 14, color: '#e8f0ff', fontWeight: 600 }}>Объявления</div>
-                                            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginTop: 4, lineHeight: 1.5 }}>
-                                                Здесь будут появляться объявления от вожатых и педагогов
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {eventsTab === 'tasks' && (() => {
-                                        const tasks = (userData as any)?.educatorTasks || [];
-                                        return (
-                                            <div style={{
-                                                padding: 20, borderRadius: 14,
-                                                background: 'rgba(8, 20, 40, 0.15)',
-                                                border: '1px solid rgba(93, 228, 255, 0.12)',
-                                            }}>
-                                                <h3 style={{ color: '#FFD700', marginTop: 0, fontSize: 16 }}>📝 Задания педагога</h3>
-                                                <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', marginBottom: 12 }}>Задания от педагогов, кружков и курсов.</p>
-                                                {tasks.length === 0 ? (
-                                                    <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)' }}>
-                                                        Пока нет заданий.
-                                                    </p>
-                                                ) : (
-                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 8 }}>
-                                                        {tasks.map((t: any) => (
-                                                            <div key={t.id} style={{
-                                                                padding: '10px 14px', borderRadius: 10,
-                                                                background: 'rgba(255,255,255,0.04)',
-                                                                border: '1px solid rgba(255,255,255,0.06)',
-                                                            }}>
-                                                                <div style={{ fontWeight: 600, fontSize: 13, color: '#e8f0ff' }}>{t.title}</div>
-                                                                {t.description && (
-                                                                    <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', marginTop: 4 }}>
-                                                                        {t.description.slice(0, 80)}{t.description.length > 80 ? '…' : ''}
-                                                                    </div>
-                                                                )}
-                                                                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', marginTop: 4 }}>
-                                                                    {t.status === 'draft' ? '⬜ Черновик' : t.status === 'assigned' ? '📤 Назначено' : '✅ Завершено'}
-                                                                </div>
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        );
-                                    })()}
-                                </div>
+                                <EventsDashboard
+                                    eventsTab={eventsTab}
+                                    effectiveToken={effectiveToken}
+                                    devHeaders={devHeaders}
+                                    hasAuth={hasAuth}
+                                    userData={userData}
+                                />
                             ) : activeSection === 'progress' ? (
                                 <div key="progress" className="fade-in" style={{
                                     padding: 32, borderRadius: 16,

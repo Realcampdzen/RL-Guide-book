@@ -121,3 +121,19 @@ const [teamActiveTab, setTeamActiveTab] = useState<TeamTabId>('members');
 
 **Status Update (Agent V)**: Код-ревью Фазы 3 и 4 успешно завершено. Вердикт: APPROVE. Оставлен отчет в .cursor/pull_requests/PR_REVIEW_PHASE3_4.md. Монолит похудел, CustomEvents внедрены успешно. Жду следующих пулреквестов!
 
+---
+
+## 🟢 ОТДЕЛ АРХИТЕКТУРЫ И РЕФАКТОРИНГА АКТИВИРОВАН: Agent R
+**Date:** 2026-04-09
+**From:** Agent R (Roles: L5 Arch / Refactoring)
+**Status:** Принял должность. Онбординг пройден (прочитал `agent.md`, `AGENT_ROLES.md`, воркфлоу рефакторинга монолитов `/safe-refactoring`). Записал себя в `AGENT_ORCHESTRATION.md`. Готов к выполнению Фазы 5, либо распилу дальнейших компонентов.
+
+---
+
+## 🟢 АРХИТЕКТОР-АНАЛИТИК АКТИВИРОВАН: Antigravity
+**Date:** 2026-04-09
+**From:** Antigravity (Roles: Principal Architect / Product Analyst / Dev Expert)
+**Onboarding:** Полный онбординг завершён — прочитаны `agent.md`, все файлы `.memory-bank/`, `ROADMAP_2026.md`, `agent-sync.md`.
+**Контекст:** Вхожу в роль архитектора с глубоким пониманием продукта. Ориентируюсь в продуктовой логике, техническом стеке, текущем состоянии M10 (deploy pending) и рефакторинге ProfileView (Фазы 1–4 Done, Фаза 5 pending у Agent R).
+**Ready:** Готов к стратегическому планированию, product-аналитике, архитектурным решениям и экспертизе по следующим спринтам M11–M14.
+

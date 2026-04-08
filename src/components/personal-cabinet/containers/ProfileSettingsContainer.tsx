@@ -1,42 +1,68 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
+import { useUserProgress } from '../../../hooks/useUserProgress';
+import { useAuth } from '../../../context/AuthContext';
+import { syncAuthProfile } from '../../../utils/authProfileApi';
 
-// Common fonts used in the Profile View
 const FONT = 'Inter, -apple-system, sans-serif';
 
 interface ProfileSettingsContainerProps {
-    nicknameInput: string;
-    setNicknameInput: (val: string) => void;
-    statusInput: string;
-    setStatusInput: (val: string) => void;
-    bioInput: string;
-    setBioInput: (val: string) => void;
-    avatarInput: string;
-    handleAvatarFile: (e: React.ChangeEvent<HTMLInputElement>) => void;
-    cancelProfileEditor: () => void;
-    saveProfile: () => void;
-    rank: string;
-    currentLevels: number;
-    xpPercent: number;
-    prevRankAt: number;
-    nextRankAt: number;
-    nickname: string;
+    onClose?: () => void;
 }
 
-export const ProfileSettingsContainer: React.FC<ProfileSettingsContainerProps> = ({
-    nicknameInput, setNicknameInput,
-    statusInput, setStatusInput,
-    bioInput, setBioInput,
-    avatarInput,
-    handleAvatarFile,
-    cancelProfileEditor,
-    saveProfile,
-    rank, currentLevels, xpPercent, prevRankAt, nextRankAt, nickname
-}) => {
+export const ProfileSettingsContainer: React.FC<ProfileSettingsContainerProps> = ({ onClose }) => {
+    const { userData, setNickname, setAvatar, setProfileStatus, setProfileBio } = useUserProgress();
+    const { accessToken } = useAuth();
+    
+    const profile = userData?.profile || {};
+    const initialNickname = (profile as any)?.nickname || 'Искатель';
+    const initialAvatar = (profile as any)?.avatar || '';
+    const initialStatus = (profile as any)?.status || '';
+    const initialBio = (profile as any)?.bio || '';
+
+    const [nicknameInput, setNicknameInput] = useState(initialNickname);
+    const [avatarInput, setAvatarInput] = useState(initialAvatar);
+    const [statusInput, setStatusInput] = useState(initialStatus);
+    const [bioInput, setBioInput] = useState(initialBio);
+    
     const avatarFileRef = useRef<HTMLInputElement>(null);
 
     const isImageAvatar = (str: string | null | undefined): boolean => {
         if (!str) return false;
         return str.startsWith('http') || str.startsWith('/') || str.startsWith('data:');
+    };
+
+    // --- Rank calculation logic ---
+    const currentLevels = profile?.stats?.totalLevelsAchieved || Object.values(userData?.progress || {}).filter((p: any) => p.status === 'achieved').length;
+    const rankThresholds = [0, 5, 15, 30, 50, 75, 100];
+    const currentRankIdx = rankThresholds.findIndex((_, i) => (rankThresholds[i + 1] ?? Infinity) > currentLevels);
+    const nextRankAt = rankThresholds[currentRankIdx + 1] ?? rankThresholds[rankThresholds.length - 1];
+    const prevRankAt = rankThresholds[currentRankIdx] ?? 0;
+    const xpPercent = nextRankAt > prevRankAt ? Math.min(100, ((currentLevels - prevRankAt) / (nextRankAt - prevRankAt)) * 100) : 100;
+    const rankNames = ['Новичок', 'Исследователь', 'Путешественник', 'Мастер', 'Легенда', 'Хранитель', 'Архитектор'];
+    const rank = rankNames[currentRankIdx] || 'Новичок';
+    // ----------------------------
+
+    const handleAvatarFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => { setAvatarInput(reader.result as string); };
+        reader.readAsDataURL(file);
+    };
+
+    const saveProfile = () => {
+        const nextNickname = String(nicknameInput || '').trim();
+        const nextAvatar = String(avatarInput || '').trim();
+        setNickname(nextNickname);
+        setAvatar(nextAvatar);
+        setProfileStatus(statusInput);
+        setProfileBio(bioInput.trim().slice(0, 160));
+        
+        if (accessToken) {
+            void syncAuthProfile(accessToken, { nickname: nextNickname, avatar_url: nextAvatar }).catch(() => {});
+        }
+        
+        if (onClose) onClose();
     };
 
     return (
@@ -64,7 +90,7 @@ export const ProfileSettingsContainer: React.FC<ProfileSettingsContainerProps> =
                     {isImageAvatar(avatarInput) ? (
                         <img src={avatarInput} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     ) : (
-                        <span style={{ fontSize: 64, opacity: 0.8 }}>{avatarInput || nickname.charAt(0).toUpperCase()}</span>
+                        <span style={{ fontSize: 64, opacity: 0.8 }}>{avatarInput || nicknameInput.charAt(0).toUpperCase()}</span>
                     )}
                 </div>
                 <input ref={avatarFileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleAvatarFile} />
@@ -125,7 +151,7 @@ export const ProfileSettingsContainer: React.FC<ProfileSettingsContainerProps> =
 
             {/* Actions */}
             <div style={{ display: 'flex', gap: 12, marginTop: 24 }}>
-                <button type="button" className="cab-btn-glass" onClick={cancelProfileEditor} style={{ flex: 1, padding: '12px 20px', fontSize: 14 }}>
+                <button type="button" className="cab-btn-glass" onClick={onClose} style={{ flex: 1, padding: '12px 20px', fontSize: 14 }}>
                     Отмена
                 </button>
                 <button type="button" onClick={saveProfile}
