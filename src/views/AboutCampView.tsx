@@ -437,18 +437,26 @@ const AboutCampView: React.FC<AboutCampViewProps> = ({
                 </span>
               </div>
 
-              <div className="price-block" style={{ display: 'inline-block', textAlign: 'left', minWidth: '350px', padding: '2.5rem' }}>
-                {aboutCampSession.prices.map((price, idx) => (
-                  <p key={idx} style={{ marginBottom: idx < aboutCampSession.prices.length - 1 ? '1rem' : 0, fontSize: '1.3rem', color: 'var(--c-stark)' }}>
-                    ✅ <strong style={idx === 0 ? { color: '#FFD700' } : undefined}>{price.amount}</strong> — {price.label}
-                    {price.note && <><br /><span style={{ fontSize: '1rem', color: 'rgba(244, 239, 228, 0.7)' }}>{price.note}</span></>}
-                  </p>
-                ))}
-              </div>
+              {aboutCampSession.message && (
+                <p className="card-text" style={{ fontSize: '1.2rem', textAlign: 'center', marginBottom: '2rem', maxWidth: '600px', margin: '0 auto 2rem auto', color: 'rgba(255,255,255,0.85)' }}>
+                  {aboutCampSession.message}
+                </p>
+              )}
+
+              {aboutCampSession.prices.length > 0 && (
+                <div className="price-block" style={{ display: 'inline-block', textAlign: 'left', minWidth: '350px', padding: '2.5rem' }}>
+                  {aboutCampSession.prices.map((price, idx) => (
+                    <p key={idx} style={{ marginBottom: idx < aboutCampSession.prices.length - 1 ? '1rem' : 0, fontSize: '1.3rem', color: 'var(--c-stark)' }}>
+                      ✅ <strong style={idx === 0 ? { color: '#FFD700' } : undefined}>{price.amount}</strong> — {price.label}
+                      {price.note && <><br /><span style={{ fontSize: '1rem', color: 'rgba(244, 239, 228, 0.7)' }}>{price.note}</span></>}
+                    </p>
+                  ))}
+                </div>
+              )}
               
               <div style={{ marginTop: '3.5rem' }}>
                 <button className="btn-agency hover-target" onClick={onTelegramContact} style={{ transform: 'scale(1.2)' }}>
-                  <span>Записаться через Telegram</span>
+                  <span>{aboutCampSession.buttonText || 'Записаться через Telegram'}</span>
                 </button>
               </div>
            </div>

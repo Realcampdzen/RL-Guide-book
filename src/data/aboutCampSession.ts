@@ -12,13 +12,15 @@ export interface AboutCampSession {
   sessionTitle: string;
   dates: string;
   prices: SessionPrice[];
+  message?: string;
+  buttonText?: string;
 }
 
 export const aboutCampSession: AboutCampSession = {
-  sessionTitle: 'Весенняя смена',
-  dates: 'с 28 марта по 5 апреля',
-  prices: [
-    { amount: '25 800', label: 'стоимость путевки с учетом сертификата от г. Санкт-Петербурга на 9 дней', note: '+ сертификат' },
-    { amount: '36 500,00 руб.', label: 'полная стоимость путевки на 9 дней без использования сертификата' },
-  ],
+  // Мы сбрасываем заголовок, чтобы AboutCampView не ломался от split(' ')
+  sessionTitle: 'Осенняя смена',
+  dates: 'Даты скоро появятся',
+  message: 'Летнюю смену мы вынуждены пропустить, так как не смогли найти базу, которая бы полностью отвечала нашим высоким стандартам качества и безопасности. Но прямо сейчас мы готовим просто пушечную Осеннюю смену!',
+  buttonText: 'Следить за анонсом в Telegram',
+  prices: [],
 };
