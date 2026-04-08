@@ -15,3 +15,4 @@
     - `[x]` Фаза 1: Удушение Стейта (вынос `useState` в `useProfileModals`, `useProfileForms`, `usePlannerState`)
     - `[x]` Фаза 2: Изоляция Модальных Инстансов (`PlannerModal`, `ProofModal` готовы)
     - `[x]` Фаза 3: Децентрализация Катушек (`InspectorContainer`, `CouncilContainer`, `TeamContainer`)
+    - `[x]` Фаза 4: Тупые Компоненты (`BadgeCard.tsx` с `React.memo` для устранения дублирования рендера значков)

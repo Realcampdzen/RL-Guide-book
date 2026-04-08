@@ -19,6 +19,7 @@
 | [.memory-bank/active_context.md](../.memory-bank/active_context.md) | Текущая задача и фокус; при мульти-агентной работе — роли (Agent A/B/C/D/E) и зоны ответственности. |
 | [.memory-bank/progress.md](../.memory-bank/progress.md) | Что уже сделано, Accepted UX (что не менять), Recent Changes. |
 | [.memory-bank/tech_context.md](../.memory-bank/tech_context.md) | Стек, контракты API, синхронизация ai-data ↔ public/ai-data, порты, «грабли». |
+| [.cursor/agent orchestration/CODE_REVIEW_PROTOCOL.md](../.cursor/agent%20orchestration/CODE_REVIEW_PROTOCOL.md) | **Правила написания кода.** Устанавливает гибридный флоу. Серьезные задачи писать только через `git checkout -b` и локальные Pull Requests! |
 | [docs/ONBOARDING.md](ONBOARDING.md) | Карта документов, чек-лист «перед началом работы», порядок входа. |
 
 **Итог:** задание агентам формулируй так, чтобы они сначала заходили в `agent.md` → ROADMAP и Memory Bank, а не сразу в код.
@@ -58,10 +59,12 @@
 5. Открыть [ROADMAP_2026.md](ROADMAP_2026.md): прочитать «Где мы сейчас»; убедиться, что выбранная задача **не в статусе Done**.
 6. **Открыть [AGENT_ORCHESTRATION.md](../.cursor/agent%20orchestration/AGENT_ORCHESTRATION.md):** обновить Claim Board — записать себя. Это обязательно.
 7. Просмотреть [progress.md](../.memory-bank/progress.md) (Accepted UX, Recent Changes).
-8. Взять задачу и спланировать решение, записав короткий план в `agent-sync.md`.
-9. По завершении: обновить `agent-sync.md`, Claim Board (статус Done) и создать отчёт.
+8. **Проверка Spec-Driven Development (SDD):** Если задача касается новой крупной логики (epic, feature), она **обязана** иметь Спецификацию в `.cursor/specs/`. Если Спецификации нет, Агент должен переключиться в роль Product Manager (Аналитик), задать СЕО (Пользователю) нужные вопросы и сгенерировать `SPEC_ИМЯ.md`. **Не писать код без ТЗ!**
+9. **Оценить объем задачи:** Если задача требует новой логики, рефакторинга или затрагивает важные узлы БД — прочитать [CODE_REVIEW_PROTOCOL.md](../.cursor/agent%20orchestration/CODE_REVIEW_PROTOCOL.md). Такие задачи выполняются **только в новой локальной git ветке** через систему `.cursor/pull_requests/`. Мелкие UI правки (<10 строк) можно делать прямо в `main`.
+10. Взять задачу и спланировать решение, записав короткий план в `agent-sync.md`.
+11. По завершении: обновить `agent-sync.md`, Claim Board (статус Done или "Ожидает ревью") и создать отчёт.
 
-**Итог:** начало выполнения = agent.md → AGENT_ROLES.md → Интервью/Выдача Роли → agent-sync.md → ROADMAP → код.
+**Итог:** начало выполнения = agent.md → AGENT_ROLES.md → Выдача Роли → agent-sync.md → ROADMAP → SDD Проверка Спецификации → Git Checkout → код.
 
 ---
 

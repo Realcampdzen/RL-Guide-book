@@ -23,6 +23,7 @@ import { inspectorMissions, type InspectorTabId, INSPECTOR_TAB_IDS, INSPECTOR_TA
 import type { Badge } from '../types/guide';
 import { useHintOverlay, type HintStep } from '../context/HintOverlayContext';
 import { InspectorContainer } from './profile/containers/InspectorContainer';
+import { BadgeCard } from '../components/BadgeCard';
 import { Profile4KDashboard, type Profile4KTabId } from '../components/Profile4KDashboard';
 import { TeamContainer } from './profile/containers/TeamContainer';
 import { RealDiaryDashboard, type RealDiaryTabId } from '../components/RealDiaryDashboard';
@@ -3808,22 +3809,24 @@ export const ProfileView: React.FC<any> = (props) => {
                             const hubAnchorId = slotIndex === 0 ? `hub-badge-${id.replace(/\./g, '-')}` : undefined;
                             return (
                               <div key={`path-slot-${slotIndex}-${baseId}`} id={hubAnchorId} className="path-carousel__item path-carousel__item--static">
-                                <div className="path-card path-card--vertical">
-                                  <div className="path-card__avatar-wrap">
-                                    <div className="path-card__avatar" onClick={() => onNavigateToBadge(baseId)}>
-                                      <BadgeIcon badgeId={baseId} badgeTitle={badgeTitleForImage} categoryId={levelBadge?.category_id || baseId.split('.')[0] || '1'} emoji={levelBadge?.emoji || '🏆'} size="responsive" levelId={id !== baseId ? id : undefined} levelTitle={id !== baseId ? (levelBadge?.level || undefined) : undefined} />
-                                    </div>
-                                  </div>
-                                  <div className="path-card__actions">
-                                    <button type="button" onClick={(e) => { e.stopPropagation(); (window as any).__openBadgePlan__({ id, title: displayTitle, level: levelBadge?.level, criteria: levelBadge?.criteria || levelBadge?.howToBecome, nameExplanation: levelBadge?.nameExplanation, skillTips: levelBadge?.skillTips, confirmation: levelBadge?.confirmation }); }} className="btn-pill btn-pill--secondary">Составить план</button>
-                                    <button type="button" onClick={(e) => { e.stopPropagation(); (window as any).__openBadgeProof__({ id: baseId, title: displayTitle }); }} className="btn-pill btn-pill--primary">Подтвердить <Icons.Send /></button>
-                                  </div>
-                                  <div className="path-card__footer">
-                                    <button type="button" onClick={(e) => { e.stopPropagation(); if (confirm("Удалить?")) removeRoute(baseId); }} className="btn-action-round trash" aria-label="Удалить из пути"><Icons.Trash /></button>
-                                    <button type="button" onClick={(e) => { e.stopPropagation(); toggleFavorite(baseId); }} className={`path-card__star ${isFav ? 'fav' : ''}`} aria-label={isFav ? 'Убрать из избранного' : 'В избранное'}><Icons.Star filled={isFav} /></button>
-                                    <button type="button" className="btn-action-round btn-go-badge" onClick={(e) => { e.stopPropagation(); onNavigateToBadge(baseId); }} title="Перейти к значку" aria-label="Перейти к значку"><Icons.ArrowRight /></button>
-                                  </div>
-                                </div>
+                                <BadgeCard
+                                  baseId={baseId}
+                                  levelId={id}
+                                  displayTitle={displayTitle}
+                                  badgeTitleForImage={badgeTitleForImage}
+                                  categoryId={levelBadge?.category_id || baseId.split('.')[0] || '1'}
+                                  emoji={levelBadge?.emoji || '🏆'}
+                                  level={levelBadge?.level}
+                                  criteria={levelBadge?.criteria}
+                                  howToBecome={levelBadge?.howToBecome}
+                                  nameExplanation={levelBadge?.nameExplanation}
+                                  skillTips={levelBadge?.skillTips}
+                                  confirmation={levelBadge?.confirmation}
+                                  isFav={isFav}
+                                  onNavigateToBadge={onNavigateToBadge}
+                                  onRemoveRoute={removeRoute}
+                                  onToggleFavorite={toggleFavorite}
+                                />
                               </div>
                             );
                           })}
@@ -3843,22 +3846,24 @@ export const ProfileView: React.FC<any> = (props) => {
                               const hubAnchorId = slotIndex === 0 ? `hub-badge-${id.replace(/\./g, '-')}` : undefined;
                               return (
                                 <div key={`path-slot-${slotIndex}-${baseId}`} id={hubAnchorId} className="path-carousel__item path-carousel__item--cylinder" style={{ ['--slot-offset' as string]: slotIndex }}>
-                                  <div className="path-card path-card--vertical">
-                                    <div className="path-card__avatar-wrap">
-                                      <div className="path-card__avatar" onClick={() => onNavigateToBadge(baseId)}>
-                                        <BadgeIcon badgeId={baseId} badgeTitle={badgeTitleForImage} categoryId={levelBadge?.category_id || baseId.split('.')[0] || '1'} emoji={levelBadge?.emoji || '🏆'} size="responsive" levelId={id !== baseId ? id : undefined} levelTitle={id !== baseId ? (levelBadge?.level || undefined) : undefined} />
-                                      </div>
-                                    </div>
-                                    <div className="path-card__actions">
-                                      <button type="button" onClick={(e) => { e.stopPropagation(); (window as any).__openBadgePlan__({ id, title: displayTitle, level: levelBadge?.level, criteria: levelBadge?.criteria || levelBadge?.howToBecome, nameExplanation: levelBadge?.nameExplanation, skillTips: levelBadge?.skillTips, confirmation: levelBadge?.confirmation }); }} className="btn-pill btn-pill--secondary">Составить план</button>
-                                      <button type="button" onClick={(e) => { e.stopPropagation(); (window as any).__openBadgeProof__({ id: baseId, title: displayTitle }); }} className="btn-pill btn-pill--primary">Подтвердить <Icons.Send /></button>
-                                    </div>
-                                    <div className="path-card__footer">
-                                      <button type="button" onClick={(e) => { e.stopPropagation(); if (confirm("Удалить?")) removeRoute(baseId); }} className="btn-action-round trash" aria-label="Удалить из пути"><Icons.Trash /></button>
-                                      <button type="button" onClick={(e) => { e.stopPropagation(); toggleFavorite(baseId); }} className={`path-card__star ${isFav ? 'fav' : ''}`} aria-label={isFav ? 'Убрать из избранного' : 'В избранное'}><Icons.Star filled={isFav} /></button>
-                                      <button type="button" className="btn-action-round btn-go-badge" onClick={(e) => { e.stopPropagation(); onNavigateToBadge(baseId); }} title="Перейти к значку" aria-label="Перейти к значку"><Icons.ArrowRight /></button>
-                                    </div>
-                                  </div>
+                                  <BadgeCard
+                                    baseId={baseId}
+                                    levelId={id}
+                                    displayTitle={displayTitle}
+                                    badgeTitleForImage={badgeTitleForImage}
+                                    categoryId={levelBadge?.category_id || baseId.split('.')[0] || '1'}
+                                    emoji={levelBadge?.emoji || '🏆'}
+                                    level={levelBadge?.level}
+                                    criteria={levelBadge?.criteria}
+                                    howToBecome={levelBadge?.howToBecome}
+                                    nameExplanation={levelBadge?.nameExplanation}
+                                    skillTips={levelBadge?.skillTips}
+                                    confirmation={levelBadge?.confirmation}
+                                    isFav={isFav}
+                                    onNavigateToBadge={onNavigateToBadge}
+                                    onRemoveRoute={removeRoute}
+                                    onToggleFavorite={toggleFavorite}
+                                  />
                                 </div>
                               );
                             })}

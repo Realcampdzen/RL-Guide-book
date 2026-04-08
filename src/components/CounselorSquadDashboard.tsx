@@ -647,8 +647,10 @@ export const CounselorSquadDashboard: React.FC<CounselorSquadDashboardProps> = (
             const rb = ROLE_BADGES[m.role ?? ''] ?? { label: m.role ?? 'участник', color: '#6b7280' };
             return (
               <div key={m.deviceId} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', borderRadius: 8, background: 'rgba(0,0,0,0.12)' }}>
-                <span style={{ fontSize: 14 }}>👤</span>
-                <span style={{ flex: 1, fontSize: 12 }}>{m.nickname || m.deviceId.slice(0, 8)}</span>
+                <div style={{ width: 24, height: 24, borderRadius: '50%', background: `${rb.color}22`, color: rb.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, flexShrink: 0, border: `1px solid ${rb.color}44` }}>
+                  {m.nickname ? m.nickname[0].toUpperCase() : 'У'}
+                </div>
+                <span style={{ flex: 1, fontSize: 12, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.nickname || m.deviceId.slice(0, 8)}</span>
                 <span style={{ fontSize: 9, padding: '2px 6px', borderRadius: 6, background: `${rb.color}22`, color: rb.color }}>{rb.label}</span>
               </div>
             );

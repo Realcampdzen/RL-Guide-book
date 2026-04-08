@@ -713,11 +713,11 @@ export const TeamDashboard: React.FC<TeamDashboardProps> = ({
                     }}>
                       {member.avatar
                         ? isImageUrl(member.avatar)
-                          ? <img src={member.avatar} alt={member.nickname || ''} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          ? <img src={member.avatar} alt={member.nickname || ''} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.parentElement!.innerText = (member.nickname || 'У')[0].toUpperCase(); }} />
                           : member.avatar
                         : (member.nickname || 'У')[0].toUpperCase()}
                     </div>
-                    <span style={{ fontSize: 13, fontWeight: 600 }}>{member.id === myTeam.leaderId ? '👑 ' : ''}{member.nickname || 'Участник'}</span>
+                    <span style={{ fontSize: 13, fontWeight: 600, display: 'inline-block', maxWidth: '140px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', verticalAlign: 'bottom' }}>{member.id === myTeam.leaderId ? '👑 ' : ''}{member.nickname || 'Участник'}</span>
                     {member.rank && (
                       <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: 6, background: 'rgba(139,0,255,0.12)', color: 'rgba(139,0,255,0.9)', fontWeight: 600 }}>{member.rank}</span>
                     )}
