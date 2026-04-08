@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { motion } from 'framer-motion';
 import { useUserProgress } from '../hooks/useUserProgress';
 import {
   createSquadInviteCode,
@@ -372,7 +373,7 @@ export const SquadCabinetPanel: React.FC<SquadCabinetPanelProps> = ({
           {status && <div style={{ fontSize: 12, opacity: 0.9 }}>{status}</div>}
           
           {isGodMode && (
-            <div className="cab-card fade-in" style={{ padding: '20px 24px', marginTop: 14, border: '1px solid rgba(251, 191, 36, 0.4)', background: 'rgba(251, 191, 36, 0.05)' }}>
+            <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className="cab-card" style={{ padding: '20px 24px', marginTop: 14, border: '1px solid rgba(251, 191, 36, 0.4)', background: 'rgba(251, 191, 36, 0.05)' }}>
                <div style={{ fontSize: 16, fontWeight: 800, color: '#fbbf24', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
                  <span>🟡</span> Панель Бога (Presenter Mode)
                </div>
@@ -384,25 +385,27 @@ export const SquadCabinetPanel: React.FC<SquadCabinetPanelProps> = ({
                ) : (
                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 10 }}>
                    {godModeSquads.map(sq => (
-                      <button
+                      <motion.button
                         key={sq.id}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
                         onClick={() => handleGodModeJoin(sq.id, sq.name, sq.shiftId)}
                         type="button"
                         style={{
                           padding: '10px 14px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.1)',
                           background: 'rgba(255,255,255,0.03)', color: '#fff', textAlign: 'left',
-                          cursor: 'pointer', transition: 'all 0.2s', display: 'flex', flexDirection: 'column', gap: 4
+                          cursor: 'pointer', transition: 'box-shadow 0.2s', display: 'flex', flexDirection: 'column', gap: 4
                         }}
                         onMouseOver={e => e.currentTarget.style.background = 'rgba(251,191,36,0.15)'}
                         onMouseOut={e => e.currentTarget.style.background = 'rgba(255,255,255,0.03)'}
                       >
                          <span style={{ fontWeight: 700, fontSize: 14, color: '#e8f0ff' }}>{sq.name || sq.id}</span>
                          <span style={{ fontSize: 11, color: '#9ca3af' }}>Смена: {sq.shiftName || sq.shiftId}</span>
-                      </button>
+                      </motion.button>
                    ))}
                  </div>
                )}
-            </div>
+            </motion.div>
           )}
         </div>
       </div>
