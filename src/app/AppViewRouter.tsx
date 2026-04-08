@@ -184,7 +184,7 @@ export const AppViewRouter: React.FC<Props> = ({ controller, fallback }) => {
           onAboutCampClick={() => setCurrentView('about-camp')}
           onCategoryClick={handleCategoryClick}
           onOpenBadgeById={openBadgeById}
-          onOpenProfile={() => setCurrentView('profile')}
+          onLoginClick={handleProfileOrLogin}
           onChatToggle={toggleChat}
           isChatOpen={isChatOpen}
           onChatClose={closeChat}
@@ -218,7 +218,7 @@ export const AppViewRouter: React.FC<Props> = ({ controller, fallback }) => {
           onAboutCampClick={() => setCurrentView('about-camp')}
           onCategoryClick={handleCategoryClick}
           onOpenBadgeById={openBadgeById}
-          onOpenProfile={() => setCurrentView('profile')}
+          onLoginClick={handleProfileOrLogin}
           onChatToggle={toggleChat}
           isChatOpen={isChatOpen}
           onChatClose={closeChat}

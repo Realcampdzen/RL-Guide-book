@@ -23,16 +23,16 @@ import { inspectorMissions } from '../types/inspector';
 import type { Badge } from '../types/guide';
 import { useHintOverlay, type HintStep } from '../context/HintOverlayContext';
 import { InspectorContainer } from './profile/containers/InspectorContainer';
+import { SquadCornerContainer } from '../components/profile/containers/SquadCornerContainer';
+import { BroContainer } from '../components/profile/containers/BroContainer';
+import { WorkshopContainer } from '../components/profile/containers/WorkshopContainer';
 import { BadgeCard } from '../components/BadgeCard';
 import { Profile4KDashboard, type Profile4KTabId } from '../components/Profile4KDashboard';
 import { TeamContainer } from './profile/containers/TeamContainer';
 import { RealDiaryDashboard, type RealDiaryTabId } from '../components/RealDiaryDashboard';
-import { SquadCornerDashboard } from '../components/SquadCornerDashboard';
-import { SquadCabinetPanel } from '../components/SquadCabinetPanel';
 import { CounselorSquadDashboard, type CounselorSquadTabId } from '../components/CounselorSquadDashboard';
 import { ConfirmModal } from '../components/ConfirmModal';
 import { CouncilContainer } from './profile/containers/CouncilContainer';
-import { BroInitiation } from '../components/BroInitiation';
 import { WingDashboard } from '../components/WingDashboard';
 
 import { generateSocialCard, shareOrDownloadSocialCard, type SocialCardResult } from '../utils/socialGenerator';
@@ -41,8 +41,6 @@ import { InspectorMonitorCurve } from '../components/InspectorMonitorCurve';
 import { CampProgramByDays } from '../components/CampProgramByDays';
 import { VozhatifikatorChecklist } from '../components/VozhatifikatorChecklist';
 import { ImageSourceBlock } from '../components/ImageSourceBlock';
-import { CommunityRankingPanel } from '../components/CommunityRankingPanel';
-import { ArtInboxTab } from '../components/ArtInboxTab';
 import { FeatureGate } from '../components/FeatureGate';
 import { DevPanel } from '../components/DevPanel';
 import { AdminDashboard } from '../components/AdminDashboard';
@@ -82,7 +80,7 @@ import {
   type BadgePlanItem
 } from '../utils/badgePlanApi';
 import { StaffDashboardPanel } from '../components/StaffDashboardPanel';
-import { createWorkshopProposal, fetchMyProposals, fetchProposalsInbox, type WorkshopProposal } from '../utils/workshopProposalsApi';
+import { fetchMyProposals, fetchProposalsInbox, type WorkshopProposal } from '../utils/workshopProposalsApi';
 import { RoleRequestPanel as _RoleRequestPanel } from '../components/RoleRequestPanel';
 import { VOZHATIFIKATOR_CHECKLIST_ITEMS } from '../data/vozhatifikatorChecklist';
 import { QRCodeSVG } from 'qrcode.react';
@@ -121,10 +119,8 @@ const VOZHATIFIKATOR_DOCX_FILE = 'VZhTFKTR.docx';
 const VOZHATIFIKATOR_DOCX_URL = '/' + VOZHATIFIKATOR_DOCX_FILE;
 
 type Tab = 'active' | 'favorites' | 'collection' | 'journal' | 'workshop' | 'squads';
-type SquadCornerTabId = 'squad' | 'photos' | 'planner' | 'flag-badges';
 type BroTabId = 'initiation' | 'wing';
 type ShareTabId = 'create-card' | 'invite';
-type WorkshopTabId = 'constructor' | 'arts' | 'my' | 'community';
 
 type PanelViewId = 'passport' | 'inspector' | 'profile4k' | 'counselor-squad' | 'wing' | 'squad-corner' | 'real-diary' | 'team' | 'council' | 'bro' | 'workshop' | 'share' | 'vozhatifikator' | 'parents';
 const DEFAULT_SHIFT_NAME = 'Реальный Лагерь 2026';
@@ -279,8 +275,6 @@ export const ProfileView: React.FC<any> = (props) => {
   }, []);
 
   const {
-    workshopForm, setWorkshopForm,
-    workshopProposalType, setWorkshopProposalType,
     eduTaskForm, setEduTaskForm,
     showChildBadges, setShowChildBadges,
     childProgressFromFile, setChildProgressFromFile,
@@ -486,15 +480,12 @@ export const ProfileView: React.FC<any> = (props) => {
     }
   }, [utilityBubblesExpanded, openBubble]);
   const [panelActiveView, setPanelActiveView] = useState<PanelViewId | null>(null);
-  const [squadCornerActiveTab, setSquadCornerActiveTab] = useState<SquadCornerTabId>('squad');
   const [counselorSquadActiveTab, setCounselorSquadActiveTab] = useState<CounselorSquadTabId>('squad');
   const [realDiaryActiveTab, setRealDiaryActiveTab] = useState<RealDiaryTabId>('diary');
   const [profile4kActiveTab, setProfile4kActiveTab] = useState<Profile4KTabId>('skills');
 
 
-  const [broActiveTab, setBroActiveTab] = useState<BroTabId>('initiation');
   const [shareActiveTab, setShareActiveTab] = useState<ShareTabId>('create-card');
-  const [workshopActiveTab, setWorkshopActiveTab] = useState<WorkshopTabId>('constructor');
 
   const [panelOrigin, setPanelOrigin] = useState<'left' | 'right' | 'top' | null>(null);
   const [vozhatifikatorToc, setVozhatifikatorToc] = useState<Array<{ id: string; title: string }>>([]);
@@ -545,29 +536,30 @@ export const ProfileView: React.FC<any> = (props) => {
   const handleSquadCornerConsoleClick = useCallback(() => {
     if (panelActiveView === 'squad-corner') {
       setSquadCornerReturnToOrganizer(false);
-      setSquadCornerActiveTab('squad');
+      window.dispatchEvent(new CustomEvent('profile:openTab', { detail: { panel: 'squad-corner', tab: 'squad' } }));
       setActiveTab('active');
       openCabinPanel(null, null);
       return;
     }
     setSquadCornerReturnToOrganizer(false);
-    setSquadCornerActiveTab('squad');
+    window.dispatchEvent(new CustomEvent('profile:openTab', { detail: { panel: 'squad-corner', tab: 'squad' } }));
     openCabinPanel('squad-corner', 'left');
   }, [panelActiveView, openCabinPanel]);
 
   useEffect(() => {
-    if (panelActiveView === 'squad-corner') setSquadCornerActiveTab('squad');
+    if (panelActiveView === 'squad-corner') window.dispatchEvent(new CustomEvent('profile:openTab', { detail: { panel: 'squad-corner', tab: 'squad' } }));
     if (panelActiveView === 'counselor-squad') setCounselorSquadActiveTab('squad');
     if (panelActiveView === 'real-diary') setRealDiaryActiveTab('diary');
     if (panelActiveView === 'profile4k') setProfile4kActiveTab('skills');
     if (panelActiveView === 'team') window.dispatchEvent(new CustomEvent('profile:openTab', { detail: { panel: 'team', tab: 'engine' } }));
     if (panelActiveView === 'council') window.dispatchEvent(new CustomEvent('profile:openTab', { detail: { panel: 'council', tab: 'council' } }));
     if (panelActiveView === 'bro') {
-      setBroActiveTab(broTabOnOpenRef.current ?? 'initiation');
+      const targetTab = broTabOnOpenRef.current ?? 'initiation';
+      window.dispatchEvent(new CustomEvent('profile:openTab', { detail: { panel: 'bro', tab: targetTab } }));
       broTabOnOpenRef.current = null;
     }
     if (panelActiveView === 'share') setShareActiveTab('create-card');
-    if (panelActiveView === 'workshop') setWorkshopActiveTab('constructor');
+    if (panelActiveView === 'workshop') window.dispatchEvent(new CustomEvent('profile:openTab', { detail: { panel: 'workshop', tab: 'constructor' } }));
     if (panelActiveView === 'inspector') window.dispatchEvent(new CustomEvent('profile:openTab', { detail: { panel: 'inspector', tab: 'friendship' } }));
   }, [panelActiveView]);
 
@@ -1213,7 +1205,7 @@ export const ProfileView: React.FC<any> = (props) => {
     // 4) Refresh and open cabinet
     await Promise.all([loadMySquadInfo(), loadOrganizerData(), loadBadgeApprovalsData(), loadMySquadJoinRequestsData()]);
     setActiveTab('active');
-    setSquadCornerActiveTab('squad');
+    window.dispatchEvent(new CustomEvent('profile:openTab', { detail: { panel: 'squad-corner', tab: 'squad' } }));
     setSquadCornerReturnToOrganizer(false);
     openCabinPanel('squad-corner', 'left');
   }, [accessToken, resolveShiftIdForCornerCreate, organizerApiBase, getOrganizerHeaders, profile.nickname, loadMySquadInfo, loadOrganizerData, loadBadgeApprovalsData, loadMySquadJoinRequestsData, openCabinPanel]);
@@ -1239,7 +1231,7 @@ export const ProfileView: React.FC<any> = (props) => {
       }
       setOrganizerError(null);
       setActiveTab('active');
-      setSquadCornerActiveTab('squad');
+      window.dispatchEvent(new CustomEvent('profile:openTab', { detail: { panel: 'squad-corner', tab: 'squad' } }));
       setSquadCornerReturnToOrganizer(true);
       openCabinPanel('squad-corner', 'left');
     } catch (e) {
@@ -1410,7 +1402,7 @@ export const ProfileView: React.FC<any> = (props) => {
         await loadMySquadInfo();
         if (cancelled) return;
         setActiveTab('active');
-        setSquadCornerActiveTab('squad');
+        window.dispatchEvent(new CustomEvent('profile:openTab', { detail: { panel: 'squad-corner', tab: 'squad' } }));
         setSquadCornerReturnToOrganizer(false);
         openCabinPanel('squad-corner', 'left');
         showHint({ title: 'Готово', content: `Вы вступили в отряд «${targetName}».` });
@@ -1816,7 +1808,6 @@ export const ProfileView: React.FC<any> = (props) => {
   }, [progress]);
   const inspectorProgressPercent = Math.round((inspectorCard.totalTasks ? (100 * inspectorCard.completedCount / inspectorCard.totalTasks) : 0));
   const [workshopProposals, setWorkshopProposals] = useState<WorkshopProposal[]>([]);
-  const [_workshopProposalsBusy, setWorkshopProposalsBusy] = useState(false);
   useEffect(() => {
     if (!hasWorkshopAccess || !accessToken) return;
     let cancelled = false;
@@ -1833,26 +1824,6 @@ export const ProfileView: React.FC<any> = (props) => {
 
   const isFavorite = (id: string) => favorites.some(fav => getBaseId(fav) === getBaseId(id));
 
-  const handleWorkshopSubmit = async () => {
-    if (!workshopForm.title.trim() || !accessToken) return;
-    setWorkshopProposalsBusy(true);
-    try {
-      const created = await createWorkshopProposal(accessToken, {
-        type: 'badge',
-        title: workshopForm.title.trim(),
-        description: workshopForm.description.trim(),
-        image: workshopForm.image || undefined,
-
-      });
-      setWorkshopProposals(prev => [created, ...prev]);
-      setWorkshopForm({ title: '', description: '', level1: '', level2: '', image: null });
-      showHint({ title: 'Предложение отправлено', content: `Значок «${created.title}» отправлен на проверку вожатому.` });
-    } catch (e: any) {
-      showHint({ title: 'Ошибка', content: e?.message || 'Не удалось отправить предложение.' });
-    } finally {
-      setWorkshopProposalsBusy(false);
-    }
-  };
 
   const isImageAvatar = (v: string | undefined) => v && (v.startsWith('data:') || v.startsWith('http') || v.startsWith('/'));
 
@@ -2024,7 +1995,7 @@ export const ProfileView: React.FC<any> = (props) => {
                 onClick={() => {
                   setSquadCornerReturnToOrganizer(false);
                   setActiveTab('active');
-                  setSquadCornerActiveTab('squad');
+                  window.dispatchEvent(new CustomEvent('profile:openTab', { detail: { panel: 'squad-corner', tab: 'squad' } }));
                   openCabinPanel('squad-corner', 'left');
                 }}
               >
@@ -2399,159 +2370,28 @@ export const ProfileView: React.FC<any> = (props) => {
   const renderPanelContent = () => (
     <>
       {panelActiveView === 'squad-corner' && (
-        travelerMode ? (
-          <FeatureGate allowed={false} reason={travelerGateReason} ctaLabel="Разблокировать по коду" onCta={openUnlockByCode}>
-            {Boolean(mySquadInfo?.membership?.squadId) && squadCornerActiveTab === 'squad' ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                {(canEditSquadCorner || squadCornerReturnToOrganizer) && (
-                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'space-between' }}>
-                    {squadCornerReturnToOrganizer ? (
-                      <button
-                        type="button"
-                        className="btn-secondary"
-                        style={{ padding: '8px 12px' }}
-                        onClick={() => {
-                          setSquadCornerReturnToOrganizer(false);
-                          setActiveTab('active');
-                          openCabinPanel(null, null);
-                          setTimeout(() => document.getElementById('organizer-shifts-tab-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
-                        }}
-                      >
-                        Назад к Сменам и отрядам
-                      </button>
-                    ) : <span />}
-                    {canEditSquadCorner && (
-                      <button type="button" className="btn-secondary" style={{ padding: '8px 12px' }} onClick={() => setSquadCornerActiveTab('photos')}>
-                        Редактировать уголок
-                      </button>
-                    )}
-                  </div>
-                )}
-                <SquadCabinetPanel
-                  role={role || 'traveler'}
-                  deviceId={deviceId || undefined}
-                  accessToken={accessToken || undefined}
-                  myNickname={userData?.profile?.nickname || undefined}
-                  mySquadInfo={mySquadInfo}
-                  onRefresh={loadMySquadInfo}
-                  onAfterLeave={() => setSquadCornerActiveTab('squad')}
-                  onShowHint={({ title, content }) => showHint({ title, content })}
-                  onEditCorner={canEditSquadCorner ? ((t) => setSquadCornerActiveTab(t === 'planner' ? 'planner' : 'photos')) : undefined}
-                />
-              </div>
-            ) : isSpaceshipMode ? (
-              <SquadCornerDashboard
-                variant="cabin"
-                activeTab={squadCornerActiveTab}
-                onTabChange={setSquadCornerActiveTab}
-                onNavigateToBadge={onNavigateToBadge}
-                hasSquadMembership={hasSquadMembership}
-                mySquadName={mySquadInfo?.squad?.name || undefined}
-                canEditCorner={canEditSquadCorner}
-                canCreateSquadFromCorner={canEditSquadCorner}
-                onOpenCabinet={() => setSquadCornerActiveTab('squad')}
-                onOpenShiftsAndSquads={() => {
-                  setActiveTab('squads');
-                  openCabinPanel(null, null);
-                  setTimeout(() => document.getElementById('organizer-shifts-tab-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
-                }}
-                onPersistCorner={(payload: Partial<SquadCorner>) => persistSquadCorner(payload)}
-                onCreateSquadFromCorner={(payload: Partial<SquadCorner>) => createSquadFromCorner(payload)}
-              />
-            ) : (
-              <SquadCornerDashboard
-                onNavigateToBadge={onNavigateToBadge}
-                hasSquadMembership={hasSquadMembership}
-                mySquadName={mySquadInfo?.squad?.name || undefined}
-                canEditCorner={canEditSquadCorner}
-                canCreateSquadFromCorner={canEditSquadCorner}
-                onOpenCabinet={() => setSquadCornerActiveTab('squad')}
-                onOpenShiftsAndSquads={() => {
-                  setActiveTab('squads');
-                  openCabinPanel(null, null);
-                  setTimeout(() => document.getElementById('organizer-shifts-tab-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
-                }}
-                onPersistCorner={(payload: Partial<SquadCorner>) => persistSquadCorner(payload)}
-                onCreateSquadFromCorner={(payload: Partial<SquadCorner>) => createSquadFromCorner(payload)}
-              />
-            )}
-          </FeatureGate>
-        ) : (
-          Boolean(mySquadInfo?.membership?.squadId) && squadCornerActiveTab === 'squad' ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {(canEditSquadCorner || squadCornerReturnToOrganizer) && (
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'space-between' }}>
-                  {squadCornerReturnToOrganizer ? (
-                    <button
-                      type="button"
-                      className="btn-secondary"
-                      style={{ padding: '8px 12px' }}
-                      onClick={() => {
-                        setSquadCornerReturnToOrganizer(false);
-                        setActiveTab('active');
-                        openCabinPanel(null, null);
-                        setTimeout(() => document.getElementById('organizer-shifts-tab-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
-                      }}
-                    >
-                      Назад к Сменам и отрядам
-                    </button>
-                  ) : <span />}
-                  {canEditSquadCorner && (
-                    <button type="button" className="btn-secondary" style={{ padding: '8px 12px' }} onClick={() => setSquadCornerActiveTab('photos')}>
-                      Редактировать уголок
-                    </button>
-                  )}
-                </div>
-              )}
-              <SquadCabinetPanel
-                role={role || 'traveler'}
-                deviceId={deviceId || undefined}
-                accessToken={accessToken || undefined}
-                myNickname={userData?.profile?.nickname || undefined}
-                mySquadInfo={mySquadInfo}
-                onRefresh={loadMySquadInfo}
-                onAfterLeave={() => setSquadCornerActiveTab('squad')}
-                onShowHint={({ title, content }) => showHint({ title, content })}
-                onEditCorner={canEditSquadCorner ? ((t) => setSquadCornerActiveTab(t === 'planner' ? 'planner' : 'photos')) : undefined}
-              />
-            </div>
-          ) : isSpaceshipMode ? (
-            <SquadCornerDashboard
-              variant="cabin"
-              activeTab={squadCornerActiveTab}
-              onTabChange={setSquadCornerActiveTab}
-              onNavigateToBadge={onNavigateToBadge}
-              hasSquadMembership={hasSquadMembership}
-              mySquadName={mySquadInfo?.squad?.name || undefined}
-              canEditCorner={canEditSquadCorner}
-              canCreateSquadFromCorner={canEditSquadCorner}
-              onOpenCabinet={() => setSquadCornerActiveTab('squad')}
-              onOpenShiftsAndSquads={() => {
-                setActiveTab('squads');
-                openCabinPanel(null, null);
-                setTimeout(() => document.getElementById('organizer-shifts-tab-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
-              }}
-              onPersistCorner={(payload: Partial<SquadCorner>) => persistSquadCorner(payload)}
-              onCreateSquadFromCorner={(payload: Partial<SquadCorner>) => createSquadFromCorner(payload)}
-            />
-          ) : (
-            <SquadCornerDashboard
-              onNavigateToBadge={onNavigateToBadge}
-              hasSquadMembership={hasSquadMembership}
-              mySquadName={mySquadInfo?.squad?.name || undefined}
-              canEditCorner={canEditSquadCorner}
-              canCreateSquadFromCorner={canEditSquadCorner}
-              onOpenCabinet={() => setSquadCornerActiveTab('squad')}
-              onOpenShiftsAndSquads={() => {
-                setActiveTab('squads');
-                openCabinPanel(null, null);
-                setTimeout(() => document.getElementById('organizer-shifts-tab-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
-              }}
-              onPersistCorner={(payload: Partial<SquadCorner>) => persistSquadCorner(payload)}
-              onCreateSquadFromCorner={(payload: Partial<SquadCorner>) => createSquadFromCorner(payload)}
-            />
-          )
-        )
+        <SquadCornerContainer
+          travelerMode={travelerMode}
+          travelerGateReason={travelerGateReason}
+          openUnlockByCode={openUnlockByCode}
+          mySquadInfo={mySquadInfo}
+          canEditSquadCorner={canEditSquadCorner}
+          squadCornerReturnToOrganizer={squadCornerReturnToOrganizer}
+          setSquadCornerReturnToOrganizer={setSquadCornerReturnToOrganizer}
+          setActiveTab={setActiveTab}
+          openCabinPanel={openCabinPanel}
+          role={role}
+          deviceId={deviceId}
+          accessToken={accessToken}
+          userData={userData}
+          loadMySquadInfo={loadMySquadInfo}
+          showHint={showHint}
+          isSpaceshipMode={isSpaceshipMode}
+          onNavigateToBadge={onNavigateToBadge}
+          hasSquadMembership={hasSquadMembership}
+          persistSquadCorner={persistSquadCorner}
+          createSquadFromCorner={createSquadFromCorner}
+        />
       )}
       {panelActiveView === 'counselor-squad' && (
         <CounselorSquadDashboard
@@ -2686,66 +2526,14 @@ export const ProfileView: React.FC<any> = (props) => {
         )
       )}
       {panelActiveView === 'bro' && (
-        isSpaceshipMode ? (
-          <div className="fade-in bro-cabin-content">
-            {broActiveTab === 'initiation' ? (
-              <div id="bro-section-passport" className="bro-cabin-section">
-                {travelerMode ? (
-                  <FeatureGate allowed={false} reason={travelerGateReason} ctaLabel="Разблокировать по коду" onCta={openUnlockByCode}>
-                    <BroInitiation variant="cabin" />
-                  </FeatureGate>
-                ) : (
-                  <BroInitiation variant="cabin" />
-                )}
-              </div>
-            ) : (
-              <div id="bro-section-wing" className="bro-cabin-section">
-                {travelerMode ? (
-                  <FeatureGate allowed={false} reason={travelerGateReason} ctaLabel="Разблокировать по коду" onCta={openUnlockByCode}>
-                    <WingDashboard variant="cabin" onSuggestInitiative={undefined} />
-                  </FeatureGate>
-                ) : (
-                  <FeatureGate
-                    allowed={Boolean(userData?.broProgress?.isBro)}
-                    reason="Крылья и роли БРО открываются после 100% Бропаспорта и подтверждения Бросвящения у вожатого."
-                    ctaLabel="К Бропаспорту"
-                    onCta={() => setBroActiveTab('initiation')}
-                  >
-                    <WingDashboard variant="cabin" onSuggestInitiative={undefined} />
-                  </FeatureGate>
-                )}
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className="profile-view-bro-two-columns">
-            <div id="bro-section-passport" className="profile-view-bro-column">
-              {travelerMode ? (
-                <FeatureGate allowed={false} reason={travelerGateReason} ctaLabel="Разблокировать по коду" onCta={openUnlockByCode}>
-                  <BroInitiation />
-                </FeatureGate>
-              ) : (
-                <BroInitiation />
-              )}
-            </div>
-            <div id="bro-section-wing" className="profile-view-bro-column">
-              {travelerMode ? (
-                <FeatureGate allowed={false} reason={travelerGateReason} ctaLabel="Разблокировать по коду" onCta={openUnlockByCode}>
-                  <WingDashboard onSuggestInitiative={openInitiativeModal} />
-                </FeatureGate>
-              ) : (
-                <FeatureGate
-                  allowed={Boolean(userData?.broProgress?.isBro)}
-                  reason="Крылья и роли БРО открываются после 100% Бропаспорта и подтверждения Бросвящения у вожатого."
-                  ctaLabel="К Бропаспорту"
-                  onCta={() => document.getElementById('bro-section-passport')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-                >
-                  <WingDashboard onSuggestInitiative={openInitiativeModal} />
-                </FeatureGate>
-              )}
-            </div>
-          </div>
-        )
+        <BroContainer
+          isSpaceshipMode={isSpaceshipMode}
+          travelerMode={travelerMode}
+          travelerGateReason={travelerGateReason}
+          openUnlockByCode={openUnlockByCode}
+          userData={userData}
+          openInitiativeModal={openInitiativeModal}
+        />
       )}
       {panelActiveView === 'passport' && (
         <div className="profile-view-passport-column">
@@ -2763,10 +2551,10 @@ export const ProfileView: React.FC<any> = (props) => {
                     aspect="square"
                     hidePreview
                     buttonLayout="column"
-                    onGenerate={async (opts) =>
+                    onGenerate={async (opts: any) =>
                       requestImageGenerate({ mode: 'generate', context: 'passport', prompt: opts.prompt ?? '' }, accessToken ?? null)
                     }
-                    onProcess={async (imageBase64, opts) =>
+                    onProcess={async (imageBase64: any, opts: any) =>
                       requestImageGenerate({ mode: 'process', context: 'passport', imageBase64, prompt: opts?.prompt ?? '' }, accessToken ?? null)
                     }
                     onUnlockRequest={openUnlockByCode}
@@ -2889,299 +2677,21 @@ export const ProfileView: React.FC<any> = (props) => {
         )
       )}
       {panelActiveView === 'workshop' && (
-        <div className="workshop-view fade-in" role="tabpanel" id="workshop-tabpanel" aria-labelledby={`workshop-tab-${workshopActiveTab}`}>
-
-          {workshopActiveTab === 'constructor' && (
-            <section id="workshop-section-constructor" className="workshop-view__section">
-              {hasWorkshopAccess ? (() => {
-                const proposalTypes = [
-                  { id: 'badge' as const, label: '🏅 Новый значок', desc: 'Предложи оригинальный значок в категорию' },
-                  { id: 'category' as const, label: '📁 Новая категория', desc: 'Предложи новую категорию значков' },
-                  { id: 'version' as const, label: '🔄 Версия значка', desc: 'Предложи альт. версию существующего значка' },
-                ];
-                const proposalType = workshopProposalType;
-                const setProposalType = setWorkshopProposalType;
-                return (
-                  <div className="workshop-form workshop-form--card">
-                    <h3 style={{ color: '#FFD700', marginTop: 0 }}>🛠️ Конструктор</h3>
-                    <p style={{ fontSize: 12, opacity: 0.7, marginTop: -4, marginBottom: 14 }}>Предложи значок, категорию или версию. Всё пройдёт проверку вожатым.</p>
-
-                    {/* ── Type selector ── */}
-                    <div style={{ display: 'flex', gap: 6, marginBottom: 16, flexWrap: 'wrap' }}>
-                      {proposalTypes.map(pt => (
-                        <button key={pt.id} type="button" className={proposalType === pt.id ? 'btn-primary-gold' : 'btn-secondary'}
-                          style={{ padding: '8px 14px', fontSize: 12, flex: 1, minWidth: 100 }}
-                          onClick={() => setProposalType(pt.id)}>
-                          {pt.label}
-                        </button>
-                      ))}
-                    </div>
-                    <p style={{ fontSize: 11, opacity: 0.6, margin: '-8px 0 14px' }}>
-                      {proposalTypes.find(p => p.id === proposalType)?.desc}
-                    </p>
-
-                    {/* ── New Badge form ── */}
-                    {proposalType === 'badge' && (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                        <input value={workshopForm.title} onChange={e => setWorkshopForm({ ...workshopForm, title: e.target.value })}
-                          placeholder="Название значка" className="w-input" />
-                        <textarea value={workshopForm.description} onChange={e => setWorkshopForm({ ...workshopForm, description: e.target.value })}
-                          placeholder="Описание и критерии..." className="w-input" style={{ minHeight: 80 }} />
-                        <div style={{ marginBottom: 4 }}>
-                          <ImageSourceBlock
-                            context="workshop_badge"
-                            value={workshopForm.image}
-                            onChange={(url) => setWorkshopForm(prev => ({ ...prev, image: url }))}
-                            aspect="free"
-                            onGenerate={async (opts) =>
-                              requestImageGenerate({ mode: 'generate', context: 'workshop', prompt: opts.prompt ?? '' }, accessToken ?? null)
-                            }
-                            onProcess={async (imageBase64, opts) =>
-                              requestImageGenerate({ mode: 'process', context: 'workshop', imageBase64, prompt: opts?.prompt ?? '' }, accessToken ?? null)
-                            }
-                            onUnlockRequest={openUnlockByCode}
-                          />
-                          {workshopForm.image && (
-                            <button type="button" className="btn-secondary" style={{ marginTop: 6, fontSize: 11 }}
-                              onClick={() => setWorkshopForm(prev => ({ ...prev, image: null }))}>Удалить изображение</button>
-                          )}
-                        </div>
-                        <button onClick={handleWorkshopSubmit} disabled={!workshopForm.title.trim()} className="btn-primary-gold" style={{ width: '100%' }}>
-                          📤 Отправить на проверку
-                        </button>
-                      </div>
-                    )}
-
-                    {/* ── New Category form ── */}
-                    {proposalType === 'category' && (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                        <input value={workshopForm.title} onChange={e => setWorkshopForm({ ...workshopForm, title: e.target.value })}
-                          placeholder="Название категории" className="w-input" />
-                        <textarea value={workshopForm.description} onChange={e => setWorkshopForm({ ...workshopForm, description: e.target.value })}
-                          placeholder="Описание категории..." className="w-input" style={{ minHeight: 60 }} />
-                        <input value={workshopForm.level1 || ''} onChange={e => setWorkshopForm({ ...workshopForm, level1: e.target.value })}
-                          placeholder="Эмодзи категории (например 🌊)" className="w-input" />
-                        <button onClick={async () => {
-                          if (!workshopForm.title.trim() || !accessToken) return;
-                          setWorkshopProposalsBusy(true);
-                          try {
-                            const created = await createWorkshopProposal(accessToken, {
-                              type: 'category',
-                              title: workshopForm.title.trim(),
-                              description: workshopForm.description.trim(),
-                              emoji: (workshopForm.level1 || '📁').trim(),
-                      
-                            });
-                            setWorkshopProposals(prev => [created, ...prev]);
-                            setWorkshopForm({ title: '', description: '', level1: '', level2: '', image: null });
-                            showHint({ title: 'Предложение отправлено', content: `Категория «${created.title}» отправлена на проверку.` });
-                          } catch (e: any) {
-                            showHint({ title: 'Ошибка', content: e?.message || 'Не удалось отправить.' });
-                          } finally {
-                            setWorkshopProposalsBusy(false);
-                          }
-                        }} disabled={!workshopForm.title.trim()} className="btn-primary-gold" style={{ width: '100%' }}>
-                          📤 Предложить категорию
-                        </button>
-                      </div>
-                    )}
-
-                    {/* ── New Version form ── */}
-                    {proposalType === 'version' && (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                        <input value={workshopForm.level1 || ''} onChange={e => setWorkshopForm({ ...workshopForm, level1: e.target.value })}
-                          placeholder="ID значка (например 1.1)" className="w-input" />
-                        <input value={workshopForm.title} onChange={e => setWorkshopForm({ ...workshopForm, title: e.target.value })}
-                          placeholder="Название версии" className="w-input" />
-                        <textarea value={workshopForm.description} onChange={e => setWorkshopForm({ ...workshopForm, description: e.target.value })}
-                          placeholder="Чем отличается от оригинала, критерии..." className="w-input" style={{ minHeight: 80 }} />
-                        <div style={{ marginBottom: 4 }}>
-                          <ImageSourceBlock
-                            context="workshop_badge"
-                            value={workshopForm.image}
-                            onChange={(url) => setWorkshopForm(prev => ({ ...prev, image: url }))}
-                            aspect="free"
-                            onGenerate={async (opts) =>
-                              requestImageGenerate({ mode: 'generate', context: 'workshop', prompt: opts.prompt ?? '' }, accessToken ?? null)
-                            }
-                            onProcess={async (imageBase64, opts) =>
-                              requestImageGenerate({ mode: 'process', context: 'workshop', imageBase64, prompt: opts?.prompt ?? '' }, accessToken ?? null)
-                            }
-                            onUnlockRequest={openUnlockByCode}
-                          />
-                          {workshopForm.image && (
-                            <button type="button" className="btn-secondary" style={{ marginTop: 6, fontSize: 11 }}
-                              onClick={() => setWorkshopForm(prev => ({ ...prev, image: null }))}>Удалить изображение</button>
-                          )}
-                        </div>
-                        <button onClick={async () => {
-                          if (!workshopForm.title.trim() || !workshopForm.level1?.trim() || !accessToken) return;
-                          setWorkshopProposalsBusy(true);
-                          try {
-                            const created = await createWorkshopProposal(accessToken, {
-                              type: 'version',
-                              badgeId: workshopForm.level1!.trim(),
-                              title: workshopForm.title.trim(),
-                              description: workshopForm.description.trim(),
-                              image: workshopForm.image || undefined,
-                      
-                            });
-                            setWorkshopProposals(prev => [created, ...prev]);
-                            setWorkshopForm({ title: '', description: '', level1: '', level2: '', image: null });
-                            showHint({ title: 'Предложение отправлено', content: `Версия «${created.title}» для значка ${created.badgeId} отправлена на проверку.` });
-                          } catch (e: any) {
-                            showHint({ title: 'Ошибка', content: e?.message || 'Не удалось отправить.' });
-                          } finally {
-                            setWorkshopProposalsBusy(false);
-                          }
-                        }} disabled={!workshopForm.title.trim() || !workshopForm.level1?.trim()} className="btn-primary-gold" style={{ width: '100%' }}>
-                          📤 Предложить версию
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                );
-              })() : (
-                <div className="workshop-locked workshop-locked--card">
-                  <div style={{ fontSize: '40px', marginBottom: '16px' }}>🔒</div>
-                  <p style={{ margin: '0 0 20px', fontSize: '15px', lineHeight: 1.5, opacity: 0.9 }}>Мастерская откроется, когда ты выберешь в путь значок <strong>1.16.1 «Путеводитель»</strong> или достигнешь его.</p>
-                  <button type="button" onClick={() => onNavigateToBadge('1.16.1')} className="btn-primary-gold" style={{ padding: '14px 24px' }}>Перейти к значку 1.16.1</button>
-                </div>
-              )}
-            </section>
-          )}
-
-          {workshopActiveTab === 'arts' && (
-            <section id="workshop-section-arts" className="workshop-view__section">
-              {hasWorkshopAccess ? (
-                <div className="workshop-form workshop-form--card">
-                  <h3 style={{ color: '#FFD700', marginTop: 0 }}>🎨 Арты и скины</h3>
-                  <p style={{ fontSize: 12, opacity: 0.7, marginTop: -4, marginBottom: 12 }}>Сгенерируй арт для значка с помощью ИИ или загрузи свой.</p>
-                  <ImageSourceBlock
-                    context="workshop_badge"
-                    value={workshopForm.image}
-                    onChange={(url) => setWorkshopForm(prev => ({ ...prev, image: url }))}
-                    aspect="free"
-                    onGenerate={async (opts) =>
-                      requestImageGenerate({ mode: 'generate', context: 'workshop', prompt: opts.prompt ?? '' }, accessToken ?? null)
-                    }
-                    onProcess={async (imageBase64, opts) =>
-                      requestImageGenerate({ mode: 'process', context: 'workshop', imageBase64, prompt: opts?.prompt ?? '' }, accessToken ?? null)
-                    }
-                    onUnlockRequest={openUnlockByCode}
-                  />
-                  {workshopForm.image && (
-                    <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-                      <button type="button" className="btn-secondary" style={{ fontSize: 11 }}
-                        onClick={() => setWorkshopForm(prev => ({ ...prev, image: null }))}>Удалить</button>
-                      <button type="button" className="btn-primary-gold" style={{ fontSize: 12 }}
-                        onClick={async () => {
-                          if (!workshopForm.image || !accessToken) return;
-                          setWorkshopProposalsBusy(true);
-                          try {
-                            const created = await createWorkshopProposal(accessToken, {
-                              type: 'art',
-                              title: 'Арт значка',
-                              image: workshopForm.image,
-                      
-                            });
-                            setWorkshopProposals(prev => [created, ...prev]);
-                            setWorkshopForm(prev => ({ ...prev, image: null }));
-                            showHint({ title: 'Арт отправлен', content: 'Арт сохранён и отправлен на проверку.' });
-                          } catch (e: any) {
-                            showHint({ title: 'Ошибка', content: e?.message || 'Не удалось отправить арт.' });
-                          } finally {
-                            setWorkshopProposalsBusy(false);
-                          }
-                        }}>📤 Отправить арт</button>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="workshop-locked workshop-locked--card">
-                  <div style={{ fontSize: '40px', marginBottom: '16px' }}>🔒</div>
-                  <p style={{ margin: '0 0 20px', fontSize: '15px', lineHeight: 1.5, opacity: 0.9 }}>Мастерская откроется, когда ты выберешь в путь значок <strong>1.16.1 «Путеводитель»</strong> или достигнешь его.</p>
-                  <button type="button" onClick={() => onNavigateToBadge('1.16.1')} className="btn-primary-gold" style={{ padding: '14px 24px' }}>Перейти к значку 1.16.1</button>
-                </div>
-              )}
-              {canModerateApprovals && accessToken && (
-                <div style={{ marginTop: 16 }}>
-                  <ArtInboxTab accessToken={accessToken} />
-                </div>
-              )}
-            </section>
-          )}
-
-          {workshopActiveTab === 'my' && (
-            <section id="workshop-section-my" className="workshop-view__section">
-              {hasWorkshopAccess ? (
-                <div className="workshop-my-proposals workshop-my-proposals--card">
-                  <h3 style={{ color: 'rgba(255,255,255,0.9)', marginTop: 0, fontSize: '16px' }}>Мои проекты</h3>
-                  {(() => {
-                    const combined = [
-                      ...workshopProposals.map(p => ({ ...p, source: 'proposal' as const })),
-                      ...(customBadges || []).map((b: any) => ({ ...b, source: 'badge' as const, type: 'badge', status: 'active' })),
-                    ];
-                    if (combined.length === 0) return (
-                      <p style={{ margin: 0, fontSize: '14px', opacity: 0.7 }}>Пока нет проектов. Создай первый в Конструкторе.</p>
-                    );
-                    return (
-                      <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-                        {combined.map(item => (
-                          <li key={item.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '12px 0', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-                            <div style={{ flex: 1 }}>
-                              <div style={{ fontWeight: 600, fontSize: 14 }}>
-                                {item.type === 'category' ? '📁' : item.type === 'version' ? '🔄' : (item.emoji || '🏅')} {item.title}
-                              </div>
-                              <div style={{ fontSize: 11, opacity: 0.6, marginTop: 3 }}>
-                                {item.type === 'category' ? 'Категория' : item.type === 'version' ? 'Версия значка' : 'Значок'}
-                                {' · '}
-                                {item.status === 'pending' ? '⏳ На проверке' : item.status === 'approved' ? '✅ Одобрено' : item.status === 'rejected' ? '❌ Отклонено' : '📋 Активно'}
-                              </div>
-                            </div>
-                            <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
-                              {item.source === 'badge' && publishBadgeToCommunity && (
-                                <button type="button" onClick={async () => {
-                                  if ((communityBadges?.length ?? 0) >= 10) { setPathFavToast({ type: 'squad_limit' }); return; }
-                                  const res = await publishBadgeToCommunity(item as any);
-                                  if (res.ok) showHint({ title: 'Отправлено', content: 'Предложение отправлено в сообщество.' });
-                                  else showHint({ title: 'Ошибка', content: res.error || 'Не удалось отправить.' });
-                                }} className="btn-secondary" style={{ fontSize: 11 }}>В сообщество</button>
-                              )}
-                              {item.source === 'badge' && removeCustomBadge && (
-                                <button type="button" onClick={() => {
-                                  removeCustomBadge(item.id);
-                                  showHint({ title: 'Удалено', content: 'Предложение удалено.' });
-                                }} className="btn-secondary" style={{ padding: '6px 10px', fontSize: 11 }}>Удалить</button>
-                              )}
-                            </div>
-                          </li>
-                        ))}
-                      </ul>
-                    );
-                  })()}
-                </div>
-              ) : (
-                <div className="workshop-locked workshop-locked--card">
-                  <div style={{ fontSize: '40px', marginBottom: '16px' }}>🔒</div>
-                  <p style={{ margin: '0 0 20px', fontSize: '15px', lineHeight: 1.5, opacity: 0.9 }}>Мастерская откроется, когда ты выберешь в путь значок <strong>1.16.1 «Путеводитель»</strong> или достигнешь его.</p>
-                  <button type="button" onClick={() => onNavigateToBadge('1.16.1')} className="btn-primary-gold" style={{ padding: '14px 24px' }}>Перейти к значку 1.16.1</button>
-                </div>
-              )}
-            </section>
-          )}
-
-          {workshopActiveTab === 'community' && (
-            <section id="workshop-section-community-ranking" className="workshop-view__section">
-              <CommunityRankingPanel
-                communityBadges={communityBadges ?? []}
-                customBadges={customBadges ?? []}
-                onNavigateToBadge={onNavigateToBadge}
-              />
-            </section>
-          )}
-
-        </div>
+        <WorkshopContainer
+          accessToken={accessToken}
+          hasWorkshopAccess={hasWorkshopAccess}
+          showHint={showHint}
+          openUnlockByCode={openUnlockByCode}
+          onNavigateToBadge={onNavigateToBadge}
+          setPathFavToast={setPathFavToast}
+          communityBadges={communityBadges}
+          customBadges={customBadges}
+          publishBadgeToCommunity={publishBadgeToCommunity}
+          removeCustomBadge={removeCustomBadge}
+          canModerateApprovals={canModerateApprovals}
+          workshopProposals={workshopProposals}
+          setWorkshopProposals={setWorkshopProposals}
+        />
       )}
       {panelActiveView === 'share' && (
         <div className="profile-view-share-row" role="tabpanel" id="share-tabpanel" aria-labelledby={`share-tab-${shareActiveTab}`} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -3472,12 +2982,7 @@ export const ProfileView: React.FC<any> = (props) => {
     ...(showOrganizerPanel ? [{ id: 'squads' as const, label: 'Смены и отряды', icon: '🏕️' }] : []),
   ] satisfies Array<{ id: Tab; label: string; icon: string }>;
 
-  const squadCornerTabItems = [
-    { id: 'squad' as const, label: 'Отряд', icon: '🏕️' },
-    { id: 'photos' as const, label: 'Фото', icon: '📷' },
-    { id: 'planner' as const, label: 'Планёрка', icon: '📋' },
-    { id: 'flag-badges' as const, label: 'Значки на флаг', icon: '🚩' },
-  ] satisfies Array<{ id: SquadCornerTabId; label: string; icon: string }>;
+
 
   const counselorSquadTabItems = [
     { id: 'squad' as const, label: 'Отряд', icon: '🏕️' },
@@ -3491,12 +2996,7 @@ export const ProfileView: React.FC<any> = (props) => {
     { id: 'invite' as const, label: 'Пригласить друзей', icon: '🤝' },
   ] satisfies Array<{ id: ShareTabId; label: string; icon: string }>;
 
-  const workshopTabItems: Array<{ id: WorkshopTabId; label: string; icon: string }> = [
-    { id: 'constructor' as const, label: 'Конструктор', icon: '🛠️' },
-    { id: 'arts' as const, label: 'Арты', icon: '🎨' },
-    { id: 'my' as const, label: 'Мои проекты', icon: '📋' },
-    { id: 'community' as const, label: 'Сообщество', icon: '🏆' },
-  ];
+
 
   const realDiaryTabItems = [
     { id: 'diary' as const, label: 'Дневник', icon: '📖' },
@@ -3510,10 +3010,7 @@ export const ProfileView: React.FC<any> = (props) => {
     { id: 'camp-progress' as const, label: 'Реальный Лагерь прогресс', icon: '📊' },
   ] satisfies Array<{ id: Profile4KTabId; label: string; icon: string }>;
 
-  const broTabItems = [
-    { id: 'initiation' as const, label: 'БРОСВЯЩЕНИЕ', icon: '📘' },
-    { id: 'wing' as const, label: 'Крыло', icon: '🦅' },
-  ] satisfies Array<{ id: BroTabId; label: string; icon: string }>;
+
 
 
 
@@ -3568,44 +3065,6 @@ export const ProfileView: React.FC<any> = (props) => {
     </div>
   );
 
-  const renderSquadCornerTabsNav = (className = 'profile-tabs-nav profile-tabs-nav--docked profile-tabs-nav--squad-corner') => (
-    <div className={className} role="tablist" aria-label="Разделы отрядного уголка">
-      {squadCornerTabItems.map((t) => {
-        const disabled = hasSquadMembership && !canEditSquadCorner && t.id !== 'squad';
-        const selectTab = () => {
-          if (disabled) return;
-          if (squadCornerActiveTab !== t.id) {
-            setSquadCornerActiveTab(t.id);
-          }
-        };
-        return (
-          <button
-            key={t.id}
-            id={`squad-corner-tab-${t.id}`}
-            type="button"
-            role="tab"
-            aria-selected={squadCornerActiveTab === t.id}
-            aria-controls="squad-corner-tabpanel"
-            data-label={disabled ? `${t.label} (редактирует вожатый)` : t.label}
-            className={squadCornerActiveTab === t.id ? 'active' : ''}
-            disabled={disabled}
-            onClick={() => {
-              selectTab();
-            }}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter' || event.key === ' ') {
-                event.preventDefault();
-                selectTab();
-              }
-            }}
-          >
-            <span className="profile-tabs-nav__icon" aria-hidden="true">{t.icon}</span>
-            <span className="profile-tabs-nav__label">{t.label}</span>
-          </button>
-        );
-      })}
-    </div>
-  );
 
   const renderCounselorSquadTabsNav = (className = 'profile-tabs-nav profile-tabs-nav--docked profile-tabs-nav--counselor-squad') => (
     <div className={className} role="tablist" aria-label="Разделы Вожатского отряда">
@@ -3670,26 +3129,7 @@ export const ProfileView: React.FC<any> = (props) => {
     </div>
   );
 
-  const renderBroTabsNav = (className = 'profile-tabs-nav profile-tabs-nav--docked profile-tabs-nav--bro') => (
-    <div className={className} role="tablist" aria-label="Разделы БРО">
-      {broTabItems.map((t) => (
-        <button
-          key={t.id}
-          id={`bro-tab-${t.id}`}
-          type="button"
-          role="tab"
-          aria-selected={broActiveTab === t.id}
-          aria-controls="bro-tabpanel"
-          data-label={t.label}
-          className={broActiveTab === t.id ? 'active' : ''}
-          onClick={() => setBroActiveTab(t.id)}
-        >
-          <span className="profile-tabs-nav__icon" aria-hidden="true">{t.icon}</span>
-          <span className="profile-tabs-nav__label">{t.label}</span>
-        </button>
-      ))}
-    </div>
-  );
+
 
 
 
@@ -3717,26 +3157,7 @@ export const ProfileView: React.FC<any> = (props) => {
     </div>
   );
 
-  const renderWorkshopTabsNav = (className = 'profile-tabs-nav profile-tabs-nav--docked profile-tabs-nav--workshop') => (
-    <div className={className} role="tablist" aria-label="Разделы Мастерской">
-      {workshopTabItems.map((t) => (
-        <button
-          key={t.id}
-          id={`workshop-tab-${t.id}`}
-          type="button"
-          role="tab"
-          aria-selected={workshopActiveTab === t.id}
-          aria-controls="workshop-tabpanel"
-          data-label={t.label}
-          className={workshopActiveTab === t.id ? 'active' : ''}
-          onClick={() => setWorkshopActiveTab(t.id)}
-        >
-          <span className="profile-tabs-nav__icon" aria-hidden="true">{t.icon}</span>
-          <span className="profile-tabs-nav__label">{t.label}</span>
-        </button>
-      ))}
-    </div>
-  );
+
 
 
 
@@ -4230,22 +3651,16 @@ export const ProfileView: React.FC<any> = (props) => {
               <div id="profile-dock-container" className="profile-view-cabin-tabs-docked">
                 {panelActiveView === null
                   ? renderTabsNav('profile-tabs-nav profile-tabs-nav--docked')
-                  : panelActiveView === 'squad-corner'
-                    ? renderSquadCornerTabsNav('profile-tabs-nav profile-tabs-nav--docked profile-tabs-nav--squad-corner')
-                    : panelActiveView === 'real-diary'
+                  : panelActiveView === 'real-diary'
                       ? renderRealDiaryTabsNav('profile-tabs-nav profile-tabs-nav--docked profile-tabs-nav--real-diary')
                       : panelActiveView === 'profile4k'
                         ? renderProfile4kTabsNav('profile-tabs-nav profile-tabs-nav--docked profile-tabs-nav--profile4k')
-                        : panelActiveView === 'bro'
-                              ? renderBroTabsNav('profile-tabs-nav profile-tabs-nav--docked profile-tabs-nav--bro')
-                              : panelActiveView === 'vozhatifikator'
+                        : panelActiveView === 'vozhatifikator'
                                 ? renderVozhatifikatorTabsNav('profile-tabs-nav profile-tabs-nav--docked profile-tabs-nav--vozhatifikator')
                                 : panelActiveView === 'counselor-squad'
                                   ? renderCounselorSquadTabsNav('profile-tabs-nav profile-tabs-nav--docked profile-tabs-nav--counselor-squad')
                                   : panelActiveView === 'share'
                                     ? renderShareTabsNav('profile-tabs-nav profile-tabs-nav--docked profile-tabs-nav--share')
-                                    : panelActiveView === 'workshop'
-                                      ? renderWorkshopTabsNav('profile-tabs-nav profile-tabs-nav--docked profile-tabs-nav--workshop')
                                       : null}
               </div>
             )}
@@ -4865,10 +4280,10 @@ export const ProfileView: React.FC<any> = (props) => {
                       aspect="square"
                       hidePreview
                       buttonLayout="column"
-                      onGenerate={async (opts) =>
+                      onGenerate={async (opts: any) =>
                         requestImageGenerate({ mode: 'generate', context: 'passport', prompt: opts.prompt ?? '' }, accessToken ?? null)
                       }
-                      onProcess={async (imageBase64, opts) =>
+                      onProcess={async (imageBase64: any, opts: any) =>
                         requestImageGenerate({ mode: 'process', context: 'passport', imageBase64, prompt: opts?.prompt ?? '' }, accessToken ?? null)
                       }
                       onUnlockRequest={openUnlockByCode}
@@ -5750,7 +5165,7 @@ export const ProfileView: React.FC<any> = (props) => {
                                   }
                                   setActiveTab('active');
                                   setSquadCornerReturnToOrganizer(false);
-                                  setSquadCornerActiveTab('squad');
+                                  window.dispatchEvent(new CustomEvent('profile:openTab', { detail: { panel: 'squad-corner', tab: 'squad' } }));
                                   openCabinPanel('squad-corner', 'left');
                                 }}
                               >
