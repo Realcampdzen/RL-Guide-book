@@ -18,6 +18,7 @@ interface BlueNestLandingProps {
   onCategoryClick: (category: Category) => void;
   onOpenBadgeById?: (badgeId: string) => void;
   onOpenProfile?: () => void;
+  onLoginClick?: () => void;
   onChatToggle: () => void;
   isChatOpen: boolean;
   onChatClose: () => void;
@@ -44,7 +45,7 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
   onAboutCampClick,
   onCategoryClick,
   onOpenBadgeById,
-  onOpenProfile,
+  onLoginClick,
   onChatToggle,
   categories,
   masterIndex,
@@ -52,6 +53,7 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
   const { initReveal } = useScrollReveal();
   const [loaderHidden, setLoaderHidden] = useState(false);
   const [isConceptOpen, setIsConceptOpen] = useState(false);
+  const [showContactHint, setShowContactHint] = useState(false);
   const featureCard1Ref = useRef<HTMLDivElement>(null);
   const featureCard2Ref = useRef<HTMLDivElement>(null);
   const conceptWrapRef = useRef<HTMLSpanElement>(null);
@@ -94,25 +96,17 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
   }, [computeConceptPopoverAnchor]);
 
   // CTA handlers for Popover
-  const handleShareProgress = () => {
-    if (onOpenProfile) {
-      // Small delay to allow popover to close cleanly if needed, though we navigate away
-      onOpenProfile();
-      // Force scroll to share center logic is handled in ProfileView via hash
-      window.location.hash = 'share-center';
+  const handleStartGameCTA = () => {
+    setIsConceptOpen(false);
+    if (onLoginClick) {
+      onLoginClick();
     } else {
-      console.warn('onOpenProfile not defined');
+      onStartClick();
     }
   };
 
-  const handleCreateTeam = () => {
-    if (onOpenProfile) {
-      onOpenProfile();
-      // We'll use a session storage flag to trigger the team editor on profile load
-      sessionStorage.setItem('rl_trigger_team_editor', 'true');
-    } else {
-      console.warn('onOpenProfile not defined');
-    }
+  const handleContactCTA = () => {
+    setShowContactHint(prev => !prev);
   };
 
   const carouselCategories = useMemo(() => {
@@ -623,7 +617,7 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
                   }
               }
             >
-              <span className="subtitle-hint-title">Игра, которая развивает участников и Лагерь</span>
+              <span className="subtitle-hint-title" style={{ display: 'block', fontSize: '1.2rem', fontWeight: 800, color: '#c9b8ff', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '20px', lineHeight: '1.3' }}>Игра, которая развивает участников и Лагерь</span>
               <div className="subtitle-hint-body">
                 <p>
                   В Реальном Лагере ребята становятся организаторами и развивают 4К навыки на практике. Запускают проекты,
@@ -631,66 +625,96 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
                   наполняют программу лагеря живыми традициями.
                 </p>
                 <p>
-                  Система «Реальных значков» — это open-source. Её реально адаптировать под любой лагерь и коллективы
-                  разной направленности. Создавайте свои значки, категории и локальные мемы.
+                  Это авторская цифровая экосистема, доступная для интеграции. Вы можете внедрить её игровые и педагогические механики в свою смену или заказать адаптацию закрытой платформы под ваш коллектив.
                 </p>
                 <p>
-                  Фиксируйте достижения. Делитесь ими в соцсетях. Создавайте команды. Общайтесь с другими игроками.
-                  Прокачивайте навыки коллаборации и организации отрядных дел.
+                  Игровые механики здесь — это инструменты соуправления. Значки — это не виртуальная валюта для обмена на призы. Каждый значок выдаётся только за реальные достижения: когда участник осваивает новый навык, приносит пользу команде и учится анализировать свой опыт.
                 </p>
 
-                <div style={{ display: 'flex', gap: '10px', marginTop: '16px', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', gap: '12px', marginTop: '24px', flexWrap: 'wrap' }}>
                   <button
-                    onClick={handleShareProgress}
+                    onClick={handleStartGameCTA}
+                    className="hover-target"
                     style={{
-                      padding: '8px 12px',
+                      padding: '12px 24px',
                       borderRadius: '8px',
-                      background: 'rgba(255, 255, 255, 0.15)',
-                      border: '1px solid rgba(255, 255, 255, 0.25)',
-                      color: 'white',
-                      fontSize: '11px',
-                      fontWeight: 700,
+                      background: 'linear-gradient(135deg, #FFD700 0%, #FFA000 100%)',
+                      border: 'none',
+                      color: '#1a1a2e',
+                      fontSize: '13px',
+                      fontWeight: 800,
+                      letterSpacing: '0.1em',
                       textTransform: 'uppercase',
                       cursor: 'pointer',
                       flex: '1 1 auto',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      gap: '6px'
+                      boxShadow: '0 4px 15px rgba(255, 215, 0, 0.4)',
+                      transition: 'all 0.2s ease'
                     }}
                   >
-                    <span>📤</span> Поделиться прогрессом
+                    Войти в игру
                   </button>
                   <button
-                    onClick={handleCreateTeam}
+                    onClick={handleContactCTA}
+                    className="hover-target"
                     style={{
-                      padding: '8px 12px',
+                      padding: '12px 24px',
                       borderRadius: '8px',
-                      background: 'rgba(255, 215, 0, 0.15)',
-                      border: '1px solid rgba(255, 215, 0, 0.4)',
-                      color: '#ffd700',
-                      fontSize: '11px',
+                      background: 'linear-gradient(90deg, #8b00ff, #ffd700)',
+                      border: 'none',
+                      color: '#ffffff',
+                      fontSize: '13px',
                       fontWeight: 700,
+                      letterSpacing: '0.1em',
                       textTransform: 'uppercase',
                       cursor: 'pointer',
                       flex: '1 1 auto',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      gap: '6px'
+                      transition: 'all 0.2s ease',
+                      boxShadow: 'none'
                     }}
                   >
-                    <span>🚀</span> Создать Движок
+                    Сотрудничество
                   </button>
                 </div>
 
-                <p>
-                  Это живая система: она растёт вместе с участниками и меняет реальность лагеря и смены. Игровые механики
-                  здесь — инструменты педагогики общей заботы и соуправления.
-                </p>
-                <p>
-                  Значки здесь — не жетоны и не валюта: нет обмена на призы, критерии компетентностные, обязательны пруф (вожатый, сверстники, артефакт) и рефлексия опыта.
-                </p>
+                {showContactHint && (
+                  <div style={{
+                    marginTop: '16px',
+                    padding: '16px',
+                    background: 'rgba(255, 255, 255, 0.03)',
+                    border: '1px solid rgba(255, 255, 255, 0.15)',
+                    borderRadius: '8px',
+                    animation: 'rl-fade-in 0.3s ease-out'
+                  }}>
+                    <p style={{ margin: '0 0 12px 0', fontSize: '13px', lineHeight: '1.5', color: 'rgba(255,255,255,0.9)' }}>
+                      Для обсуждения внедрения платформы напишите в сообщения нашей группы ВКонтакте или напрямую основателю экосистемы (Степан Иванов).
+                    </p>
+                    <a 
+                      href="https://vk.com/realcampspb" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="hover-target"
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        color: '#ffd700',
+                        fontSize: '13px',
+                        fontWeight: 700,
+                        textDecoration: 'none',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.05em'
+                      }}
+                    >
+                      Перейти в группу ВК →
+                    </a>
+                  </div>
+                )}
               </div>
               <span className="subtitle-hint-note">
                 С наилучшими пожеланиями всем настоящим и будущим Реальным Вожатым, Степан Иванов
