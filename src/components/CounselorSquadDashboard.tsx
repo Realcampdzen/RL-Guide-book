@@ -643,13 +643,20 @@ export const CounselorSquadDashboard: React.FC<CounselorSquadDashboardProps> = (
       <div style={{ fontSize: 13, fontWeight: 700, color: ACCENT, marginBottom: 4 }}>👥 Участники отряда</div>
       {(activeSquadCard as Record<string, unknown>)?.members && Array.isArray((activeSquadCard as Record<string, unknown>).members) ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          {((activeSquadCard as Record<string, unknown>).members as Array<{ deviceId: string; nickname?: string; role?: string }>).map(m => {
+          {((activeSquadCard as Record<string, unknown>).members as Array<{ deviceId: string; nickname?: string; role?: string; avatarUrl?: string }>).map(m => {
             const rb = ROLE_BADGES[m.role ?? ''] ?? { label: m.role ?? 'участник', color: '#6b7280' };
+            const isAvatarImage = Boolean(m.avatarUrl && (m.avatarUrl.startsWith('http') || m.avatarUrl.startsWith('data:') || m.avatarUrl.startsWith('/')));
             return (
               <div key={m.deviceId} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', borderRadius: 8, background: 'rgba(0,0,0,0.12)' }}>
-                <div style={{ width: 24, height: 24, borderRadius: '50%', background: `${rb.color}22`, color: rb.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, flexShrink: 0, border: `1px solid ${rb.color}44` }}>
-                  {m.nickname ? m.nickname[0].toUpperCase() : 'У'}
-                </div>
+                {isAvatarImage ? (
+                  <div style={{ width: 24, height: 24, borderRadius: '50%', overflow: 'hidden', flexShrink: 0, border: `1px solid ${rb.color}44` }}>
+                    <img src={m.avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.parentElement!.innerHTML = m.nickname ? m.nickname[0].toUpperCase() : 'У'; e.currentTarget.parentElement!.style.display = 'flex'; e.currentTarget.parentElement!.style.alignItems = 'center'; e.currentTarget.parentElement!.style.justifyContent = 'center'; e.currentTarget.parentElement!.style.fontSize = '12px'; e.currentTarget.parentElement!.style.fontWeight = '700'; e.currentTarget.parentElement!.style.background = `${rb.color}22`; e.currentTarget.parentElement!.style.color = rb.color; }} />
+                  </div>
+                ) : (
+                  <div style={{ width: 24, height: 24, borderRadius: '50%', background: `${rb.color}22`, color: rb.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, flexShrink: 0, border: `1px solid ${rb.color}44` }}>
+                    {m.nickname ? m.nickname[0].toUpperCase() : 'У'}
+                  </div>
+                )}
                 <span style={{ flex: 1, fontSize: 12, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.nickname || m.deviceId.slice(0, 8)}</span>
                 <span style={{ fontSize: 9, padding: '2px 6px', borderRadius: 6, background: `${rb.color}22`, color: rb.color }}>{rb.label}</span>
               </div>

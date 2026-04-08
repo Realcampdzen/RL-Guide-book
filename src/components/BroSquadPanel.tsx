@@ -145,7 +145,7 @@ export const BroSquadPanel: React.FC = () => {
                     fontSize: 14, flexShrink: 0,
                   }}>
                     {m.avatar && isImageAvatar(m.avatar) ? (
-                      <img src={m.avatar} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <img src={m.avatar} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.parentElement!.innerText = m.nickname ? m.nickname[0].toUpperCase() : '👤'; }} />
                     ) : m.avatar || '👤'}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>

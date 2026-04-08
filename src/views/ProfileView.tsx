@@ -3895,7 +3895,7 @@ export const ProfileView: React.FC<any> = (props) => {
                   <div key={id} style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'flex-start', borderLeft: '2px solid rgba(255,255,255,0.1)', paddingLeft: '20px', paddingBottom: '24px', position: 'relative' }}>
                     <div style={{ position: 'absolute', left: '-7px', top: '0', width: '12px', height: '12px', borderRadius: '50%', background: '#8B00FF' }} />
                     <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: '11px', opacity: 0.5 }}>{new Date(p.achievedAt || '').toLocaleDateString()}</div><div style={{ fontWeight: 700 }}>{badgeLookupMap.get(getBaseId(id))?.title || id}</div>{p.reflection && <div style={{ fontSize: '13px', fontStyle: 'italic', opacity: 0.8 }}>"{p.reflection}"</div>}</div>
-                    <button type="button" onClick={() => { (window as any).__openBadgeProof__({ id, title: badgeLookupMap.get(getBaseId(id))?.title || id, learned: p.reflection || p.evidence?.find((e: { type: string }) => e.type === 'text')?.value || '', link: p.evidence?.find((e: { type: string }) => e.type === 'link')?.value || '' }); }} className="btn-confirm-main" style={{ flexShrink: 0, fontSize: 12 }}>Отправить в Telegram <Icons.Send /></button>
+                    <button type="button" onClick={() => { window.dispatchEvent(new CustomEvent('profile:openBadgeProof', { detail: { badgeInfo: { id, title: badgeLookupMap.get(getBaseId(id))?.title || id, learned: p.reflection || p.evidence?.find((e: { type: string }) => e.type === 'text')?.value || '', link: p.evidence?.find((e: { type: string }) => e.type === 'link')?.value || '' } } })); }} className="btn-confirm-main" style={{ flexShrink: 0, fontSize: 12 }}>Отправить в Telegram <Icons.Send /></button>
                   </div>
                 ))}
               </div>
@@ -4851,7 +4851,7 @@ export const ProfileView: React.FC<any> = (props) => {
               <div className="profile-view-passport-avatar">
                 <div className="avatar-circle">
                   {isImageAvatar(showProfileEditor ? avatarInput : profile.avatar) ? (
-                    <img src={(showProfileEditor ? avatarInput : profile.avatar) as string} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <img src={(showProfileEditor ? avatarInput : profile.avatar) as string} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.parentElement!.innerHTML = `<span style="font-size: 44px">${((showProfileEditor ? nicknameInput : profile.nickname) || 'И')[0].toUpperCase()}</span>`; }} />
                   ) : (
                     <span style={{ fontSize: '44px' }}>{(showProfileEditor ? avatarInput : profile.avatar) || '🧑‍🚀'}</span>
                   )}

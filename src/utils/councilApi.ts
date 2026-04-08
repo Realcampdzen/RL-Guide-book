@@ -210,6 +210,7 @@ export interface CouncilMember {
     deviceId?: string;
     joinedAt: string;
     addedBy?: string;
+    avatar?: string;
 }
 
 export async function fetchMembers(

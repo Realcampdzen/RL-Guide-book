@@ -31,7 +31,7 @@
 - **ROADMAP:** таблица инициатив — статус (Done / Not started) и колонка Evidence (файлы/функции). Если задача в Done — не реализовывать заново.
 - **«Где мы сейчас»** в ROADMAP — откуда брать следующую задачу (или явно указать задачу ты).
 - **progress.md:** Accepted UX и Recent Changes — чтобы не ломать зафиксированное поведение и не дублировать недавние изменения.
-- **Доменные доки под задачу:** ЛК/механики — [STEPA_VISION_LC.md](STEPA_VISION_LC.md); геймдизайн/этапы — [WORKFLOW_GAME_CONCEPT_PLAN.md](../WORKFLOW_GAME_CONCEPT_PLAN.md) и [WORKFLOW_PROGRESS_AND_PLANS.md](../WORKFLOW_PROGRESS_AND_PLANS.md); роли/вожатые — [FEATURE_AUTH_ROLES_DVIZHKI_PLAN.md](FEATURE_AUTH_ROLES_DVIZHKI_PLAN.md).
+- **Доменные доки под задачу:** ЛК/механики — [STEPA_VISION_LC.md](STEPA_VISION_LC.md); геймдизайн/этапы — [WORKFLOW_PROGRESS_AND_PLANS.md](../WORKFLOW_PROGRESS_AND_PLANS.md) и `PRODUCT_MECHANICS_AND_ROADMAP.md`.
 
 **Итог:** «смотреть» = ROADMAP + progress + при необходимости доменный план/видение.
 
@@ -41,7 +41,7 @@
 
 - **Проверка «не переделывать готовое»:** таблица в ROADMAP + при сомнении — открыть Evidence (указанные файлы/места в коде).
 - **Проверка «не ломать UX»:** раздел Accepted UX в [.memory-bank/progress.md](../.memory-bank/progress.md).
-- **Сверка с планом:** если задача из WORKFLOW/FEATURE_* — свериться с чек-листами и DoD в соответствующем плане; при расхождении приоритетов — [WORKFLOW_GAME_CONCEPT_PLAN.md](../WORKFLOW_GAME_CONCEPT_PLAN.md).
+- **Сверка с планом:** если задача из WORKFLOW/FEATURE_* — свериться с чек-листами и DoD в соответствующем плане; при расхождении приоритетов — [WORKFLOW_PROGRESS_AND_PLANS.md](../WORKFLOW_PROGRESS_AND_PLANS.md).
 - **После реализации:** `npm run self-check`, линтеры, тесты; при изменении контента в `ai-data/` — синхронизация в `public/ai-data/` (по [tech_context.md](../.memory-bank/tech_context.md)).
 
 **Итог:** проверять по ROADMAP + Evidence и progress; сверяться с доменным планом и tech_context.

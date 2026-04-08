@@ -25,14 +25,18 @@ export const ProofModal: React.FC = () => {
   const proofPhotoInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
-    (window as any).__openBadgeProof__ = (badgeInfo: ProofFormBadge) => {
+    const handleOpenBadgeProof = (e: Event) => {
+      const customEvent = e as CustomEvent<{ badgeInfo: ProofFormBadge }>;
+      const badgeInfo = customEvent.detail?.badgeInfo;
+      if (!badgeInfo) return;
       setProofForm({ learned: badgeInfo.learned || '', impact: '', link: badgeInfo.link || '' });
       setProofPhotoCount(0);
       if (proofPhotoInputRef.current) proofPhotoInputRef.current.value = '';
       setProofBadge({ id: badgeInfo.id, title: badgeInfo.title });
     };
+    window.addEventListener('profile:openBadgeProof', handleOpenBadgeProof);
     return () => {
-      delete (window as any).__openBadgeProof__;
+      window.removeEventListener('profile:openBadgeProof', handleOpenBadgeProof);
     };
   }, []);
 

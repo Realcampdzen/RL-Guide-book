@@ -524,8 +524,12 @@ export const CouncilDashboard: React.FC<CouncilDashboardProps> = ({
               const isMe = m.nickname === nick;
               return (
                 <div key={m.id} style={{ padding: '10px 14px', borderRadius: 10, background: isMe ? 'rgba(46,204,113,0.06)' : 'rgba(15, 10, 42, 0.12)', border: isMe ? '1px solid rgba(46,204,113,0.15)' : '1px solid rgba(255, 255, 255, 0.08)', display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'rgba(255,215,0,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: MEMBER_ROLE_COLORS[m.role] || '#fff', flexShrink: 0 }}>
-                    {m.role === 'chair' ? 'П' : m.role === 'secretary' ? 'С' : 'У'}
+                  <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'rgba(255,215,0,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: MEMBER_ROLE_COLORS[m.role] || '#fff', flexShrink: 0, overflow: 'hidden', border: `1px solid ${MEMBER_ROLE_COLORS[m.role] || 'rgba(255,255,255,0.7)'}44` }}>
+                    {m.avatar && (m.avatar.startsWith('http') || m.avatar.startsWith('data:') || m.avatar.startsWith('/')) ? (
+                      <img src={m.avatar} alt={m.nickname || ''} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.parentElement!.innerHTML = m.role === 'chair' ? 'П' : m.role === 'secretary' ? 'С' : 'У'; }} />
+                    ) : (
+                      m.role === 'chair' ? 'П' : m.role === 'secretary' ? 'С' : 'У'
+                    )}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 13, fontWeight: 600, color: '#e8f0ff' }}>{m.nickname}{isMe ? ' (вы)' : ''}</div>

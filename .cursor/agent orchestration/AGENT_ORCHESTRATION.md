@@ -5,7 +5,6 @@
 **Связанные документы:** [agent.md](../../agent.md), [HOW_TO_BRIEF_AGENTS.md](../../docs/HOW_TO_BRIEF_AGENTS.md), [active_context.md](../../.memory-bank/active_context.md), [ROADMAP_2026.md](../../docs/ROADMAP_2026.md), [AGENT_ROLES.md](AGENT_ROLES.md).
 
 **Production Roadmap (Фазы 1–5):** координация по реализации `PRODUCT_MECHANICS_AND_ROADMAP.md` — отдельная система в [`docs/PROD_ROADMAP_IMPL/`](../../docs/PROD_ROADMAP_IMPL/):
-- Инструкция агентам: [`AGENT_INSTRUCTIONS.md`](../../docs/PROD_ROADMAP_IMPL/AGENT_INSTRUCTIONS.md)
 - Задачи по фазам: [`TASKS.md`](../../docs/PROD_ROADMAP_IMPL/TASKS.md)
 - Живой Claim Board prod-roadmap: [`CLAIM_BOARD.md`](../../docs/PROD_ROADMAP_IMPL/CLAIM_BOARD.md)
 - Планы реализации: [`plans/`](../../docs/PROD_ROADMAP_IMPL/plans/)
@@ -66,7 +65,7 @@
 |--------------|--------|--------|------|------------------------|
 | **Gemini (L6 Staff)**| Написание и запуск E2E автотестов (Playwright QA Grid). Выявлены падения. | Done | 2026-04-08 | Передать отчет в Tiger Team (`BUG_TRACKER.md`). |
 | **Agent QA (TBD)** | QA/Audit: Проверка видимости аватаров и никнеймов во всех кабинетах, чатах, списках отрядов/движков (local + prod). | Backlog | 2026-04-08 | Запуск визуальных тестов и мануальный проход по всем UI-спискам. |
-| **Agent SRE / Arch** | God Mode (Presenter): Финализация и безопасный релиз презентационного режима в Production. | Backlog | 2026-04-08 | Убедиться в безопасности перехватчиков перед деплоем. |
+| **Agent Gamma (L5 SRE/Arch)** | God Mode (Presenter): Финализация и безопасный релиз презентационного режима в Production. | Done | 2026-04-08 | Провести рефакторинг или код-ревью. |
 
 ### 🧠 4. Отдел ИИ и Контента (AI & Domain Data)
 *Синхронизация промптов, графы знаний, нейро-ассистенты.*
@@ -81,6 +80,11 @@
 
 ### 📊 6. Отдел Системного Анализа и ТЗ (System Analysis & SDD)
 *Бриф пользователей (CEO), генерация динамических машинночитаемых Спецификаций (Specs) перед кодингом.*
+| Агент (Роль) | Задача | Статус | Дата | Логичный следующий шаг |
+|--------------|--------|--------|------|------------------------|
+
+### 📚 7. Отдел Техдокументации и Синхронизации Реальности (Tech Writer & Audit)
+*Сверка старых дизайн-документов с реальным кодом. Удаление мертвых концепций, написание README, поддержка единой картины мира.*
 | Агент (Роль) | Задача | Статус | Дата | Логичный следующий шаг |
 |--------------|--------|--------|------|------------------------|
 
@@ -130,6 +134,7 @@
 
 | Агент | Задача | Дата завершения |
 |-------|--------|-----------------|
+| **Gamma** | God Mode (Presenter): Супер-режим разработчика с виртуальным входом в отряды и движки, создание `godModeInterceptor`. | 2026-04-08 |
 | D/E | UX-полировка 429/503 для ИИ-изображений (userMessageFromStatus, русские 503/501 в backend) | 2026-02-09 |
 | D/E | Обновить .memory-bank/progress.md: пункты о завершённом (CI self-check и backend-health, доки BACKEND_URL, синхронизация §5 оркестрации) | 2026-02-09 |
 | D/E | Проверить README / QUICK_START / DEPLOYMENT на self-check и BACKEND_URL; добавить упоминание BACKEND_URL в три файла | 2026-02-09 |

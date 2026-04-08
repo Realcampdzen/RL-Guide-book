@@ -45,7 +45,10 @@ export const PlannerModal: React.FC = () => {
   const [planApiAvailable, setPlanApiAvailable] = useState<boolean | null>(null);
 
   useEffect(() => {
-    (window as any).__openBadgePlan__ = (badgeInfo: PlanFormBadge) => {
+    const handleOpenBadgePlan = (e: Event) => {
+      const customEvent = e as CustomEvent<{ badgeInfo: PlanFormBadge }>;
+      const badgeInfo = customEvent.detail?.badgeInfo;
+      if (!badgeInfo) return;
       setPlanFormBadge(badgeInfo);
       setPlanForm({
         currentDay: Math.min(21, Math.max(1, userData?.diaryProgress?.currentDay ?? 1)),
@@ -61,8 +64,9 @@ export const PlannerModal: React.FC = () => {
       setPlanStep('context');
       setPlanChecklistItems([]);
     };
+    window.addEventListener('profile:openBadgePlan', handleOpenBadgePlan);
     return () => {
-      delete (window as any).__openBadgePlan__;
+      window.removeEventListener('profile:openBadgePlan', handleOpenBadgePlan);
     };
   }, [userData?.diaryProgress?.currentDay]);
 

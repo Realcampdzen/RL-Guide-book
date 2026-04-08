@@ -572,7 +572,7 @@ export const SquadCabinetPanel: React.FC<SquadCabinetPanelProps> = ({
                           border: `1px solid ${isCounselor ? 'rgba(244,114,182,0.3)' : 'rgba(93,228,255,0.2)'}`,
                           flexShrink: 0
                         }}>
-                          <img src={m.avatarUrl} alt={m.nickname || ''} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          <img src={m.avatarUrl} alt={m.nickname || ''} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.parentElement!.innerHTML = initial; e.currentTarget.parentElement!.style.display = 'flex'; e.currentTarget.parentElement!.style.alignItems = 'center'; e.currentTarget.parentElement!.style.justifyContent = 'center'; e.currentTarget.parentElement!.style.fontSize = '18px'; e.currentTarget.parentElement!.style.background = isCounselor ? 'linear-gradient(135deg, rgba(244,114,182,0.2), rgba(251,146,60,0.2))' : 'linear-gradient(135deg, rgba(93,228,255,0.15), rgba(165,180,252,0.15))'; e.currentTarget.parentElement!.style.color = isCounselor ? '#fdf2f8' : '#e8f0ff'; }} />
                         </div>
                       ) : m.avatarUrl ? (
                         <div style={{ 

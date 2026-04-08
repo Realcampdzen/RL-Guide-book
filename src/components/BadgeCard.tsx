@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import { memo } from 'react';
 import BadgeIcon from './BadgeIcon';
 
 const Icons = {
@@ -67,16 +67,19 @@ export const BadgeCard = memo(({
           type="button" 
           onClick={(e) => { 
             e.stopPropagation(); 
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (window as any).__openBadgePlan__({ 
-              id: levelId || baseId, 
-              title: displayTitle, 
-              level, 
-              criteria: criteria || howToBecome, 
-              nameExplanation, 
-              skillTips, 
-              confirmation 
-            }); 
+            window.dispatchEvent(new CustomEvent('profile:openBadgePlan', {
+              detail: {
+                badgeInfo: {
+                  id: levelId || baseId, 
+                  title: displayTitle, 
+                  level, 
+                  criteria: criteria || howToBecome, 
+                  nameExplanation, 
+                  skillTips, 
+                  confirmation 
+                }
+              }
+            })); 
           }} 
           className="btn-pill btn-pill--secondary"
         >
@@ -86,11 +89,14 @@ export const BadgeCard = memo(({
           type="button" 
           onClick={(e) => { 
             e.stopPropagation(); 
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (window as any).__openBadgeProof__({ 
-              id: baseId, 
-              title: displayTitle 
-            }); 
+            window.dispatchEvent(new CustomEvent('profile:openBadgeProof', {
+              detail: {
+                badgeInfo: {
+                  id: baseId, 
+                  title: displayTitle 
+                }
+              }
+            })); 
           }} 
           className="btn-pill btn-pill--primary"
         >
