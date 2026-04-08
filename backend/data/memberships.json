@@ -14,6 +14,34 @@
       "squadId": "9f555852b996",
       "role": "counselor",
       "joinedAt": "2026-03-16T18:42:35.658097+00:00"
+    },
+    {
+      "deviceId": "smoke_ms_e11fa1b7",
+      "campId": "64f3ca208702",
+      "squadId": "b0f8bc32855f",
+      "role": "shift_leader",
+      "joinedAt": "2026-04-08T02:31:38.309867+00:00"
+    },
+    {
+      "deviceId": "smoke_ms_2596d41c",
+      "campId": "64f3ca208702",
+      "squadId": "ae50e2b1107d",
+      "role": "shift_leader",
+      "joinedAt": "2026-04-08T02:33:53.440054+00:00"
+    },
+    {
+      "deviceId": "smoke_ms_2a86265d",
+      "campId": "64f3ca208702",
+      "squadId": "9cf50ef4c016",
+      "role": "shift_leader",
+      "joinedAt": "2026-04-08T02:34:41.510839+00:00"
+    },
+    {
+      "deviceId": "smoke_ya_61643b6b",
+      "campId": "64f3ca208702",
+      "squadId": "711639e02d40",
+      "role": "developer",
+      "joinedAt": "2026-04-08T02:34:42.635778+00:00"
     }
   ]
 }

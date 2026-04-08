@@ -8,6 +8,7 @@ This `GEMINI.md` file serves as the primary entry point for AI agents.
 
 - **Entry Point:** [agent.md](agent.md)
 - **Core Context:** [.memory-bank/](.memory-bank/)
+- **Sync Board:** [agent-sync.md](agent-sync.md) (Use for inter-agent communication, handoffs, and short notes)
 - **Rules:** [.cursor/rules/cursor_rules.mdc](.cursor/rules/cursor_rules.mdc)
 
 Before starting any task, agents MUST read `agent.md` and the contents of `.memory-bank/` to understand the current state, logic, and roadmap.

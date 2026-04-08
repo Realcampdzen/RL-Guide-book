@@ -675,6 +675,7 @@ export const PersonalCabinet: React.FC<{
     const [homeTab, setHomeTab] = useState<'active' | 'favorites' | 'collection' | 'journal' | 'squads'>('active');
     const [hamburgerOpen, setHamburgerOpen] = useState(false);
     const [showRoleModal, setShowRoleModal] = useState(false);
+
     const [mobileDrawerLevel, setMobileDrawerLevel] = useState<MobileDrawerLevel | null>(null);
     const [isMobile, setIsMobile] = useState(
         () => typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches
@@ -819,6 +820,7 @@ export const PersonalCabinet: React.FC<{
     const profileSyncRef = React.useRef<{ nickname: string; avatar: string }>({ nickname: '', avatar: '' });
     const currentRole = role || 'traveler';
     const roleInfo = ROLE_DISPLAY[currentRole] || ROLE_DISPLAY.traveler;
+
     const handleRoleResult = useCallback((result: RoleFlowResult) => {
         switch (result.type) {
             case 'code-redeemed':
@@ -3369,6 +3371,7 @@ export const PersonalCabinet: React.FC<{
                     </div>{/* close maxWidth wrapper */}
                 </div>{/* close content column */}
             </div>{/* close root layout */}
+
             {showRoleModal && (
                 <RoleSelectionModal
                     onResult={handleRoleResult}

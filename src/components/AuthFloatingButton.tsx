@@ -6,7 +6,7 @@ import type { RoleFlowResult } from './RoleSelectionModal';
 import type { Session } from '@supabase/supabase-js';
 import { useAuth } from '../context/AuthContext';
 import type { UserRole } from '../types/authRole';
-import { getBaseDeviceId } from '../utils/authStorage';
+import { getBaseDeviceId, loadAuthStorage } from '../utils/authStorage';
 
 // ---------------------------------------------------------------------------
 // Role display config
@@ -86,15 +86,19 @@ export const AuthFloatingButton: React.FC = () => {
             console.log('[AUTH] isPendingDevOAuth:', isPendingDevOAuth());
             setSession(s);
             if (s?.access_token) {
-                const pendingRole = getPendingOAuthRole();
-                if (pendingRole || isPendingDevOAuth()) {
-                    if (isPendingDevOAuth()) {
-                        console.log('[AUTH] ✅ Pending dev OAuth detected! Calling resolveDevOAuth...');
-                        setPendingDevOAuth(false);
-                        void resolveDevOAuth(s);
+                if (isPendingDevOAuth()) {
+                    console.log('[AUTH] ✅ Pending dev OAuth detected! Calling resolveDevOAuth...');
+                    setPendingDevOAuth(false);
+                    void resolveDevOAuth(s);
+                } else {
+                    // Only resolve on mount if user has a pending role OR is unauthenticated
+                    const currentAuth = loadAuthStorage();
+                    const hasPending = !!getPendingOAuthRole();
+                    const isUnauthenticated = !currentAuth.accessToken || currentAuth.role === 'traveler';
+                    if (hasPending || isUnauthenticated) {
+                        void resolveOAuthSession(s);
                     } else {
-                        // Regular role OAuth
-                        void resolveAllRolesOAuth(s);
+                        console.log('[AUTH] getSession: already authenticated as', currentAuth.role, '- skipping resolve');
                     }
                 }
             }
@@ -105,15 +109,24 @@ export const AuthFloatingButton: React.FC = () => {
             console.log('[AUTH] onAuthStateChange:', _event, s ? `email=${s.user?.email}` : 'null');
             setSession(s);
             if (s?.access_token) {
-                const pendingRole = getPendingOAuthRole();
-                if (pendingRole) {
-                    // Regular role OAuth callback
-                    void resolveAllRolesOAuth(s);
-                } else if (isPendingDevOAuth()) {
-                    // Developer OAuth callback
+                if (isPendingDevOAuth()) {
                     console.log('[AUTH] ✅ onAuthStateChange: Pending dev OAuth! Resolving...');
                     setPendingDevOAuth(false);
                     void resolveDevOAuth(s);
+                } else if (_event === 'SIGNED_IN') {
+                    // Only resolve on fresh sign-in, NOT on TOKEN_REFRESHED.
+                    // This prevents overwriting dev-pin or code-redeemed roles
+                    // when Supabase periodically refreshes its own token.
+                    const currentAuth = loadAuthStorage();
+                    const hasPending = !!getPendingOAuthRole();
+                    const isUnauthenticated = !currentAuth.accessToken || currentAuth.role === 'traveler';
+                    if (hasPending || isUnauthenticated) {
+                        void resolveOAuthSession(s);
+                    } else {
+                        console.log('[AUTH] onAuthStateChange SIGNED_IN: already have role', currentAuth.role, '- skipping');
+                    }
+                } else {
+                    console.log('[AUTH] onAuthStateChange: event', _event, '- not resolving');
                 }
             } else {
                 setRole(null);
@@ -127,12 +140,20 @@ export const AuthFloatingButton: React.FC = () => {
 
 
 
-    // ── B-4b: Resolve OAuth for ALL roles ──
-    const resolveAllRolesOAuth = useCallback(async (s: Session) => {
+    // ── Resolve OAuth session: call auth/resolve to get role JWT ──
+    const resolveOAuthSession = useCallback(async (s: Session) => {
         const email = s.user?.email;
         if (!email) return false;
+        // Read current auth from localStorage (NOT from closure) to avoid stale state
+        // when this function is captured inside useEffect with [] deps
+        const currentAuth = loadAuthStorage();
+        if (currentAuth.role && currentAuth.role !== 'traveler' && currentAuth.accessToken) {
+            console.log('[AUTH] resolveOAuthSession: already authenticated as', currentAuth.role, '- skipping');
+            setRole(currentAuth.role);
+            return true;
+        }
         const desiredRole = getPendingOAuthRole();
-        clearPendingOAuthRole();
+        // Don't clear pendingOAuthRole yet — only clear after successful resolve
         const base = getApiBase();
         try {
             const res = await fetch(`${base}/api/auth/resolve`, {
@@ -148,7 +169,12 @@ export const AuthFloatingButton: React.FC = () => {
                 }),
             });
             const data = await res.json().catch(() => ({})) as Record<string, unknown>;
-            if (!res.ok) return false;
+            if (!res.ok) {
+                console.warn('[AUTH] auth/resolve failed:', res.status);
+                return false;
+            }
+            // Success — now safe to clear pending role
+            clearPendingOAuthRole();
             const resolvedRole = data.role as string;
             if (resolvedRole === 'pending') {
                 const label = desiredRole || 'роль';
@@ -159,11 +185,36 @@ export const AuthFloatingButton: React.FC = () => {
             }
             if (resolvedRole && resolvedRole !== 'traveler') {
                 setRole(resolvedRole);
-                auth.setAuth({ role: resolvedRole as UserRole, accessToken: data.accessToken as string || undefined });
+                auth.setAuth({
+                    role: resolvedRole as UserRole,
+                    accessToken: data.accessToken as string || undefined,
+                    deviceId: data.deviceId as string || undefined,
+                    baseDeviceId: data.baseDeviceId as string || undefined,
+                    personId: data.personId as string || undefined,
+                    accountId: data.accountId as string || undefined,
+                });
                 setActiveModal('none');
                 return true;
             }
-        } catch { /* ignore */ }
+            // Resolved as participant (default) — still apply it
+            if (resolvedRole === 'participant' || (!resolvedRole && data.accessToken)) {
+                const finalRole = (resolvedRole || 'participant') as UserRole;
+                setRole(finalRole);
+                auth.setAuth({
+                    role: finalRole,
+                    accessToken: data.accessToken as string || undefined,
+                    deviceId: data.deviceId as string || undefined,
+                    baseDeviceId: data.baseDeviceId as string || undefined,
+                    personId: data.personId as string || undefined,
+                    accountId: data.accountId as string || undefined,
+                });
+                setActiveModal('none');
+                return true;
+            }
+        } catch (err) {
+            console.warn('[AUTH] auth/resolve network error, will retry on next auth change:', err);
+            // Don't clear pendingOAuthRole — retry on next onAuthStateChange
+        }
         return false;
     }, [auth, baseDeviceId]);
 

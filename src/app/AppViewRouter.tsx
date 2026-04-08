@@ -31,6 +31,7 @@ export const AppViewRouter: React.FC<Props> = ({ controller, fallback }) => {
   // ---------- Auth state for nav integration ----------
   const auth = useAuth();
   const isLoggedIn = !!(auth.role && auth.role !== 'traveler');
+  const { sessionExpired, dismissSessionExpired } = auth;
   const [showRoleModal, setShowRoleModal] = useState(false);
   const [showWelcome, setShowWelcome] = useState(() => {
     if (typeof window === 'undefined') return false;
@@ -386,40 +387,84 @@ export const AppViewRouter: React.FC<Props> = ({ controller, fallback }) => {
             />
       )}
 
-      {/* Welcome banner for first-time visitors */}
+      {/* Welcome prompt for first-time visitors */}
       {!loading && showWelcome && !isLoggedIn && currentView === 'intro' && (
         <div style={{
           position: 'fixed', bottom: 90, left: '50%', transform: 'translateX(-50%)',
           zIndex: 1099, width: 'min(360px, calc(100% - 32px))',
-          background: 'linear-gradient(135deg, rgba(30,27,55,0.96), rgba(20,17,42,0.98))',
-          border: '1px solid rgba(245,158,11,0.25)',
+          background: 'rgba(8, 12, 28, 0.96)',
+          border: '1px solid rgba(93,228,255,0.15)',
           borderRadius: 16, padding: '20px 24px',
+          backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
           boxShadow: '0 12px 40px rgba(0,0,0,0.5)',
           textAlign: 'center',
           animation: 'rl-welcome-slide-in 0.5s ease-out',
-          fontFamily: "'Inter', system-ui, sans-serif",
         }}>
-          <div style={{ fontSize: 15, fontWeight: 700, color: '#fff', marginBottom: 6 }}>
-            🏕️ Добро пожаловать!
+          <div style={{ fontSize: 14, fontWeight: 600, color: '#e8f0ff', marginBottom: 6 }}>
+            Выберите свою роль
           </div>
-          <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)', lineHeight: 1.5, marginBottom: 14 }}>
-            Выберите роль, чтобы открыть доступ к Личному Кабинету
+          <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', lineHeight: 1.5, marginBottom: 14 }}>
+            Для доступа к Личному Кабинету необходимо выбрать роль
           </div>
           <button type="button" onClick={() => { dismissWelcome(); setShowRoleModal(true); }}
             style={{
-              width: '100%', padding: '11px 0', borderRadius: 10, border: 'none',
-              background: 'rgba(245,158,11,0.2)', color: '#f59e0b',
-              fontSize: 14, fontWeight: 700, cursor: 'pointer',
-              transition: 'background 0.2s',
+              width: '100%', padding: '11px 0', borderRadius: 10,
+              background: 'rgba(93,228,255,0.12)', border: '1px solid rgba(93,228,255,0.2)',
+              color: '#5de4ff', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+              transition: 'background 0.15s',
             }}>
             Войти / Выбрать роль
           </button>
           <button type="button" onClick={dismissWelcome}
             style={{
               display: 'block', margin: '10px auto 0', background: 'none', border: 'none',
-              color: 'rgba(255,255,255,0.3)', fontSize: 11, cursor: 'pointer',
+              color: 'rgba(255,255,255,0.25)', fontSize: 11, cursor: 'pointer',
             }}>
             Пропустить
+          </button>
+        </div>
+      )}
+
+      {/* Session expired notification — visible from any view */}
+      {sessionExpired && (
+        <div style={{
+          position: 'fixed', top: 16, left: '50%', transform: 'translateX(-50%)',
+          zIndex: 10001, maxWidth: 420, width: '90%',
+          padding: '14px 18px', borderRadius: 14,
+          background: 'rgba(8, 12, 28, 0.95)',
+          border: '1px solid rgba(255,107,107,0.25)',
+          backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+          display: 'flex', alignItems: 'center', gap: 14,
+        }}>
+          <div style={{
+            width: 6, height: 6, borderRadius: 3,
+            background: '#ff6b6b', flexShrink: 0,
+          }} />
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: '#ff6b6b', marginBottom: 2 }}>
+              Сессия истекла
+            </div>
+            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', lineHeight: 1.4 }}>
+              Войдите повторно для доступа ко всем разделам
+            </div>
+          </div>
+          <button type="button" onClick={() => { dismissSessionExpired(); setShowRoleModal(true); }}
+            style={{
+              padding: '7px 14px', borderRadius: 8, flexShrink: 0,
+              background: 'rgba(255,107,107,0.12)', border: '1px solid rgba(255,107,107,0.25)',
+              color: '#ff6b6b', fontSize: 12, fontWeight: 600, cursor: 'pointer',
+              transition: 'background 0.15s',
+            }}>
+            Войти
+          </button>
+          <button type="button" onClick={() => dismissSessionExpired()}
+            style={{
+              background: 'none', border: 'none',
+              color: 'rgba(255,255,255,0.25)', cursor: 'pointer',
+              fontSize: 14, padding: '0 2px', lineHeight: 1,
+            }}>
+            ✕
           </button>
         </div>
       )}

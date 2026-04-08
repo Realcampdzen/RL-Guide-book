@@ -57,6 +57,32 @@ export const SquadCabinetPanel: React.FC<SquadCabinetPanelProps> = ({
   const [photoZoomUrl, setPhotoZoomUrl] = useState<string | null>(null);
   const [plannerOpen, setPlannerOpen] = useState(false);
   const [plannerDay, setPlannerDay] = useState(1);
+  const [godModeSquads, setGodModeSquads] = useState<any[]>([]);
+
+  const isGodMode = typeof window !== 'undefined' && localStorage.getItem('rl_god_mode') === 'true';
+
+  useEffect(() => {
+    if (isGodMode && (!mySquadInfo || !mySquadInfo.membership?.squadId)) {
+      const apiBase = (import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || '').replace(/\/$/, '');
+      fetch(`${apiBase}/api/shifts`)
+        .then(r => r.json())
+        .then(async (data: any) => {
+           let all: any[] = [];
+           for (const sh of (data.shifts || [])) {
+             try {
+               const res = await fetch(`${apiBase}/api/shifts/${sh.id}/squads`);
+               const sqData = await res.json();
+               for (const sq of (sqData.squads || [])) {
+                 all.push({ ...sq, shiftName: sh.name, shiftId: sh.id });
+               }
+             } catch (e) {
+               console.warn('Failed to load squads for shift', sh.id);
+             }
+           }
+           setGodModeSquads(all);
+        }).catch(e => console.error(e));
+    }
+  }, [isGodMode, mySquadInfo]);
 
   const squadId = (mySquadInfo?.membership?.squadId || '').trim();
   const squadName = mySquadInfo?.squad?.name || mySquadInfo?.membership?.squadId || 'Отряд';
@@ -300,6 +326,26 @@ export const SquadCabinetPanel: React.FC<SquadCabinetPanelProps> = ({
     }
   };
 
+  const handleGodModeJoin = async (targetSquadId: string, squadName: string, shiftId: string) => {
+    if (joinBusy) return;
+    setJoinBusy(true);
+    setStatus('Открываем портал...');
+    try {
+      const apiBase = (import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || '').replace(/\/$/, '');
+      await fetch(`${apiBase}/api/squads/${encodeURIComponent(targetSquadId)}/join`, {
+         method: 'POST',
+         headers: { 'Content-Type': 'application/json' },
+         body: JSON.stringify({ role: 'developer', squadName, shiftId })
+      });
+      await onRefresh();
+    } catch (e) {
+      console.error(e);
+      setStatus('Ошибка входа через портал');
+    } finally {
+      setJoinBusy(false);
+    }
+  };
+
   // Note: accessToken may be undefined in sandbox/dev mode. Component renders with available data.
 
   if (!squadId) {
@@ -324,6 +370,40 @@ export const SquadCabinetPanel: React.FC<SquadCabinetPanelProps> = ({
             </div>
           </div>
           {status && <div style={{ fontSize: 12, opacity: 0.9 }}>{status}</div>}
+          
+          {isGodMode && (
+            <div className="cab-card fade-in" style={{ padding: '20px 24px', marginTop: 14, border: '1px solid rgba(251, 191, 36, 0.4)', background: 'rgba(251, 191, 36, 0.05)' }}>
+               <div style={{ fontSize: 16, fontWeight: 800, color: '#fbbf24', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+                 <span>🟡</span> Панель Бога (Presenter Mode)
+               </div>
+               <div style={{ fontSize: 13, opacity: 0.8, marginBottom: 14 }}>
+                 Список всех отрядов лагеря. Нажмите на любой, чтобы посмотреть его от лица Разработчика (работает в режиме песочницы).
+               </div>
+               {godModeSquads.length === 0 ? (
+                 <div style={{ opacity: 0.5, fontSize: 13 }}>Загрузка отрядов...</div>
+               ) : (
+                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 10 }}>
+                   {godModeSquads.map(sq => (
+                      <button
+                        key={sq.id}
+                        onClick={() => handleGodModeJoin(sq.id, sq.name, sq.shiftId)}
+                        type="button"
+                        style={{
+                          padding: '10px 14px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.1)',
+                          background: 'rgba(255,255,255,0.03)', color: '#fff', textAlign: 'left',
+                          cursor: 'pointer', transition: 'all 0.2s', display: 'flex', flexDirection: 'column', gap: 4
+                        }}
+                        onMouseOver={e => e.currentTarget.style.background = 'rgba(251,191,36,0.15)'}
+                        onMouseOut={e => e.currentTarget.style.background = 'rgba(255,255,255,0.03)'}
+                      >
+                         <span style={{ fontWeight: 700, fontSize: 14, color: '#e8f0ff' }}>{sq.name || sq.id}</span>
+                         <span style={{ fontSize: 11, color: '#9ca3af' }}>Смена: {sq.shiftName || sq.shiftId}</span>
+                      </button>
+                   ))}
+                 </div>
+               )}
+            </div>
+          )}
         </div>
       </div>
     );

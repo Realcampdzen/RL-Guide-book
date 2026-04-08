@@ -586,9 +586,17 @@ class SupabaseParentSnapshotsStore(ParentSnapshotsStore):
         for r in rows:
             code = r.get("code", "")
             if code:
+                # API expects integer timestamp for expiresAt
+                exp_ts = r.get("expires_at")
+                exp_int = 0
+                if exp_ts:
+                    try:
+                        exp_int = int(datetime.fromisoformat(str(exp_ts).replace("Z", "+00:00")).timestamp())
+                    except Exception:
+                        pass
                 result[code] = {
                     "payload": r.get("payload") or {},
-                    "expiresAt": _ts(r.get("expires_at")),
+                    "expiresAt": exp_int,
                     "createdAt": _ts(r.get("created_at")),
                     "createdByDeviceId": r.get("created_by_device_id") or "",
                 }
@@ -600,10 +608,14 @@ class SupabaseParentSnapshotsStore(ParentSnapshotsStore):
         for code, snap in data.items():
             if not isinstance(snap, dict):
                 continue
+            expires_at = snap.get("expiresAt")
+            if isinstance(expires_at, int):
+                # Convert int epoch to ISO string for Postgres TIMESTAMPTZ
+                expires_at = datetime.fromtimestamp(expires_at, timezone.utc).isoformat()
             row = {
                 "code": code,
                 "payload": snap.get("payload") or {},
-                "expires_at": snap.get("expiresAt", ""),
+                "expires_at": expires_at,
             }
             if snap.get("createdByDeviceId"):
                 row["created_by_device_id"] = snap["createdByDeviceId"]

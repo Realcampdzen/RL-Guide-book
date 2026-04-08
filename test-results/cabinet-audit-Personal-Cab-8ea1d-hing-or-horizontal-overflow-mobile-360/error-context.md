@@ -1,0 +1,86 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e4]:
+  - generic [ref=e5]:
+    - navigation [ref=e6]
+    - generic [ref=e7]:
+      - button "NEUROVALUSHA" [ref=e8] [cursor=pointer]
+      - button "Значки" [ref=e9] [cursor=pointer]
+    - button "О лагере" [ref=e10] [cursor=pointer]:
+      - img "Домик"
+    - main [ref=e11]:
+      - heading "Путеводитель по Реальному Лагерю." [level=1] [ref=e14]:
+        - generic [ref=e15]: Путеводитель
+        - generic [ref=e16]: по
+        - generic [ref=e17]: Реальному
+        - generic [ref=e18]: Лагерю.
+      - generic [ref=e20]:
+        - generic [ref=e21]: ВЫБИРАЙ ЗВЕЗДУ. ДВИГАЙСЯ ВПЕРЁД. ОСТАВЛЯЙ СЛЕД. ТВОЙ ОПЫТ — ТВОЙ ПУТЬ. РЕАЛЬНЫЕ ЗНАЧКИ ПОДСКАЖУТ, КУДА ИДТИ. •
+        - generic [ref=e22]: ВЫБИРАЙ ЗВЕЗДУ. ДВИГАЙСЯ ВПЕРЁД. ОСТАВЛЯЙ СЛЕД. ТВОЙ ОПЫТ — ТВОЙ ПУТЬ. РЕАЛЬНЫЕ ЗНАЧКИ ПОДСКАЖУТ, КУДА ИДТИ. •
+      - paragraph [ref=e24]:
+        - text: Добро пожаловать в космическое путешествие по системе значков и достижений!
+        - button "Здесь вы найдете 118 значков в 14 категориях." [ref=e26] [cursor=pointer]
+      - generic [ref=e27]:
+        - generic [ref=e28]:
+          - heading "Значки здесь — не награды, а маршруты развития." [level=2] [ref=e29]
+          - paragraph [ref=e30]: В Реальном Лагере значки — не просто «ачивки» за выполнение заданий. Это путеводные звёзды, которые помогают выбрать твой собственный путь. Каждый значок — не медаль за прошлое, а маяк, освещающий направления твоего развития.
+        - generic [ref=e31]:
+          - button "Предыдущая категория" [ref=e32] [cursor=pointer]:
+            - generic [ref=e33]: ‹
+          - button "Следующая категория" [ref=e34] [cursor=pointer]:
+            - generic [ref=e35]: ›
+          - button "Открыть значки категории За личные достижения" [ref=e36] [cursor=pointer]:
+            - img "За личные достижения" [ref=e38]
+            - generic [ref=e39]:
+              - heading "За личные достижения" [level=3] [ref=e40]
+              - paragraph [ref=e41]: 16 значков
+      - generic [ref=e43]:
+        - generic [ref=e44]:
+          - button "Открыть значок Путеводитель" [ref=e45] [cursor=pointer]:
+            - img "Значок Путеводитель" [ref=e47]
+          - heading "Реальный Значок = Опыт" [level=3] [ref=e48]
+          - paragraph [ref=e49]: Здесь главная награда — не значок, а опыт и навыки, которые ты получаешь, выполняя задания. Новые друзья, настоящие проекты, полезные привычки и идеи — всё это остаётся с тобой.
+        - generic [ref=e50]:
+          - button "Открыть значок Создатель Новой Категории" [ref=e51] [cursor=pointer]:
+            - img "Значок Создатель Новой Категории" [ref=e53]
+          - heading "Реальный Значок — компас" [level=3] [ref=e54]
+          - paragraph [ref=e55]:
+            - text: Только ты выбираешь, какие значки будут на твоём пути. Вожатые и Путеводитель предложат варианты, но выбор и движение всегда за тобой.
+            - generic [ref=e56]:
+              - text: Добро пожаловать в Реальный Лагерь.
+              - text: Выбирай звезду, двигайся вперёд, оставляй след.
+              - text: Реальные Значки подскажут, куда идти.
+      - generic [ref=e57]:
+        - heading "Поехали?" [level=2] [ref=e58]
+        - button "Начать путешествие" [ref=e59] [cursor=pointer]
+        - generic [ref=e60]:
+          - button "Значки" [ref=e61] [cursor=pointer]
+          - button "О лагере" [ref=e62] [cursor=pointer]
+          - link "ВКонтакте" [ref=e63] [cursor=pointer]:
+            - /url: https://vk.com/realcampspb
+  - navigation "Основная навигация" [ref=e64]:
+    - button "Главная" [ref=e65] [cursor=pointer]:
+      - img [ref=e67]
+      - generic [ref=e69]: Главная
+    - button "Значки" [ref=e70] [cursor=pointer]:
+      - img [ref=e72]
+      - generic [ref=e77]: Значки
+    - button "Войти" [ref=e78] [cursor=pointer]:
+      - img [ref=e81]
+      - generic [ref=e83]: Войти
+    - button "О лагере" [ref=e84] [cursor=pointer]:
+      - img [ref=e86]
+      - generic [ref=e89]: О лагере
+    - button "Записаться" [ref=e90] [cursor=pointer]:
+      - img [ref=e92]
+      - generic [ref=e96]: Записаться
+    - button "ВКонтакте" [ref=e97] [cursor=pointer]:
+      - generic [ref=e99]: VK
+      - generic [ref=e100]: ВК
+  - generic [ref=e101]:
+    - generic [ref=e102]: Выберите свою роль
+    - generic [ref=e103]: Для доступа к Личному Кабинету необходимо выбрать роль
+    - button "Войти / Выбрать роль" [ref=e104] [cursor=pointer]
+    - button "Пропустить" [ref=e105] [cursor=pointer]
+```

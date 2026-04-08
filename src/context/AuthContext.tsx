@@ -14,6 +14,8 @@ interface AuthContextType {
   accessToken: string | undefined;
   campId: string | undefined;
   canUseChat: boolean;
+  /** True when the previous session token was expired (show re-login prompt) */
+  sessionExpired: boolean;
   setRole: (role: UserRole) => void;
   setAuth: (data: {
     role: UserRole;
@@ -28,15 +30,21 @@ interface AuthContextType {
     legacyMigrated?: boolean;
   }) => void;
   clearAuth: () => void;
+  dismissSessionExpired: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [auth, setAuthState] = useState<AuthStorage>(() => loadAuthStorage());
+  const [sessionExpired, setSessionExpired] = useState(false);
 
   useEffect(() => {
-    setAuthState(loadAuthStorage());
+    const loaded = loadAuthStorage();
+    setAuthState(loaded);
+    if (loaded._expired) {
+      setSessionExpired(true);
+    }
   }, []);
 
   const setRole = useCallback((role: UserRole) => {
@@ -64,6 +72,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const clearAuth = useCallback(() => {
     clearAuthStorage();
     setAuthState(loadAuthStorage());
+    setSessionExpired(false);
+  }, []);
+
+  const dismissSessionExpired = useCallback(() => {
+    setSessionExpired(false);
   }, []);
 
   useEffect(() => {
@@ -84,9 +97,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     accessToken: auth.accessToken,
     campId: auth.campId,
     canUseChat,
+    sessionExpired,
     setRole,
     setAuth,
-    clearAuth
+    clearAuth,
+    dismissSessionExpired,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

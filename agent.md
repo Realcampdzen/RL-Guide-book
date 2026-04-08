@@ -17,6 +17,7 @@
 4a. **[docs/ARCHITECTURE_AND_RESOURCES.md](docs/ARCHITECTURE_AND_RESOURCES.md)** — Подключённые ресурсы (Vercel, cf-api), роли, развитие продукта.
 5.  **[.memory-bank/active_context.md](.memory-bank/active_context.md)** — **Текущая задача** и фокус работы.
 6.  **[.memory-bank/progress.md](.memory-bank/progress.md)** — Детальный лог выполненного, Accepted UX (что не менять), Recent Changes.
+7.  **[agent-sync.md](agent-sync.md)** — **Inter-Agent Sync Board** 🤝 При старте сессии обязательно идентифицируйте свою роль/грейд (см. [.cursor/agent orchestration/AGENT_ROLES.md](.cursor/agent orchestration/AGENT_ROLES.md)) и запишите это в sync board. Оставляйте короткие архитектурные планы и ручные лок-файлы.
 
 ## Plan Mode и Build (Cursor)
 

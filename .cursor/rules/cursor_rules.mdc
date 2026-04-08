@@ -70,6 +70,8 @@ alwaysApply: true
 
   - After completing: update Claim Board status to Done, create report in `.cursor/agent orchestration/` (see AGENT_B_SESSION_REPORT.md).
 
+  - **Inter-Agent Communication:** Check and update [agent-sync.md](mdc:agent-sync.md) during your session. **Mandatory Onboarding:** Formulate an HR/EM analysis first: suggest lacking roles based on `.memory-bank` and `agent-sync.md` and ASK the user which role to claim. Only after user approval, declare your exact Role/Grade (e.g. L4 SWE) in `agent-sync.md`. Leave short notes explaining WHAT you are doing.
+
 - **Plan Mode / Build:**
 
   - Before executing any plan (Build, Plan implementation), check [docs/ROADMAP_2026.md](mdc:docs/ROADMAP_2026.md). If the task is marked **Done** — do not execute, do not overwrite working code. Ignore stale plans (proof_questionnaire_restoration, onboarding_hints, etc.).

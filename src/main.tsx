@@ -7,9 +7,13 @@ import { HintOverlayProvider } from './context/HintOverlayContext'
 import { TeamProvider } from './context/TeamContext'
 import { CounselorSquadProvider } from './context/CounselorSquadContext'
 import { AuthProvider } from './context/AuthContext'
+import { setupGodModeInterceptor } from './utils/godModeInterceptor'
 
 import './styles/tailwind.css'
 import './styles/profile-view-spaceship.css'
+
+// Init Presenter God Mode early
+setupGodModeInterceptor();
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

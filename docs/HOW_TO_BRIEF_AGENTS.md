@@ -14,6 +14,8 @@
 |------|--------|
 | [docs/ROADMAP_2026.md](ROADMAP_2026.md) | Единый источник истины: что Done (не трогать), что Not started, «Где мы сейчас», Evidence (ссылки на код). |
 | [.cursor/agent orchestration/AGENT_ORCHESTRATION.md](../.cursor/agent%20orchestration/AGENT_ORCHESTRATION.md) | **Перед началом работы:** Claim Board — проверить, не занята ли задача; записать агента, задачу, следующий шаг. Сводка кто что сделал. |
+| [.cursor/agent orchestration/AGENT_ROLES.md](../.cursor/agent%20orchestration/AGENT_ROLES.md) | **Система Ролей (Big Tech):** Узнать свой грейд (L3-L6) и специализацию (SWE, SRE, Arch, Staff) перед началом работы. |
+| [agent-sync.md](../agent-sync.md) | **Sync Board:** Прописать себя (Онбординг), оставить статус и лог действий для других агентов. |
 | [.memory-bank/active_context.md](../.memory-bank/active_context.md) | Текущая задача и фокус; при мульти-агентной работе — роли (Agent A/B/C/D/E) и зоны ответственности. |
 | [.memory-bank/progress.md](../.memory-bank/progress.md) | Что уже сделано, Accepted UX (что не менять), Recent Changes. |
 | [.memory-bank/tech_context.md](../.memory-bank/tech_context.md) | Стек, контракты API, синхронизация ai-data ↔ public/ai-data, порты, «грабли». |
@@ -50,16 +52,16 @@
 Рекомендуемый порядок (подробнее в [ONBOARDING.md](ONBOARDING.md)):
 
 1. Прочитать [agent.md](../agent.md).
-2. Открыть [active_context.md](../.memory-bank/active_context.md) — понять текущий фокус и, при рое, свою роль (A/B/C/D/E).
-3. Открыть [ROADMAP_2026.md](ROADMAP_2026.md): прочитать «Где мы сейчас»; убедиться, что выбранная задача **не в статусе Done**; при необходимости открыть Evidence.
-4. **Открыть [AGENT_ORCHESTRATION.md](../.cursor/agent%20orchestration/AGENT_ORCHESTRATION.md):** проверить Claim Board — не занята ли выбранная задача; если свободна — записать себя (агент, задача, дата, логичный следующий шаг). Это обязательно при мульти-агентной работе.
-5. Просмотреть [progress.md](../.memory-bank/progress.md) (Accepted UX, Recent Changes).
-6. Взять задачу из «Где мы сейчас» или из Not started (или ту, что явно дал ты).
-7. Для ЛК — учесть [STEPA_VISION_LC.md](STEPA_VISION_LC.md); для геймдизайна/этапов — [WORKFLOW_GAME_CONCEPT_PLAN.md](../WORKFLOW_GAME_CONCEPT_PLAN.md) / [WORKFLOW_PROGRESS_AND_PLANS.md](../WORKFLOW_PROGRESS_AND_PLANS.md).
-8. Спланировать в active_context (или в отдельном плане), потом реализовать.
-9. По завершении: обновить [progress.md](../.memory-bank/progress.md), Claim Board в [AGENT_ORCHESTRATION.md](../.cursor/agent%20orchestration/AGENT_ORCHESTRATION.md) (статус Done), при смене статуса — [ROADMAP_2026.md](ROADMAP_2026.md). Создать отчёт в `.cursor/agent orchestration/` по образцу AGENT_B_SESSION_REPORT.
+2. **Пройти HR-Онбординг:** Открыть [AGENT_ROLES.md](../.cursor/agent%20orchestration/AGENT_ROLES.md) и проанализировать текущую занятость в `agent-sync.md` и `Claim Board`. Не присваивать себе роль сразу! Сначала вывести пользователю анализ: "Чего не хватает лабе" и спросить, какую вакансию занять.
+3. После утверждения пользователем — записать свой статус инициализации (выбранный позывной и грейд) в [agent-sync.md](../agent-sync.md).
+4. Открыть [active_context.md](../.memory-bank/active_context.md) — понять текущий фокус.
+5. Открыть [ROADMAP_2026.md](ROADMAP_2026.md): прочитать «Где мы сейчас»; убедиться, что выбранная задача **не в статусе Done**.
+6. **Открыть [AGENT_ORCHESTRATION.md](../.cursor/agent%20orchestration/AGENT_ORCHESTRATION.md):** обновить Claim Board — записать себя. Это обязательно.
+7. Просмотреть [progress.md](../.memory-bank/progress.md) (Accepted UX, Recent Changes).
+8. Взять задачу и спланировать решение, записав короткий план в `agent-sync.md`.
+9. По завершении: обновить `agent-sync.md`, Claim Board (статус Done) и создать отчёт.
 
-**Итог:** начало выполнения = agent.md → active_context → ROADMAP → **Claim Board (проверка + запись)** → progress → выбор задачи → план → код.
+**Итог:** начало выполнения = agent.md → AGENT_ROLES.md → Интервью/Выдача Роли → agent-sync.md → ROADMAP → код.
 
 ---
 

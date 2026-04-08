@@ -1,259 +1,6 @@
 {
   "requests": [
     {
-      "id": "BR-4B90245345",
-      "createdAt": "2026-03-01T20:48:08.558712+00:00",
-      "status": "approved",
-      "levelId": "1.1.1",
-      "badgeTitle": "Smoke-Test Badge",
-      "requestedBy": {
-        "deviceId": "smoke_p_5578f62f",
-        "nickname": "SmokeParticipant"
-      },
-      "campId": "",
-      "squadId": null,
-      "evidence": {
-        "reflection": "Smoke test reflection",
-        "impact": "Smoke test impact"
-      },
-      "resolvedAt": "2026-03-01T20:48:12.669419+00:00",
-      "resolvedBy": {
-        "deviceId": "smoke_s_ae733903",
-        "role": "shift_leader"
-      },
-      "resolutionNote": "Smoke test approval"
-    },
-    {
-      "id": "BR-280CCFF1A8",
-      "createdAt": "2026-03-01T22:48:41.106407+00:00",
-      "status": "approved",
-      "levelId": "1.1.1",
-      "badgeTitle": "Smoke-Test Badge",
-      "requestedBy": {
-        "deviceId": "smoke_p_d79f7ace",
-        "nickname": "SmokeParticipant"
-      },
-      "campId": "",
-      "squadId": null,
-      "evidence": {
-        "reflection": "Smoke test reflection",
-        "impact": "Smoke test impact"
-      },
-      "resolvedAt": "2026-03-01T22:48:45.247989+00:00",
-      "resolvedBy": {
-        "deviceId": "smoke_s_47619abc",
-        "role": "shift_leader"
-      },
-      "resolutionNote": "Smoke test approval"
-    },
-    {
-      "id": "BR-2A47F77A06",
-      "createdAt": "2026-03-01T22:51:41.257959+00:00",
-      "status": "approved",
-      "levelId": "1.1.1",
-      "badgeTitle": "Smoke-Test Badge",
-      "requestedBy": {
-        "deviceId": "smoke_p_cda39afe",
-        "nickname": "SmokeParticipant"
-      },
-      "campId": "",
-      "squadId": null,
-      "evidence": {
-        "reflection": "Smoke test reflection",
-        "impact": "Smoke test impact"
-      },
-      "resolvedAt": "2026-03-01T22:51:45.393850+00:00",
-      "resolvedBy": {
-        "deviceId": "smoke_s_c6d20343",
-        "role": "shift_leader"
-      },
-      "resolutionNote": "Smoke test approval"
-    },
-    {
-      "id": "BR-DC41DF27A7",
-      "createdAt": "2026-03-01T23:28:06.757420+00:00",
-      "status": "approved",
-      "levelId": "1.1.1",
-      "badgeTitle": "Smoke-Test Badge",
-      "requestedBy": {
-        "deviceId": "smoke_p_79af8765",
-        "nickname": "SmokeParticipant"
-      },
-      "campId": "",
-      "squadId": null,
-      "evidence": {
-        "reflection": "Smoke test reflection",
-        "impact": "Smoke test impact"
-      },
-      "resolvedAt": "2026-03-01T23:28:10.867368+00:00",
-      "resolvedBy": {
-        "deviceId": "smoke_s_4ca7ee0e",
-        "role": "shift_leader"
-      },
-      "resolutionNote": "Smoke test approval"
-    },
-    {
-      "id": "BR-0CCA8F7640",
-      "createdAt": "2026-03-01T23:44:58.419266+00:00",
-      "status": "approved",
-      "levelId": "1.1.1",
-      "badgeTitle": "Smoke-Test Badge",
-      "requestedBy": {
-        "deviceId": "smoke_p_30139fbe",
-        "nickname": "SmokeParticipant"
-      },
-      "campId": "",
-      "squadId": null,
-      "evidence": {
-        "reflection": "Smoke test reflection",
-        "impact": "Smoke test impact"
-      },
-      "resolvedAt": "2026-03-01T23:45:02.533812+00:00",
-      "resolvedBy": {
-        "deviceId": "smoke_s_0ae71303",
-        "role": "shift_leader"
-      },
-      "resolutionNote": "Smoke test approval"
-    },
-    {
-      "id": "BR-49976E96FB",
-      "createdAt": "2026-03-01T23:49:41.129153+00:00",
-      "status": "approved",
-      "levelId": "1.1.1",
-      "badgeTitle": "Smoke-Test Badge",
-      "requestedBy": {
-        "deviceId": "smoke_p_46ac0e1e",
-        "nickname": "SmokeParticipant"
-      },
-      "campId": "",
-      "squadId": null,
-      "evidence": {
-        "reflection": "Smoke test reflection",
-        "impact": "Smoke test impact"
-      },
-      "resolvedAt": "2026-03-01T23:49:45.250966+00:00",
-      "resolvedBy": {
-        "deviceId": "smoke_s_6976fda6",
-        "role": "shift_leader"
-      },
-      "resolutionNote": "Smoke test approval"
-    },
-    {
-      "id": "BR-FEEA00726D",
-      "createdAt": "2026-03-02T00:16:19.052222+00:00",
-      "status": "approved",
-      "levelId": "1.1.1",
-      "badgeTitle": "Smoke-Test Badge",
-      "requestedBy": {
-        "deviceId": "smoke_p_1e1325de",
-        "nickname": "SmokeParticipant"
-      },
-      "campId": "",
-      "squadId": null,
-      "evidence": {
-        "reflection": "Smoke test reflection",
-        "impact": "Smoke test impact"
-      },
-      "resolvedAt": "2026-03-02T00:16:23.174061+00:00",
-      "resolvedBy": {
-        "deviceId": "smoke_s_9f1722a3",
-        "role": "shift_leader"
-      },
-      "resolutionNote": "Smoke test approval"
-    },
-    {
-      "id": "BR-7C1F179DF3",
-      "createdAt": "2026-03-02T00:28:45.925764+00:00",
-      "status": "approved",
-      "levelId": "1.1.1",
-      "badgeTitle": "Smoke-Test Badge",
-      "requestedBy": {
-        "deviceId": "smoke_p_64718934",
-        "nickname": "SmokeParticipant"
-      },
-      "campId": "",
-      "squadId": null,
-      "evidence": {
-        "reflection": "Smoke test reflection",
-        "impact": "Smoke test impact"
-      },
-      "resolvedAt": "2026-03-02T00:28:50.067800+00:00",
-      "resolvedBy": {
-        "deviceId": "smoke_s_537ccb76",
-        "role": "shift_leader"
-      },
-      "resolutionNote": "Smoke test approval"
-    },
-    {
-      "id": "BR-E9CBDD3F24",
-      "createdAt": "2026-03-02T01:27:54.374284+00:00",
-      "status": "approved",
-      "levelId": "1.1.1",
-      "badgeTitle": "Smoke-Test Badge",
-      "requestedBy": {
-        "deviceId": "smoke_p_6c6e1b36",
-        "nickname": "SmokeParticipant"
-      },
-      "campId": "",
-      "squadId": null,
-      "evidence": {
-        "reflection": "Smoke test reflection",
-        "impact": "Smoke test impact"
-      },
-      "resolvedAt": "2026-03-02T01:27:58.479720+00:00",
-      "resolvedBy": {
-        "deviceId": "smoke_s_89a2b656",
-        "role": "shift_leader"
-      },
-      "resolutionNote": "Smoke test approval"
-    },
-    {
-      "id": "BR-E2B3C0998D",
-      "createdAt": "2026-03-02T15:45:46.971770+00:00",
-      "status": "approved",
-      "levelId": "1.1.1",
-      "badgeTitle": "Smoke-Test Badge",
-      "requestedBy": {
-        "deviceId": "smoke_p_d1cfd3c8",
-        "nickname": "SmokeParticipant"
-      },
-      "campId": "",
-      "squadId": null,
-      "evidence": {
-        "reflection": "Smoke test reflection",
-        "impact": "Smoke test impact"
-      },
-      "resolvedAt": "2026-03-02T15:45:51.202405+00:00",
-      "resolvedBy": {
-        "deviceId": "smoke_s_95943052",
-        "role": "shift_leader"
-      },
-      "resolutionNote": "Smoke test approval"
-    },
-    {
-      "id": "BR-98CBF7E894",
-      "createdAt": "2026-03-02T15:51:49.938710+00:00",
-      "status": "approved",
-      "levelId": "1.1.1",
-      "badgeTitle": "Smoke-Test Badge",
-      "requestedBy": {
-        "deviceId": "smoke_p_c636d204",
-        "nickname": "SmokeParticipant"
-      },
-      "campId": "",
-      "squadId": null,
-      "evidence": {
-        "reflection": "Smoke test reflection",
-        "impact": "Smoke test impact"
-      },
-      "resolvedAt": "2026-03-02T15:51:54.097496+00:00",
-      "resolvedBy": {
-        "deviceId": "smoke_s_737628de",
-        "role": "shift_leader"
-      },
-      "resolutionNote": "Smoke test approval"
-    },
-    {
       "id": "BR-47B495055B",
       "createdAt": "2026-03-17T01:30:21.024733+00:00",
       "status": "rejected",
@@ -370,6 +117,98 @@
         "role": "developer"
       },
       "resolutionNote": "ты лох"
+    },
+    {
+      "id": "BR-AC732B7A33",
+      "createdAt": "2026-04-08T02:30:42.516220+00:00",
+      "status": "approved",
+      "levelId": "1.1.1",
+      "badgeTitle": "Smoke-Test Badge",
+      "requestedBy": {
+        "deviceId": "smoke_p_86f18504",
+        "nickname": "SmokeParticipant"
+      },
+      "campId": "",
+      "squadId": null,
+      "evidence": {
+        "reflection": "Smoke test reflection",
+        "impact": "Smoke test impact"
+      },
+      "resolvedAt": "2026-04-08T02:30:42.568033+00:00",
+      "resolvedBy": {
+        "deviceId": "smoke_s_e2e57d0f",
+        "role": "shift_leader"
+      },
+      "resolutionNote": "Smoke test approval"
+    },
+    {
+      "id": "BR-29C9E3AA54",
+      "createdAt": "2026-04-08T02:31:17.185539+00:00",
+      "status": "approved",
+      "levelId": "1.1.1",
+      "badgeTitle": "Smoke-Test Badge",
+      "requestedBy": {
+        "deviceId": "smoke_p_0aec24d0",
+        "nickname": "SmokeParticipant"
+      },
+      "campId": "",
+      "squadId": null,
+      "evidence": {
+        "reflection": "Smoke test reflection",
+        "impact": "Smoke test impact"
+      },
+      "resolvedAt": "2026-04-08T02:31:17.260498+00:00",
+      "resolvedBy": {
+        "deviceId": "smoke_s_354dd080",
+        "role": "shift_leader"
+      },
+      "resolutionNote": "Smoke test approval"
+    },
+    {
+      "id": "BR-2C99CFE006",
+      "createdAt": "2026-04-08T02:33:34.859786+00:00",
+      "status": "approved",
+      "levelId": "1.1.1",
+      "badgeTitle": "Smoke-Test Badge",
+      "requestedBy": {
+        "deviceId": "smoke_p_83e0a836",
+        "nickname": "SmokeParticipant"
+      },
+      "campId": "",
+      "squadId": null,
+      "evidence": {
+        "reflection": "Smoke test reflection",
+        "impact": "Smoke test impact"
+      },
+      "resolvedAt": "2026-04-08T02:33:34.919775+00:00",
+      "resolvedBy": {
+        "deviceId": "smoke_s_b8d58d65",
+        "role": "shift_leader"
+      },
+      "resolutionNote": "Smoke test approval"
+    },
+    {
+      "id": "BR-B703F34E52",
+      "createdAt": "2026-04-08T02:34:31.934455+00:00",
+      "status": "approved",
+      "levelId": "1.1.1",
+      "badgeTitle": "Smoke-Test Badge",
+      "requestedBy": {
+        "deviceId": "smoke_p_df0dd1dd",
+        "nickname": "SmokeParticipant"
+      },
+      "campId": "",
+      "squadId": null,
+      "evidence": {
+        "reflection": "Smoke test reflection",
+        "impact": "Smoke test impact"
+      },
+      "resolvedAt": "2026-04-08T02:34:31.968776+00:00",
+      "resolvedBy": {
+        "deviceId": "smoke_s_b3a77314",
+        "role": "shift_leader"
+      },
+      "resolutionNote": "Smoke test approval"
     }
   ]
 }

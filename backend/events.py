@@ -55,7 +55,13 @@ def _ensure_events_dir():
 
 def append_confirmation_event(event: ConfirmationRequestedEvent) -> None:
     """Добавить событие confirmation_requested в файл (append)."""
-    _ensure_events_dir()
+    try:
+        _ensure_events_dir()
+    except OSError as e:
+        import logging
+        logging.warning("Skipping event save due to readonly filesystem: %s", e)
+        return
+
     record = {"type": "confirmation_requested", **event.to_dict()}
     with _FILE_LOCK:
         events: List[dict] = []
@@ -70,13 +76,23 @@ def append_confirmation_event(event: ConfirmationRequestedEvent) -> None:
         if not isinstance(events, list):
             events = []
         events.append(record)
-        with open(CONFIRMATION_EVENTS_FILE, "w", encoding="utf-8") as f:
-            json.dump(events, f, ensure_ascii=False, indent=2)
+        try:
+            with open(CONFIRMATION_EVENTS_FILE, "w", encoding="utf-8") as f:
+                json.dump(events, f, ensure_ascii=False, indent=2)
+        except OSError as e:
+            import logging
+            logging.warning("Could not persist event %s: %s", record, e)
 
 
 def append_level_achieved_event(event: LevelAchievedEvent) -> None:
     """Добавить событие level_achieved (вожатый подтвердил уровень). Один поток с confirmation_requested."""
-    _ensure_events_dir()
+    try:
+        _ensure_events_dir()
+    except OSError as e:
+        import logging
+        logging.warning("Skipping event save due to readonly filesystem: %s", e)
+        return
+
     record = {"type": "level_achieved", **event.to_dict()}
     with _FILE_LOCK:
         events: List[dict] = []
@@ -91,8 +107,12 @@ def append_level_achieved_event(event: LevelAchievedEvent) -> None:
         if not isinstance(events, list):
             events = []
         events.append(record)
-        with open(CONFIRMATION_EVENTS_FILE, "w", encoding="utf-8") as f:
-            json.dump(events, f, ensure_ascii=False, indent=2)
+        try:
+            with open(CONFIRMATION_EVENTS_FILE, "w", encoding="utf-8") as f:
+                json.dump(events, f, ensure_ascii=False, indent=2)
+        except OSError as e:
+            import logging
+            logging.warning("Could not persist event %s: %s", record, e)
 
 
 def get_confirmation_events(limit: int = MAX_EVENTS_READ) -> List[dict]:

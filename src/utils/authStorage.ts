@@ -23,6 +23,8 @@ export interface AuthStorage {
   accountId?: string;
   legacyRoleOwner?: UserRole;
   legacyMigrated?: boolean;
+  /** True when the stored token was expired and cleared on load */
+  _expired?: boolean;
 }
 
 type TokenClaims = {
@@ -117,7 +119,7 @@ export function loadAuthStorage(): AuthStorage {
     const expired = exp != null && exp * 1000 < Date.now();
     if (expired) {
       clearAuthStorage();
-      return { role: DEFAULT_ROLE, deviceId: baseDeviceId, baseDeviceId };
+      return { role: DEFAULT_ROLE, deviceId: baseDeviceId, baseDeviceId, _expired: true };
     }
 
     const scopedDeviceId = (data.deviceId || tokenClaims.deviceId || baseDeviceId).trim();
