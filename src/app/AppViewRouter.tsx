@@ -428,36 +428,52 @@ export const AppViewRouter: React.FC<Props> = ({ controller, fallback }) => {
         <div style={{
           position: 'fixed', bottom: 90, left: '50%', transform: 'translateX(-50%)',
           zIndex: 1099, width: 'min(360px, calc(100% - 32px))',
-          background: 'rgba(8, 12, 28, 0.96)',
-          border: '1px solid rgba(93,228,255,0.15)',
-          borderRadius: 16, padding: '20px 24px',
+          background: 'rgba(15, 12, 35, 0.98)',
+          border: '1px solid rgba(93,228,255,0.25)',
+          borderRadius: 16, padding: '24px',
           backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
-          boxShadow: '0 12px 40px rgba(0,0,0,0.5)',
+          boxShadow: '0 12px 40px rgba(0,0,0,0.6), 0 0 20px rgba(93,228,255,0.1)',
           textAlign: 'center',
           animation: 'rl-welcome-slide-in 0.5s ease-out',
         }}>
-          <div style={{ fontSize: 14, fontWeight: 600, color: '#e8f0ff', marginBottom: 6 }}>
-            Выберите свою роль
+          <div style={{ fontSize: 16, fontWeight: 700, color: '#e8f0ff', marginBottom: 8 }}>
+            Добро пожаловать на борт!
           </div>
-          <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', lineHeight: 1.5, marginBottom: 14 }}>
-            Для доступа к Личному Кабинету необходимо выбрать роль
+          <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)', lineHeight: 1.5, marginBottom: 18 }}>
+            Начни интерактивную экскурсию по экосистеме или войди, если у тебя уже есть код
           </div>
-          <button type="button" onClick={() => { dismissWelcome(); setShowRoleModal(true); }}
-            style={{
-              width: '100%', padding: '11px 0', borderRadius: 10,
-              background: 'rgba(93,228,255,0.12)', border: '1px solid rgba(93,228,255,0.2)',
-              color: '#5de4ff', fontSize: 13, fontWeight: 600, cursor: 'pointer',
-              transition: 'background 0.15s',
-            }}>
-            Войти / Выбрать роль
-          </button>
-          <button type="button" onClick={dismissWelcome}
-            style={{
-              display: 'block', margin: '10px auto 0', background: 'none', border: 'none',
-              color: 'rgba(255,255,255,0.25)', fontSize: 11, cursor: 'pointer',
-            }}>
-            Пропустить
-          </button>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <button type="button" onClick={() => {
+              dismissWelcome();
+              localStorage.setItem('rl-selected-role', 'traveler');
+              if (!localStorage.getItem('rl-traveler-tour-done')) {
+                startTutorial(getTravelerTourSteps(controller), {
+                  onComplete: () => { 
+                    localStorage.setItem('rl-traveler-tour-done', '1');
+                    controller.setCurrentView('intro'); 
+                  }
+                });
+              }
+            }}
+              style={{
+                width: '100%', padding: '12px 0', borderRadius: 10,
+                background: 'linear-gradient(135deg, rgba(93,228,255,0.2) 0%, rgba(93,228,255,0.05) 100%)',
+                border: '1px solid rgba(93,228,255,0.3)',
+                color: '#5de4ff', fontSize: 14, fontWeight: 700, cursor: 'pointer',
+                transition: 'background 0.15s, transform 0.1s',
+              }}>
+              🚀 Начать экскурсию
+            </button>
+            <button type="button" onClick={() => { dismissWelcome(); setShowRoleModal(true); }}
+              style={{
+                width: '100%', padding: '12px 0', borderRadius: 10,
+                background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
+                color: 'rgba(255,255,255,0.8)', fontSize: 13, fontWeight: 500, cursor: 'pointer',
+                transition: 'background 0.15s',
+              }}>
+              У меня есть код (Войти)
+            </button>
+          </div>
         </div>
       )}
 

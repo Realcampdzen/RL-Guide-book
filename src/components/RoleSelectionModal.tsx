@@ -595,26 +595,12 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({ onResult
         }}>
             <div
                 onClick={e => e.stopPropagation()}
-                ref={(el) => {
-                    if (el) {
-                        // Hide webkit scrollbar via JS (no external CSS needed)
-                        const style = document.createElement('style');
-                        style.textContent = `[data-role-modal]::-webkit-scrollbar { display: none; }`;
-                        if (!document.querySelector('style[data-role-modal-style]')) {
-                            style.setAttribute('data-role-modal-style', '');
-                            document.head.appendChild(style);
-                        }
-                    }
-                }}
                 data-role-modal=""
                 style={{
                 width: '100%', maxWidth: 440, padding: 28, borderRadius: 20,
                 background: 'linear-gradient(180deg, rgba(30,27,60,0.95), rgba(15,12,35,0.95))',
                 border: '1px solid rgba(255,255,255,0.1)',
-                maxHeight: '80vh', overflowY: 'auto',
-                scrollbarWidth: 'none',           // Firefox
-                msOverflowStyle: 'none',           // IE / Edge legacy
-
+                maxHeight: '90vh', overflowY: 'auto'
             } as React.CSSProperties}>
 
 
