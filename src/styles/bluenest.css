@@ -1648,7 +1648,7 @@
                 font-size: 1rem;
             }
             .nav-image-container.nav-home {
-                top: 0.75rem !important;
+                top: calc(1.25rem + 15px) !important;
                 left: clamp(1.75rem, 6vw, 2.5rem) !important;
             }
             .nav-image-container.nav-home img {
