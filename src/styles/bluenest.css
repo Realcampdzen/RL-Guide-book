@@ -114,6 +114,35 @@
         .btn-agency:hover::after { height: 100%; }
         .btn-agency:hover { transform: scale(1.05); box-shadow: 0 20px 40px rgba(106, 13, 173, 0.25); }
 
+        .btn-space-tutorial {
+            padding: 12px 24px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #080c16 0%, #170924 100%);
+            border: 1px solid rgba(77, 172, 255, 0.6);
+            color: #ceecff;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            cursor: pointer;
+            flex: 1 1 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 15px rgba(77, 172, 255, 0.2), inset 0 0 10px rgba(77, 172, 255, 0.1);
+            text-shadow: 0 0 8px rgba(206, 236, 255, 0.4);
+        }
+
+        .btn-space-tutorial:hover {
+            background: linear-gradient(135deg, #0b1222 0%, #220d36 100%);
+            border-color: #4dacff;
+            box-shadow: 0 0 25px rgba(77, 172, 255, 0.5), inset 0 0 15px rgba(77, 172, 255, 0.3);
+            color: #ffffff;
+            text-shadow: 0 0 12px rgba(255, 255, 255, 0.8);
+            transform: translateY(-2px);
+        }
+
         /* Navigation */
         .nav {
             position: fixed;

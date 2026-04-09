@@ -718,24 +718,7 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
                   </button>
                   <button
                     onClick={handleStartTourCTA}
-                    className="hover-target"
-                    style={{
-                      padding: '12px 24px',
-                      borderRadius: '8px',
-                      background: 'rgba(255, 255, 255, 0.1)',
-                      border: '1px solid rgba(255, 255, 255, 0.2)',
-                      color: '#ffffff',
-                      fontSize: '13px',
-                      fontWeight: 700,
-                      letterSpacing: '0.1em',
-                      textTransform: 'uppercase',
-                      cursor: 'pointer',
-                      flex: '1 1 auto',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      transition: 'all 0.2s ease',
-                    }}
+                    className="hover-target btn-space-tutorial"
                   >
                     Пройти обучение
                   </button>
