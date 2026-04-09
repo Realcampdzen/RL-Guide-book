@@ -1481,21 +1481,21 @@
             .hero .hero-content .hero-title,
             section.hero .hero-content h1.hero-title,
             .hero-title {
-                font-size: clamp(2.5rem, 8vw + 1rem, 4.5rem) !important;
+                font-size: clamp(2.5rem, 6vw + 1rem, 4rem) !important; /* Флюидная адаптивность для мобильных */
                 line-height: 0.9 !important;
-                padding-right: 0 !important;
+                padding-right: clamp(0.5rem, 2vw, 1rem) !important;
                 text-align: left !important;
                 margin: 0 !important;
-                max-width: 100% !important;
-                word-break: break-word !important;
-                overflow-wrap: break-word !important;
-                white-space: normal !important;
-                z-index: 5 !important;
+                max-width: 90vw !important;
+                word-break: keep-all !important;
+                overflow-wrap: normal !important;
+                white-space: nowrap !important;
                 position: relative !important;
+                z-index: 5 !important;
             }
             .hero-title span {
                 display: block !important;
-                white-space: normal !important;
+                white-space: nowrap !important;
                 position: relative !important;
             }
             .hero-title .highlight {
@@ -1503,7 +1503,7 @@
                 position: relative !important;
             }
             .hero-title-first-word {
-                white-space: normal !important;
+                white-space: nowrap !important;
             }
             .marquee {
                 margin-top: -55vh !important;
@@ -1519,19 +1519,16 @@
             @media (max-width: 768px) and (orientation: portrait) {
                 .hero-content {
                     top: clamp(6rem, 14vh, 10rem) !important; /* Опускаем надпись ниже в портретной ориентации */
-                    padding-left: 0 !important; 
-                    margin-left: 0 !important; 
-                    padding-right: 0 !important; 
+                    padding-left: clamp(0.5rem, 2vw, 1rem) !important; /* Смещаем текст влево */
+                    margin-left: -2.5vw !important; /* Увеличиваем смещение влево для предотвращения выхода текста за край */
+                    padding-right: clamp(1rem, 3vw, 2rem) !important; /* Отступ справа */
                 }
                 .hero .hero-content .hero-title,
                 section.hero .hero-content h1.hero-title,
                 .hero-title {
-                    font-size: clamp(2.4rem, 12vw, 4.5rem) !important; 
-                    padding-right: 0 !important; 
-                    max-width: 100% !important;
-                    word-break: break-word !important;
-                    overflow-wrap: break-word !important;
-                    white-space: normal !important;
+                    font-size: clamp(2.4rem, 10vw, 4.5rem) !important; /* Adjusted slightly smaller to fit width */
+                    padding-right: clamp(1rem, 2vw, 2rem) !important; 
+                    max-width: calc(100vw - 1rem) !important;
                 }
             }
             .manifesto { 
