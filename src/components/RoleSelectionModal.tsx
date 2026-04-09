@@ -680,6 +680,7 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({ onResult
 
                             ))}
 
+                        </div>
                     </>
 
                 )}
