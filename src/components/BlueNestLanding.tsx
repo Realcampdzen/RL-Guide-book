@@ -56,7 +56,6 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
   onHoverStart,
   onChatToggle,
   categories,
-  masterIndex,
 }) => {
   const { initReveal } = useScrollReveal();
   const [loaderHidden, setLoaderHidden] = useState(false);
