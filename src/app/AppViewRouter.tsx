@@ -110,6 +110,17 @@ export const AppViewRouter: React.FC<Props> = ({ controller, fallback }) => {
     }
   }, [auth, controller, startTutorial, pendingProfileNav]);
 
+  const handleStartTour = useCallback(() => {
+    controller.setCurrentView('intro');
+    try { localStorage.removeItem('rl-traveler-tour-done'); } catch { /* */ }
+    startTutorial(getTravelerTourSteps(controller), {
+      onComplete: () => { 
+          try { localStorage.setItem('rl-traveler-tour-done', '1'); } catch { /* */ }
+          controller.setCurrentView('intro'); 
+      }
+    });
+  }, [controller, startTutorial]);
+
   const dismissWelcome = useCallback(() => {
     setShowWelcome(false);
     try { localStorage.setItem('rl-welcome-dismissed', '1'); } catch { /* */ }
@@ -210,6 +221,7 @@ export const AppViewRouter: React.FC<Props> = ({ controller, fallback }) => {
       <GlobalCursor />
       {loading && (
         <BlueNestLanding
+          onStartTour={handleStartTour}
           onStartClick={handleIntroClick}
           onLogoClick={handleLogoClick}
           onAboutCampClick={() => setCurrentView('about-camp')}
@@ -244,6 +256,7 @@ export const AppViewRouter: React.FC<Props> = ({ controller, fallback }) => {
 
       {!loading && currentView === 'intro' && (
         <BlueNestLanding
+          onStartTour={handleStartTour}
           onStartClick={handleIntroClick}
           onLogoClick={handleLogoClick}
           onAboutCampClick={() => setCurrentView('about-camp')}

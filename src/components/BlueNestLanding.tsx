@@ -19,6 +19,7 @@ interface BlueNestLandingProps {
   onOpenBadgeById?: (badgeId: string) => void;
   onOpenProfile?: () => void;
   onLoginClick?: () => void;
+  onStartTour?: () => void;
   onHoverLogin?: () => void;
   onHoverAboutCamp?: () => void;
   onHoverStart?: () => void;
@@ -49,6 +50,7 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
   onCategoryClick,
   onOpenBadgeById,
   onLoginClick,
+  onStartTour,
   onHoverLogin,
   onHoverAboutCamp,
   onHoverStart,
@@ -109,6 +111,11 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
     } else {
       onStartClick();
     }
+  };
+
+  const handleStartTourCTA = () => {
+    setIsConceptOpen(false);
+    if (onStartTour) onStartTour();
   };
 
   const handleContactCTA = () => {
@@ -685,6 +692,29 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
                     }}
                   >
                     Сотрудничество
+                  </button>
+                  <button
+                    onClick={handleStartTourCTA}
+                    className="hover-target"
+                    style={{
+                      padding: '12px 24px',
+                      borderRadius: '8px',
+                      background: 'rgba(255, 255, 255, 0.1)',
+                      border: '1px solid rgba(255, 255, 255, 0.2)',
+                      color: '#ffffff',
+                      fontSize: '13px',
+                      fontWeight: 700,
+                      letterSpacing: '0.1em',
+                      textTransform: 'uppercase',
+                      cursor: 'pointer',
+                      flex: '1 1 auto',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      transition: 'all 0.2s ease',
+                    }}
+                  >
+                    Пройти обучение
                   </button>
                 </div>
 
