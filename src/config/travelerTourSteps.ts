@@ -70,7 +70,7 @@ export function getTravelerTourSteps(controller: AppController): HintStep[] {
     },
     {
       title: 'Отрядный Уголок',
-      content: 'Онлайн-штаб твоего текущего отряда. Расписание, списки участников, баллы и внутренние дела смены будут находиться именно тут.',
+      content: 'Онлайн-штаб твоего текущего отряда. Расписание, списки участников, баллы, чаты и внутренние дела смены будут находиться именно тут.',
       targetSelector: '[data-tour="sidebar-squad-corner"]',
       beforeAction: async () => {
         if (typeof window !== 'undefined') {
