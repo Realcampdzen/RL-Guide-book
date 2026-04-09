@@ -1473,8 +1473,8 @@
             .nav { padding: 1.5rem 2rem; }
             .menu-items { display: none; /* Simplified mobile nav for demo */ }
             .hero { 
-                padding: 0 5vw 0 5vw !important;
-                min-height: 100vh;
+                padding: 0 5vw 2rem 5vw !important;
+                min-height: auto !important;
                 justify-content: flex-start;
                 align-items: flex-start;
                 z-index: 10 !important;
@@ -1483,8 +1483,8 @@
             .hero-content {
                 width: 100%;
                 text-align: left;
-                margin-top: 0 !important;
-                top: clamp(4rem, 10vh, 7rem) !important;
+                margin-top: clamp(4rem, 10vh, 7rem) !important;
+                top: 0 !important;
                 z-index: 10 !important;
                 position: relative !important;
             }
@@ -1516,9 +1516,10 @@
                 white-space: nowrap !important;
             }
             .marquee {
-                margin-top: calc(-55vh - 45px) !important;
-                z-index: 5 !important;
+                margin-top: -2rem !important; /* Gentle overlap instead of -55vh viewport pull */
+                z-index: 30 !important;
                 position: relative !important;
+                pointer-events: none !important;
             }
             /* Убеждаемся что hero-bg ниже marquee */
             .hero-bg {
@@ -1528,7 +1529,7 @@
             /* Портретная ориентация на мобильных - надпись больше и ниже */
             @media (max-width: 768px) and (orientation: portrait) {
                 .hero-content {
-                    top: clamp(6rem, 14vh, 10rem) !important; /* Опускаем надпись ниже в портретной ориентации */
+                    margin-top: clamp(6rem, 14vh, 10rem) !important; /* Опускаем надпись ниже в портретной ориентации */
                     padding-left: clamp(0.5rem, 2vw, 1rem) !important; /* Смещаем текст влево */
                     margin-left: -2.5vw !important; /* Увеличиваем смещение влево для предотвращения выхода текста за край */
                     padding-right: clamp(1rem, 3vw, 2rem) !important; /* Отступ справа */
