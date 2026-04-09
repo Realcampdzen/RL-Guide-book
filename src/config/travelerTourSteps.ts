@@ -36,7 +36,8 @@ export function getTravelerTourSteps(controller: AppController): HintStep[] {
       targetSelector: '.badge-view-hero, .badge-detail-content',
       beforeAction: async () => {
         const entries = await controller.ensureBadgeLoaded('1.16');
-        const guideBadge = entries?.find(b => b.id === '1.16') || controller.badges?.find(b => b.id === '1.16');
+        const isGuide = (b: { id: string }) => b.id === '1.16' || b.id.startsWith('1.16.');
+        const guideBadge = entries?.find(isGuide) || controller.badges?.find(isGuide);
         if (guideBadge) {
           controller.handleBadgeClick(guideBadge, { origin: 'category' });
           await new Promise(r => setTimeout(r, 400));
@@ -62,7 +63,8 @@ export function getTravelerTourSteps(controller: AppController): HintStep[] {
       targetSelector: '.badge-view-hero, .levels-scroll-container, .badge-detail-content',
       beforeAction: async () => {
         const entries = await controller.ensureBadgeLoaded('12.1');
-        const aiBadge = entries?.find(b => b.id === '12.1') || controller.badges?.find(b => b.id === '12.1');
+        const isAi = (b: { id: string }) => b.id === '12.1' || b.id.startsWith('12.1.');
+        const aiBadge = entries?.find(isAi) || controller.badges?.find(isAi);
         if (aiBadge) {
           controller.handleBadgeClick(aiBadge, { origin: 'category' });
           await new Promise(r => setTimeout(r, 600));
