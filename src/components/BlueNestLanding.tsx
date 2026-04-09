@@ -262,6 +262,9 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
       if (e.target && conceptPopoverRef.current?.contains(e.target as Node)) {
         return;
       }
+      if (e.target && conceptButtonRef.current?.contains(e.target as Node)) {
+        return;
+      }
       setIsConceptOpen(false);
     };
     const wheelOptions: AddEventListenerOptions = { passive: true, capture: true };

@@ -554,20 +554,18 @@ const CategoriesGrid: React.FC<CategoriesGridProps> = ({
             </div>
           </div>
 
-          {/* Top Row Categories — без обёртки, карточки прямо в сетке на главном фоне */}
-          {!isMobile &&
-            topRowCategories.map((category) => renderCategoryCard(category, 'top-row-card'))}
-
-          {/* Bottom Row Categories - последние 7 категорий */}
-          {!isMobile ? (
+          {/* Desktop/Tablet Categories Structure */}
+          <div className="desktop-categories" style={{ display: isMobile ? 'none' : 'contents' }}>
+            {topRowCategories.map((category) => renderCategoryCard(category, 'top-row-card'))}
             <div className="bottom-row" data-categories-bottom-row>
               {bottomRowCategories.map((category) => renderCategoryCard(category))}
             </div>
-          ) : (
-            <div className="right-column" style={{ gridColumn: '1', gridRow: '1', width: '100%', display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px' }}>
-              {limitedCategories.map((category) => renderCategoryCard(category))}
-            </div>
-          )}
+          </div>
+
+          {/* Mobile Categories Structure */}
+          <div className="right-column mobile-categories" style={{ gridColumn: '1', gridRow: '1', width: '100%', display: isMobile ? 'grid' : 'none', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px' }}>
+            {limitedCategories.map((category) => renderCategoryCard(category))}
+          </div>
         </div>
       </main>
 

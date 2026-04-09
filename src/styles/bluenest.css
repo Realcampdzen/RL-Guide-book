@@ -902,8 +902,8 @@
             display: flex;
             white-space: nowrap;
             will-change: transform;
-            -webkit-animation: scrollText 60s linear infinite;
-            animation: scrollText 60s linear infinite;
+            -webkit-animation: scrollText 35s linear infinite;
+            animation: scrollText 35s linear infinite;
         }
         .marquee-item {
             font-family: var(--f-display);
