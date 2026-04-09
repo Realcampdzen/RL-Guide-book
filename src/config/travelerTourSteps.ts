@@ -5,7 +5,7 @@ export function getTravelerTourSteps(controller: AppController): HintStep[] {
   return [
     {
       title: 'Привет, Путешественник!',
-      content: 'Добро пожаловать на борт масштабной экосистемы "Реального Лагеря". Это твой личный проводник в мир сотен значков и достижений. Давай проведем короткий инструктаж, прямо как в крутой игре!',
+      content: 'Добро пожаловать на борт масштабной экосистемы Реального Лагеря. Это твой личный проводник в мир сотен значков и достижений. Давай проведем короткий инструктаж, прямо как в крутой игре!',
       beforeAction: () => { controller.setCurrentView('intro'); },
       delayBeforeMeasure: 300,
     },
@@ -32,7 +32,7 @@ export function getTravelerTourSteps(controller: AppController): HintStep[] {
     },
     {
       title: 'Значок "Путеводитель"',
-      content: 'Крутая особенность: этот значок выдаётся за развитие самого Путеводителя! Участники вместе с педагогами и тренерами могут сами создавать новые значки и даже целые направления. Экосистему формируют сами игроки!',
+      content: 'Крутая особенность: этот значок выдаётся за развитие самого Путеводителя! Участники могут сами создавать новые значки и даже целые направления. Эту педагогическую систему, программу смены и игрофикацию формируют сами дети!',
       targetSelector: '.badge-view-hero, .badge-detail-content',
       beforeAction: async () => {
         const guideBadge = controller.badges?.find(b => b.id === '1.16');
@@ -47,7 +47,7 @@ export function getTravelerTourSteps(controller: AppController): HintStep[] {
     },
     {
       title: 'Личный Кабинет',
-      content: 'Из любой точки можно перейти в защищенный профиль. Здесь хранится статистика, заработанные значки и инструменты управления смен.',
+      content: 'Это твой аккаунт. Здесь хранится статистика, заработанные значки и инструменты управления смен.',
       targetSelector: '[data-tour="nav-profile"]',
       beforeAction: () => {
         controller.setCurrentView('profile');
@@ -81,7 +81,7 @@ export function getTravelerTourSteps(controller: AppController): HintStep[] {
     },
     {
       title: 'Движок',
-      content: 'Движок — это команда проектной работы или отряд по интересам. Создавайте движки, чтобы вместе получать значки и творить великие дела!',
+      content: 'Движок — это объединение по интересам для реализации различных проектов. Создавайте движки, чтобы вместе получать значки и творить великие дела!',
       targetSelector: '[data-tour="sidebar-engine"]',
       beforeAction: async () => {
         if (typeof window !== 'undefined') {
@@ -93,7 +93,7 @@ export function getTravelerTourSteps(controller: AppController): HintStep[] {
     },
     {
       title: 'Совет Лагеря',
-      content: 'Главное место для голосований, выборов и принятия глобальных лагерных решений. Здесь вершится демократия и принимаются новые законы "Реального".',
+      content: 'Главное место для голосований, выборов и принятия глобальных решений. По сути, это высший институт соуправления лагерем.',
       targetSelector: '[data-tour="sidebar-council"]',
       beforeAction: async () => {
         if (typeof window !== 'undefined') {
@@ -104,8 +104,8 @@ export function getTravelerTourSteps(controller: AppController): HintStep[] {
       delayBeforeMeasure: 400,
     },
     {
-      title: 'Кабинеты Ролей',
-      content: 'Здесь родители следят за достижениями участников. Платформа поддерживает множество ролей: Участники, Родственники, Педагоги/Тренеры, Старшие Вожатые и Организаторы!',
+      title: 'Кабинеты Родителей',
+      content: 'Здесь родители следят за достижениями участников. Вообще, платформа поддерживает множество ролей: Участник, Родитель, Педагог/Тренер, Старший Вожатый и Начальник Лагеря!',
       targetSelector: '[data-tour="sidebar-parents"]',
       beforeAction: async () => {
         if (typeof window !== 'undefined') {
@@ -117,14 +117,14 @@ export function getTravelerTourSteps(controller: AppController): HintStep[] {
     },
     {
       title: 'ИИ-Ассистент НейроВалюша',
-      content: 'Если ты потерялся или хочешь узнать о лагере что-то уникальное — спроси у НейроВалюши! Это наша фирменная нейросеть, всегда готовая помочь.',
+      content: 'НейроВалюша — это наша мощная нейросеть и продвинутый персональный ИИ-ассистент. Она может помочь с любыми задачами, сгенерировать расписание или подкинуть новые идеи для отряда и смены.',
       targetSelector: '.chat-avatar-button',
       beforeAction: () => { controller.setCurrentView('intro'); },
       delayBeforeMeasure: 500,
     },
     {
       title: 'К полету готов!',
-      content: 'Теперь ты знаешь, как устроена цифровая вселенная Путеводителя. Исследуй интерфейс, читай про значки и готовься к реальным сменам. Удачи!',
+      content: 'Теперь ты знаешь, как устроена вселенная Путеводителя. Исследуй интерфейс, читай про значки и готовься к реальным сменам. Удачи!',
       delayBeforeMeasure: 100,
     }
   ];
