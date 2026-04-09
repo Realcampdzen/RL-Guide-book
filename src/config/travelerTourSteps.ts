@@ -32,7 +32,7 @@ export function getTravelerTourSteps(controller: AppController): HintStep[] {
     },
     {
       title: 'Значок "Путеводитель"',
-      content: 'Философия платформы: взрослые не диктуют правила. Этот значок выдаётся за развитие системы! Участники создают новые достижения и формируют программу смены. Будущее лагеря в ваших руках.',
+      content: 'Этот значок выдаётся за развитие системы! Придумай собственный значок, реализуй его в лагере, и он появится здесь. Участники сами формируют программу смены. Будущее лагеря в ваших руках.',
       targetSelector: '.badge-view-hero, .badge-detail-content',
       beforeAction: async () => {
         const entries = await controller.ensureBadgeLoaded('1.16');
@@ -48,7 +48,7 @@ export function getTravelerTourSteps(controller: AppController): HintStep[] {
     },
     {
       title: 'Личный Кабинет',
-      content: 'Твой цифровой профиль. Здесь хранится статистика успехов, коллекция заработанных значков и персональные инструменты управления сменами.',
+      content: 'Твой цифровой профиль. Здесь фиксируется твой реальный лагерный опыт и коллекция заработанных значков. Участники выстраивают свой путь развития, а вожатые получают мощный инвентарь для координации отрядных дел.',
       targetSelector: '[data-tour="nav-profile"]',
       beforeAction: () => {
         controller.setCurrentView('profile');
