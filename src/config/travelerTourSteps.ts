@@ -5,20 +5,20 @@ export function getTravelerTourSteps(controller: AppController): HintStep[] {
   return [
     {
       title: 'Привет, Путешественник!',
-      content: 'Добро пожаловать в Путеводитель "Реального Лагеря". Это твой проводник в мир наших смен. Давай проведем короткий инструктаж, как в крутой видеоигре. Жми "Далее"!',
+      content: 'Добро пожаловать на борт масштабной экосистемы "Реального Лагеря". Это твой личный проводник в мир сотен значков и достижений. Давай проведем короткий инструктаж, прямо как в крутой игре!',
       beforeAction: () => { controller.setCurrentView('intro'); },
       delayBeforeMeasure: 300,
     },
     {
       title: 'Дерево Навыков (Категории)',
-      content: 'Здесь собраны все направления и значки (внутрилагерные достижения), которые можно получить на сменах. Это твоя база знаний!',
+      content: 'Здесь собраны все направления и значки (достижения), которые можно получить на сменах. Это твоя глобальная база знаний!',
       targetSelector: '[data-tour="nav-categories"]',
       beforeAction: () => { controller.setCurrentView('categories'); },
       delayBeforeMeasure: 700,
     },
     {
       title: 'Внутри Категории',
-      content: 'Каждая категория хранит десятки значков. Давай заглянем внутрь направления "Лидерство и Навыки Жизни".',
+      content: 'Каждая категория хранит десятки уникальных значков. Давай заглянем внутрь направления "За личные достижения".',
       targetSelector: '.badge-item, .category-badge-list',
       beforeAction: async () => {
         const cat1 = controller.categories?.find(c => c.id === '1');
@@ -32,7 +32,7 @@ export function getTravelerTourSteps(controller: AppController): HintStep[] {
     },
     {
       title: 'Значок "Путеводитель"',
-      content: 'Например, этот значок выдаётся за развитие самого Путеводителя! Участники могут сами создавать значки и даже новые направления. Игроки сами создают эту базу знаний.',
+      content: 'Крутая особенность: этот значок выдаётся за развитие самого Путеводителя! Участники вместе с педагогами и тренерами могут сами создавать новые значки и даже целые направления. Экосистему формируют сами игроки!',
       targetSelector: '.badge-view-hero, .badge-detail-content',
       beforeAction: async () => {
         const guideBadge = controller.badges?.find(b => b.id === '1.16');
@@ -47,7 +47,7 @@ export function getTravelerTourSteps(controller: AppController): HintStep[] {
     },
     {
       title: 'Личный Кабинет',
-      content: 'Здесь хранится твой цифровой профиль, заработанные значки и статистика. Для сохранения прогресса в будущем нужно будет зарегистрироваться.',
+      content: 'Из любой точки можно перейти в защищенный профиль. Здесь хранится статистика, заработанные значки и инструменты управления смен.',
       targetSelector: '[data-tour="nav-profile"]',
       beforeAction: () => {
         controller.setCurrentView('profile');
@@ -55,49 +55,76 @@ export function getTravelerTourSteps(controller: AppController): HintStep[] {
       delayBeforeMeasure: 800,
     },
     {
-      title: 'Мастерская (Кузница Смыслов)',
-      content: 'Место, где рождаются новые идеи, арты и значки для лагеря. Здесь ты можешь предложить свою инициативу!',
-      targetSelector: 'button[data-console-section="workshop"]',
-      beforeAction: () => {
-        // Just highlight the button on the panel
+      title: 'Мастерская (Кузница)',
+      content: 'Главное место, где рождаются новые идеи, арты и значки для лагеря. Здесь любой игрок может предложить свою инициативу напрямую в Совет Лагеря!',
+      targetSelector: '[data-tour="sidebar-workshop"]',
+      beforeAction: async () => {
         controller.setCurrentView('profile');
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('tour-nav-cabinet-section', { detail: { section: 'workshop' } }));
+        }
+        await new Promise(r => setTimeout(r, 400));
       },
       delayBeforeMeasure: 500,
     },
     {
-      title: 'Отрядный уголок',
-      content: 'Онлайн-штаб твоего текущего отряда. Расписание, списки участников и внутренние дела.',
-      targetSelector: 'button[data-console-section="squad-corner"], .profile-view-cabin-card--squad-corner',
-      delayBeforeMeasure: 300,
+      title: 'Отрядный Уголок',
+      content: 'Онлайн-штаб твоего текущего отряда. Расписание, списки участников, баллы и внутренние дела смены будут находиться именно тут.',
+      targetSelector: '[data-tour="sidebar-squad-corner"]',
+      beforeAction: async () => {
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('tour-nav-cabinet-section', { detail: { section: 'squad-corner' } }));
+        }
+        await new Promise(r => setTimeout(r, 400));
+      },
+      delayBeforeMeasure: 400,
     },
     {
       title: 'Движок',
-      content: 'Движок — это команда проектной работы или отряд по интересам. Создавайте движки, чтобы вместе получать значки и творить!',
-      targetSelector: 'button[data-console-section="team"], .profile-view-cabin-nav-btn[aria-label*="Движ"]',
-      delayBeforeMeasure: 300,
+      content: 'Движок — это команда проектной работы или отряд по интересам. Создавайте движки, чтобы вместе получать значки и творить великие дела!',
+      targetSelector: '[data-tour="sidebar-engine"]',
+      beforeAction: async () => {
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('tour-nav-cabinet-section', { detail: { section: 'engine' } }));
+        }
+        await new Promise(r => setTimeout(r, 400));
+      },
+      delayBeforeMeasure: 400,
     },
     {
       title: 'Совет Лагеря',
-      content: 'Место для голосований, выборов и принятия глобальных лагерных решений. Тут правит демократия.',
-      targetSelector: 'button[data-console-section="council"]',
-      delayBeforeMeasure: 300,
+      content: 'Главное место для голосований, выборов и принятия глобальных лагерных решений. Здесь вершится демократия и принимаются новые законы "Реального".',
+      targetSelector: '[data-tour="sidebar-council"]',
+      beforeAction: async () => {
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('tour-nav-cabinet-section', { detail: { section: 'council' } }));
+        }
+        await new Promise(r => setTimeout(r, 400));
+      },
+      delayBeforeMeasure: 400,
     },
     {
       title: 'Кабинеты Ролей',
-      content: 'Здесь родители следят за достижениями участников. Платформа поддерживает множество ролей: Участники, Вожатые, Тренеры, Старшие Вожатые и Начальники Лагеря!',
-      targetSelector: '.profile-view-cabin-nav-btn[aria-label*="Родител"]',
-      delayBeforeMeasure: 300,
+      content: 'Здесь родители следят за достижениями участников. Платформа поддерживает множество ролей: Участники, Родственники, Педагоги/Тренеры, Старшие Вожатые и Организаторы!',
+      targetSelector: '[data-tour="sidebar-parents"]',
+      beforeAction: async () => {
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('tour-nav-cabinet-section', { detail: { section: 'parents' } }));
+        }
+        await new Promise(r => setTimeout(r, 400));
+      },
+      delayBeforeMeasure: 400,
     },
     {
       title: 'ИИ-Ассистент НейроВалюша',
-      content: 'Если ты потерялся или хочешь узнать о лагере больше — спроси у НейроВалюши! Это наша фирменная нейросеть.',
+      content: 'Если ты потерялся или хочешь узнать о лагере что-то уникальное — спроси у НейроВалюши! Это наша фирменная нейросеть, всегда готовая помочь.',
       targetSelector: '.chat-avatar-button',
       beforeAction: () => { controller.setCurrentView('intro'); },
       delayBeforeMeasure: 500,
     },
     {
       title: 'К полету готов!',
-      content: 'Теперь ты знаешь, как устроен Путеводитель. Исследуй интерфейс, читай про значки и готовься к реальным сменам. Удачи!',
+      content: 'Теперь ты знаешь, как устроена цифровая вселенная Путеводителя. Исследуй интерфейс, читай про значки и готовься к реальным сменам. Удачи!',
       delayBeforeMeasure: 100,
     }
   ];

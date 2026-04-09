@@ -44,10 +44,14 @@ export const AppViewRouter: React.FC<Props> = ({ controller, fallback }) => {
 
   const { startTutorial } = useHintOverlay();
 
+  const [pendingProfileNav, setPendingProfileNav] = useState(false);
+
   const handleProfileOrLogin = useCallback(() => {
-    if (isLoggedIn) {
+    const hasRoleChoice = localStorage.getItem('rl-selected-role');
+    if (isLoggedIn || hasRoleChoice === 'traveler') {
       controller.setCurrentView('profile');
     } else {
+      setPendingProfileNav(true);
       setShowRoleModal(true);
     }
   }, [isLoggedIn, controller]);
@@ -58,27 +62,41 @@ export const AppViewRouter: React.FC<Props> = ({ controller, fallback }) => {
         auth.setAuth({ role: result.role as UserRole, accessToken: result.accessToken });
         setShowRoleModal(false);
         setShowWelcome(false);
+        if (pendingProfileNav) controller.setCurrentView('profile');
+        setPendingProfileNav(false);
         break;
       case 'request-sent':
         setShowRoleModal(false);
         setShowWelcome(false);
+        setPendingProfileNav(false);
         break;
       case 'request-approved':
         auth.setAuth({ role: result.role as UserRole, accessToken: result.accessToken || undefined });
         setShowRoleModal(false);
         setShowWelcome(false);
+        if (pendingProfileNav) controller.setCurrentView('profile');
+        setPendingProfileNav(false);
         break;
       case 'dev-pin-ok':
         auth.setAuth({ role: 'developer' as UserRole, accessToken: result.accessToken || undefined });
         setShowRoleModal(false);
         setShowWelcome(false);
+        if (pendingProfileNav) controller.setCurrentView('profile');
+        setPendingProfileNav(false);
         break;
       case 'developer-oauth':
-        // Legacy OAuth — handle redirect
         setShowRoleModal(false);
+        setPendingProfileNav(false);
         break;
       case 'cancelled':
         setShowRoleModal(false);
+        localStorage.setItem('rl-selected-role', 'traveler');
+        
+        if (pendingProfileNav) {
+            controller.setCurrentView('profile');
+        }
+        setPendingProfileNav(false);
+
         // Start Global PS5-style Onboarding Tour for Travelers
         if (!localStorage.getItem('rl-traveler-tour-done')) {
           startTutorial(getTravelerTourSteps(controller), {
@@ -90,7 +108,7 @@ export const AppViewRouter: React.FC<Props> = ({ controller, fallback }) => {
         }
         break;
     }
-  }, [auth, controller, startTutorial]);
+  }, [auth, controller, startTutorial, pendingProfileNav]);
 
   const dismissWelcome = useCallback(() => {
     setShowWelcome(false);

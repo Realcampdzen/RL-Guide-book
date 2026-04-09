@@ -711,13 +711,18 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({ onResult
                         </div>
 
                         <button type="button" onClick={() => onResult({ type: 'cancelled' })}
-
-                            style={{ display: 'block', margin: '16px auto 0', background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', fontSize: 11, cursor: 'pointer' }}>
-
-                            Отмена
-
+                            style={{ 
+                                display: 'block', margin: '20px auto 0', padding: '10px 24px', 
+                                borderRadius: 12, background: 'rgba(255,255,255,0.05)', 
+                                border: '1px solid rgba(255,255,255,0.1)', 
+                                color: 'rgba(255,255,255,0.6)', fontSize: 12, fontWeight: 600,
+                                cursor: 'pointer', transition: 'background 0.2s, color 0.2s' 
+                            }}
+                            onMouseOver={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = 'rgba(255,255,255,0.9)'; }}
+                            onMouseOut={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = 'rgba(255,255,255,0.6)'; }}
+                        >
+                            Войти как Путешественник (без авторизации)
                         </button>
-
                     </>
 
                 )}

@@ -639,6 +639,17 @@ export const PersonalCabinet: React.FC<{
         return () => mq.removeEventListener('change', handler);
     }, []);
 
+    // Listen to Tour navigation events
+    useEffect(() => {
+        const handleTourNav = (e: any) => {
+            if (e.detail?.section) {
+                setActiveSection(e.detail.section);
+            }
+        };
+        window.addEventListener('tour-nav-cabinet-section', handleTourNav);
+        return () => window.removeEventListener('tour-nav-cabinet-section', handleTourNav);
+    }, []);
+
 
     const profile = userData?.profile || {};
     const nickname = (profile as any)?.nickname || 'Искатель';
@@ -1015,6 +1026,7 @@ export const PersonalCabinet: React.FC<{
                         {/* Section buttons — main */}
                         {mainSections.map(s => (
                             <button key={s.id} type="button" className="cabinet-sidebar-btn"
+                                data-tour={`sidebar-${s.id}`}
                                 onClick={() => {
                                     setActiveSection(s.id);
                                     setHamburgerOpen(false);
@@ -1049,6 +1061,7 @@ export const PersonalCabinet: React.FC<{
                         {/* Section buttons — staff */}
                         {staffSections.map(s => (
                             <button key={s.id} type="button" className="cabinet-sidebar-btn"
+                                data-tour={`sidebar-${s.id}`}
                                 onClick={() => {
                                     setActiveSection(s.id);
                                     setHamburgerOpen(false);
@@ -1073,6 +1086,7 @@ export const PersonalCabinet: React.FC<{
                                 <div style={{ height: 1, background: 'rgba(255,255,255,0.08)', margin: '6px 10px' }} />
                                 {systemSections.map(s => (
                                     <button key={s.id} type="button" className="cabinet-sidebar-btn"
+                                        data-tour={`sidebar-${s.id}`}
                                         onClick={() => {
                                             setActiveSection(s.id);
                                             setHamburgerOpen(false);
