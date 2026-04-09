@@ -623,6 +623,21 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({ onResult
 
                         </div>
 
+                        <button type="button" onClick={() => onResult({ type: 'cancelled' })}
+                            style={{ 
+                                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2,
+                                width: '100%', margin: '0 auto 16px', padding: '12px 24px', 
+                                borderRadius: 12, background: 'rgba(93,228,255,0.1)', 
+                                border: '1px solid rgba(93,228,255,0.2)', 
+                                color: '#5de4ff', cursor: 'pointer', transition: 'background 0.2s, border-color 0.2s' 
+                            }}
+                            onMouseOver={e => { e.currentTarget.style.background = 'rgba(93,228,255,0.15)'; e.currentTarget.style.borderColor = 'rgba(93,228,255,0.4)'; }}
+                            onMouseOut={e => { e.currentTarget.style.background = 'rgba(93,228,255,0.1)'; e.currentTarget.style.borderColor = 'rgba(93,228,255,0.2)'; }}
+                        >
+                            <span style={{ fontSize: 14, fontWeight: 700 }}>Войти как Путешественник</span>
+                            <span style={{ fontSize: 11, opacity: 0.7, fontWeight: 500 }}>без авторизации</span>
+                        </button>
+
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
 
                             {ROLES.map(role => (
@@ -665,21 +680,6 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({ onResult
 
                             ))}
 
-                        </div>
-
-                        <button type="button" onClick={() => onResult({ type: 'cancelled' })}
-                            style={{ 
-                                display: 'block', margin: '20px auto 0', padding: '10px 24px', 
-                                borderRadius: 12, background: 'rgba(255,255,255,0.05)', 
-                                border: '1px solid rgba(255,255,255,0.1)', 
-                                color: 'rgba(255,255,255,0.6)', fontSize: 12, fontWeight: 600,
-                                cursor: 'pointer', transition: 'background 0.2s, color 0.2s' 
-                            }}
-                            onMouseOver={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = 'rgba(255,255,255,0.9)'; }}
-                            onMouseOut={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = 'rgba(255,255,255,0.6)'; }}
-                        >
-                            Войти как Путешественник (без авторизации)
-                        </button>
                     </>
 
                 )}
