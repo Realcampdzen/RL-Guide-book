@@ -437,7 +437,7 @@
                 left: clamp(2.25rem, 7vw, 3rem) !important;
             }
             .nav-image-container.nav-home {
-                top: calc(1.25rem + 15px) !important;
+                top: calc(1.25rem + 12px) !important;
                 left: clamp(1.75rem, 6vw, 2.5rem) !important;
             }
             .nav-image-container.nav-home img {
@@ -1648,7 +1648,7 @@
                 font-size: 1rem;
             }
             .nav-image-container.nav-home {
-                top: calc(1.25rem + 15px) !important;
+                top: calc(1.25rem + 12px) !important;
                 left: clamp(1.75rem, 6vw, 2.5rem) !important;
             }
             .nav-image-container.nav-home img {
