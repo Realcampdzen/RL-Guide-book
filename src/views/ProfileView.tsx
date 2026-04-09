@@ -19,35 +19,51 @@ import { useProfileForms } from '../hooks/profile/useProfileForms';
 import { PlannerModal } from './profile/modals/PlannerModal';
 import { InitiativeModal } from '../components/profile/modals/InitiativeModal';
 import { ProofModal } from './profile/modals/ProofModal';
-import { ParentsContainer } from '../components/profile/containers/ParentsContainer';
-import { OrganizerContainer } from '../components/profile/containers/OrganizerContainer';
 import { isParentChildReadonlyMode, PARENT_READONLY_BADGE_TEXT } from '../utils/parentReadonly';
 import { inspectorMissions } from '../types/inspector';
 import type { Badge } from '../types/guide';
 import { useHintOverlay, type HintStep } from '../context/HintOverlayContext';
-import { InspectorContainer } from './profile/containers/InspectorContainer';
-import { SquadCornerContainer } from '../components/profile/containers/SquadCornerContainer';
-import { BroContainer } from '../components/profile/containers/BroContainer';
-import { WorkshopContainer } from '../components/profile/containers/WorkshopContainer';
-import { VozhatifikatorContainer } from '../components/profile/containers/VozhatifikatorContainer';
 import { BadgeCard } from '../components/BadgeCard';
-import { Profile4KDashboard, type Profile4KTabId } from '../components/Profile4KDashboard';
-import { TeamContainer } from './profile/containers/TeamContainer';
-import { RealDiaryDashboard, type RealDiaryTabId } from '../components/RealDiaryDashboard';
-import { CounselorSquadDashboard, type CounselorSquadTabId } from '../components/CounselorSquadDashboard';
 import { ConfirmModal } from '../components/ConfirmModal';
-import { CouncilContainer } from './profile/containers/CouncilContainer';
-import { WingDashboard } from '../components/WingDashboard';
-
 import { generateSocialCard, shareOrDownloadSocialCard, type SocialCardResult } from '../utils/socialGenerator';
 import { fetchAiSlogan, fetchPedagogy4k, fetchVibeCheck } from '../utils/aiService';
+import { forceUnlock } from '../utils/scrollLock';
 import { InspectorMonitorCurve } from '../components/InspectorMonitorCurve';
 import { ImageSourceBlock } from '../components/ImageSourceBlock';
 import { FeatureGate } from '../components/FeatureGate';
-import { DevPanel } from '../components/DevPanel';
-import { AdminDashboard } from '../components/AdminDashboard';
-import { PersonalCabinet } from '../components/PersonalCabinet';
 import ProfileTabletNav from '../components/ProfileTabletNav';
+import type { Profile4KTabId } from '../components/Profile4KDashboard';
+import type { RealDiaryTabId } from '../components/RealDiaryDashboard';
+import type { CounselorSquadTabId } from '../components/CounselorSquadDashboard';
+
+// --- LAZY CONTAINERS FOR BUNDLE OPTIMIZATION ---
+function withSuspense<T extends React.ComponentType<any>>(LazyComponent: T) {
+  return function SuspendedComponent(props: React.ComponentProps<T>) {
+    return (
+      <React.Suspense fallback={<div style={{ padding: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', minHeight: '30vh' }}><div className="loading-spinner"></div><div style={{ marginTop: '12px', fontSize: '13px', color: 'rgba(255,255,255,0.5)' }}>Режим загрузки...</div></div>}>
+        <LazyComponent {...(props as any)} />
+      </React.Suspense>
+    );
+  }
+}
+
+const ParentsContainer = withSuspense(React.lazy(() => import('../components/profile/containers/ParentsContainer').then(m => ({ default: m.ParentsContainer }))));
+const OrganizerContainer = withSuspense(React.lazy(() => import('../components/profile/containers/OrganizerContainer').then(m => ({ default: m.OrganizerContainer }))));
+const InspectorContainer = withSuspense(React.lazy(() => import('./profile/containers/InspectorContainer').then(m => ({ default: m.InspectorContainer }))));
+const SquadCornerContainer = withSuspense(React.lazy(() => import('../components/profile/containers/SquadCornerContainer').then(m => ({ default: m.SquadCornerContainer }))));
+const BroContainer = withSuspense(React.lazy(() => import('../components/profile/containers/BroContainer').then(m => ({ default: m.BroContainer }))));
+const WorkshopContainer = withSuspense(React.lazy(() => import('../components/profile/containers/WorkshopContainer').then(m => ({ default: m.WorkshopContainer }))));
+const VozhatifikatorContainer = withSuspense(React.lazy(() => import('../components/profile/containers/VozhatifikatorContainer').then(m => ({ default: m.VozhatifikatorContainer }))));
+const Profile4KDashboard = withSuspense(React.lazy(() => import('../components/Profile4KDashboard').then(m => ({ default: m.Profile4KDashboard }))));
+const TeamContainer = withSuspense(React.lazy(() => import('./profile/containers/TeamContainer').then(m => ({ default: m.TeamContainer }))));
+const RealDiaryDashboard = withSuspense(React.lazy(() => import('../components/RealDiaryDashboard').then(m => ({ default: m.RealDiaryDashboard }))));
+const CounselorSquadDashboard = withSuspense(React.lazy(() => import('../components/CounselorSquadDashboard').then(m => ({ default: m.CounselorSquadDashboard }))));
+const CouncilContainer = withSuspense(React.lazy(() => import('./profile/containers/CouncilContainer').then(m => ({ default: m.CouncilContainer }))));
+const WingDashboard = withSuspense(React.lazy(() => import('../components/WingDashboard').then(m => ({ default: m.WingDashboard }))));
+const DevPanel = withSuspense(React.lazy(() => import('../components/DevPanel').then(m => ({ default: m.DevPanel }))));
+const AdminDashboard = withSuspense(React.lazy(() => import('../components/AdminDashboard').then(m => ({ default: m.AdminDashboard }))));
+const PersonalCabinet = withSuspense(React.lazy(() => import('../components/PersonalCabinet').then(m => ({ default: m.PersonalCabinet }))));
+// ------------------------------------------------
 import { requestImageGenerate } from '../utils/imageGenerateApi';
 import { pluralizeRu } from '../utils/textFormatting';
 import { syncAuthProfile } from '../utils/authProfileApi';
@@ -80,7 +96,7 @@ import {
   type BadgePlanItem
 } from '../utils/badgePlanApi';
 import { StaffDashboardPanel } from '../components/StaffDashboardPanel';
-import { fetchMyProposals, fetchProposalsInbox, type WorkshopProposal } from '../utils/workshopProposalsApi';
+import { fetchMyProposals, fetchProposalsInbox, approveProposal, rejectProposal, type WorkshopProposal } from '../utils/workshopProposalsApi';
 import { RoleRequestPanel as _RoleRequestPanel } from '../components/RoleRequestPanel';
 import { VOZHATIFIKATOR_CHECKLIST_ITEMS } from '../data/vozhatifikatorChecklist';
 import { QRCodeSVG } from 'qrcode.react';
@@ -429,6 +445,8 @@ export const ProfileView: React.FC<any> = (props) => {
     if (panelActiveView === 'share') setShareActiveTab('create-card');
     if (panelActiveView === 'workshop') window.dispatchEvent(new CustomEvent('profile:openTab', { detail: { panel: 'workshop', tab: 'constructor' } }));
     if (panelActiveView === 'inspector') window.dispatchEvent(new CustomEvent('profile:openTab', { detail: { panel: 'inspector', tab: 'friendship' } }));
+
+    forceUnlock();
   }, [panelActiveView]);
 
   useEffect(() => {
@@ -4395,7 +4413,7 @@ export const ProfileView: React.FC<any> = (props) => {
                                       onClick={async () => {
                                         setWpInboxBusy(true);
                                         try {
-                                          const { approveProposal } = await import('../utils/workshopProposalsApi');
+                                          // using static import: approveProposal
                                           await approveProposal(accessToken || '', proposal.id);
                                           setWpInbox(prev => prev.filter(p => p.id !== proposal.id));
                                           showHint({ title: 'Одобрено', content: `Предложение «${proposal.title}» одобрено.` });
@@ -4408,7 +4426,7 @@ export const ProfileView: React.FC<any> = (props) => {
                                       onClick={async () => {
                                         setWpInboxBusy(true);
                                         try {
-                                          const { rejectProposal } = await import('../utils/workshopProposalsApi');
+                                          // using static import: rejectProposal
                                           await rejectProposal(accessToken || '', proposal.id);
                                           setWpInbox(prev => prev.filter(p => p.id !== proposal.id));
                                           showHint({ title: 'Отклонено', content: `Предложение «${proposal.title}» отклонено.` });

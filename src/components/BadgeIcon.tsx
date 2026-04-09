@@ -217,6 +217,7 @@ const BadgeIcon: React.FC<BadgeIconProps> = ({
           alt={levelTitle || badgeTitle}
           className="badge-image"
           loading="lazy"
+          decoding="async"
           style={{
             display: 'block',
             width: '100%',

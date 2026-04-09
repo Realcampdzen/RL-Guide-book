@@ -358,6 +358,8 @@ const AboutCampView: React.FC<AboutCampViewProps> = ({
                       <img 
                         src={`${baseUrl}${post.imgPath || 'pictures/'}${post.img}`} 
                         alt={post.title} 
+                        loading="lazy"
+                        decoding="async"
                       />
                     </div>
                     <div className="post-content-box">

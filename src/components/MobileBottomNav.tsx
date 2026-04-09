@@ -23,6 +23,9 @@ interface MobileBottomNavProps {
   onTelegramContact: () => void;
   onProfile: () => void;
   onOpenVk?: () => void;
+  onHoverProfile?: () => void;
+  onHoverCategories?: () => void;
+  onHoverAboutCamp?: () => void;
   /** When false, «Мой путь» becomes «Войти» with accent styling */
   isLoggedIn?: boolean;
 }
@@ -48,6 +51,9 @@ const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
   onTelegramContact,
   onProfile,
   onOpenVk,
+  onHoverProfile,
+  onHoverCategories,
+  onHoverAboutCamp,
   isLoggedIn = false,
 }) => {
   const activeKey = useMemo(() => getActiveKey(currentView), [currentView]);
@@ -129,6 +135,8 @@ const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
         className={`mobile-nav-item${isCategoriesView ? ' is-active' : ''}`}
         aria-current={isCategoriesView ? 'page' : undefined}
         onClick={handleCategories}
+        onMouseEnter={onHoverCategories}
+        onTouchStart={onHoverCategories}
       >
         <span className="mobile-nav-icon-wrap">
           <svg className="mobile-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -145,6 +153,8 @@ const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
         className={`mobile-nav-item${activeKey === 'profile' ? ' is-active' : ''}${!isLoggedIn ? ' mobile-nav-login-cta' : ''}`}
         aria-current={activeKey === 'profile' ? 'page' : undefined}
         onClick={handleProfile}
+        onMouseEnter={onHoverProfile}
+        onTouchStart={onHoverProfile}
       >
         <span className="mobile-nav-icon-wrap">
           {!isLoggedIn && <span className="mobile-nav-login-dot" />}
@@ -166,6 +176,8 @@ const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
         className={`mobile-nav-item${activeKey === 'about' ? ' is-active' : ''}`}
         aria-current={activeKey === 'about' ? 'page' : undefined}
         onClick={handleAbout}
+        onMouseEnter={onHoverAboutCamp}
+        onTouchStart={onHoverAboutCamp}
       >
         <span className="mobile-nav-icon-wrap">
           <svg className="mobile-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">

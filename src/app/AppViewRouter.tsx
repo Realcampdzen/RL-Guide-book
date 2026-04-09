@@ -376,6 +376,9 @@ export const AppViewRouter: React.FC<Props> = ({ controller, fallback }) => {
           onAboutCamp={() => setCurrentView('about-camp')}
           onTelegramContact={handleTelegramContact}
           onOpenVk={handleOpenVk}
+          onHoverProfile={() => void import('../views/ProfileView')}
+          onHoverCategories={() => void import('../components/CategoriesGrid')}
+          onHoverAboutCamp={() => void import('../views/AboutCampView')}
           isLoggedIn={isLoggedIn}
         />
       )}

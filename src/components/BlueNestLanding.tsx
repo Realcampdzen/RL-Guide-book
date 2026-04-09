@@ -19,6 +19,9 @@ interface BlueNestLandingProps {
   onOpenBadgeById?: (badgeId: string) => void;
   onOpenProfile?: () => void;
   onLoginClick?: () => void;
+  onHoverLogin?: () => void;
+  onHoverAboutCamp?: () => void;
+  onHoverStart?: () => void;
   onChatToggle: () => void;
   isChatOpen: boolean;
   onChatClose: () => void;
@@ -46,6 +49,9 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
   onCategoryClick,
   onOpenBadgeById,
   onLoginClick,
+  onHoverLogin,
+  onHoverAboutCamp,
+  onHoverStart,
   onChatToggle,
   categories,
   masterIndex,
@@ -347,7 +353,7 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
         </button>
         <button
           className="nav-link hover-target"
-          onClick={onStartClick}
+          onClick={onStartClick} onMouseEnter={onHoverStart} onTouchStart={onHoverStart}
         >
           Значки
         </button>
@@ -357,7 +363,7 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
       <button
         type="button"
         className="nav-image-container nav-home hover-target"
-        onClick={onAboutCampClick}
+        onClick={onAboutCampClick} onMouseEnter={onHoverAboutCamp} onTouchStart={onHoverAboutCamp}
         aria-label="О лагере"
       >
         <img
@@ -365,7 +371,7 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
           alt="Домик"
         />
       </button>
-      <button className="nav-link-left hover-target" onClick={onAboutCampClick}>
+      <button className="nav-link-left hover-target" onClick={onAboutCampClick} onMouseEnter={onHoverAboutCamp} onTouchStart={onHoverAboutCamp}>
         О лагере
       </button>
 
@@ -554,15 +560,15 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
         {/* Final Footer CTA */}
         <footer className="footer">
           <h2 className="reveal-on-scroll">Поехали?</h2>
-          <button className="btn-agency hover-target reveal-on-scroll" onClick={onStartClick} id="footer-start-btn">
+          <button className="btn-agency hover-target reveal-on-scroll" onClick={onStartClick} onMouseEnter={onHoverStart} onTouchStart={onHoverStart} id="footer-start-btn">
             <span>Начать путешествие</span>
           </button>
 
           <div className="footer-links">
-            <button className="hover-target" onClick={onStartClick}>
+            <button className="hover-target" onClick={onStartClick} onMouseEnter={onHoverStart} onTouchStart={onHoverStart}>
               Значки
             </button>
-            <button className="hover-target" onClick={onAboutCampClick}>
+            <button className="hover-target" onClick={onAboutCampClick} onMouseEnter={onHoverAboutCamp} onTouchStart={onHoverAboutCamp}>
               О лагере
             </button>
             <a href="https://vk.com/realcampspb" className="hover-target" target="_blank" rel="noopener noreferrer">
@@ -633,7 +639,7 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
 
                 <div style={{ display: 'flex', gap: '12px', marginTop: '24px', flexWrap: 'wrap' }}>
                   <button
-                    onClick={handleStartGameCTA}
+                    onClick={handleStartGameCTA} onMouseEnter={onHoverLogin} onTouchStart={onHoverLogin}
                     className="hover-target"
                     style={{
                       padding: '12px 24px',

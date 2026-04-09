@@ -31,6 +31,7 @@
             background-color: #0f0a1f; /* Fallback цвет */
             min-height: 100vh;
             position: relative;
+            overflow-x: hidden;
             /* Avoid fast-scroll repaint artifacts on some GPUs/browsers */
             background-attachment: scroll;
         }
@@ -1488,9 +1489,9 @@
                 .hero .hero-content .hero-title,
                 section.hero .hero-content h1.hero-title,
                 .hero-title {
-                    font-size: clamp(3rem, 7.5vw + 1.5rem, 5.5rem) !important; /* Увеличиваем размер надписи в портретной ориентации */
-                    padding-right: clamp(1.5rem, 4vw, 3rem) !important; /* Увеличиваем отступ справа чтобы текст не выходил за край */
-                    max-width: calc(100vw - 3rem) !important; /* Ограничиваем ширину чтобы текст не выходил за край */
+                    font-size: clamp(2.4rem, 10vw, 4.5rem) !important; /* Adjusted slightly smaller to fit width */
+                    padding-right: clamp(1rem, 2vw, 2rem) !important; 
+                    max-width: calc(100vw - 1rem) !important;
                 }
             }
             .manifesto { 
