@@ -436,7 +436,7 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
                 aria-expanded={isConceptOpen}
                 ref={conceptButtonRef}
               >
-                Здесь вы найдете {masterIndex?.totalBadges ?? 242} значков в {masterIndex?.totalCategories ?? 14} категориях.
+                Здесь вы найдете 241 значок в 14 категориях.
               </button>
             </span>
           </p>

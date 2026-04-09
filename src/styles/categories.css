@@ -1550,9 +1550,9 @@
                 display: block;
             }
 
-    .nav-image-container,
-    .nav-link-left,
-    .hero-buttons {
+    .categories-page .nav-image-container,
+    .categories-page .nav-link-left,
+    .categories-page .hero-buttons {
         display: none !important;
     }
     
