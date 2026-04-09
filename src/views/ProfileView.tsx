@@ -435,11 +435,8 @@ export const ProfileView: React.FC<any> = (props) => {
   const roleDropdownRef = useRef<HTMLDivElement | null>(null);
 
   const [isSpaceshipMode, setIsSpaceshipMode] = useState(() => {
-    if (import.meta.env.PROD) return true;
-    return typeof window !== 'undefined' && (
-      !!document.querySelector('.profile-spaceship-root') ||
-      /profile-desktop/.test(window.location.pathname || window.location.href || '')
-    );
+    // Везде по умолчанию отдаем новую кабину, чтобы не было "мигания"
+    return true;
   });
   const [showRoleSelector, setShowRoleSelector] = useState(() =>
     (typeof window !== 'undefined' && localStorage.getItem('rl_profile_role_selector_seen') === '1') ? false : true
@@ -1218,19 +1215,7 @@ export const ProfileView: React.FC<any> = (props) => {
 
 
 
-  useEffect(() => {
-    // Keep parity with the initial heuristic (DOM marker OR desktop profile route).
-    if (import.meta.env.PROD) {
-       setIsSpaceshipMode(true);
-       return;
-    }
-    // Some environments may not have `.profile-spaceship-root` on first paint.
-    if (typeof window === 'undefined') return;
-    setIsSpaceshipMode(
-      !!(typeof document !== 'undefined' && document.querySelector('.profile-spaceship-root')) ||
-      /profile-desktop/.test(window.location.pathname || window.location.href || '')
-    );
-  }, []);
+  // removed redundant isSpaceshipMode effect
 
   useEffect(() => {
     if (!roleDropdownOpen) return;
