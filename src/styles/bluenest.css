@@ -874,8 +874,8 @@
             white-space: nowrap;
             width: max-content;
             will-change: transform;
-            -webkit-animation: scrollText 20s linear infinite;
-            animation: scrollText 20s linear infinite;
+            -webkit-animation: scrollText 60s linear infinite;
+            animation: scrollText 60s linear infinite;
         }
         .marquee-item {
             font-family: var(--f-display);
@@ -1478,7 +1478,7 @@
                 white-space: normal !important;
             }
             .marquee {
-                margin-top: -55vh !important;
+                margin-top: -15vh !important;
                 z-index: 5 !important;
                 position: relative !important;
             }
