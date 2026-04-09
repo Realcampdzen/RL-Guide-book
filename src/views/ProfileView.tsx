@@ -434,10 +434,8 @@ export const ProfileView: React.FC<any> = (props) => {
   const [roleDropdownOpen, setRoleDropdownOpen] = useState(false);
   const roleDropdownRef = useRef<HTMLDivElement | null>(null);
 
-  const [isSpaceshipMode, setIsSpaceshipMode] = useState(() => {
-    // Везде по умолчанию отдаем новую кабину, чтобы не было "мигания"
-    return true;
-  });
+  // Везде по умолчанию отдаем новую кабину, чтобы не было "мигания"
+  const isSpaceshipMode = true;
   const [showRoleSelector, setShowRoleSelector] = useState(() =>
     (typeof window !== 'undefined' && localStorage.getItem('rl_profile_role_selector_seen') === '1') ? false : true
   );
