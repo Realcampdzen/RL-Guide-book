@@ -872,6 +872,9 @@
         .marquee-track {
             display: flex;
             white-space: nowrap;
+            width: max-content;
+            will-change: transform;
+            -webkit-animation: scrollText 20s linear infinite;
             animation: scrollText 20s linear infinite;
         }
         .marquee-item {
@@ -1505,17 +1508,18 @@
             }
             .manifesto { 
                 display: flex !important;
-                flex-direction: row !important;
-                align-items: flex-start !important;
-                justify-content: space-between !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                justify-content: flex-start !important;
                 padding: 10vh 5vw !important;
-                gap: 1rem !important;
+                gap: 3rem !important;
             }
             .manifesto-statement {
                 flex: 0 0 auto !important;
-                margin-left: -2vw !important;
+                margin-left: 0 !important;
                 margin-top: 0 !important;
-                max-width: 50% !important;
+                max-width: 100% !important;
+                text-align: center !important;
             }
             .manifesto-statement h2 {
                 font-size: clamp(1.8rem, 4.5vw, 3.2rem) !important;
@@ -1531,13 +1535,12 @@
                 line-height: 1.5 !important;
             }
             .manifesto-visual { 
-                flex: 0 0 42% !important;
-                width: 42% !important;
+                flex: 0 0 auto !important;
+                width: 100% !important;
                 height: auto !important;
                 aspect-ratio: 9 / 16 !important;
-                max-width: 42% !important;
-                min-width: 0 !important;
-                margin-left: auto !important;
+                max-width: 320px !important;
+                margin: 0 auto !important;
                 padding: clamp(0.35rem, 1vw, 0.55rem) !important;
             }
             .manifesto-carousel-title {
