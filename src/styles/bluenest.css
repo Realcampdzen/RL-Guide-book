@@ -1485,7 +1485,7 @@
                 text-align: left;
                 margin-top: clamp(4rem, 10vh, 7rem) !important;
                 top: 0 !important;
-                z-index: 10 !important;
+                z-index: 40 !important;
                 position: relative !important;
             }
             .hero .hero-content .hero-title,
@@ -1501,7 +1501,7 @@
                 overflow-wrap: normal !important;
                 white-space: nowrap !important;
                 position: relative !important;
-                z-index: 5 !important;
+                z-index: 40 !important;
             }
             .hero-title span {
                 display: block !important;
@@ -1509,7 +1509,7 @@
                 position: relative !important;
             }
             .hero-title .highlight {
-                z-index: 10 !important;
+                z-index: 45 !important;
                 position: relative !important;
             }
             .hero-title-first-word {
