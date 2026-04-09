@@ -66,7 +66,7 @@
     - button "Значки" [ref=e70] [cursor=pointer]:
       - img [ref=e72]
       - generic [ref=e77]: Значки
-    - button "Войти" [ref=e78] [cursor=pointer]:
+    - button "Войти" [active] [ref=e78] [cursor=pointer]:
       - img [ref=e81]
       - generic [ref=e83]: Войти
     - button "О лагере" [ref=e84] [cursor=pointer]:
@@ -78,9 +78,44 @@
     - button "ВКонтакте" [ref=e97] [cursor=pointer]:
       - generic [ref=e99]: VK
       - generic [ref=e100]: ВК
-  - generic [ref=e101]:
-    - generic [ref=e102]: Выберите свою роль
-    - generic [ref=e103]: Для доступа к Личному Кабинету необходимо выбрать роль
-    - button "Войти / Выбрать роль" [ref=e104] [cursor=pointer]
-    - button "Пропустить" [ref=e105] [cursor=pointer]
+  - generic [ref=e102]:
+    - generic [ref=e103]:
+      - img "Реальный Лагерь" [ref=e104]
+      - generic [ref=e105]: Добро пожаловать!
+      - generic [ref=e106]: Кто вы в Реальном Лагере?
+    - generic [ref=e107]:
+      - button "Участник смены Я приеду в лагерь как участник" [ref=e108] [cursor=pointer]:
+        - generic [ref=e109]:
+          - generic [ref=e110]: Участник смены
+          - generic [ref=e111]: Я приеду в лагерь как участник
+      - button "Вожатый Я работаю вожатым в лагере" [ref=e112] [cursor=pointer]:
+        - generic [ref=e113]:
+          - generic [ref=e114]: Вожатый
+          - generic [ref=e115]: Я работаю вожатым в лагере
+      - button "Педагог Я веду кружки и мастерские" [ref=e116] [cursor=pointer]:
+        - generic [ref=e117]:
+          - generic [ref=e118]: Педагог
+          - generic [ref=e119]: Я веду кружки и мастерские
+      - button "Старший Вожатый Руководитель смены" [ref=e120] [cursor=pointer]:
+        - generic [ref=e121]:
+          - generic [ref=e122]: Старший Вожатый
+          - generic [ref=e123]: Руководитель смены
+      - button "Начальник Лагеря Начальник лагеря" [ref=e124] [cursor=pointer]:
+        - generic [ref=e125]:
+          - generic [ref=e126]: Начальник Лагеря
+          - generic [ref=e127]: Начальник лагеря
+      - button "Родитель Мой ребёнок едет в лагерь" [ref=e128] [cursor=pointer]:
+        - generic [ref=e129]:
+          - generic [ref=e130]: Родитель
+          - generic [ref=e131]: Мой ребёнок едет в лагерь
+      - button "Разработчик Доступ для разработчиков" [ref=e132] [cursor=pointer]:
+        - generic [ref=e133]:
+          - generic [ref=e134]: Разработчик
+          - generic [ref=e135]: Доступ для разработчиков
+    - button "Отмена" [ref=e136] [cursor=pointer]
+  - generic [ref=e137]:
+    - generic [ref=e138]: Выберите свою роль
+    - generic [ref=e139]: Для доступа к Личному Кабинету необходимо выбрать роль
+    - button "Войти / Выбрать роль" [ref=e140] [cursor=pointer]
+    - button "Пропустить" [ref=e141] [cursor=pointer]
 ```
