@@ -291,6 +291,7 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
   };
 
   const handleConceptPointerEnter = (event: React.PointerEvent) => {
+    if (typeof window !== 'undefined' && window.innerWidth <= 768) return;
     if (event.pointerType === 'mouse') {
       if (conceptHoverSuppressedRef.current) return;
       const anchor = computeConceptPopoverAnchor();
@@ -303,6 +304,7 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
   };
 
   const handleTriggerPointerLeave = (event: React.PointerEvent) => {
+    if (typeof window !== 'undefined' && window.innerWidth <= 768) return;
     if (event.pointerType === 'mouse') {
       conceptHoverSuppressedRef.current = false;
       setIsConceptOpen(false);
@@ -310,6 +312,7 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
   };
 
   const handlePopoverPointerLeave = (event: React.PointerEvent) => {
+    if (typeof window !== 'undefined' && window.innerWidth <= 768) return;
     if (event.pointerType === 'mouse') {
       setIsConceptOpen(false);
     }
