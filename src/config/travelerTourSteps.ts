@@ -71,6 +71,15 @@ export function getTravelerTourSteps(controller: AppController): HintStep[] {
       delayBeforeMeasure: 800,
     },
     {
+      title: 'Свои арты и скины',
+      content: 'Кстати, на странице каждого значка есть возможность сгенерировать собственный арт с помощью нейросети или загрузить свою картинку. Делай значки уникальными!',
+      targetSelector: '.badge-skin-panel',
+      beforeAction: async () => {
+        await new Promise(r => setTimeout(r, 200));
+      },
+      delayBeforeMeasure: 400,
+    },
+    {
       title: 'Личный Кабинет',
       content: 'Твой цифровой профиль. Здесь фиксируется твой реальный лагерный опыт и коллекция заработанных значков. Участники выстраивают свой путь развития, а вожатые получают мощный инвентарь для координации отрядных дел.',
       targetSelector: '[data-tour="nav-profile"]',
