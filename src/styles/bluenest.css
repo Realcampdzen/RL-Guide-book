@@ -767,14 +767,14 @@
             line-height: 0.9;
             margin-bottom: clamp(1.5rem, 3vw, 2rem);
             margin-top: 0;
-            padding-right: clamp(1rem, 2vw, 2vw); /* Адаптивный отступ справа */
+            padding-right: 0; /* Убираем специфичный отступ чтобы не ломать флюидность */
             opacity: 0; /* JS Reveal */
             transform: translateY(30px); /* Уменьшен для более плавной анимации */
-            word-break: keep-all; /* Предотвращаем разрыв слов */
+            word-break: keep-all; /* Предотвращаем разрыв слов на десктопе */
             position: relative;
             z-index: 1;
             color: var(--c-stark);
-            white-space: nowrap; /* Предотвращаем перенос строк */
+            white-space: nowrap; /* Предотвращаем перенос строк на широких экранах */
         }
         
         .hero-title::after {
@@ -812,7 +812,7 @@
             display: block;
             position: relative;
             z-index: 1;
-            white-space: nowrap; /* Каждая строка без переноса */
+            white-space: nowrap; /* Запрет переноса на десктопе */
         }
         .hero-title-first-word {
             position: relative;
@@ -1046,6 +1046,12 @@
             transform: translateY(-50%) scale(1.05);
             background: rgba(255, 140, 66, 0.2);
             border-color: rgba(255, 140, 66, 0.7);
+        }
+        .app .bluenest-landing .manifesto-carousel-btn:active,
+        .profile-spaceship-root .bluenest-landing .manifesto-carousel-btn:active {
+            transform: translateY(-50%) scale(0.95) !important;
+            box-shadow: 0 0 15px rgba(255, 140, 66, 0.4);
+            transition: transform 0.1s var(--easing);
         }
         .manifesto-carousel-btn:disabled {
             opacity: 0.4;
@@ -1368,20 +1374,20 @@
             .hero-title {
                 font-size: clamp(3.5rem, 7vw + 1.5rem, 9rem) !important;
                 line-height: 0.9 !important;
-                padding-right: clamp(1rem, 3vw, 2vw) !important;
+                padding-right: 0 !important;
                 margin-bottom: clamp(1.5rem, 3vw, 2rem) !important;
                 margin-top: 1.2rem !important;
                 text-align: left !important;
-                white-space: nowrap !important;
-                word-break: keep-all !important;
-                overflow-wrap: normal !important;
+                white-space: normal !important;
+                word-break: break-word !important;
+                overflow-wrap: break-word !important;
             }
             .hero-title span {
                 display: block !important;
-                white-space: nowrap !important;
+                white-space: normal !important;
             }
             .hero-title-first-word {
-                white-space: nowrap !important;
+                white-space: normal !important;
             }
             .marquee {
                 top: -2vh;
@@ -1444,21 +1450,21 @@
             .hero .hero-content .hero-title,
             section.hero .hero-content h1.hero-title,
             .hero-title {
-                font-size: clamp(2.5rem, 6vw + 1rem, 4rem) !important; /* Флюидная адаптивность для мобильных */
+                font-size: clamp(2.5rem, 8vw + 1rem, 4.5rem) !important;
                 line-height: 0.9 !important;
-                padding-right: clamp(0.5rem, 2vw, 1rem) !important;
+                padding-right: 0 !important;
                 text-align: left !important;
                 margin: 0 !important;
-                max-width: 90vw !important;
-                word-break: keep-all !important;
-                overflow-wrap: normal !important;
-                white-space: nowrap !important;
+                max-width: 100% !important;
+                word-break: break-word !important;
+                overflow-wrap: break-word !important;
+                white-space: normal !important;
                 z-index: 5 !important;
                 position: relative !important;
             }
             .hero-title span {
                 display: block !important;
-                white-space: nowrap !important;
+                white-space: normal !important;
                 position: relative !important;
             }
             .hero-title .highlight {
@@ -1466,7 +1472,7 @@
                 position: relative !important;
             }
             .hero-title-first-word {
-                white-space: nowrap !important;
+                white-space: normal !important;
             }
             .marquee {
                 margin-top: -55vh !important;
@@ -1482,16 +1488,19 @@
             @media (max-width: 768px) and (orientation: portrait) {
                 .hero-content {
                     top: clamp(6rem, 14vh, 10rem) !important; /* Опускаем надпись ниже в портретной ориентации */
-                    padding-left: clamp(0.5rem, 2vw, 1rem) !important; /* Смещаем текст влево */
-                    margin-left: -2.5vw !important; /* Увеличиваем смещение влево для предотвращения выхода текста за край */
-                    padding-right: clamp(1rem, 3vw, 2rem) !important; /* Отступ справа */
+                    padding-left: 0 !important; 
+                    margin-left: 0 !important; 
+                    padding-right: 0 !important; 
                 }
                 .hero .hero-content .hero-title,
                 section.hero .hero-content h1.hero-title,
                 .hero-title {
-                    font-size: clamp(2.4rem, 10vw, 4.5rem) !important; /* Adjusted slightly smaller to fit width */
-                    padding-right: clamp(1rem, 2vw, 2rem) !important; 
-                    max-width: calc(100vw - 1rem) !important;
+                    font-size: clamp(2.4rem, 12vw, 4.5rem) !important; 
+                    padding-right: 0 !important; 
+                    max-width: 100% !important;
+                    word-break: break-word !important;
+                    overflow-wrap: break-word !important;
+                    white-space: normal !important;
                 }
             }
             .manifesto { 
@@ -1635,7 +1644,7 @@
                 overflow-wrap: anywhere !important;
                 word-break: break-word !important;
                 hyphens: auto !important;
-                max-width: 96vw !important;
+                max-width: 100% !important;
             }
 
             .bluenest-landing .features-grid > .feature-card:first-child,
