@@ -38,10 +38,34 @@ export function getTravelerTourSteps(controller: AppController): HintStep[] {
         const entries = await controller.ensureBadgeLoaded('1.16');
         const guideBadge = entries?.find(b => b.id === '1.16') || controller.badges?.find(b => b.id === '1.16');
         if (guideBadge) {
-          controller.setSelectedBadge(guideBadge);
-          controller.setCurrentView('badge');
+          controller.handleBadgeClick(guideBadge, { origin: 'category' });
+          await new Promise(r => setTimeout(r, 400));
         } else {
           controller.setCurrentView('category');
+        }
+      },
+      delayBeforeMeasure: 800,
+    },
+    {
+      title: 'Уровни значков',
+      content: 'У большинства значков 2 или 3 уровня сложности: базовый, продвинутый и экспертный. Например, продвинутый уровень значка Путеводитель — это «Создатель Новой Категории».',
+      targetSelector: '.level-detail-content, .selected',
+      beforeAction: async () => {
+        controller.handleLevelClick('Продвинутый уровень');
+        await new Promise(r => setTimeout(r, 400));
+      },
+      delayBeforeMeasure: 500,
+    },
+    {
+      title: 'Реальный ИИ-Композитор',
+      content: 'Но правила созданы, чтобы их нарушать! Значок «Реальный ИИ-композитор» выдаётся за создание и продюсирование собственной музыки с применением нейросетей, и у него целых 4 уровня!',
+      targetSelector: '.badge-view-hero, .levels-scroll-container, .badge-detail-content',
+      beforeAction: async () => {
+        const entries = await controller.ensureBadgeLoaded('12.1');
+        const aiBadge = entries?.find(b => b.id === '12.1') || controller.badges?.find(b => b.id === '12.1');
+        if (aiBadge) {
+          controller.handleBadgeClick(aiBadge, { origin: 'category' });
+          await new Promise(r => setTimeout(r, 600));
         }
       },
       delayBeforeMeasure: 800,
