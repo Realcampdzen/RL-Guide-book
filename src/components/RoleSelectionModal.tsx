@@ -587,61 +587,33 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({ onResult
     return (
 
         <div
-
             onClick={() => onResult({ type: 'cancelled' })}
-
             style={{
-
             position: 'fixed', inset: 0, zIndex: 1000,
-
             background: 'rgba(9,9,15,0.88)', backdropFilter: 'blur(12px)',
-
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-
-            padding: 16,
-
+            padding: '16px 16px 100px 16px', // Дополнительный отступ снизу, чтобы не перекрывалось нижней навигацией
         }}>
-
             <div
-
                 onClick={e => e.stopPropagation()}
-
                 ref={(el) => {
-
                     if (el) {
-
                         // Hide webkit scrollbar via JS (no external CSS needed)
-
                         const style = document.createElement('style');
-
                         style.textContent = `[data-role-modal]::-webkit-scrollbar { display: none; }`;
-
                         if (!document.querySelector('style[data-role-modal-style]')) {
-
                             style.setAttribute('data-role-modal-style', '');
-
                             document.head.appendChild(style);
-
                         }
-
                     }
-
                 }}
-
                 data-role-modal=""
-
                 style={{
-
                 width: '100%', maxWidth: 440, padding: 28, borderRadius: 20,
-
                 background: 'linear-gradient(180deg, rgba(30,27,60,0.95), rgba(15,12,35,0.95))',
-
                 border: '1px solid rgba(255,255,255,0.1)',
-
-                maxHeight: '90vh', overflowY: 'auto',
-
+                maxHeight: 'calc(100vh - 140px)', overflowY: 'auto',
                 scrollbarWidth: 'none',           // Firefox
-
                 msOverflowStyle: 'none',           // IE / Edge legacy
 
             } as React.CSSProperties}>
