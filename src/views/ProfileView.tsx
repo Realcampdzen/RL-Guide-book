@@ -209,48 +209,6 @@ export const ProfileView: React.FC<any> = (props) => {
   const { showHint, startTutorial } = useHintOverlay();
 
   // ── C-1: Onboarding tutorial ────────────────────────────────────────
-  const ONBOARDING_STEPS: HintStep[] = useMemo(() => [
-    {
-      title: '👋 Добро пожаловать!',
-      content: 'Это Путеводитель — твой личный кабинет в Реальном Лагере. Здесь ты собираешь значки, отслеживаешь прогресс и управляешь всеми активностями.',
-    },
-    {
-      title: '🏅 Путь значков',
-      content: 'Значки — это твои достижения. Добавляй нужные в свой Путь, проходи уровни и подтверждай их у вожатого.',
-      targetSelector: '.profile-tabs-nav',
-    },
-    {
-      title: '🚀 Панели слева и справа',
-      content: 'Инспектор, 4К-профиль, Дневник, Движок, БРО, Совет — всё доступно через навигацию кабины. Нажми на экран, чтобы открыть раздел.',
-      targetSelector: '.profile-view-panel-header',
-    },
-    {
-      title: '🤖 НейроВалюша',
-      content: 'Твой ИИ-помощник! Спроси что угодно о значках, лагере или программе. Пузырь бота всегда рядом.',
-      targetSelector: '.profile-chat-toggle, .chatbot-avatar-container',
-    },
-    {
-      title: '📊 Прогресс и ранг',
-      content: 'Каждый пройденный уровень значка приближает тебя к новому рангу. Следи за своим XP и ростом 4К-навыков.',
-      targetSelector: '.profile-view-cabin-profile-rank, .profile-empty-state__title',
-    },
-    {
-      title: '✅ Всё готово!',
-      content: 'Начинай свой путь. Добавь первый значок, или загляни в Инспектор Пользы — там тебя ждут ежедневные миссии!',
-    },
-  ], []);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    if (localStorage.getItem('rl-tutorial-done') === '1') return;
-    // Slight delay to let the profile render
-    const timer = setTimeout(() => {
-      startTutorial(ONBOARDING_STEPS, {
-        onComplete: () => localStorage.setItem('rl-tutorial-done', '1'),
-      });
-    }, 1200);
-    return () => clearTimeout(timer);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
   // ── end onboarding ──────────────────────────────────────────────────
 
   const [activeTab, setActiveTab] = useState<Tab>('active');
@@ -1402,11 +1360,9 @@ export const ProfileView: React.FC<any> = (props) => {
     });
   }, [startTutorial, completeTutorial]);
 
-  const profileTutorialStartedRef = useRef(false);
   useEffect(() => {
-    if (isLoading || userData?.meta?.hasCompletedTutorial || profileTutorialStartedRef.current) return;
-    profileTutorialStartedRef.current = true;
-    startProfileTutorial(true);
+    // [REDACTED/DISABLED] The global Traveler Tour in AppViewRouter now handles onboarding
+    // startProfileTutorial(true);
   }, [isLoading, userData?.meta?.hasCompletedTutorial, startProfileTutorial]);
 
   const badgeLookupMap = useMemo(() => {

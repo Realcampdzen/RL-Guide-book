@@ -137,6 +137,7 @@ const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
         onClick={handleCategories}
         onMouseEnter={onHoverCategories}
         onTouchStart={onHoverCategories}
+        data-tour="nav-categories"
       >
         <span className="mobile-nav-icon-wrap">
           <svg className="mobile-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -155,6 +156,7 @@ const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
         onClick={handleProfile}
         onMouseEnter={onHoverProfile}
         onTouchStart={onHoverProfile}
+        data-tour="nav-profile"
       >
         <span className="mobile-nav-icon-wrap">
           {!isLoggedIn && <span className="mobile-nav-login-dot" />}
