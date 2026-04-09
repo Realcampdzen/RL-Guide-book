@@ -269,10 +269,8 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
     };
     const wheelOptions: AddEventListenerOptions = { passive: true, capture: true };
     window.addEventListener('wheel', handleAutoClose, wheelOptions);
-    window.addEventListener('scroll', handleAutoClose, true);
     return () => {
       window.removeEventListener('wheel', handleAutoClose, wheelOptions);
-      window.removeEventListener('scroll', handleAutoClose, true);
     };
   }, [isConceptOpen]);
 
