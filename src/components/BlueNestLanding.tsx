@@ -56,6 +56,7 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
   onHoverStart,
   onChatToggle,
   categories,
+  masterIndex,
 }) => {
   const { initReveal } = useScrollReveal();
   const [loaderHidden, setLoaderHidden] = useState(false);
@@ -435,7 +436,16 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
                 aria-expanded={isConceptOpen}
                 ref={conceptButtonRef}
               >
-                Здесь вы найдете 241 значок в 14 категориях.
+                Здесь вы найдете {masterIndex?.totalLevels ?? 241} {
+                  ((count) => {
+                    const mod10 = count % 10;
+                    const mod100 = count % 100;
+                    if (mod100 >= 11 && mod100 <= 19) return 'значков';
+                    if (mod10 === 1) return 'значок';
+                    if (mod10 >= 2 && mod10 <= 4) return 'значка';
+                    return 'значков';
+                  })(masterIndex?.totalLevels ?? 241)
+                } в {masterIndex?.totalCategories ?? 14} категориях.
               </button>
             </span>
           </p>
