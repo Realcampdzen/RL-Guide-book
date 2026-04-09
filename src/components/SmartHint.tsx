@@ -74,11 +74,21 @@ export const SmartHint: React.FC<SmartHintProps> = ({
   // Calculate modal positioning
   // If targetRect exists, place it above or below the target hole.
   // If targetRect is null, place it center screen.
-  let modalTop = '50%';
+  let modalTop: string | undefined = '50%';
+  let modalBottom: string | undefined = undefined;
   let modalTransform = 'translate(-50%, -50%)';
   if (targetRect) {
     const { top, height } = targetRect;
-    modalTop = `${top + height + 40 > window.innerHeight - 200 ? top - 200 : top + height + 24}px`;
+    // Assume max modal height is ~300px. If placing below risks cutting it off:
+    if (top + height + 320 > window.innerHeight) {
+        modalTop = undefined;
+        // Anchor the bottom of the modal just above the target
+        modalBottom = `${window.innerHeight - top + 24}px`;
+    } else {
+        // Fits below safely
+        modalTop = `${top + height + 24}px`;
+        modalBottom = undefined;
+    }
     modalTransform = 'translateX(-50%)';
   }
 
@@ -151,6 +161,7 @@ export const SmartHint: React.FC<SmartHintProps> = ({
         position: 'absolute',
         left: '50%',
         top: modalTop,
+        bottom: modalBottom,
         transform: modalTransform,
         width: 'calc(100% - 40px)',
         maxWidth: targetRect ? '340px' : '420px',
@@ -234,7 +245,7 @@ export const SmartHint: React.FC<SmartHintProps> = ({
               onMouseOver={(e) => e.currentTarget.style.filter = 'brightness(1.1)'}
               onMouseOut={(e) => e.currentTarget.style.filter = 'brightness(1)'}
             >
-              🚀 Поехали!
+              Поехали!
             </button>
           )}
         </div>
