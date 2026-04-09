@@ -35,7 +35,8 @@ export function getTravelerTourSteps(controller: AppController): HintStep[] {
       content: 'Крутая особенность: этот значок выдаётся за развитие самого Путеводителя! Участники могут сами создавать новые значки и даже целые направления. Эту педагогическую систему, программу смены и игрофикацию формируют сами дети!',
       targetSelector: '.badge-view-hero, .badge-detail-content',
       beforeAction: async () => {
-        const guideBadge = controller.badges?.find(b => b.id === '1.16');
+        const entries = await controller.ensureBadgeLoaded('1.16');
+        const guideBadge = entries?.find(b => b.id === '1.16') || controller.badges?.find(b => b.id === '1.16');
         if (guideBadge) {
           controller.setSelectedBadge(guideBadge);
           controller.setCurrentView('badge');
