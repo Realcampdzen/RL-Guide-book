@@ -20,9 +20,25 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
     // Keep console error for debugging; no network calls here.
     // eslint-disable-next-line no-console
     console.error('Unhandled UI error:', error, errorInfo);
+
+    // Auto-reload on Vite dynamic import chunk failure (e.g. after a new deployment)
+    const msg = error.message || '';
+    if (
+      msg.includes('Failed to fetch dynamically imported module') ||
+      msg.includes('Importing a module script failed') ||
+      msg.includes('dynamically imported module') ||
+      error.name === 'ChunkLoadError'
+    ) {
+      // Prevent infinite reload loops if the chunk is genuinely missing forever
+      if (!sessionStorage.getItem('chunk-reload-attempted')) {
+        sessionStorage.setItem('chunk-reload-attempted', 'true');
+        window.location.reload();
+      }
+    }
   }
 
   reset = () => {
+    sessionStorage.removeItem('chunk-reload-attempted');
     this.setState({ error: null });
   };
 

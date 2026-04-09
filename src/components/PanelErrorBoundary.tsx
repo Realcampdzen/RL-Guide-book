@@ -30,9 +30,24 @@ export class PanelErrorBoundary extends Component<PanelErrorBoundaryProps, Panel
 
     componentDidCatch(error: Error, info: ErrorInfo) {
         console.error(`[PanelErrorBoundary] ${this.props.panelName ?? 'unknown'}:`, error, info);
+        
+        // Auto-reload on Vite dynamic import chunk failure
+        const msg = error.message || '';
+        if (
+            msg.includes('Failed to fetch dynamically imported module') ||
+            msg.includes('Importing a module script failed') ||
+            msg.includes('dynamically imported module') ||
+            error.name === 'ChunkLoadError'
+        ) {
+            if (!sessionStorage.getItem('chunk-reload-attempted')) {
+                sessionStorage.setItem('chunk-reload-attempted', 'true');
+                window.location.reload();
+            }
+        }
     }
 
     handleRetry = () => {
+        sessionStorage.removeItem('chunk-reload-attempted');
         this.setState({ hasError: false, error: null });
     };
 
