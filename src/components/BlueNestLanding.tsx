@@ -78,6 +78,7 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
   const [carouselIndex, setCarouselIndex] = useState(0);
 
   const computeConceptPopoverAnchor = useCallback((): ConceptAnchor | null => {
+    if (typeof window !== 'undefined' && window.innerWidth <= 768) return null;
     const btn = conceptButtonRef.current;
     if (!btn) return null;
     const rect = btn.getBoundingClientRect();
@@ -256,8 +257,11 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
 
   useEffect(() => {
     if (!isConceptOpen) return;
-    const handleAutoClose = () => {
+    const handleAutoClose = (e: Event) => {
       if (hoverCapableRef.current) return;
+      if (e.target && conceptPopoverRef.current?.contains(e.target as Node)) {
+        return;
+      }
       setIsConceptOpen(false);
     };
     const wheelOptions: AddEventListenerOptions = { passive: true, capture: true };
@@ -603,14 +607,6 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
               ref={conceptPopoverRef}
               onPointerEnter={handleConceptPointerEnter}
               onPointerLeave={handlePopoverPointerLeave}
-              onClick={(e) => {
-                const target = e.target as Node | undefined;
-                if (target && typeof (target as Element).closest === 'function' && (target as Element).closest('button, a')) {
-                  return;
-                }
-                setIsConceptOpen(false);
-                conceptHoverSuppressedRef.current = true;
-              }}
               style={
                 effectiveAnchor
                   ? {
@@ -627,10 +623,37 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
                     top: '50%',
                     left: '50%',
                     transform: 'translate(-50%, -50%)',
+                    maxHeight: '85vh',
+                    overflowY: 'auto',
+                    width: 'min(90vw, 720px)',
                   }
               }
             >
-              <span className="subtitle-hint-title" style={{ display: 'block', fontSize: '1.2rem', fontWeight: 800, color: '#c9b8ff', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '20px', lineHeight: '1.3' }}>Игра, которая развивает участников и Лагерь</span>
+              <button
+                className="hover-target"
+                style={{
+                  position: 'absolute',
+                  top: '16px',
+                  right: '16px',
+                  background: 'none',
+                  border: 'none',
+                  color: 'rgba(255,255,255,0.6)',
+                  fontSize: '24px',
+                  cursor: 'pointer',
+                  lineHeight: 1,
+                  padding: '4px',
+                  zIndex: 10
+                }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsConceptOpen(false);
+                  conceptHoverSuppressedRef.current = true;
+                }}
+                aria-label="Закрыть"
+              >
+                &times;
+              </button>
+              <span className="subtitle-hint-title" style={{ display: 'block', fontSize: '1.2rem', fontWeight: 800, color: '#c9b8ff', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '20px', lineHeight: '1.3', paddingRight: '24px' }}>Игра, которая развивает участников и Лагерь</span>
               <div className="subtitle-hint-body">
                 <p>
                   В Реальном Лагере ребята становятся организаторами и развивают 4К навыки на практике. Запускают проекты,
