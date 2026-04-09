@@ -1506,7 +1506,7 @@
                 white-space: nowrap !important;
             }
             .marquee {
-                margin-top: calc(-55vh - 25px) !important;
+                margin-top: calc(-55vh - 35px) !important;
                 z-index: 5 !important;
                 position: relative !important;
             }
