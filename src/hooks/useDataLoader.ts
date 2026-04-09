@@ -59,10 +59,16 @@ type AiBadge = {
   }>;
 };
 
-const MASTER_URL = '/RL-Guide-book/ai-data/MASTER_INDEX.json';
-const CATEGORY_INTRO_URL = (categoryId: string) => `/RL-Guide-book/ai-data/category-${categoryId}/introduction.md`;
-const CATEGORY_INDEX_URL = (path: string) => `/RL-Guide-book/ai-data/${path}index.json`;
-const BADGE_URL = (path: string, id: string) => `/RL-Guide-book/ai-data/${path}${id}.json`;
+const getAiDataRoot = () => {
+  const customRoot = import.meta.env.VITE_AI_DATA_URL;
+  if (customRoot) return customRoot.replace(/\/$/, '');
+  return '/RL-Guide-book/ai-data';
+};
+
+const MASTER_URL = () => `${getAiDataRoot()}/MASTER_INDEX.json`;
+const CATEGORY_INTRO_URL = (categoryId: string) => `${getAiDataRoot()}/category-${categoryId}/introduction.md`;
+const CATEGORY_INDEX_URL = (path: string) => `${getAiDataRoot()}/${path}index.json`;
+const BADGE_URL = (path: string, id: string) => `${getAiDataRoot()}/${path}${id}.json`;
 const CUSTOM_BADGES_KEY = 'rl_custom_badges_v1';
 const COMMUNITY_BADGES_CACHE_KEY = 'rl_community_badges_cache_v1';
 const COMMUNITY_PUBLISH_QUEUE_KEY = 'rl_community_publish_queue_v1';
@@ -631,7 +637,7 @@ export const useDataLoader = () => {
         setLoading(true);
       }
 
-      const master = await fetchJson<MasterIndex>(MASTER_URL);
+      const master = await fetchJson<MasterIndex>(MASTER_URL());
       const version = getDataVersion(master);
       masterRef.current = master;
       versionRef.current = version;

@@ -456,11 +456,11 @@ export function useAppController() {
         };
         const normalizedKey = alias(key);
 
-        const primaryPath = `/RL-Guide-book/ai-data/category-${selectedCategory.id}/${type}/${normalizedKey}`;
+        const primaryPath = `${import.meta.env.VITE_AI_DATA_URL || '/RL-Guide-book/ai-data'}/category-${selectedCategory.id}/${type}/${normalizedKey}`;
         let response = await fetch(primaryPath);
 
         if (!response.ok) {
-          const fallbackPath = `/RL-Guide-book/ai-data/category-14/${type}/${normalizedKey}`;
+          const fallbackPath = `${import.meta.env.VITE_AI_DATA_URL || '/RL-Guide-book/ai-data'}/category-14/${type}/${normalizedKey}`;
           response = await fetch(fallbackPath);
           if (!response.ok) {
             return;

@@ -210,3 +210,6 @@ _m6_*.py
 # tasks.json
 # tasks/ 
 .vercel
+public/ai-data/
+public/ai-data/
+.env*.local

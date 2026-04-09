@@ -57,37 +57,55 @@ export const fetchAiSlogan = async (ctx: AiSloganContext): Promise<AiSloganResul
   const prompt = (() => {
     switch (ctx.kind) {
       case 'start_route':
-        return `Ты — НейроВалюша, ИИ-проводник Реального Лагеря с реальнолагерным вайбом. Придумай ОДНУ КОРОТКУЮ (до 10 слов) вдохновляющую фразу о том, что игрок выбрал маршрут к значку "${ctx.badgeTitle}". Используй лагерный сленг, космические метафоры (звёзды, путь, орбита) или обращение "Бро". Без кавычек.`;
+        return import.meta.env.VITE_PROMPT_START_ROUTE || `Ты — НейроВалюша, ИИ-проводник Реального Лагеря с реальнолагерным вайбом. Придумай ОДНУ КОРОТКУЮ (до 10 слов) вдохновляющую фразу о том, что игрок выбрал маршрут к значку "${ctx.badgeTitle}". Используй лагерный сленг, космические метафоры (звёзды, путь, орбита) или обращение "Бро". Без кавычек.`;
       case 'route_manifest_challenge':
-        return `Ты — НейроВалюша. Игрок выбрал маршрут к значку "${ctx.badgeTitle || 'новый значок'}". Придумай ОДНО короткое конкретное задание на сегодня (вызов), один шаг по пути к этому значку, до 10 слов. Тон: лагерный вайб, можно "Бро". Без кавычек.`;
+        return import.meta.env.VITE_PROMPT_MANIFEST || `Ты — НейроВалюша. Игрок выбрал маршрут к значку "${ctx.badgeTitle || 'новый значок'}". Придумай ОДНО короткое конкретное задание на сегодня (вызов), один шаг по пути к этому значку, до 10 слов. Тон: лагерный вайб, можно "Бро". Без кавычек.`;
       case 'achieved_level':
-        return `Ты — НейроВалюша с лагерным вайбом. Придумай ОДНУ КОРОТКУЮ (до 10 слов) победную или мемную фразу о том, что уровень "${ctx.levelLabel}" значка "${ctx.badgeTitle}" выполнен. Можно с космической метафорой или "Бро". Без кавычек.`;
+        return import.meta.env.VITE_PROMPT_ACHIEVED || `Ты — НейроВалюша с лагерным вайбом. Придумай ОДНУ КОРОТКУЮ (до 10 слов) победную или мемную фразу о том, что уровень "${ctx.levelLabel}" значка "${ctx.badgeTitle}" выполнен. Можно с космической метафорой или "Бро". Без кавычек.`;
       case 'favorite':
-        return `Ты — НейроВалюша. Придумай ОДНУ КОРОТКУЮ (до 10 слов) фразу о том, что значок "${ctx.badgeTitle}" теперь в избранном — мечта и цель, можно с вайбом или "Бро". Без кавычек.`;
+        return import.meta.env.VITE_PROMPT_FAVORITE || `Ты — НейроВалюша. Придумай ОДНУ КОРОТКУЮ (до 10 слов) фразу о том, что значок "${ctx.badgeTitle}" теперь в избранном — мечта и цель, можно с вайбом или "Бро". Без кавычек.`;
       case 'progress_summary': {
         const achieved = ctx.totalLevelsAchieved ?? 0;
         const started = ctx.totalBadgesStarted ?? 0;
         const inPath = (ctx.badgeTitlesInPath && ctx.badgeTitlesInPath.length > 0) ? ctx.badgeTitlesInPath.join(', ') : 'пока нет';
         const inFav = (ctx.favoriteBadgeTitles && ctx.favoriteBadgeTitles.length > 0) ? ctx.favoriteBadgeTitles.join(', ') : 'пока нет';
-        return `Ты — НейроВалюша, голос Путеводителя Реального Лагеря (педагогика, маршруты развития, рост). Контекст: игрок ${ctx.nickname || 'Искатель'}, ранг ${ctx.rank || 'в пути'}, закрыто уровней ${achieved}, в пути значков ${started}. Значки в пути: ${inPath}. В избранном: ${inFav}. Учитывай направление и приоритеты (какие сферы/темы выбраны), можно обыграть в слогане.
+        
+        const template = import.meta.env.VITE_PROMPT_SUMMARY || `Ты — НейроВалюша, голос Путеводителя Реального Лагеря (педагогика, маршруты развития, рост). Контекст: игрок {{nickname}}, ранг {{rank}}, закрыто уровней {{achieved}}, в пути значков {{started}}. Значки в пути: {{inPath}}. В избранном: {{inFav}}. Учитывай направление и приоритеты (какие сферы/темы выбраны), можно обыграть в слогане.
 
 Верни ровно ДВЕ строки через вертикальную черту (|), без кавычек.
 1) Первая строка — слоган для карточки (до 10–12 слов): тон поддерживающий, реальнолагерный вайб, лагерный сленг или космические метафоры (звёзды, орбита, маршрут), можно "Бро". Без соревнования и призывов "обойти" или "кто больше".
 2) Вторая строка — короткая подпись про прогресс (до 6–8 слов): отрази ранг и цифры, с лёгким юмором и педагогическим тоном.
 
 Формат ответа: слоган|подпись`;
+        return template
+          .replace('{{nickname}}', ctx.nickname || 'Искатель')
+          .replace('{{rank}}', ctx.rank || 'в пути')
+          .replace('{{achieved}}', String(achieved))
+          .replace('{{started}}', String(started))
+          .replace('{{inPath}}', inPath)
+          .replace('{{inFav}}', inFav);
       }
       case 'progress_callout': {
         const achieved = ctx.totalLevelsAchieved ?? 0;
         const started = ctx.totalBadgesStarted ?? 0;
-        return `Ты — НейроВалюша, голос Путеводителя Реального Лагеря. Нужна ОДНА короткая строка (до 6–8 слов) для подписи под карточкой прогресса. Контекст: игрок ${ctx.nickname || 'Искатель'}, ранг ${ctx.rank || 'в пути'}, закрыто уровней ${achieved}, в пути значков ${started}. Требования: лёгкий юмор, педагогический тон, лагерный вайб. Не повторяй формулировку «N уровней закрыто, M в пути» — интерпретируй прогресс по-другому (например: «Три значка в пути — выбор сделан», «Стартуем: есть куда расти», «Участник на маршруте»). Без кавычек.`;
+        const template = import.meta.env.VITE_PROMPT_CALLOUT || `Ты — НейроВалюша, голос Путеводителя Реального Лагеря. Нужна ОДНА короткая строка (до 6–8 слов) для подписи под карточкой прогресса. Контекст: игрок {{nickname}}, ранг {{rank}}, закрыто уровней {{achieved}}, в пути значков {{started}}. Требования: лёгкий юмор, педагогический тон, лагерный вайб. Не повторяй формулировку «N уровней закрыто, M в пути» — интерпретируй прогресс по-другому (например: «Три значка в пути — выбор сделан», «Стартуем: есть куда расти», «Участник на маршруте»). Без кавычек.`;
+        return template
+          .replace('{{nickname}}', ctx.nickname || 'Искатель')
+          .replace('{{rank}}', ctx.rank || 'в пути')
+          .replace('{{achieved}}', String(achieved))
+          .replace('{{started}}', String(started));
       }
       case 'stories_reels_meme': {
         const achieved = ctx.totalLevelsAchieved ?? 0;
         const started = ctx.totalBadgesStarted ?? 0;
-        return `Ты — НейроВалюша с мемным тоном для сторис и рилсов. Контекст: игрок ${ctx.nickname || 'Искатель'}, ранг ${ctx.rank || 'в пути'}, закрыто уровней ${achieved}, в пути значков ${started}.
+        const template = import.meta.env.VITE_PROMPT_STORIES || `Ты — НейроВалюша с мемным тоном для сторис и рилсов. Контекст: игрок {{nickname}}, ранг {{rank}}, закрыто уровней {{achieved}}, в пути значков {{started}}.
 
 Придумай ОДНУ короткую фразу (6–10 слов) в стиле сторис/рилсов. Разрешённые форматы: «когда…», «пока все… а я…», «этот момент когда», «я и мои N уровней» и подобные. Лагерный/космический вайб, можно «Бро». Ответ — одна строка, без кавычек.`;
+        return template
+          .replace('{{nickname}}', ctx.nickname || 'Искатель')
+          .replace('{{rank}}', ctx.rank || 'в пути')
+          .replace('{{achieved}}', String(achieved))
+          .replace('{{started}}', String(started));
       }
       default:
         return 'Вперед к новым звездам, Бро!';
@@ -156,14 +174,20 @@ export const fetchPedagogy4k = async (
     ? input.favoriteBadgeTitles.join(', ')
     : 'пока нет';
 
-  const message = `Ты — НейроВалюша, голос Путеводителя Реального Лагеря с опорой на педагогику и 4К-навыки (критическое мышление, креативность, коммуникация, коллаборация).
+  const template = import.meta.env.VITE_PROMPT_PEDAGOGY_4K || `Ты — НейроВалюша, голос Путеводителя Реального Лагеря с опорой на педагогику и 4К-навыки (критическое мышление, креативность, коммуникация, коллаборация).
 
-Контекст: игрок ${input.nickname || 'Искатель'}, ранг ${input.rank || 'в пути'}. Значки в пути: ${inPath}. В избранном: ${inFav}.
+Контекст: игрок {{nickname}}, ранг {{rank}}. Значки в пути: {{inPath}}. В избранном: {{inFav}}.
 
 Задача: по этим спискам значков верни ОДНУ короткую фразу (строго 2–5 слов) — обобщающую характеристику деятельности в педагогическом ключе с точки зрения 4К-навыков. Примеры: «Критическое мышление и лидерство», «Фокус на коммуникации и творчестве», «Развиваешь коллаборацию и креативность». Без мемов и сленга, тон поддерживающий.
 
 Запрещено: предложения типа «Вот несколько идей», «Чтобы получить значки», списки, советы, инструкции.
 Ответ — только одна фраза из 2–5 слов, как в примерах. Без кавычек.`;
+
+  const message = template
+    .replace('{{nickname}}', input.nickname || 'Искатель')
+    .replace('{{rank}}', input.rank || 'в пути')
+    .replace('{{inPath}}', inPath)
+    .replace('{{inFav}}', inFav);
 
   try {
     const response = await fetch(chatbotUrl, {
@@ -220,7 +244,7 @@ export type VibeCheckResult = {
   stat_buff: string;
 };
 
-const VIBE_CHECK_SYSTEM = `Ты — генератор вирусных подписей для приложения детского лагеря "Реальный Лагерь". Твоя целевая аудитория — подростки (Gen Z и Gen Alpha). Твоя задача — взять серьезное описание значка или прогресса и превратить его в смешной, жизненный или мемный мини-контент для сторис.
+const VIBE_CHECK_SYSTEM = import.meta.env.VITE_PROMPT_VIBE_SYSTEM || `Ты — генератор вирусных подписей для приложения детского лагеря "Реальный Лагерь". Твоя целевая аудитория — подростки (Gen Z и Gen Alpha). Твоя задача — взять серьезное описание значка или прогресса и превратить его в смешной, жизненный или мемный мини-контент для сторис.
 
 ТЫ ИСПОЛЬЗУЕШЬ СЛЕНГ: вайб, краш, кринж (аккуратно), имба, соло, база, POV, тюбик, масик, чечик, сигма, рил, жиза, ачивка, aura points.
 
@@ -250,16 +274,29 @@ export const fetchVibeCheck = async (
     ? '/api/chat'
     : 'https://real-vibe-ai-studio.pages.dev/api/putevoditel/chat';
 
-  const inputBlock =
-    input.variant === 'badge'
-      ? `Название значка: ${input.badgeTitle}
-Категория: ${input.categoryTitle}
-Описание: ${input.description || '(не указано)'}
+  const badgeTemplate = import.meta.env.VITE_PROMPT_VIBE_BADGE || `Название значка: {{badgeTitle}}
+Категория: {{categoryTitle}}
+Описание: {{description}}
 
-Сгенерируй мемный контент для этого значка. Ответь ТОЛЬКО валидным JSON в одну строку: {"meme_header":"...","meme_text":"...","stat_buff":"..."}`
-      : `Прогресс игрока в Путеводителе: ник ${input.nickname || 'Искатель'}, ранг ${input.rank || 'в пути'}, закрыто уровней ${input.totalLevelsAchieved ?? 0}, в пути значков ${input.totalBadgesStarted ?? 0}. Значки в пути: ${(input.badgeTitlesInPath && input.badgeTitlesInPath.length > 0) ? input.badgeTitlesInPath.join(', ') : 'пока нет'}. В избранном: ${(input.favoriteBadgeTitles && input.favoriteBadgeTitles.length > 0) ? input.favoriteBadgeTitles.join(', ') : 'пока нет'}.
+Сгенерируй мемный контент для этого значка. Ответь ТОЛЬКО валидным JSON в одну строку: {"meme_header":"...","meme_text":"...","stat_buff":"..."}`;
+
+  const profileTemplate = import.meta.env.VITE_PROMPT_VIBE_PROFILE || `Прогресс игрока в Путеводителе: ник {{nickname}}, ранг {{rank}}, закрыто уровней {{achieved}}, в пути значков {{started}}. Значки в пути: {{inPath}}. В избранном: {{inFav}}.
 
 Сгенерируй мемный контент для карточки прогресса. Комментарий в meme_header / meme_text / stat_buff должен отражать направление и приоритеты человека по этим значкам (темы, сферы, «вайб» выбора), а не только ранг и цифры. Ответь ТОЛЬКО валидным JSON в одну строку: {"meme_header":"...","meme_text":"...","stat_buff":"..."}`;
+
+  const inputBlock =
+    input.variant === 'badge'
+      ? badgeTemplate
+          .replace('{{badgeTitle}}', input.badgeTitle)
+          .replace('{{categoryTitle}}', input.categoryTitle)
+          .replace('{{description}}', input.description || '(не указано)')
+      : profileTemplate
+          .replace('{{nickname}}', input.nickname || 'Искатель')
+          .replace('{{rank}}', input.rank || 'в пути')
+          .replace('{{achieved}}', String(input.totalLevelsAchieved ?? 0))
+          .replace('{{started}}', String(input.totalBadgesStarted ?? 0))
+          .replace('{{inPath}}', (input.badgeTitlesInPath && input.badgeTitlesInPath.length > 0) ? input.badgeTitlesInPath.join(', ') : 'пока нет')
+          .replace('{{inFav}}', (input.favoriteBadgeTitles && input.favoriteBadgeTitles.length > 0) ? input.favoriteBadgeTitles.join(', ') : 'пока нет');
 
   const message = `${VIBE_CHECK_SYSTEM}\n\n---\n\nВХОДНЫЕ ДАННЫЕ:\n\n${inputBlock}`;
 
@@ -387,10 +424,10 @@ export const structureUserPlan = async (
   input: StructureUserPlanInput
 ): Promise<StructureUserPlanResult | null> => {
   const chatbotUrl = getChatbotUrl();
-  const message = `Ты — НейроВалюша, ИИ-проводник Реального Лагеря. Участник написал свои мысли о том, как получить значок «${input.badgeTitle}».
+  const template = import.meta.env.VITE_PROMPT_STRUCTURE_PLAN || `Ты — НейроВалюша, ИИ-проводник Реального Лагеря. Участник написал свои мысли о том, как получить значок «{{badgeTitle}}».
 
 ТЕКСТ УЧАСТНИКА:
-${input.myPlanDraft}
+{{myPlanDraft}}
 
 Задача: извлеки из текста 3–7 конкретных шагов (действий), которые участник может выполнить. Сформулируй каждый шаг кратко и понятно.
 
@@ -398,6 +435,10 @@ ${input.myPlanDraft}
 - Шаг 1: ...
 - Шаг 2: ...
 (или с номерами 1. ... 2. ...)`;
+
+  const message = template
+    .replace('{{badgeTitle}}', input.badgeTitle)
+    .replace('{{myPlanDraft}}', input.myPlanDraft);
 
   try {
     const response = await fetch(chatbotUrl, {
@@ -506,30 +547,46 @@ export const fetchBadgePlan = async (
     input.badgeConfirmation ? `ПОДТВЕРЖДЕНИЕ: ${input.badgeConfirmation}` : ''
   ].filter(Boolean).join('\n');
 
-  const message = `Ты — НейроВалюша, ИИ-проводник Реального Лагеря. Задача: персонализированный план получения значка.
+  const template = import.meta.env.VITE_PROMPT_BADGE_PLAN || `Ты — НейроВалюша, ИИ-проводник Реального Лагеря. Задача: персонализированный план получения значка.
 
 ВАЖНО: Ты получаешь точные данные значка. НЕ придумывай описание — строго опирайся на критерии и описание ниже.
 
-ЗНАЧОК: "${input.badgeTitle}" (уровень ${input.badgeId}${levelLabel})
+ЗНАЧОК: "{{badgeTitle}}" (уровень {{badgeId}}{{levelLabel}})
 
-${badgeContext || 'Критерии не указаны.'}
+{{badgeContext}}
 
-${userBlock}${existingBlock}КОНТЕКСТ СМЕНЫ:
-- Длина смены: ${shiftLen} дней. СЕГОДНЯ — День ${input.currentDay}.
-${campProgramSummary ? `- Программа лагеря (дни ${Math.max(1, input.currentDay - 2)}–${Math.min(shiftLen, input.currentDay + 4)}):\n${campProgramSummary}` : ''}
-- ${squadGridBlock}
-- ${squadPlanBlock}
-- ${campBlock}
-- Приоритет: ${priorityBlock}
+{{userBlock}}{{existingBlock}}КОНТЕКСТ СМЕНЫ:
+- Длина смены: {{shiftLen}} дней. СЕГОДНЯ — День {{currentDay}}.
+{{campProgramSummary}}
+- {{squadGridBlock}}
+- {{squadPlanBlock}}
+- {{campBlock}}
+- Приоритет: {{priorityBlock}}
 
-${taskInstruction}
+{{taskInstruction}}
 
 ФОРМАТ ОТВЕТА (строго):
-1) Один абзац — идея плана с привязкой к дню ${input.currentDay} и мероприятиям.
+1) Один абзац — идея плана с привязкой к дню {{currentDay}} и мероприятиям.
 2) Список шагов (3–7 шт.) в формате:
 - Шаг 1: На [мероприятие] / День N — [конкретное действие]
 - Шаг 2: ...
 Каждый шаг должен указывать ГДЕ и КОГДА выполнить действие.`;
+
+  const message = template
+    .replace('{{badgeTitle}}', input.badgeTitle)
+    .replace('{{badgeId}}', input.badgeId)
+    .replace('{{levelLabel}}', levelLabel)
+    .replace('{{badgeContext}}', badgeContext || 'Критерии не указаны.')
+    .replace('{{userBlock}}', userBlock)
+    .replace('{{existingBlock}}', existingBlock)
+    .replace('{{shiftLen}}', String(shiftLen))
+    .replace('{{currentDay}}', String(input.currentDay))
+    .replace('{{campProgramSummary}}', campProgramSummary ? `- Программа лагеря (дни ${Math.max(1, input.currentDay - 2)}–${Math.min(shiftLen, input.currentDay + 4)}):\n${campProgramSummary}` : '')
+    .replace('{{squadGridBlock}}', squadGridBlock)
+    .replace('{{squadPlanBlock}}', squadPlanBlock)
+    .replace('{{campBlock}}', campBlock)
+    .replace('{{priorityBlock}}', priorityBlock)
+    .replace('{{taskInstruction}}', taskInstruction);
 
   try {
     const response = await fetch(chatbotUrl, {
@@ -645,22 +702,29 @@ export const fetchCouncilInitiative = async (
     ? `Программа смены (дни около ${input.currentDay}):\n${campProgramSummary}`
     : 'Программа смены не указана.';
 
-  const message = `Ты — НейроВалюша, ИИ-проводник Реального Лагеря. Задача: сформулировать инициативу для Совета Лагеря.
+  const template = import.meta.env.VITE_PROMPT_COUNCIL || `Ты — НейроВалюша, ИИ-проводник Реального Лагеря. Задача: сформулировать инициативу для Совета Лагеря.
 
 Совет Лагеря — площадка для идей: новые игры, мероприятия, улучшение традиций, идеи от Движков. Цикл: Идеи → Обсуждение → Решения → Задачи → Артефакты.
 
-${teamBlock}
-Длина смены: ${shiftLen} дней. Сейчас день ${input.currentDay}.
+{{teamBlock}}
+Длина смены: {{shiftLen}} дней. Сейчас день {{currentDay}}.
 
 ТЕКСТ УЧАСТНИКА (идея, тема, набросок):
-${input.topicDraft.trim()}
+{{topicDraft}}
 
-${contextBlock}
+{{contextBlock}}
 
 Сформулируй короткую инициативу для вынесения в Совет: один абзац — суть предложения (что сделать, зачем, для кого). Затем дай 3–5 конкретных шагов для реализации в формате:
 - Шаг 1: ...
 - Шаг 2: ...
 Каждый шаг — конкретное действие (где, когда, кто может помочь).`;
+
+  const message = template
+    .replace('{{teamBlock}}', teamBlock)
+    .replace('{{shiftLen}}', String(shiftLen))
+    .replace('{{currentDay}}', String(input.currentDay))
+    .replace('{{topicDraft}}', input.topicDraft.trim())
+    .replace('{{contextBlock}}', contextBlock);
 
   try {
     const response = await fetch(chatbotUrl, {

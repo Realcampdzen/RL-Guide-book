@@ -1861,9 +1861,9 @@ export const PersonalCabinet: React.FC<{
                                         })()}
                                         {['intro-doc', 'methodology-doc', 'active-checklist-doc'].includes(inspectorTab) && (() => {
                                             const DOC_CONFIG: Record<string, { title: string; path: string }> = {
-                                                'intro-doc': { title: '📖 Введение в Инспектора Пользы', path: '/RL-Guide-book/ai-data/category-14/introduction.md' },
-                                                'methodology-doc': { title: '📘 Методика «Инспектор Пользы»', path: '/RL-Guide-book/ai-data/category-14/methodology/inspector-methodology.md' },
-                                                'active-checklist-doc': { title: '✅ Активный чек-лист', path: '/RL-Guide-book/ai-data/category-14/checklists/active-checklist.md' },
+                                                'intro-doc': { title: '📖 Введение в Инспектора Пользы', path: `${import.meta.env.VITE_AI_DATA_URL || '/RL-Guide-book/ai-data'}/category-14/introduction.md` },
+                                                'methodology-doc': { title: '📘 Методика «Инспектор Пользы»', path: `${import.meta.env.VITE_AI_DATA_URL || '/RL-Guide-book/ai-data'}/category-14/methodology/inspector-methodology.md` },
+                                                'active-checklist-doc': { title: '✅ Активный чек-лист', path: `${import.meta.env.VITE_AI_DATA_URL || '/RL-Guide-book/ai-data'}/category-14/checklists/active-checklist.md` },
                                             };
                                             const cfg = DOC_CONFIG[inspectorTab];
                                             return <MarkdownDocTab key={inspectorTab} title={cfg.title} mdPath={cfg.path} />;
