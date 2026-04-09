@@ -9,6 +9,7 @@ import type { UserRole } from '../types/authRole';
 import { RoleSelectionModal } from '../components/RoleSelectionModal';
 import type { RoleFlowResult } from '../components/RoleSelectionModal';
 import { useHintOverlay } from '../context/HintOverlayContext';
+import { getTravelerTourSteps } from '../config/travelerTourSteps';
 
 const ChatBot = React.lazy(() => import('../components/ChatBot'));
 const ChatAvatar = React.lazy(() => import('../components/ChatAvatar'));
@@ -80,40 +81,7 @@ export const AppViewRouter: React.FC<Props> = ({ controller, fallback }) => {
         setShowRoleModal(false);
         // Start Global PS5-style Onboarding Tour for Travelers
         if (!localStorage.getItem('rl-traveler-tour-done')) {
-          startTutorial([
-            {
-              title: 'Привет, Путешественник!',
-              content: 'Добро пожаловать в Путеводитель "Реального Лагеря". Это твой проводник в мир наших смен. Давай проведем короткий инструктаж, как в крутой видеоигре. Жми "Далее"!',
-              beforeAction: () => { controller.setCurrentView('intro'); },
-              delayBeforeMeasure: 300,
-            },
-            {
-              title: 'Дерево Навыков (Категории)',
-              content: 'Здесь собраны все направления и бейджи (внутрилагерные достижения), которые можно получить на сменах. Это твоя база знаний!',
-              targetSelector: '[data-tour="nav-categories"]',
-              beforeAction: () => { controller.setCurrentView('categories'); },
-              delayBeforeMeasure: 700,
-            },
-            {
-              title: 'Личный Кабинет',
-              content: 'Здесь хранится твой цифровой профиль, заработанные бейджи и статистика. Для сохранения прогресса в будущем нужно будет зарегистрироваться.',
-              targetSelector: '[data-tour="nav-profile"]',
-              beforeAction: () => { controller.setCurrentView('profile'); },
-              delayBeforeMeasure: 1000,
-            },
-            {
-              title: 'ИИ-Ассистент НейроВалюша',
-              content: 'Если ты потерялся или хочешь узнать о лагере больше — спроси у НейроВалюши! Это наша фирменная нейросеть.',
-              targetSelector: '.chat-avatar-button',
-              beforeAction: () => { controller.setCurrentView('intro'); },
-              delayBeforeMeasure: 400,
-            },
-            {
-              title: 'К полету готов!',
-              content: 'Теперь ты знаешь, как устроен Путеводитель. Исследуй интерфейс, читай про значки и готовься к реальным сменам. Удачи!',
-              delayBeforeMeasure: 100,
-            }
-          ], {
+          startTutorial(getTravelerTourSteps(controller), {
             onComplete: () => { 
                 localStorage.setItem('rl-traveler-tour-done', '1');
                 controller.setCurrentView('intro'); 

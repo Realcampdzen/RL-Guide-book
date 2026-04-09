@@ -64,7 +64,7 @@ export const ROLE_LABELS: Record<UserRole, string> = {
   participant: 'Участник смены',
   parent: 'Родитель',
   counselor: 'Вожатый',
-  educator: 'Педагог',
+  educator: 'Педагог/Тренер',
   shift_leader: 'Старший Вожатый',
   camp_director: 'Начальник Лагеря',
   developer: 'Разработчик'
