@@ -327,14 +327,7 @@ export default defineConfig(({ mode, command }) => {
   const isDevServer = command === 'serve'
 
   const plugins = [
-    react({
-      // Use Babel for JSX so build parses deep JSX correctly (esbuild has a parse bug).
-      babel: {
-        babelrc: false,
-        configFile: false,
-        presets: [['@babel/preset-react', { runtime: 'automatic' }]]
-      }
-    }),
+    react(),
     copyApiPlugin(),
     rlGuideBookDevPlugin(),
     copyRLGuideBookPlugin(),
@@ -351,11 +344,13 @@ export default defineConfig(({ mode, command }) => {
   ]
 
   return {
+    devtools: true,
     plugins,
     // Dev should work from http://localhost:3001/ without requiring /RL-Guide-book/ prefix.
     // Build/preview keeps the GitHub Pages base path.
     base: isDevServer ? '/' : '/RL-Guide-book/',
     server: {
+      forwardConsole: true,
       port: 3001,
       host: true,
       proxy: {
