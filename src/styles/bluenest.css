@@ -1,4 +1,4 @@
-﻿/* 
+/* 
         ========================================
         CORE VARIABLES & RESET (Agency Standard)
         ========================================
@@ -16,7 +16,7 @@ html {
   scroll-behavior: smooth;
   background: linear-gradient(135deg, #0f0a1f 0%, #1a0f2e 50%, #2a1a3d 100%);
   color: var(--c-stark);
-  /* overflow-x: hidden moved to body вЂ” keeping it on html blocks
+  /* overflow-x: hidden moved to body — keeping it on html blocks
                Chrome's middle-click autoscroll (the scroll container must not
                have any overflow axis set to 'hidden'). */
 }
@@ -53,7 +53,7 @@ body::before {
       rgba(26, 15, 46, 0.55) 50%,
       rgba(42, 26, 61, 0.5) 100%
     ),
-    url("/RL-Guide-book/С„РѕРЅ РґР»СЏ Р»Рє РґРµСЃРєС‚РѕРї.jpg");
+    url("/RL-Guide-book/фон для лк десктоп.jpg");
   background-position: center center;
   background-size: cover;
   background-repeat: no-repeat;
@@ -533,7 +533,7 @@ button.nav-image-container {
     height: auto !important;
   }
 }
-/* РЈР±РёСЂР°РµРј РїСЃРµРІРґРѕСЌР»РµРјРµРЅС‚ ::after РґР»СЏ nav-image-container.intro-logo */
+/* Убираем псевдоэлемент ::after для nav-image-container.intro-logo */
 .nav-image-container.intro-logo::after {
   display: none !important;
 }
@@ -577,7 +577,7 @@ button.nav-image-container {
   mix-blend-mode: difference;
   opacity: 0;
   visibility: hidden;
-  display: none !important; /* РЎРєСЂС‹РІР°РµРј РІСЃРїР»С‹РІР°СЋС‰СѓСЋ РЅР°РґРїРёСЃСЊ */
+  display: none !important; /* Скрываем всплывающую надпись */
 }
 @supports (-webkit-text-stroke: 1px black) {
   .nav-link-left {
@@ -854,8 +854,8 @@ html[data-autoscroll="on"] .subtitle-hint {
   flex-direction: column;
   justify-content: flex-start;
   align-items: flex-start;
-  padding: calc(60px + 5vh) 10vw 6vh 4vw; /* РџРѕРґРЅСЏС‚ РµС‰Рµ РІС‹С€Рµ */
-  overflow: visible; /* РџРѕР·РІРѕР»СЏРµС‚ Р»РµРЅС‚Рµ РїСЂРѕСЃРІРµС‡РёРІР°С‚СЊ С‡РµСЂРµР· РїСЂРѕР·СЂР°С‡РЅС‹Р№ С‚РµРєСЃС‚ */
+  padding: calc(60px + 5vh) 10vw 6vh 4vw; /* Поднят еще выше */
+  overflow: visible; /* Позволяет ленте просвечивать через прозрачный текст */
 }
 
 /* Animated Mesh Background - subtle layer over the base image */
@@ -881,7 +881,7 @@ html[data-perf="lite"] .hero-bg {
   animation-duration: 32s;
 }
 
-/* Hero СЃРµРєС†РёСЏ РґРѕР»Р¶РЅР° Р±С‹С‚СЊ РїСЂРѕР·СЂР°С‡РЅРѕР№, С‡С‚РѕР±С‹ Р±С‹Р» РІРёРґРµРЅ С„РѕРЅ body */
+/* Hero секция должна быть прозрачной, чтобы был виден фон body */
 .hero {
   background: transparent;
   position: relative;
@@ -892,22 +892,22 @@ html[data-perf="lite"] .hero-bg {
   z-index: 3;
   max-width: 1400px;
   width: 100%;
-  overflow: visible; /* РџРѕР·РІРѕР»СЏРµРј Р·Р°РіРѕР»РѕРІРєСѓ Р±С‹С‚СЊ РІРёРґРёРјС‹Рј */
+  overflow: visible; /* Позволяем заголовку быть видимым */
 }
 
 /* Editorial/Massive Typography */
 .hero-title {
-  font-size: clamp(4rem, 8vw + 2rem, 11rem); /* Р¤Р»СЋРёРґРЅР°СЏ Р°РґР°РїС‚РёРІРЅРѕСЃС‚СЊ: РїР»Р°РІРЅРѕРµ РјР°СЃС€С‚Р°Р±РёСЂРѕРІР°РЅРёРµ */
+  font-size: clamp(4rem, 8vw + 2rem, 11rem); /* Флюидная адаптивность: плавное масштабирование */
   line-height: 0.9;
   margin-bottom: clamp(1.5rem, 3vw, 2rem);
   margin-top: 0;
-  padding-right: 0; /* РЈР±РёСЂР°РµРј СЃРїРµС†РёС„РёС‡РЅС‹Р№ РѕС‚СЃС‚СѓРї С‡С‚РѕР±С‹ РЅРµ Р»РѕРјР°С‚СЊ С„Р»СЋРёРґРЅРѕСЃС‚СЊ */
+  padding-right: 0; /* Убираем специфичный отступ чтобы не ломать флюидность */
   /* Removed animation: Safari disappearing text bug fix */
-  word-break: keep-all; /* РџСЂРµРґРѕС‚РІСЂР°С‰Р°РµРј СЂР°Р·СЂС‹РІ СЃР»РѕРІ РЅР° РґРµСЃРєС‚РѕРїРµ */
+  word-break: keep-all; /* Предотвращаем разрыв слов на десктопе */
   position: relative;
   z-index: 1;
   color: var(--c-stark);
-  white-space: nowrap; /* РџСЂРµРґРѕС‚РІСЂР°С‰Р°РµРј РїРµСЂРµРЅРѕСЃ СЃС‚СЂРѕРє РЅР° С€РёСЂРѕРєРёС… СЌРєСЂР°РЅР°С… */
+  white-space: nowrap; /* Предотвращаем перенос строк на широких экранах */
 }
 
 .hero-title::after {
@@ -933,7 +933,7 @@ html[data-perf="lite"] .hero-title::after {
   opacity: 0.28;
 }
 
-/* РћС‚РєР»СЋС‡Р°РµРј СЃРёРЅРёР№/С„РёРѕР»РµС‚РѕРІС‹Р№ mesh overlay РІ hero */
+/* Отключаем синий/фиолетовый mesh overlay в hero */
 .hero-bg {
   display: none;
 }
@@ -945,7 +945,7 @@ html[data-perf="lite"] .hero-title::after {
   display: block;
   position: relative;
   z-index: 1;
-  white-space: nowrap; /* Р—Р°РїСЂРµС‚ РїРµСЂРµРЅРѕСЃР° РЅР° РґРµСЃРєС‚РѕРїРµ */
+  white-space: nowrap; /* Запрет переноса на десктопе */
 }
 .hero-title-first-word {
   position: relative;
@@ -1031,7 +1031,7 @@ html[data-perf="lite"] .hero-title::after {
       rgba(26, 15, 46, 0.55) 50%,
       rgba(42, 26, 61, 0.5) 100%
     ),
-    url("/RL-Guide-book/С„РѕРЅ РґР»СЏ Р»Рє РґРµСЃРєС‚РѕРї.jpg") center center / cover no-repeat;
+    url("/RL-Guide-book/фон для лк десктоп.jpg") center center / cover no-repeat;
   background-color: var(--c-midnight);
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -1414,7 +1414,7 @@ html[data-perf="lite"] .bluenest-landing .feature-card {
       rgba(26, 15, 46, 0.55) 50%,
       rgba(42, 26, 61, 0.5) 100%
     ),
-    url("/RL-Guide-book/С„РѕРЅ РґР»СЏ Р»Рє РґРµСЃРєС‚РѕРї.jpg") center center / cover no-repeat;
+    url("/RL-Guide-book/фон для лк десктоп.jpg") center center / cover no-repeat;
   background-color: var(--c-midnight);
   position: relative;
   overflow: hidden;
@@ -1469,7 +1469,7 @@ html[data-perf="lite"] .bluenest-landing .feature-card {
   }
 }
 @keyframes scrollText {
-  /* РСЃРїРѕР»СЊР·СѓРµРј translate3d РґР»СЏ GPU СѓСЃРєРѕСЂРµРЅРёСЏ Рё СЃРґРІРёРіР°РµРј СЂРѕРІРЅРѕ РЅР° 50% (2 РґСѓР±Р»РёРєР°С‚Р° РёР· 4-С…) */
+  /* Используем translate3d для GPU ускорения и сдвигаем ровно на 50% (2 дубликата из 4-х) */
   0% {
     transform: translate3d(0, 0, 0);
   }
@@ -1506,14 +1506,14 @@ html[data-perf="lite"] .bluenest-landing .feature-card {
 }
 
 /* RESPONSIVE TWEAKS */
-/* Desktop - СѓРјРµРЅСЊС€Р°РµРј СЂР°Р·РјРµСЂ hero-title Рё РїРѕРґРЅРёРјР°РµРј РІС‹С€Рµ */
+/* Desktop - уменьшаем размер hero-title и поднимаем выше */
 @media (min-width: 1024px) {
   .nav-image-container.nav-home {
     top: 2rem !important;
     left: clamp(3rem, 8vw, 5rem) !important;
   }
   .hero {
-    padding: calc(60px + 5vh) 10vw 6vh 4vw; /* РЈРІРµР»РёС‡РёРІР°РµРј РІРµСЂС…РЅРёР№ РѕС‚СЃС‚СѓРї РґР»СЏ РѕРїСѓСЃРєР°РЅРёСЏ РЅР°РґРїРёСЃРё */
+    padding: calc(60px + 5vh) 10vw 6vh 4vw; /* Увеличиваем верхний отступ для опускания надписи */
   }
   .hero-content {
     top: -2vh;
@@ -1523,9 +1523,9 @@ html[data-perf="lite"] .bluenest-landing .feature-card {
     position: relative !important;
   }
   .hero-title {
-    font-size: clamp(4rem, 8vw + 2rem, 11rem); /* РЎРѕС…СЂР°РЅСЏРµРј С„Р»СЋРёРґРЅСѓСЋ Р°РґР°РїС‚РёРІРЅРѕСЃС‚СЊ */
+    font-size: clamp(4rem, 8vw + 2rem, 11rem); /* Сохраняем флюидную адаптивность */
     line-height: 0.9;
-    margin-top: 2rem; /* Р”РѕР±Р°РІР»СЏРµРј РґРѕРїРѕР»РЅРёС‚РµР»СЊРЅС‹Р№ РѕС‚СЃС‚СѓРї СЃРІРµСЂС…Сѓ */
+    margin-top: 2rem; /* Добавляем дополнительный отступ сверху */
     z-index: 10 !important;
     position: relative !important;
   }
@@ -1567,7 +1567,7 @@ html[data-perf="lite"] .bluenest-landing .feature-card {
   }
 }
 
-/* РџСЂРѕРјРµР¶СѓС‚РѕС‡РЅС‹Рµ СЂР°Р·РјРµСЂС‹ РґР»СЏ РїР»Р°РІРЅРѕРіРѕ РїРµСЂРµС…РѕРґР° (РїР»Р°РЅС€РµС‚РЅС‹Р№ СЂРµР¶РёРј) */
+/* Промежуточные размеры для плавного перехода (планшетный режим) */
 @media (min-width: 768px) and (max-width: 1023px) {
   .hero {
     padding: calc(50px + 4vh) 6vw 5vh 4vw !important;
@@ -1662,7 +1662,7 @@ html[data-perf="lite"] .bluenest-landing .feature-card {
   .hero .hero-content .hero-title,
   section.hero .hero-content h1.hero-title,
   .hero-title {
-    font-size: clamp(2.5rem, 6vw + 1rem, 4rem) !important; /* Р¤Р»СЋРёРґРЅР°СЏ Р°РґР°РїС‚РёРІРЅРѕСЃС‚СЊ РґР»СЏ РјРѕР±РёР»СЊРЅС‹С… */
+    font-size: clamp(2.5rem, 6vw + 1rem, 4rem) !important; /* Флюидная адаптивность для мобильных */
     line-height: 0.9 !important;
     padding-right: clamp(0.5rem, 2vw, 1rem) !important;
     text-align: left !important;
@@ -1693,24 +1693,24 @@ html[data-perf="lite"] .bluenest-landing .feature-card {
     pointer-events: none !important;
   }
   .marquee-track {
-    --marquee-duration: 25s; /* Р‘РѕР»РµРµ Р°РєС‚РёРІРЅС‹Р№ С‚РµРјРї РґР»СЏ РјРѕР±РёР»СЊРЅС‹С… СЌРєСЂР°РЅРѕРІ */
+    --marquee-duration: 25s; /* Более активный темп для мобильных экранов */
   }
-  /* РЈР±РµР¶РґР°РµРјСЃСЏ С‡С‚Рѕ hero-bg РЅРёР¶Рµ marquee */
+  /* Убеждаемся что hero-bg ниже marquee */
   .hero-bg {
     z-index: -1 !important;
   }
 
-  /* РџРѕСЂС‚СЂРµС‚РЅР°СЏ РѕСЂРёРµРЅС‚Р°С†РёСЏ РЅР° РјРѕР±РёР»СЊРЅС‹С… - РЅР°РґРїРёСЃСЊ Р±РѕР»СЊС€Рµ Рё РЅРёР¶Рµ */
+  /* Портретная ориентация на мобильных - надпись больше и ниже */
   @media (max-width: 768px) and (orientation: portrait) {
     .hero-content {
       margin-top: clamp(
         6rem,
         14vh,
         10rem
-      ) !important; /* РћРїСѓСЃРєР°РµРј РЅР°РґРїРёСЃСЊ РЅРёР¶Рµ РІ РїРѕСЂС‚СЂРµС‚РЅРѕР№ РѕСЂРёРµРЅС‚Р°С†РёРё */
-      padding-left: clamp(0.5rem, 2vw, 1rem) !important; /* РЎРјРµС‰Р°РµРј С‚РµРєСЃС‚ РІР»РµРІРѕ */
-      margin-left: -2.5vw !important; /* РЈРІРµР»РёС‡РёРІР°РµРј СЃРјРµС‰РµРЅРёРµ РІР»РµРІРѕ РґР»СЏ РїСЂРµРґРѕС‚РІСЂР°С‰РµРЅРёСЏ РІС‹С…РѕРґР° С‚РµРєСЃС‚Р° Р·Р° РєСЂР°Р№ */
-      padding-right: clamp(1rem, 3vw, 2rem) !important; /* РћС‚СЃС‚СѓРї СЃРїСЂР°РІР° */
+      ) !important; /* Опускаем надпись ниже в портретной ориентации */
+      padding-left: clamp(0.5rem, 2vw, 1rem) !important; /* Смещаем текст влево */
+      margin-left: -2.5vw !important; /* Увеличиваем смещение влево для предотвращения выхода текста за край */
+      padding-right: clamp(1rem, 3vw, 2rem) !important; /* Отступ справа */
     }
     .hero .hero-content .hero-title,
     section.hero .hero-content h1.hero-title,
@@ -1890,7 +1890,6 @@ html[data-perf="lite"] .bluenest-landing .feature-card {
     white-space: normal !important;
   }
 }
-.nav-image-container:active { transform: scale(0.95) !important; opacity: 0.8; transition: transform 0.1s ease, opacity 0.1s ease; }
 
 /* Safari Hardware Acceleration Fix for disappearing text */
 .hero-title, .hero-title span {
@@ -1901,3 +1900,6 @@ html[data-perf="lite"] .bluenest-landing .feature-card {
   -webkit-backface-visibility: hidden !important;
   backface-visibility: hidden !important;
 }
+
+/* Home logo tap animation */
+.nav-image-container:active { transform: scale(0.95) !important; opacity: 0.8; transition: transform 0.1s ease, opacity 0.1s ease; }
