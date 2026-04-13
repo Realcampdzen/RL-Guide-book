@@ -200,6 +200,15 @@ export const AppViewRouter: React.FC<Props> = ({ controller, fallback }) => {
     closeChat,
   } = controller;
 
+  // Reset scroll position gracefully when switching views
+  React.useEffect(() => {
+    // We only reset scroll position when navigating to root views
+    // For smaller components, maintaining scroll is sometimes desired, but usually scrolling to top is best
+    if (typeof window !== 'undefined') {
+      window.scrollTo(0, 0);
+    }
+  }, [currentView]);
+
   const openBadgeById = React.useCallback(
     async (badgeId: string) => {
       if (!badgeId) return;
