@@ -159,10 +159,8 @@ const AdminDashboard = withSuspense(
     import('../components/AdminDashboard').then((m) => ({ default: m.AdminDashboard }))
   )
 );
-const PersonalCabinet = withSuspense(
-  React.lazy(() =>
-    import('../components/PersonalCabinet').then((m) => ({ default: m.PersonalCabinet }))
-  )
+const LazyPersonalCabinet = React.lazy(() =>
+  import('../components/PersonalCabinet').then((m) => ({ default: m.PersonalCabinet }))
 );
 
 import { QRCodeSVG } from 'qrcode.react';
@@ -8390,7 +8388,31 @@ export const ProfileView: React.FC<any> = (props) => {
           onClose={() => setShowAdminDashboard(false)}
         />
       )}
-      {showPersonalCabinet && <PersonalCabinet onBack={() => setShowPersonalCabinet(false)} />}
+      {showPersonalCabinet && (
+        <React.Suspense
+          fallback={
+            <div
+              style={{
+                position: 'fixed',
+                inset: 0,
+                zIndex: 99998,
+                backgroundColor: '#07101E',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <div className="loading-spinner" style={{ width: 48, height: 48 }}></div>
+              <div style={{ marginTop: '16px', fontSize: '14px', color: 'rgba(255,255,255,0.7)' }}>
+                Открываем личный кабинет...
+              </div>
+            </div>
+          }
+        >
+          <LazyPersonalCabinet onBack={() => setShowPersonalCabinet(false)} />
+        </React.Suspense>
+      )}
     </section>
   );
 };
