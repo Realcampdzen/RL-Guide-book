@@ -67,8 +67,8 @@ const getAiDataRoot = () => {
 
 const MASTER_URL = () => `${getAiDataRoot()}/MASTER_INDEX.json`;
 const CATEGORY_INTRO_URL = (categoryId: string) => `${getAiDataRoot()}/category-${categoryId}/introduction.md`;
-const CATEGORY_INDEX_URL = (path: string) => `${getAiDataRoot()}/${path}index.json`;
-const BADGE_URL = (path: string, id: string) => `${getAiDataRoot()}/${path}${id}.json`;
+const CATEGORY_INDEX_URL = (path: string) => `${getAiDataRoot()}/${encodeURI(path)}index.json`;
+const BADGE_URL = (path: string, id: string) => `${getAiDataRoot()}/${encodeURI(path)}${encodeURIComponent(id)}.json`;
 const CUSTOM_BADGES_KEY = 'rl_custom_badges_v1';
 const COMMUNITY_BADGES_CACHE_KEY = 'rl_community_badges_cache_v1';
 const COMMUNITY_PUBLISH_QUEUE_KEY = 'rl_community_publish_queue_v1';
