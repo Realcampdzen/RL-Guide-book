@@ -134,6 +134,9 @@
 }
 
 @media (max-width: 768px) {
+  .sticky-back-nav {
+    display: none !important;
+  }
 
   /* Prevent bottom-nav overlap on mobile */
   .badge-main {
