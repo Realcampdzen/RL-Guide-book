@@ -646,39 +646,25 @@ html[data-perf="lite"] .category-view-container .mobile-bottom-nav {
   will-change: transform;
 }
 
-.badge-card:hover .badge-card__icon {
-  border-color: var(--c-electric-blue);
-  box-shadow: 0 0 25px rgba(139, 0, 255, 0.5);
-  width: 150px;
-  height: 150px;
-  right: 50%;
-  bottom: 50%;
-  transform: translate(50%, 50%) scale(1.1);
-  font-size: 5rem;
+@media (hover: hover) and (pointer: fine) {
+  .badge-card:hover .badge-card__icon {
+    border-color: var(--c-electric-blue);
+    box-shadow: 0 0 25px rgba(139, 0, 255, 0.5);
+    width: 150px;
+    height: 150px;
+    right: 50%;
+    bottom: 50%;
+    transform: translate(50%, 50%) scale(1.1);
+    font-size: 5rem;
+  }
 }
 
 @media (hover: none), (pointer: coarse) {
-  /* Отключаем hover эффекты на touch устройствах для производительности */
-  .badge-card:hover {
-    transform: none !important;
-    box-shadow: none !important;
-  }
-  
-  .badge-card:hover .badge-card__icon {
-    transform: none !important;
-    box-shadow: none !important;
-  }
-  
+  /* Легкий отклик при удержании тапа на планшетах (для телефонов переопределяется ниже) */
   .badge-card:active .badge-card__icon,
   .badge-card__icon.is-expanded {
     border-color: var(--c-electric-blue);
     box-shadow: 0 0 25px rgba(139, 0, 255, 0.5);
-    width: 150px !important;
-    height: 150px !important;
-    right: 50% !important;
-    bottom: 50% !important;
-    transform: translate(50%, 50%) scale(1.1) !important;
-    font-size: 5rem !important;
     transition: all 0.4s var(--easing) !important;
   }
 }
@@ -973,9 +959,9 @@ html[data-perf="lite"] .category-view-container .mobile-bottom-nav {
 
   .badge-card__icon {
     /* На мобиле значок всегда увеличен по центру */
-    width: 170px !important;
-    height: 170px !important;
-    font-size: 5.5rem !important;
+    width: 140px !important;
+    height: 140px !important;
+    font-size: 4.5rem !important;
     position: absolute !important;
     right: 50% !important;
     bottom: 50% !important;
@@ -987,9 +973,9 @@ html[data-perf="lite"] .category-view-container .mobile-bottom-nav {
   /* Отключаем десктопную анимацию расширения при тапе на мобильном */
   .badge-card:active .badge-card__icon,
   .badge-card__icon.is-expanded {
-    width: 170px !important;
-    height: 170px !important;
-    font-size: 5.5rem !important;
+    width: 140px !important;
+    height: 140px !important;
+    font-size: 4.5rem !important;
     right: 50% !important;
     bottom: 50% !important;
     border-color: rgba(255, 255, 255, 0.15) !important;
