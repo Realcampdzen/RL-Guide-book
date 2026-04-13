@@ -12,7 +12,6 @@ import '../styles/bluenest.css';
 
 interface BlueNestLandingProps {
   onStartClick: () => void;
-  onLogoClick: () => void;
   onAboutCampClick: () => void;
   onCategoryClick: (category: Category) => void;
   onOpenBadgeById?: (badgeId: string) => void;
@@ -45,7 +44,6 @@ interface BlueNestLandingProps {
 
 const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
   onStartClick,
-  onLogoClick,
   onAboutCampClick,
   onCategoryClick,
   onOpenBadgeById,
@@ -58,7 +56,6 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
   categories,
   masterIndex,
 }) => {
-  const { initReveal } = useScrollReveal();
   const [loaderHidden, setLoaderHidden] = useState(() => {
     if (typeof window !== 'undefined') {
       return sessionStorage.getItem('rl-hero-loaded') === '1';
