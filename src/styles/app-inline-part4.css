@@ -347,7 +347,7 @@
   z-index: -1;
   background: 
     linear-gradient(135deg, rgba(12, 12, 12, 0.3) 0%, rgba(26, 26, 46, 0.3) 50%, rgba(22, 33, 62, 0.3) 100%),
-    url('/RL-Guide-book/экран 1 фон copy.png') center top / 100% 100% no-repeat;
+    url('/RL-Guide-book/экран 1 фон copy.png') center center / cover no-repeat;
 }
 
 .additional-material-content {

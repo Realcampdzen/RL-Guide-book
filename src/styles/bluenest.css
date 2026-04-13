@@ -28,9 +28,10 @@
             overflow-x: hidden;
             background: 
                 linear-gradient(135deg, rgba(15, 10, 31, 0.6) 0%, rgba(26, 15, 46, 0.55) 50%, rgba(42, 26, 61, 0.5) 100%),
-                url('/RL-Guide-book/фон для лк десктоп.jpg') center top / 120% calc(100vh + 5vh) no-repeat;
+                url('/RL-Guide-book/фон для лк десктоп.jpg') center center / cover no-repeat;
             background-color: #0f0a1f; /* Fallback цвет */
             min-height: 100vh;
+            min-height: 100lvh;
             position: relative;
             overflow-x: hidden;
             /* Avoid fast-scroll repaint artifacts on some GPUs/browsers */
