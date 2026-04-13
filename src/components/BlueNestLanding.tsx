@@ -2,7 +2,6 @@ import type React from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { MasterIndexMeta } from '../hooks/useDataLoader';
-import { useScrollReveal } from '../hooks/useScrollReveal';
 import { useTiltCard } from '../hooks/useTiltCard';
 import type { Category } from '../types/guide';
 import { getBadgeImagePath } from '../utils/badgeImages';
