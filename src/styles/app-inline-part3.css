@@ -158,6 +158,20 @@
   overflow-x: hidden;
   overflow-y: auto;
   padding: 1rem;
+  z-index: 1; /* Create stacking context */
+  background-color: var(--c-midnight, #0f0a1f);
+}
+
+.introduction-screen::before, .additional-material-screen::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh; /* Fallback */
+  height: 100lvh;
+  pointer-events: none;
+  z-index: -1;
   background: 
     linear-gradient(135deg, rgba(12, 12, 12, 0.3) 0%, rgba(26, 26, 46, 0.3) 50%, rgba(22, 33, 62, 0.3) 100%),
     url('/RL-Guide-book/экран 3 фон.png') center center / cover no-repeat;

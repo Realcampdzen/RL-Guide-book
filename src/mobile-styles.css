@@ -562,38 +562,7 @@
     height: auto !important;
   }
   
-  /* ========================================
-     ФОНОВЫЕ ИЗОБРАЖЕНИЯ ЭКРАНОВ
-     ======================================== */
-  
-  .intro-screen {
-    background-size: cover !important;
-    background-position: center center !important;
-    background-attachment: scroll !important;
-  }
-  
-  .categories-screen {
-    background-size: cover !important;
-    background-position: center center !important;
-    background-attachment: scroll !important;
-  }
-  
-  .category-screen,
-  .badge-screen,
-  .badge-level-screen {
-    background-size: cover !important;
-    background-position: center top !important;
-    background-attachment: scroll !important;
-  }
-  
-  .introduction-screen,
-  .additional-material-screen,
-  .about-camp-screen,
-  .registration-form-screen {
-    background-size: cover !important;
-    background-position: center center !important;
-    background-attachment: scroll !important;
-  }
+  /* Фоновые изображения вынесены в ::before псевдоэлементы с высотой 100lvh для фикса iOS багов */
   
   /* ========================================
      ИКОНКИ КАТЕГОРИЙ

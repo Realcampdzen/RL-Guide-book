@@ -459,13 +459,8 @@ html {
     object-fit: contain !important;
   }
   
-  /* Оптимизация фоновых изображений */
-  .intro-screen {
-    background-size: cover !important;
-    background-position: center !important;
-    background-attachment: scroll !important; /* Убираем fixed для лучшей производительности */
-  }
-  
+  /* Оптимизация фоновых изображений удалена - теперь используются псевдоэлементы 100lvh */
+
   /* Оптимизация изображений в сессиях */
   .session-image {
     max-width: 100% !important;
