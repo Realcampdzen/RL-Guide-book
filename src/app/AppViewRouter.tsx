@@ -178,7 +178,6 @@ export const AppViewRouter: React.FC<Props> = ({ controller, fallback }) => {
     updateBroMissionsOnServer,
     handleCategoryClick,
     handleBadgeClick,
-    handleIntroClick,
     handleLogoClick,
     handleCategoryBack,
     handleBackToAboutCamp,
