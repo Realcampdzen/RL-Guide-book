@@ -962,26 +962,34 @@ html[data-perf="lite"] .category-view-container .mobile-bottom-nav {
     right: 1rem;
     font-size: 1rem;
   }
+  .badge-card__title {
+    z-index: 2; /* Поверх пузыря иконки */
+    font-size: 1.15rem; /* Немного уменьшим для 2-колоночной сетки, чтобы не ломалось */
+  }
+
+  .badge-card__level {
+    z-index: 2; /* Поверх пузыря иконки */
+  }
+
   .badge-card__icon {
-    width: 80px;
-    height: 80px;
-    font-size: 3rem;
-    position: absolute;
-    bottom: 1.5rem;
-    right: 1.5rem;
+    /* На мобиле значок всегда увеличен по центру */
+    width: 170px !important;
+    height: 170px !important;
+    font-size: 5.5rem !important;
+    position: absolute !important;
+    right: 50% !important;
+    bottom: 50% !important;
+    transform: translate(50%, 50%) !important;
+    z-index: 0 !important; /* Под текстом */
+    border-color: rgba(255, 255, 255, 0.15) !important;
   }
   
-  /* Анимация значка при тапании на мобильной версии */
+  /* Легкий отклик при тапе */
   .badge-card:active .badge-card__icon,
   .badge-card__icon.is-expanded {
     border-color: var(--c-electric-blue) !important;
     box-shadow: 0 0 25px rgba(139, 0, 255, 0.5) !important;
-    width: 150px !important;
-    height: 150px !important;
-    right: 50% !important;
-    bottom: 50% !important;
-    transform: translate(50%, 50%) scale(1.1) !important;
-    font-size: 5rem !important;
+    transform: translate(50%, 50%) scale(1.05) !important;
     transition: all 0.4s var(--easing) !important;
   }
   
@@ -991,6 +999,13 @@ html[data-perf="lite"] .category-view-container .mobile-bottom-nav {
     top: -0.6rem;
     height: 95px;
     border-radius: 14px;
+    /* Усилим градиентную подложку, так как теперь под текстом всегда большой пузырь */
+    background: radial-gradient(
+      140% 120% at 50% 0%,
+      rgba(5, 5, 12, 0.95) 0%,
+      rgba(5, 5, 12, 0.65) 40%,
+      rgba(5, 5, 12, 0) 75%
+    );
   }
   .badge-card__level::before {
     left: -1rem;
@@ -998,6 +1013,12 @@ html[data-perf="lite"] .category-view-container .mobile-bottom-nav {
     bottom: -0.5rem;
     height: 55px;
     border-radius: 12px;
+    background: radial-gradient(
+      140% 140% at 50% 100%,
+      rgba(5, 5, 12, 0.9) 0%,
+      rgba(5, 5, 12, 0.5) 45%,
+      rgba(5, 5, 12, 0) 80%
+    );
   }
 
   /* Mobile Navigation Styles */

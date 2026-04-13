@@ -329,7 +329,7 @@ export const AppViewRouter: React.FC<Props> = ({ controller, fallback }) => {
               ? { message: categoryBadgeLoadError[selectedCategory.id] || 'Ошибка загрузки' }
               : undefined
           }
-          onRetryBadges={() => void ensureCategoryBadgesLoaded(selectedCategory.id)}
+          onRetryBadges={() => void ensureCategoryBadgesLoaded(selectedCategory.id, true)}
           onBack={handleCategoryBack}
           onBadgeClick={handleBadgeClick}
           onIntroductionClick={handleIntroductionClick}

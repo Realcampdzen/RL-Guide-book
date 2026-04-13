@@ -500,7 +500,7 @@ export const useDataLoader = () => {
       .map(([id]) => id);
   }, [categoryBadgeLoadState]);
 
-  const ensureCategoryBadgesLoaded = useCallback(async (categoryId: string): Promise<void> => {
+  const ensureCategoryBadgesLoaded = useCallback(async (categoryId: string, force = false): Promise<void> => {
     const master = masterRef.current;
     const path = categoryPathById.get(categoryId);
     if (!master || !path) {
@@ -515,9 +515,9 @@ export const useDataLoader = () => {
       0;
     const loadedCount = countLoadedBaseBadges(categoryId, badges);
 
-    // Don't refetch if already loading/loaded and complete.
+    // Don't refetch if already loading/loaded and complete, or if it hit an error (prevent infinite loop).
     const cur = categoryBadgeLoadState[categoryId];
-    if (cur === 'loading' || (cur === 'loaded' && expected > 0 && loadedCount >= expected)) return;
+    if (!force && (cur === 'loading' || cur === 'error' || (cur === 'loaded' && expected > 0 && loadedCount >= expected))) return;
 
     setCategoryBadgeLoadState((prev) => ({ ...prev, [categoryId]: 'loading' }));
 
