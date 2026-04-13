@@ -30,7 +30,7 @@
   z-index: -1;
   background:
     linear-gradient(135deg, rgba(15, 10, 31, 0.85) 0%, rgba(26, 15, 46, 0.8) 50%, rgba(42, 26, 61, 0.8) 100%),
-    url('/RL-Guide-book/screen3_bg.png') center top / 100% auto repeat-y;
+    url('/RL-Guide-book/screen3_bg.png') center center / cover no-repeat;
   background-color: var(--c-midnight);
 }
 
@@ -41,7 +41,7 @@
       image-set(
         url('/RL-Guide-book/screen3_bg.webp') type('image/webp'),
         url('/RL-Guide-book/screen3_bg.png') type('image/png')
-      ) center top / 100% auto repeat-y;
+      ) center center / cover no-repeat;
     background-color: var(--c-midnight);
   }
 }
