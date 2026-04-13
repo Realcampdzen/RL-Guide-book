@@ -35,9 +35,8 @@
             scroll-behavior: smooth;
             position: relative;
             isolation: isolate;
-            background:
-                linear-gradient(135deg, rgba(15, 10, 31, 0.6) 0%, rgba(26, 15, 46, 0.55) 50%, rgba(42, 26, 61, 0.5) 100%),
-                url('/RL-Guide-book/фон для лк десктоп.jpg') center top / 150% calc(100vh + 5vh) no-repeat;
+            background: #0f0a1f; 
+            /* Background image has been moved to pseudo element for performance */
             background-color: #0f0a1f;
             color: var(--c-stark);
             overflow-x: hidden;
@@ -78,12 +77,16 @@
         .categories-page::before {
             content: '';
             position: fixed;
-            inset: 0;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            height: 100lvh;
             pointer-events: none;
             z-index: -1;
             background:
                 linear-gradient(135deg, rgba(15, 10, 31, 0.6) 0%, rgba(26, 15, 46, 0.55) 50%, rgba(42, 26, 61, 0.5) 100%),
-                url('/RL-Guide-book/фон для лк десктоп.jpg') center top / 150% calc(100vh + 5vh) no-repeat;
+                url('/RL-Guide-book/фон для лк десктоп.jpg') center center / cover no-repeat;
             background-color: #0f0a1f;
         }
 
