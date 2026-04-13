@@ -405,8 +405,15 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
         </section>
 
         {/* Marquee Separator */}
-        <div className="marquee">
+        <div className="marquee" aria-hidden="true">
           <div className="marquee-track">
+            {/* Дублируем 4 раза для гарантии заполнения огромных экранов и бесшовного цикла */}
+            <div className="marquee-item hover-target">
+              ВЫБИРАЙ ЗВЕЗДУ. ДВИГАЙСЯ ВПЕРЁД. ОСТАВЛЯЙ СЛЕД. ТВОЙ ОПЫТ — ТВОЙ ПУТЬ. РЕАЛЬНЫЕ ЗНАЧКИ ПОДСКАЖУТ, КУДА ИДТИ. •{' '}
+            </div>
+            <div className="marquee-item hover-target">
+              ВЫБИРАЙ ЗВЕЗДУ. ДВИГАЙСЯ ВПЕРЁД. ОСТАВЛЯЙ СЛЕД. ТВОЙ ОПЫТ — ТВОЙ ПУТЬ. РЕАЛЬНЫЕ ЗНАЧКИ ПОДСКАЖУТ, КУДА ИДТИ. •{' '}
+            </div>
             <div className="marquee-item hover-target">
               ВЫБИРАЙ ЗВЕЗДУ. ДВИГАЙСЯ ВПЕРЁД. ОСТАВЛЯЙ СЛЕД. ТВОЙ ОПЫТ — ТВОЙ ПУТЬ. РЕАЛЬНЫЕ ЗНАЧКИ ПОДСКАЖУТ, КУДА ИДТИ. •{' '}
             </div>

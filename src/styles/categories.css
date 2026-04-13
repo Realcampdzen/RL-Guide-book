@@ -1284,11 +1284,12 @@
         }
 
         @keyframes scrollTextMini {
+            /* Сдвиг на 50% компенсирует 2 дубликата (при условии 4 элементов), обеспечивая бесшовный цикл */
             0% {
-                transform: translateX(0);
+                transform: translate3d(0, 0, 0);
             }
             100% {
-                transform: translateX(-50%);
+                transform: translate3d(-50%, 0, 0);
             }
         }
 

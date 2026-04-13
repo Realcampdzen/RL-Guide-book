@@ -912,8 +912,9 @@
             display: flex;
             white-space: nowrap;
             will-change: transform;
-            -webkit-animation: scrollText 35s linear infinite;
-            animation: scrollText 35s linear infinite;
+            --marquee-duration: 40s;
+            -webkit-animation: scrollText var(--marquee-duration) linear infinite;
+            animation: scrollText var(--marquee-duration) linear infinite;
         }
         .marquee-item {
             font-family: var(--f-display);
@@ -1313,8 +1314,9 @@
             100% { transform: translate(-10%, -10%) rotate(5deg); }
         }
         @keyframes scrollText {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(-50%); }
+            /* Используем translate3d для GPU ускорения и сдвигаем ровно на 50% (2 дубликата из 4-х) */
+            0% { transform: translate3d(0, 0, 0); }
+            100% { transform: translate3d(-50%, 0, 0); }
         }
         @keyframes floatOrb {
             0%, 100% { transform: translate(0, 0); }
@@ -1520,6 +1522,9 @@
                 z-index: 30 !important;
                 position: relative !important;
                 pointer-events: none !important;
+            }
+            .marquee-track {
+                --marquee-duration: 25s; /* Более активный темп для мобильных экранов */
             }
             /* Убеждаемся что hero-bg ниже marquee */
             .hero-bg {
