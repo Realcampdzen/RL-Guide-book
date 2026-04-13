@@ -987,6 +987,8 @@ html[data-perf="lite"] .category-view-container .mobile-bottom-nav {
   /* Легкий отклик при тапе */
   .badge-card:active .badge-card__icon,
   .badge-card__icon.is-expanded {
+    width: 170px !important;
+    height: 170px !important;
     border-color: var(--c-electric-blue) !important;
     box-shadow: 0 0 25px rgba(139, 0, 255, 0.5) !important;
     transform: translate(50%, 50%) scale(1.05) !important;
