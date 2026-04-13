@@ -467,7 +467,8 @@ export const useDataLoader = () => {
 
   const loadCategoryIntroduction = useCallback(async (categoryId: string) => {
     try {
-      const res = await fetch(CATEGORY_INTRO_URL(categoryId));
+      const v = masterRef.current ? getDataVersion(masterRef.current) : '1';
+      const res = await fetch(`${CATEGORY_INTRO_URL(categoryId)}?v=${encodeURIComponent(v)}`);
       if (!res.ok) return null;
       const md = await res.text();
       const html = markdownToHtml(md);
@@ -529,7 +530,8 @@ export const useDataLoader = () => {
       const aiCategory = master.categories.find((c) => c.id === categoryId);
       if (!aiCategory) throw new Error(`Unknown category ${categoryId}`);
 
-      const catIndex = await fetchJson<CategoryIndex>(CATEGORY_INDEX_URL(path));
+      const v = encodeURIComponent(getDataVersion(master));
+      const catIndex = await fetchJson<CategoryIndex>(`${CATEGORY_INDEX_URL(path)}?v=${v}`);
       const badgeIds = (catIndex.badgesData || []).map((b) => b.id).filter(Boolean);
 
       // update category metadata (badge count + materials)
@@ -553,7 +555,7 @@ export const useDataLoader = () => {
         const results = await Promise.all(
           batch.map(async (badgeBaseId) => {
             try {
-              const res = await fetch(BADGE_URL(path, badgeBaseId), { signal: ctrl.signal });
+              const res = await fetch(`${BADGE_URL(path, badgeBaseId)}?v=${v}`, { signal: ctrl.signal });
               if (!res.ok) throw new Error(`Failed to fetch ${badgeBaseId}: ${res.status}`);
               const aiBadge = (await res.json()) as AiBadge;
               return buildBadgeEntries(aiCategory, aiBadge);
@@ -613,7 +615,8 @@ export const useDataLoader = () => {
       const aiCategory = master.categories.find((c) => c.id === categoryId);
       if (!aiCategory) return null;
 
-      const res = await fetch(BADGE_URL(path, baseId), { signal: ctrl.signal });
+      const v = encodeURIComponent(getDataVersion(master));
+      const res = await fetch(`${BADGE_URL(path, baseId)}?v=${v}`, { signal: ctrl.signal });
       if (!res.ok) throw new Error(`Failed to fetch ${baseId}: ${res.status}`);
       const aiBadge = (await res.json()) as AiBadge;
       const entries = buildBadgeEntries(aiCategory, aiBadge);
