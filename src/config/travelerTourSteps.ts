@@ -59,7 +59,7 @@ export function getTravelerTourSteps(controller: AppController): HintStep[] {
     },
     {
       title: 'Реальный ИИ-Композитор',
-      content: 'Но правила созданы, чтобы их нарушать! Значок «Реальный ИИ-композитор» выдаётся за создание и продюсирование собственной музыки с применением нейросетей, и у него целых 4 уровня!',
+      content: 'Сколько уровней максимум может быть у значка? «Реальный ИИ-композитор» выдаётся за создание и продюсирование собственной музыки с применением нейросетей, и у него целых 4 уровня!',
       targetSelector: '.badge-view-hero, .levels-scroll-container, .badge-detail-content',
       beforeAction: async () => {
         const entries = await controller.ensureBadgeLoaded('12.1');
