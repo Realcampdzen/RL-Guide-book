@@ -15,107 +15,111 @@
         - generic [ref=e16]: по
         - generic [ref=e17]: Реальному
         - generic [ref=e18]: Лагерю.
-      - generic [ref=e20]:
-        - generic [ref=e21]: ВЫБИРАЙ ЗВЕЗДУ. ДВИГАЙСЯ ВПЕРЁД. ОСТАВЛЯЙ СЛЕД. ТВОЙ ОПЫТ — ТВОЙ ПУТЬ. РЕАЛЬНЫЕ ЗНАЧКИ ПОДСКАЖУТ, КУДА ИДТИ. •
-        - generic [ref=e22]: ВЫБИРАЙ ЗВЕЗДУ. ДВИГАЙСЯ ВПЕРЁД. ОСТАВЛЯЙ СЛЕД. ТВОЙ ОПЫТ — ТВОЙ ПУТЬ. РЕАЛЬНЫЕ ЗНАЧКИ ПОДСКАЖУТ, КУДА ИДТИ. •
-      - paragraph [ref=e24]:
+      - generic:
+        - generic:
+          - generic: ВЫБИРАЙ ЗВЕЗДУ. ДВИГАЙСЯ ВПЕРЁД. ОСТАВЛЯЙ СЛЕД. ТВОЙ ОПЫТ — ТВОЙ ПУТЬ. РЕАЛЬНЫЕ ЗНАЧКИ ПОДСКАЖУТ, КУДА ИДТИ. •
+          - generic: ВЫБИРАЙ ЗВЕЗДУ. ДВИГАЙСЯ ВПЕРЁД. ОСТАВЛЯЙ СЛЕД. ТВОЙ ОПЫТ — ТВОЙ ПУТЬ. РЕАЛЬНЫЕ ЗНАЧКИ ПОДСКАЖУТ, КУДА ИДТИ. •
+      - paragraph [ref=e20]:
         - text: Добро пожаловать в космическое путешествие по системе значков и достижений!
-        - button "Здесь вы найдете 118 значков в 14 категориях." [ref=e26] [cursor=pointer]
-      - generic [ref=e27]:
-        - generic [ref=e28]:
-          - heading "Значки здесь — не награды, а маршруты развития." [level=2] [ref=e29]
-          - paragraph [ref=e30]: В Реальном Лагере значки — не просто «ачивки» за выполнение заданий. Это путеводные звёзды, которые помогают выбрать твой собственный путь. Каждый значок — не медаль за прошлое, а маяк, освещающий направления твоего развития.
-        - generic [ref=e31]:
-          - button "Предыдущая категория" [ref=e32] [cursor=pointer]:
-            - generic [ref=e33]: ‹
-          - button "Следующая категория" [ref=e34] [cursor=pointer]:
-            - generic [ref=e35]: ›
-          - button "Открыть значки категории За личные достижения" [ref=e36] [cursor=pointer]:
-            - img "За личные достижения" [ref=e38]
-            - generic [ref=e39]:
-              - heading "За личные достижения" [level=3] [ref=e40]
-              - paragraph [ref=e41]: 16 значков
-      - generic [ref=e43]:
-        - generic [ref=e44]:
-          - button "Открыть значок Путеводитель" [ref=e45] [cursor=pointer]:
-            - img "Значок Путеводитель" [ref=e47]
-          - heading "Реальный Значок = Опыт" [level=3] [ref=e48]
-          - paragraph [ref=e49]: Здесь главная награда — не значок, а опыт и навыки, которые ты получаешь, выполняя задания. Новые друзья, настоящие проекты, полезные привычки и идеи — всё это остаётся с тобой.
-        - generic [ref=e50]:
-          - button "Открыть значок Создатель Новой Категории" [ref=e51] [cursor=pointer]:
-            - img "Значок Создатель Новой Категории" [ref=e53]
-          - heading "Реальный Значок — компас" [level=3] [ref=e54]
-          - paragraph [ref=e55]:
+        - button "Здесь вы найдете 241 значок в 14 категориях." [ref=e22] [cursor=pointer]
+      - generic [ref=e23]:
+        - generic [ref=e24]:
+          - heading "Значки здесь — не награды, а маршруты развития." [level=2] [ref=e25]
+          - paragraph [ref=e26]: В Реальном Лагере значки — не просто «ачивки» за выполнение заданий. Это путеводные звёзды, которые помогают выбрать твой собственный путь. Каждый значок — не медаль за прошлое, а маяк, освещающий направления твоего развития.
+        - generic [ref=e27]:
+          - button "Предыдущая категория" [ref=e28] [cursor=pointer]:
+            - generic [ref=e29]: ‹
+          - button "Следующая категория" [ref=e30] [cursor=pointer]:
+            - generic [ref=e31]: ›
+          - button "Открыть значки категории За личные достижения" [ref=e32] [cursor=pointer]:
+            - img "За личные достижения" [ref=e34]
+            - generic [ref=e35]:
+              - heading "За личные достижения" [level=3] [ref=e36]
+              - paragraph [ref=e37]: 16 значков
+      - generic [ref=e39]:
+        - generic [ref=e40]:
+          - button "Открыть значок Путеводитель" [ref=e41] [cursor=pointer]:
+            - img "Значок Путеводитель" [ref=e43]
+          - heading "Реальный Значок = Опыт" [level=3] [ref=e44]
+          - paragraph [ref=e45]: Здесь главная награда — не значок, а опыт и навыки, которые ты получаешь, выполняя задания. Новые друзья, настоящие проекты, полезные привычки и идеи — всё это остаётся с тобой.
+        - generic [ref=e46]:
+          - button "Открыть значок Создатель Новой Категории" [ref=e47] [cursor=pointer]:
+            - img "Значок Создатель Новой Категории" [ref=e49]
+          - heading "Реальный Значок — компас" [level=3] [ref=e50]
+          - paragraph [ref=e51]:
             - text: Только ты выбираешь, какие значки будут на твоём пути. Вожатые и Путеводитель предложат варианты, но выбор и движение всегда за тобой.
-            - generic [ref=e56]:
+            - generic [ref=e52]:
               - text: Добро пожаловать в Реальный Лагерь.
               - text: Выбирай звезду, двигайся вперёд, оставляй след.
               - text: Реальные Значки подскажут, куда идти.
-      - generic [ref=e57]:
-        - heading "Поехали?" [level=2] [ref=e58]
-        - button "Начать путешествие" [ref=e59] [cursor=pointer]
-        - generic [ref=e60]:
-          - button "Значки" [ref=e61] [cursor=pointer]
-          - button "О лагере" [ref=e62] [cursor=pointer]
-          - link "ВКонтакте" [ref=e63] [cursor=pointer]:
+      - generic [ref=e53]:
+        - heading "Поехали?" [level=2] [ref=e54]
+        - button "Начать путешествие" [ref=e55] [cursor=pointer]
+        - generic [ref=e56]:
+          - button "Значки" [ref=e57] [cursor=pointer]
+          - button "О лагере" [ref=e58] [cursor=pointer]
+          - link "ВКонтакте" [ref=e59] [cursor=pointer]:
             - /url: https://vk.com/realcampspb
-  - navigation "Основная навигация" [ref=e64]:
-    - button "Главная" [ref=e65] [cursor=pointer]:
-      - img [ref=e67]
-      - generic [ref=e69]: Главная
-    - button "Значки" [ref=e70] [cursor=pointer]:
-      - img [ref=e72]
-      - generic [ref=e77]: Значки
-    - button "Войти" [active] [ref=e78] [cursor=pointer]:
-      - img [ref=e81]
-      - generic [ref=e83]: Войти
-    - button "О лагере" [ref=e84] [cursor=pointer]:
-      - img [ref=e86]
-      - generic [ref=e89]: О лагере
-    - button "Записаться" [ref=e90] [cursor=pointer]:
-      - img [ref=e92]
-      - generic [ref=e96]: Записаться
-    - button "ВКонтакте" [ref=e97] [cursor=pointer]:
-      - generic [ref=e99]: VK
-      - generic [ref=e100]: ВК
-  - generic [ref=e102]:
-    - generic [ref=e103]:
-      - img "Реальный Лагерь" [ref=e104]
-      - generic [ref=e105]: Добро пожаловать!
-      - generic [ref=e106]: Кто вы в Реальном Лагере?
-    - generic [ref=e107]:
-      - button "Участник смены Я приеду в лагерь как участник" [ref=e108] [cursor=pointer]:
-        - generic [ref=e109]:
-          - generic [ref=e110]: Участник смены
-          - generic [ref=e111]: Я приеду в лагерь как участник
-      - button "Вожатый Я работаю вожатым в лагере" [ref=e112] [cursor=pointer]:
-        - generic [ref=e113]:
-          - generic [ref=e114]: Вожатый
-          - generic [ref=e115]: Я работаю вожатым в лагере
-      - button "Педагог Я веду кружки и мастерские" [ref=e116] [cursor=pointer]:
-        - generic [ref=e117]:
-          - generic [ref=e118]: Педагог
-          - generic [ref=e119]: Я веду кружки и мастерские
-      - button "Старший Вожатый Руководитель смены" [ref=e120] [cursor=pointer]:
-        - generic [ref=e121]:
-          - generic [ref=e122]: Старший Вожатый
-          - generic [ref=e123]: Руководитель смены
-      - button "Начальник Лагеря Начальник лагеря" [ref=e124] [cursor=pointer]:
-        - generic [ref=e125]:
-          - generic [ref=e126]: Начальник Лагеря
-          - generic [ref=e127]: Начальник лагеря
-      - button "Родитель Мой ребёнок едет в лагерь" [ref=e128] [cursor=pointer]:
-        - generic [ref=e129]:
-          - generic [ref=e130]: Родитель
-          - generic [ref=e131]: Мой ребёнок едет в лагерь
-      - button "Разработчик Доступ для разработчиков" [ref=e132] [cursor=pointer]:
-        - generic [ref=e133]:
-          - generic [ref=e134]: Разработчик
-          - generic [ref=e135]: Доступ для разработчиков
-    - button "Отмена" [ref=e136] [cursor=pointer]
-  - generic [ref=e137]:
-    - generic [ref=e138]: Выберите свою роль
-    - generic [ref=e139]: Для доступа к Личному Кабинету необходимо выбрать роль
-    - button "Войти / Выбрать роль" [ref=e140] [cursor=pointer]
-    - button "Пропустить" [ref=e141] [cursor=pointer]
+  - navigation "Основная навигация" [ref=e60]:
+    - button "Главная" [ref=e61] [cursor=pointer]:
+      - img [ref=e63]
+      - generic [ref=e65]: Главная
+    - button "Значки" [ref=e66] [cursor=pointer]:
+      - img [ref=e68]
+      - generic [ref=e73]: Значки
+    - button "Войти" [active] [ref=e74] [cursor=pointer]:
+      - img [ref=e77]
+      - generic [ref=e79]: Войти
+    - button "О лагере" [ref=e80] [cursor=pointer]:
+      - img [ref=e82]
+      - generic [ref=e85]: О лагере
+    - button "Записаться" [ref=e86] [cursor=pointer]:
+      - img [ref=e88]
+      - generic [ref=e92]: Записаться
+    - button "ВКонтакте" [ref=e93] [cursor=pointer]:
+      - generic [ref=e95]: VK
+      - generic [ref=e96]: ВК
+  - generic [ref=e98]:
+    - generic [ref=e99]:
+      - img "Реальный Лагерь" [ref=e100]
+      - generic [ref=e101]: Добро пожаловать!
+      - generic [ref=e102]: Кто вы в Реальном Лагере?
+    - button "Войти как Путешественник без авторизации" [ref=e103] [cursor=pointer]:
+      - generic [ref=e104]: Войти как Путешественник
+      - generic [ref=e105]: без авторизации
+    - generic [ref=e106]:
+      - button "Участник смены Я приеду в лагерь как участник" [ref=e107] [cursor=pointer]:
+        - generic [ref=e108]:
+          - generic [ref=e109]: Участник смены
+          - generic [ref=e110]: Я приеду в лагерь как участник
+      - button "Вожатый Я работаю вожатым в лагере" [ref=e111] [cursor=pointer]:
+        - generic [ref=e112]:
+          - generic [ref=e113]: Вожатый
+          - generic [ref=e114]: Я работаю вожатым в лагере
+      - button "Педагог/Тренер Я веду кружки и мастерские" [ref=e115] [cursor=pointer]:
+        - generic [ref=e116]:
+          - generic [ref=e117]: Педагог/Тренер
+          - generic [ref=e118]: Я веду кружки и мастерские
+      - button "Старший Вожатый Руководитель смены" [ref=e119] [cursor=pointer]:
+        - generic [ref=e120]:
+          - generic [ref=e121]: Старший Вожатый
+          - generic [ref=e122]: Руководитель смены
+      - button "Начальник Лагеря Начальник лагеря" [ref=e123] [cursor=pointer]:
+        - generic [ref=e124]:
+          - generic [ref=e125]: Начальник Лагеря
+          - generic [ref=e126]: Начальник лагеря
+      - button "Родитель Мой ребёнок едет в лагерь" [ref=e127] [cursor=pointer]:
+        - generic [ref=e128]:
+          - generic [ref=e129]: Родитель
+          - generic [ref=e130]: Мой ребёнок едет в лагерь
+      - button "Разработчик Доступ для разработчиков" [ref=e131] [cursor=pointer]:
+        - generic [ref=e132]:
+          - generic [ref=e133]: Разработчик
+          - generic [ref=e134]: Доступ для разработчиков
+  - generic [ref=e135]:
+    - generic [ref=e136]: Добро пожаловать на борт!
+    - generic [ref=e137]: Начни интерактивную экскурсию по экосистеме или войди, если у тебя уже есть код
+    - generic [ref=e138]:
+      - button "🚀 Начать экскурсию" [ref=e139] [cursor=pointer]
+      - button "У меня есть код (Войти)" [ref=e140] [cursor=pointer]
 ```
