@@ -816,25 +816,13 @@
         }
 
         /* Editorial/Massive Typography */
-        @keyframes heroTitleReveal {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
         .hero-title {
             font-size: clamp(4rem, 8vw + 2rem, 11rem); /* Флюидная адаптивность: плавное масштабирование */
             line-height: 0.9;
             margin-bottom: clamp(1.5rem, 3vw, 2rem);
             margin-top: 0;
             padding-right: 0; /* Убираем специфичный отступ чтобы не ломать флюидность */
-            animation: heroTitleReveal 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
-            animation-delay: 0.2s; /* Faster reveal since JS might be lagging */
+            /* Removed animation: Safari disappearing text bug fix */
             word-break: keep-all; /* Предотвращаем разрыв слов на десктопе */
             position: relative;
             z-index: 1;
@@ -902,7 +890,7 @@
             max-width: 600px;
             margin-bottom: 4rem;
             color: rgba(244, 239, 228, 0.75);
-            opacity: 0; transform: translateY(30px); /* JS Reveal */
+            transform: translateY(30px); /* JS Reveal */
         }
 
 
