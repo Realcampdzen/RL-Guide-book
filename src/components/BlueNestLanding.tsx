@@ -46,6 +46,7 @@ interface BlueNestLandingProps {
 
 const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
   onStartClick,
+  onLogoClick,
   onAboutCampClick,
   onCategoryClick,
   onOpenBadgeById,
@@ -395,7 +396,11 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
         <section className="hero">
           <div className="hero-bg"></div>
           <div className="hero-content">
-            <h1 className="hero-title reveal-item hover-target" style={{ transitionDelay: '0.2s' }}>
+            <h1 
+              className="hero-title reveal-item hover-target" 
+              style={{ transitionDelay: '0.2s', cursor: 'pointer' }}
+              onClick={onLogoClick}
+            >
               <span className="hero-title-first-word">Путеводитель</span>
               <span>по</span>
               <span>Реальному</span>

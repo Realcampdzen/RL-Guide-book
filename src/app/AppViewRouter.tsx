@@ -222,7 +222,7 @@ export const AppViewRouter: React.FC<Props> = ({ controller, fallback }) => {
       {loading && (
         <BlueNestLanding
           onStartTour={handleStartTour}
-          onStartClick={handleIntroClick}
+          onStartClick={handleBackToCategories}
           onLogoClick={handleLogoClick}
           onAboutCampClick={() => setCurrentView('about-camp')}
           onCategoryClick={handleCategoryClick}
@@ -257,7 +257,7 @@ export const AppViewRouter: React.FC<Props> = ({ controller, fallback }) => {
       {!loading && currentView === 'intro' && (
         <BlueNestLanding
           onStartTour={handleStartTour}
-          onStartClick={handleIntroClick}
+          onStartClick={handleBackToCategories}
           onLogoClick={handleLogoClick}
           onAboutCampClick={() => setCurrentView('about-camp')}
           onCategoryClick={handleCategoryClick}
