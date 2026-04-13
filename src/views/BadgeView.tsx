@@ -1,25 +1,30 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import {
-  fixDescriptionFormatting,
-  fixCriteriaFormatting,
-  extractEvidenceSection,
-  shouldApplyFormatting,
-  stripDuplicateHeading
-} from '../utils/textFormatting';
+import type React from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import BadgeIcon from '../components/BadgeIcon';
 import BadgeSkinPanel from '../components/BadgeSkinPanel';
+import FeatureGate from '../components/FeatureGate';
 import { Skeleton } from '../components/Skeleton';
+import { useTeam } from '../context/TeamContext';
+import { useUserProgress } from '../hooks/useUserProgress';
+import { fetchAiSlogan, fetchVibeCheck } from '../utils/aiService';
 import { getBadgeImagePath, hasBadgeImage } from '../utils/badgeImages';
 import { toSiblingImageUrl } from '../utils/imageSources';
-import { useUserProgress } from '../hooks/useUserProgress';
-import { useTeam } from '../context/TeamContext';
-import FeatureGate from '../components/FeatureGate';
-import { copyTextToClipboard, generateSocialCard, getBadgeShareUrl, shareOrDownloadSocialCard } from '../utils/socialGenerator';
-import { fetchAiSlogan, fetchVibeCheck } from '../utils/aiService';
 import { getBadge4kSkills, getSkillLabel } from '../utils/profile4k';
+import {
+  copyTextToClipboard,
+  generateSocialCard,
+  getBadgeShareUrl,
+  shareOrDownloadSocialCard,
+} from '../utils/socialGenerator';
+import {
+  extractEvidenceSection,
+  fixCriteriaFormatting,
+  fixDescriptionFormatting,
+  shouldApplyFormatting,
+  stripDuplicateHeading,
+} from '../utils/textFormatting';
 import '../styles/badge-view.css';
-import type { Category, Badge } from '../types/guide';
-
+import type { Badge, Category } from '../types/guide';
 
 interface BadgeViewProps {
   category: Category;
@@ -52,7 +57,14 @@ const BadgeView: React.FC<BadgeViewProps> = ({
   onTelegramContact,
   onBackToIntro,
 }) => {
-  const { userData, getBadgeProgress, startRoute, removeRoute, toggleFavorite, addFlagBadgeRequest } = useUserProgress();
+  const {
+    userData,
+    getBadgeProgress,
+    startRoute,
+    removeRoute,
+    toggleFavorite,
+    addFlagBadgeRequest,
+  } = useUserProgress();
   const { myTeam } = useTeam();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isHeroLoaded, setIsHeroLoaded] = useState(false);
@@ -64,7 +76,10 @@ const BadgeView: React.FC<BadgeViewProps> = ({
   const [routeResetNotice, setRouteResetNotice] = useState<string | null>(null);
 
   const baseBadgeId = useMemo(() => {
-    return String(badge.id || '').split('.').slice(0, 2).join('.');
+    return String(badge.id || '')
+      .split('.')
+      .slice(0, 2)
+      .join('.');
   }, [badge.id]);
 
   const isFavorite = useMemo(() => {
@@ -74,23 +89,23 @@ const BadgeView: React.FC<BadgeViewProps> = ({
   }, [userData.favorites, baseBadgeId]);
 
   const handleToggleFavorite = () => {
-    toggleFavorite(baseBadgeId, { onAdded: () => { }, onLimit: () => { } });
+    toggleFavorite(baseBadgeId, { onAdded: () => {}, onLimit: () => {} });
   };
 
   const hasTeam = Boolean(
     myTeam ??
-    (typeof localStorage !== 'undefined' &&
-      (localStorage.getItem('rl_my_team_id') ||
-        (() => {
-          try {
-            const v = localStorage.getItem('rl_my_team_v1');
-            return v ? !!JSON.parse(v)?.id : false;
-          } catch {
-            return false;
-          }
-        })()))
+      (typeof localStorage !== 'undefined' &&
+        (localStorage.getItem('rl_my_team_id') ||
+          (() => {
+            try {
+              const v = localStorage.getItem('rl_my_team_v1');
+              return v ? !!JSON.parse(v)?.id : false;
+            } catch {
+              return false;
+            }
+          })()))
   );
-  const broLocked = category.id === '9' && !Boolean(userData?.broProgress?.isBro);
+  const broLocked = category.id === '9' && !userData?.broProgress?.isBro;
   const teamLocked = category.id === '8' && !hasTeam;
   const mechanicLocked = broLocked || teamLocked;
   const mechanicGateReason = broLocked
@@ -142,7 +157,9 @@ const BadgeView: React.FC<BadgeViewProps> = ({
     const baseTwo = segments.length >= 2 ? `${segments[0]}.${segments[1]}` : badgeId;
 
     const sameBaseTwo = (a: string, base: string): boolean => {
-      const as = String(a || '').split('.').filter(Boolean);
+      const as = String(a || '')
+        .split('.')
+        .filter(Boolean);
       if (as.length < 2) return false;
       return `${as[0]}.${as[1]}` === base;
     };
@@ -152,7 +169,12 @@ const BadgeView: React.FC<BadgeViewProps> = ({
     const tiered = badgeList
       .filter((b) => b.category_id === badge.category_id)
       .filter((b) => sameBaseTwo(String(b.id || ''), baseTwo))
-      .filter((b) => String(b.id || '').split('.').filter(Boolean).length === 3);
+      .filter(
+        (b) =>
+          String(b.id || '')
+            .split('.')
+            .filter(Boolean).length === 3
+      );
 
     const dedupeById = <T extends { id?: any }>(items: T[]): T[] => {
       const seen = new Set<string>();
@@ -170,22 +192,39 @@ const BadgeView: React.FC<BadgeViewProps> = ({
     const tieredUnique = dedupeById(tiered);
     const isMulti = tieredUnique.length > 0;
 
-    const effectiveLevels = isMulti ? tieredUnique : badgeList.filter((b) => (b.id || '') === (badge.id || ''));
+    const effectiveLevels = isMulti
+      ? tieredUnique
+      : badgeList.filter((b) => (b.id || '') === (badge.id || ''));
 
     const base = isMulti
-      ? (effectiveLevels.find((b) => String(b.level || '').toLowerCase().includes('баз')) ||
-        effectiveLevels.find((b) => String(b.level || '').toLowerCase().includes('одноуровнев')) ||
+      ? effectiveLevels.find((b) =>
+          String(b.level || '')
+            .toLowerCase()
+            .includes('баз')
+        ) ||
+        effectiveLevels.find((b) =>
+          String(b.level || '')
+            .toLowerCase()
+            .includes('одноуровнев')
+        ) ||
         effectiveLevels[0] ||
-        badge)
+        badge
       : badge;
 
     const others = (isMulti ? effectiveLevels : effectiveLevels).filter((b) => {
       const isBase = base && b.id === base.id;
-      const isSingle = String(b.level || '').toLowerCase().includes('одноуровнев');
+      const isSingle = String(b.level || '')
+        .toLowerCase()
+        .includes('одноуровнев');
       return !isBase && !isSingle;
     });
 
-    return { badgeLevels: effectiveLevels, baseLevelBadge: base, otherLevels: others, isMultiLevel: isMulti };
+    return {
+      badgeLevels: effectiveLevels,
+      baseLevelBadge: base,
+      otherLevels: others,
+      isMultiLevel: isMulti,
+    };
   }, [badge, badges]);
 
   // Content Logic
@@ -212,14 +251,25 @@ const BadgeView: React.FC<BadgeViewProps> = ({
         if (sourceBadge.confirmation) {
           const { mainText, evidenceText: extracted } = extractEvidenceSection(processedRaw);
           evidenceText = extracted || sourceBadge.confirmation;
-          baseCriteria = mainText.split('✅').filter(c => c.trim()).map(c => c.trim());
+          baseCriteria = mainText
+            .split('✅')
+            .filter((c) => c.trim())
+            .map((c) => c.trim());
         } else {
           const { mainText, evidenceText: extracted } = extractEvidenceSection(processedRaw);
           evidenceText = extracted;
-          baseCriteria = mainText.split('✅').filter(c => c.trim()).map(c => c.trim());
+          baseCriteria = mainText
+            .split('✅')
+            .filter((c) => c.trim())
+            .map((c) => c.trim());
         }
         // If criteria came as bullet-list (e.g. from array in JSON), split by newlines
-        if (baseCriteria.length === 1 && (baseCriteria[0].includes('\n') || baseCriteria[0].includes('•') || baseCriteria[0].includes('\u2022'))) {
+        if (
+          baseCriteria.length === 1 &&
+          (baseCriteria[0].includes('\n') ||
+            baseCriteria[0].includes('•') ||
+            baseCriteria[0].includes('\u2022'))
+        ) {
           baseCriteria = baseCriteria[0]
             .split('\n')
             .map((line: string) => line.replace(/^[\s\u2022•]+/, '').trim())
@@ -230,8 +280,11 @@ const BadgeView: React.FC<BadgeViewProps> = ({
     }
 
     const shouldFormatDesc = shouldApplyFormatting(sourceBadge.id);
-    const processedDesc = shouldFormatDesc ? fixDescriptionFormatting(descriptionText) : descriptionText;
-    const { mainText: descMain, evidenceText: descEvidence } = extractEvidenceSection(processedDesc);
+    const processedDesc = shouldFormatDesc
+      ? fixDescriptionFormatting(descriptionText)
+      : descriptionText;
+    const { mainText: descMain, evidenceText: descEvidence } =
+      extractEvidenceSection(processedDesc);
 
     // If evidence wasn't found in criteria, maybe it's in description
     if (!evidenceText && descEvidence) {
@@ -275,18 +328,39 @@ const BadgeView: React.FC<BadgeViewProps> = ({
         />
       );
     }
-    return <div className={className} style={{ fontSize: size === 'xlarge' ? '5rem' : '4rem' }}>{b.emoji || '🏆'}</div>;
+    return (
+      <div className={className} style={{ fontSize: size === 'xlarge' ? '5rem' : '4rem' }}>
+        {b.emoji || '🏆'}
+      </div>
+    );
   };
 
   const badgeHeroImageUrl = useMemo(() => {
     const sourceBadge = baseLevelBadge || badge;
-    const heroBaseId = String(sourceBadge?.id || badge.id || '').split('.').slice(0, 2).join('.');
+    const heroBaseId = String(sourceBadge?.id || badge.id || '')
+      .split('.')
+      .slice(0, 2)
+      .join('.');
     if (!heroBaseId) return null;
     const sourceTitle = sourceBadge?.title || badge.title;
     if (!sourceTitle) return null;
     return {
-      realism: getBadgeImagePath(heroBaseId, sourceTitle, category.id, undefined, undefined, 'realism'),
-      fallback: getBadgeImagePath(heroBaseId, sourceTitle, category.id, undefined, undefined, 'default'),
+      realism: getBadgeImagePath(
+        heroBaseId,
+        sourceTitle,
+        category.id,
+        undefined,
+        undefined,
+        'realism'
+      ),
+      fallback: getBadgeImagePath(
+        heroBaseId,
+        sourceTitle,
+        category.id,
+        undefined,
+        undefined,
+        'default'
+      ),
     };
   }, [baseLevelBadge, badge, category.id]);
 
@@ -324,7 +398,8 @@ const BadgeView: React.FC<BadgeViewProps> = ({
       return plan.status === 'approved';
     });
   }, [userData.badgePlans, baseBadgeId]);
-  const canResetRouteFromInProgress = hasProgress && !isComplete && progress.achieved === 0 && !hasApprovedPlanForRoute;
+  const canResetRouteFromInProgress =
+    hasProgress && !isComplete && progress.achieved === 0 && !hasApprovedPlanForRoute;
   const routeResetBlockedReason = useMemo(() => {
     if (!hasProgress || isComplete) return null;
     if (progress.achieved > 0) {
@@ -372,7 +447,7 @@ const BadgeView: React.FC<BadgeViewProps> = ({
         setStartShareStatus(null);
         setStartShareOpen(true);
       },
-      onLimit: () => { },
+      onLimit: () => {},
     });
   };
 
@@ -384,21 +459,36 @@ const BadgeView: React.FC<BadgeViewProps> = ({
     setStartShareStatus('Генерируем манифест маршрута…');
     try {
       const skills = getBadge4kSkills(startLevelId);
-      const manifestSkill = skills.length ? getSkillLabel(skills[0]) : (category?.title || 'навыки');
+      const manifestSkill = skills.length ? getSkillLabel(skills[0]) : category?.title || 'навыки';
 
       const challengeRaw = await fetchAiSlogan({
         kind: 'route_manifest_challenge',
         badgeTitle: badge.title,
       });
-      const challengeLine = (challengeRaw != null && typeof challengeRaw === 'string')
-        ? challengeRaw.trim()
-        : (typeof challengeRaw === 'object' && challengeRaw && 'slogan' in challengeRaw && challengeRaw.slogan)
-          ? String(challengeRaw.slogan).trim()
-          : 'сделать первый шаг по значку и записать результат.';
+      const challengeLine =
+        challengeRaw != null && typeof challengeRaw === 'string'
+          ? challengeRaw.trim()
+          : typeof challengeRaw === 'object' &&
+              challengeRaw &&
+              'slogan' in challengeRaw &&
+              challengeRaw.slogan
+            ? String(challengeRaw.slogan).trim()
+            : 'сделать первый шаг по значку и записать результат.';
       const manifestCaption = `Мой вызов на сегодня — ${challengeLine}`;
 
-      const vibeRaw = await fetchVibeCheck({ variant: 'badge', badgeTitle: badge.title, categoryTitle: category.title, description: badge.description || badge.criteria });
-      const vibeCheck = vibeRaw ? { memeHeader: vibeRaw.meme_header, memeText: vibeRaw.meme_text, statBuff: vibeRaw.stat_buff } : undefined;
+      const vibeRaw = await fetchVibeCheck({
+        variant: 'badge',
+        badgeTitle: badge.title,
+        categoryTitle: category.title,
+        description: badge.description || badge.criteria,
+      });
+      const vibeCheck = vibeRaw
+        ? {
+            memeHeader: vibeRaw.meme_header,
+            memeText: vibeRaw.meme_text,
+            statBuff: vibeRaw.stat_buff,
+          }
+        : undefined;
 
       const createdAt = new Date().toISOString();
       const story = await generateSocialCard({
@@ -438,7 +528,11 @@ const BadgeView: React.FC<BadgeViewProps> = ({
       }
 
       const copied = await copyTextToClipboard(story.text);
-      setStartShareStatus(copied ? 'PNG скачан, подпись скопирована.' : 'PNG скачан. Подпись можно скопировать в профиле.');
+      setStartShareStatus(
+        copied
+          ? 'PNG скачан, подпись скопирована.'
+          : 'PNG скачан. Подпись можно скопировать в профиле.'
+      );
       window.setTimeout(() => setStartShareOpen(false), 2600);
     } catch (e) {
       console.error(e);
@@ -560,13 +654,23 @@ const BadgeView: React.FC<BadgeViewProps> = ({
             aria-labelledby="route-reset-title"
             onClick={(event) => event.stopPropagation()}
           >
-            <h3 id="route-reset-title" className="route-confirm-modal__title">Сбросить маршрут?</h3>
+            <h3 id="route-reset-title" className="route-confirm-modal__title">
+              Сбросить маршрут?
+            </h3>
             <p className="route-confirm-modal__text">Если продолжить, маршрут будет сброшен.</p>
             <div className="route-confirm-modal__actions">
-              <button type="button" className="route-confirm-btn" onClick={() => setRouteResetConfirmOpen(false)}>
+              <button
+                type="button"
+                className="route-confirm-btn"
+                onClick={() => setRouteResetConfirmOpen(false)}
+              >
                 Отмена
               </button>
-              <button type="button" className="route-confirm-btn route-confirm-btn--danger" onClick={handleConfirmRouteReset}>
+              <button
+                type="button"
+                className="route-confirm-btn route-confirm-btn--danger"
+                onClick={handleConfirmRouteReset}
+              >
                 Сбросить
               </button>
             </div>
@@ -581,7 +685,10 @@ const BadgeView: React.FC<BadgeViewProps> = ({
       )}
 
       {/* Mobile Navigation Header */}
-      <header className={`mobile-glass-header${isChatOpen ? ' is-chat-open' : ''}`} aria-label="Навигация">
+      <header
+        className={`mobile-glass-header${isChatOpen ? ' is-chat-open' : ''}`}
+        aria-label="Навигация"
+      >
         <div className="mobile-header-left">
           <button type="button" className="mobile-header-back" onClick={onBack} aria-label="Назад">
             ←
@@ -612,7 +719,12 @@ const BadgeView: React.FC<BadgeViewProps> = ({
           >
             <picture>
               <source type="image/webp" srcSet={`${import.meta.env.BASE_URL}Валюша.webp`} />
-              <img src={`${import.meta.env.BASE_URL}Валюша.jpg`} alt="НейроВалюша" decoding="async" fetchpriority="high" />
+              <img
+                src={`${import.meta.env.BASE_URL}Валюша.jpg`}
+                alt="НейроВалюша"
+                decoding="async"
+                fetchpriority="high"
+              />
             </picture>
           </button>
         </div>
@@ -632,25 +744,48 @@ const BadgeView: React.FC<BadgeViewProps> = ({
         aria-hidden={!isMenuOpen}
       >
         <div className="mobile-menu-head">
-          <span id="badge-menu-title" className="mobile-menu-title">Меню</span>
-          <button type="button" className="mobile-menu-close" onClick={closeMenu} aria-label="Закрыть меню">
+          <span id="badge-menu-title" className="mobile-menu-title">
+            Меню
+          </span>
+          <button
+            type="button"
+            className="mobile-menu-close"
+            onClick={closeMenu}
+            aria-label="Закрыть меню"
+          >
             &times;
           </button>
         </div>
         <div className="mobile-menu-list">
-          <button type="button" className="mobile-menu-item" onClick={() => handleMenuAction(onBackToIntro)}>
+          <button
+            type="button"
+            className="mobile-menu-item"
+            onClick={() => handleMenuAction(onBackToIntro)}
+          >
             <span className="mobile-menu-item-label">Главная</span>
             <span className="mobile-menu-item-icon">&rsaquo;</span>
           </button>
-          <button type="button" className="mobile-menu-item" onClick={() => handleMenuAction(onOpenCategories)}>
+          <button
+            type="button"
+            className="mobile-menu-item"
+            onClick={() => handleMenuAction(onOpenCategories)}
+          >
             <span className="mobile-menu-item-label">Категории</span>
             <span className="mobile-menu-item-icon">&rsaquo;</span>
           </button>
-          <button type="button" className="mobile-menu-item" onClick={() => handleMenuAction(onBack)}>
+          <button
+            type="button"
+            className="mobile-menu-item"
+            onClick={() => handleMenuAction(onBack)}
+          >
             <span className="mobile-menu-item-label">Назад</span>
             <span className="mobile-menu-item-icon">&lsaquo;</span>
           </button>
-          <button type="button" className="mobile-menu-item mobile-menu-item-cta" onClick={() => handleMenuAction(onTelegramContact)}>
+          <button
+            type="button"
+            className="mobile-menu-item mobile-menu-item-cta"
+            onClick={() => handleMenuAction(onTelegramContact)}
+          >
             <span className="mobile-menu-item-label">Записаться через Telegram</span>
             <span className="mobile-menu-item-icon">&rsaquo;</span>
           </button>
@@ -658,15 +793,15 @@ const BadgeView: React.FC<BadgeViewProps> = ({
       </div>
 
       <div className="sticky-back-nav">
-        <button onClick={onBack} className="nav-link-back hover-target">← Назад к категории</button>
+        <button onClick={onBack} className="nav-link-back hover-target">
+          ← Назад к категории
+        </button>
       </div>
 
       <main className="badge-main">
         {/* Header */}
         <section className="badge-hero reveal-on-scroll">
-          <div className="badge-hero-icon">
-            {renderIcon(badge, 'xlarge', 'hero-emoji')}
-          </div>
+          <div className="badge-hero-icon">{renderIcon(badge, 'xlarge', 'hero-emoji')}</div>
           <div className="badge-hero-content">
             <h1>{badge.title}</h1>
             <div className="badge-hero-category">{category.title}</div>
@@ -681,8 +816,8 @@ const BadgeView: React.FC<BadgeViewProps> = ({
               inProgressHint={collectionHint}
             />
 
-            {startLevelId && (
-              mechanicLocked ? (
+            {startLevelId &&
+              (mechanicLocked ? (
                 <FeatureGate
                   allowed={false}
                   reason={mechanicGateReason}
@@ -724,8 +859,7 @@ const BadgeView: React.FC<BadgeViewProps> = ({
                     </button>
                   )}
                 </div>
-              )
-            )}
+              ))}
           </div>
         </section>
 
@@ -759,15 +893,13 @@ const BadgeView: React.FC<BadgeViewProps> = ({
         {/* Other Levels (Moved Higher) */}
         {otherLevels.length > 0 && (
           <div className="levels-dock reveal-on-scroll" style={{ marginBottom: '2rem' }}>
-            {otherLevels.map(level => (
+            {otherLevels.map((level) => (
               <div
                 key={level.id}
                 className="level-bubble hover-target"
                 onClick={() => onLevelSelect(String(level.level))}
               >
-                <div className="level-bubble-icon">
-                  {renderIcon(level, 'xlarge', '')}
-                </div>
+                <div className="level-bubble-icon">{renderIcon(level, 'xlarge', '')}</div>
                 <div className="level-bubble-title">{level.title}</div>
                 <div className="level-bubble-subtitle">{String(level.level)}</div>
               </div>
@@ -781,47 +913,78 @@ const BadgeView: React.FC<BadgeViewProps> = ({
           <div className="badge-left-col reveal-on-scroll">
             <div className="content-block">
               <h3>Общая информация</h3>
-              <p className="content-text" dangerouslySetInnerHTML={{ __html: mainDescription.replace(/\n/g, '<br/>') }} />
+              <p
+                className="content-text"
+                dangerouslySetInnerHTML={{ __html: mainDescription.replace(/\n/g, '<br/>') }}
+              />
 
               {baseLevelBadge?.nameExplanation && (
                 <>
                   <h4>Объяснение названия и ценности</h4>
-                  <p className="content-text">{stripDuplicateHeading(baseLevelBadge.nameExplanation, 'Объяснение названия и ценности')}</p>
+                  <p className="content-text">
+                    {stripDuplicateHeading(
+                      baseLevelBadge.nameExplanation,
+                      'Объяснение названия и ценности'
+                    )}
+                  </p>
                 </>
               )}
 
               {baseLevelBadge?.skillTips && (
                 <>
                   <h4>Как прокачать навык</h4>
-                  <p className="content-text" dangerouslySetInnerHTML={{ __html: stripDuplicateHeading(baseLevelBadge.skillTips, 'Как прокачать навык').replace(/\n/g, '<br>') }}></p>
+                  <p
+                    className="content-text"
+                    dangerouslySetInnerHTML={{
+                      __html: stripDuplicateHeading(
+                        baseLevelBadge.skillTips,
+                        'Как прокачать навык'
+                      ).replace(/\n/g, '<br>'),
+                    }}
+                  ></p>
                 </>
               )}
 
               {baseLevelBadge?.importance && (
                 <>
                   <h4>Почему этот значок важен</h4>
-                  <p className="content-text">{stripDuplicateHeading(baseLevelBadge.importance, 'Почему этот значок важен')}</p>
+                  <p className="content-text">
+                    {stripDuplicateHeading(baseLevelBadge.importance, 'Почему этот значок важен')}
+                  </p>
                 </>
               )}
 
               {baseLevelBadge?.examples && (
                 <>
                   <h4>Примеры</h4>
-                  <p className="content-text" dangerouslySetInnerHTML={{ __html: stripDuplicateHeading(baseLevelBadge.examples, 'Примеры').replace(/\n/g, '<br>') }}></p>
+                  <p
+                    className="content-text"
+                    dangerouslySetInnerHTML={{
+                      __html: stripDuplicateHeading(baseLevelBadge.examples, 'Примеры').replace(
+                        /\n/g,
+                        '<br>'
+                      ),
+                    }}
+                  ></p>
                 </>
               )}
 
               {baseLevelBadge?.philosophy && (
                 <>
                   <h4>Философия значка</h4>
-                  <p className="content-text">{stripDuplicateHeading(baseLevelBadge.philosophy, 'Философия значка')}</p>
+                  <p className="content-text">
+                    {stripDuplicateHeading(baseLevelBadge.philosophy, 'Философия значка')}
+                  </p>
                 </>
               )}
 
               {showHowToBecome && (
                 <>
                   <h4>Как получить</h4>
-                  <p className="content-text" dangerouslySetInnerHTML={{ __html: howToBecomeText.replace(/\n/g, '<br>') }}></p>
+                  <p
+                    className="content-text"
+                    dangerouslySetInnerHTML={{ __html: howToBecomeText.replace(/\n/g, '<br>') }}
+                  ></p>
                 </>
               )}
 
@@ -847,9 +1010,26 @@ const BadgeView: React.FC<BadgeViewProps> = ({
                 onCta={openMechanicCta}
                 mode="replace"
               >
-                <div className="badge-workshop-cta" style={{ marginTop: '20px', padding: '16px', background: 'rgba(255,215,0,0.06)', borderRadius: '16px', border: '1px solid rgba(255,215,0,0.15)', textAlign: 'center' }}>
-                  <p style={{ margin: '0 0 12px', fontSize: '14px', opacity: 0.9 }}>Этого мало? Предложи свой вариант</p>
-                  <button type="button" onClick={handleOpenWorkshopForCategory} className="badge-cta" style={{ width: '100%', padding: '12px 16px', fontSize: '13px' }}>
+                <div
+                  className="badge-workshop-cta"
+                  style={{
+                    marginTop: '20px',
+                    padding: '16px',
+                    background: 'rgba(255,215,0,0.06)',
+                    borderRadius: '16px',
+                    border: '1px solid rgba(255,215,0,0.15)',
+                    textAlign: 'center',
+                  }}
+                >
+                  <p style={{ margin: '0 0 12px', fontSize: '14px', opacity: 0.9 }}>
+                    Этого мало? Предложи свой вариант
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handleOpenWorkshopForCategory}
+                    className="badge-cta"
+                    style={{ width: '100%', padding: '12px 16px', fontSize: '13px' }}
+                  >
                     ⚒️ Предложи свой значок в эту категорию
                   </button>
                 </div>
@@ -865,7 +1045,10 @@ const BadgeView: React.FC<BadgeViewProps> = ({
               {baseCriteria.length > 0 ? (
                 <ul className="criteria-list">
                   {baseCriteria.map((criterion, index) => (
-                    <li key={index} dangerouslySetInnerHTML={{ __html: criterion.replace(/\n/g, '<br>') }} />
+                    <li
+                      key={index}
+                      dangerouslySetInnerHTML={{ __html: criterion.replace(/\n/g, '<br>') }}
+                    />
                   ))}
                 </ul>
               ) : (
@@ -875,18 +1058,18 @@ const BadgeView: React.FC<BadgeViewProps> = ({
               {evidenceText && (
                 <>
                   <h4>Чем подтверждается</h4>
-                  <p className="content-text" style={{ color: 'var(--c-volt)', fontStyle: 'italic' }}>
+                  <p
+                    className="content-text"
+                    style={{ color: 'var(--c-volt)', fontStyle: 'italic' }}
+                  >
                     {evidenceText}
                   </p>
                 </>
               )}
             </div>
-
           </div>
         </div>
       </main>
-
-
     </div>
   );
 };

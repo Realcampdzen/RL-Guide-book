@@ -1,4 +1,4 @@
-import React from 'react';
+import type React from 'react';
 import '../styles/introduction.css';
 
 type IntroductionViewProps = {
@@ -28,4 +28,3 @@ const IntroductionView: React.FC<IntroductionViewProps> = ({ title, contentHtml,
 };
 
 export default IntroductionView;
-

@@ -4,10 +4,12 @@
  */
 function slugFromHeading(text: string): string {
   const t = text.trim().replace(/\s+/g, '-');
-  return t
-    .replace(/[^a-zA-Z0-9\u0400-\u04FF_-]/g, '')
-    .replace(/-+/g, '-')
-    .replace(/^-|-$/g, '') || 'section';
+  return (
+    t
+      .replace(/[^a-zA-Z0-9\u0400-\u04FF_-]/g, '')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '') || 'section'
+  );
 }
 
 /**
@@ -48,17 +50,17 @@ export function markdownToHtmlWithHeadingIds(
     const level = Math.min(6, Math.max(1, hashes.length));
     const id = toc && toc[headingIndex] ? toc[headingIndex].id : slugFromHeading(text);
     headingIndex += 1;
-    return `<h${level} id="${id}">${text}<\/h${level}>`;
+    return `<h${level} id="${id}">${text}</h${level}>`;
   });
   html = html
-    .replace(/^\*\s+(.*)$/gim, '<li>$1<\/li>')
-    .replace(/^\-\s+(.*)$/gim, '<li>$1<\/li>')
-    .replace(/^\d+\.\s+(.*)$/gim, '<li>$1<\/li>')
+    .replace(/^\*\s+(.*)$/gim, '<li>$1</li>')
+    .replace(/^-\s+(.*)$/gim, '<li>$1</li>')
+    .replace(/^\d+\.\s+(.*)$/gim, '<li>$1</li>')
     .replace(/^\s*---\s*$/gm, '<hr>')
-    .replace(/^>\s+(.*)$/gm, '<blockquote>$1<\/blockquote>');
+    .replace(/^>\s+(.*)$/gm, '<blockquote>$1</blockquote>');
 
-  html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1<\/strong>');
-  html = html.replace(/(^|[^*])\*(?!\s)([^*]+?)\*(?!\*)/g, '$1<em>$2<\/em>');
+  html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  html = html.replace(/(^|[^*])\*(?!\s)([^*]+?)\*(?!\*)/g, '$1<em>$2</em>');
 
   html = html
     .split('\n')
@@ -66,15 +68,15 @@ export function markdownToHtmlWithHeadingIds(
       /<\/?(h\d|li|ul|ol|p|blockquote|pre|code|strong|em|hr)>/i.test(line) || /<\/li>/.test(line)
         ? line
         : line.trim()
-          ? `<p>${line}<\/p>`
+          ? `<p>${line}</p>`
           : ''
     )
     .join('\n');
 
   html = html
     .replace(/(<p><li>)/g, '<ul><li>')
-    .replace(/<\/li><\/p>(\n?<p><li>)/g, '<\/li>$1')
-    .replace(/<\/li><\/p>/g, '<\/li><\/ul>');
+    .replace(/<\/li><\/p>(\n?<p><li>)/g, '</li>$1')
+    .replace(/<\/li><\/p>/g, '</li></ul>');
 
   return html;
 }
@@ -87,16 +89,16 @@ export const markdownToHtml = (md: string): string => {
   html = html
     .replace(/^(#{1,6})\s+(.+)$/gm, (_m, hashes: string, text: string) => {
       const level = Math.min(6, Math.max(1, hashes.length));
-      return `<h${level}>${text}<\/h${level}>`;
+      return `<h${level}>${text}</h${level}>`;
     })
-    .replace(/^\*\s+(.*)$/gim, '<li>$1<\/li>')
-    .replace(/^\-\s+(.*)$/gim, '<li>$1<\/li>')
-    .replace(/^\d+\.\s+(.*)$/gim, '<li>$1<\/li>')
+    .replace(/^\*\s+(.*)$/gim, '<li>$1</li>')
+    .replace(/^-\s+(.*)$/gim, '<li>$1</li>')
+    .replace(/^\d+\.\s+(.*)$/gim, '<li>$1</li>')
     .replace(/^\s*---\s*$/gm, '<hr>')
-    .replace(/^>\s+(.*)$/gm, '<blockquote>$1<\/blockquote>');
+    .replace(/^>\s+(.*)$/gm, '<blockquote>$1</blockquote>');
 
-  html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1<\/strong>');
-  html = html.replace(/(^|[^*])\*(?!\s)([^*]+?)\*(?!\*)/g, '$1<em>$2<\/em>');
+  html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  html = html.replace(/(^|[^*])\*(?!\s)([^*]+?)\*(?!\*)/g, '$1<em>$2</em>');
 
   html = html
     .split('\n')
@@ -104,15 +106,15 @@ export const markdownToHtml = (md: string): string => {
       /<\/?(h\d|li|ul|ol|p|blockquote|pre|code|strong|em|hr)>/i.test(line) || /<\/li>/.test(line)
         ? line
         : line.trim()
-          ? `<p>${line}<\/p>`
+          ? `<p>${line}</p>`
           : ''
     )
     .join('\n');
 
   html = html
     .replace(/(<p><li>)/g, '<ul><li>')
-    .replace(/<\/li><\/p>(\n?<p><li>)/g, '<\/li>$1')
-    .replace(/<\/li><\/p>/g, '<\/li><\/ul>');
+    .replace(/<\/li><\/p>(\n?<p><li>)/g, '</li>$1')
+    .replace(/<\/li><\/p>/g, '</li></ul>');
 
   return html;
 };

@@ -1,8 +1,14 @@
 export type BadgeLevelId = string; // "13.11.1"
-export type BadgeBaseId = string;  // "13.11"
+export type BadgeBaseId = string; // "13.11"
 export type BadgeFavoriteId = BadgeBaseId | BadgeLevelId;
-export type CategoryId = string;   // "category-13"
-export type BadgeSkinId = 'auto' | 'default' | 'realism' | 'custom' | `ai:${1 | 2 | 3}` | `approved:${1 | 2 | 3}`;
+export type CategoryId = string; // "category-13"
+export type BadgeSkinId =
+  | 'auto'
+  | 'default'
+  | 'realism'
+  | 'custom'
+  | `ai:${1 | 2 | 3}`
+  | `approved:${1 | 2 | 3}`;
 
 export type BadgeArtProposalStatus = 'pending' | 'approved' | 'rejected';
 
@@ -47,7 +53,13 @@ export interface IUserProfile {
 }
 
 /** План получения значка (персонализированный проект) */
-export type BadgePlanStatus = 'draft' | 'pending_approval' | 'approved' | 'rejected' | 'in_progress' | 'completed';
+export type BadgePlanStatus =
+  | 'draft'
+  | 'pending_approval'
+  | 'approved'
+  | 'rejected'
+  | 'in_progress'
+  | 'completed';
 
 export interface IBadgePlan {
   badgeId: string;
@@ -55,14 +67,14 @@ export interface IBadgePlan {
   context: {
     currentDay: number;
     shiftLength?: 21 | 9;
-    squadProgramGrid?: string;   // Программа отряда по план-сетке
-    squadPlan3d?: string;        // План вожатых на 3 дня
-    squadProgram3d?: string;     // legacy alias
-    campProgram3d?: string;      // Программа лагеря на 3 дня
+    squadProgramGrid?: string; // Программа отряда по план-сетке
+    squadPlan3d?: string; // План вожатых на 3 дня
+    squadProgram3d?: string; // legacy alias
+    campProgram3d?: string; // Программа лагеря на 3 дня
     priority?: string;
   };
   planText: string;
-  myPlanDraft?: string;   // Текст участника «как я вижу свой путь»
+  myPlanDraft?: string; // Текст участника «как я вижу свой путь»
   checklistItems: string[];
   completedItems: string[]; // индексы или ID выполненных пунктов
   createdAt: string;
@@ -87,7 +99,10 @@ export type ShiftScheduleKey =
 export type MyActivityKey = 'morning' | 'day' | 'evening' | 'additional';
 export type WingPlanGridData = {
   shiftLength: 9 | 21;
-  days: Record<string, { morning?: string; quietHour?: string; day?: string; evening?: string; night?: string }>;
+  days: Record<
+    string,
+    { morning?: string; quietHour?: string; day?: string; evening?: string; night?: string }
+  >;
 };
 
 /** Задание педагога (Educator Cabinet v2) */
@@ -95,8 +110,8 @@ export interface EducatorTask {
   id: string;
   title: string;
   description: string;
-  badgeId?: string;        // связь с значком
-  assignedTo: string[];    // device_ids участников
+  badgeId?: string; // связь с значком
+  assignedTo: string[]; // device_ids участников
   dueDate?: string;
   status: 'draft' | 'assigned' | 'completed';
   createdAt: string;
@@ -137,17 +152,23 @@ export interface IUserData {
       chants?: string;
       greeting?: string;
       memes?: string;
-      photoCorner?: string;   // Фото отрядного уголка
-      photoFlag?: string;     // Флаг отряда
-      photoSquad?: string;    // Общее отрядное фото
+      photoCorner?: string; // Фото отрядного уголка
+      photoFlag?: string; // Флаг отряда
+      photoSquad?: string; // Общее отрядное фото
       photoWithCounselors?: string; // Фото с вожатыми
       planGridA?: {
         shiftLength: 9 | 21;
-        days: Record<string, { morning?: string; quietHour?: string; day?: string; evening?: string; night?: string }>;
+        days: Record<
+          string,
+          { morning?: string; quietHour?: string; day?: string; evening?: string; night?: string }
+        >;
       };
       planGridB?: {
         shiftLength: 9 | 21;
-        days: Record<string, { morning?: string; quietHour?: string; day?: string; evening?: string; night?: string }>;
+        days: Record<
+          string,
+          { morning?: string; quietHour?: string; day?: string; evening?: string; night?: string }
+        >;
       };
       flagBadgeRequests?: Array<{
         badgeId: string;
@@ -162,24 +183,27 @@ export interface IUserData {
     shiftSchedule?: Partial<Record<ShiftScheduleKey, { time?: string; note?: string }>>;
     myActivities?: Partial<Record<MyActivityKey, { time?: string; note?: string }>>;
     photos?: Record<string, string | undefined>;
-    entries: Record<string, {
-      mainMoments?: string;
-      friends?: string;
-      conclusions?: string;
-      contribution?: string;
-      morningText?: string;
-      morningEmoji?: string;
-      dayText?: string;
-      dayEmoji?: string;
-      eveningText?: string;
-      eveningEmoji?: string;
-      memorableText?: string;  // Чем запомнился день
-      memorableEmoji?: string;
-      memeText?: string;       // Мем дня
-      memeEmoji?: string;
-      schedule?: string;      // Беспорядок дня
-      updatedAt: string; // ISO
-    }>;
+    entries: Record<
+      string,
+      {
+        mainMoments?: string;
+        friends?: string;
+        conclusions?: string;
+        contribution?: string;
+        morningText?: string;
+        morningEmoji?: string;
+        dayText?: string;
+        dayEmoji?: string;
+        eveningText?: string;
+        eveningEmoji?: string;
+        memorableText?: string; // Чем запомнился день
+        memorableEmoji?: string;
+        memeText?: string; // Мем дня
+        memeEmoji?: string;
+        schedule?: string; // Беспорядок дня
+        updatedAt: string; // ISO
+      }
+    >;
   };
   meta: {
     schemaVersion: number; // 2
@@ -216,7 +240,12 @@ export function buildParentReportPayload(userData: IUserData | null): ParentRepo
   }
   return {
     progress: achieved,
-    profile: userData.profile ? { nickname: userData.profile.nickname, totalLevelsAchieved: userData.profile.stats?.totalLevelsAchieved } : undefined,
+    profile: userData.profile
+      ? {
+          nickname: userData.profile.nickname,
+          totalLevelsAchieved: userData.profile.stats?.totalLevelsAchieved,
+        }
+      : undefined,
     exportedAt: new Date().toISOString(),
   };
 }

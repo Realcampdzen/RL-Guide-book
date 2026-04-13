@@ -2,7 +2,7 @@ import { readFileSync, writeFileSync } from 'fs';
 import { resolve } from 'path';
 
 const p = resolve(process.cwd(), 'src/App.tsx');
-let s = readFileSync(p, 'utf8');
+const s = readFileSync(p, 'utf8');
 
 const startMarker = 'const renderIntro = () => (';
 const idx = s.indexOf(startMarker);
@@ -185,4 +185,3 @@ export default App;
 
 writeFileSync(p, head + tail, 'utf8');
 console.log('Rewrote App.tsx tail from renderIntro to EOF');
-

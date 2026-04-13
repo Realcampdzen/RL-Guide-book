@@ -11,7 +11,7 @@ function loadSummary() {
     const catdir = path.join(ROOT, cat.path);
     const idx = JSON.parse(fs.readFileSync(path.join(catdir, 'index.json'), 'utf8'));
     const badges = [];
-    for (const b of (idx.badgesData || [])) {
+    for (const b of idx.badgesData || []) {
       const bp = path.join(catdir, `${b.id}.json`);
       if (!fs.existsSync(bp)) continue;
       const bd = JSON.parse(fs.readFileSync(bp, 'utf8'));
@@ -31,12 +31,74 @@ function loadSummary() {
 }
 
 const TOPICS = {
-  'ИИ/Медиа': [' ии', 'нейросет', 'chatgpt', 'чатgpt', 'midjourney', 'stable', 'изображен', 'видео', 'монтаж', 'аудио', 'подкаст', 'канал', 'пост', 'статья', 'контент', 'медиа'],
-  'Творчество/Сцена': ['сцена', 'концерт', 'музык', 'танц', 'театр', 'песня', 'рису', 'жюри', 'выступ', 'шоу', 'творч'],
-  'Организация/Лидерство': ['организ', 'лидер', 'ведущ', 'отряд', 'план', 'ответствен', 'инициатив', 'координац', 'расписан'],
-  'Команда/Коммуникации': ['команд', 'общен', 'коммуник', 'конфликт', 'договор', 'дружб', 'уважен', 'вежлив', 'помощ', 'вовлеч', 'модерац', 'обратн'],
+  'ИИ/Медиа': [
+    ' ии',
+    'нейросет',
+    'chatgpt',
+    'чатgpt',
+    'midjourney',
+    'stable',
+    'изображен',
+    'видео',
+    'монтаж',
+    'аудио',
+    'подкаст',
+    'канал',
+    'пост',
+    'статья',
+    'контент',
+    'медиа',
+  ],
+  'Творчество/Сцена': [
+    'сцена',
+    'концерт',
+    'музык',
+    'танц',
+    'театр',
+    'песня',
+    'рису',
+    'жюри',
+    'выступ',
+    'шоу',
+    'творч',
+  ],
+  'Организация/Лидерство': [
+    'организ',
+    'лидер',
+    'ведущ',
+    'отряд',
+    'план',
+    'ответствен',
+    'инициатив',
+    'координац',
+    'расписан',
+  ],
+  'Команда/Коммуникации': [
+    'команд',
+    'общен',
+    'коммуник',
+    'конфликт',
+    'договор',
+    'дружб',
+    'уважен',
+    'вежлив',
+    'помощ',
+    'вовлеч',
+    'модерац',
+    'обратн',
+  ],
   'Порядок/Быт': ['уборк', 'поряд', 'чист', 'уют', 'зона', 'декор', 'гармони', 'распорядок'],
-  'Осознанность/Психо': ['осознан', 'внимател', 'эмоци', 'настроен', 'стресс', 'спокойств', 'фокус', 'медита', 'рефлекс'],
+  'Осознанность/Психо': [
+    'осознан',
+    'внимател',
+    'эмоци',
+    'настроен',
+    'стресс',
+    'спокойств',
+    'фокус',
+    'медита',
+    'рефлекс',
+  ],
 };
 
 function topicsFor(text) {
@@ -69,7 +131,12 @@ function buildLinks(summary) {
           if (ob.id === b.id) continue;
           // Prefer different categories
           if (ob.id.split('.')[0] !== b.id.split('.')[0]) {
-            recs.push({ topic: tp, badgeId: ob.id, badgeTitle: ob.title, category: ob.categoryTitle });
+            recs.push({
+              topic: tp,
+              badgeId: ob.id,
+              badgeTitle: ob.title,
+              category: ob.categoryTitle,
+            });
           }
         }
       }
@@ -111,7 +178,9 @@ function main() {
       count++;
       console.log(`  ${r.id} ${r.title} → темы: ${r.topics.join(', ') || '—'}`);
       for (const s of r.suggest) {
-        console.log(`    • [${s.badgeId}] ${s.badgeTitle} (из ${s.category}) — по теме: ${s.topic}`);
+        console.log(
+          `    • [${s.badgeId}] ${s.badgeTitle} (из ${s.category}) — по теме: ${s.topic}`
+        );
       }
     }
   }
@@ -120,4 +189,3 @@ function main() {
 if (require.main === module) main();
 
 module.exports = { loadSummary, buildLinks, TOPICS };
-

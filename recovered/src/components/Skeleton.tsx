@@ -1,4 +1,4 @@
-import React from 'react';
+import type React from 'react';
 
 type SkeletonProps = {
   className?: string;
@@ -16,4 +16,3 @@ export const Skeleton: React.FC<SkeletonProps> = ({ className = '', style, ...ar
     />
   );
 };
-

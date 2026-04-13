@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import crypto from 'crypto';
 /**
  * Normalize badge icon JPGs by trimming near-white borders and resizing to square.
  *
@@ -31,13 +32,12 @@
  *   --quality <n>           jpeg quality 1..100 (default: 92)
  *   --no-backup             do not create .orig backups
  */
-import { existsSync, readdirSync, copyFileSync, readFileSync } from 'fs';
-import { dirname, extname, join, relative } from 'path';
-import sharp from 'sharp';
-import process from 'process';
-import os from 'os';
-import crypto from 'crypto';
+import { copyFileSync, existsSync, readdirSync, readFileSync } from 'fs';
 import { writeFile } from 'fs/promises';
+import os from 'os';
+import { dirname, extname, join, relative } from 'path';
+import process from 'process';
+import sharp from 'sharp';
 
 const root = process.cwd();
 const baseDir = join(root, 'public', 'Новые значки');
@@ -52,8 +52,7 @@ const wantsApply = args.includes('--apply');
 const checkOnly = args.includes('--check') || !wantsApply;
 const subdirIdx = args.indexOf('--subdir');
 const onlyIdx = args.indexOf('--only'); // alias (note: `npm run ... -- --only` conflicts with npm's own --only flag)
-const subdirRel =
-  subdirIdx >= 0 ? args[subdirIdx + 1] : onlyIdx >= 0 ? args[onlyIdx + 1] : null;
+const subdirRel = subdirIdx >= 0 ? args[subdirIdx + 1] : onlyIdx >= 0 ? args[onlyIdx + 1] : null;
 
 const sizeIdx = args.indexOf('--size');
 const thresholdIdx = args.indexOf('--threshold');
@@ -99,7 +98,10 @@ if (!isFiniteInt(jpegQuality) || jpegQuality < 1 || jpegQuality > 100) {
 const excludeSegments = new Set(['реализм', 'запасные', '__normalized__']);
 const isExcluded = (fullPath) => {
   const rel = relative(baseDir, fullPath);
-  const parts = rel.split(/[\\/]/).filter(Boolean).map((p) => p.toLowerCase());
+  const parts = rel
+    .split(/[\\/]/)
+    .filter(Boolean)
+    .map((p) => p.toLowerCase());
   return parts.some((p) => excludeSegments.has(p));
 };
 
@@ -376,10 +378,7 @@ const computeNonWhiteBBox = async (inputBuf) => {
   // Fallbacks
   const cx = cxChord ?? (minX + maxX) / 2;
   const cy = cyChord ?? (minY + maxY) / 2;
-  const radius = Math.max(
-    rX ? rX / 2 : width / 2,
-    rY ? rY / 2 : height / 2
-  );
+  const radius = Math.max(rX ? rX / 2 : width / 2, rY ? rY / 2 : height / 2);
 
   return { w, h, minX, minY, maxX, maxY, width, height, cx, cy, radius };
 };
@@ -497,4 +496,3 @@ if (checkOnly) {
 if (failures.length) {
   process.exit(1);
 }
-

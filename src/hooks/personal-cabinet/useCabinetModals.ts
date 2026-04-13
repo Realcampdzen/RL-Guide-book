@@ -7,17 +7,24 @@ export function useCabinetModals() {
   const [avatarSelectorOpen, setAvatarSelectorOpen] = useState(false);
   const [roleRequestOpen, setRoleRequestOpen] = useState(false);
   const [broInitiationModalOpen, setBroInitiationModalOpen] = useState(false);
-  
+
   // Custom Modal Data States
   const [broRoleToSelect, setBroRoleToSelect] = useState<'wing' | 'mentor' | null>(null);
 
   return {
-    scannerOpen, setScannerOpen,
-    scannerLoading, setScannerLoading,
-    inviteModalOpen, setInviteModalOpen,
-    avatarSelectorOpen, setAvatarSelectorOpen,
-    roleRequestOpen, setRoleRequestOpen,
-    broInitiationModalOpen, setBroInitiationModalOpen,
-    broRoleToSelect, setBroRoleToSelect,
+    scannerOpen,
+    setScannerOpen,
+    scannerLoading,
+    setScannerLoading,
+    inviteModalOpen,
+    setInviteModalOpen,
+    avatarSelectorOpen,
+    setAvatarSelectorOpen,
+    roleRequestOpen,
+    setRoleRequestOpen,
+    broInitiationModalOpen,
+    setBroInitiationModalOpen,
+    broRoleToSelect,
+    setBroRoleToSelect,
   };
 }

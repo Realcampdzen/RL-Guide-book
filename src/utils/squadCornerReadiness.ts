@@ -14,8 +14,19 @@ export interface NormalizedSquadCorner {
   photoWithCounselors?: string;
 }
 
-const TEXT_KEYS: Array<keyof NormalizedSquadCorner> = ['name', 'motto', 'chants', 'greeting', 'memes'];
-const PHOTO_KEYS: Array<keyof NormalizedSquadCorner> = ['photoCorner', 'photoFlag', 'photoSquad', 'photoWithCounselors'];
+const TEXT_KEYS: Array<keyof NormalizedSquadCorner> = [
+  'name',
+  'motto',
+  'chants',
+  'greeting',
+  'memes',
+];
+const PHOTO_KEYS: Array<keyof NormalizedSquadCorner> = [
+  'photoCorner',
+  'photoFlag',
+  'photoSquad',
+  'photoWithCounselors',
+];
 
 const isImageLike = (v?: string): boolean => !!v && (v.startsWith('data:') || v.startsWith('http'));
 
@@ -48,16 +59,24 @@ export function getSquadCornerReadiness(input?: Partial<SquadCorner> | null): Sq
 
 export function getSquadCornerReadinessLabel(readiness: SquadCornerReadiness): string {
   switch (readiness) {
-    case 'ready': return 'Уголок готов';
-    case 'partial': return 'Уголок частично заполнен';
-    default: return 'Уголок пуст';
+    case 'ready':
+      return 'Уголок готов';
+    case 'partial':
+      return 'Уголок частично заполнен';
+    default:
+      return 'Уголок пуст';
   }
 }
 
-export function getSquadCornerReadinessTone(readiness: SquadCornerReadiness): 'muted' | 'warn' | 'success' {
+export function getSquadCornerReadinessTone(
+  readiness: SquadCornerReadiness
+): 'muted' | 'warn' | 'success' {
   switch (readiness) {
-    case 'ready': return 'success';
-    case 'partial': return 'warn';
-    default: return 'muted';
+    case 'ready':
+      return 'success';
+    case 'partial':
+      return 'warn';
+    default:
+      return 'muted';
   }
 }

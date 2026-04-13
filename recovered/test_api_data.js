@@ -4,25 +4,28 @@ async function testAPIData() {
 
   try {
     // Проверяем загрузку данных
-    const response = await fetch('https://backend-fq5f9bm5c-nomorningst-2550s-projects.vercel.app/api/chat', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        message: 'Сколько категорий значков в лагере?',
-        user_id: 'test_data_' + Date.now(),
-        context: {}
-      })
-    });
+    const response = await fetch(
+      'https://backend-fq5f9bm5c-nomorningst-2550s-projects.vercel.app/api/chat',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: 'Сколько категорий значков в лагере?',
+          user_id: 'test_data_' + Date.now(),
+          context: {},
+        }),
+      }
+    );
 
     const data = await response.json();
-    
+
     if (response.ok) {
       console.log('✅ API отвечает');
       console.log('🤖 Ответ:', data.response);
       console.log(`📏 Длина ответа: ${data.response.length} символов`);
-      
+
       // Проверяем, знает ли бот о категориях
       if (data.response.includes('категори') || data.response.includes('14')) {
         console.log('✅ Бот знает о категориях');
@@ -49,7 +52,6 @@ async function testAPIData() {
       } else {
         console.log('⚠️ НЕ упоминает лагерь');
       }
-      
     } else {
       console.log('❌ API ошибка:', data.error || data.message);
     }
@@ -58,28 +60,34 @@ async function testAPIData() {
   }
 
   console.log('\n' + '='.repeat(50));
-  
+
   // Тест 2: Проверяем знание конкретных категорий
   console.log('\n🧪 Тест 2: Знание конкретных категорий...');
-  
+
   try {
-    const response2 = await fetch('https://backend-fq5f9bm5c-nomorningst-2550s-projects.vercel.app/api/chat', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        message: 'Расскажи про значки за личные достижения',
-        user_id: 'test_data2_' + Date.now(),
-        context: {}
-      })
-    });
+    const response2 = await fetch(
+      'https://backend-fq5f9bm5c-nomorningst-2550s-projects.vercel.app/api/chat',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: 'Расскажи про значки за личные достижения',
+          user_id: 'test_data2_' + Date.now(),
+          context: {},
+        }),
+      }
+    );
 
     const data2 = await response2.json();
-    
+
     if (response2.ok) {
-      console.log('🤖 Ответ на вопрос о личных достижениях:', data2.response.substring(0, 200) + '...');
-      
+      console.log(
+        '🤖 Ответ на вопрос о личных достижениях:',
+        data2.response.substring(0, 200) + '...'
+      );
+
       if (data2.response.includes('личн') || data2.response.includes('достижен')) {
         console.log('✅ Знает о личных достижениях');
       } else {

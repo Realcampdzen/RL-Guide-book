@@ -12,4 +12,3 @@ declare module 'react' {
     fetchpriority?: 'high' | 'low' | 'auto' | string;
   }
 }
-

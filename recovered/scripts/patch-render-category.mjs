@@ -49,4 +49,3 @@ if (pattern.test(s)) {
 } else {
   console.log('Failed to find renderCategory block');
 }
-

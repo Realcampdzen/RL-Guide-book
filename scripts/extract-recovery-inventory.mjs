@@ -6,8 +6,8 @@
  * Вывод: JSON в docs/recovery_inventory.json
  */
 import { readFileSync, writeFileSync } from 'fs';
-import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, '..');
@@ -32,10 +32,14 @@ while ((m = fileLineRegex.exec(src)) !== null) {
     fileLines.push({ file, lineNumber: line });
   }
 }
-fileLines.sort((a, b) => (a.file === b.file ? a.lineNumber - b.lineNumber : a.file.localeCompare(b.file)));
+fileLines.sort((a, b) =>
+  a.file === b.file ? a.lineNumber - b.lineNumber : a.file.localeCompare(b.file)
+);
 
 // Уникальные ProfileView lineNumber для границ блоков
-const profileViewLines = [...new Set(fileLines.filter((f) => f.file.includes('ProfileView')).map((f) => f.lineNumber))].sort((a, b) => a - b);
+const profileViewLines = [
+  ...new Set(fileLines.filter((f) => f.file.includes('ProfileView')).map((f) => f.lineNumber)),
+].sort((a, b) => a - b);
 
 const inventory = {
   generatedAt: new Date().toISOString(),

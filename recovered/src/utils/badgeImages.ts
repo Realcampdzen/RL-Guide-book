@@ -54,17 +54,17 @@ export const getBadgeImagePath = (
 ): string | null => {
   const baseUrl = import.meta.env.BASE_URL || '/';
   const categoryFolder = categoryFolderMap[categoryId];
-  
+
   if (!categoryFolder) return null;
 
   const badgeFolderName = getBadgeFolderName(badgeTitle, badgeId, levelTitle);
-  
+
   let fileName = '';
-  
+
   if (levelId && levelTitle) {
     const levelNumber = levelId.split('.').pop();
     if (levelNumber) {
-      let levelFileName = normalizeFolderName(levelTitle);
+      const levelFileName = normalizeFolderName(levelTitle);
       fileName = `${levelNumber} ${levelFileName}.jpg`;
     }
   } else {
@@ -72,8 +72,8 @@ export const getBadgeImagePath = (
     let baseLevelTitle = badgeTitle;
     if (baseLevelTitle.includes(' или ')) baseLevelTitle = baseLevelTitle.split(' или ')[0].trim();
     if (baseLevelTitle.includes('\n')) baseLevelTitle = baseLevelTitle.split('\n')[0].trim();
-    
-    let baseLevelName = normalizeFolderName(baseLevelTitle);
+
+    const baseLevelName = normalizeFolderName(baseLevelTitle);
     fileName = `1 ${baseLevelName}.jpg`;
   }
 
@@ -84,26 +84,15 @@ export const getBadgeImagePath = (
   // Используем encodeURIComponent для каждого сегмента пути отдельно
   // Убеждаемся, что baseUrl заканчивается на /
   const pathPrefix = baseUrl.endsWith('/') ? baseUrl : baseUrl + '/';
-  
+
   let finalPath: string;
   if (variant === 'realism') {
     // Собираем путь из сегментов, кодируя каждый отдельно
-    const segments = [
-      'Новые значки',
-      categoryFolder,
-      badgeFolderName,
-      'реализм',
-      fileName
-    ];
-    finalPath = pathPrefix + segments.map(seg => encodeURIComponent(seg)).join('/');
+    const segments = ['Новые значки', categoryFolder, badgeFolderName, 'реализм', fileName];
+    finalPath = pathPrefix + segments.map((seg) => encodeURIComponent(seg)).join('/');
   } else {
-    const segments = [
-      'Новые значки',
-      categoryFolder,
-      badgeFolderName,
-      fileName
-    ];
-    finalPath = pathPrefix + segments.map(seg => encodeURIComponent(seg)).join('/');
+    const segments = ['Новые значки', categoryFolder, badgeFolderName, fileName];
+    finalPath = pathPrefix + segments.map((seg) => encodeURIComponent(seg)).join('/');
   }
 
   return finalPath;

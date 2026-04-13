@@ -1,9 +1,9 @@
 import React, { Suspense } from 'react';
-import type { AppController } from './useAppController';
+import GlobalCursor from '../components/GlobalCursor';
 import AdditionalMaterialView from '../views/AdditionalMaterialView';
 import IntroductionView from '../views/IntroductionView';
 import RegistrationFormView from '../views/RegistrationFormView';
-import GlobalCursor from '../components/GlobalCursor';
+import type { AppController } from './useAppController';
 
 // Lazy load views for better performance
 const BlueNestLanding = React.lazy(() => import('../components/BlueNestLanding'));
@@ -78,7 +78,11 @@ export const AppViewRouter: React.FC<Props> = ({ controller, fallback }) => {
           currentView={currentView}
           selectedCategory={
             selectedCategory
-              ? { id: selectedCategory.id, title: selectedCategory.title, emoji: selectedCategory.emoji }
+              ? {
+                  id: selectedCategory.id,
+                  title: selectedCategory.title,
+                  emoji: selectedCategory.emoji,
+                }
               : undefined
           }
           selectedBadge={
@@ -106,7 +110,13 @@ export const AppViewRouter: React.FC<Props> = ({ controller, fallback }) => {
           onChatClose={closeChat}
           currentView={currentView}
           selectedCategory={
-            selectedCategory ? { id: selectedCategory.id, title: selectedCategory.title, emoji: selectedCategory.emoji } : undefined
+            selectedCategory
+              ? {
+                  id: selectedCategory.id,
+                  title: selectedCategory.title,
+                  emoji: selectedCategory.emoji,
+                }
+              : undefined
           }
           selectedBadge={
             selectedBadge
@@ -138,11 +148,22 @@ export const AppViewRouter: React.FC<Props> = ({ controller, fallback }) => {
           onChatClose={closeChat}
           currentView={currentView}
           selectedCategory={
-            selectedCategory ? { id: selectedCategory.id, title: selectedCategory.title, emoji: selectedCategory.emoji } : undefined
+            selectedCategory
+              ? {
+                  id: selectedCategory.id,
+                  title: selectedCategory.title,
+                  emoji: selectedCategory.emoji,
+                }
+              : undefined
           }
           selectedBadge={
             selectedBadge
-              ? { id: selectedBadge.id, title: selectedBadge.title, emoji: selectedBadge.emoji, categoryId: selectedBadge.category_id }
+              ? {
+                  id: selectedBadge.id,
+                  title: selectedBadge.title,
+                  emoji: selectedBadge.emoji,
+                  categoryId: selectedBadge.category_id,
+                }
               : undefined
           }
           selectedLevel={selectedLevel || undefined}
@@ -191,22 +212,26 @@ export const AppViewRouter: React.FC<Props> = ({ controller, fallback }) => {
         />
       )}
 
-      {!loading && currentView === 'badge-level' && selectedCategory && selectedBadge && selectedLevel && (
-        <BadgeLevelView
-          category={selectedCategory}
-          badge={selectedBadge}
-          level={selectedLevel}
-          badges={badges}
-          onBack={handleBackToBadge}
-          onChangeLevel={handleLevelClick}
-          onChatToggle={toggleChat}
-          isChatOpen={isChatOpen}
-          onChatClose={closeChat}
-          onOpenCategories={handleBackToCategories}
-          onTelegramContact={handleTelegramContact}
-          onBackToIntro={handleBackToIntro}
-        />
-      )}
+      {!loading &&
+        currentView === 'badge-level' &&
+        selectedCategory &&
+        selectedBadge &&
+        selectedLevel && (
+          <BadgeLevelView
+            category={selectedCategory}
+            badge={selectedBadge}
+            level={selectedLevel}
+            badges={badges}
+            onBack={handleBackToBadge}
+            onChangeLevel={handleLevelClick}
+            onChatToggle={toggleChat}
+            isChatOpen={isChatOpen}
+            onChatClose={closeChat}
+            onOpenCategories={handleBackToCategories}
+            onTelegramContact={handleTelegramContact}
+            onBackToIntro={handleBackToIntro}
+          />
+        )}
 
       {!loading && currentView === 'about-camp' && (
         <AboutCampView
@@ -233,22 +258,36 @@ export const AppViewRouter: React.FC<Props> = ({ controller, fallback }) => {
         />
       )}
 
-      {!loading && currentView === 'introduction' && selectedCategory?.introduction?.has_introduction && introductionHtml && (
-        <IntroductionView title={`💡 Подсказка: ${selectedCategory.title}`} contentHtml={introductionHtml} onBack={handleBackToCategoryFromIntroduction} />
-      )}
+      {!loading &&
+        currentView === 'introduction' &&
+        selectedCategory?.introduction?.has_introduction &&
+        introductionHtml && (
+          <IntroductionView
+            title={`💡 Подсказка: ${selectedCategory.title}`}
+            contentHtml={introductionHtml}
+            onBack={handleBackToCategoryFromIntroduction}
+          />
+        )}
 
-      {!loading && currentView === 'additional-material' && selectedAdditionalMaterial && additionalMaterialHtml && (
-        <AdditionalMaterialView
-          title={selectedAdditionalMaterial.title}
-          contentHtml={additionalMaterialHtml}
-          onBack={handleBackToCategoryFromAdditional}
-        />
-      )}
+      {!loading &&
+        currentView === 'additional-material' &&
+        selectedAdditionalMaterial &&
+        additionalMaterialHtml && (
+          <AdditionalMaterialView
+            title={selectedAdditionalMaterial.title}
+            contentHtml={additionalMaterialHtml}
+            onBack={handleBackToCategoryFromAdditional}
+          />
+        )}
 
       {!loading && currentView === 'registration-form' && (
-        <RegistrationFormView formData={formData} onBack={handleBackToAboutCamp} onChange={handleFormInputChange} onSubmit={handleFormSubmit} />
+        <RegistrationFormView
+          formData={formData}
+          onBack={handleBackToAboutCamp}
+          onChange={handleFormInputChange}
+          onSubmit={handleFormSubmit}
+        />
       )}
     </Suspense>
   );
 };
-

@@ -1,17 +1,17 @@
-import React, { useEffect, useMemo, useState, Suspense } from 'react';
-import {
-  fixDescriptionFormatting,
-  fixCriteriaFormatting,
-  extractEvidenceSection,
-  shouldApplyFormatting
-} from '../utils/textFormatting';
-import { useScrollReveal } from '../hooks/useScrollReveal';
+import React, { Suspense, useEffect, useMemo, useState } from 'react';
 import BadgeIcon from '../components/BadgeIcon';
 import { Skeleton } from '../components/Skeleton';
+import { useScrollReveal } from '../hooks/useScrollReveal';
 import { getBadgeImagePath } from '../utils/badgeImages';
 import { toSiblingImageUrl } from '../utils/imageSources';
+import {
+  extractEvidenceSection,
+  fixCriteriaFormatting,
+  fixDescriptionFormatting,
+  shouldApplyFormatting,
+} from '../utils/textFormatting';
 import '../styles/badge-view.css';
-import type { Category, Badge } from '../types/guide';
+import type { Badge, Category } from '../types/guide';
 
 const loadChatBot = () => import('../components/ChatBot');
 const loadChatAvatar = () => import('../components/ChatAvatar');
@@ -97,7 +97,9 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
     const baseTwo = segments.length >= 2 ? `${segments[0]}.${segments[1]}` : badgeId;
 
     const sameBaseTwo = (a: string, base: string): boolean => {
-      const as = String(a || '').split('.').filter(Boolean);
+      const as = String(a || '')
+        .split('.')
+        .filter(Boolean);
       if (as.length < 2) return false;
       return `${as[0]}.${as[1]}` === base;
     };
@@ -105,7 +107,12 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
     const tiered = badges
       .filter((b) => b.category_id === badge.category_id)
       .filter((b) => sameBaseTwo(String(b.id || ''), baseTwo))
-      .filter((b) => String(b.id || '').split('.').filter(Boolean).length === 3);
+      .filter(
+        (b) =>
+          String(b.id || '')
+            .split('.')
+            .filter(Boolean).length === 3
+      );
 
     const dedupeById = <T extends { id?: any }>(items: T[]): T[] => {
       const seen = new Set<string>();
@@ -144,7 +151,7 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
 
     const otherLevels = levelsAll.filter((l) => String(l.level) !== String(level));
 
-    return { levelBadge: (levelBadge || badge), otherLevels };
+    return { levelBadge: levelBadge || badge, otherLevels };
   }, [badge, badges, level]);
 
   // Content Logic
@@ -158,32 +165,38 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
 
     if (levelBadge.confirmation) {
       const conf: string | string[] = levelBadge.confirmation as string | string[];
-      evidenceText = typeof conf === 'string'
-        ? conf
-        : Array.isArray(conf) ? conf.join('\n') : null;
+      evidenceText = typeof conf === 'string' ? conf : Array.isArray(conf) ? conf.join('\n') : null;
     }
 
     if (levelBadge.criteria) {
       const crit: string | string[] = levelBadge.criteria as string | string[];
-      const raw = typeof crit === 'string'
-        ? crit.replace(/^Как получить значок \«[^»]+\»: \s*/, '')
-        : Array.isArray(crit) ? crit.join('\n') : '';
+      const raw =
+        typeof crit === 'string'
+          ? crit.replace(/^Как получить значок «[^»]+»: \s*/, '')
+          : Array.isArray(crit)
+            ? crit.join('\n')
+            : '';
 
       const shouldFormat = shouldApplyFormatting(levelBadge.id);
       const processedRaw = shouldFormat ? fixCriteriaFormatting(raw) : raw;
 
-      criteria = processedRaw.split('\u2705').filter((c: string) => c.trim()).map((c: string) => c.trim());
+      criteria = processedRaw
+        .split('\u2705')
+        .filter((c: string) => c.trim())
+        .map((c: string) => c.trim());
     } else {
       // Fallback
       criteria = [
         'Выполнить все базовые требования значка.',
         'Показать более глубокое понимание и навыки.',
-        'Демонстрировать постоянное развитие и улучшение.'
+        'Демонстрировать постоянное развитие и улучшение.',
       ];
     }
 
     const shouldFormatDesc = shouldApplyFormatting(levelBadge.id);
-    const processedDesc = shouldFormatDesc ? fixDescriptionFormatting(descriptionText) : descriptionText;
+    const processedDesc = shouldFormatDesc
+      ? fixDescriptionFormatting(descriptionText)
+      : descriptionText;
     const { mainText: descMain } = extractEvidenceSection(processedDesc);
 
     return { levelCriteria: criteria, levelEvidenceText: evidenceText, mainDescription: descMain };
@@ -200,7 +213,24 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
   // Helper for rendering emoji/icon
   const renderIcon = (b: Badge, size: 'large' | 'xlarge', className: string) => {
     const baseBadgeId = String(b.id).split('.').slice(0, 2).join('.');
-    const isImageBadge = ['1.1', '1.2', '1.3', '1.4', '1.5', '1.6', '1.7', '1.8', '1.9', '1.10', '1.11', '1.12', '1.13', '1.14', '1.15', '1.16'].includes(baseBadgeId);
+    const isImageBadge = [
+      '1.1',
+      '1.2',
+      '1.3',
+      '1.4',
+      '1.5',
+      '1.6',
+      '1.7',
+      '1.8',
+      '1.9',
+      '1.10',
+      '1.11',
+      '1.12',
+      '1.13',
+      '1.14',
+      '1.15',
+      '1.16',
+    ].includes(baseBadgeId);
 
     if (isImageBadge) {
       return (
@@ -216,11 +246,18 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
         />
       );
     }
-    return <div className={className} style={{fontSize: size === 'large' ? '4rem' : '3rem'}}>{b.emoji || '🏆'}</div>;
+    return (
+      <div className={className} style={{ fontSize: size === 'large' ? '4rem' : '3rem' }}>
+        {b.emoji || '🏆'}
+      </div>
+    );
   };
 
   const levelHeroImageUrl = useMemo(() => {
-    const baseBadgeId = String(badge.id || '').split('.').slice(0, 2).join('.');
+    const baseBadgeId = String(badge.id || '')
+      .split('.')
+      .slice(0, 2)
+      .join('.');
     if (!baseBadgeId) return null;
     const levelId = String(levelBadge?.id || '');
     const levelSegments = levelId.split('.');
@@ -257,7 +294,10 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
       {/* GlobalCursor renders the custom cursor layer once at app root */}
 
       {/* Mobile Navigation Header */}
-      <header className={`mobile-glass-header${isChatOpen ? ' is-chat-open' : ''}`} aria-label="Навигация">
+      <header
+        className={`mobile-glass-header${isChatOpen ? ' is-chat-open' : ''}`}
+        aria-label="Навигация"
+      >
         <div className="mobile-header-left">
           <button type="button" className="mobile-header-back" onClick={onBack} aria-label="Назад">
             ←
@@ -288,7 +328,12 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
           >
             <picture>
               <source type="image/webp" srcSet="/RL-Guide-book/Валюша.webp" />
-              <img src="/RL-Guide-book/Валюша.jpg" alt="НейроВалюша" decoding="async" fetchpriority="high" />
+              <img
+                src="/RL-Guide-book/Валюша.jpg"
+                alt="НейроВалюша"
+                decoding="async"
+                fetchpriority="high"
+              />
             </picture>
           </button>
         </div>
@@ -309,24 +354,45 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
       >
         <div className="mobile-menu-head">
           <span className="mobile-menu-title">Меню</span>
-          <button type="button" className="mobile-menu-close" onClick={closeMenu} aria-label="Закрыть меню">
+          <button
+            type="button"
+            className="mobile-menu-close"
+            onClick={closeMenu}
+            aria-label="Закрыть меню"
+          >
             &times;
           </button>
         </div>
         <div className="mobile-menu-list">
-          <button type="button" className="mobile-menu-item" onClick={() => handleMenuAction(onBackToIntro)}>
+          <button
+            type="button"
+            className="mobile-menu-item"
+            onClick={() => handleMenuAction(onBackToIntro)}
+          >
             <span className="mobile-menu-item-label">Главная</span>
             <span className="mobile-menu-item-icon">&rsaquo;</span>
           </button>
-          <button type="button" className="mobile-menu-item" onClick={() => handleMenuAction(onOpenCategories)}>
+          <button
+            type="button"
+            className="mobile-menu-item"
+            onClick={() => handleMenuAction(onOpenCategories)}
+          >
             <span className="mobile-menu-item-label">Категории</span>
             <span className="mobile-menu-item-icon">&rsaquo;</span>
           </button>
-          <button type="button" className="mobile-menu-item" onClick={() => handleMenuAction(onBack)}>
+          <button
+            type="button"
+            className="mobile-menu-item"
+            onClick={() => handleMenuAction(onBack)}
+          >
             <span className="mobile-menu-item-label">Назад</span>
             <span className="mobile-menu-item-icon">&lsaquo;</span>
           </button>
-          <button type="button" className="mobile-menu-item mobile-menu-item-cta" onClick={() => handleMenuAction(onTelegramContact)}>
+          <button
+            type="button"
+            className="mobile-menu-item mobile-menu-item-cta"
+            onClick={() => handleMenuAction(onTelegramContact)}
+          >
             <span className="mobile-menu-item-label">Записаться через Telegram</span>
             <span className="mobile-menu-item-icon">&rsaquo;</span>
           </button>
@@ -334,15 +400,15 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
       </div>
 
       <div className="sticky-back-nav">
-        <button onClick={onBack} className="nav-link-back hover-target">← Назад к значку</button>
+        <button onClick={onBack} className="nav-link-back hover-target">
+          ← Назад к значку
+        </button>
       </div>
 
       <main className="badge-main">
         {/* Header */}
         <section className="badge-hero reveal-on-scroll">
-          <div className="badge-hero-icon">
-            {renderIcon(levelBadge, 'large', 'hero-emoji')}
-          </div>
+          <div className="badge-hero-icon">{renderIcon(levelBadge, 'large', 'hero-emoji')}</div>
           <div className="badge-hero-content">
             <h1>{levelBadge.title}</h1>
             <div className="badge-hero-category">{level}</div>
@@ -378,7 +444,10 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
           <div className="badge-left-col reveal-on-scroll">
             <div className="content-block">
               <h3>Общая информация</h3>
-              <p className="content-text" dangerouslySetInnerHTML={{ __html: mainDescription.replace(/\n/g, '<br/>') }} />
+              <p
+                className="content-text"
+                dangerouslySetInnerHTML={{ __html: mainDescription.replace(/\n/g, '<br/>') }}
+              />
 
               {levelBadge.nameExplanation && (
                 <>
@@ -390,14 +459,22 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
               {levelBadge.skillTips && (
                 <>
                   <h4>Как прокачать навык</h4>
-                  <p className="content-text" dangerouslySetInnerHTML={{__html: levelBadge.skillTips.replace(/\n/g, '<br>')}}></p>
+                  <p
+                    className="content-text"
+                    dangerouslySetInnerHTML={{
+                      __html: levelBadge.skillTips.replace(/\n/g, '<br>'),
+                    }}
+                  ></p>
                 </>
               )}
 
               {levelBadge.examples && (
                 <>
                   <h4>Примеры</h4>
-                  <p className="content-text" dangerouslySetInnerHTML={{__html: levelBadge.examples.replace(/\n/g, '<br>')}}></p>
+                  <p
+                    className="content-text"
+                    dangerouslySetInnerHTML={{ __html: levelBadge.examples.replace(/\n/g, '<br>') }}
+                  ></p>
                 </>
               )}
 
@@ -418,7 +495,12 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
               {levelBadge.howToBecome && (
                 <>
                   <h4>Как стать</h4>
-                  <p className="content-text" dangerouslySetInnerHTML={{__html: levelBadge.howToBecome.replace(/\n/g, '<br>')}}></p>
+                  <p
+                    className="content-text"
+                    dangerouslySetInnerHTML={{
+                      __html: levelBadge.howToBecome.replace(/\n/g, '<br>'),
+                    }}
+                  ></p>
                 </>
               )}
 
@@ -448,7 +530,12 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
                 <ul className="criteria-list">
                   {levelCriteria.map((criterion, index) => {
                     // Simple example parsing logic if needed
-                    return <li key={index} dangerouslySetInnerHTML={{ __html: criterion.replace(/\n/g, '<br>') }} />;
+                    return (
+                      <li
+                        key={index}
+                        dangerouslySetInnerHTML={{ __html: criterion.replace(/\n/g, '<br>') }}
+                      />
+                    );
                   })}
                 </ul>
               ) : (
@@ -458,7 +545,10 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
               {levelEvidenceText && (
                 <>
                   <h4>Чем подтверждается</h4>
-                  <p className="content-text" style={{ color: 'var(--c-volt)', fontStyle: 'italic' }}>
+                  <p
+                    className="content-text"
+                    style={{ color: 'var(--c-volt)', fontStyle: 'italic' }}
+                  >
                     {levelEvidenceText}
                   </p>
                 </>
@@ -468,15 +558,13 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
             {/* Other Levels */}
             {otherLevels.length > 0 && (
               <div className="levels-dock">
-                {otherLevels.map(lvl => (
+                {otherLevels.map((lvl) => (
                   <div
                     key={lvl.id}
                     className="level-bubble hover-target"
                     onClick={() => onChangeLevel(String(lvl.level))}
                   >
-                    <div className="level-bubble-icon">
-                      {renderIcon(lvl, 'xlarge', '')}
-                    </div>
+                    <div className="level-bubble-icon">{renderIcon(lvl, 'xlarge', '')}</div>
                     <div className="level-bubble-title">{lvl.title}</div>
                     <div className="level-bubble-subtitle">{String(lvl.level)}</div>
                   </div>
@@ -499,7 +587,7 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
             id: badge.id,
             title: badge.title,
             emoji: badge.emoji,
-            categoryId: badge.category_id
+            categoryId: badge.category_id,
           }}
           currentLevel={level}
           currentLevelBadgeTitle={levelBadge.title}

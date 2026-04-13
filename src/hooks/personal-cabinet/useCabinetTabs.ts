@@ -11,7 +11,7 @@ export function useCabinetTabs() {
   const [activeTab, setActiveTab] = useState<Tab>('active');
   const [activeSection, setActiveSection] = useState<string>('home');
   const [homeTab, setHomeTab] = useState<Tab>('active');
-  
+
   const [squadCornerTab, setSquadCornerTab] = useState<SquadCornerTabId>('squad');
   const [broTab, setBroTab] = useState<BroTabId>('initiation');
   const [shareTab, setShareTab] = useState<ShareTabId>('create-card');
@@ -25,21 +25,35 @@ export function useCabinetTabs() {
   const [favCarouselSteps, setFavCarouselSteps] = useState(0);
 
   const [mobileDrawerLevel, setMobileDrawerLevel] = useState<MobileDrawerLevel>('main');
-  
+
   return {
-    activeTab, setActiveTab,
-    activeSection, setActiveSection,
-    homeTab, setHomeTab,
-    squadCornerTab, setSquadCornerTab,
-    broTab, setBroTab,
-    shareTab, setShareTab,
-    workshopTab, setWorkshopTab,
-    teamTab, setTeamTab,
-    councilTab, setCouncilTab,
-    vozhatifikatorTab, setVozhatifikatorTab,
-    inspectorTab, setInspectorTab,
-    pathCarouselSteps, setPathCarouselSteps,
-    favCarouselSteps, setFavCarouselSteps,
-    mobileDrawerLevel, setMobileDrawerLevel,
+    activeTab,
+    setActiveTab,
+    activeSection,
+    setActiveSection,
+    homeTab,
+    setHomeTab,
+    squadCornerTab,
+    setSquadCornerTab,
+    broTab,
+    setBroTab,
+    shareTab,
+    setShareTab,
+    workshopTab,
+    setWorkshopTab,
+    teamTab,
+    setTeamTab,
+    councilTab,
+    setCouncilTab,
+    vozhatifikatorTab,
+    setVozhatifikatorTab,
+    inspectorTab,
+    setInspectorTab,
+    pathCarouselSteps,
+    setPathCarouselSteps,
+    favCarouselSteps,
+    setFavCarouselSteps,
+    mobileDrawerLevel,
+    setMobileDrawerLevel,
   };
 }

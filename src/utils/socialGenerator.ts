@@ -3,7 +3,14 @@ import { toSiblingImageUrl } from './imageSources';
 import { pluralizeRu } from './textFormatting';
 
 export type SocialCardFormat = 'story' | 'wide';
-export type SocialCardKind = 'progress_summary' | 'start_route' | 'achieved_level' | 'favorite' | 'inspector_mission' | 'creator_proposal' | 'creator_highlight';
+export type SocialCardKind =
+  | 'progress_summary'
+  | 'start_route'
+  | 'achieved_level'
+  | 'favorite'
+  | 'inspector_mission'
+  | 'creator_proposal'
+  | 'creator_highlight';
 
 export type SocialCardProfile = {
   nickname?: string;
@@ -55,7 +62,13 @@ export type SocialCardInput = {
 /** Input shape for progress_summary (extends SocialCardInput with assets/skin). */
 export type ProgressSummaryInput = SocialCardInput & {
   kind: 'progress_summary';
-  assets?: { framePng?: string; texturePng?: string; pillPng?: string; slotPng?: string; dividerPng?: string };
+  assets?: {
+    framePng?: string;
+    texturePng?: string;
+    pillPng?: string;
+    slotPng?: string;
+    dividerPng?: string;
+  };
   skin?: 'A' | 'B' | 'D';
 };
 
@@ -109,7 +122,14 @@ const getCategoryAccent = (categoryId?: string): string => {
   return `hsl(${hue}, 85%, 65%)`;
 };
 
-const roundRectPath = (ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) => {
+const roundRectPath = (
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  r: number
+) => {
   const radius = Math.max(0, Math.min(r, Math.min(w, h) / 2));
   ctx.beginPath();
   ctx.moveTo(x + radius, y);
@@ -224,7 +244,10 @@ const FONT_FAMILY = '"Montserrat", system-ui, -apple-system, sans-serif';
 
 const wrapText = (ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string[] => {
   const lines: string[] = [];
-  const paragraphs = String(text || '').split('\n').map((p) => p.trim()).filter(Boolean);
+  const paragraphs = String(text || '')
+    .split('\n')
+    .map((p) => p.trim())
+    .filter(Boolean);
   paragraphs.forEach((paragraph, paragraphIndex) => {
     const words = paragraph.split(/\s+/).filter(Boolean);
     let line = '';
@@ -269,7 +292,10 @@ const loadImage = (url: string): Promise<HTMLImageElement> => {
 
 const tryLoadBadgeImage = async (badge?: SocialCardBadge): Promise<HTMLImageElement | null> => {
   if (!badge?.title || !badge.categoryId) return null;
-  const baseId = String(badge.baseId || badge.id || '').split('.').slice(0, 2).join('.');
+  const baseId = String(badge.baseId || badge.id || '')
+    .split('.')
+    .slice(0, 2)
+    .join('.');
   if (!baseId) return null;
   const variant = getPreferredBadgeImageVariant(String(badge.categoryId));
   const jpgPath = getBadgeImagePath(
@@ -297,7 +323,12 @@ const tryLoadBadgeImage = async (badge?: SocialCardBadge): Promise<HTMLImageElem
 const tryLoadAvatarImage = async (avatar?: string): Promise<HTMLImageElement | null> => {
   const v = String(avatar || '').trim();
   if (!v) return null;
-  if (v.startsWith('data:image/') || v.startsWith('http://') || v.startsWith('https://') || v.startsWith('/')) {
+  if (
+    v.startsWith('data:image/') ||
+    v.startsWith('http://') ||
+    v.startsWith('https://') ||
+    v.startsWith('/')
+  ) {
     try {
       return await loadImage(v);
     } catch {
@@ -426,7 +457,14 @@ const drawFrameA = (ctx: CanvasRenderingContext2D, frame: Rect, accent: string, 
     withSaved(ctx, () => {
       ctx.strokeStyle = 'rgba(255,255,255,0.15)';
       ctx.lineWidth = 1;
-      roundRectPath(ctx, x + bevInset, y + bevInset, w - bevInset * 2, h - bevInset * 2, Math.max(0, rad - bevInset));
+      roundRectPath(
+        ctx,
+        x + bevInset,
+        y + bevInset,
+        w - bevInset * 2,
+        h - bevInset * 2,
+        Math.max(0, rad - bevInset)
+      );
       ctx.stroke();
     });
     // HUD corner brackets (L-shapes)
@@ -442,10 +480,10 @@ const drawFrameA = (ctx: CanvasRenderingContext2D, frame: Rect, accent: string, 
       ctx.lineTo(snap(bx), snap(by + dy * bracketLen));
       ctx.stroke();
     };
-    drawBracket(x, y, 1, 1);           // top-left
-    drawBracket(x + w, y, -1, 1);      // top-right
+    drawBracket(x, y, 1, 1); // top-left
+    drawBracket(x + w, y, -1, 1); // top-right
     drawBracket(x + w, y + h, -1, -1); // bottom-right
-    drawBracket(x, y + h, 1, -1);      // bottom-left
+    drawBracket(x, y + h, 1, -1); // bottom-left
   });
 };
 
@@ -665,7 +703,8 @@ const buildCaption = (input: SocialCardInput): string => {
   const parts: string[] = [];
   if (input.customCaption) parts.push(input.customCaption);
   if (input.customCallout && isCalloutValid(input.customCallout)) parts.push(input.customCallout);
-  if (input.customStoriesLine && String(input.customStoriesLine).trim()) parts.push(String(input.customStoriesLine).trim());
+  if (input.customStoriesLine && String(input.customStoriesLine).trim())
+    parts.push(String(input.customStoriesLine).trim());
   if (input.vibeCheck) {
     if (input.vibeCheck.memeHeader) parts.push(input.vibeCheck.memeHeader);
     if (input.vibeCheck.memeText) parts.push(input.vibeCheck.memeText);
@@ -802,7 +841,14 @@ async function drawProgressSummaryAAA(
 
   const rankText = String(input.profile?.rank || 'Мой путь').trim();
   const rankBaseSize = Math.min(52, Math.round(72 * S)); // cap so rank isn't oversized on wide
-  const rankFontSize = fitFontSize(ctx, rankText, rankTitle.maxW, rankBaseSize, Math.round(24 * S), FONT_FAMILY);
+  const rankFontSize = fitFontSize(
+    ctx,
+    rankText,
+    rankTitle.maxW,
+    rankBaseSize,
+    Math.round(24 * S),
+    FONT_FAMILY
+  );
   ctx.font = `900 ${rankFontSize}px ${FONT_FAMILY}`;
   const rankTextWidth = ctx.measureText(rankText).width;
   const ribbonPaddingX = Math.round(24 * S);
@@ -822,7 +868,13 @@ async function drawProgressSummaryAAA(
   const statsY = rankTitleY + ribbonH + Math.round(12 * S);
   const chipGap = Math.round(20 * S); // visible gap between two chips
   const statsChipsLeft: Rect = { x: textX, y: statsY - chipPadY, w: w1, h: chipH, r: chipH / 2 };
-  const statsChipsRight: Rect = { x: textX + w1 + chipGap, y: statsY - chipPadY, w: w2, h: chipH, r: chipH / 2 };
+  const statsChipsRight: Rect = {
+    x: textX + w1 + chipGap,
+    y: statsY - chipPadY,
+    w: w2,
+    h: chipH,
+    r: chipH / 2,
+  };
 
   // Footer — fixed at bottom; content above must stay above maxContentY
   const footerLineH = Math.round(width * 0.032);
@@ -831,7 +883,12 @@ async function drawProgressSummaryAAA(
   const maxContentY = footerDividerY - Math.round(35 * S); // BUFF must not draw below this
 
   const buffY = statsY + chipH + Math.round(20 * S);
-  const footer: Rect = { x: margin, y: height - margin - footerLineH, w: width - margin * 2, h: footerLineH };
+  const footer: Rect = {
+    x: margin,
+    y: height - margin - footerLineH,
+    w: width - margin * 2,
+    h: footerLineH,
+  };
   const A: ProgressAnchors = {
     card,
     safe,
@@ -877,7 +934,14 @@ async function drawProgressSummaryAAA(
     ctx.fillRect(0, 0, width, height);
     ctx.save();
     ctx.globalAlpha = 0.18;
-    const glow = ctx.createRadialGradient(width * 0.82, height * 0.18, 0, width * 0.82, height * 0.18, width * 0.62);
+    const glow = ctx.createRadialGradient(
+      width * 0.82,
+      height * 0.18,
+      0,
+      width * 0.82,
+      height * 0.18,
+      width * 0.62
+    );
     glow.addColorStop(0, accent);
     glow.addColorStop(1, 'rgba(0,0,0,0)');
     ctx.fillStyle = glow;
@@ -939,7 +1003,14 @@ async function drawProgressSummaryAAA(
   const avatarImage = await tryLoadAvatarImage(input.profile?.avatar);
   const emojiFallback = String(input.profile?.avatar || '🧑‍🚀').trim() || '🧑‍🚀';
   const ringSteps = Math.min(7, Math.max(4, Math.round(6 * S)));
-  glowStroke(ctx, () => ctx.arc(A.avatarRing.cx, A.avatarRing.cy, A.avatarRing.r, 0, Math.PI * 2), accent, 4, ringSteps, 0.35);
+  glowStroke(
+    ctx,
+    () => ctx.arc(A.avatarRing.cx, A.avatarRing.cy, A.avatarRing.r, 0, Math.PI * 2),
+    accent,
+    4,
+    ringSteps,
+    0.35
+  );
   ctx.strokeStyle = accent;
   ctx.globalAlpha = 0.85;
   ctx.lineWidth = 10;
@@ -1164,7 +1235,7 @@ async function drawProgressSummaryAAA(
   if (assets?.slotPng) slotImg = await tryLoadAsset(assets.slotPng);
   if (input.badgeCarouselItems && input.badgeCarouselItems.length > 0) {
     const items = input.badgeCarouselItems.slice(0, 8);
-    const cellSize = Math.round(width * (isPortrait ? 0.10 : 0.06));
+    const cellSize = Math.round(width * (isPortrait ? 0.1 : 0.06));
     const gap = Math.round(width * 0.018);
     const carouselY = A.pill.y + A.pill.h + Math.round(width * 0.028);
     A.slotsRow.y = carouselY;
@@ -1266,7 +1337,10 @@ async function drawProgressSummaryAAA(
   const rawCaption = String(input.customCaption || '').trim();
   if (rawCaption && cursorY < maxContentY) {
     const maxCaptionLen = 80;
-    const captionText = rawCaption.length > maxCaptionLen ? rawCaption.slice(0, maxCaptionLen - 1).trim() + '…' : rawCaption;
+    const captionText =
+      rawCaption.length > maxCaptionLen
+        ? rawCaption.slice(0, maxCaptionLen - 1).trim() + '…'
+        : rawCaption;
     const captionLines = wrapText(ctx, captionText, A.safe.w).slice(0, 2);
     const captionFontSize = Math.round(38 * S);
     const captionLineH = Math.round(48 * S);
@@ -1276,7 +1350,9 @@ async function drawProgressSummaryAAA(
       ctx.fillStyle = accent;
       ctx.textAlign = 'left';
       ctx.textBaseline = 'top';
-      captionLines.forEach((line, idx) => ctx.fillText(line, A.safe.x, cursorY + idx * captionLineH));
+      captionLines.forEach((line, idx) =>
+        ctx.fillText(line, A.safe.x, cursorY + idx * captionLineH)
+      );
       cursorY += captionHeight;
     }
   }
@@ -1284,7 +1360,10 @@ async function drawProgressSummaryAAA(
   const calloutText = isCalloutValid(rawCallout) ? rawCallout : '';
   if (calloutText && cursorY < maxContentY) {
     const calloutMaxLen = 50;
-    const calloutDisplay = calloutText.length > calloutMaxLen ? calloutText.slice(0, calloutMaxLen - 1).trim() + '…' : calloutText;
+    const calloutDisplay =
+      calloutText.length > calloutMaxLen
+        ? calloutText.slice(0, calloutMaxLen - 1).trim() + '…'
+        : calloutText;
     const lineH = Math.round(40 * S);
     if (cursorY + lineH <= maxContentY) {
       ctx.fillStyle = 'rgba(255,255,255,0.7)';
@@ -1298,7 +1377,10 @@ async function drawProgressSummaryAAA(
   const rawStoriesLine = String(input.customStoriesLine || '').trim();
   if (rawStoriesLine && cursorY < maxContentY) {
     const storiesMaxLen = 50;
-    const storiesDisplay = rawStoriesLine.length > storiesMaxLen ? rawStoriesLine.slice(0, storiesMaxLen - 1).trim() + '…' : rawStoriesLine;
+    const storiesDisplay =
+      rawStoriesLine.length > storiesMaxLen
+        ? rawStoriesLine.slice(0, storiesMaxLen - 1).trim() + '…'
+        : rawStoriesLine;
     const storiesLines = wrapText(ctx, storiesDisplay, A.safe.w).slice(0, 2);
     const storiesFontSize = Math.round(24 * S);
     const storiesLineH = Math.round(32 * S);
@@ -1308,7 +1390,9 @@ async function drawProgressSummaryAAA(
       ctx.fillStyle = 'rgba(255,255,255,0.55)';
       ctx.textAlign = 'left';
       ctx.textBaseline = 'top';
-      storiesLines.forEach((line, idx) => ctx.fillText(line, A.safe.x, cursorY + idx * storiesLineH));
+      storiesLines.forEach((line, idx) =>
+        ctx.fillText(line, A.safe.x, cursorY + idx * storiesLineH)
+      );
       cursorY += storiesHeight;
     }
   }
@@ -1347,7 +1431,12 @@ async function drawProgressSummaryAAA(
           roundRectPath(ctx, A.safe.x, statPlaqueY, A.safe.w, statPlaqueH, statPlaqueH / 2);
           ctx.fillStyle = 'rgba(255,255,255,0.08)';
           ctx.fill();
-          const grad = ctx.createLinearGradient(A.safe.x, statPlaqueY, A.safe.x + A.safe.w, statPlaqueY);
+          const grad = ctx.createLinearGradient(
+            A.safe.x,
+            statPlaqueY,
+            A.safe.x + A.safe.w,
+            statPlaqueY
+          );
           grad.addColorStop(0, accent);
           grad.addColorStop(0.5, accent);
           grad.addColorStop(1, accent);
@@ -1382,7 +1471,11 @@ async function drawProgressSummaryAAA(
         }
         ctx.font = `700 ${vcStatFontSize}px ${FONT_FAMILY}`;
         ctx.fillStyle = 'rgba(255,255,255,0.9)';
-        ctx.fillText(statDisplay, A.safe.x + statPlaquePadding + iconSz + Math.round(15 * S), statPlaqueY + statPlaqueH / 2);
+        ctx.fillText(
+          statDisplay,
+          A.safe.x + statPlaquePadding + iconSz + Math.round(15 * S),
+          statPlaqueY + statPlaqueH / 2
+        );
         cursorY += statPlaqueH + Math.round(15 * S);
       }
     }
@@ -1555,7 +1648,14 @@ export const generateSocialCard = async (input: SocialCardInput): Promise<Social
     // Nickname
     const nick = String(input.profile?.nickname || 'Созидатель').trim();
     ctx.fillStyle = '#f59e0b';
-    const nickSize = fitFontSize(ctx, nick, width * 0.7, Math.round(width * 0.06), Math.round(width * 0.03), FONT_FAMILY);
+    const nickSize = fitFontSize(
+      ctx,
+      nick,
+      width * 0.7,
+      Math.round(width * 0.06),
+      Math.round(width * 0.03),
+      FONT_FAMILY
+    );
     ctx.font = `900 ${nickSize}px ${FONT_FAMILY}`;
     ctx.fillText(nick, width / 2, ctrY + width * 0.12);
     // Label
@@ -1611,7 +1711,14 @@ export const generateSocialCard = async (input: SocialCardInput): Promise<Social
     // Accent glow
     ctx.save();
     ctx.globalAlpha = 0.18;
-    const glow = ctx.createRadialGradient(width * 0.82, height * 0.18, 0, width * 0.82, height * 0.18, width * 0.62);
+    const glow = ctx.createRadialGradient(
+      width * 0.82,
+      height * 0.18,
+      0,
+      width * 0.82,
+      height * 0.18,
+      width * 0.62
+    );
     glow.addColorStop(0, String(accent));
     glow.addColorStop(1, 'rgba(0,0,0,0)');
     ctx.fillStyle = glow;
@@ -1719,7 +1826,9 @@ export const generateSocialCard = async (input: SocialCardInput): Promise<Social
 
   // Text block
   const textX = isPortrait ? margin : iconX + iconSize + Math.round(margin * 0.75);
-  const textY = isPortrait ? iconY + iconSize + Math.round(margin * 0.65) : Math.round(height * 0.26);
+  const textY = isPortrait
+    ? iconY + iconSize + Math.round(margin * 0.65)
+    : Math.round(height * 0.26);
   const textMaxW = isPortrait ? width - margin * 2 : width - textX - margin;
 
   ctx.textAlign = 'left';
@@ -1771,7 +1880,10 @@ export const generateSocialCard = async (input: SocialCardInput): Promise<Social
     const isManifestCaption = input.kind === 'start_route' && manifestSkill;
     const maxCaptionLen = isManifestCaption ? 120 : 80;
     const maxCaptionLines = isManifestCaption ? 3 : 2;
-    const captionText = rawCaption.length > maxCaptionLen ? rawCaption.slice(0, maxCaptionLen - 1).trim() + '…' : rawCaption;
+    const captionText =
+      rawCaption.length > maxCaptionLen
+        ? rawCaption.slice(0, maxCaptionLen - 1).trim() + '…'
+        : rawCaption;
     const captionLines = wrapText(ctx, captionText, textMaxW).slice(0, maxCaptionLines);
     const captionFontSize = Math.round(width * (isPortrait ? 0.038 : 0.032));
     ctx.font = `800 ${captionFontSize}px "Montserrat", system-ui, -apple-system, sans-serif`;
@@ -1791,7 +1903,10 @@ export const generateSocialCard = async (input: SocialCardInput): Promise<Social
   const calloutText = isCalloutValid(rawCalloutWide) ? rawCalloutWide : '';
   if (calloutText) {
     const calloutMaxLen = 50;
-    const calloutDisplay = calloutText.length > calloutMaxLen ? calloutText.slice(0, calloutMaxLen - 1).trim() + '…' : calloutText;
+    const calloutDisplay =
+      calloutText.length > calloutMaxLen
+        ? calloutText.slice(0, calloutMaxLen - 1).trim() + '…'
+        : calloutText;
     ctx.fillStyle = 'rgba(255,255,255,0.7)';
     ctx.font = `700 ${Math.round(width * (isPortrait ? 0.028 : 0.024))}px "Montserrat", system-ui, -apple-system, sans-serif`;
     ctx.textAlign = 'left';
@@ -1804,7 +1919,10 @@ export const generateSocialCard = async (input: SocialCardInput): Promise<Social
   const rawStoriesLineLegacy = String(input.customStoriesLine || '').trim();
   if (rawStoriesLineLegacy) {
     const storiesMaxLen = 50;
-    const storiesDisplay = rawStoriesLineLegacy.length > storiesMaxLen ? rawStoriesLineLegacy.slice(0, storiesMaxLen - 1).trim() + '…' : rawStoriesLineLegacy;
+    const storiesDisplay =
+      rawStoriesLineLegacy.length > storiesMaxLen
+        ? rawStoriesLineLegacy.slice(0, storiesMaxLen - 1).trim() + '…'
+        : rawStoriesLineLegacy;
     const storiesLines = wrapText(ctx, storiesDisplay, textMaxW).slice(0, 2);
     const storiesFontSize = Math.round(width * (isPortrait ? 0.024 : 0.02));
     const storiesLineH = Math.round(width * (isPortrait ? 0.032 : 0.028));
@@ -1866,7 +1984,11 @@ export const generateSocialCard = async (input: SocialCardInput): Promise<Social
       ctx.fillText('⚡', textX + statPlaquePadding, statPlaqueY + statPlaqueH / 2);
       ctx.font = `700 ${vcStatFontSize}px "Montserrat", system-ui, -apple-system, sans-serif`;
       ctx.fillStyle = 'rgba(255,255,255,0.9)';
-      ctx.fillText(statDisplay, textX + statPlaquePadding + iconSize + Math.round(width * 0.015), statPlaqueY + statPlaqueH / 2);
+      ctx.fillText(
+        statDisplay,
+        textX + statPlaquePadding + iconSize + Math.round(width * 0.015),
+        statPlaqueY + statPlaqueH / 2
+      );
       cursorY += statPlaqueH + Math.round(width * 0.025);
     }
   }
@@ -1941,7 +2063,11 @@ export const copyTextToClipboard = async (text: string): Promise<boolean> => {
  */
 export function getBadgeShareUrl(badgeId: string): string {
   if (typeof window === 'undefined') return '';
-  const base = String(badgeId || '').split('.').slice(0, 2).join('.') || badgeId;
+  const base =
+    String(badgeId || '')
+      .split('.')
+      .slice(0, 2)
+      .join('.') || badgeId;
   const origin = window.location.origin || '';
   const pathname = window.location.pathname || '/';
   const path = pathname.endsWith('/') ? pathname.slice(0, -1) : pathname;
@@ -1949,7 +2075,9 @@ export function getBadgeShareUrl(badgeId: string): string {
   return `${origin}${path}?${params.toString()}`;
 }
 
-export const shareOrDownloadSocialCard = async (result: SocialCardResult): Promise<SocialShareOutcome> => {
+export const shareOrDownloadSocialCard = async (
+  result: SocialCardResult
+): Promise<SocialShareOutcome> => {
   const navAny = navigator as any;
   const canShare = typeof navAny?.share === 'function' && typeof navAny?.canShare === 'function';
 
@@ -1974,4 +2102,3 @@ export const shareOrDownloadSocialCard = async (result: SocialCardResult): Promi
   downloadBlob(result.blob, result.filename);
   return 'downloaded';
 };
-

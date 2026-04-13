@@ -1,13 +1,12 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import type React from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import type { Category, View } from '../types/guide';
 import type { MasterIndexMeta } from '../hooks/useDataLoader';
+import type { Category, View } from '../types/guide';
 import '../styles/categories.css';
 import '../styles/categories-tablet.css';
-import { toSiblingImageUrl, NAV_HOME_IMAGE } from '../utils/imageSources';
 import { useUserProgress } from '../hooks/useUserProgress';
-
-
+import { NAV_HOME_IMAGE, toSiblingImageUrl } from '../utils/imageSources';
 
 interface CategoriesGridProps {
   categories: Category[];
@@ -65,20 +64,26 @@ const CategoriesGrid: React.FC<CategoriesGridProps> = ({
   const { userData } = useUserProgress();
   const totalAchieved = userData?.profile?.stats?.totalLevelsAchieved ?? 0;
   const totalLevels = masterIndex?.totalLevels;
-  const progressHintText = totalLevels != null && totalLevels > 0
-    ? `${totalAchieved} из ${totalLevels} уровней закрыто`
-    : totalAchieved > 0
-      ? `Закрыто уровней: ${totalAchieved}`
-      : null;
+  const progressHintText =
+    totalLevels != null && totalLevels > 0
+      ? `${totalAchieved} из ${totalLevels} уровней закрыто`
+      : totalAchieved > 0
+        ? `Закрыто уровней: ${totalAchieved}`
+        : null;
   const [imageErrors, setImageErrors] = useState<Set<string>>(new Set());
   const [isMobile, setIsMobile] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [imageKey, setImageKey] = useState(0);
   const [squadIdeasCarouselSteps, setSquadIdeasCarouselSteps] = useState(0);
   /** Подсказка над заблокированной карточкой (Бро/Движки): не влияет на сетку, рендер в портале */
-  const [lockTooltip, setLockTooltip] = useState<{ categoryId: string; rect: DOMRect } | null>(null);
+  const [lockTooltip, setLockTooltip] = useState<{ categoryId: string; rect: DOMRect } | null>(
+    null
+  );
 
-  const squadIdeas = useMemo(() => (Array.isArray(communityBadges) ? communityBadges : []).slice(0, 10), [communityBadges]);
+  const squadIdeas = useMemo(
+    () => (Array.isArray(communityBadges) ? communityBadges : []).slice(0, 10),
+    [communityBadges]
+  );
 
   useEffect(() => {
     if (squadIdeas.length === 0) setSquadIdeasCarouselSteps(0);
@@ -186,49 +191,59 @@ const CategoriesGrid: React.FC<CategoriesGridProps> = ({
         }}
         onMouseEnter={(e) => {
           if (!isMobile) onCategoryPrefetch?.(category.id);
-          if (isLocked) setLockTooltip({ categoryId: category.id, rect: e.currentTarget.getBoundingClientRect() });
+          if (isLocked)
+            setLockTooltip({
+              categoryId: category.id,
+              rect: e.currentTarget.getBoundingClientRect(),
+            });
         }}
         onMouseLeave={() => {
           if (isLocked) setLockTooltip(null);
         }}
         onFocus={(e) => {
           if (!isMobile) onCategoryPrefetch?.(category.id);
-          if (isLocked) setLockTooltip({ categoryId: category.id, rect: e.currentTarget.getBoundingClientRect() });
+          if (isLocked)
+            setLockTooltip({
+              categoryId: category.id,
+              rect: e.currentTarget.getBoundingClientRect(),
+            });
         }}
         onBlur={() => {
           if (isLocked) setLockTooltip(null);
         }}
-        onTouchStart={() => { }}
-        onTouchMove={() => { }}
+        onTouchStart={() => {}}
+        onTouchMove={() => {}}
         style={{
           backgroundColor: showEmoji ? '#F8F7F2' : undefined,
           cursor: 'pointer',
           position: 'relative',
           overflow: 'hidden',
           border: 'none', // Reset button border
-          padding: 0,     // Reset button padding (handled by CSS class)
+          padding: 0, // Reset button padding (handled by CSS class)
           textAlign: 'left', // Ensure text alignment
           fontFamily: 'inherit',
           width: '100%', // Ensure full width
-          filter: isLocked ? 'grayscale(0.8) brightness(0.9)' : 'none'
+          filter: isLocked ? 'grayscale(0.8) brightness(0.9)' : 'none',
         }}
       >
         {isLocked && (
-          <div style={{
-            position: 'absolute',
-            top: '10px',
-            right: '10px',
-            fontSize: '24px',
-            zIndex: 10,
-            background: 'rgba(0,0,0,0.5)',
-            borderRadius: '50%',
-            width: '40px',
-            height: '40px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: '0 4px 10px rgba(0,0,0,0.3)'
-          }}>
+          <div
+            style={{
+              position: 'absolute',
+              top: '10px',
+              right: '10px',
+              fontSize: '24px',
+              zIndex: 10,
+              background: 'rgba(0,0,0,0.5)',
+              borderRadius: '50%',
+              width: '40px',
+              height: '40px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 4px 10px rgba(0,0,0,0.3)',
+            }}
+          >
             🔒
           </div>
         )}
@@ -284,16 +299,17 @@ const CategoriesGrid: React.FC<CategoriesGridProps> = ({
 
   const tooltipHalfWidth = 160;
   const viewportMargin = 12;
-  const tooltipLeft =
-    lockTooltip
-      ? Math.max(
+  const tooltipLeft = lockTooltip
+    ? Math.max(
         tooltipHalfWidth + viewportMargin,
         Math.min(
-          typeof window !== 'undefined' ? window.innerWidth - tooltipHalfWidth - viewportMargin : lockTooltip.rect.left + lockTooltip.rect.width / 2,
+          typeof window !== 'undefined'
+            ? window.innerWidth - tooltipHalfWidth - viewportMargin
+            : lockTooltip.rect.left + lockTooltip.rect.width / 2,
           lockTooltip.rect.left + lockTooltip.rect.width / 2
         )
       )
-      : 0;
+    : 0;
 
   return (
     <div className="categories-page">
@@ -320,7 +336,10 @@ const CategoriesGrid: React.FC<CategoriesGridProps> = ({
 
       {/* GlobalCursor renders the custom cursor layer once at app root */}
 
-      <header className={`mobile-glass-header${isChatOpen ? ' is-chat-open' : ''}`} aria-label="Навигация">
+      <header
+        className={`mobile-glass-header${isChatOpen ? ' is-chat-open' : ''}`}
+        aria-label="Навигация"
+      >
         <button
           type="button"
           className={`mobile-header-logo${isChatOpen ? ' is-active' : ''}`}
@@ -352,7 +371,12 @@ const CategoriesGrid: React.FC<CategoriesGridProps> = ({
           >
             <picture>
               <source type="image/webp" srcSet={`${import.meta.env.BASE_URL}Валюша.webp`} />
-              <img src={`${import.meta.env.BASE_URL}Валюша.jpg`} alt="НейроВалюша" decoding="async" fetchpriority="high" />
+              <img
+                src={`${import.meta.env.BASE_URL}Валюша.jpg`}
+                alt="НейроВалюша"
+                decoding="async"
+                fetchpriority="high"
+              />
             </picture>
           </button>
         </div>
@@ -372,13 +396,24 @@ const CategoriesGrid: React.FC<CategoriesGridProps> = ({
         aria-hidden={!isMenuOpen}
       >
         <div className="mobile-menu-head">
-          <span id="categories-grid-menu-title" className="mobile-menu-title">Меню</span>
-          <button type="button" className="mobile-menu-close" onClick={closeMenu} aria-label="Закрыть меню">
+          <span id="categories-grid-menu-title" className="mobile-menu-title">
+            Меню
+          </span>
+          <button
+            type="button"
+            className="mobile-menu-close"
+            onClick={closeMenu}
+            aria-label="Закрыть меню"
+          >
             &times;
           </button>
         </div>
         <div className="mobile-menu-list">
-          <button type="button" className="mobile-menu-item" onClick={() => handleMenuAction(onBackClick)}>
+          <button
+            type="button"
+            className="mobile-menu-item"
+            onClick={() => handleMenuAction(onBackClick)}
+          >
             <span className="mobile-menu-item-label">Главная</span>
             <span className="mobile-menu-item-icon">&rsaquo;</span>
           </button>
@@ -391,19 +426,35 @@ const CategoriesGrid: React.FC<CategoriesGridProps> = ({
             <span className="mobile-menu-item-label">Категории</span>
             <span className="mobile-menu-item-icon">&bull;</span>
           </button>
-          <button type="button" className="mobile-menu-item" onClick={() => handleMenuAction(handleOpenShareCenter)}>
+          <button
+            type="button"
+            className="mobile-menu-item"
+            onClick={() => handleMenuAction(handleOpenShareCenter)}
+          >
             <span className="mobile-menu-item-label">Поделиться прогрессом</span>
             <span className="mobile-menu-item-icon">&rsaquo;</span>
           </button>
-          <button type="button" className="mobile-menu-item" onClick={() => handleMenuAction(onAboutCampClick)}>
+          <button
+            type="button"
+            className="mobile-menu-item"
+            onClick={() => handleMenuAction(onAboutCampClick)}
+          >
             <span className="mobile-menu-item-label">О лагере</span>
             <span className="mobile-menu-item-icon">&rsaquo;</span>
           </button>
-          <button type="button" className="mobile-menu-item" onClick={() => handleMenuAction(handleOpenVk)}>
+          <button
+            type="button"
+            className="mobile-menu-item"
+            onClick={() => handleMenuAction(handleOpenVk)}
+          >
             <span className="mobile-menu-item-label">ВКонтакте</span>
             <span className="mobile-menu-item-icon">&rsaquo;</span>
           </button>
-          <button type="button" className="mobile-menu-item mobile-menu-item-cta" onClick={() => handleMenuAction(onTelegramContact)}>
+          <button
+            type="button"
+            className="mobile-menu-item mobile-menu-item-cta"
+            onClick={() => handleMenuAction(onTelegramContact)}
+          >
             <span className="mobile-menu-item-label">Записаться через Telegram</span>
             <span className="mobile-menu-item-icon">&rsaquo;</span>
           </button>
@@ -429,7 +480,8 @@ const CategoriesGrid: React.FC<CategoriesGridProps> = ({
           fetchpriority="high"
           style={{
             height: 'auto',
-            filter: 'drop-shadow(0 0 15px rgba(255, 140, 66, 0.8)) drop-shadow(0 0 30px rgba(255, 140, 66, 0.6)) drop-shadow(0 0 45px rgba(255, 140, 66, 0.4))',
+            filter:
+              'drop-shadow(0 0 15px rgba(255, 140, 66, 0.8)) drop-shadow(0 0 30px rgba(255, 140, 66, 0.6)) drop-shadow(0 0 45px rgba(255, 140, 66, 0.4))',
             pointerEvents: 'none',
           }}
         />
@@ -450,31 +502,79 @@ const CategoriesGrid: React.FC<CategoriesGridProps> = ({
         {/* Идеи отряда - фиксированный оверлей, карусель (идеи от сообщества или плейсхолдеры) */}
         <div className="community-stars-overlay community-stars-overlay--squad-ideas">
           <div className="card community-stars-card">
-            <div style={{ fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', color: '#ff3b30', letterSpacing: '0.1em', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }} title="Здесь появятся идеи, предложенные отрядом, когда они будут. Предложи первый значок в Кузнице Смыслов (в Мастерской).">
+            <div
+              style={{
+                fontSize: '12px',
+                fontWeight: 800,
+                textTransform: 'uppercase',
+                color: '#ff3b30',
+                letterSpacing: '0.1em',
+                marginBottom: '12px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+              }}
+              title="Здесь появятся идеи, предложенные отрядом, когда они будут. Предложи первый значок в Кузнице Смыслов (в Мастерской)."
+            >
               Идеи отряда
             </div>
-            <div className={`community-stars-carousel${squadIdeas.length > 0 && squadIdeas.length <= SQUAD_IDEAS_STATIC_MAX ? ' community-stars-carousel--static' : ''}`}>
+            <div
+              className={`community-stars-carousel${squadIdeas.length > 0 && squadIdeas.length <= SQUAD_IDEAS_STATIC_MAX ? ' community-stars-carousel--static' : ''}`}
+            >
               {squadIdeas.length > SQUAD_IDEAS_STATIC_MAX && (
                 <button
                   type="button"
                   className="community-stars-carousel__btn community-stars-carousel__btn--prev"
-                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (squadIdeas.length <= 1) return; setSquadIdeasCarouselSteps((s) => s - 1); }}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (squadIdeas.length <= 1) return;
+                    setSquadIdeasCarouselSteps((s) => s - 1);
+                  }}
                   disabled={squadIdeas.length <= 1}
                   aria-label="Вращать влево"
                 >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7" /></svg>
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M19 12H5M12 19l-7-7 7-7" />
+                  </svg>
                 </button>
               )}
               <div className="community-stars-carousel__viewport">
                 {squadIdeas.length === 0 ? (
                   <div className="squad-ideas-placeholders">
-                    <div className="squad-ideas-placeholders__circle" aria-hidden>?</div>
+                    <div className="squad-ideas-placeholders__circle" aria-hidden>
+                      ?
+                    </div>
                   </div>
                 ) : squadIdeas.length <= SQUAD_IDEAS_STATIC_MAX ? (
                   <div className="community-stars-carousel__static-track">
                     {squadIdeas.map((idea) => (
-                      <div key={idea.id} className="community-stars-carousel__item community-stars-carousel__item--static">
-                        <div style={{ width: 64, height: 64, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28 }} title={idea.title}>{idea.emoji || '✨'}</div>
+                      <div
+                        key={idea.id}
+                        className="community-stars-carousel__item community-stars-carousel__item--static"
+                      >
+                        <div
+                          style={{
+                            width: 64,
+                            height: 64,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: 28,
+                          }}
+                          title={idea.title}
+                        >
+                          {idea.emoji || '✨'}
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -493,7 +593,19 @@ const CategoriesGrid: React.FC<CategoriesGridProps> = ({
                         className="community-stars-carousel__item"
                         style={{ ['--slot-offset' as string]: slotIndex }}
                       >
-                        <div style={{ width: 64, height: 64, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28 }} title={idea.title}>{idea.emoji || '✨'}</div>
+                        <div
+                          style={{
+                            width: 64,
+                            height: 64,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: 28,
+                          }}
+                          title={idea.title}
+                        >
+                          {idea.emoji || '✨'}
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -503,11 +615,27 @@ const CategoriesGrid: React.FC<CategoriesGridProps> = ({
                 <button
                   type="button"
                   className="community-stars-carousel__btn community-stars-carousel__btn--next"
-                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (squadIdeas.length <= 1) return; setSquadIdeasCarouselSteps((s) => s + 1); }}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (squadIdeas.length <= 1) return;
+                    setSquadIdeasCarouselSteps((s) => s + 1);
+                  }}
                   disabled={squadIdeas.length <= 1}
                   aria-label="Вращать вправо"
                 >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M5 12h14M12 5l7 7-7 7" />
+                  </svg>
                 </button>
               )}
             </div>
@@ -539,16 +667,20 @@ const CategoriesGrid: React.FC<CategoriesGridProps> = ({
               <div className="hero-marquee-mini">
                 <div className="marquee-track-mini">
                   <div className="marquee-item-mini">
-                    ВЫБИРАЙ ЗВЕЗДУ. ДВИГАЙСЯ ВПЕРЁД. ОСТАВЛЯЙ СЛЕД. ТВОЙ ОПЫТ — ТВОЙ ПУТЬ. РЕАЛЬНЫЕ ЗНАЧКИ ПОДСКАЖУТ, КУДА ИДТИ. •{' '}
+                    ВЫБИРАЙ ЗВЕЗДУ. ДВИГАЙСЯ ВПЕРЁД. ОСТАВЛЯЙ СЛЕД. ТВОЙ ОПЫТ — ТВОЙ ПУТЬ. РЕАЛЬНЫЕ
+                    ЗНАЧКИ ПОДСКАЖУТ, КУДА ИДТИ. •{' '}
                   </div>
                   <div className="marquee-item-mini">
-                    ВЫБИРАЙ ЗВЕЗДУ. ДВИГАЙСЯ ВПЕРЁД. ОСТАВЛЯЙ СЛЕД. ТВОЙ ОПЫТ — ТВОЙ ПУТЬ. РЕАЛЬНЫЕ ЗНАЧКИ ПОДСКАЖУТ, КУДА ИДТИ. •{' '}
+                    ВЫБИРАЙ ЗВЕЗДУ. ДВИГАЙСЯ ВПЕРЁД. ОСТАВЛЯЙ СЛЕД. ТВОЙ ОПЫТ — ТВОЙ ПУТЬ. РЕАЛЬНЫЕ
+                    ЗНАЧКИ ПОДСКАЖУТ, КУДА ИДТИ. •{' '}
                   </div>
                   <div className="marquee-item-mini">
-                    ВЫБИРАЙ ЗВЕЗДУ. ДВИГАЙСЯ ВПЕРЁД. ОСТАВЛЯЙ СЛЕД. ТВОЙ ОПЫТ — ТВОЙ ПУТЬ. РЕАЛЬНЫЕ ЗНАЧКИ ПОДСКАЖУТ, КУДА ИДТИ. •{' '}
+                    ВЫБИРАЙ ЗВЕЗДУ. ДВИГАЙСЯ ВПЕРЁД. ОСТАВЛЯЙ СЛЕД. ТВОЙ ОПЫТ — ТВОЙ ПУТЬ. РЕАЛЬНЫЕ
+                    ЗНАЧКИ ПОДСКАЖУТ, КУДА ИДТИ. •{' '}
                   </div>
                   <div className="marquee-item-mini">
-                    ВЫБИРАЙ ЗВЕЗДУ. ДВИГАЙСЯ ВПЕРЁД. ОСТАВЛЯЙ СЛЕД. ТВОЙ ОПЫТ — ТВОЙ ПУТЬ. РЕАЛЬНЫЕ ЗНАЧКИ ПОДСКАЖУТ, КУДА ИДТИ. •{' '}
+                    ВЫБИРАЙ ЗВЕЗДУ. ДВИГАЙСЯ ВПЕРЁД. ОСТАВЛЯЙ СЛЕД. ТВОЙ ОПЫТ — ТВОЙ ПУТЬ. РЕАЛЬНЫЕ
+                    ЗНАЧКИ ПОДСКАЖУТ, КУДА ИДТИ. •{' '}
                   </div>
                 </div>
               </div>
@@ -569,13 +701,21 @@ const CategoriesGrid: React.FC<CategoriesGridProps> = ({
           </div>
 
           {/* Mobile Categories Structure */}
-          <div className="right-column mobile-categories" style={{ gridColumn: '1', gridRow: '1', width: '100%', display: isMobile ? 'grid' : 'none', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px' }}>
+          <div
+            className="right-column mobile-categories"
+            style={{
+              gridColumn: '1',
+              gridRow: '1',
+              width: '100%',
+              display: isMobile ? 'grid' : 'none',
+              gridTemplateColumns: 'repeat(2, 1fr)',
+              gap: '10px',
+            }}
+          >
             {limitedCategories.map((category) => renderCategoryCard(category))}
           </div>
         </div>
       </main>
-
-
     </div>
   );
 };

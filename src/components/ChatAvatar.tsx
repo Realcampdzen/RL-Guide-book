@@ -15,8 +15,8 @@ const ChatAvatar: React.FC<ChatAvatarProps> = ({ onClick, isOpen = false }) => {
     <button
       onClick={onClick}
       className={`chat-avatar-button ${isOpen ? 'is-open' : ''}`}
-      title={isOpen ? "Закрыть чат" : "Открыть чат"}
-      aria-label={isOpen ? "Закрыть чат" : "Открыть чат"}
+      title={isOpen ? 'Закрыть чат' : 'Открыть чат'}
+      aria-label={isOpen ? 'Закрыть чат' : 'Открыть чат'}
       aria-pressed={isOpen}
     >
       <div className="chat-avatar-container">
@@ -35,7 +35,6 @@ const ChatAvatar: React.FC<ChatAvatarProps> = ({ onClick, isOpen = false }) => {
             onContextMenu={(e) => e.preventDefault()}
           />
         </picture>
-
       </div>
     </button>
   );

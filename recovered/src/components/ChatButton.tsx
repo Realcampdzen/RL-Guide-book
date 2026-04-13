@@ -24,7 +24,7 @@ const getViewportState = (): ViewportState => {
       innerWidth: 1024,
       innerHeight: 768,
       offsetTop: 0,
-      offsetLeft: 0
+      offsetLeft: 0,
     };
   }
 
@@ -37,13 +37,15 @@ const getViewportState = (): ViewportState => {
     innerWidth,
     innerHeight,
     offsetTop: visualViewport?.offsetTop ?? 0,
-    offsetLeft: visualViewport?.offsetLeft ?? 0
+    offsetLeft: visualViewport?.offsetLeft ?? 0,
   };
 };
 
 const readMobileNavHeight = (): number => {
   if (typeof window === 'undefined') return 68;
-  const raw = getComputedStyle(document.documentElement).getPropertyValue('--mobile-nav-height').trim();
+  const raw = getComputedStyle(document.documentElement)
+    .getPropertyValue('--mobile-nav-height')
+    .trim();
   const parsed = Number.parseFloat(raw);
   return Number.isFinite(parsed) ? parsed : 68;
 };
@@ -67,11 +69,17 @@ const ChatButton: React.FC<ChatButtonProps> = ({ onClick, isOpen = false, classN
     updateViewport();
 
     window.addEventListener('resize', updateViewport, { passive: true } as AddEventListenerOptions);
-    window.addEventListener('orientationchange', updateViewport, { passive: true } as AddEventListenerOptions);
+    window.addEventListener('orientationchange', updateViewport, {
+      passive: true,
+    } as AddEventListenerOptions);
 
     const visualViewport = window.visualViewport;
-    visualViewport?.addEventListener('resize', updateViewport, { passive: true } as AddEventListenerOptions);
-    visualViewport?.addEventListener('scroll', updateViewport, { passive: true } as AddEventListenerOptions);
+    visualViewport?.addEventListener('resize', updateViewport, {
+      passive: true,
+    } as AddEventListenerOptions);
+    visualViewport?.addEventListener('scroll', updateViewport, {
+      passive: true,
+    } as AddEventListenerOptions);
 
     return () => {
       window.removeEventListener('resize', updateViewport as unknown as EventListener);
@@ -89,7 +97,9 @@ const ChatButton: React.FC<ChatButtonProps> = ({ onClick, isOpen = false, classN
     });
     update();
     window.addEventListener('resize', update, { passive: true } as AddEventListenerOptions);
-    window.addEventListener('orientationchange', update, { passive: true } as AddEventListenerOptions);
+    window.addEventListener('orientationchange', update, {
+      passive: true,
+    } as AddEventListenerOptions);
     return () => {
       window.removeEventListener('resize', update as unknown as EventListener);
       window.removeEventListener('orientationchange', update as unknown as EventListener);
@@ -109,7 +119,7 @@ const ChatButton: React.FC<ChatButtonProps> = ({ onClick, isOpen = false, classN
       const now = Date.now();
       if (now - lastScrollTime < scrollThrottle) return;
       lastScrollTime = now;
-      
+
       setIsScrolling(true);
       if (scrollTimeoutRef.current) {
         window.clearTimeout(scrollTimeoutRef.current);
@@ -122,16 +132,24 @@ const ChatButton: React.FC<ChatButtonProps> = ({ onClick, isOpen = false, classN
     const handleScroll = () => markScrolling();
     const handleWheel = () => markScrolling();
     // На мобильных устройствах не отслеживаем touchmove для улучшения производительности свайпа
-    const handleTouchMove = isMobile ? undefined : () => {
-      markScrolling();
-    };
+    const handleTouchMove = isMobile
+      ? undefined
+      : () => {
+          markScrolling();
+        };
 
     window.addEventListener('scroll', handleScroll, { passive: true } as EventListenerOptions);
     window.addEventListener('wheel', handleWheel, { passive: true } as EventListenerOptions);
     if (handleTouchMove) {
-      window.addEventListener('touchmove', handleTouchMove, { passive: true } as EventListenerOptions);
+      window.addEventListener('touchmove', handleTouchMove, {
+        passive: true,
+      } as EventListenerOptions);
     }
-    document.addEventListener('scroll', handleScroll as EventListener, { passive: true } as AddEventListenerOptions);
+    document.addEventListener(
+      'scroll',
+      handleScroll as EventListener,
+      { passive: true } as AddEventListenerOptions
+    );
 
     return () => {
       window.removeEventListener('scroll', handleScroll as EventListener);
@@ -154,7 +172,7 @@ const ChatButton: React.FC<ChatButtonProps> = ({ onClick, isOpen = false, classN
   const raisedOffset = isMobile ? mobileLift : 0; // Десктоп остается без изменений
   const buttonBottom = isOpen ? baseBottom + raisedOffset : baseBottom;
   const buttonRight = (isMobile ? 16 : 24) + safeAreaRight;
-  
+
   const buttonBackground = isOpen
     ? 'linear-gradient(135deg, rgba(255, 107, 107, 0.95) 0%, rgba(12, 12, 12, 0.95) 50%, rgba(46, 26, 26, 0.95) 100%)'
     : 'linear-gradient(135deg, rgba(78, 205, 196, 0.95) 0%, rgba(12, 12, 12, 0.95) 50%, rgba(26, 26, 46, 0.95) 100%)';
@@ -164,7 +182,7 @@ const ChatButton: React.FC<ChatButtonProps> = ({ onClick, isOpen = false, classN
   const buttonBorder = isOpen
     ? '2px solid rgba(255, 107, 107, 0.6)'
     : '2px solid rgba(78, 205, 196, 0.6)';
-  const buttonOpacity = isOpen ? 1 : (isScrolling ? 0.62 : 0.9);
+  const buttonOpacity = isOpen ? 1 : isScrolling ? 0.62 : 0.9;
   const avatarSize = isMobile ? 48 : 52;
   const statusDotSize = isMobile ? 14 : 16;
 
@@ -172,7 +190,7 @@ const ChatButton: React.FC<ChatButtonProps> = ({ onClick, isOpen = false, classN
     <button
       onClick={onClick}
       className={`chat-button ${className}`}
-      title={isOpen ? "Закрыть чат" : "Открыть чат"}
+      title={isOpen ? 'Закрыть чат' : 'Открыть чат'}
       style={{
         position: 'fixed',
         bottom: `${buttonBottom}px`,
@@ -185,7 +203,8 @@ const ChatButton: React.FC<ChatButtonProps> = ({ onClick, isOpen = false, classN
         borderRadius: '28px',
         boxShadow: buttonShadow,
         cursor: 'pointer',
-        transition: 'transform 0.25s ease, opacity 0.25s ease, bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1), right 0.4s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease',
+        transition:
+          'transform 0.25s ease, opacity 0.25s ease, bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1), right 0.4s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease',
         display: 'flex',
         alignItems: 'center',
         gap: '12px',
@@ -194,19 +213,25 @@ const ChatButton: React.FC<ChatButtonProps> = ({ onClick, isOpen = false, classN
         minWidth: isMobile ? 'auto' : '200px',
         opacity: buttonOpacity,
         overflow: 'visible',
-        transform: isOpen ? 'translateY(-8px)' : 'translateY(0)'
+        transform: isOpen ? 'translateY(-8px)' : 'translateY(0)',
       }}
       onMouseEnter={(e) => {
         if (isOpen) {
-          e.currentTarget.style.background = 'linear-gradient(135deg, rgba(255, 107, 107, 1) 0%, rgba(12, 12, 12, 1) 50%, rgba(46, 26, 26, 1) 100%)';
-          e.currentTarget.style.boxShadow = '0 24px 45px rgba(0, 0, 0, 0.5), 0 0 0 2px rgba(255, 107, 107, 0.75)';
+          e.currentTarget.style.background =
+            'linear-gradient(135deg, rgba(255, 107, 107, 1) 0%, rgba(12, 12, 12, 1) 50%, rgba(46, 26, 26, 1) 100%)';
+          e.currentTarget.style.boxShadow =
+            '0 24px 45px rgba(0, 0, 0, 0.5), 0 0 0 2px rgba(255, 107, 107, 0.75)';
           e.currentTarget.style.border = '2px solid rgba(255, 107, 107, 1)';
         } else {
-          e.currentTarget.style.background = 'linear-gradient(135deg, rgba(78, 205, 196, 1) 0%, rgba(12, 12, 12, 1) 50%, rgba(26, 26, 46, 1) 100%)';
-          e.currentTarget.style.boxShadow = '0 24px 45px rgba(0, 0, 0, 0.5), 0 0 0 2px rgba(78, 205, 196, 0.75)';
+          e.currentTarget.style.background =
+            'linear-gradient(135deg, rgba(78, 205, 196, 1) 0%, rgba(12, 12, 12, 1) 50%, rgba(26, 26, 46, 1) 100%)';
+          e.currentTarget.style.boxShadow =
+            '0 24px 45px rgba(0, 0, 0, 0.5), 0 0 0 2px rgba(78, 205, 196, 0.75)';
           e.currentTarget.style.border = '2px solid rgba(78, 205, 196, 1)';
         }
-        e.currentTarget.style.transform = isOpen ? 'scale(1.05) translateY(-11px)' : 'scale(1.05) translateY(-3px)';
+        e.currentTarget.style.transform = isOpen
+          ? 'scale(1.05) translateY(-11px)'
+          : 'scale(1.05) translateY(-3px)';
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.background = buttonBackground;
@@ -227,10 +252,18 @@ const ChatButton: React.FC<ChatButtonProps> = ({ onClick, isOpen = false, classN
           opacity: isOpen ? 0.55 : 0.4,
           filter: 'blur(14px)',
           transition: 'all 0.3s ease',
-          pointerEvents: 'none'
+          pointerEvents: 'none',
         }}
       />
-      <div style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', gap: '12px' }}>
+      <div
+        style={{
+          position: 'relative',
+          zIndex: 1,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '12px',
+        }}
+      >
         <div style={{ position: 'relative', flexShrink: 0 }}>
           <div
             style={{
@@ -243,7 +276,7 @@ const ChatButton: React.FC<ChatButtonProps> = ({ onClick, isOpen = false, classN
               filter: 'blur(6px)',
               opacity: 0.75,
               transition: 'all 0.3s ease',
-              pointerEvents: 'none'
+              pointerEvents: 'none',
             }}
           />
           <img
@@ -262,7 +295,7 @@ const ChatButton: React.FC<ChatButtonProps> = ({ onClick, isOpen = false, classN
               boxShadow: isOpen
                 ? '0 0 18px rgba(255, 107, 107, 0.45)'
                 : '0 0 18px rgba(78, 205, 196, 0.45)',
-              transition: 'all 0.3s ease'
+              transition: 'all 0.3s ease',
             }}
           />
           <div
@@ -278,7 +311,7 @@ const ChatButton: React.FC<ChatButtonProps> = ({ onClick, isOpen = false, classN
               boxShadow: isOpen
                 ? '0 0 10px rgba(255, 107, 107, 0.6)'
                 : '0 0 10px rgba(78, 205, 196, 0.6)',
-              transition: 'all 0.3s ease'
+              transition: 'all 0.3s ease',
             }}
           />
         </div>
@@ -293,7 +326,7 @@ const ChatButton: React.FC<ChatButtonProps> = ({ onClick, isOpen = false, classN
                 textShadow: isOpen
                   ? '0 0 12px rgba(255, 107, 107, 0.35)'
                   : '0 0 12px rgba(78, 205, 196, 0.35)',
-                transition: 'color 0.3s ease, text-shadow 0.3s ease'
+                transition: 'color 0.3s ease, text-shadow 0.3s ease',
               }}
             >
               НейроВалюша
@@ -304,7 +337,7 @@ const ChatButton: React.FC<ChatButtonProps> = ({ onClick, isOpen = false, classN
                 lineHeight: 1.2,
                 color: '#cbd5f5',
                 fontWeight: 500,
-                opacity: 0.9
+                opacity: 0.9,
               }}
             >
               Нейро вожатый

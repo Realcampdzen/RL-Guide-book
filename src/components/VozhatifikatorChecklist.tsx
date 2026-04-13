@@ -1,7 +1,8 @@
-import React, { useState, useRef } from 'react';
+import type React from 'react';
+import { useRef, useState } from 'react';
 import {
-  VOZHATIFIKATOR_CHECKLIST_ITEMS,
   getVozhatifikatorLevel,
+  VOZHATIFIKATOR_CHECKLIST_ITEMS,
 } from '../data/vozhatifikatorChecklist';
 import { submitVozhatifikatorProof } from '../utils/adminApi';
 
@@ -75,7 +76,9 @@ export const VozhatifikatorChecklist: React.FC<VozhatifikatorChecklistProps> = (
     <div className="vozhatifikator-checklist">
       {/* Header with decorative icon */}
       <div className="vozhatifikator-checklist__header">
-        <span className="vozhatifikator-checklist__header-icon" aria-hidden="true">🕯️</span>
+        <span className="vozhatifikator-checklist__header-icon" aria-hidden="true">
+          🕯️
+        </span>
         <h2 className="vozhatifikator-checklist__title">Путеводные огни</h2>
       </div>
       <p className="vozhatifikator-checklist__intro">
@@ -116,7 +119,12 @@ export const VozhatifikatorChecklist: React.FC<VozhatifikatorChecklistProps> = (
               onClick={() => onToggle(item.id, !isDone)}
               role="button"
               tabIndex={0}
-              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onToggle(item.id, !isDone); } }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  onToggle(item.id, !isDone);
+                }
+              }}
               aria-pressed={isDone}
               aria-label={isDone ? `Снять отметку: ${item.title}` : `Отметить: ${item.title}`}
             >
@@ -126,7 +134,9 @@ export const VozhatifikatorChecklist: React.FC<VozhatifikatorChecklistProps> = (
               >
                 {isDone ? '\u2713' : ''}
               </span>
-              <span className={`vozhatifikator-checklist__label ${isDone ? 'vozhatifikator-checklist__label--done' : ''}`}>
+              <span
+                className={`vozhatifikator-checklist__label ${isDone ? 'vozhatifikator-checklist__label--done' : ''}`}
+              >
                 {item.title}
               </span>
               <span className="vozhatifikator-checklist__pts">+{item.points}</span>
@@ -137,9 +147,7 @@ export const VozhatifikatorChecklist: React.FC<VozhatifikatorChecklistProps> = (
 
       {/* ── Proof submission ── */}
       <div className="vozhatifikator-checklist__proof">
-        <h3 className="vozhatifikator-checklist__proof-title">
-          Отправить на проверку
-        </h3>
+        <h3 className="vozhatifikator-checklist__proof-title">Отправить на проверку</h3>
         <p className="vozhatifikator-checklist__proof-desc">
           Приложите фото-доказательство и отправьте результат вожатому для подтверждения.
         </p>
@@ -177,7 +185,9 @@ export const VozhatifikatorChecklist: React.FC<VozhatifikatorChecklistProps> = (
           disabled={submitting || completedIds.length === 0}
           style={{ opacity: submitting ? 0.6 : 1 }}
         >
-          {submitting ? 'Отправка…' : `Отправить (${completedIds.length} пунктов, ${totalPoints.toFixed(1)} б.)`}
+          {submitting
+            ? 'Отправка…'
+            : `Отправить (${completedIds.length} пунктов, ${totalPoints.toFixed(1)} б.)`}
         </button>
 
         {/* Result toast */}

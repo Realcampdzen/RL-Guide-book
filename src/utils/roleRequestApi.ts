@@ -10,12 +10,12 @@ import { ApiError } from './badgeApprovalApi';
 // ---------------------------------------------------------------------------
 
 export interface RoleRequest {
-    id: string;
-    deviceId: string;
-    desiredRole: string;
-    comment?: string;
-    status: 'pending' | 'approved' | 'rejected';
-    createdAt: string;
+  id: string;
+  deviceId: string;
+  desiredRole: string;
+  comment?: string;
+  status: 'pending' | 'approved' | 'rejected';
+  createdAt: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -23,10 +23,12 @@ export interface RoleRequest {
 // ---------------------------------------------------------------------------
 
 function getApiBase(): string {
-    if (typeof window === 'undefined') return '';
-    const hostname = window.location.hostname;
-    const useLocal = import.meta.env.DEV || hostname === 'localhost' || hostname === '127.0.0.1';
-    return useLocal ? '' : ((import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || '')).replace(/\/$/, '');
+  if (typeof window === 'undefined') return '';
+  const hostname = window.location.hostname;
+  const useLocal = import.meta.env.DEV || hostname === 'localhost' || hostname === '127.0.0.1';
+  return useLocal
+    ? ''
+    : (import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || '').replace(/\/$/, '');
 }
 
 // ---------------------------------------------------------------------------
@@ -35,41 +37,41 @@ function getApiBase(): string {
 
 /** Submit a role request. */
 export async function submitRoleRequest(
-    accessToken: string,
-    desiredRole: string,
-    comment?: string,
+  accessToken: string,
+  desiredRole: string,
+  comment?: string
 ): Promise<RoleRequest> {
-    const base = getApiBase();
-    const res = await fetch(`${base}/api/role-requests`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify({ desiredRole, comment }),
-    });
-    const data = await res.json().catch(() => ({})) as Record<string, unknown>;
-    if (!res.ok) {
-        throw new ApiError(
-            (typeof data.error === 'string' && data.error) || `Request failed: ${res.status}`,
-            res.status,
-            data,
-        );
-    }
-    return data.roleRequest as RoleRequest;
+  const base = getApiBase();
+  const res = await fetch(`${base}/api/role-requests`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify({ desiredRole, comment }),
+  });
+  const data = (await res.json().catch(() => ({}))) as Record<string, unknown>;
+  if (!res.ok) {
+    throw new ApiError(
+      (typeof data.error === 'string' && data.error) || `Request failed: ${res.status}`,
+      res.status,
+      data
+    );
+  }
+  return data.roleRequest as RoleRequest;
 }
 
 /** Fetch my role requests. */
 export async function fetchMyRoleRequests(deviceId: string): Promise<RoleRequest[]> {
-    const base = getApiBase();
-    const res = await fetch(`${base}/api/role-requests?deviceId=${encodeURIComponent(deviceId)}`);
-    const data = await res.json().catch(() => ({})) as Record<string, unknown>;
-    if (!res.ok) {
-        throw new ApiError(
-            (typeof data.error === 'string' && data.error) || `Request failed: ${res.status}`,
-            res.status,
-            data,
-        );
-    }
-    return (data.requests as RoleRequest[]) || [];
+  const base = getApiBase();
+  const res = await fetch(`${base}/api/role-requests?deviceId=${encodeURIComponent(deviceId)}`);
+  const data = (await res.json().catch(() => ({}))) as Record<string, unknown>;
+  if (!res.ok) {
+    throw new ApiError(
+      (typeof data.error === 'string' && data.error) || `Request failed: ${res.status}`,
+      res.status,
+      data
+    );
+  }
+  return (data.requests as RoleRequest[]) || [];
 }

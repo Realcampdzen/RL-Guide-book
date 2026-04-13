@@ -4,8 +4,8 @@ import path from 'path';
 
 // Кэш для данных
 let badgeDataCache = null;
-let categoriesCache = new Map();
-let badgesCache = new Map();
+const categoriesCache = new Map();
+const badgesCache = new Map();
 
 export class DataLoaderAIData {
   constructor() {
@@ -23,22 +23,22 @@ export class DataLoaderAIData {
 
     try {
       console.log('📂 Загружаем данные из perfect_parsed_data.json...');
-      
+
       // Загружаем данные из единого JSON файла
       const data = JSON.parse(fs.readFileSync(this.dataPath, 'utf8'));
       console.log('✅ Данные загружены:', {
         categories: data.totalCategories,
         badges: data.totalBadges,
-        levels: data.totalLevels
+        levels: data.totalLevels,
       });
-      
+
       // Создаем кэш категорий
-      data.categories.forEach(category => {
+      data.categories.forEach((category) => {
         categoriesCache.set(category.id, category);
       });
-      
+
       // Создаем кэш значков
-      data.badges.forEach(badge => {
+      data.badges.forEach((badge) => {
         badgesCache.set(badge.id, badge);
       });
 
@@ -48,7 +48,7 @@ export class DataLoaderAIData {
         badges: data.badges,
         totalCategories: data.totalCategories,
         totalBadges: data.totalBadges,
-        totalLevels: data.totalLevels
+        totalLevels: data.totalLevels,
       };
 
       console.log('✅ Данные успешно загружены и кэшированы');
@@ -57,7 +57,7 @@ export class DataLoaderAIData {
       console.error('❌ Ошибка загрузки данных:', error.message);
       console.error('📁 Путь к файлу:', this.dataPath);
       console.error('📂 Файл существует:', fs.existsSync(this.dataPath));
-      
+
       // Возвращаем пустые данные вместо краша
       return { categories: [], badges: [] };
     }
@@ -100,7 +100,7 @@ export class DataLoaderAIData {
     if (!badgeDataCache) {
       this.loadAllData();
     }
-    return badgeDataCache.badges.filter(badge => badge.category_id === categoryId);
+    return badgeDataCache.badges.filter((badge) => badge.category_id === categoryId);
   }
 
   // Получает статистику
@@ -111,7 +111,7 @@ export class DataLoaderAIData {
     return {
       totalCategories: badgeDataCache.totalCategories,
       totalBadges: badgeDataCache.totalBadges,
-      totalLevels: badgeDataCache.totalLevels
+      totalLevels: badgeDataCache.totalLevels,
     };
   }
 
@@ -120,31 +120,31 @@ export class DataLoaderAIData {
     if (!badgeDataCache) {
       this.loadAllData();
     }
-    
+
     const queryLower = query.toLowerCase();
     const results = [];
-    
+
     // Поиск по названию значка
     for (const badge of badgeDataCache.badges) {
       if (badge.title.toLowerCase().includes(queryLower)) {
         results.push({ badge, matchType: 'title', score: 1.0 });
       }
     }
-    
+
     // Поиск по описанию
     for (const badge of badgeDataCache.badges) {
       if (badge.description && badge.description.toLowerCase().includes(queryLower)) {
         // Проверяем, не добавили ли уже по названию
-        const existingMatch = results.find(r => r.badge.id === badge.id);
+        const existingMatch = results.find((r) => r.badge.id === badge.id);
         if (!existingMatch) {
           results.push({ badge, matchType: 'description', score: 0.8 });
         }
       }
     }
-    
+
     // Сортировка по релевантности
     results.sort((a, b) => b.score - a.score);
-    
+
     return results.slice(0, 5); // Возвращаем топ-5 результатов
   }
 
@@ -153,22 +153,22 @@ export class DataLoaderAIData {
     if (!badgeDataCache) {
       this.loadAllData();
     }
-    
+
     const queryLower = query.toLowerCase();
     const results = [];
-    
+
     for (const category of badgeDataCache.categories) {
       if (category.title.toLowerCase().includes(queryLower)) {
         results.push({ category, matchType: 'title', score: 1.0 });
       }
       if (category.description && category.description.toLowerCase().includes(queryLower)) {
-        const existingMatch = results.find(r => r.category.id === category.id);
+        const existingMatch = results.find((r) => r.category.id === category.id);
         if (!existingMatch) {
           results.push({ category, matchType: 'description', score: 0.8 });
         }
       }
     }
-    
+
     results.sort((a, b) => b.score - a.score);
     return results.slice(0, 3); // Возвращаем топ-3 результата
   }

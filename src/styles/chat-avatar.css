@@ -16,7 +16,9 @@
   touch-action: manipulation;
   user-select: none;
   -webkit-user-select: none;
-  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.3s ease;
+  transition:
+    transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+    filter 0.3s ease;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -102,7 +104,8 @@
       rgba(var(--avatar-bot-highlight-secondary-rgb), 0.6),
       rgba(217, 70, 239, 0.4),
       rgba(var(--avatar-bot-highlight-rgb), 0.9)
-    ) border-box;
+    )
+    border-box;
   box-shadow:
     0 0 12px rgba(var(--avatar-bot-highlight-rgb), 0.4),
     0 0 24px rgba(var(--avatar-bot-highlight-secondary-rgb), 0.15);
@@ -173,42 +176,68 @@
 
 /* Мягкое «парение» кнопки */
 @keyframes chatAvatarFloat {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-5px); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
 }
 
 /* Пульсация свечения */
 @keyframes chatAvatarGlowPulse {
-  0%, 100% { opacity: 0.5; transform: scale(1); }
-  50% { opacity: 0.75; transform: scale(1.08); }
+  0%,
+  100% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.75;
+    transform: scale(1.08);
+  }
 }
 
 /* Вращение градиента обводки */
 @keyframes chatAvatarRingSpin {
-  from { --ring-angle: 0deg; }
-  to { --ring-angle: 360deg; }
+  from {
+    --ring-angle: 0deg;
+  }
+  to {
+    --ring-angle: 360deg;
+  }
 }
 
 /* Пульсация статус-точки (зелёная — онлайн) */
 @keyframes chatAvatarStatusPulse {
-  0%, 100% {
-    box-shadow: 0 0 6px rgba(74, 222, 128, 0.7), 0 0 12px rgba(74, 222, 128, 0.3);
+  0%,
+  100% {
+    box-shadow:
+      0 0 6px rgba(74, 222, 128, 0.7),
+      0 0 12px rgba(74, 222, 128, 0.3);
     transform: scale(1);
   }
   50% {
-    box-shadow: 0 0 10px rgba(74, 222, 128, 0.9), 0 0 20px rgba(74, 222, 128, 0.5);
+    box-shadow:
+      0 0 10px rgba(74, 222, 128, 0.9),
+      0 0 20px rgba(74, 222, 128, 0.5);
     transform: scale(1.15);
   }
 }
 
 /* Пульсация статус-точки (розовая — чат открыт) */
 @keyframes chatAvatarStatusPulseOpen {
-  0%, 100% {
-    box-shadow: 0 0 6px rgba(244, 114, 182, 0.7), 0 0 12px rgba(244, 114, 182, 0.3);
+  0%,
+  100% {
+    box-shadow:
+      0 0 6px rgba(244, 114, 182, 0.7),
+      0 0 12px rgba(244, 114, 182, 0.3);
     transform: scale(1);
   }
   50% {
-    box-shadow: 0 0 10px rgba(244, 114, 182, 0.9), 0 0 20px rgba(244, 114, 182, 0.5);
+    box-shadow:
+      0 0 10px rgba(244, 114, 182, 0.9),
+      0 0 20px rgba(244, 114, 182, 0.5);
     transform: scale(1.15);
   }
 }

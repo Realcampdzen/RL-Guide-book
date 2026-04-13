@@ -31,4 +31,3 @@ export const toSiblingImageUrl = (url: string, ext: ImageVariantExt): string | n
   const nextPath = path.replace(/\.(jpg|jpeg|png)$/i, `.${ext}`);
   return `${nextPath}${query}${hash}`;
 };
-

@@ -21,4 +21,3 @@ const GlobalCursor: React.FC = () => {
 };
 
 export default React.memo(GlobalCursor);
-

@@ -8,7 +8,7 @@
  * and skip ones that already have ".orig." in the name.
  */
 import { existsSync, readdirSync, renameSync, statSync } from 'fs';
-import { join, resolve, extname, dirname } from 'path';
+import { dirname, extname, join, resolve } from 'path';
 
 const root = process.cwd();
 const baseDir = resolve(root, 'public', 'Новые значки');
@@ -96,4 +96,3 @@ if (failures.length) {
   if (failures.length > 30) console.warn(`... и еще ${failures.length - 30}`);
   process.exit(1);
 }
-

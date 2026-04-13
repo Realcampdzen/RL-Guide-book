@@ -66,9 +66,11 @@ const getAiDataRoot = () => {
 };
 
 const MASTER_URL = () => `${getAiDataRoot()}/MASTER_INDEX.json`;
-const CATEGORY_INTRO_URL = (categoryId: string) => `${getAiDataRoot()}/category-${categoryId}/introduction.md`;
+const CATEGORY_INTRO_URL = (categoryId: string) =>
+  `${getAiDataRoot()}/category-${categoryId}/introduction.md`;
 const CATEGORY_INDEX_URL = (path: string) => `${getAiDataRoot()}/${encodeURI(path)}index.json`;
-const BADGE_URL = (path: string, id: string) => `${getAiDataRoot()}/${encodeURI(path)}${encodeURIComponent(id)}.json`;
+const BADGE_URL = (path: string, id: string) =>
+  `${getAiDataRoot()}/${encodeURI(path)}${encodeURIComponent(id)}.json`;
 const CUSTOM_BADGES_KEY = 'rl_custom_badges_v1';
 const COMMUNITY_BADGES_CACHE_KEY = 'rl_community_badges_cache_v1';
 const COMMUNITY_PUBLISH_QUEUE_KEY = 'rl_community_publish_queue_v1';
@@ -78,7 +80,9 @@ function getApiBase(): string {
   if (typeof window === 'undefined') return '';
   const hostname = window.location.hostname;
   const useLocal = import.meta.env.DEV || hostname === 'localhost' || hostname === '127.0.0.1';
-  return useLocal ? '' : ((import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || '')).replace(/\/$/, '');
+  return useLocal
+    ? ''
+    : (import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || '').replace(/\/$/, '');
 }
 
 const COMMUNITY_API_URL = () => `${getApiBase()}/api/community/badges`;
@@ -98,7 +102,9 @@ function getCommunityPublishQueue(): Array<{ badge: Badge; timestamp: number }> 
 function setCommunityPublishQueue(queue: Array<{ badge: Badge; timestamp: number }>): void {
   try {
     localStorage.setItem(COMMUNITY_PUBLISH_QUEUE_KEY, JSON.stringify(queue));
-  } catch (_) { /* ignore */ }
+  } catch (_) {
+    /* ignore */
+  }
 }
 
 function getCommunityLikes(): Set<string> {
@@ -115,16 +121,37 @@ function getCommunityLikes(): Set<string> {
 function setCommunityLikes(ids: Set<string>): void {
   try {
     localStorage.setItem(COMMUNITY_LIKES_KEY, JSON.stringify([...ids]));
-  } catch (_) { /* ignore */ }
+  } catch (_) {
+    /* ignore */
+  }
 }
 
 const canonicalizeLevel = (lvl: unknown): string => {
   const raw = String(lvl ?? '').trim();
   if (!raw) return '';
   const low = raw.toLowerCase();
-  if (low === '1' || low === '\u0431\u0430\u0437\u043e\u0432\u044b\u0439' || low === '\u0431\u0430\u0437\u043e\u0432\u044b\u0439 \u0443\u0440\u043e\u0432\u0435\u043d\u044c') return '\u0411\u0430\u0437\u043e\u0432\u044b\u0439 \u0443\u0440\u043e\u0432\u0435\u043d\u044c';
-  if (low === '2' || low === '\u043f\u0440\u043e\u0434\u0432\u0438\u043d\u0443\u0442\u044b\u0439' || low === '\u043f\u0440\u043e\u0434\u0432\u0438\u043d\u0443\u0442\u044b\u0439 \u0443\u0440\u043e\u0432\u0435\u043d\u044c') return '\u041f\u0440\u043e\u0434\u0432\u0438\u043d\u0443\u0442\u044b\u0439 \u0443\u0440\u043e\u0432\u0435\u043d\u044c';
-  if (low === '3' || low === '\u044d\u043a\u0441\u043f\u0435\u0440\u0442\u043d\u044b\u0439' || low === '\u044d\u043a\u0441\u043f\u0435\u0440\u0442\u043d\u044b\u0439 \u0443\u0440\u043e\u0432\u0435\u043d\u044c' || low === '\u0432\u043e\u0436\u0430\u0442\u0441\u043a\u0438\u0439' || low === '\u0432\u043e\u0436\u0430\u0442\u0441\u043a\u0438\u0439 \u0443\u0440\u043e\u0432\u0435\u043d\u044c') {
+  if (
+    low === '1' ||
+    low === '\u0431\u0430\u0437\u043e\u0432\u044b\u0439' ||
+    low === '\u0431\u0430\u0437\u043e\u0432\u044b\u0439 \u0443\u0440\u043e\u0432\u0435\u043d\u044c'
+  )
+    return '\u0411\u0430\u0437\u043e\u0432\u044b\u0439 \u0443\u0440\u043e\u0432\u0435\u043d\u044c';
+  if (
+    low === '2' ||
+    low === '\u043f\u0440\u043e\u0434\u0432\u0438\u043d\u0443\u0442\u044b\u0439' ||
+    low ===
+      '\u043f\u0440\u043e\u0434\u0432\u0438\u043d\u0443\u0442\u044b\u0439 \u0443\u0440\u043e\u0432\u0435\u043d\u044c'
+  )
+    return '\u041f\u0440\u043e\u0434\u0432\u0438\u043d\u0443\u0442\u044b\u0439 \u0443\u0440\u043e\u0432\u0435\u043d\u044c';
+  if (
+    low === '3' ||
+    low === '\u044d\u043a\u0441\u043f\u0435\u0440\u0442\u043d\u044b\u0439' ||
+    low ===
+      '\u044d\u043a\u0441\u043f\u0435\u0440\u0442\u043d\u044b\u0439 \u0443\u0440\u043e\u0432\u0435\u043d\u044c' ||
+    low === '\u0432\u043e\u0436\u0430\u0442\u0441\u043a\u0438\u0439' ||
+    low ===
+      '\u0432\u043e\u0436\u0430\u0442\u0441\u043a\u0438\u0439 \u0443\u0440\u043e\u0432\u0435\u043d\u044c'
+  ) {
     return '\u042d\u043a\u0441\u043f\u0435\u0440\u0442\u043d\u044b\u0439 \u0443\u0440\u043e\u0432\u0435\u043d\u044c';
   }
   return raw;
@@ -159,7 +186,7 @@ const resolveEmoji = (raw: unknown, fallback: string): string => {
   return fallback;
 };
 
-const chunk = <T,>(items: T[], size: number): T[][] => {
+const chunk = <T>(items: T[], size: number): T[][] => {
   if (size <= 0) return [items];
   const chunks: T[][] = [];
   for (let i = 0; i < items.length; i += size) {
@@ -168,7 +195,7 @@ const chunk = <T,>(items: T[], size: number): T[][] => {
   return chunks;
 };
 
-const fetchJson = async <T,>(url: string): Promise<T> => {
+const fetchJson = async <T>(url: string): Promise<T> => {
   const res = await fetch(url);
   if (!res.ok) {
     throw new Error(`Failed to fetch ${url}: ${res.status}`);
@@ -252,13 +279,17 @@ export const useDataLoader = () => {
   const [communityBadges, setCommunityBadges] = useState<Badge[]>([]);
   const [communityPendingCount, setCommunityPendingCount] = useState(0);
   const [communitySyncing, setCommunitySyncing] = useState(false);
-  const [communityLikedIds, setCommunityLikedIds] = useState<Set<string>>(() => getCommunityLikes());
+  const [communityLikedIds, setCommunityLikedIds] = useState<Set<string>>(() =>
+    getCommunityLikes()
+  );
   const [dynamicBroMissions, setDynamicBroMissions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [categoryBadgeLoadState, setCategoryBadgeLoadState] = useState<
     Record<string, 'idle' | 'loading' | 'loaded' | 'error'>
   >({});
-  const [categoryBadgeLoadError, setCategoryBadgeLoadError] = useState<Record<string, string | undefined>>({});
+  const [categoryBadgeLoadError, setCategoryBadgeLoadError] = useState<
+    Record<string, string | undefined>
+  >({});
   const [masterIndex, setMasterIndex] = useState<MasterIndexMeta>(null);
 
   const masterRef = useRef<MasterIndex | null>(null);
@@ -273,7 +304,9 @@ export const useDataLoader = () => {
       try {
         const parsed = JSON.parse(cached) as Badge[];
         if (Array.isArray(parsed) && parsed.length >= 0) setCommunityBadges(parsed.slice(0, 10));
-      } catch (_) { /* ignore */ }
+      } catch (_) {
+        /* ignore */
+      }
     }
     try {
       const res = await fetch(COMMUNITY_API_URL());
@@ -283,7 +316,9 @@ export const useDataLoader = () => {
         setCommunityBadges(list);
         try {
           localStorage.setItem(COMMUNITY_BADGES_CACHE_KEY, JSON.stringify(list));
-        } catch (_) { /* ignore */ }
+        } catch (_) {
+          /* ignore */
+        }
       }
     } catch (e) {
       console.warn('Failed to sync Incubator:', e);
@@ -308,7 +343,7 @@ export const useDataLoader = () => {
       const res = await fetch(BRO_MISSIONS_API_URL(), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(missions)
+        body: JSON.stringify(missions),
       });
       if (res.ok) {
         setDynamicBroMissions(missions);
@@ -340,14 +375,14 @@ export const useDataLoader = () => {
   const allBadges = useMemo(() => {
     // Unique by ID
     const map = new Map<string, Badge>();
-    badges.forEach(b => map.set(b.id, b));
-    communityBadges.forEach(b => map.set(b.id, b));
-    customBadges.forEach(b => map.set(b.id, b));
+    badges.forEach((b) => map.set(b.id, b));
+    communityBadges.forEach((b) => map.set(b.id, b));
+    customBadges.forEach((b) => map.set(b.id, b));
     return Array.from(map.values());
   }, [badges, customBadges, communityBadges]);
 
   const addCustomBadge = useCallback((badge: Badge) => {
-    setCustomBadges(prev => {
+    setCustomBadges((prev) => {
       const updated = [...prev, badge];
       localStorage.setItem(CUSTOM_BADGES_KEY, JSON.stringify(updated));
       return updated;
@@ -359,16 +394,20 @@ export const useDataLoader = () => {
     setCustomBadges(list);
     try {
       localStorage.setItem(CUSTOM_BADGES_KEY, JSON.stringify(list));
-    } catch (_) { /* ignore */ }
+    } catch (_) {
+      /* ignore */
+    }
   }, []);
 
   const removeCustomBadge = useCallback((badgeId: string) => {
-    setCustomBadges(prev => {
-      const updated = prev.filter(b => b.id !== badgeId);
+    setCustomBadges((prev) => {
+      const updated = prev.filter((b) => b.id !== badgeId);
       if (updated.length !== prev.length) {
         try {
           localStorage.setItem(CUSTOM_BADGES_KEY, JSON.stringify(updated));
-        } catch (_) { /* ignore */ }
+        } catch (_) {
+          /* ignore */
+        }
       }
       return updated;
     });
@@ -384,7 +423,7 @@ export const useDataLoader = () => {
         const res = await fetch(COMMUNITY_API_URL(), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(badge)
+          body: JSON.stringify(badge),
         });
         if (!res.ok) remaining.push({ badge, timestamp });
       } catch (_) {
@@ -409,7 +448,7 @@ export const useDataLoader = () => {
   }, [processCommunityQueue]);
 
   const toggleCommunityLike = useCallback((badgeId: string) => {
-    setCommunityLikedIds(prev => {
+    setCommunityLikedIds((prev) => {
       const next = new Set(prev);
       if (next.has(badgeId)) next.delete(badgeId);
       else next.add(badgeId);
@@ -418,42 +457,48 @@ export const useDataLoader = () => {
     });
   }, []);
 
-  const publishBadgeToCommunity = useCallback(async (badge: Badge): Promise<{ ok: boolean; queued?: boolean; error?: string; status?: number }> => {
-    if (typeof navigator !== 'undefined' && !navigator.onLine) {
-      const queue = getCommunityPublishQueue();
-      queue.push({ badge, timestamp: Date.now() });
-      setCommunityPublishQueue(queue);
-      setCommunityPendingCount(queue.length);
-      return { ok: true, queued: true };
-    }
-    try {
-      const res = await fetch(COMMUNITY_API_URL(), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(badge)
-      });
-      if (res.ok) {
-        void syncCommunityBadges();
-        void processCommunityQueue();
-        return { ok: true };
+  const publishBadgeToCommunity = useCallback(
+    async (
+      badge: Badge
+    ): Promise<{ ok: boolean; queued?: boolean; error?: string; status?: number }> => {
+      if (typeof navigator !== 'undefined' && !navigator.onLine) {
+        const queue = getCommunityPublishQueue();
+        queue.push({ badge, timestamp: Date.now() });
+        setCommunityPublishQueue(queue);
+        setCommunityPendingCount(queue.length);
+        return { ok: true, queued: true };
       }
-      const status = res.status;
-      let error = '';
       try {
-        const data = await res.json();
-        error = (data && typeof data.error === 'string') ? data.error : '';
-      } catch {
-        // non-JSON response
+        const res = await fetch(COMMUNITY_API_URL(), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(badge),
+        });
+        if (res.ok) {
+          void syncCommunityBadges();
+          void processCommunityQueue();
+          return { ok: true };
+        }
+        const status = res.status;
+        let error = '';
+        try {
+          const data = await res.json();
+          error = data && typeof data.error === 'string' ? data.error : '';
+        } catch {
+          // non-JSON response
+        }
+        if (!error && status === 429) error = 'Слишком много отправок. Подождите минуту.';
+        if (!error && status >= 500) error = 'Ошибка сервера. Попробуйте позже.';
+        if (!error && status >= 400)
+          error = error || 'Не удалось отправить. Проверьте подключение.';
+        return { ok: false, status, error };
+      } catch (e) {
+        console.error('Failed to publish badge:', e);
+        return { ok: false, error: 'Проверьте подключение к интернету.' };
       }
-      if (!error && status === 429) error = 'Слишком много отправок. Подождите минуту.';
-      if (!error && status >= 500) error = 'Ошибка сервера. Попробуйте позже.';
-      if (!error && status >= 400) error = error || 'Не удалось отправить. Проверьте подключение.';
-      return { ok: false, status, error };
-    } catch (e) {
-      console.error('Failed to publish badge:', e);
-      return { ok: false, error: 'Проверьте подключение к интернету.' };
-    }
-  }, [syncCommunityBadges, processCommunityQueue]);
+    },
+    [syncCommunityBadges, processCommunityQueue]
+  );
 
   // Master-derived map (categoryId -> path). We keep it in a ref-derived memo so it stays stable
   // after master is loaded, without needing to load all category indexes on startup.
@@ -500,138 +545,168 @@ export const useDataLoader = () => {
       .map(([id]) => id);
   }, [categoryBadgeLoadState]);
 
-  const ensureCategoryBadgesLoaded = useCallback(async (categoryId: string, force = false): Promise<void> => {
-    const master = masterRef.current;
-    const path = categoryPathById.get(categoryId);
-    if (!master || !path) {
-      setCategoryBadgeLoadState((prev) => ({ ...prev, [categoryId]: 'error' }));
-      return;
-    }
+  const ensureCategoryBadgesLoaded = useCallback(
+    async (categoryId: string, force = false): Promise<void> => {
+      const master = masterRef.current;
+      const path = categoryPathById.get(categoryId);
+      if (!master || !path) {
+        setCategoryBadgeLoadState((prev) => ({ ...prev, [categoryId]: 'error' }));
+        return;
+      }
 
-    const expected =
-      categories.find((c) => c.id === categoryId)?.expected_badges ||
-      categories.find((c) => c.id === categoryId)?.badge_count ||
-      master.categories.find((c) => c.id === categoryId)?.badges ||
-      0;
-    const loadedCount = countLoadedBaseBadges(categoryId, badges);
+      const expected =
+        categories.find((c) => c.id === categoryId)?.expected_badges ||
+        categories.find((c) => c.id === categoryId)?.badge_count ||
+        master.categories.find((c) => c.id === categoryId)?.badges ||
+        0;
+      const loadedCount = countLoadedBaseBadges(categoryId, badges);
 
-    // Don't refetch if already loading/loaded and complete, or if it hit an error (prevent infinite loop).
-    const cur = categoryBadgeLoadState[categoryId];
-    if (!force && (cur === 'loading' || cur === 'error' || (cur === 'loaded' && expected > 0 && loadedCount >= expected))) return;
+      // Don't refetch if already loading/loaded and complete, or if it hit an error (prevent infinite loop).
+      const cur = categoryBadgeLoadState[categoryId];
+      if (
+        !force &&
+        (cur === 'loading' ||
+          cur === 'error' ||
+          (cur === 'loaded' && expected > 0 && loadedCount >= expected))
+      )
+        return;
 
-    setCategoryBadgeLoadState((prev) => ({ ...prev, [categoryId]: 'loading' }));
+      setCategoryBadgeLoadState((prev) => ({ ...prev, [categoryId]: 'loading' }));
 
-    const requestKey = `cat:${categoryId}`;
-    if (inflightControllersRef.current.has(requestKey)) return;
-    const ctrl = new AbortController();
-    inflightControllersRef.current.set(requestKey, ctrl);
+      const requestKey = `cat:${categoryId}`;
+      if (inflightControllersRef.current.has(requestKey)) return;
+      const ctrl = new AbortController();
+      inflightControllersRef.current.set(requestKey, ctrl);
 
-    try {
-      const aiCategory = master.categories.find((c) => c.id === categoryId);
-      if (!aiCategory) throw new Error(`Unknown category ${categoryId}`);
+      try {
+        const aiCategory = master.categories.find((c) => c.id === categoryId);
+        if (!aiCategory) throw new Error(`Unknown category ${categoryId}`);
 
-      const v = encodeURIComponent(getDataVersion(master));
-      const catIndex = await fetchJson<CategoryIndex>(`${CATEGORY_INDEX_URL(path)}?v=${v}`);
-      const badgeIds = (catIndex.badgesData || []).map((b) => b.id).filter(Boolean);
+        const v = encodeURIComponent(getDataVersion(master));
+        const catIndex = await fetchJson<CategoryIndex>(`${CATEGORY_INDEX_URL(path)}?v=${v}`);
+        const badgeIds = (catIndex.badgesData || []).map((b) => b.id).filter(Boolean);
 
-      // update category metadata (badge count + materials)
-      const badgeCount = badgeIds.length || aiCategory.badges || 0;
-      setCategories((prev) =>
-        prev.map((c) =>
-          c.id === categoryId
-            ? {
-              ...c,
-              badge_count: badgeCount,
-              expected_badges: badgeCount,
-              additional_materials: catIndex.additional_materials,
-            }
-            : c
-        )
-      );
-
-      const allEntries: Badge[] = [];
-      const batches = chunk(badgeIds, 20);
-      for (const batch of batches) {
-        const results = await Promise.all(
-          batch.map(async (badgeBaseId) => {
-            try {
-              const res = await fetch(`${BADGE_URL(path, badgeBaseId)}?v=${v}`, { signal: ctrl.signal });
-              if (!res.ok) throw new Error(`Failed to fetch ${badgeBaseId}: ${res.status}`);
-              const aiBadge = (await res.json()) as AiBadge;
-              return buildBadgeEntries(aiCategory, aiBadge);
-            } catch (e) {
-              if ((e as any)?.name !== 'AbortError') {
-                console.error('App: failed to load badge data', path, badgeBaseId, e);
-              }
-              return null;
-            }
-          })
+        // update category metadata (badge count + materials)
+        const badgeCount = badgeIds.length || aiCategory.badges || 0;
+        setCategories((prev) =>
+          prev.map((c) =>
+            c.id === categoryId
+              ? {
+                  ...c,
+                  badge_count: badgeCount,
+                  expected_badges: badgeCount,
+                  additional_materials: catIndex.additional_materials,
+                }
+              : c
+          )
         );
-        results.forEach((r) => {
-          if (!r) return;
-          allEntries.push(...r);
-        });
-      }
 
-      mergeBadges(allEntries);
-      const loadedCategoryIds = Array.from(new Set([...getLoadedCategoryIds(), categoryId]));
-      writeAiDataCache(
-        versionRef.current,
-        { categories, badges: [...badges, ...allEntries] },
-        loadedCategoryIds
+        const allEntries: Badge[] = [];
+        const batches = chunk(badgeIds, 20);
+        for (const batch of batches) {
+          const results = await Promise.all(
+            batch.map(async (badgeBaseId) => {
+              try {
+                const res = await fetch(`${BADGE_URL(path, badgeBaseId)}?v=${v}`, {
+                  signal: ctrl.signal,
+                });
+                if (!res.ok) throw new Error(`Failed to fetch ${badgeBaseId}: ${res.status}`);
+                const aiBadge = (await res.json()) as AiBadge;
+                return buildBadgeEntries(aiCategory, aiBadge);
+              } catch (e) {
+                if ((e as any)?.name !== 'AbortError') {
+                  console.error('App: failed to load badge data', path, badgeBaseId, e);
+                }
+                return null;
+              }
+            })
+          );
+          results.forEach((r) => {
+            if (!r) return;
+            allEntries.push(...r);
+          });
+        }
+
+        mergeBadges(allEntries);
+        const loadedCategoryIds = Array.from(new Set([...getLoadedCategoryIds(), categoryId]));
+        writeAiDataCache(
+          versionRef.current,
+          { categories, badges: [...badges, ...allEntries] },
+          loadedCategoryIds
+        );
+
+        setCategoryBadgeLoadState((prev) => ({ ...prev, [categoryId]: 'loaded' }));
+        setCategoryBadgeLoadError((prev) => ({ ...prev, [categoryId]: undefined }));
+      } catch (e) {
+        if ((e as any)?.name !== 'AbortError') {
+          console.error('App: Error loading category badges', categoryId, e);
+        }
+        setCategoryBadgeLoadError((prev) => ({
+          ...prev,
+          [categoryId]: (e as Error)?.message || String(e),
+        }));
+        setCategoryBadgeLoadState((prev) => ({ ...prev, [categoryId]: 'error' }));
+      } finally {
+        inflightControllersRef.current.delete(requestKey);
+      }
+    },
+    [
+      badges,
+      categories,
+      categoryBadgeLoadState,
+      categoryPathById,
+      mergeBadges,
+      getLoadedCategoryIds,
+    ]
+  );
+
+  const ensureBadgeLoaded = useCallback(
+    async (badgeId: string): Promise<Badge[] | null> => {
+      // Check custom badges first
+      const custom = customBadges.filter(
+        (b) => b.id === badgeId || b.id === baseBadgeIdFrom(badgeId)
       );
+      if (custom.length) return custom;
 
-      setCategoryBadgeLoadState((prev) => ({ ...prev, [categoryId]: 'loaded' }));
-      setCategoryBadgeLoadError((prev) => ({ ...prev, [categoryId]: undefined }));
-    } catch (e) {
-      if ((e as any)?.name !== 'AbortError') {
-        console.error('App: Error loading category badges', categoryId, e);
+      const master = masterRef.current;
+      if (!master) return null;
+      const categoryId = String(badgeId || '').split('.')[0];
+      const path = categoryPathById.get(categoryId);
+      if (!path) return null;
+
+      const baseId = baseBadgeIdFrom(badgeId);
+      const requestKey = `badge:${categoryId}:${baseId}`;
+      if (inflightControllersRef.current.has(requestKey)) return null;
+      const ctrl = new AbortController();
+      inflightControllersRef.current.set(requestKey, ctrl);
+
+      try {
+        const aiCategory = master.categories.find((c) => c.id === categoryId);
+        if (!aiCategory) return null;
+
+        const v = encodeURIComponent(getDataVersion(master));
+        const res = await fetch(`${BADGE_URL(path, baseId)}?v=${v}`, { signal: ctrl.signal });
+        if (!res.ok) throw new Error(`Failed to fetch ${baseId}: ${res.status}`);
+        const aiBadge = (await res.json()) as AiBadge;
+        const entries = buildBadgeEntries(aiCategory, aiBadge);
+        mergeBadges(entries);
+        writeAiDataCache(
+          versionRef.current,
+          { categories, badges: [...badges, ...entries] },
+          getLoadedCategoryIds()
+        );
+        return entries;
+      } catch (e) {
+        if ((e as any)?.name !== 'AbortError') {
+          console.error('App: failed to load badge data', path, baseId, e);
+        }
+        return null;
+      } finally {
+        inflightControllersRef.current.delete(requestKey);
       }
-      setCategoryBadgeLoadError((prev) => ({ ...prev, [categoryId]: (e as Error)?.message || String(e) }));
-      setCategoryBadgeLoadState((prev) => ({ ...prev, [categoryId]: 'error' }));
-    } finally {
-      inflightControllersRef.current.delete(requestKey);
-    }
-  }, [badges, categories, categoryBadgeLoadState, categoryPathById, mergeBadges, getLoadedCategoryIds]);
-
-  const ensureBadgeLoaded = useCallback(async (badgeId: string): Promise<Badge[] | null> => {
-    // Check custom badges first
-    const custom = customBadges.filter(b => b.id === badgeId || b.id === baseBadgeIdFrom(badgeId));
-    if (custom.length) return custom;
-
-    const master = masterRef.current;
-    if (!master) return null;
-    const categoryId = String(badgeId || '').split('.')[0];
-    const path = categoryPathById.get(categoryId);
-    if (!path) return null;
-
-    const baseId = baseBadgeIdFrom(badgeId);
-    const requestKey = `badge:${categoryId}:${baseId}`;
-    if (inflightControllersRef.current.has(requestKey)) return null;
-    const ctrl = new AbortController();
-    inflightControllersRef.current.set(requestKey, ctrl);
-
-    try {
-      const aiCategory = master.categories.find((c) => c.id === categoryId);
-      if (!aiCategory) return null;
-
-      const v = encodeURIComponent(getDataVersion(master));
-      const res = await fetch(`${BADGE_URL(path, baseId)}?v=${v}`, { signal: ctrl.signal });
-      if (!res.ok) throw new Error(`Failed to fetch ${baseId}: ${res.status}`);
-      const aiBadge = (await res.json()) as AiBadge;
-      const entries = buildBadgeEntries(aiCategory, aiBadge);
-      mergeBadges(entries);
-      writeAiDataCache(versionRef.current, { categories, badges: [...badges, ...entries] }, getLoadedCategoryIds());
-      return entries;
-    } catch (e) {
-      if ((e as any)?.name !== 'AbortError') {
-        console.error('App: failed to load badge data', path, baseId, e);
-      }
-      return null;
-    } finally {
-      inflightControllersRef.current.delete(requestKey);
-    }
-  }, [badges, categories, categoryPathById, mergeBadges, getLoadedCategoryIds]);
+    },
+    [badges, categories, categoryPathById, mergeBadges, getLoadedCategoryIds]
+  );
 
   const loadDataFromAi = useCallback(async () => {
     try {
@@ -649,7 +724,7 @@ export const useDataLoader = () => {
         totalBadges: master.totalBadges ?? 0,
         totalLevels: master.totalLevels ?? 0,
         lastUpdated: master.lastUpdated ?? '',
-        version: master.version
+        version: master.version,
       });
       const cached = readAiDataCache(version);
       if (cached) {

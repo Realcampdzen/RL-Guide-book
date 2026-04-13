@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { parseMarkdownToc, markdownToHtmlWithHeadingIds } from '../../../utils/markdown';
+import type React from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { VozhatifikatorChecklist } from '../../../components/VozhatifikatorChecklist';
+import { markdownToHtmlWithHeadingIds, parseMarkdownToc } from '../../../utils/markdown';
 
 const VOZHATIFIKATOR_DOCX_FILE = 'Вожатификатор.docx';
 const VOZHATIFIKATOR_DOCX_URL = '/' + VOZHATIFIKATOR_DOCX_FILE;
@@ -14,12 +15,16 @@ export const VozhatifikatorContainer: React.FC<VozhatifikatorContainerProps> = (
   userData,
   updateVozhatifikatorChecklist,
 }) => {
-  const [vozhatifikatorToc, setVozhatifikatorToc] = useState<Array<{ id: string; title: string }>>([]);
+  const [vozhatifikatorToc, setVozhatifikatorToc] = useState<Array<{ id: string; title: string }>>(
+    []
+  );
   const [vozhatifikatorHtml, setVozhatifikatorHtml] = useState<string | null>(null);
   const [vozhatifikatorLoading, setVozhatifikatorLoading] = useState(false);
   const [vozhatifikatorError, setVozhatifikatorError] = useState<string | null>(null);
   const [vozhatifikatorSubView, setVozhatifikatorSubView] = useState<'book' | 'lights'>('book');
-  const [vozhatifikatorEra, setVozhatifikatorEra] = useState<'2013-2019' | '2019-2021' | '2021-2023' | '2023-now'>('2013-2019');
+  const [vozhatifikatorEra, setVozhatifikatorEra] = useState<
+    '2013-2019' | '2019-2021' | '2021-2023' | '2023-now'
+  >('2013-2019');
   const vozhatifikatorBookRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -47,7 +52,9 @@ export const VozhatifikatorContainer: React.FC<VozhatifikatorContainerProps> = (
       .finally(() => {
         if (!cancelled) setVozhatifikatorLoading(false);
       });
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [vozhatifikatorSubView, vozhatifikatorHtml]);
 
   return (
@@ -95,18 +102,32 @@ export const VozhatifikatorContainer: React.FC<VozhatifikatorContainerProps> = (
                 className="vozhatifikator-toc-item"
                 onClick={(e) => {
                   e.preventDefault();
-                  vozhatifikatorBookRef.current?.querySelector(`#${CSS.escape(item.id)}`)?.scrollIntoView({ behavior: 'smooth' });
+                  vozhatifikatorBookRef.current
+                    ?.querySelector(`#${CSS.escape(item.id)}`)
+                    ?.scrollIntoView({ behavior: 'smooth' });
                 }}
               >
                 {item.title}
               </a>
             ))}
           </nav>
-          <div className="vozhatifikator-book" ref={vozhatifikatorBookRef} role="tabpanel" id="vozhatifikator-tabpanel-book">
-            {vozhatifikatorLoading && <div className="vozhatifikator-book__loading">Загрузка книги...</div>}
-            {vozhatifikatorError && <div className="vozhatifikator-book__error">{vozhatifikatorError}</div>}
+          <div
+            className="vozhatifikator-book"
+            ref={vozhatifikatorBookRef}
+            role="tabpanel"
+            id="vozhatifikator-tabpanel-book"
+          >
+            {vozhatifikatorLoading && (
+              <div className="vozhatifikator-book__loading">Загрузка книги...</div>
+            )}
+            {vozhatifikatorError && (
+              <div className="vozhatifikator-book__error">{vozhatifikatorError}</div>
+            )}
             {!vozhatifikatorLoading && !vozhatifikatorError && vozhatifikatorHtml && (
-              <div className="vozhatifikator-book__content" dangerouslySetInnerHTML={{ __html: vozhatifikatorHtml }} />
+              <div
+                className="vozhatifikator-book__content"
+                dangerouslySetInnerHTML={{ __html: vozhatifikatorHtml }}
+              />
             )}
           </div>
         </>
@@ -117,14 +138,16 @@ export const VozhatifikatorContainer: React.FC<VozhatifikatorContainerProps> = (
           <header className="page-header" style={{ marginBottom: 24 }}>
             <h1 style={{ color: 'rgba(255,255,255,0.9)' }}>Путеводные огни</h1>
             <p style={{ opacity: 0.7, maxWidth: 600, fontSize: 13 }}>
-              Здесь собраны ключевые принципы, ценности и правила Реального Лагеря. Отмечай то, что уже применяешь в работе.
+              Здесь собраны ключевые принципы, ценности и правила Реального Лагеря. Отмечай то, что
+              уже применяешь в работе.
             </p>
           </header>
 
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 20 }}>
-            {['2013-2019', '2019-2021', '2021-2023', '2023-now'].map(era => (
+            {['2013-2019', '2019-2021', '2021-2023', '2023-now'].map((era) => (
               <button
-                key={era} type="button"
+                key={era}
+                type="button"
                 className={`btn-secondary ${vozhatifikatorEra === era ? 'btn-primary-gold' : ''}`}
                 style={{ padding: '6px 12px', fontSize: 11 }}
                 onClick={() => setVozhatifikatorEra(era as any)}

@@ -439,4 +439,4 @@ export const NEUROVALYUSHA_FULL_CHAT_PROMPT = `
 ---
 
 Ты не просто ИИ. Ты — НейроВалюша. И этим всё сказано 💫
-`
+`;

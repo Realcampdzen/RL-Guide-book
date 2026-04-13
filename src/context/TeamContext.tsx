@@ -1,15 +1,18 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
-import { TeamData, TeamContextType } from '../types/teams';
+import type React from 'react';
+import { createContext, type ReactNode, useCallback, useContext, useEffect, useState } from 'react';
 import { useUserProgress } from '../hooks/useUserProgress';
-import { useAuth } from './AuthContext';
-import { fireOn401 } from '../utils/authStorage';
+import type { TeamContextType, TeamData } from '../types/teams';
 import { getRank } from '../types/userProgress';
+import { fireOn401 } from '../utils/authStorage';
+import { useAuth } from './AuthContext';
 
 function getApiBase(): string {
   if (typeof window === 'undefined') return '';
   const hostname = window.location.hostname;
   const useLocal = import.meta.env.DEV || hostname === 'localhost' || hostname === '127.0.0.1';
-  return useLocal ? '' : ((import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || '')).replace(/\/$/, '');
+  return useLocal
+    ? ''
+    : (import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || '').replace(/\/$/, '');
 }
 
 const TeamContext = createContext<TeamContextType | undefined>(undefined);
@@ -26,10 +29,10 @@ function slimTeamForStorage(team: TeamData): TeamData {
     logo: isDataUrl(team.logo) ? '' : team.logo,
     flagImage: team.flagImage && isDataUrl(team.flagImage) ? undefined : team.flagImage,
     gerbImage: team.gerbImage && isDataUrl(team.gerbImage) ? undefined : team.gerbImage,
-    members: team.members.map(m => ({
+    members: team.members.map((m) => ({
       ...m,
-      avatar: isDataUrl(m.avatar) ? undefined : m.avatar
-    }))
+      avatar: isDataUrl(m.avatar) ? undefined : m.avatar,
+    })),
   };
 }
 
@@ -57,9 +60,13 @@ function loadTeamsFromStorage(): TeamData[] {
       try {
         const team = JSON.parse(legacy);
         if (team && team.id) return [team];
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
     }
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
   return [];
 }
 
@@ -68,18 +75,26 @@ export const TeamProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const { accessToken, deviceId } = useAuth();
   const [myTeams, setMyTeams] = useState<TeamData[]>([]);
   const [activeTeamId, setActiveTeamId] = useState<string | null>(() => {
-    try { return localStorage.getItem(ACTIVE_TEAM_KEY) || null; } catch { return null; }
+    try {
+      return localStorage.getItem(ACTIVE_TEAM_KEY) || null;
+    } catch {
+      return null;
+    }
   });
   const [isLoading, setIsLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
 
-  const activeTeam = myTeams.find(t => t.id === activeTeamId) || myTeams[0] || null;
+  const activeTeam = myTeams.find((t) => t.id === activeTeamId) || myTeams[0] || null;
   // Legacy compat alias
   const myTeam = activeTeam;
 
   const setActiveTeam = useCallback((teamId: string) => {
     setActiveTeamId(teamId);
-    try { localStorage.setItem(ACTIVE_TEAM_KEY, teamId); } catch { /* ignore */ }
+    try {
+      localStorage.setItem(ACTIVE_TEAM_KEY, teamId);
+    } catch {
+      /* ignore */
+    }
   }, []);
 
   // Build auth headers — always include X-Device-Id so sandbox mode works too
@@ -94,8 +109,11 @@ export const TeamProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setLoadError(null);
     setIsLoading(true);
     fetch(`${getApiBase()}/api/teams/mine`, { headers: authHeaders() })
-      .then(res => {
-        if (res.status === 401) { if (accessToken) fireOn401(); return Promise.reject(new Error('auth')); }
+      .then((res) => {
+        if (res.status === 401) {
+          if (accessToken) fireOn401();
+          return Promise.reject(new Error('auth'));
+        }
         if (res.ok) return res.json();
         setLoadError('Не удалось загрузить Движки. Попробуйте позже.');
         return Promise.reject(new Error('server'));
@@ -136,7 +154,10 @@ export const TeamProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setIsLoading(true);
     try {
       const res = await fetch(`${getApiBase()}/api/teams/mine`, { headers: authHeaders() });
-      if (res.status === 401) { if (accessToken) fireOn401(); return; }
+      if (res.status === 401) {
+        if (accessToken) fireOn401();
+        return;
+      }
       if (res.ok) {
         const data = await res.json();
         if (Array.isArray(data)) {
@@ -154,7 +175,9 @@ export const TeamProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   }, [accessToken, authHeaders]);
 
-  const createTeam = async (data: Omit<TeamData, 'id' | 'createdAt' | 'members' | 'achievements'>): Promise<TeamData | undefined> => {
+  const createTeam = async (
+    data: Omit<TeamData, 'id' | 'createdAt' | 'members' | 'achievements'>
+  ): Promise<TeamData | undefined> => {
     const profile = userData?.profile;
     const memberNickname = profile?.nickname ?? 'Искатель';
     const memberAvatar = profile?.avatar;
@@ -180,10 +203,13 @@ export const TeamProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           squadId: data.squadId,
           nickname: memberNickname,
           avatar: memberAvatar ?? '',
-          rank
-        })
+          rank,
+        }),
       });
-      if (res.status === 401) { if (accessToken) fireOn401(); return undefined; }
+      if (res.status === 401) {
+        if (accessToken) fireOn401();
+        return undefined;
+      }
       if (res.status === 409) {
         const err = await res.json().catch(() => ({}));
         const code = (err?.code || err?.error || '').toLowerCase();
@@ -191,7 +217,7 @@ export const TeamProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
       if (!res.ok) throw new Error(res.statusText);
       const team = await res.json();
-      setMyTeams(prev => [...prev, team]);
+      setMyTeams((prev) => [...prev, team]);
       setActiveTeam(team.id);
       return team as TeamData;
     } finally {
@@ -207,19 +233,22 @@ export const TeamProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         headers: { 'Content-Type': 'application/json', ...authHeaders() },
         body: JSON.stringify({
           nickname: options?.nickname ?? userData?.profile?.nickname ?? 'Искатель',
-          avatar: options?.avatar ?? userData?.profile?.avatar ?? ''
-        })
+          avatar: options?.avatar ?? userData?.profile?.avatar ?? '',
+        }),
       });
-      if (res.status === 401) { if (accessToken) fireOn401(); return false; }
+      if (res.status === 401) {
+        if (accessToken) fireOn401();
+        return false;
+      }
       if (res.status === 404) return false;
       if (res.status === 409) {
         throw new Error('max_teams');
       }
       if (!res.ok) throw new Error('server_or_network');
       const team = await res.json();
-      setMyTeams(prev => {
-        const exists = prev.find(t => t.id === team.id);
-        return exists ? prev.map(t => t.id === team.id ? team : t) : [...prev, team];
+      setMyTeams((prev) => {
+        const exists = prev.find((t) => t.id === team.id);
+        return exists ? prev.map((t) => (t.id === team.id ? team : t)) : [...prev, team];
       });
       setActiveTeam(team.id);
       return true;
@@ -232,24 +261,40 @@ export const TeamProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const targetId = teamId || activeTeamId || myTeams[0]?.id;
     if (!targetId) return;
 
-    setMyTeams(prev => prev.map(t => t.id === targetId ? { ...t, ...patch } : t));
+    setMyTeams((prev) => prev.map((t) => (t.id === targetId ? { ...t, ...patch } : t)));
 
     const body: Record<string, unknown> = {};
-    const allowed = ['name', 'motto', 'logo', 'goals', 'achievements', 'flagImage', 'gerbImage', 'planGridA', 'planGridB'];
-    allowed.forEach(k => { if (k in patch && patch[k as keyof TeamData] !== undefined) body[k] = patch[k as keyof TeamData]; });
+    const allowed = [
+      'name',
+      'motto',
+      'logo',
+      'goals',
+      'achievements',
+      'flagImage',
+      'gerbImage',
+      'planGridA',
+      'planGridB',
+    ];
+    allowed.forEach((k) => {
+      if (k in patch && patch[k as keyof TeamData] !== undefined)
+        body[k] = patch[k as keyof TeamData];
+    });
     if (Object.keys(body).length === 0) return;
     fetch(`${getApiBase()}/api/teams/${encodeURIComponent(targetId)}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', ...authHeaders() },
-      body: JSON.stringify(body)
+      body: JSON.stringify(body),
     })
-      .then(res => {
-        if (res.status === 401) { if (accessToken) fireOn401(); return null; }
+      .then((res) => {
+        if (res.status === 401) {
+          if (accessToken) fireOn401();
+          return null;
+        }
         return res.ok ? res.json() : null;
       })
-      .then(updated => {
+      .then((updated) => {
         if (updated) {
-          setMyTeams(prev => prev.map(t => t.id === targetId ? updated : t));
+          setMyTeams((prev) => prev.map((t) => (t.id === targetId ? updated : t)));
         }
       })
       .catch(() => {});
@@ -262,19 +307,33 @@ export const TeamProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     try {
       const res = await fetch(`${getApiBase()}/api/teams/${encodeURIComponent(targetId)}/leave`, {
         method: 'POST',
-        headers: authHeaders()
+        headers: authHeaders(),
       });
-      if (res.status === 401 && accessToken) { fireOn401(); return; }
+      if (res.status === 401 && accessToken) {
+        fireOn401();
+        return;
+      }
     } catch {
       // still clear locally
     }
-    setMyTeams(prev => {
-      const remaining = prev.filter(t => t.id !== targetId);
+    setMyTeams((prev) => {
+      const remaining = prev.filter((t) => t.id !== targetId);
       if (activeTeamId === targetId) {
         const next = remaining[0]?.id || null;
         setActiveTeamId(next);
-        if (next) { try { localStorage.setItem(ACTIVE_TEAM_KEY, next); } catch { /* */ } }
-        else { try { localStorage.removeItem(ACTIVE_TEAM_KEY); } catch { /* */ } }
+        if (next) {
+          try {
+            localStorage.setItem(ACTIVE_TEAM_KEY, next);
+          } catch {
+            /* */
+          }
+        } else {
+          try {
+            localStorage.removeItem(ACTIVE_TEAM_KEY);
+          } catch {
+            /* */
+          }
+        }
       }
       return remaining;
     });
@@ -283,56 +342,85 @@ export const TeamProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const deleteTeam = async (teamId?: string) => {
     const targetId = teamId || activeTeamId || myTeams[0]?.id;
     if (!targetId) return;
-    const team = myTeams.find(t => t.id === targetId);
+    const team = myTeams.find((t) => t.id === targetId);
     if (!team) return;
 
     try {
       const res = await fetch(`${getApiBase()}/api/teams/${encodeURIComponent(targetId)}`, {
         method: 'DELETE',
-        headers: authHeaders()
+        headers: authHeaders(),
       });
-      if (res.status === 401 && accessToken) { fireOn401(); return; }
+      if (res.status === 401 && accessToken) {
+        fireOn401();
+        return;
+      }
     } catch {
       // still clear locally
     }
-    setMyTeams(prev => {
-      const remaining = prev.filter(t => t.id !== targetId);
+    setMyTeams((prev) => {
+      const remaining = prev.filter((t) => t.id !== targetId);
       if (activeTeamId === targetId) {
         const next = remaining[0]?.id || null;
         setActiveTeamId(next);
-        if (next) { try { localStorage.setItem(ACTIVE_TEAM_KEY, next); } catch { /* */ } }
-        else { try { localStorage.removeItem(ACTIVE_TEAM_KEY); } catch { /* */ } }
+        if (next) {
+          try {
+            localStorage.setItem(ACTIVE_TEAM_KEY, next);
+          } catch {
+            /* */
+          }
+        } else {
+          try {
+            localStorage.removeItem(ACTIVE_TEAM_KEY);
+          } catch {
+            /* */
+          }
+        }
       }
       return remaining;
     });
   };
 
-  const generateInviteUrl = useCallback((teamId?: string) => {
-    const targetId = teamId || activeTeamId;
-    const team = targetId ? myTeams.find(t => t.id === targetId) : myTeams[0];
-    if (!team) return window.location.origin + window.location.pathname;
+  const generateInviteUrl = useCallback(
+    (teamId?: string) => {
+      const targetId = teamId || activeTeamId;
+      const team = targetId ? myTeams.find((t) => t.id === targetId) : myTeams[0];
+      if (!team) return window.location.origin + window.location.pathname;
 
-    const sharedData = {
-      id: team.id,
-      name: team.name,
-      motto: team.motto,
-      logo: team.logo,
-      goals: team.goals
-    };
+      const sharedData = {
+        id: team.id,
+        name: team.name,
+        motto: team.motto,
+        logo: team.logo,
+        goals: team.goals,
+      };
 
-    const base64 = btoa(JSON.stringify(sharedData));
-    const url = new URL(window.location.href);
-    url.searchParams.set('engine', base64);
-    return url.toString();
-  }, [myTeams, activeTeamId]);
+      const base64 = btoa(JSON.stringify(sharedData));
+      const url = new URL(window.location.href);
+      url.searchParams.set('engine', base64);
+      return url.toString();
+    },
+    [myTeams, activeTeamId]
+  );
 
   return (
-    <TeamContext.Provider value={{
-      myTeams, activeTeam, activeTeamId, setActiveTeam,
-      myTeam, isLoading, loadError,
-      createTeam, updateTeam, joinTeam, leaveTeam, deleteTeam,
-      syncTeam, generateInviteUrl
-    }}>
+    <TeamContext.Provider
+      value={{
+        myTeams,
+        activeTeam,
+        activeTeamId,
+        setActiveTeam,
+        myTeam,
+        isLoading,
+        loadError,
+        createTeam,
+        updateTeam,
+        joinTeam,
+        leaveTeam,
+        deleteTeam,
+        syncTeam,
+        generateInviteUrl,
+      }}
+    >
       {children}
     </TeamContext.Provider>
   );

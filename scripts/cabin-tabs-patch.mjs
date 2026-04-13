@@ -21,7 +21,8 @@ const focusBlock = `/* Фокус: унифицированный var(--focus-ri
 }
 `;
 
-const focusInsert = '}\r\n\r\n' + focusBlock + '\r\n.profile-spaceship-root .profile-view-cabin-hub-actions {';
+const focusInsert =
+  '}\r\n\r\n' + focusBlock + '\r\n.profile-spaceship-root .profile-view-cabin-hub-actions {';
 
 if (s.includes(focusAnchor) && !s.includes('/* Фокус: унифицированный var(--focus-ring) */')) {
   s = s.replace(focusAnchor, focusInsert);
@@ -68,7 +69,10 @@ const navNew = `/* Навигация: унифицирована под violet 
   --panel-accent-rgb: var(--violet-600-rgb);
 }`;
 
-if (s.includes('--panel-accent: var(--cabin-neon-cyan)') && !s.includes('/* Навигация: унифицирована под violet')) {
+if (
+  s.includes('--panel-accent: var(--cabin-neon-cyan)') &&
+  !s.includes('/* Навигация: унифицирована под violet')
+) {
   s = s.replace(navOld.replace(/\n/g, '\r\n'), navNew.replace(/\n/g, '\r\n'));
   fs.writeFileSync(p, s);
   console.log('Nav unified');

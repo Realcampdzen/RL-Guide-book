@@ -4,8 +4,8 @@ import path from 'path';
 
 // Кэш для данных
 let badgeDataCache = null;
-let categoriesCache = new Map();
-let badgesCache = new Map();
+const categoriesCache = new Map();
+const badgesCache = new Map();
 
 export class DataLoaderAIData {
   constructor() {
@@ -23,22 +23,22 @@ export class DataLoaderAIData {
 
     try {
       console.log('📂 Загружаем данные из ai_data_complete.json...');
-      
+
       // Загружаем данные из единого JSON файла
       const data = JSON.parse(fs.readFileSync(this.dataPath, 'utf8'));
       console.log('✅ Данные загружены:', {
         categories: data.totalCategories,
         badges: data.totalBadges,
-        levels: data.totalLevels
+        levels: data.totalLevels,
       });
-      
+
       // Создаем кэш категорий
-      data.categories.forEach(category => {
+      data.categories.forEach((category) => {
         categoriesCache.set(category.id, category);
       });
-      
+
       // Создаем кэш значков
-      data.badges.forEach(badge => {
+      data.badges.forEach((badge) => {
         badgesCache.set(badge.id, badge);
       });
 
@@ -48,7 +48,7 @@ export class DataLoaderAIData {
         badges: data.badges,
         totalCategories: data.totalCategories,
         totalBadges: data.totalBadges,
-        totalLevels: data.totalLevels
+        totalLevels: data.totalLevels,
       };
 
       console.log('✅ Данные успешно загружены и кэшированы');
@@ -57,7 +57,7 @@ export class DataLoaderAIData {
       console.error('❌ Ошибка загрузки данных:', error.message);
       console.error('📁 Путь к файлу:', this.dataPath);
       console.error('📂 Файл существует:', fs.existsSync(this.dataPath));
-      
+
       // Возвращаем пустые данные вместо краша
       return { categories: [], badges: [] };
     }
@@ -100,7 +100,7 @@ export class DataLoaderAIData {
     if (!badgeDataCache) {
       this.loadAllData();
     }
-    return badgeDataCache.badges.filter(badge => badge.category_id === categoryId);
+    return badgeDataCache.badges.filter((badge) => badge.category_id === categoryId);
   }
 
   // Получает статистику
@@ -111,7 +111,7 @@ export class DataLoaderAIData {
     return {
       totalCategories: badgeDataCache.totalCategories,
       totalBadges: badgeDataCache.totalBadges,
-      totalLevels: badgeDataCache.totalLevels
+      totalLevels: badgeDataCache.totalLevels,
     };
   }
 }

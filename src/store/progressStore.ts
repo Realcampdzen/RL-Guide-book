@@ -1,19 +1,19 @@
 import { create } from 'zustand';
-import {
-  IUserData,
-  ILevelProgress,
-  LevelStatus,
-  BadgeLevelId,
+import type {
+  BadgeArtProposalStatus,
   BadgeFavoriteId,
-  IUserProfile,
-  IBadgePlan,
+  BadgeLevelId,
   BadgePlanStatus,
   BadgeSkinId,
-  BadgeArtProposalStatus,
   IBadgeArtProposal,
-  ShiftScheduleKey,
+  IBadgePlan,
+  ILevelProgress,
+  IUserData,
+  IUserProfile,
+  LevelStatus,
   MyActivityKey,
-  WingPlanGridData
+  ShiftScheduleKey,
+  WingPlanGridData,
 } from '../types/userProgress';
 import {
   getAiSkinId,
@@ -22,9 +22,8 @@ import {
   MAX_BADGE_AI_SKINS,
   MAX_BADGE_APPROVED_ARTS,
   parseAiSkinSlotIndex,
-  parseApprovedArtSkinSlotIndex
+  parseApprovedArtSkinSlotIndex,
 } from '../utils/badgeSkins';
-
 
 export interface ProgressStore {
   pathFavToast: PathFavToastState | null;
@@ -34,13 +33,18 @@ export interface ProgressStore {
   setIsLoading: (loading: boolean) => void;
   isLoading: boolean;
   updateLevelStatus: (levelId: BadgeLevelId, status: LevelStatus, reflection?: string) => void;
-  applyApprovedLevel: (levelId: BadgeLevelId, evidence?: { reflection?: string; impact?: string; link?: string } | null) => void;
-
+  applyApprovedLevel: (
+    levelId: BadgeLevelId,
+    evidence?: { reflection?: string; impact?: string; link?: string } | null
+  ) => void;
 
   updateLevelEvidence: (levelId: BadgeLevelId, evidence: ILevelProgress['evidence']) => void;
   updateBadgeSkin: (badgeBaseId: string, skinId: string) => void;
   setCustomBadgeImage: (badgeBaseId: string, dataUrl: string | null) => void;
-  addGeneratedBadgeSkin: (badgeBaseId: string, dataUrl: string) => { ok: true; skinId: string } | { ok: false; reason: 'limit' | 'invalid' };
+  addGeneratedBadgeSkin: (
+    badgeBaseId: string,
+    dataUrl: string
+  ) => { ok: true; skinId: string } | { ok: false; reason: 'limit' | 'invalid' };
   removeGeneratedBadgeSkin: (badgeBaseId: string, slotIndex: number) => boolean;
   submitBadgeArtProposal: (proposal: {
     badgeBaseId: string;
@@ -55,9 +59,15 @@ export interface ProgressStore {
   ) => { ok: true; skinId: string } | { ok: false; reason: 'not_found' | 'limit' };
   rejectBadgeArtProposal: (proposalId: string, moderatorRole?: string) => boolean;
   removeApprovedBadgeSkin: (badgeBaseId: string, slotIndex: number) => boolean;
-  startRoute: (levelId: BadgeLevelId, callbacks?: { onAdded?: (slotsLeft: number) => void; onLimit?: () => void }) => void;
+  startRoute: (
+    levelId: BadgeLevelId,
+    callbacks?: { onAdded?: (slotsLeft: number) => void; onLimit?: () => void }
+  ) => void;
   removeRoute: (badgeBaseId: string) => void;
-  toggleFavorite: (favoriteId: BadgeFavoriteId, callbacks?: { onAdded?: (slotsLeft: number) => void; onLimit?: () => void }) => void;
+  toggleFavorite: (
+    favoriteId: BadgeFavoriteId,
+    callbacks?: { onAdded?: (slotsLeft: number) => void; onLimit?: () => void }
+  ) => void;
   toggleLike: (badgeBaseId: string) => void;
   setNickname: (nickname: string) => void;
   setAvatar: (avatar: string) => void;
@@ -76,7 +86,10 @@ export interface ProgressStore {
   setBroDay: (day: number) => void;
   setWingAvatar: (avatar: string) => void;
   setWingName: (name: string) => void;
-  updateBroWingPlans: (fields: { wingPlanGridA?: WingPlanGridData; wingPlanGridB?: WingPlanGridData }) => void;
+  updateBroWingPlans: (fields: {
+    wingPlanGridA?: WingPlanGridData;
+    wingPlanGridB?: WingPlanGridData;
+  }) => void;
   updateDiaryEntry: (dayIndex: number, fields: Record<string, string | undefined>) => void;
   updateDiarySquad: (fields: Record<string, string | undefined | object>) => void;
   updateDiaryShiftTemplates: (fields: {
@@ -84,7 +97,10 @@ export interface ProgressStore {
     myActivities?: Partial<Record<MyActivityKey, { time?: string; note?: string }>>;
   }) => void;
   updateDiaryPhotos: (photos: Record<string, string | undefined>) => void;
-  addFlagBadgeRequest: (badgeId: string, evidence?: { reflection?: string; impact?: string; link?: string }) => void;
+  addFlagBadgeRequest: (
+    badgeId: string,
+    evidence?: { reflection?: string; impact?: string; link?: string }
+  ) => void;
   approveFlagBadgeRequest: (badgeId: string) => void;
   rejectFlagBadgeRequest: (badgeId: string) => void;
   setDiaryDay: (day: number) => void;
@@ -141,7 +157,7 @@ const initialProfile: IUserProfile = {
   status: '',
   bio: '',
   createdAt: new Date().toISOString(),
-  stats: { totalLevelsAchieved: 0, totalBadgesStarted: 0 }
+  stats: { totalLevelsAchieved: 0, totalBadgesStarted: 0 },
 };
 
 export const initialData: IUserData = {
@@ -156,7 +172,7 @@ export const initialData: IUserData = {
   badgeArtProposals: [],
   inspectorProgress: {
     currentDay: 1,
-    completedTasks: {}
+    completedTasks: {},
   },
   broProgress: {
     isBro: false,
@@ -166,20 +182,21 @@ export const initialData: IUserData = {
   },
   diaryProgress: {
     currentDay: 1,
-    entries: {}
+    entries: {},
   },
   meta: {
     schemaVersion: SCHEMA_VERSION,
     lastSyncedAt: new Date().toISOString(),
-    hasCompletedTutorial: false
-  }
+    hasCompletedTutorial: false,
+  },
 };
-
 
 const computeStats = (progress: Record<BadgeLevelId, ILevelProgress>) => {
   const values = Object.values(progress);
-  const totalLevelsAchieved = values.filter(p => p.status === 'achieved').length;
-  const totalBadgesStarted = values.filter(p => p.status === 'in_progress' || p.status === 'achieved').length;
+  const totalLevelsAchieved = values.filter((p) => p.status === 'achieved').length;
+  const totalBadgesStarted = values.filter(
+    (p) => p.status === 'in_progress' || p.status === 'achieved'
+  ).length;
   return { totalLevelsAchieved, totalBadgesStarted };
 };
 
@@ -191,9 +208,9 @@ const withRecomputedStats = (data: IUserData): IUserData => {
       ...data.profile,
       stats: {
         totalLevelsAchieved,
-        totalBadgesStarted
-      }
-    }
+        totalBadgesStarted,
+      },
+    },
   };
 };
 
@@ -223,7 +240,7 @@ export const applyTestDefaults = (data: IUserData, enabled: boolean): IUserData 
   return withRecomputedStats({
     ...data,
     progress,
-    meta: { ...data.meta, lastSyncedAt: now }
+    meta: { ...data.meta, lastSyncedAt: now },
   });
 };
 
@@ -235,11 +252,15 @@ const getBaseId = (rawId: string): string => {
   return clean;
 };
 
-const normalizeDiaryTemplateValue = (value: unknown): { time?: string; note?: string } | undefined => {
+const normalizeDiaryTemplateValue = (
+  value: unknown
+): { time?: string; note?: string } | undefined => {
   if (!value || typeof value !== 'object') return undefined;
   const record = value as { time?: unknown; note?: unknown };
-  const time = typeof record.time === 'string' && record.time.trim() ? record.time.trim() : undefined;
-  const note = typeof record.note === 'string' && record.note.trim() ? record.note.trim() : undefined;
+  const time =
+    typeof record.time === 'string' && record.time.trim() ? record.time.trim() : undefined;
+  const note =
+    typeof record.note === 'string' && record.note.trim() ? record.note.trim() : undefined;
   if (!time && !note) return undefined;
   return { time, note };
 };
@@ -262,18 +283,37 @@ const normalizeWingPlanGrid = (source: unknown): WingPlanGridData | undefined =>
   if (!source || typeof source !== 'object') return undefined;
   const grid = source as { shiftLength?: unknown; days?: unknown };
   const shiftLength = Number(grid.shiftLength) === 9 ? 9 : 21;
-  const srcDays = grid.days && typeof grid.days === 'object' ? (grid.days as Record<string, unknown>) : {};
+  const srcDays =
+    grid.days && typeof grid.days === 'object' ? (grid.days as Record<string, unknown>) : {};
   const days: WingPlanGridData['days'] = {};
   for (let day = 1; day <= shiftLength; day += 1) {
     const raw = srcDays[String(day)];
     if (!raw || typeof raw !== 'object') continue;
-    const record = raw as { morning?: unknown; quietHour?: unknown; day?: unknown; evening?: unknown; night?: unknown };
-    const morning = typeof record.morning === 'string' && record.morning.trim() ? record.morning.trim() : undefined;
-    const quietHour = typeof record.quietHour === 'string' && record.quietHour.trim() ? record.quietHour.trim() : undefined;
-    const dayText = typeof record.day === 'string' && record.day.trim() ? record.day.trim() : undefined;
-    const evening = typeof record.evening === 'string' && record.evening.trim() ? record.evening.trim() : undefined;
-    const night = typeof record.night === 'string' && record.night.trim() ? record.night.trim() : undefined;
-    if (morning || quietHour || dayText || evening || night) days[String(day)] = { morning, quietHour, day: dayText, evening, night };
+    const record = raw as {
+      morning?: unknown;
+      quietHour?: unknown;
+      day?: unknown;
+      evening?: unknown;
+      night?: unknown;
+    };
+    const morning =
+      typeof record.morning === 'string' && record.morning.trim()
+        ? record.morning.trim()
+        : undefined;
+    const quietHour =
+      typeof record.quietHour === 'string' && record.quietHour.trim()
+        ? record.quietHour.trim()
+        : undefined;
+    const dayText =
+      typeof record.day === 'string' && record.day.trim() ? record.day.trim() : undefined;
+    const evening =
+      typeof record.evening === 'string' && record.evening.trim()
+        ? record.evening.trim()
+        : undefined;
+    const night =
+      typeof record.night === 'string' && record.night.trim() ? record.night.trim() : undefined;
+    if (morning || quietHour || dayText || evening || night)
+      days[String(day)] = { morning, quietHour, day: dayText, evening, night };
   }
   return { shiftLength, days };
 };
@@ -289,7 +329,9 @@ export const normalizeUserData = (raw: any): IUserData => {
   };
 
   const progress =
-    raw?.progress && typeof raw.progress === 'object' ? (raw.progress as Record<BadgeLevelId, ILevelProgress>) : {};
+    raw?.progress && typeof raw.progress === 'object'
+      ? (raw.progress as Record<BadgeLevelId, ILevelProgress>)
+      : {};
 
   const favoritesRaw = Array.isArray(raw?.favorites)
     ? raw.favorites.filter((id: unknown) => typeof id === 'string' && id.trim().length > 0)
@@ -304,34 +346,41 @@ export const normalizeUserData = (raw: any): IUserData => {
   const favorites = Array.from(favoritesByBase.values());
 
   const likedBadges = Array.isArray(raw?.likedBadges) ? raw.likedBadges : [];
-  const rawCustomBadgeImages = raw?.customBadgeImages && typeof raw.customBadgeImages === 'object'
-    ? raw.customBadgeImages as Record<string, unknown>
-    : {};
+  const rawCustomBadgeImages =
+    raw?.customBadgeImages && typeof raw.customBadgeImages === 'object'
+      ? (raw.customBadgeImages as Record<string, unknown>)
+      : {};
   const customBadgeImages: Record<string, string> = {};
   for (const [badgeId, value] of Object.entries(rawCustomBadgeImages)) {
     if (!isDataOrUrl(value)) continue;
     customBadgeImages[badgeId] = value;
   }
 
-  const rawGeneratedBadgeSkins = raw?.generatedBadgeSkins && typeof raw.generatedBadgeSkins === 'object'
-    ? raw.generatedBadgeSkins as Record<string, unknown>
-    : {};
+  const rawGeneratedBadgeSkins =
+    raw?.generatedBadgeSkins && typeof raw.generatedBadgeSkins === 'object'
+      ? (raw.generatedBadgeSkins as Record<string, unknown>)
+      : {};
   const generatedBadgeSkins: Record<string, string[]> = {};
   for (const [badgeId, value] of Object.entries(rawGeneratedBadgeSkins)) {
     if (!Array.isArray(value)) continue;
-    const validUrls = value.filter((item) => isDataOrUrl(item)).slice(0, MAX_BADGE_AI_SKINS) as string[];
+    const validUrls = value
+      .filter((item) => isDataOrUrl(item))
+      .slice(0, MAX_BADGE_AI_SKINS) as string[];
     if (validUrls.length > 0) {
       generatedBadgeSkins[badgeId] = validUrls;
     }
   }
 
-  const rawApprovedBadgeSkins = raw?.approvedBadgeSkins && typeof raw.approvedBadgeSkins === 'object'
-    ? raw.approvedBadgeSkins as Record<string, unknown>
-    : {};
+  const rawApprovedBadgeSkins =
+    raw?.approvedBadgeSkins && typeof raw.approvedBadgeSkins === 'object'
+      ? (raw.approvedBadgeSkins as Record<string, unknown>)
+      : {};
   const approvedBadgeSkins: Record<string, string[]> = {};
   for (const [badgeId, value] of Object.entries(rawApprovedBadgeSkins)) {
     if (!Array.isArray(value)) continue;
-    const validUrls = value.filter((item) => isDataOrUrl(item)).slice(0, MAX_BADGE_APPROVED_ARTS) as string[];
+    const validUrls = value
+      .filter((item) => isDataOrUrl(item))
+      .slice(0, MAX_BADGE_APPROVED_ARTS) as string[];
     if (validUrls.length > 0) {
       approvedBadgeSkins[badgeId] = validUrls;
     }
@@ -339,15 +388,18 @@ export const normalizeUserData = (raw: any): IUserData => {
 
   const rawBadgeArtProposals = Array.isArray(raw?.badgeArtProposals) ? raw.badgeArtProposals : [];
   const badgeArtProposals: IBadgeArtProposal[] = rawBadgeArtProposals
-    .filter((proposal: any) => (
-      proposal &&
-      typeof proposal.id === 'string' &&
-      typeof proposal.badgeBaseId === 'string' &&
-      typeof proposal.badgeTitle === 'string' &&
-      isDataOrUrl(proposal.imageUrl)
-    ))
+    .filter(
+      (proposal: any) =>
+        proposal &&
+        typeof proposal.id === 'string' &&
+        typeof proposal.badgeBaseId === 'string' &&
+        typeof proposal.badgeTitle === 'string' &&
+        isDataOrUrl(proposal.imageUrl)
+    )
     .map((proposal: any) => {
-      const statusRaw = String(proposal.status || '').trim().toLowerCase();
+      const statusRaw = String(proposal.status || '')
+        .trim()
+        .toLowerCase();
       const status: BadgeArtProposalStatus =
         statusRaw === 'approved' || statusRaw === 'rejected' ? statusRaw : 'pending';
       return {
@@ -355,21 +407,25 @@ export const normalizeUserData = (raw: any): IUserData => {
         badgeBaseId: getBaseId(String(proposal.badgeBaseId)),
         badgeTitle: String(proposal.badgeTitle || ''),
         categoryId: typeof proposal.categoryId === 'string' ? proposal.categoryId : undefined,
-        categoryTitle: typeof proposal.categoryTitle === 'string' ? proposal.categoryTitle : undefined,
+        categoryTitle:
+          typeof proposal.categoryTitle === 'string' ? proposal.categoryTitle : undefined,
         imageUrl: String(proposal.imageUrl),
         status,
         proposedBy: typeof proposal.proposedBy === 'string' ? proposal.proposedBy : undefined,
-        proposedAt: typeof proposal.proposedAt === 'string' ? proposal.proposedAt : new Date().toISOString(),
+        proposedAt:
+          typeof proposal.proposedAt === 'string' ? proposal.proposedAt : new Date().toISOString(),
         resolvedAt: typeof proposal.resolvedAt === 'string' ? proposal.resolvedAt : undefined,
-        resolvedByRole: typeof proposal.resolvedByRole === 'string' ? proposal.resolvedByRole : undefined,
+        resolvedByRole:
+          typeof proposal.resolvedByRole === 'string' ? proposal.resolvedByRole : undefined,
       } satisfies IBadgeArtProposal;
     })
     .filter((proposal: IBadgeArtProposal) => Boolean(proposal.badgeBaseId))
     .slice(-200);
 
-  const rawSelectedSkins = raw?.selectedSkins && typeof raw.selectedSkins === 'object'
-    ? raw.selectedSkins as Record<string, unknown>
-    : {};
+  const rawSelectedSkins =
+    raw?.selectedSkins && typeof raw.selectedSkins === 'object'
+      ? (raw.selectedSkins as Record<string, unknown>)
+      : {};
   const selectedSkins: Record<string, BadgeSkinId | string> = {};
   for (const [badgeId, value] of Object.entries(rawSelectedSkins)) {
     if (typeof value !== 'string') continue;
@@ -383,7 +439,8 @@ export const normalizeUserData = (raw: any): IUserData => {
       continue;
     }
 
-    const isStatic = skin === 'auto' || skin === 'default' || skin === 'realism' || skin === 'custom';
+    const isStatic =
+      skin === 'auto' || skin === 'default' || skin === 'realism' || skin === 'custom';
     if (isStatic) {
       selectedSkins[badgeId] = skin;
       continue;
@@ -412,15 +469,15 @@ export const normalizeUserData = (raw: any): IUserData => {
   const normalizedWingPlanGridB = normalizeWingPlanGrid(raw?.broProgress?.wingPlanGridB);
   const broProgress = raw?.broProgress
     ? {
-      ...(initialData.broProgress || {}),
-      ...raw.broProgress,
-      isBro: raw.broProgress.isBro ?? false,
-      hasPassport: raw.broProgress.hasPassport ?? false,
-      currentDay: raw.broProgress.currentDay ?? 1,
-      completedDeeds: raw.broProgress.completedDeeds ?? {},
-      wingPlanGridA: normalizedWingPlanGridA,
-      wingPlanGridB: normalizedWingPlanGridB
-    }
+        ...(initialData.broProgress || {}),
+        ...raw.broProgress,
+        isBro: raw.broProgress.isBro ?? false,
+        hasPassport: raw.broProgress.hasPassport ?? false,
+        currentDay: raw.broProgress.currentDay ?? 1,
+        completedDeeds: raw.broProgress.completedDeeds ?? {},
+        wingPlanGridA: normalizedWingPlanGridA,
+        wingPlanGridB: normalizedWingPlanGridB,
+      }
     : initialData.broProgress;
 
   const rawSquad = raw?.diaryProgress?.squad;
@@ -436,41 +493,66 @@ export const normalizeUserData = (raw: any): IUserData => {
     'dinner',
     'eveningEvent',
     'orlyatskyCircle',
-    'lightsOut'
+    'lightsOut',
   ];
   const MY_ACTIVITY_KEYS: MyActivityKey[] = ['morning', 'day', 'evening', 'additional'];
-  const squad = typeof rawSquad === 'object' ? (() => {
-    const reqs = Array.isArray(rawSquad.flagBadgeRequests)
-      ? rawSquad.flagBadgeRequests
-        .filter((r: any) => r && typeof r.badgeId === 'string' && ['pending', 'approved', 'rejected'].includes(r.status))
-        .map((r: any) => ({
-          badgeId: String(r.badgeId),
-          status: r.status as 'pending' | 'approved' | 'rejected',
-          requestedBy: typeof r.requestedBy === 'string' ? r.requestedBy : undefined,
-          requestedAt: typeof r.requestedAt === 'string' ? r.requestedAt : new Date().toISOString(),
-          evidence: r.evidence && typeof r.evidence === 'object' ? {
-            reflection: typeof r.evidence.reflection === 'string' ? r.evidence.reflection : undefined,
-            impact: typeof r.evidence.impact === 'string' ? r.evidence.impact : undefined,
-            link: typeof r.evidence.link === 'string' ? r.evidence.link : undefined
-          } : undefined,
-          resolvedAt: typeof r.resolvedAt === 'string' ? r.resolvedAt : undefined
-        }))
+  const squad =
+    typeof rawSquad === 'object'
+      ? (() => {
+          const reqs = Array.isArray(rawSquad.flagBadgeRequests)
+            ? rawSquad.flagBadgeRequests
+                .filter(
+                  (r: any) =>
+                    r &&
+                    typeof r.badgeId === 'string' &&
+                    ['pending', 'approved', 'rejected'].includes(r.status)
+                )
+                .map((r: any) => ({
+                  badgeId: String(r.badgeId),
+                  status: r.status as 'pending' | 'approved' | 'rejected',
+                  requestedBy: typeof r.requestedBy === 'string' ? r.requestedBy : undefined,
+                  requestedAt:
+                    typeof r.requestedAt === 'string' ? r.requestedAt : new Date().toISOString(),
+                  evidence:
+                    r.evidence && typeof r.evidence === 'object'
+                      ? {
+                          reflection:
+                            typeof r.evidence.reflection === 'string'
+                              ? r.evidence.reflection
+                              : undefined,
+                          impact:
+                            typeof r.evidence.impact === 'string' ? r.evidence.impact : undefined,
+                          link: typeof r.evidence.link === 'string' ? r.evidence.link : undefined,
+                        }
+                      : undefined,
+                  resolvedAt: typeof r.resolvedAt === 'string' ? r.resolvedAt : undefined,
+                }))
+            : undefined;
+          const approved = Array.isArray(rawSquad.flagBadgesApproved)
+            ? rawSquad.flagBadgesApproved.filter(
+                (id: unknown) => typeof id === 'string' && /^10\.[123]$/.test(id)
+              )
+            : undefined;
+          return { ...rawSquad, flagBadgeRequests: reqs, flagBadgesApproved: approved };
+        })()
       : undefined;
-    const approved = Array.isArray(rawSquad.flagBadgesApproved)
-      ? rawSquad.flagBadgesApproved.filter((id: unknown) => typeof id === 'string' && /^10\.[123]$/.test(id))
-      : undefined;
-    return { ...rawSquad, flagBadgeRequests: reqs, flagBadgesApproved: approved };
-  })() : undefined;
 
-  const diaryProgress = raw?.diaryProgress && typeof raw.diaryProgress === 'object'
-    ? {
-      currentDay: Math.max(1, Number(raw.diaryProgress.currentDay) || 1),
-      squad,
-      shiftSchedule: normalizeDiaryTemplateRecord<ShiftScheduleKey>(raw.diaryProgress.shiftSchedule, SHIFT_SCHEDULE_KEYS),
-      myActivities: normalizeDiaryTemplateRecord<MyActivityKey>(raw.diaryProgress.myActivities, MY_ACTIVITY_KEYS),
-      entries: typeof raw.diaryProgress.entries === 'object' ? raw.diaryProgress.entries : {}
-    }
-    : initialData.diaryProgress!;
+  const diaryProgress =
+    raw?.diaryProgress && typeof raw.diaryProgress === 'object'
+      ? {
+          currentDay: Math.max(1, Number(raw.diaryProgress.currentDay) || 1),
+          squad,
+          shiftSchedule: normalizeDiaryTemplateRecord<ShiftScheduleKey>(
+            raw.diaryProgress.shiftSchedule,
+            SHIFT_SCHEDULE_KEYS
+          ),
+          myActivities: normalizeDiaryTemplateRecord<MyActivityKey>(
+            raw.diaryProgress.myActivities,
+            MY_ACTIVITY_KEYS
+          ),
+          entries: typeof raw.diaryProgress.entries === 'object' ? raw.diaryProgress.entries : {},
+        }
+      : initialData.diaryProgress!;
 
   const meta = {
     ...initialData.meta,
@@ -479,43 +561,59 @@ export const normalizeUserData = (raw: any): IUserData => {
     hasCompletedTutorial: raw?.meta?.hasCompletedTutorial ?? false,
     squadArchitectScenario:
       raw?.meta?.squadArchitectScenario &&
-        typeof raw.meta.squadArchitectScenario === 'object' &&
-        typeof raw.meta.squadArchitectScenario.name === 'string' &&
-        Array.isArray(raw.meta.squadArchitectScenario.traditions)
+      typeof raw.meta.squadArchitectScenario === 'object' &&
+      typeof raw.meta.squadArchitectScenario.name === 'string' &&
+      Array.isArray(raw.meta.squadArchitectScenario.traditions)
         ? {
-          name: String(raw.meta.squadArchitectScenario.name),
-          traditions: raw.meta.squadArchitectScenario.traditions.filter((t: unknown) => typeof t === 'string'),
-          generatedAt: String(raw.meta.squadArchitectScenario.generatedAt || new Date().toISOString())
-        }
-        : undefined
+            name: String(raw.meta.squadArchitectScenario.name),
+            traditions: raw.meta.squadArchitectScenario.traditions.filter(
+              (t: unknown) => typeof t === 'string'
+            ),
+            generatedAt: String(
+              raw.meta.squadArchitectScenario.generatedAt || new Date().toISOString()
+            ),
+          }
+        : undefined,
   };
 
-  const badgePlans = raw?.badgePlans && typeof raw.badgePlans === 'object' ? raw.badgePlans as Record<string, IBadgePlan> : {};
+  const badgePlans =
+    raw?.badgePlans && typeof raw.badgePlans === 'object'
+      ? (raw.badgePlans as Record<string, IBadgePlan>)
+      : {};
 
   const vozhatifikatorChecklist =
-    raw?.vozhatifikatorChecklist && typeof raw.vozhatifikatorChecklist === 'object' && Array.isArray((raw.vozhatifikatorChecklist as { completedIds?: unknown[] }).completedIds)
-      ? { completedIds: (raw.vozhatifikatorChecklist as { completedIds: unknown[] }).completedIds.filter((id: unknown) => typeof id === 'string') as string[] }
+    raw?.vozhatifikatorChecklist &&
+    typeof raw.vozhatifikatorChecklist === 'object' &&
+    Array.isArray((raw.vozhatifikatorChecklist as { completedIds?: unknown[] }).completedIds)
+      ? {
+          completedIds: (
+            raw.vozhatifikatorChecklist as { completedIds: unknown[] }
+          ).completedIds.filter((id: unknown) => typeof id === 'string') as string[],
+        }
       : undefined;
 
   // We can't access isTestMode state here, we'll use local storage directly or just defaults
   const testModeActive = localStorage.getItem('rl_guide_test_mode') === 'true';
-  return applyTestDefaults({
-    profile,
-    progress,
-    favorites,
-    likedBadges,
-    selectedSkins,
-    customBadgeImages,
-    generatedBadgeSkins,
-    approvedBadgeSkins,
-    badgeArtProposals,
-    inspectorProgress,
-    broProgress,
-    diaryProgress,
-    meta,
-    badgePlans,
-    vozhatifikatorChecklist
-  }, testModeActive);
+  return applyTestDefaults(
+    {
+      profile,
+      progress,
+      favorites,
+      likedBadges,
+      selectedSkins,
+      customBadgeImages,
+      generatedBadgeSkins,
+      approvedBadgeSkins,
+      badgeArtProposals,
+      inspectorProgress,
+      broProgress,
+      diaryProgress,
+      meta,
+      badgePlans,
+      vozhatifikatorChecklist,
+    },
+    testModeActive
+  );
 };
 
 function countPathBadges(progress: Record<string, ILevelProgress>): number {
@@ -528,12 +626,10 @@ function countPathBadges(progress: Record<string, ILevelProgress>): number {
   return baseIds.size;
 }
 
-
-
 export const useProgressStore = create<ProgressStore>()((set, get) => {
   const setUserData = (updater: IUserData | ((prev: IUserData) => IUserData)) => {
     set((state) => ({
-      userData: typeof updater === 'function' ? updater(state.userData) : updater
+      userData: typeof updater === 'function' ? updater(state.userData) : updater,
     }));
   };
 
@@ -541,20 +637,20 @@ export const useProgressStore = create<ProgressStore>()((set, get) => {
     set({ isTestMode: enabled });
     // localStorage.setItem('rl_guide_test_mode', String(enabled)); is now handled in ProgressProvider sync
     if (enabled) {
-      setUserData(prev => applyTestDefaults(prev, true));
+      setUserData((prev) => applyTestDefaults(prev, true));
     }
   };
 
   // Methods
   const completeTutorial = () => {
-    setUserData(prev => ({
+    setUserData((prev) => ({
       ...prev,
-      meta: { ...prev.meta, hasCompletedTutorial: true, lastSyncedAt: new Date().toISOString() }
+      meta: { ...prev.meta, hasCompletedTutorial: true, lastSyncedAt: new Date().toISOString() },
     }));
   };
 
   const updateInspectorTask = (dayIndex: number, taskIndex: string, completed: boolean) => {
-    setUserData(prev => {
+    setUserData((prev) => {
       const current = prev.inspectorProgress || { currentDay: 1, completedTasks: {} };
       const dayKey = String(dayIndex);
       const dayTasks = current.completedTasks[dayKey] || [];
@@ -563,7 +659,7 @@ export const useProgressStore = create<ProgressStore>()((set, get) => {
       if (completed) {
         newDayTasks = Array.from(new Set([...dayTasks, taskIndex]));
       } else {
-        newDayTasks = dayTasks.filter(t => t !== taskIndex);
+        newDayTasks = dayTasks.filter((t) => t !== taskIndex);
       }
 
       return {
@@ -572,28 +668,33 @@ export const useProgressStore = create<ProgressStore>()((set, get) => {
           ...current,
           completedTasks: {
             ...current.completedTasks,
-            [dayKey]: newDayTasks
-          }
+            [dayKey]: newDayTasks,
+          },
         },
-        meta: { ...prev.meta, lastSyncedAt: new Date().toISOString() }
+        meta: { ...prev.meta, lastSyncedAt: new Date().toISOString() },
       };
     });
   };
 
   const setInspectorDay = (day: number) => {
-    setUserData(prev => ({
+    setUserData((prev) => ({
       ...prev,
       inspectorProgress: {
         ...(prev.inspectorProgress || { currentDay: 1, completedTasks: {} }),
-        currentDay: day
+        currentDay: day,
       },
-      meta: { ...prev.meta, lastSyncedAt: new Date().toISOString() }
+      meta: { ...prev.meta, lastSyncedAt: new Date().toISOString() },
     }));
   };
 
   const updateBroDeed = (dayIndex: number, deedId: string, completed: boolean) => {
-    setUserData(prev => {
-      const current = prev.broProgress || { isBro: false, hasPassport: false, currentDay: 1, completedDeeds: {} };
+    setUserData((prev) => {
+      const current = prev.broProgress || {
+        isBro: false,
+        hasPassport: false,
+        currentDay: 1,
+        completedDeeds: {},
+      };
       const dayKey = String(dayIndex);
       const dayDeeds = current.completedDeeds[dayKey] || [];
 
@@ -601,7 +702,7 @@ export const useProgressStore = create<ProgressStore>()((set, get) => {
       if (completed) {
         newDayDeeds = Array.from(new Set([...dayDeeds, deedId]));
       } else {
-        newDayDeeds = dayDeeds.filter(d => d !== deedId);
+        newDayDeeds = dayDeeds.filter((d) => d !== deedId);
       }
 
       return {
@@ -610,52 +711,75 @@ export const useProgressStore = create<ProgressStore>()((set, get) => {
           ...current,
           completedDeeds: {
             ...current.completedDeeds,
-            [dayKey]: newDayDeeds
-          }
+            [dayKey]: newDayDeeds,
+          },
         },
-        meta: { ...prev.meta, lastSyncedAt: new Date().toISOString() }
+        meta: { ...prev.meta, lastSyncedAt: new Date().toISOString() },
       };
     });
   };
 
   const setBroDay = (day: number) => {
-    setUserData(prev => ({
+    setUserData((prev) => ({
       ...prev,
       broProgress: {
-        ...(prev.broProgress || { isBro: false, hasPassport: false, currentDay: 1, completedDeeds: {} }),
-        currentDay: day
+        ...(prev.broProgress || {
+          isBro: false,
+          hasPassport: false,
+          currentDay: 1,
+          completedDeeds: {},
+        }),
+        currentDay: day,
       },
-      meta: { ...prev.meta, lastSyncedAt: new Date().toISOString() }
+      meta: { ...prev.meta, lastSyncedAt: new Date().toISOString() },
     }));
   };
 
   const setWingAvatar = (avatar: string) => {
-    setUserData(prev => ({
+    setUserData((prev) => ({
       ...prev,
       broProgress: {
-        ...(prev.broProgress || { isBro: false, hasPassport: false, currentDay: 1, completedDeeds: {} }),
-        wingAvatar: avatar || undefined
+        ...(prev.broProgress || {
+          isBro: false,
+          hasPassport: false,
+          currentDay: 1,
+          completedDeeds: {},
+        }),
+        wingAvatar: avatar || undefined,
       },
-      meta: { ...prev.meta, lastSyncedAt: new Date().toISOString() }
+      meta: { ...prev.meta, lastSyncedAt: new Date().toISOString() },
     }));
   };
 
   const setWingName = (name: string) => {
     const trimmed = String(name || '').trim();
     if (!trimmed) return;
-    setUserData(prev => ({
+    setUserData((prev) => ({
       ...prev,
       broProgress: {
-        ...(prev.broProgress || { isBro: false, hasPassport: false, currentDay: 1, completedDeeds: {} }),
+        ...(prev.broProgress || {
+          isBro: false,
+          hasPassport: false,
+          currentDay: 1,
+          completedDeeds: {},
+        }),
         wingName: trimmed,
       },
-      meta: { ...prev.meta, lastSyncedAt: new Date().toISOString() }
+      meta: { ...prev.meta, lastSyncedAt: new Date().toISOString() },
     }));
   };
 
-  const updateBroWingPlans = (fields: { wingPlanGridA?: WingPlanGridData; wingPlanGridB?: WingPlanGridData }) => {
-    setUserData(prev => {
-      const currentBro = prev.broProgress || { isBro: false, hasPassport: false, currentDay: 1, completedDeeds: {} };
+  const updateBroWingPlans = (fields: {
+    wingPlanGridA?: WingPlanGridData;
+    wingPlanGridB?: WingPlanGridData;
+  }) => {
+    setUserData((prev) => {
+      const currentBro = prev.broProgress || {
+        isBro: false,
+        hasPassport: false,
+        currentDay: 1,
+        completedDeeds: {},
+      };
       const patch: { wingPlanGridA?: WingPlanGridData; wingPlanGridB?: WingPlanGridData } = {};
       if (fields.wingPlanGridA !== undefined) {
         patch.wingPlanGridA = normalizeWingPlanGrid(fields.wingPlanGridA);
@@ -667,15 +791,15 @@ export const useProgressStore = create<ProgressStore>()((set, get) => {
         ...prev,
         broProgress: {
           ...currentBro,
-          ...patch
+          ...patch,
         },
-        meta: { ...prev.meta, lastSyncedAt: new Date().toISOString() }
+        meta: { ...prev.meta, lastSyncedAt: new Date().toISOString() },
       };
     });
   };
 
   const updateDiaryEntry = (dayIndex: number, fields: Record<string, string | undefined>) => {
-    setUserData(prev => {
+    setUserData((prev) => {
       const current = prev.diaryProgress || { currentDay: 1, entries: {} };
       const dayKey = String(dayIndex);
       const existing = current.entries[dayKey] || { updatedAt: new Date().toISOString() };
@@ -689,35 +813,35 @@ export const useProgressStore = create<ProgressStore>()((set, get) => {
             [dayKey]: {
               ...existing,
               ...fields,
-              updatedAt
-            }
-          }
+              updatedAt,
+            },
+          },
         },
-        meta: { ...prev.meta, lastSyncedAt: updatedAt }
+        meta: { ...prev.meta, lastSyncedAt: updatedAt },
       };
     });
   };
 
   const updateDiarySquad = (fields: Record<string, string | undefined | object>) => {
-    setUserData(prev => {
+    setUserData((prev) => {
       const current = prev.diaryProgress || { currentDay: 1, entries: {} };
       const squad = { ...(current.squad || {}), ...fields };
       return {
         ...prev,
         diaryProgress: { ...current, squad },
-        meta: { ...prev.meta, lastSyncedAt: new Date().toISOString() }
+        meta: { ...prev.meta, lastSyncedAt: new Date().toISOString() },
       };
     });
   };
 
   const updateDiaryPhotos = (photos: Record<string, string | undefined>) => {
-    setUserData(prev => {
+    setUserData((prev) => {
       const current = prev.diaryProgress || { currentDay: 1, entries: {} };
       const merged = { ...(current.photos || {}), ...photos };
       return {
         ...prev,
         diaryProgress: { ...current, photos: merged },
-        meta: { ...prev.meta, lastSyncedAt: new Date().toISOString() }
+        meta: { ...prev.meta, lastSyncedAt: new Date().toISOString() },
       };
     });
   };
@@ -731,57 +855,76 @@ export const useProgressStore = create<ProgressStore>()((set, get) => {
       patch: Partial<Record<T, { time?: string; note?: string }>> | undefined
     ): Partial<Record<T, { time?: string; note?: string }>> | undefined => {
       if (!patch) return currentTemplate;
-      const next: Partial<Record<T, { time?: string; note?: string }>> = { ...(currentTemplate || {}) };
-      for (const [rawKey, rawValue] of Object.entries(patch as Record<string, { time?: string; note?: string } | undefined>)) {
+      const next: Partial<Record<T, { time?: string; note?: string }>> = {
+        ...(currentTemplate || {}),
+      };
+      for (const [rawKey, rawValue] of Object.entries(
+        patch as Record<string, { time?: string; note?: string } | undefined>
+      )) {
         const key = rawKey as T;
         const value = rawValue && typeof rawValue === 'object' ? rawValue : undefined;
-        const time = value && typeof value.time === 'string' && value.time.trim() ? value.time.trim() : undefined;
-        const note = value && typeof value.note === 'string' && value.note.trim() ? value.note.trim() : undefined;
+        const time =
+          value && typeof value.time === 'string' && value.time.trim()
+            ? value.time.trim()
+            : undefined;
+        const note =
+          value && typeof value.note === 'string' && value.note.trim()
+            ? value.note.trim()
+            : undefined;
         if (time || note) next[key] = { time, note };
         else delete next[key];
       }
       return Object.keys(next).length ? next : undefined;
     };
 
-    setUserData(prev => {
+    setUserData((prev) => {
       const current = prev.diaryProgress || { currentDay: 1, entries: {} };
-      const shiftSchedule = applyTemplatePatch<ShiftScheduleKey>(current.shiftSchedule, fields.shiftSchedule);
-      const myActivities = applyTemplatePatch<MyActivityKey>(current.myActivities, fields.myActivities);
+      const shiftSchedule = applyTemplatePatch<ShiftScheduleKey>(
+        current.shiftSchedule,
+        fields.shiftSchedule
+      );
+      const myActivities = applyTemplatePatch<MyActivityKey>(
+        current.myActivities,
+        fields.myActivities
+      );
       return {
         ...prev,
         diaryProgress: {
           ...current,
           shiftSchedule,
-          myActivities
+          myActivities,
         },
-        meta: { ...prev.meta, lastSyncedAt: new Date().toISOString() }
+        meta: { ...prev.meta, lastSyncedAt: new Date().toISOString() },
       };
     });
   };
 
   const FLAG_BADGE_IDS = ['10.1', '10.2', '10.3'];
-  const addFlagBadgeRequest = (badgeId: string, evidence?: { reflection?: string; impact?: string; link?: string }) => {
+  const addFlagBadgeRequest = (
+    badgeId: string,
+    evidence?: { reflection?: string; impact?: string; link?: string }
+  ) => {
     if (!FLAG_BADGE_IDS.includes(badgeId)) return;
     const now = new Date().toISOString();
-    setUserData(prev => {
+    setUserData((prev) => {
       const current = prev.diaryProgress || { currentDay: 1, entries: {} };
       const squad = current.squad || {};
       const requests = [...(squad.flagBadgeRequests || [])];
-      const existingIdx = requests.findIndex(r => r.badgeId === badgeId);
+      const existingIdx = requests.findIndex((r) => r.badgeId === badgeId);
       const newReq = {
         badgeId,
         status: 'pending' as const,
         requestedBy: prev.profile?.nickname,
         requestedAt: existingIdx >= 0 ? requests[existingIdx].requestedAt : now,
         evidence: evidence ?? (existingIdx >= 0 ? requests[existingIdx].evidence : undefined),
-        resolvedAt: undefined
+        resolvedAt: undefined,
       };
       if (existingIdx >= 0) requests[existingIdx] = newReq;
       else requests.push(newReq);
       return {
         ...prev,
         diaryProgress: { ...current, squad: { ...squad, flagBadgeRequests: requests } },
-        meta: { ...prev.meta, lastSyncedAt: now }
+        meta: { ...prev.meta, lastSyncedAt: now },
       };
     });
   };
@@ -789,10 +932,10 @@ export const useProgressStore = create<ProgressStore>()((set, get) => {
   const approveFlagBadgeRequest = (badgeId: string) => {
     if (!FLAG_BADGE_IDS.includes(badgeId)) return;
     const now = new Date().toISOString();
-    setUserData(prev => {
+    setUserData((prev) => {
       const current = prev.diaryProgress || { currentDay: 1, entries: {} };
       const squad = current.squad || {};
-      const requests = (squad.flagBadgeRequests || []).map(r =>
+      const requests = (squad.flagBadgeRequests || []).map((r) =>
         r.badgeId === badgeId ? { ...r, status: 'approved' as const, resolvedAt: now } : r
       );
       const approved = Array.from(new Set([...(squad.flagBadgesApproved || []), badgeId]));
@@ -800,9 +943,9 @@ export const useProgressStore = create<ProgressStore>()((set, get) => {
         ...prev,
         diaryProgress: {
           ...current,
-          squad: { ...squad, flagBadgeRequests: requests, flagBadgesApproved: approved }
+          squad: { ...squad, flagBadgeRequests: requests, flagBadgesApproved: approved },
         },
-        meta: { ...prev.meta, lastSyncedAt: now }
+        meta: { ...prev.meta, lastSyncedAt: now },
       };
     });
   };
@@ -810,58 +953,58 @@ export const useProgressStore = create<ProgressStore>()((set, get) => {
   const rejectFlagBadgeRequest = (badgeId: string) => {
     if (!FLAG_BADGE_IDS.includes(badgeId)) return;
     const now = new Date().toISOString();
-    setUserData(prev => {
+    setUserData((prev) => {
       const current = prev.diaryProgress || { currentDay: 1, entries: {} };
       const squad = current.squad || {};
-      const requests = (squad.flagBadgeRequests || []).map(r =>
+      const requests = (squad.flagBadgeRequests || []).map((r) =>
         r.badgeId === badgeId ? { ...r, status: 'rejected' as const, resolvedAt: now } : r
       );
       return {
         ...prev,
         diaryProgress: { ...current, squad: { ...squad, flagBadgeRequests: requests } },
-        meta: { ...prev.meta, lastSyncedAt: now }
+        meta: { ...prev.meta, lastSyncedAt: now },
       };
     });
   };
 
   const setDiaryDay = (day: number) => {
-    setUserData(prev => ({
+    setUserData((prev) => ({
       ...prev,
       diaryProgress: {
         ...(prev.diaryProgress || { currentDay: 1, entries: {} }),
-        currentDay: day
+        currentDay: day,
       },
-      meta: { ...prev.meta, lastSyncedAt: new Date().toISOString() }
+      meta: { ...prev.meta, lastSyncedAt: new Date().toISOString() },
     }));
   };
 
   const saveSquadArchitectScenario = (name: string, traditions: string[]) => {
     const now = new Date().toISOString();
-    setUserData(prev => ({
+    setUserData((prev) => ({
       ...prev,
       meta: {
         ...prev.meta,
         squadArchitectScenario: { name, traditions, generatedAt: now },
-        lastSyncedAt: now
-      }
+        lastSyncedAt: now,
+      },
     }));
   };
 
   const saveBadgePlan = (plan: IBadgePlan) => {
     const now = new Date().toISOString();
-    setUserData(prev => ({
+    setUserData((prev) => ({
       ...prev,
       badgePlans: {
         ...(prev.badgePlans || {}),
-        [plan.badgeId]: { ...plan, createdAt: plan.createdAt || now }
+        [plan.badgeId]: { ...plan, createdAt: plan.createdAt || now },
       },
-      meta: { ...prev.meta, lastSyncedAt: now }
+      meta: { ...prev.meta, lastSyncedAt: now },
     }));
   };
 
   const updateBadgePlanStatus = (badgeId: string, status: BadgePlanStatus) => {
     const now = new Date().toISOString();
-    setUserData(prev => {
+    setUserData((prev) => {
       const plans = prev.badgePlans || {};
       const plan = plans[badgeId];
       if (!plan) return prev;
@@ -869,18 +1012,20 @@ export const useProgressStore = create<ProgressStore>()((set, get) => {
         ...plan,
         status,
         ...(status === 'pending_approval' ? { sentForApprovalAt: now } : {}),
-        ...(status === 'approved' || status === 'in_progress' ? { approvedAt: plan.approvedAt || now } : {})
+        ...(status === 'approved' || status === 'in_progress'
+          ? { approvedAt: plan.approvedAt || now }
+          : {}),
       };
       return {
         ...prev,
         badgePlans: { ...plans, [badgeId]: updated },
-        meta: { ...prev.meta, lastSyncedAt: now }
+        meta: { ...prev.meta, lastSyncedAt: now },
       };
     });
   };
 
   const updateBadgePlanChecklist = (badgeId: string, itemIndex: number, completed: boolean) => {
-    setUserData(prev => {
+    setUserData((prev) => {
       const plans = prev.badgePlans || {};
       const plan = plans[badgeId];
       if (!plan) return prev;
@@ -889,17 +1034,22 @@ export const useProgressStore = create<ProgressStore>()((set, get) => {
       if (completed) {
         if (!completedItems.includes(idxStr)) completedItems = [...completedItems, idxStr];
       } else {
-        completedItems = completedItems.filter(i => i !== idxStr);
+        completedItems = completedItems.filter((i) => i !== idxStr);
       }
-      const allDone = plan.checklistItems.length > 0 && completedItems.length >= plan.checklistItems.length;
-      const newStatus: BadgePlanStatus = allDone ? 'completed' : (plan.status === 'approved' ? 'in_progress' : plan.status);
+      const allDone =
+        plan.checklistItems.length > 0 && completedItems.length >= plan.checklistItems.length;
+      const newStatus: BadgePlanStatus = allDone
+        ? 'completed'
+        : plan.status === 'approved'
+          ? 'in_progress'
+          : plan.status;
       return {
         ...prev,
         badgePlans: {
           ...plans,
-          [badgeId]: { ...plan, completedItems, status: newStatus }
+          [badgeId]: { ...plan, completedItems, status: newStatus },
         },
-        meta: { ...prev.meta, lastSyncedAt: new Date().toISOString() }
+        meta: { ...prev.meta, lastSyncedAt: new Date().toISOString() },
       };
     });
   };
@@ -909,73 +1059,93 @@ export const useProgressStore = create<ProgressStore>()((set, get) => {
   };
 
   const updateVozhatifikatorChecklist = (itemId: string, completed: boolean) => {
-    setUserData(prev => {
+    setUserData((prev) => {
       const current = prev.vozhatifikatorChecklist?.completedIds ?? [];
       let completedIds: string[];
       if (completed) {
         completedIds = current.includes(itemId) ? current : [...current, itemId];
       } else {
-        completedIds = current.filter(id => id !== itemId);
+        completedIds = current.filter((id) => id !== itemId);
       }
       return {
         ...prev,
         vozhatifikatorChecklist: { completedIds },
-        meta: { ...prev.meta, lastSyncedAt: new Date().toISOString() }
+        meta: { ...prev.meta, lastSyncedAt: new Date().toISOString() },
       };
     });
   };
 
   const receivePassport = () => {
-    setUserData(prev => ({
+    setUserData((prev) => ({
       ...prev,
       broProgress: {
-        ...(prev.broProgress || { isBro: false, hasPassport: false, currentDay: 1, completedDeeds: {} }),
-        hasPassport: true
+        ...(prev.broProgress || {
+          isBro: false,
+          hasPassport: false,
+          currentDay: 1,
+          completedDeeds: {},
+        }),
+        hasPassport: true,
       },
-      meta: { ...prev.meta, lastSyncedAt: new Date().toISOString() }
+      meta: { ...prev.meta, lastSyncedAt: new Date().toISOString() },
     }));
   };
 
   const becomeBro = () => {
-    setUserData(prev => ({
+    setUserData((prev) => ({
       ...prev,
       broProgress: {
-        ...(prev.broProgress || { isBro: false, hasPassport: false, currentDay: 1, completedDeeds: {} }),
-        isBro: true
+        ...(prev.broProgress || {
+          isBro: false,
+          hasPassport: false,
+          currentDay: 1,
+          completedDeeds: {},
+        }),
+        isBro: true,
       },
-      meta: { ...prev.meta, lastSyncedAt: new Date().toISOString() }
+      meta: { ...prev.meta, lastSyncedAt: new Date().toISOString() },
     }));
   };
 
   const selectWingMentor = (_mentorId: string, wingName: string) => {
     const trimmed = String(wingName || '').trim();
-    setUserData(prev => ({
+    setUserData((prev) => ({
       ...prev,
       broProgress: {
-        ...(prev.broProgress || { isBro: false, hasPassport: false, currentDay: 1, completedDeeds: {} }),
+        ...(prev.broProgress || {
+          isBro: false,
+          hasPassport: false,
+          currentDay: 1,
+          completedDeeds: {},
+        }),
         wingId: `W-${Math.random().toString(36).substr(2, 4).toUpperCase()}`,
         ...(trimmed ? { wingName: trimmed } : {}),
         // isBro remains as is (false if called during initiation)
       },
-      meta: { ...prev.meta, lastSyncedAt: new Date().toISOString() }
+      meta: { ...prev.meta, lastSyncedAt: new Date().toISOString() },
     }));
   };
 
   const assignBlackBadge = () => {
-    setUserData(prev => ({
+    setUserData((prev) => ({
       ...prev,
       broProgress: {
-        ...(prev.broProgress || { isBro: false, hasPassport: false, currentDay: 1, completedDeeds: {} }),
+        ...(prev.broProgress || {
+          isBro: false,
+          hasPassport: false,
+          currentDay: 1,
+          completedDeeds: {},
+        }),
         hasBlackBadge: true,
-        isWingMentor: true
+        isWingMentor: true,
       },
-      meta: { ...prev.meta, lastSyncedAt: new Date().toISOString() }
+      meta: { ...prev.meta, lastSyncedAt: new Date().toISOString() },
     }));
   };
 
   const updateLevelEvidence = (levelId: BadgeLevelId, evidence: ILevelProgress['evidence']) => {
     if (!evidence || evidence.length === 0) return;
-    setUserData(prev => {
+    setUserData((prev) => {
       const newProgress = { ...prev.progress };
       const current = newProgress[levelId] || { status: 'locked' };
       const existing = current.evidence || [];
@@ -993,7 +1163,7 @@ export const useProgressStore = create<ProgressStore>()((set, get) => {
   };
 
   const updateLevelStatus = (levelId: BadgeLevelId, status: LevelStatus, reflection?: string) => {
-    setUserData(prev => {
+    setUserData((prev) => {
       const newProgress = { ...prev.progress };
       const current = newProgress[levelId] || { status: 'locked' };
 
@@ -1002,16 +1172,20 @@ export const useProgressStore = create<ProgressStore>()((set, get) => {
         status,
         selectedAt: status === 'in_progress' ? new Date().toISOString() : current.selectedAt,
         achievedAt: status === 'achieved' ? new Date().toISOString() : current.achievedAt,
-        reflection: reflection !== undefined ? reflection : current.reflection
+        reflection: reflection !== undefined ? reflection : current.reflection,
       };
 
       newProgress[levelId] = updatedItem;
 
       // Update stats
-      const levelsAchieved = Object.values(newProgress).filter(p => p.status === 'achieved').length;
-      // Rough estimate of started badges (counting unique base IDs could be complex here without external mapping, 
+      const levelsAchieved = Object.values(newProgress).filter(
+        (p) => p.status === 'achieved'
+      ).length;
+      // Rough estimate of started badges (counting unique base IDs could be complex here without external mapping,
       // but we can count active levels)
-      const levelsStarted = Object.values(newProgress).filter(p => p.status === 'in_progress' || p.status === 'achieved').length;
+      const levelsStarted = Object.values(newProgress).filter(
+        (p) => p.status === 'in_progress' || p.status === 'achieved'
+      ).length;
 
       return {
         ...prev,
@@ -1020,10 +1194,10 @@ export const useProgressStore = create<ProgressStore>()((set, get) => {
           ...prev.profile,
           stats: {
             totalLevelsAchieved: levelsAchieved,
-            totalBadgesStarted: levelsStarted // Note: this is levels started, logical adjustment might be needed for Badge count
-          }
+            totalBadgesStarted: levelsStarted, // Note: this is levels started, logical adjustment might be needed for Badge count
+          },
         },
-        meta: { ...prev.meta, lastSyncedAt: new Date().toISOString() }
+        meta: { ...prev.meta, lastSyncedAt: new Date().toISOString() },
       };
     });
   };
@@ -1037,8 +1211,10 @@ export const useProgressStore = create<ProgressStore>()((set, get) => {
 
     const evidenceItems: ILevelProgress['evidence'] = [];
     if (reflection) evidenceItems.push({ type: 'text', value: reflection });
-    if (evidence?.impact && evidence.impact.trim()) evidenceItems.push({ type: 'text', value: evidence.impact.trim() });
-    if (evidence?.link && evidence.link.trim()) evidenceItems.push({ type: 'link', value: evidence.link.trim() });
+    if (evidence?.impact && evidence.impact.trim())
+      evidenceItems.push({ type: 'text', value: evidence.impact.trim() });
+    if (evidence?.link && evidence.link.trim())
+      evidenceItems.push({ type: 'link', value: evidence.link.trim() });
     if (evidenceItems.length > 0) {
       updateLevelEvidence(levelId, evidenceItems);
     }
@@ -1046,13 +1222,17 @@ export const useProgressStore = create<ProgressStore>()((set, get) => {
 
   const updateBadgeSkin = (badgeBaseId: string, skinId: string) => {
     const requested = String(skinId || '').trim();
-    setUserData(prev => {
+    setUserData((prev) => {
       const aiSlot = parseAiSkinSlotIndex(requested);
-      const hasAiSkin = aiSlot !== null && Boolean((prev.generatedBadgeSkins?.[badgeBaseId] || [])[aiSlot]);
+      const hasAiSkin =
+        aiSlot !== null && Boolean((prev.generatedBadgeSkins?.[badgeBaseId] || [])[aiSlot]);
       const approvedSlot = parseApprovedArtSkinSlotIndex(requested);
-      const hasApprovedSkin = approvedSlot !== null && Boolean((prev.approvedBadgeSkins?.[badgeBaseId] || [])[approvedSlot]);
+      const hasApprovedSkin =
+        approvedSlot !== null &&
+        Boolean((prev.approvedBadgeSkins?.[badgeBaseId] || [])[approvedSlot]);
       const hasCustomSkin = Boolean(prev.customBadgeImages?.[badgeBaseId]);
-      const allowedStatic = requested === 'auto' || requested === 'default' || requested === 'realism';
+      const allowedStatic =
+        requested === 'auto' || requested === 'default' || requested === 'realism';
 
       let skin: BadgeSkinId | string = 'auto';
       if (allowedStatic) {
@@ -1073,9 +1253,9 @@ export const useProgressStore = create<ProgressStore>()((set, get) => {
         ...prev,
         selectedSkins: {
           ...(prev.selectedSkins || {}),
-          [badgeBaseId]: skin
+          [badgeBaseId]: skin,
         },
-        meta: { ...prev.meta, lastSyncedAt: new Date().toISOString() }
+        meta: { ...prev.meta, lastSyncedAt: new Date().toISOString() },
       };
     });
   };
@@ -1090,10 +1270,10 @@ export const useProgressStore = create<ProgressStore>()((set, get) => {
 
     let result: { ok: true; skinId: string } | { ok: false; reason: 'limit' | 'invalid' } = {
       ok: false,
-      reason: 'invalid'
+      reason: 'invalid',
     };
 
-    setUserData(prev => {
+    setUserData((prev) => {
       const currentSkins = prev.generatedBadgeSkins?.[badgeBaseId] || [];
       const existingIndex = currentSkins.findIndex((url) => url === dataUrl);
 
@@ -1107,9 +1287,9 @@ export const useProgressStore = create<ProgressStore>()((set, get) => {
           ...prev,
           selectedSkins: {
             ...(prev.selectedSkins || {}),
-            [badgeBaseId]: skinId
+            [badgeBaseId]: skinId,
           },
-          meta: { ...prev.meta, lastSyncedAt: new Date().toISOString() }
+          meta: { ...prev.meta, lastSyncedAt: new Date().toISOString() },
         };
       }
 
@@ -1127,13 +1307,13 @@ export const useProgressStore = create<ProgressStore>()((set, get) => {
         ...prev,
         generatedBadgeSkins: {
           ...(prev.generatedBadgeSkins || {}),
-          [badgeBaseId]: nextSkins
+          [badgeBaseId]: nextSkins,
         },
         selectedSkins: {
           ...(prev.selectedSkins || {}),
-          [badgeBaseId]: skinId
+          [badgeBaseId]: skinId,
         },
-        meta: { ...prev.meta, lastSyncedAt: new Date().toISOString() }
+        meta: { ...prev.meta, lastSyncedAt: new Date().toISOString() },
       };
     });
 
@@ -1146,7 +1326,7 @@ export const useProgressStore = create<ProgressStore>()((set, get) => {
 
     let removed = false;
 
-    setUserData(prev => {
+    setUserData((prev) => {
       const currentSkins = prev.generatedBadgeSkins?.[badgeBaseId] || [];
       if (slotIndex >= currentSkins.length) return prev;
 
@@ -1179,7 +1359,7 @@ export const useProgressStore = create<ProgressStore>()((set, get) => {
         ...prev,
         generatedBadgeSkins: nextGenerated,
         selectedSkins: nextSelected,
-        meta: { ...prev.meta, lastSyncedAt: new Date().toISOString() }
+        meta: { ...prev.meta, lastSyncedAt: new Date().toISOString() },
       };
     });
 
@@ -1200,17 +1380,19 @@ export const useProgressStore = create<ProgressStore>()((set, get) => {
       return { ok: false, reason: 'invalid' };
     }
 
-    let result: { ok: true; proposalId: string } | { ok: false; reason: 'invalid' | 'duplicate' } = {
-      ok: false,
-      reason: 'invalid'
-    };
+    let result: { ok: true; proposalId: string } | { ok: false; reason: 'invalid' | 'duplicate' } =
+      {
+        ok: false,
+        reason: 'invalid',
+      };
 
-    setUserData(prev => {
+    setUserData((prev) => {
       const proposals = [...(prev.badgeArtProposals || [])];
-      const duplicate = proposals.find((item) =>
-        item.badgeBaseId === badgeBaseId &&
-        item.imageUrl === imageUrl &&
-        item.status === 'pending'
+      const duplicate = proposals.find(
+        (item) =>
+          item.badgeBaseId === badgeBaseId &&
+          item.imageUrl === imageUrl &&
+          item.status === 'pending'
       );
       if (duplicate) {
         result = { ok: false, reason: 'duplicate' };
@@ -1228,14 +1410,14 @@ export const useProgressStore = create<ProgressStore>()((set, get) => {
         imageUrl,
         status: 'pending',
         proposedBy: prev.profile?.nickname || undefined,
-        proposedAt: now
+        proposedAt: now,
       };
 
       result = { ok: true, proposalId };
       return {
         ...prev,
         badgeArtProposals: [...proposals, nextProposal].slice(-200),
-        meta: { ...prev.meta, lastSyncedAt: now }
+        meta: { ...prev.meta, lastSyncedAt: now },
       };
     });
 
@@ -1250,10 +1432,10 @@ export const useProgressStore = create<ProgressStore>()((set, get) => {
 
     let result: { ok: true; skinId: string } | { ok: false; reason: 'not_found' | 'limit' } = {
       ok: false,
-      reason: 'not_found'
+      reason: 'not_found',
     };
 
-    setUserData(prev => {
+    setUserData((prev) => {
       const proposals = [...(prev.badgeArtProposals || [])];
       const proposalIndex = proposals.findIndex((item) => item.id === proposalId);
       if (proposalIndex < 0) return prev;
@@ -1288,7 +1470,7 @@ export const useProgressStore = create<ProgressStore>()((set, get) => {
         ...proposal,
         status: 'approved',
         resolvedAt: now,
-        resolvedByRole: moderatorRole || proposal.resolvedByRole
+        resolvedByRole: moderatorRole || proposal.resolvedByRole,
       };
       proposals[proposalIndex] = updatedProposal;
 
@@ -1302,9 +1484,9 @@ export const useProgressStore = create<ProgressStore>()((set, get) => {
         approvedBadgeSkins: nextApprovedSkins,
         selectedSkins: {
           ...(prev.selectedSkins || {}),
-          [proposal.badgeBaseId]: skinId
+          [proposal.badgeBaseId]: skinId,
         },
-        meta: { ...prev.meta, lastSyncedAt: now }
+        meta: { ...prev.meta, lastSyncedAt: now },
       };
     });
 
@@ -1314,7 +1496,7 @@ export const useProgressStore = create<ProgressStore>()((set, get) => {
   const rejectBadgeArtProposal = (proposalId: string, moderatorRole?: string): boolean => {
     if (!proposalId) return false;
     let rejected = false;
-    setUserData(prev => {
+    setUserData((prev) => {
       const proposals = [...(prev.badgeArtProposals || [])];
       const proposalIndex = proposals.findIndex((item) => item.id === proposalId);
       if (proposalIndex < 0) return prev;
@@ -1326,13 +1508,13 @@ export const useProgressStore = create<ProgressStore>()((set, get) => {
         ...proposal,
         status: 'rejected',
         resolvedAt: new Date().toISOString(),
-        resolvedByRole: moderatorRole || proposal.resolvedByRole
+        resolvedByRole: moderatorRole || proposal.resolvedByRole,
       };
 
       return {
         ...prev,
         badgeArtProposals: proposals,
-        meta: { ...prev.meta, lastSyncedAt: new Date().toISOString() }
+        meta: { ...prev.meta, lastSyncedAt: new Date().toISOString() },
       };
     });
     return rejected;
@@ -1344,7 +1526,7 @@ export const useProgressStore = create<ProgressStore>()((set, get) => {
 
     let removed = false;
 
-    setUserData(prev => {
+    setUserData((prev) => {
       const currentSkins = prev.approvedBadgeSkins?.[badgeBaseId] || [];
       if (slotIndex >= currentSkins.length) return prev;
 
@@ -1377,7 +1559,7 @@ export const useProgressStore = create<ProgressStore>()((set, get) => {
         ...prev,
         approvedBadgeSkins: nextApproved,
         selectedSkins: nextSelected,
-        meta: { ...prev.meta, lastSyncedAt: new Date().toISOString() }
+        meta: { ...prev.meta, lastSyncedAt: new Date().toISOString() },
       };
     });
 
@@ -1385,7 +1567,7 @@ export const useProgressStore = create<ProgressStore>()((set, get) => {
   };
 
   const setCustomBadgeImage = (badgeBaseId: string, dataUrl: string | null) => {
-    setUserData(prev => {
+    setUserData((prev) => {
       const nextCustom = { ...(prev.customBadgeImages || {}) };
       const nextSkins = { ...(prev.selectedSkins || {}) };
       if (dataUrl) {
@@ -1401,12 +1583,15 @@ export const useProgressStore = create<ProgressStore>()((set, get) => {
         ...prev,
         customBadgeImages: nextCustom,
         selectedSkins: nextSkins,
-        meta: { ...prev.meta, lastSyncedAt: new Date().toISOString() }
+        meta: { ...prev.meta, lastSyncedAt: new Date().toISOString() },
       };
     });
   };
 
-  const startRoute = (levelId: BadgeLevelId, callbacks?: { onAdded?: (slotsLeft: number) => void; onLimit?: () => void }) => {
+  const startRoute = (
+    levelId: BadgeLevelId,
+    callbacks?: { onAdded?: (slotsLeft: number) => void; onLimit?: () => void }
+  ) => {
     const existing = get().userData.progress[levelId];
     if (existing?.status === 'achieved' || existing?.status === 'in_progress') return;
     const currentCount = countPathBadges(get().userData.progress);
@@ -1422,7 +1607,7 @@ export const useProgressStore = create<ProgressStore>()((set, get) => {
   };
 
   const removeRoute = (badgeBaseId: string) => {
-    setUserData(prev => {
+    setUserData((prev) => {
       const newProgress = { ...prev.progress };
       let changed = false;
 
@@ -1436,8 +1621,12 @@ export const useProgressStore = create<ProgressStore>()((set, get) => {
 
       if (!changed) return prev;
 
-      const levelsAchieved = Object.values(newProgress).filter(p => p.status === 'achieved').length;
-      const levelsStarted = Object.values(newProgress).filter(p => p.status === 'in_progress' || p.status === 'achieved').length;
+      const levelsAchieved = Object.values(newProgress).filter(
+        (p) => p.status === 'achieved'
+      ).length;
+      const levelsStarted = Object.values(newProgress).filter(
+        (p) => p.status === 'in_progress' || p.status === 'achieved'
+      ).length;
 
       return {
         ...prev,
@@ -1447,14 +1636,17 @@ export const useProgressStore = create<ProgressStore>()((set, get) => {
           stats: {
             totalLevelsAchieved: levelsAchieved,
             totalBadgesStarted: levelsStarted,
-          }
+          },
         },
-        meta: { ...prev.meta, lastSyncedAt: new Date().toISOString() }
+        meta: { ...prev.meta, lastSyncedAt: new Date().toISOString() },
       };
     });
   };
 
-  const toggleFavorite = (favoriteId: BadgeFavoriteId, callbacks?: { onAdded?: (slotsLeft: number) => void; onLimit?: () => void }) => {
+  const toggleFavorite = (
+    favoriteId: BadgeFavoriteId,
+    callbacks?: { onAdded?: (slotsLeft: number) => void; onLimit?: () => void }
+  ) => {
     const cleanId = String(favoriteId || '').trim();
     if (!cleanId) return;
     const parts = cleanId.split('.').filter(Boolean);
@@ -1466,14 +1658,15 @@ export const useProgressStore = create<ProgressStore>()((set, get) => {
     const sameBase = (id: string) => getBaseId(id) === baseId;
     const hasAnyForBase = prevFavorites.some(sameBase);
     const isAdding = (isBaseId && !hasAnyForBase) || (!isBaseId && !prevFavorites.some(sameBase));
-    const didAddToFavorites = isAdding || (!isBaseId && hasAnyForBase && !prevFavorites.includes(cleanId));
+    const didAddToFavorites =
+      isAdding || (!isBaseId && hasAnyForBase && !prevFavorites.includes(cleanId));
     if (isAdding && prevFavorites.length >= MAX_FAVORITES) {
       get().setPathFavToast({ type: 'fav_limit' });
       callbacks?.onLimit?.();
       return;
     }
 
-    setUserData(prev => {
+    setUserData((prev) => {
       const prevFav = prev.favorites || [];
       const sameBaseInner = (id: string) => getBaseId(id) === baseId;
       const hasAnyForBaseInner = prevFav.some(sameBaseInner);
@@ -1498,83 +1691,87 @@ export const useProgressStore = create<ProgressStore>()((set, get) => {
       return {
         ...prev,
         favorites,
-        meta: { ...prev.meta, lastSyncedAt: new Date().toISOString() }
+        meta: { ...prev.meta, lastSyncedAt: new Date().toISOString() },
       };
     });
 
     if (didAddToFavorites) {
-      const favSlotsLeft = isAdding ? MAX_FAVORITES - prevFavorites.length - 1 : MAX_FAVORITES - prevFavorites.length;
+      const favSlotsLeft = isAdding
+        ? MAX_FAVORITES - prevFavorites.length - 1
+        : MAX_FAVORITES - prevFavorites.length;
       get().setPathFavToast({ type: 'fav_added', favSlotsLeft });
       callbacks?.onAdded?.(favSlotsLeft);
     }
   };
 
   const toggleLike = (badgeBaseId: string) => {
-    setUserData(prev => {
+    setUserData((prev) => {
       const current = prev.likedBadges || [];
       const isLiked = current.includes(badgeBaseId);
-      const next = isLiked
-        ? current.filter(id => id !== badgeBaseId)
-        : [...current, badgeBaseId];
+      const next = isLiked ? current.filter((id) => id !== badgeBaseId) : [...current, badgeBaseId];
 
       return {
         ...prev,
         likedBadges: next,
-        meta: { ...prev.meta, lastSyncedAt: new Date().toISOString() }
+        meta: { ...prev.meta, lastSyncedAt: new Date().toISOString() },
       };
     });
   };
 
   const setNickname = (nickname: string) => {
     const next = String(nickname || '').trim();
-    setUserData(prev => ({
+    setUserData((prev) => ({
       ...prev,
       profile: {
         ...prev.profile,
         nickname: next || initialProfile.nickname,
       },
-      meta: { ...prev.meta, lastSyncedAt: new Date().toISOString() }
+      meta: { ...prev.meta, lastSyncedAt: new Date().toISOString() },
     }));
   };
 
   const setAvatar = (avatar: string) => {
     const next = String(avatar || '').trim();
-    setUserData(prev => ({
+    setUserData((prev) => ({
       ...prev,
       profile: {
         ...prev.profile,
         avatar: next || undefined,
       },
-      meta: { ...prev.meta, lastSyncedAt: new Date().toISOString() }
+      meta: { ...prev.meta, lastSyncedAt: new Date().toISOString() },
     }));
   };
 
   const setProfileStatus = (status: string) => {
-    const next = String(status || '').trim().slice(0, 80);
-    setUserData(prev => ({
+    const next = String(status || '')
+      .trim()
+      .slice(0, 80);
+    setUserData((prev) => ({
       ...prev,
       profile: {
         ...prev.profile,
         status: next || undefined,
       },
-      meta: { ...prev.meta, lastSyncedAt: new Date().toISOString() }
+      meta: { ...prev.meta, lastSyncedAt: new Date().toISOString() },
     }));
   };
 
   const setProfileBio = (bio: string) => {
-    const next = String(bio || '').trim().slice(0, 220);
-    setUserData(prev => ({
+    const next = String(bio || '')
+      .trim()
+      .slice(0, 220);
+    setUserData((prev) => ({
       ...prev,
       profile: {
         ...prev.profile,
         bio: next || undefined,
       },
-      meta: { ...prev.meta, lastSyncedAt: new Date().toISOString() }
+      meta: { ...prev.meta, lastSyncedAt: new Date().toISOString() },
     }));
   };
 
   const resetProfile = () => {
-    setUserData(prev => ({
+    setUserData((prev) => ({
       ...prev,
       profile: {
         ...prev.profile,
@@ -1583,7 +1780,7 @@ export const useProgressStore = create<ProgressStore>()((set, get) => {
         status: initialProfile.status,
         bio: initialProfile.bio,
       },
-      meta: { ...prev.meta, lastSyncedAt: new Date().toISOString() }
+      meta: { ...prev.meta, lastSyncedAt: new Date().toISOString() },
     }));
   };
 
@@ -1594,7 +1791,9 @@ export const useProgressStore = create<ProgressStore>()((set, get) => {
   const getBadgeProgress = (badgeId: string) => {
     // This assumes levelId format "badgeId.levelIndex" e.g. "13.11.1"
     // Also supports single-level badges where levelId equals badgeId.
-    const levels = Object.entries(get().userData.progress as Record<string, ILevelProgress>).filter(([key]) => key === badgeId || key.startsWith(`${badgeId}.`));
+    const levels = Object.entries(get().userData.progress as Record<string, ILevelProgress>).filter(
+      ([key]) => key === badgeId || key.startsWith(`${badgeId}.`)
+    );
     const achieved = levels.filter(([_, p]) => p.status === 'achieved').length;
     const started = levels.filter(([_, p]) => p.status === 'in_progress').length;
 
@@ -1603,16 +1802,22 @@ export const useProgressStore = create<ProgressStore>()((set, get) => {
 
   const exportData = (extras?: Record<string, unknown>) => {
     const payload = extras ? { ...get().userData, ...extras } : get().userData;
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(payload, null, 2));
+    const dataStr =
+      'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(payload, null, 2));
     const downloadAnchorNode = document.createElement('a');
-    downloadAnchorNode.setAttribute("href", dataStr);
-    downloadAnchorNode.setAttribute("download", `rl_guide_progress_${new Date().toISOString().split('T')[0]}.json`);
+    downloadAnchorNode.setAttribute('href', dataStr);
+    downloadAnchorNode.setAttribute(
+      'download',
+      `rl_guide_progress_${new Date().toISOString().split('T')[0]}.json`
+    );
     document.body.appendChild(downloadAnchorNode);
     downloadAnchorNode.click();
     downloadAnchorNode.remove();
   };
 
-  const importData = async (file: File): Promise<{ success: boolean; data?: Record<string, unknown> }> => {
+  const importData = async (
+    file: File
+  ): Promise<{ success: boolean; data?: Record<string, unknown> }> => {
     return new Promise((resolve) => {
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -1642,13 +1847,11 @@ export const useProgressStore = create<ProgressStore>()((set, get) => {
   };
 
   const markRankUpSeen = (levels: number) => {
-    setUserData(prev => ({
+    setUserData((prev) => ({
       ...prev,
-      meta: { ...prev.meta, lastSeenRankLevel: levels, lastSyncedAt: new Date().toISOString() }
+      meta: { ...prev.meta, lastSeenRankLevel: levels, lastSyncedAt: new Date().toISOString() },
     }));
   };
-
-
 
   return {
     userData: initialData,
@@ -1660,58 +1863,57 @@ export const useProgressStore = create<ProgressStore>()((set, get) => {
     setPathFavToast: (t) => set({ pathFavToast: t }),
     setIsTestMode,
 
-      updateLevelStatus,
-      applyApprovedLevel,
-      updateLevelEvidence,
-      updateBadgeSkin,
-      setCustomBadgeImage,
-      addGeneratedBadgeSkin,
-      removeGeneratedBadgeSkin,
-      submitBadgeArtProposal,
-      approveBadgeArtProposal,
-      rejectBadgeArtProposal,
-      removeApprovedBadgeSkin,
-      startRoute,
-      removeRoute,
-      toggleFavorite,
-      toggleLike,
-      setNickname,
-      setAvatar,
-      setProfileStatus,
-      setProfileBio,
-      resetProfile,
-      getLevelProgress,
-      getBadgeProgress,
-      exportData,
-      importData,
-      resetProgress,
-      completeTutorial,
-      updateInspectorTask,
-      setInspectorDay,
-      updateBroDeed,
-      setBroDay,
-      setWingAvatar,
-      setWingName,
-      updateBroWingPlans,
-      updateDiaryEntry,
-      updateDiarySquad,
-      updateDiaryPhotos,
-      updateDiaryShiftTemplates,
-      addFlagBadgeRequest,
-      approveFlagBadgeRequest,
-      rejectFlagBadgeRequest,
-      setDiaryDay,
-      receivePassport,
-      becomeBro,
-      selectWingMentor,
-      assignBlackBadge,
-      markRankUpSeen,
-      saveSquadArchitectScenario,
-      saveBadgePlan,
-      updateBadgePlanStatus,
-      updateBadgePlanChecklist,
-      getBadgePlan,
-      updateVozhatifikatorChecklist
-
+    updateLevelStatus,
+    applyApprovedLevel,
+    updateLevelEvidence,
+    updateBadgeSkin,
+    setCustomBadgeImage,
+    addGeneratedBadgeSkin,
+    removeGeneratedBadgeSkin,
+    submitBadgeArtProposal,
+    approveBadgeArtProposal,
+    rejectBadgeArtProposal,
+    removeApprovedBadgeSkin,
+    startRoute,
+    removeRoute,
+    toggleFavorite,
+    toggleLike,
+    setNickname,
+    setAvatar,
+    setProfileStatus,
+    setProfileBio,
+    resetProfile,
+    getLevelProgress,
+    getBadgeProgress,
+    exportData,
+    importData,
+    resetProgress,
+    completeTutorial,
+    updateInspectorTask,
+    setInspectorDay,
+    updateBroDeed,
+    setBroDay,
+    setWingAvatar,
+    setWingName,
+    updateBroWingPlans,
+    updateDiaryEntry,
+    updateDiarySquad,
+    updateDiaryPhotos,
+    updateDiaryShiftTemplates,
+    addFlagBadgeRequest,
+    approveFlagBadgeRequest,
+    rejectFlagBadgeRequest,
+    setDiaryDay,
+    receivePassport,
+    becomeBro,
+    selectWingMentor,
+    assignBlackBadge,
+    markRankUpSeen,
+    saveSquadArchitectScenario,
+    saveBadgePlan,
+    updateBadgePlanStatus,
+    updateBadgePlanChecklist,
+    getBadgePlan,
+    updateVozhatifikatorChecklist,
   };
 });

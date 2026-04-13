@@ -163,10 +163,10 @@ const CategoriesGrid: React.FC<CategoriesGridProps> = ({
           position: 'relative',
           overflow: 'hidden',
           border: 'none', // Reset button border
-          padding: 0,     // Reset button padding (handled by CSS class)
+          padding: 0, // Reset button padding (handled by CSS class)
           textAlign: 'left', // Ensure text alignment
           fontFamily: 'inherit',
-          width: '100%' // Ensure full width
+          width: '100%', // Ensure full width
         }}
       >
         {showEmoji && (
@@ -217,7 +217,10 @@ const CategoriesGrid: React.FC<CategoriesGridProps> = ({
 
       {/* GlobalCursor renders the custom cursor layer once at app root */}
 
-      <header className={`mobile-glass-header${isChatOpen ? ' is-chat-open' : ''}`} aria-label="Навигация">
+      <header
+        className={`mobile-glass-header${isChatOpen ? ' is-chat-open' : ''}`}
+        aria-label="Навигация"
+      >
         <button
           type="button"
           className={`mobile-header-logo${isChatOpen ? ' is-active' : ''}`}
@@ -249,7 +252,12 @@ const CategoriesGrid: React.FC<CategoriesGridProps> = ({
           >
             <picture>
               <source type="image/webp" srcSet="/RL-Guide-book/Валюша.webp" />
-              <img src="/RL-Guide-book/Валюша.jpg" alt="НейроВалюша" decoding="async" fetchpriority="high" />
+              <img
+                src="/RL-Guide-book/Валюша.jpg"
+                alt="НейроВалюша"
+                decoding="async"
+                fetchpriority="high"
+              />
             </picture>
           </button>
         </div>
@@ -270,12 +278,21 @@ const CategoriesGrid: React.FC<CategoriesGridProps> = ({
       >
         <div className="mobile-menu-head">
           <span className="mobile-menu-title">Меню</span>
-          <button type="button" className="mobile-menu-close" onClick={closeMenu} aria-label="Закрыть меню">
+          <button
+            type="button"
+            className="mobile-menu-close"
+            onClick={closeMenu}
+            aria-label="Закрыть меню"
+          >
             &times;
           </button>
         </div>
         <div className="mobile-menu-list">
-          <button type="button" className="mobile-menu-item" onClick={() => handleMenuAction(onBackClick)}>
+          <button
+            type="button"
+            className="mobile-menu-item"
+            onClick={() => handleMenuAction(onBackClick)}
+          >
             <span className="mobile-menu-item-label">Главная</span>
             <span className="mobile-menu-item-icon">&rsaquo;</span>
           </button>
@@ -288,15 +305,27 @@ const CategoriesGrid: React.FC<CategoriesGridProps> = ({
             <span className="mobile-menu-item-label">Категории</span>
             <span className="mobile-menu-item-icon">&bull;</span>
           </button>
-          <button type="button" className="mobile-menu-item" onClick={() => handleMenuAction(onAboutCampClick)}>
+          <button
+            type="button"
+            className="mobile-menu-item"
+            onClick={() => handleMenuAction(onAboutCampClick)}
+          >
             <span className="mobile-menu-item-label">О лагере</span>
             <span className="mobile-menu-item-icon">&rsaquo;</span>
           </button>
-          <button type="button" className="mobile-menu-item" onClick={() => handleMenuAction(handleOpenVk)}>
+          <button
+            type="button"
+            className="mobile-menu-item"
+            onClick={() => handleMenuAction(handleOpenVk)}
+          >
             <span className="mobile-menu-item-label">ВКонтакте</span>
             <span className="mobile-menu-item-icon">&rsaquo;</span>
           </button>
-          <button type="button" className="mobile-menu-item mobile-menu-item-cta" onClick={() => handleMenuAction(onTelegramContact)}>
+          <button
+            type="button"
+            className="mobile-menu-item mobile-menu-item-cta"
+            onClick={() => handleMenuAction(onTelegramContact)}
+          >
             <span className="mobile-menu-item-label">Записаться через Telegram</span>
             <span className="mobile-menu-item-icon">&rsaquo;</span>
           </button>
@@ -322,7 +351,8 @@ const CategoriesGrid: React.FC<CategoriesGridProps> = ({
           fetchpriority="high"
           style={{
             height: 'auto',
-            filter: 'drop-shadow(0 0 15px rgba(255, 140, 66, 0.8)) drop-shadow(0 0 30px rgba(255, 140, 66, 0.6)) drop-shadow(0 0 45px rgba(255, 140, 66, 0.4))',
+            filter:
+              'drop-shadow(0 0 15px rgba(255, 140, 66, 0.8)) drop-shadow(0 0 30px rgba(255, 140, 66, 0.6)) drop-shadow(0 0 45px rgba(255, 140, 66, 0.4))',
             pointerEvents: 'none',
           }}
         />
@@ -357,10 +387,12 @@ const CategoriesGrid: React.FC<CategoriesGridProps> = ({
               <div className="hero-marquee-mini">
                 <div className="marquee-track-mini">
                   <div className="marquee-item-mini">
-                    ВЫБИРАЙ ЗВЕЗДУ. ДВИГАЙСЯ ВПЕРЁД. ОСТАВЛЯЙ СЛЕД. ТВОЙ ОПЫТ — ТВОЙ ПУТЬ. РЕАЛЬНЫЕ ЗНАЧКИ ПОДСКАЖУТ, КУДА ИДТИ. •{' '}
+                    ВЫБИРАЙ ЗВЕЗДУ. ДВИГАЙСЯ ВПЕРЁД. ОСТАВЛЯЙ СЛЕД. ТВОЙ ОПЫТ — ТВОЙ ПУТЬ. РЕАЛЬНЫЕ
+                    ЗНАЧКИ ПОДСКАЖУТ, КУДА ИДТИ. •{' '}
                   </div>
                   <div className="marquee-item-mini">
-                    ВЫБИРАЙ ЗВЕЗДУ. ДВИГАЙСЯ ВПЕРЁД. ОСТАВЛЯЙ СЛЕД. ТВОЙ ОПЫТ — ТВОЙ ПУТЬ. РЕАЛЬНЫЕ ЗНАЧКИ ПОДСКАЖУТ, КУДА ИДТИ. •{' '}
+                    ВЫБИРАЙ ЗВЕЗДУ. ДВИГАЙСЯ ВПЕРЁД. ОСТАВЛЯЙ СЛЕД. ТВОЙ ОПЫТ — ТВОЙ ПУТЬ. РЕАЛЬНЫЕ
+                    ЗНАЧКИ ПОДСКАЖУТ, КУДА ИДТИ. •{' '}
                   </div>
                 </div>
               </div>
@@ -380,7 +412,17 @@ const CategoriesGrid: React.FC<CategoriesGridProps> = ({
               {bottomRowCategories.map((category) => renderCategoryCard(category))}
             </div>
           ) : (
-            <div className="right-column" style={{ gridColumn: '1', gridRow: '1', width: '100%', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
+            <div
+              className="right-column"
+              style={{
+                gridColumn: '1',
+                gridRow: '1',
+                width: '100%',
+                display: 'grid',
+                gridTemplateColumns: 'repeat(3, 1fr)',
+                gap: '10px',
+              }}
+            >
               {limitedCategories.map((category) => renderCategoryCard(category))}
             </div>
           )}
@@ -390,9 +432,9 @@ const CategoriesGrid: React.FC<CategoriesGridProps> = ({
       {/* ChatBot and ChatAvatar */}
       <Suspense fallback={null}>
         <ChatAvatar onClick={onChatToggle} isOpen={isChatOpen} />
-        <ChatBot 
-          isOpen={isChatOpen} 
-          onClose={onChatClose} 
+        <ChatBot
+          isOpen={isChatOpen}
+          onClose={onChatClose}
           currentView={currentView}
           currentCategory={selectedCategory}
           currentBadge={selectedBadge}
@@ -405,4 +447,3 @@ const CategoriesGrid: React.FC<CategoriesGridProps> = ({
 };
 
 export default CategoriesGrid;
-

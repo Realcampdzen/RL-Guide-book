@@ -2,7 +2,9 @@ function getApiBase(): string {
   if (typeof window === 'undefined') return '';
   const hostname = window.location.hostname;
   const useLocal = import.meta.env.DEV || hostname === 'localhost' || hostname === '127.0.0.1';
-  return useLocal ? '' : ((import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || '')).replace(/\/$/, '');
+  return useLocal
+    ? ''
+    : (import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || '').replace(/\/$/, '');
 }
 
 export interface AuthProfilePatchPayload {
@@ -10,7 +12,10 @@ export interface AuthProfilePatchPayload {
   avatar_url?: string;
 }
 
-export async function syncAuthProfile(accessToken: string, payload: AuthProfilePatchPayload): Promise<void> {
+export async function syncAuthProfile(
+  accessToken: string,
+  payload: AuthProfilePatchPayload
+): Promise<void> {
   if (!accessToken) return;
 
   const body: Record<string, string> = {};

@@ -1,18 +1,18 @@
 // Chat functionality for AI Studio
 
 let chatOpen = false;
-let messageHistory = [];
+const messageHistory = [];
 
 // Open chat widget
 function openChat() {
   const chatWidget = document.getElementById('chat-widget');
   const chatButton = document.getElementById('chat-button');
-  
+
   if (chatWidget && chatButton) {
     chatWidget.classList.remove('hidden');
     chatButton.classList.add('hidden');
     chatOpen = true;
-    
+
     // Focus on input
     setTimeout(() => {
       const input = document.getElementById('chat-input');
@@ -25,7 +25,7 @@ function openChat() {
 function closeChat() {
   const chatWidget = document.getElementById('chat-widget');
   const chatButton = document.getElementById('chat-button');
-  
+
   if (chatWidget && chatButton) {
     chatWidget.classList.add('hidden');
     chatButton.classList.remove('hidden');
@@ -37,10 +37,12 @@ function closeChat() {
 function addMessage(text, isUser = false) {
   const messagesContainer = document.getElementById('chat-messages');
   if (!messagesContainer) return;
-  
+
   const messageDiv = document.createElement('div');
-  messageDiv.className = isUser ? 'flex items-start space-x-2 justify-end' : 'flex items-start space-x-2';
-  
+  messageDiv.className = isUser
+    ? 'flex items-start space-x-2 justify-end'
+    : 'flex items-start space-x-2';
+
   if (isUser) {
     messageDiv.innerHTML = `
       <div class="bg-indigo-600 text-white p-3 rounded-lg shadow-sm max-w-[80%]">
@@ -60,9 +62,9 @@ function addMessage(text, isUser = false) {
       </div>
     `;
   }
-  
+
   messagesContainer.appendChild(messageDiv);
-  
+
   // Scroll to bottom
   messagesContainer.scrollTop = messagesContainer.scrollHeight;
 }
@@ -71,7 +73,7 @@ function addMessage(text, isUser = false) {
 function addTypingIndicator() {
   const messagesContainer = document.getElementById('chat-messages');
   if (!messagesContainer) return;
-  
+
   const typingDiv = document.createElement('div');
   typingDiv.id = 'typing-indicator';
   typingDiv.className = 'flex items-start space-x-2';
@@ -87,7 +89,7 @@ function addTypingIndicator() {
       </div>
     </div>
   `;
-  
+
   messagesContainer.appendChild(typingDiv);
   messagesContainer.scrollTop = messagesContainer.scrollHeight;
 }
@@ -108,13 +110,13 @@ async function sendMessage(message) {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ message })
+      body: JSON.stringify({ message }),
     });
-    
+
     if (!response.ok) {
       throw new Error('Failed to send message');
     }
-    
+
     const data = await response.json();
     return data.response;
   } catch (error) {
@@ -134,30 +136,30 @@ function escapeHtml(text) {
 function initChat() {
   const chatForm = document.getElementById('chat-form');
   const chatInput = document.getElementById('chat-input');
-  
+
   if (chatForm && chatInput) {
     chatForm.addEventListener('submit', async (e) => {
       e.preventDefault();
-      
+
       const message = chatInput.value.trim();
       if (!message) return;
-      
+
       // Add user message
       addMessage(message, true);
       messageHistory.push({ role: 'user', content: message });
-      
+
       // Clear input
       chatInput.value = '';
-      
+
       // Show typing indicator
       addTypingIndicator();
-      
+
       // Send to API
       const response = await sendMessage(message);
-      
+
       // Remove typing indicator
       removeTypingIndicator();
-      
+
       // Add bot response
       addMessage(response, false);
       messageHistory.push({ role: 'assistant', content: response });

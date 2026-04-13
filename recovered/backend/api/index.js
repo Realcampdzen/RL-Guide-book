@@ -1,6 +1,7 @@
 // API для Путеводителя Реального Лагеря с полной архитектурой локального бота
-import { dataLoader } from '../data_loader.js';
+
 import { contextManager } from '../context_manager.js';
+import { dataLoader } from '../data_loader.js';
 import { responseGenerator } from '../response_generator.js';
 
 export default async function handler(req, res) {
@@ -22,7 +23,7 @@ export default async function handler(req, res) {
       dataLoader.loadAllData();
     }
   } catch (error) {
-    console.error("Ошибка инициализации данных:", error);
+    console.error('Ошибка инициализации данных:', error);
   }
 
   if (pathname === '/api/stats') {
@@ -30,14 +31,14 @@ export default async function handler(req, res) {
       const stats = dataLoader.getStats();
       res.status(200).json({
         ...stats,
-        message: "Статистика из Vercel API с полной базой данных"
+        message: 'Статистика из Vercel API с полной базой данных',
       });
     } catch (error) {
       res.status(200).json({
         total_categories: 14,
         total_badges: 119,
         total_levels: 242,
-        message: "Статистика из Vercel API (fallback)"
+        message: 'Статистика из Vercel API (fallback)',
       });
     }
     return;
@@ -47,9 +48,9 @@ export default async function handler(req, res) {
     if (req.method === 'POST') {
       try {
         const { message, user_id = 'web_user', context } = req.body;
-        
+
         if (!message) {
-          res.status(400).json({ error: "Сообщение не может быть пустым" });
+          res.status(400).json({ error: 'Сообщение не может быть пустым' });
           return;
         }
 
@@ -61,38 +62,43 @@ export default async function handler(req, res) {
 
         // Получаем историю сообщений пользователя
         const conversationHistory = contextManager.getConversationHistory(user_id);
-        console.log(`💬 История диалога (${conversationHistory.length} сообщений):`, JSON.stringify(conversationHistory.slice(-3), null, 2));
-        
+        console.log(
+          `💬 История диалога (${conversationHistory.length} сообщений):`,
+          JSON.stringify(conversationHistory.slice(-3), null, 2)
+        );
+
         // Получаем обновленный контекст для отладки
         const userContext = contextManager.getUserContext(user_id);
-        console.log(`👤 Контекст пользователя после обновления:`, JSON.stringify(userContext, null, 2));
-        
+        console.log(
+          `👤 Контекст пользователя после обновления:`,
+          JSON.stringify(userContext, null, 2)
+        );
+
         // Добавляем новое сообщение пользователя в историю
         contextManager.addMessageToHistory(user_id, {
-          role: "user",
+          role: 'user',
           content: message,
-          metadata: {}
+          metadata: {},
         });
-        
+
         // Генерируем ответ
         const response = await responseGenerator.generateResponse(
           message,
           user_id,
           conversationHistory
         );
-        
+
         // Добавляем ответ бота в историю
         contextManager.addMessageToHistory(user_id, {
-          role: "assistant",
+          role: 'assistant',
           content: response.response,
-          metadata: response.metadata
+          metadata: response.metadata,
         });
-        
-        res.status(200).json(response);
 
+        res.status(200).json(response);
       } catch (error) {
-        console.error("Ошибка AI:", error);
-        
+        console.error('Ошибка AI:', error);
+
         // Fallback ответ при ошибке AI
         const { message } = req.body;
         res.status(200).json({
@@ -110,15 +116,15 @@ export default async function handler(req, res) {
 
 Что тебя больше всего интересует? 😊`,
           suggestions: [
-            "Покажи все категории значков",
-            "Рекомендуй значки по моим интересам",
-            "Объясни философию системы значков"
+            'Покажи все категории значков',
+            'Рекомендуй значки по моим интересам',
+            'Объясни философию системы значков',
           ],
           context_updates: null,
           metadata: {
             error: error.message,
-            timestamp: new Date().toISOString()
-          }
+            timestamp: new Date().toISOString(),
+          },
         });
       }
       return;
@@ -127,19 +133,16 @@ export default async function handler(req, res) {
 
   // Главная страница
   res.status(200).json({
-    message: "API для Путеводителя Реального Лагеря с полной архитектурой",
-    endpoints: [
-      "/api/stats",
-      "/api/chat"
-    ],
-    status: "ready",
-    ai: "OpenAI GPT-4o-mini",
+    message: 'API для Путеводителя Реального Лагеря с полной архитектурой',
+    endpoints: ['/api/stats', '/api/chat'],
+    status: 'ready',
+    ai: 'OpenAI GPT-4o-mini',
     features: [
-      "Полная база данных значков (119 значков, 14 категорий)",
-      "Контекстный анализ запросов",
-      "История диалога",
-      "Персонализированные рекомендации",
-      "Умный анализ типов запросов"
-    ]
+      'Полная база данных значков (119 значков, 14 категорий)',
+      'Контекстный анализ запросов',
+      'История диалога',
+      'Персонализированные рекомендации',
+      'Умный анализ типов запросов',
+    ],
   });
 }

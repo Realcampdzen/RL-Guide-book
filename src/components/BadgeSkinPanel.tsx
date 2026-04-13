@@ -1,9 +1,7 @@
-import React, { useMemo, useRef, useState } from 'react';
+import type React from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useUserProgress } from '../hooks/useUserProgress';
-import ActionBar from './ActionBar';
-import StatusChips, { type StatusChipItem } from './StatusChips';
-import { requestImageGenerate } from '../utils/imageGenerateApi';
 import {
   getAiSkinId,
   getApprovedArtSkinId,
@@ -13,6 +11,9 @@ import {
   parseAiSkinSlotIndex,
   parseApprovedArtSkinSlotIndex,
 } from '../utils/badgeSkins';
+import { requestImageGenerate } from '../utils/imageGenerateApi';
+import ActionBar from './ActionBar';
+import StatusChips, { type StatusChipItem } from './StatusChips';
 
 interface BadgeSkinPanelProps {
   badgeTitle: string;
@@ -38,7 +39,7 @@ const BadgeSkinPanel: React.FC<BadgeSkinPanelProps> = ({
   inProgressMax,
   inProgressHint,
   disabled = false,
-  disabledHint
+  disabledHint,
 }) => {
   const { accessToken, role } = useAuth();
   const {
@@ -47,7 +48,7 @@ const BadgeSkinPanel: React.FC<BadgeSkinPanelProps> = ({
     addGeneratedBadgeSkin,
     removeGeneratedBadgeSkin,
     submitBadgeArtProposal,
-    removeApprovedBadgeSkin
+    removeApprovedBadgeSkin,
   } = useUserProgress();
   const customArtInputRef = useRef<HTMLInputElement>(null);
 
@@ -80,19 +81,28 @@ const BadgeSkinPanel: React.FC<BadgeSkinPanelProps> = ({
   }, [userData.approvedBadgeSkins, badgeBaseId]);
 
   const pendingArtProposalsCount = useMemo(() => {
-    return (userData.badgeArtProposals || []).filter((proposal) => (
-      proposal.badgeBaseId === badgeBaseId && proposal.status === 'pending'
-    )).length;
+    return (userData.badgeArtProposals || []).filter(
+      (proposal) => proposal.badgeBaseId === badgeBaseId && proposal.status === 'pending'
+    ).length;
   }, [userData.badgeArtProposals, badgeBaseId]);
 
   const isAiSkinLimitReached = generatedSkins.length >= MAX_BADGE_AI_SKINS;
   const isApprovedLimitReached = approvedSkins.length >= MAX_BADGE_APPROVED_ARTS;
   const hasApprovedArt = approvedSkins.length > 0;
   const uploadButtonLabel = hasApprovedArt ? '📤 Предложить другой арт' : '📤 Предложить свой арт';
-  const isModeratorRole = role === 'counselor' || role === 'educator' || role === 'shift_leader' || role === 'camp_director' || role === 'developer';
+  const isModeratorRole =
+    role === 'counselor' ||
+    role === 'educator' ||
+    role === 'shift_leader' ||
+    role === 'camp_director' ||
+    role === 'developer';
   const aiSlotIndex = parseAiSkinSlotIndex(currentSkin);
   const approvedSlotIndex = parseApprovedArtSkinSlotIndex(currentSkin);
-  const isMyArtSelected = aiSlotIndex !== null || approvedSlotIndex !== null || currentSkin === 'custom' || isDataOrUrl(currentSkin);
+  const isMyArtSelected =
+    aiSlotIndex !== null ||
+    approvedSlotIndex !== null ||
+    currentSkin === 'custom' ||
+    isDataOrUrl(currentSkin);
   const hasMyArt = generatedSkins.length > 0 || approvedSkins.length > 0;
 
   const handleSkinChange = (skin: string) => {
@@ -152,7 +162,9 @@ const BadgeSkinPanel: React.FC<BadgeSkinPanelProps> = ({
       );
       setAiSkinPreviewUrl(image);
     } catch (e) {
-      setAiSkinError(e instanceof Error ? e.message : 'Не удалось сгенерировать арт. Попробуй позже.');
+      setAiSkinError(
+        e instanceof Error ? e.message : 'Не удалось сгенерировать арт. Попробуй позже.'
+      );
     } finally {
       setAiSkinBusy(false);
     }
@@ -232,7 +244,7 @@ const BadgeSkinPanel: React.FC<BadgeSkinPanelProps> = ({
       badgeTitle,
       categoryId,
       categoryTitle,
-      imageUrl: artProposalDraftUrl
+      imageUrl: artProposalDraftUrl,
     });
     if (!result.ok) {
       setArtProposalBusy(false);
@@ -319,10 +331,14 @@ const BadgeSkinPanel: React.FC<BadgeSkinPanelProps> = ({
         pendingCount={pendingArtProposalsCount}
         disabled={disabled}
         aiDisabled={isAiSkinLimitReached}
-        aiTitle={isAiSkinLimitReached ? `Лимит ${MAX_BADGE_AI_SKINS}/${MAX_BADGE_AI_SKINS}` : undefined}
+        aiTitle={
+          isAiSkinLimitReached ? `Лимит ${MAX_BADGE_AI_SKINS}/${MAX_BADGE_AI_SKINS}` : undefined
+        }
         myArtDisabled={!hasMyArt && !isMyArtSelected}
         myArtTitle={!hasMyArt ? 'Сначала создай арт через ИИ или загрузи свой арт' : undefined}
-        uploadTitle={isApprovedLimitReached ? `Лимит одобренных артов: ${MAX_BADGE_APPROVED_ARTS}` : undefined}
+        uploadTitle={
+          isApprovedLimitReached ? `Лимит одобренных артов: ${MAX_BADGE_APPROVED_ARTS}` : undefined
+        }
       />
 
       <StatusChips items={statusItems} />
@@ -331,16 +347,22 @@ const BadgeSkinPanel: React.FC<BadgeSkinPanelProps> = ({
         <div className="badge-status-content" aria-label="Панель ИИ-артов">
           <div className="badge-skin-gallery__head">
             <span className="badge-skin-gallery__title">ИИ-арты</span>
-            <span className="badge-skin-gallery__count">{generatedSkins.length}/{MAX_BADGE_AI_SKINS}</span>
+            <span className="badge-skin-gallery__count">
+              {generatedSkins.length}/{MAX_BADGE_AI_SKINS}
+            </span>
           </div>
           {generatedSkins.length > 0 ? (
             <div className="badge-skin-gallery__list">
               {generatedSkins.map((url, index) => {
                 const aiSkinId = getAiSkinId(index);
                 const isActive = currentSkin === aiSkinId;
-                const isDeleteConfirmOpen = pendingDelete?.kind === 'ai' && pendingDelete.slotIndex === index;
+                const isDeleteConfirmOpen =
+                  pendingDelete?.kind === 'ai' && pendingDelete.slotIndex === index;
                 return (
-                  <div key={aiSkinId} className={`badge-skin-gallery__item${isActive ? ' is-active' : ''}`}>
+                  <div
+                    key={aiSkinId}
+                    className={`badge-skin-gallery__item${isActive ? ' is-active' : ''}`}
+                  >
                     <button
                       type="button"
                       className="badge-skin-gallery__pick"
@@ -363,7 +385,11 @@ const BadgeSkinPanel: React.FC<BadgeSkinPanelProps> = ({
                         openDeleteConfirm('ai', index);
                       }}
                       disabled={disabled}
-                      aria-label={isDeleteConfirmOpen ? `Подтвердить удаление ИИ-арта ${index + 1}` : `Удалить ИИ-арт ${index + 1}`}
+                      aria-label={
+                        isDeleteConfirmOpen
+                          ? `Подтвердить удаление ИИ-арта ${index + 1}`
+                          : `Удалить ИИ-арт ${index + 1}`
+                      }
                     >
                       {isDeleteConfirmOpen ? '!' : '×'}
                     </button>
@@ -400,9 +426,7 @@ const BadgeSkinPanel: React.FC<BadgeSkinPanelProps> = ({
               })}
             </div>
           ) : (
-            <div className="badge-skin-gallery__empty">
-              Пока пусто. Сгенерируй первый вариант.
-            </div>
+            <div className="badge-skin-gallery__empty">Пока пусто. Сгенерируй первый вариант.</div>
           )}
         </div>
       )}
@@ -411,16 +435,22 @@ const BadgeSkinPanel: React.FC<BadgeSkinPanelProps> = ({
         <div className="badge-status-content" aria-label="Панель одобренных артов">
           <div className="badge-skin-gallery__head">
             <span className="badge-skin-gallery__title">Одобренные арты</span>
-            <span className="badge-skin-gallery__count">{approvedSkins.length}/{MAX_BADGE_APPROVED_ARTS}</span>
+            <span className="badge-skin-gallery__count">
+              {approvedSkins.length}/{MAX_BADGE_APPROVED_ARTS}
+            </span>
           </div>
           {approvedSkins.length > 0 ? (
             <div className="badge-skin-gallery__list">
               {approvedSkins.map((url, index) => {
                 const approvedSkinId = getApprovedArtSkinId(index);
                 const isActive = currentSkin === approvedSkinId;
-                const isDeleteConfirmOpen = pendingDelete?.kind === 'approved' && pendingDelete.slotIndex === index;
+                const isDeleteConfirmOpen =
+                  pendingDelete?.kind === 'approved' && pendingDelete.slotIndex === index;
                 return (
-                  <div key={approvedSkinId} className={`badge-skin-gallery__item${isActive ? ' is-active' : ''}`}>
+                  <div
+                    key={approvedSkinId}
+                    className={`badge-skin-gallery__item${isActive ? ' is-active' : ''}`}
+                  >
                     <button
                       type="button"
                       className="badge-skin-gallery__pick"
@@ -443,7 +473,11 @@ const BadgeSkinPanel: React.FC<BadgeSkinPanelProps> = ({
                         openDeleteConfirm('approved', index);
                       }}
                       disabled={disabled}
-                      aria-label={isDeleteConfirmOpen ? `Подтвердить удаление арта ${index + 1}` : `Удалить арт ${index + 1}`}
+                      aria-label={
+                        isDeleteConfirmOpen
+                          ? `Подтвердить удаление арта ${index + 1}`
+                          : `Удалить арт ${index + 1}`
+                      }
                     >
                       {isDeleteConfirmOpen ? '!' : '×'}
                     </button>
@@ -488,17 +522,29 @@ const BadgeSkinPanel: React.FC<BadgeSkinPanelProps> = ({
       )}
 
       {activeStatus === 'progress' && (
-        <div className="badge-status-content badge-status-content--progress" aria-label="Панель коллекции">
+        <div
+          className="badge-status-content badge-status-content--progress"
+          aria-label="Панель коллекции"
+        >
           <div className="badge-status-content__progress">
             <div className="badge-status-content__progress-title">В коллекции</div>
-            <div className="badge-status-content__progress-value">{inProgressCount}/{inProgressMax}</div>
+            <div className="badge-status-content__progress-value">
+              {inProgressCount}/{inProgressMax}
+            </div>
           </div>
           <div className="badge-status-content__progress-hint">{inProgressHint}</div>
         </div>
       )}
 
       {panelError && (
-        <div className="badge-skin-lock-note" style={{ borderColor: 'rgba(255,120,120,0.45)', color: '#ffcbcb', background: 'rgba(120,20,20,0.22)' }}>
+        <div
+          className="badge-skin-lock-note"
+          style={{
+            borderColor: 'rgba(255,120,120,0.45)',
+            color: '#ffcbcb',
+            background: 'rgba(120,20,20,0.22)',
+          }}
+        >
           {panelError}
         </div>
       )}
@@ -545,7 +591,8 @@ const BadgeSkinPanel: React.FC<BadgeSkinPanelProps> = ({
               Создать арт значка с помощью ИИ
             </h3>
             <p style={{ fontSize: 12, opacity: 0.75, marginBottom: 16, lineHeight: 1.5 }}>
-              ИИ сгенерирует новый визуал для значка «{badgeTitle}». Слоты: {generatedSkins.length}/{MAX_BADGE_AI_SKINS}.
+              ИИ сгенерирует новый визуал для значка «{badgeTitle}». Слоты: {generatedSkins.length}/
+              {MAX_BADGE_AI_SKINS}.
             </p>
             <div style={{ marginBottom: 16 }}>
               <div
@@ -580,7 +627,12 @@ const BadgeSkinPanel: React.FC<BadgeSkinPanelProps> = ({
             {aiSkinError ? (
               <div className="profile-error profile-error--not-found" style={{ marginBottom: 16 }}>
                 {aiSkinError}
-                <button type="button" className="btn-secondary" style={{ marginTop: 8 }} onClick={handleGenerateAiSkin}>
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  style={{ marginTop: 8 }}
+                  onClick={handleGenerateAiSkin}
+                >
                   Повторить
                 </button>
               </div>
@@ -596,7 +648,11 @@ const BadgeSkinPanel: React.FC<BadgeSkinPanelProps> = ({
                     border: '1px solid rgba(255,255,255,0.2)',
                   }}
                 >
-                  <img src={aiSkinPreviewUrl} alt="Превью арта" style={{ width: '100%', height: 'auto', display: 'block' }} />
+                  <img
+                    src={aiSkinPreviewUrl}
+                    alt="Превью арта"
+                    style={{ width: '100%', height: 'auto', display: 'block' }}
+                  />
                 </div>
                 <button
                   type="button"
@@ -617,7 +673,9 @@ const BadgeSkinPanel: React.FC<BadgeSkinPanelProps> = ({
                 </button>
               </>
             ) : aiSkinBusy ? (
-              <p className="profile-loading" style={{ textAlign: 'center', padding: '16px' }}>Генерируем арт...</p>
+              <p className="profile-loading" style={{ textAlign: 'center', padding: '16px' }}>
+                Генерируем арт...
+              </p>
             ) : (
               <button
                 type="button"
@@ -692,7 +750,8 @@ const BadgeSkinPanel: React.FC<BadgeSkinPanelProps> = ({
               Отправить версию значка на согласование
             </h3>
             <p style={{ fontSize: 12, opacity: 0.78, marginBottom: 12, lineHeight: 1.5 }}>
-              После утверждения арт появится в разделе «Одобренные арты» и его можно будет выбрать как арт.
+              После утверждения арт появится в разделе «Одобренные арты» и его можно будет выбрать
+              как арт.
             </p>
             {isModeratorRole && (
               <p style={{ fontSize: 12, opacity: 0.62, marginTop: 0, marginBottom: 12 }}>
@@ -710,7 +769,11 @@ const BadgeSkinPanel: React.FC<BadgeSkinPanelProps> = ({
                   border: '1px solid rgba(255,255,255,0.2)',
                 }}
               >
-                <img src={artProposalDraftUrl} alt="Новый арт значка" style={{ width: '100%', height: 'auto', display: 'block' }} />
+                <img
+                  src={artProposalDraftUrl}
+                  alt="Новый арт значка"
+                  style={{ width: '100%', height: 'auto', display: 'block' }}
+                />
               </div>
             )}
             {artProposalError && (
@@ -719,7 +782,16 @@ const BadgeSkinPanel: React.FC<BadgeSkinPanelProps> = ({
               </div>
             )}
             {artProposalSuccess && (
-              <div style={{ marginBottom: 12, border: '1px solid rgba(89, 255, 168, 0.45)', background: 'rgba(70, 180, 120, 0.18)', borderRadius: 10, padding: '10px 12px', fontSize: 12 }}>
+              <div
+                style={{
+                  marginBottom: 12,
+                  border: '1px solid rgba(89, 255, 168, 0.45)',
+                  background: 'rgba(70, 180, 120, 0.18)',
+                  borderRadius: 10,
+                  padding: '10px 12px',
+                  fontSize: 12,
+                }}
+              >
                 {artProposalSuccess}
               </div>
             )}
@@ -735,11 +807,19 @@ const BadgeSkinPanel: React.FC<BadgeSkinPanelProps> = ({
                 border: 'none',
                 borderRadius: 12,
                 fontWeight: 700,
-                cursor: artProposalBusy || !artProposalDraftUrl || Boolean(artProposalSuccess) ? 'not-allowed' : 'pointer',
-                opacity: artProposalBusy || !artProposalDraftUrl || Boolean(artProposalSuccess) ? 0.65 : 1,
+                cursor:
+                  artProposalBusy || !artProposalDraftUrl || Boolean(artProposalSuccess)
+                    ? 'not-allowed'
+                    : 'pointer',
+                opacity:
+                  artProposalBusy || !artProposalDraftUrl || Boolean(artProposalSuccess) ? 0.65 : 1,
               }}
             >
-              {artProposalBusy ? 'Отправляем...' : artProposalSuccess ? 'Отправлено' : 'Отправить на согласование'}
+              {artProposalBusy
+                ? 'Отправляем...'
+                : artProposalSuccess
+                  ? 'Отправлено'
+                  : 'Отправить на согласование'}
             </button>
             <button
               type="button"

@@ -1,4 +1,5 @@
-import React, { useEffect } from 'react';
+import type React from 'react';
+import { useEffect } from 'react';
 import { useUserProgress } from '../hooks/useUserProgress';
 
 export const PathFavToast: React.FC = () => {

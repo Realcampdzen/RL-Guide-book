@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import type React from 'react';
+import { useState } from 'react';
 
 interface DayEvent {
   name: string;
@@ -63,7 +64,8 @@ const PROGRAM_9_DAYS: DayProgram[] = [
   {
     day: 2,
     skill4k: 'Коммуникативность и эмоциональный интеллект',
-    techNote: 'Игровые технологии, здоровьесберегающие технологии, ТРИЗ, технология мастерских, ИКТ',
+    techNote:
+      'Игровые технологии, здоровьесберегающие технологии, ТРИЗ, технология мастерских, ИКТ',
     events: [
       {
         name: '«Часики» — закрепление знакомства',
@@ -126,7 +128,8 @@ const PROGRAM_9_DAYS: DayProgram[] = [
   {
     day: 3,
     skill4k: 'Коллаборация (кооперация) и сотрудничество в команде',
-    techNote: 'Технологии группового взаимодействия, игровые технологии, педагогика сотрудничества, ИКТ',
+    techNote:
+      'Технологии группового взаимодействия, игровые технологии, педагогика сотрудничества, ИКТ',
     events: [
       {
         name: 'Создание Движков (первая планёрка)',
@@ -177,7 +180,8 @@ const PROGRAM_9_DAYS: DayProgram[] = [
   {
     day: 4,
     skill4k: 'Коллаборация (кооперация) и сотрудничество в команде',
-    techNote: 'Проектная технология, технологии группового взаимодействия, технологии проблемного обучения, ИКТ',
+    techNote:
+      'Проектная технология, технологии группового взаимодействия, технологии проблемного обучения, ИКТ',
     events: [
       {
         name: 'Тренинг «Проектная деятельность», отрядное дело «Стартапы»',
@@ -259,7 +263,8 @@ const PROGRAM_9_DAYS: DayProgram[] = [
   {
     day: 6,
     skill4k: 'Креативность и творчество',
-    techNote: 'ТРИЗ, проектная технология, технологии группового взаимодействия, ИКТ (ИИ-изображения)',
+    techNote:
+      'ТРИЗ, проектная технология, технологии группового взаимодействия, ИКТ (ИИ-изображения)',
     events: [
       {
         name: 'Защита проектов',
@@ -333,7 +338,8 @@ const PROGRAM_9_DAYS: DayProgram[] = [
   {
     day: 8,
     skill4k: 'Критическое мышление и лидерство',
-    techNote: 'Технологии критического мышления, игровые технологии, проектная технология, педагогика сотрудничества',
+    techNote:
+      'Технологии критического мышления, игровые технологии, проектная технология, педагогика сотрудничества',
     events: [
       {
         name: 'Игра «Кораблекрушение»',
@@ -385,7 +391,6 @@ const PROGRAM_9_DAYS: DayProgram[] = [
 const ACCENT = 'rgba(93, 228, 255, 0.9)';
 const ACCENT_BORDER = 'rgba(93, 228, 255, 0.25)';
 
-
 const EventCard: React.FC<{ event: DayEvent; index: number }> = ({ event, index }) => {
   const [expanded, setExpanded] = useState(false);
 
@@ -401,17 +406,40 @@ const EventCard: React.FC<{ event: DayEvent; index: number }> = ({ event, index 
     >
       <button
         type="button"
-        onClick={() => setExpanded(v => !v)}
+        onClick={() => setExpanded((v) => !v)}
         style={{
-          display: 'flex', alignItems: 'flex-start', gap: 10,
-          padding: '9px 14px', width: '100%', textAlign: 'left',
-          background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit',
+          display: 'flex',
+          alignItems: 'flex-start',
+          gap: 10,
+          padding: '9px 14px',
+          width: '100%',
+          textAlign: 'left',
+          background: 'none',
+          border: 'none',
+          cursor: 'pointer',
+          fontFamily: 'inherit',
         }}
       >
-        <span style={{ color: ACCENT, fontSize: 12, fontWeight: 700, flexShrink: 0, marginTop: 1, minWidth: 20 }}>
+        <span
+          style={{
+            color: ACCENT,
+            fontSize: 12,
+            fontWeight: 700,
+            flexShrink: 0,
+            marginTop: 1,
+            minWidth: 20,
+          }}
+        >
           {String(index + 1).padStart(2, '0')}
         </span>
-        <span style={{ fontSize: 13, color: expanded ? '#a5f3fc' : 'rgba(255,255,255,0.85)', lineHeight: 1.45, flex: 1 }}>
+        <span
+          style={{
+            fontSize: 13,
+            color: expanded ? '#a5f3fc' : 'rgba(255,255,255,0.85)',
+            lineHeight: 1.45,
+            flex: 1,
+          }}
+        >
           {event.name}
         </span>
         <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', flexShrink: 0, marginTop: 2 }}>
@@ -419,7 +447,14 @@ const EventCard: React.FC<{ event: DayEvent; index: number }> = ({ event, index 
         </span>
       </button>
       {expanded && (
-        <div style={{ padding: '0 14px 12px 44px', fontSize: 12, color: 'rgba(255,255,255,0.6)', lineHeight: 1.65 }}>
+        <div
+          style={{
+            padding: '0 14px 12px 44px',
+            fontSize: 12,
+            color: 'rgba(255,255,255,0.6)',
+            lineHeight: 1.65,
+          }}
+        >
           {event.desc}
         </div>
       )}
@@ -429,13 +464,22 @@ const EventCard: React.FC<{ event: DayEvent; index: number }> = ({ event, index 
 
 export const CampProgram9Days: React.FC = () => {
   const [activeDay, setActiveDay] = useState(1);
-  const dayData = PROGRAM_9_DAYS.find(d => d.day === activeDay) || PROGRAM_9_DAYS[0];
+  const dayData = PROGRAM_9_DAYS.find((d) => d.day === activeDay) || PROGRAM_9_DAYS[0];
 
   return (
     <div className="fade-in" style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
       {/* Header */}
       <div style={{ marginBottom: 4 }}>
-        <div style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', color: ACCENT, letterSpacing: '0.1em', marginBottom: 4 }}>
+        <div
+          style={{
+            fontSize: 11,
+            fontWeight: 800,
+            textTransform: 'uppercase',
+            color: ACCENT,
+            letterSpacing: '0.1em',
+            marginBottom: 4,
+          }}
+        >
           Реальный Лагерь · 9 дней
         </div>
         <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', fontWeight: 400 }}>
@@ -444,7 +488,15 @@ export const CampProgram9Days: React.FC = () => {
       </div>
 
       {/* Notebook tabs */}
-      <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', alignItems: 'flex-end', marginBottom: 0 }}>
+      <div
+        style={{
+          display: 'flex',
+          gap: 5,
+          flexWrap: 'wrap',
+          alignItems: 'flex-end',
+          marginBottom: 0,
+        }}
+      >
         {PROGRAM_9_DAYS.map(({ day }) => {
           const isActive = activeDay === day;
           return (
@@ -453,17 +505,26 @@ export const CampProgram9Days: React.FC = () => {
               type="button"
               onClick={() => setActiveDay(day)}
               style={{
-                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: 2,
                 padding: '7px 13px 5px',
-                fontSize: 11, fontWeight: isActive ? 700 : 500,
-                minWidth: 52, cursor: 'pointer', fontFamily: 'inherit',
-                border: isActive ? `2px solid ${ACCENT_BORDER}` : '1.5px solid rgba(255,255,255,0.12)',
+                fontSize: 11,
+                fontWeight: isActive ? 700 : 500,
+                minWidth: 52,
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+                border: isActive
+                  ? `2px solid ${ACCENT_BORDER}`
+                  : '1.5px solid rgba(255,255,255,0.12)',
                 borderBottom: 'none',
                 borderRadius: '10px 10px 0 0',
                 background: isActive
                   ? 'linear-gradient(160deg, rgba(93,228,255,0.2) 0%, rgba(8,20,40,0.6) 100%)'
                   : 'rgba(255,255,255,0.05)',
-                backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)',
+                backdropFilter: 'blur(10px)',
+                WebkitBackdropFilter: 'blur(10px)',
                 color: isActive ? '#a5f3fc' : 'rgba(255,255,255,0.55)',
                 boxShadow: isActive ? '0 -3px 12px rgba(93,228,255,0.15)' : 'none',
                 transition: 'all 0.15s',
@@ -478,23 +539,43 @@ export const CampProgram9Days: React.FC = () => {
       </div>
 
       {/* Separator line */}
-      <div style={{ height: 2, background: `linear-gradient(to right, ${ACCENT_BORDER}, transparent 80%)`, marginBottom: 14, borderRadius: 2 }} />
+      <div
+        style={{
+          height: 2,
+          background: `linear-gradient(to right, ${ACCENT_BORDER}, transparent 80%)`,
+          marginBottom: 14,
+          borderRadius: 2,
+        }}
+      />
 
       {/* Day content card */}
       <div
         className="fade-in"
         key={activeDay}
         style={{
-          padding: 20, borderRadius: 16,
+          padding: 20,
+          borderRadius: 16,
           background: 'rgba(8, 20, 40, 0.15)',
-          backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
           border: `1px solid ${ACCENT_BORDER}`,
-          display: 'flex', flexDirection: 'column', gap: 16,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 16,
         }}
       >
         {/* Day header */}
         <div>
-          <div style={{ fontSize: 11, fontWeight: 700, color: ACCENT, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 3 }}>
+          <div
+            style={{
+              fontSize: 11,
+              fontWeight: 700,
+              color: ACCENT,
+              textTransform: 'uppercase',
+              letterSpacing: '0.08em',
+              marginBottom: 3,
+            }}
+          >
             День {activeDay}
           </div>
           <div style={{ fontSize: 15, fontWeight: 700, color: '#e8f0ff', lineHeight: 1.3 }}>
@@ -504,11 +585,24 @@ export const CampProgram9Days: React.FC = () => {
 
         {/* Tech note */}
         {dayData.techNote && (
-          <div style={{
-            padding: '8px 14px', borderRadius: 10,
-            background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.07)',
-          }}>
-            <div style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4 }}>
+          <div
+            style={{
+              padding: '8px 14px',
+              borderRadius: 10,
+              background: 'rgba(255,255,255,0.05)',
+              border: '1px solid rgba(255,255,255,0.07)',
+            }}
+          >
+            <div
+              style={{
+                fontSize: 10,
+                fontWeight: 700,
+                color: 'rgba(255,255,255,0.35)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.07em',
+                marginBottom: 4,
+              }}
+            >
               Педагогические технологии
             </div>
             <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)', lineHeight: 1.5 }}>
@@ -519,7 +613,16 @@ export const CampProgram9Days: React.FC = () => {
 
         {/* Events list */}
         <div>
-          <div style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 10 }}>
+          <div
+            style={{
+              fontSize: 11,
+              fontWeight: 700,
+              color: 'rgba(255,255,255,0.35)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.07em',
+              marginBottom: 10,
+            }}
+          >
             Ключевые события · кликни для описания
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
@@ -531,8 +634,11 @@ export const CampProgram9Days: React.FC = () => {
       </div>
 
       {/* Footer note */}
-      <div style={{ marginTop: 12, fontSize: 11, color: 'rgba(255,255,255,0.3)', lineHeight: 1.55 }}>
-        * Программа адаптивная. Отрядные дела и мероприятия могут быть заменены или перенесены. Кружки и спортивные игры проводятся каждый день и не указаны отдельно.
+      <div
+        style={{ marginTop: 12, fontSize: 11, color: 'rgba(255,255,255,0.3)', lineHeight: 1.55 }}
+      >
+        * Программа адаптивная. Отрядные дела и мероприятия могут быть заменены или перенесены.
+        Кружки и спортивные игры проводятся каждый день и не указаны отдельно.
       </div>
     </div>
   );

@@ -1,15 +1,14 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type React from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import type { MasterIndexMeta } from '../hooks/useDataLoader';
 import { useScrollReveal } from '../hooks/useScrollReveal';
 import { useTiltCard } from '../hooks/useTiltCard';
 import type { Category } from '../types/guide';
-import type { MasterIndexMeta } from '../hooks/useDataLoader';
-import { toSiblingImageUrl, NAV_HOME_IMAGE } from '../utils/imageSources';
 import { getBadgeImagePath } from '../utils/badgeImages';
+import { NAV_HOME_IMAGE, toSiblingImageUrl } from '../utils/imageSources';
 import { forceUnlock } from '../utils/scrollLock';
 import '../styles/bluenest.css';
-
-
 
 interface BlueNestLandingProps {
   onStartClick: () => void;
@@ -121,7 +120,7 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
   };
 
   const handleContactCTA = () => {
-    setShowContactHint(prev => !prev);
+    setShowContactHint((prev) => !prev);
   };
 
   const carouselCategories = useMemo(() => {
@@ -168,9 +167,20 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
   };
 
   const badgeImageVersion = '4';
-  const experienceBadgeImage = getBadgeImagePath('1.16', 'Путеводитель', '1', undefined, undefined, 'realism');
-  const experienceBadgeImageVersioned = experienceBadgeImage ? `${experienceBadgeImage}?v=${badgeImageVersion}` : null;
-  const experienceBadgeWebp = experienceBadgeImageVersioned ? toSiblingImageUrl(experienceBadgeImageVersioned, 'webp') : null;
+  const experienceBadgeImage = getBadgeImagePath(
+    '1.16',
+    'Путеводитель',
+    '1',
+    undefined,
+    undefined,
+    'realism'
+  );
+  const experienceBadgeImageVersioned = experienceBadgeImage
+    ? `${experienceBadgeImage}?v=${badgeImageVersion}`
+    : null;
+  const experienceBadgeWebp = experienceBadgeImageVersioned
+    ? toSiblingImageUrl(experienceBadgeImageVersioned, 'webp')
+    : null;
   const compassBadgeImage = getBadgeImagePath(
     '1.16',
     'Путеводитель',
@@ -179,8 +189,12 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
     'Создатель Новой Категории',
     'realism'
   );
-  const compassBadgeImageVersioned = compassBadgeImage ? `${compassBadgeImage}?v=${badgeImageVersion}` : null;
-  const compassBadgeWebp = compassBadgeImageVersioned ? toSiblingImageUrl(compassBadgeImageVersioned, 'webp') : null;
+  const compassBadgeImageVersioned = compassBadgeImage
+    ? `${compassBadgeImage}?v=${badgeImageVersion}`
+    : null;
+  const compassBadgeWebp = compassBadgeImageVersioned
+    ? toSiblingImageUrl(compassBadgeImageVersioned, 'webp')
+    : null;
   const handleBadgeOpen = (badgeId: string) => {
     if (!badgeId) return;
     onOpenBadgeById?.(badgeId);
@@ -362,14 +376,16 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
             pointerEvents: 'auto',
             position: 'relative',
             zIndex: 1000,
-            isolation: 'isolate'
+            isolation: 'isolate',
           }}
         >
           NEUROVALUSHA
         </button>
         <button
           className="nav-link hover-target"
-          onClick={onStartClick} onMouseEnter={onHoverStart} onTouchStart={onHoverStart}
+          onClick={onStartClick}
+          onMouseEnter={onHoverStart}
+          onTouchStart={onHoverStart}
         >
           Значки
         </button>
@@ -379,15 +395,19 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
       <button
         type="button"
         className="nav-image-container nav-home hover-target"
-        onClick={onAboutCampClick} onMouseEnter={onHoverAboutCamp} onTouchStart={onHoverAboutCamp}
+        onClick={onAboutCampClick}
+        onMouseEnter={onHoverAboutCamp}
+        onTouchStart={onHoverAboutCamp}
         aria-label="О лагере"
       >
-        <img
-          src={`${import.meta.env.BASE_URL}${NAV_HOME_IMAGE}?v=2`}
-          alt="Домик"
-        />
+        <img src={`${import.meta.env.BASE_URL}${NAV_HOME_IMAGE}?v=2`} alt="Домик" />
       </button>
-      <button className="nav-link-left hover-target" onClick={onAboutCampClick} onMouseEnter={onHoverAboutCamp} onTouchStart={onHoverAboutCamp}>
+      <button
+        className="nav-link-left hover-target"
+        onClick={onAboutCampClick}
+        onMouseEnter={onHoverAboutCamp}
+        onTouchStart={onHoverAboutCamp}
+      >
         О лагере
       </button>
 
@@ -396,8 +416,8 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
         <section className="hero">
           <div className="hero-bg"></div>
           <div className="hero-content">
-            <h1 
-              className="hero-title reveal-item hover-target" 
+            <h1
+              className="hero-title reveal-item hover-target"
               style={{ transitionDelay: '0.2s', cursor: 'pointer' }}
               onClick={onLogoClick}
             >
@@ -414,16 +434,20 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
           <div className="marquee-track">
             {/* Дублируем 4 раза для гарантии заполнения огромных экранов и бесшовного цикла */}
             <div className="marquee-item hover-target">
-              ВЫБИРАЙ ЗВЕЗДУ. ДВИГАЙСЯ ВПЕРЁД. ОСТАВЛЯЙ СЛЕД. ТВОЙ ОПЫТ — ТВОЙ ПУТЬ. РЕАЛЬНЫЕ ЗНАЧКИ ПОДСКАЖУТ, КУДА ИДТИ. •{' '}
+              ВЫБИРАЙ ЗВЕЗДУ. ДВИГАЙСЯ ВПЕРЁД. ОСТАВЛЯЙ СЛЕД. ТВОЙ ОПЫТ — ТВОЙ ПУТЬ. РЕАЛЬНЫЕ ЗНАЧКИ
+              ПОДСКАЖУТ, КУДА ИДТИ. •{' '}
             </div>
             <div className="marquee-item hover-target">
-              ВЫБИРАЙ ЗВЕЗДУ. ДВИГАЙСЯ ВПЕРЁД. ОСТАВЛЯЙ СЛЕД. ТВОЙ ОПЫТ — ТВОЙ ПУТЬ. РЕАЛЬНЫЕ ЗНАЧКИ ПОДСКАЖУТ, КУДА ИДТИ. •{' '}
+              ВЫБИРАЙ ЗВЕЗДУ. ДВИГАЙСЯ ВПЕРЁД. ОСТАВЛЯЙ СЛЕД. ТВОЙ ОПЫТ — ТВОЙ ПУТЬ. РЕАЛЬНЫЕ ЗНАЧКИ
+              ПОДСКАЖУТ, КУДА ИДТИ. •{' '}
             </div>
             <div className="marquee-item hover-target">
-              ВЫБИРАЙ ЗВЕЗДУ. ДВИГАЙСЯ ВПЕРЁД. ОСТАВЛЯЙ СЛЕД. ТВОЙ ОПЫТ — ТВОЙ ПУТЬ. РЕАЛЬНЫЕ ЗНАЧКИ ПОДСКАЖУТ, КУДА ИДТИ. •{' '}
+              ВЫБИРАЙ ЗВЕЗДУ. ДВИГАЙСЯ ВПЕРЁД. ОСТАВЛЯЙ СЛЕД. ТВОЙ ОПЫТ — ТВОЙ ПУТЬ. РЕАЛЬНЫЕ ЗНАЧКИ
+              ПОДСКАЖУТ, КУДА ИДТИ. •{' '}
             </div>
             <div className="marquee-item hover-target">
-              ВЫБИРАЙ ЗВЕЗДУ. ДВИГАЙСЯ ВПЕРЁД. ОСТАВЛЯЙ СЛЕД. ТВОЙ ОПЫТ — ТВОЙ ПУТЬ. РЕАЛЬНЫЕ ЗНАЧКИ ПОДСКАЖУТ, КУДА ИДТИ. •{' '}
+              ВЫБИРАЙ ЗВЕЗДУ. ДВИГАЙСЯ ВПЕРЁД. ОСТАВЛЯЙ СЛЕД. ТВОЙ ОПЫТ — ТВОЙ ПУТЬ. РЕАЛЬНЫЕ ЗНАЧКИ
+              ПОДСКАЖУТ, КУДА ИДТИ. •{' '}
             </div>
           </div>
         </div>
@@ -448,16 +472,15 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
                 aria-expanded={isConceptOpen}
                 ref={conceptButtonRef}
               >
-                Здесь вы найдете {masterIndex?.totalLevels ?? 241} {
-                  ((count) => {
-                    const mod10 = count % 10;
-                    const mod100 = count % 100;
-                    if (mod100 >= 11 && mod100 <= 19) return 'значков';
-                    if (mod10 === 1) return 'значок';
-                    if (mod10 >= 2 && mod10 <= 4) return 'значка';
-                    return 'значков';
-                  })(masterIndex?.totalLevels ?? 241)
-                } в {masterIndex?.totalCategories ?? 14} категориях.
+                Здесь вы найдете {masterIndex?.totalLevels ?? 241} {((count) => {
+                  const mod10 = count % 10;
+                  const mod100 = count % 100;
+                  if (mod100 >= 11 && mod100 <= 19) return 'значков';
+                  if (mod10 === 1) return 'значок';
+                  if (mod10 >= 2 && mod10 <= 4) return 'значка';
+                  return 'значков';
+                })(masterIndex?.totalLevels ?? 241)} в {masterIndex?.totalCategories ?? 14}{' '}
+                категориях.
               </button>
             </span>
           </p>
@@ -468,7 +491,9 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
           <div className="manifesto-statement reveal-on-scroll">
             <h2>Значки здесь — не награды, а маршруты развития.</h2>
             <p>
-              В Реальном Лагере значки — не просто «ачивки» за выполнение заданий. Это путеводные звёзды, которые помогают выбрать твой собственный путь. Каждый значок — не медаль за прошлое, а маяк, освещающий направления твоего развития.
+              В Реальном Лагере значки — не просто «ачивки» за выполнение заданий. Это путеводные
+              звёзды, которые помогают выбрать твой собственный путь. Каждый значок — не медаль за
+              прошлое, а маяк, освещающий направления твоего развития.
             </p>
           </div>
           <div className="manifesto-visual manifesto-carousel reveal-on-scroll">
@@ -503,7 +528,9 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
             >
               {activeCategory ? (
                 <picture>
-                  {activeCategoryImageWebp && <source type="image/webp" srcSet={activeCategoryImageWebp} />}
+                  {activeCategoryImageWebp && (
+                    <source type="image/webp" srcSet={activeCategoryImageWebp} />
+                  )}
                   <img src={activeCategoryImage} alt={activeCategory.title || 'Категория'} />
                 </picture>
               ) : (
@@ -515,9 +542,13 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
                   <>
                     <h3
                       className="manifesto-carousel-title"
-                      dangerouslySetInnerHTML={{ __html: formatCategoryTitle(activeCategory.title || '') }}
+                      dangerouslySetInnerHTML={{
+                        __html: formatCategoryTitle(activeCategory.title || ''),
+                      }}
                     />
-                    <p className="manifesto-carousel-count">{activeCategory.badge_count || 0} значков</p>
+                    <p className="manifesto-carousel-count">
+                      {activeCategory.badge_count || 0} значков
+                    </p>
                   </>
                 ) : (
                   <p className="manifesto-carousel-count">Категория</p>
@@ -531,7 +562,11 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
         <section className="features">
           <div className="features-grid">
             {/* Feature 2 */}
-            <div className="feature-card tilt-card reveal-on-scroll" ref={featureCard1Ref} style={{ transitionDelay: '0.1s' }}>
+            <div
+              className="feature-card tilt-card reveal-on-scroll"
+              ref={featureCard1Ref}
+              style={{ transitionDelay: '0.1s' }}
+            >
               <button
                 type="button"
                 className="feature-badge-link hover-target"
@@ -540,8 +575,17 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
               >
                 {experienceBadgeImageVersioned ? (
                   <picture>
-                    {experienceBadgeWebp && <source type="image/webp" srcSet={experienceBadgeWebp} />}
-                    <img src={experienceBadgeImageVersioned} alt="Значок Путеводитель" width={1920} height={1080} loading="lazy" decoding="async" />
+                    {experienceBadgeWebp && (
+                      <source type="image/webp" srcSet={experienceBadgeWebp} />
+                    )}
+                    <img
+                      src={experienceBadgeImageVersioned}
+                      alt="Значок Путеводитель"
+                      width={1920}
+                      height={1080}
+                      loading="lazy"
+                      decoding="async"
+                    />
                   </picture>
                 ) : (
                   <div className="feature-badge-placeholder">Путеводитель</div>
@@ -549,11 +593,17 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
               </button>
               <h3>Реальный Значок = Опыт</h3>
               <p>
-                Здесь главная награда — не значок, а опыт и навыки, которые ты получаешь, выполняя задания. Новые друзья, настоящие проекты, полезные привычки и идеи — всё это остаётся с тобой.
+                Здесь главная награда — не значок, а опыт и навыки, которые ты получаешь, выполняя
+                задания. Новые друзья, настоящие проекты, полезные привычки и идеи — всё это
+                остаётся с тобой.
               </p>
             </div>
             {/* Feature 3 */}
-            <div className="feature-card tilt-card reveal-on-scroll" ref={featureCard2Ref} style={{ transitionDelay: '0.2s' }}>
+            <div
+              className="feature-card tilt-card reveal-on-scroll"
+              ref={featureCard2Ref}
+              style={{ transitionDelay: '0.2s' }}
+            >
               <button
                 type="button"
                 className="feature-badge-link hover-target"
@@ -563,7 +613,14 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
                 {compassBadgeImageVersioned ? (
                   <picture>
                     {compassBadgeWebp && <source type="image/webp" srcSet={compassBadgeWebp} />}
-                    <img src={compassBadgeImageVersioned} alt="Значок Создатель Новой Категории" width={1920} height={1080} loading="lazy" decoding="async" />
+                    <img
+                      src={compassBadgeImageVersioned}
+                      alt="Значок Создатель Новой Категории"
+                      width={1920}
+                      height={1080}
+                      loading="lazy"
+                      decoding="async"
+                    />
                   </picture>
                 ) : (
                   <div className="feature-badge-placeholder">Создатель Новой Категории</div>
@@ -571,7 +628,8 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
               </button>
               <h3>Реальный Значок — компас</h3>
               <p>
-                Только ты выбираешь, какие значки будут на твоём пути. Вожатые и Путеводитель предложат варианты, но выбор и движение всегда за тобой.
+                Только ты выбираешь, какие значки будут на твоём пути. Вожатые и Путеводитель
+                предложат варианты, но выбор и движение всегда за тобой.
                 <span className="feature-welcome">
                   Добро пожаловать в Реальный Лагерь.
                   <br />
@@ -596,26 +654,47 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
         {/* Final Footer CTA */}
         <footer className="footer">
           <h2 className="reveal-on-scroll">Поехали?</h2>
-          <button className="btn-agency hover-target reveal-on-scroll" onClick={onStartClick} onMouseEnter={onHoverStart} onTouchStart={onHoverStart} id="footer-start-btn">
+          <button
+            className="btn-agency hover-target reveal-on-scroll"
+            onClick={onStartClick}
+            onMouseEnter={onHoverStart}
+            onTouchStart={onHoverStart}
+            id="footer-start-btn"
+          >
             <span>Начать путешествие</span>
           </button>
 
           <div className="footer-links">
-            <button className="hover-target" onClick={onStartClick} onMouseEnter={onHoverStart} onTouchStart={onHoverStart}>
+            <button
+              className="hover-target"
+              onClick={onStartClick}
+              onMouseEnter={onHoverStart}
+              onTouchStart={onHoverStart}
+            >
               Значки
             </button>
-            <button className="hover-target" onClick={onAboutCampClick} onMouseEnter={onHoverAboutCamp} onTouchStart={onHoverAboutCamp}>
+            <button
+              className="hover-target"
+              onClick={onAboutCampClick}
+              onMouseEnter={onHoverAboutCamp}
+              onTouchStart={onHoverAboutCamp}
+            >
               О лагере
             </button>
-            <a href="https://vk.com/realcampspb" className="hover-target" target="_blank" rel="noopener noreferrer">
+            <a
+              href="https://vk.com/realcampspb"
+              className="hover-target"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               ВКонтакте
             </a>
           </div>
         </footer>
       </main>
 
-
-      {isConceptOpen && portalRoot &&
+      {isConceptOpen &&
+        portalRoot &&
         createPortal(
           <>
             <div
@@ -635,23 +714,23 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
               style={
                 effectiveAnchor
                   ? {
-                    position: 'fixed',
-                    top: effectiveAnchor.top,
-                    left: effectiveAnchor.left,
-                    transform: 'translate(-50%, 0)',
-                    maxWidth: 'min(720px, calc(100vw - 32px))',
-                    maxHeight: `calc(100vh - ${effectiveAnchor.top + 16}px)`,
-                    overflowY: 'auto',
-                  }
+                      position: 'fixed',
+                      top: effectiveAnchor.top,
+                      left: effectiveAnchor.left,
+                      transform: 'translate(-50%, 0)',
+                      maxWidth: 'min(720px, calc(100vw - 32px))',
+                      maxHeight: `calc(100vh - ${effectiveAnchor.top + 16}px)`,
+                      overflowY: 'auto',
+                    }
                   : {
-                    position: 'fixed',
-                    top: '50%',
-                    left: '50%',
-                    transform: 'translate(-50%, -50%)',
-                    maxHeight: '85vh',
-                    overflowY: 'auto',
-                    width: 'min(90vw, 720px)',
-                  }
+                      position: 'fixed',
+                      top: '50%',
+                      left: '50%',
+                      transform: 'translate(-50%, -50%)',
+                      maxHeight: '85vh',
+                      overflowY: 'auto',
+                      width: 'min(90vw, 720px)',
+                    }
               }
             >
               <button
@@ -667,7 +746,7 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
                   cursor: 'pointer',
                   lineHeight: 1,
                   padding: '4px',
-                  zIndex: 10
+                  zIndex: 10,
                 }}
                 onClick={(e) => {
                   e.stopPropagation();
@@ -678,23 +757,46 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
               >
                 &times;
               </button>
-              <span className="subtitle-hint-title" style={{ display: 'block', fontSize: '1.2rem', fontWeight: 800, color: '#c9b8ff', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '20px', lineHeight: '1.3', paddingRight: '24px' }}>Игра, которая развивает участников и Лагерь</span>
+              <span
+                className="subtitle-hint-title"
+                style={{
+                  display: 'block',
+                  fontSize: '1.2rem',
+                  fontWeight: 800,
+                  color: '#c9b8ff',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.05em',
+                  marginBottom: '20px',
+                  lineHeight: '1.3',
+                  paddingRight: '24px',
+                }}
+              >
+                Игра, которая развивает участников и Лагерь
+              </span>
               <div className="subtitle-hint-body">
                 <p>
-                  В Реальном Лагере ребята становятся организаторами и развивают 4К навыки на практике. Запускают проекты,
-                  проводят мастер-классы и целые тематические дни. Объединяются в Движки, изучают вожатское мастерство и
-                  наполняют программу лагеря живыми традициями.
+                  В Реальном Лагере ребята становятся организаторами и развивают 4К навыки на
+                  практике. Запускают проекты, проводят мастер-классы и целые тематические дни.
+                  Объединяются в Движки, изучают вожатское мастерство и наполняют программу лагеря
+                  живыми традициями.
                 </p>
                 <p>
-                  Это авторская цифровая экосистема, доступная для интеграции. Вы можете внедрить её игровые и педагогические механики в свою смену или заказать адаптацию закрытой платформы под ваш коллектив.
+                  Это авторская цифровая экосистема, доступная для интеграции. Вы можете внедрить её
+                  игровые и педагогические механики в свою смену или заказать адаптацию закрытой
+                  платформы под ваш коллектив.
                 </p>
                 <p>
-                  Игровые механики здесь — это инструменты соуправления. Значки — это не виртуальная валюта для обмена на призы. Каждый значок выдаётся только за реальные достижения: когда участник осваивает новый навык, приносит пользу команде и учится анализировать свой опыт.
+                  Игровые механики здесь — это инструменты соуправления. Значки — это не виртуальная
+                  валюта для обмена на призы. Каждый значок выдаётся только за реальные достижения:
+                  когда участник осваивает новый навык, приносит пользу команде и учится
+                  анализировать свой опыт.
                 </p>
 
                 <div style={{ display: 'flex', gap: '12px', marginTop: '24px', flexWrap: 'wrap' }}>
                   <button
-                    onClick={handleStartGameCTA} onMouseEnter={onHoverLogin} onTouchStart={onHoverLogin}
+                    onClick={handleStartGameCTA}
+                    onMouseEnter={onHoverLogin}
+                    onTouchStart={onHoverLogin}
                     className="hover-target"
                     style={{
                       padding: '12px 24px',
@@ -712,7 +814,7 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
                       alignItems: 'center',
                       justifyContent: 'center',
                       boxShadow: '0 4px 15px rgba(255, 215, 0, 0.4)',
-                      transition: 'all 0.2s ease'
+                      transition: 'all 0.2s ease',
                     }}
                   >
                     Войти в игру
@@ -736,34 +838,41 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
                       alignItems: 'center',
                       justifyContent: 'center',
                       transition: 'all 0.2s ease',
-                      boxShadow: 'none'
+                      boxShadow: 'none',
                     }}
                   >
                     Сотрудничество
                   </button>
-                  <button
-                    onClick={handleStartTourCTA}
-                    className="hover-target btn-space-tutorial"
-                  >
+                  <button onClick={handleStartTourCTA} className="hover-target btn-space-tutorial">
                     Пройти обучение
                   </button>
                 </div>
 
                 {showContactHint && (
-                  <div style={{
-                    marginTop: '16px',
-                    padding: '16px',
-                    background: 'rgba(255, 255, 255, 0.03)',
-                    border: '1px solid rgba(255, 255, 255, 0.15)',
-                    borderRadius: '8px',
-                    animation: 'rl-fade-in 0.3s ease-out'
-                  }}>
-                    <p style={{ margin: '0 0 12px 0', fontSize: '13px', lineHeight: '1.5', color: 'rgba(255,255,255,0.9)' }}>
-                      Для обсуждения внедрения платформы напишите в сообщения нашей группы ВКонтакте или напрямую основателю экосистемы (Степан Иванов).
+                  <div
+                    style={{
+                      marginTop: '16px',
+                      padding: '16px',
+                      background: 'rgba(255, 255, 255, 0.03)',
+                      border: '1px solid rgba(255, 255, 255, 0.15)',
+                      borderRadius: '8px',
+                      animation: 'rl-fade-in 0.3s ease-out',
+                    }}
+                  >
+                    <p
+                      style={{
+                        margin: '0 0 12px 0',
+                        fontSize: '13px',
+                        lineHeight: '1.5',
+                        color: 'rgba(255,255,255,0.9)',
+                      }}
+                    >
+                      Для обсуждения внедрения платформы напишите в сообщения нашей группы ВКонтакте
+                      или напрямую основателю экосистемы (Степан Иванов).
                     </p>
-                    <a 
-                      href="https://vk.com/realcampspb" 
-                      target="_blank" 
+                    <a
+                      href="https://vk.com/realcampspb"
+                      target="_blank"
                       rel="noopener noreferrer"
                       className="hover-target"
                       style={{
@@ -775,7 +884,7 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
                         fontWeight: 700,
                         textDecoration: 'none',
                         textTransform: 'uppercase',
-                        letterSpacing: '0.05em'
+                        letterSpacing: '0.05em',
                       }}
                     >
                       Перейти в группу ВК →
@@ -795,4 +904,3 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
 };
 
 export default BlueNestLanding;
-

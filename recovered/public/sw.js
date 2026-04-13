@@ -66,7 +66,10 @@ function isHtmlRequest(request) {
 }
 
 function isAssetRequest(url) {
-  return url.pathname.includes('/assets/') && (url.pathname.endsWith('.js') || url.pathname.endsWith('.css'));
+  return (
+    url.pathname.includes('/assets/') &&
+    (url.pathname.endsWith('.js') || url.pathname.endsWith('.css'))
+  );
 }
 
 function isImageRequest(url) {
@@ -149,4 +152,3 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 });
-

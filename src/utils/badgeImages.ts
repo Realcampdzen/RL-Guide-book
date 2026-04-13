@@ -33,13 +33,15 @@ const normalizeFolderName = (name: string): string => {
     out = out.replace(/\./g, ' ');
   }
 
-  return out
-    .replace(/ё/g, 'е') // Заменяем все ё на е
-    // Normalize different dash characters to spaces (e.g. мастер‑класс -> мастер класс)
-    .replace(/[\u2010\u2011\u2012\u2013\u2014\u2212]/g, ' ')
-    .replace(/[^\w\sа-яе-]/gi, '')
-    .replace(/\s+/g, ' ') // Collapse multiple spaces
-    .trim();
+  return (
+    out
+      .replace(/ё/g, 'е') // Заменяем все ё на е
+      // Normalize different dash characters to spaces (e.g. мастер‑класс -> мастер класс)
+      .replace(/[\u2010\u2011\u2012\u2013\u2014\u2212]/g, ' ')
+      .replace(/[^\w\sа-яе-]/gi, '')
+      .replace(/\s+/g, ' ') // Collapse multiple spaces
+      .trim()
+  );
 };
 
 const badgeFolderOverrides: Record<string, string> = {
@@ -131,7 +133,7 @@ export const getBadgeImagePath = (
         const withRealism = [
           ...parts.slice(0, insertIndex),
           realismSegment,
-          ...parts.slice(insertIndex)
+          ...parts.slice(insertIndex),
         ].join('/');
         return pathPrefix + withRealism;
       }
@@ -142,18 +144,18 @@ export const getBadgeImagePath = (
   }
 
   const categoryFolder = categoryFolderMap[categoryId];
-  
+
   if (!categoryFolder) return null;
 
   const badgeFolderName = getBadgeFolderName(badgeTitle, badgeId, levelTitle);
-  
+
   let fileName = '';
-  
+
   if (levelId && levelTitle) {
     const levelNumber = levelId.split('.').pop();
     if (levelNumber) {
       // File names in assets use spaces more often than hyphens.
-      let levelFileName = normalizeFolderName(levelTitle.replace(/-/g, ' '));
+      const levelFileName = normalizeFolderName(levelTitle.replace(/-/g, ' '));
       fileName = `${levelNumber} ${levelFileName}.webp`;
     }
   } else {
@@ -164,10 +166,11 @@ export const getBadgeImagePath = (
     } else {
       let baseLevelTitle = badgeTitle;
       if (!baseLevelTitle) baseLevelTitle = getBadgeFolderName(badgeTitle, badgeId, levelTitle);
-      if (baseLevelTitle.includes(' или ')) baseLevelTitle = baseLevelTitle.split(' или ')[0].trim();
+      if (baseLevelTitle.includes(' или '))
+        baseLevelTitle = baseLevelTitle.split(' или ')[0].trim();
       if (baseLevelTitle.includes('\n')) baseLevelTitle = baseLevelTitle.split('\n')[0].trim();
 
-      let baseLevelName = normalizeFolderName(baseLevelTitle.replace(/-/g, ' '));
+      const baseLevelName = normalizeFolderName(baseLevelTitle.replace(/-/g, ' '));
       fileName = `1 ${baseLevelName}.webp`;
     }
   }
@@ -186,22 +189,11 @@ export const getBadgeImagePath = (
   let finalPath: string;
   if (variant === 'realism') {
     // Собираем путь из сегментов, кодируя каждый отдельно
-    const segments = [
-      'Новые значки',
-      categoryFolder,
-      badgeFolderName,
-      'реализм',
-      fileName
-    ];
-    finalPath = pathPrefix + segments.map(seg => encodeURIComponent(seg)).join('/');
+    const segments = ['Новые значки', categoryFolder, badgeFolderName, 'реализм', fileName];
+    finalPath = pathPrefix + segments.map((seg) => encodeURIComponent(seg)).join('/');
   } else {
-    const segments = [
-      'Новые значки',
-      categoryFolder,
-      badgeFolderName,
-      fileName
-    ];
-    finalPath = pathPrefix + segments.map(seg => encodeURIComponent(seg)).join('/');
+    const segments = ['Новые значки', categoryFolder, badgeFolderName, fileName];
+    finalPath = pathPrefix + segments.map((seg) => encodeURIComponent(seg)).join('/');
   }
 
   return finalPath;

@@ -34,7 +34,9 @@ function getApiBase(): string {
   if (typeof window === 'undefined') return '';
   const hostname = window.location.hostname;
   const useLocal = import.meta.env.DEV || hostname === 'localhost' || hostname === '127.0.0.1';
-  return useLocal ? '' : ((import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || '')).replace(/\/$/, '');
+  return useLocal
+    ? ''
+    : (import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || '').replace(/\/$/, '');
 }
 
 class WpApiError extends Error {
@@ -49,9 +51,10 @@ class WpApiError extends Error {
 async function wpRequest<T>(path: string, options: RequestInit = {}): Promise<T> {
   const base = getApiBase();
   const res = await fetch(`${base}${path}`, options);
-  const data = await res.json().catch(() => ({})) as Record<string, unknown>;
+  const data = (await res.json().catch(() => ({}))) as Record<string, unknown>;
   if (!res.ok) {
-    const message = (typeof data.error === 'string' && data.error) || `Request failed: ${res.status}`;
+    const message =
+      (typeof data.error === 'string' && data.error) || `Request failed: ${res.status}`;
     throw new WpApiError(message, res.status);
   }
   return data as T;
@@ -100,26 +103,43 @@ export async function fetchProposalsInbox(
   if (filters?.campId) params.set('campId', filters.campId);
   if (filters?.status) params.set('status', filters.status);
   const suffix = params.toString() ? `?${params.toString()}` : '';
-  const data = await wpRequest<{ proposals: WorkshopProposal[] }>(`/api/workshop/proposals/inbox${suffix}`, {
-    headers: authHeaders(accessToken),
-  });
+  const data = await wpRequest<{ proposals: WorkshopProposal[] }>(
+    `/api/workshop/proposals/inbox${suffix}`,
+    {
+      headers: authHeaders(accessToken),
+    }
+  );
   return data.proposals || [];
 }
 
-export async function approveProposal(accessToken: string, proposalId: string, note?: string): Promise<WorkshopProposal> {
-  const data = await wpRequest<{ proposal: WorkshopProposal }>(`/api/workshop/proposals/${encodeURIComponent(proposalId)}/approve`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...authHeaders(accessToken) },
-    body: JSON.stringify(note ? { note } : {}),
-  });
+export async function approveProposal(
+  accessToken: string,
+  proposalId: string,
+  note?: string
+): Promise<WorkshopProposal> {
+  const data = await wpRequest<{ proposal: WorkshopProposal }>(
+    `/api/workshop/proposals/${encodeURIComponent(proposalId)}/approve`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders(accessToken) },
+      body: JSON.stringify(note ? { note } : {}),
+    }
+  );
   return data.proposal;
 }
 
-export async function rejectProposal(accessToken: string, proposalId: string, note?: string): Promise<WorkshopProposal> {
-  const data = await wpRequest<{ proposal: WorkshopProposal }>(`/api/workshop/proposals/${encodeURIComponent(proposalId)}/reject`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...authHeaders(accessToken) },
-    body: JSON.stringify(note ? { note } : {}),
-  });
+export async function rejectProposal(
+  accessToken: string,
+  proposalId: string,
+  note?: string
+): Promise<WorkshopProposal> {
+  const data = await wpRequest<{ proposal: WorkshopProposal }>(
+    `/api/workshop/proposals/${encodeURIComponent(proposalId)}/reject`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders(accessToken) },
+      body: JSON.stringify(note ? { note } : {}),
+    }
+  );
   return data.proposal;
 }

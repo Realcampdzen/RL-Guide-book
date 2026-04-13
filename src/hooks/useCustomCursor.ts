@@ -68,7 +68,8 @@ export const useCustomCursor = () => {
         // Force Chrome to re-evaluate cursor style after autoscroll exit.
         // Use a 1x1 transparent SVG (matching cursor.css) instead of 'none'
         // so Chrome still allows middle-click autoscroll.
-        document.documentElement.style.cursor = "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1' height='1'/%3E\") 0 0, auto";
+        document.documentElement.style.cursor =
+          "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1' height='1'/%3E\") 0 0, auto";
         requestAnimationFrame(() => {
           document.documentElement.style.cursor = '';
         });
@@ -88,14 +89,19 @@ export const useCustomCursor = () => {
     };
 
     // Function to check collision between circle and element
-    const checkCollision = (circleX: number, circleY: number, circleRadius: number, element: HTMLElement): boolean => {
+    const checkCollision = (
+      circleX: number,
+      circleY: number,
+      circleRadius: number,
+      element: HTMLElement
+    ): boolean => {
       const rect = element.getBoundingClientRect();
 
       // Special case for hero title spans (keep precise text detection)
       const isInHeroTitle = element.closest('.hero-title') !== null;
       if (isInHeroTitle && element.tagName === 'SPAN') {
         // ... (existing precise text detection logic for hero title spans if needed, or simplified) ...
-        // Actually, for consistency, let's use a slightly relaxed check even here, 
+        // Actually, for consistency, let's use a slightly relaxed check even here,
         // but the original logic was specific for the "text-only" feel.
         // Let's keep the bounding rect check for simplicity and reliability across the board first.
         // If specific text-only hover is needed, we can re-add it strictly for that case.
@@ -111,8 +117,8 @@ export const useCustomCursor = () => {
       const distanceY = circleY - closestY;
 
       // If the distance is less than the circle's radius, an intersection occurs
-      const distanceSquared = (distanceX * distanceX) + (distanceY * distanceY);
-      return distanceSquared < (circleRadius * circleRadius);
+      const distanceSquared = distanceX * distanceX + distanceY * distanceY;
+      return distanceSquared < circleRadius * circleRadius;
     };
 
     // Function to check if point is over visible text (not empty space)
@@ -145,11 +151,20 @@ export const useCustomCursor = () => {
                 return true;
               }
               // Check character before cursor (within reasonable distance)
-              if (offset > 0 && offset <= text.length && text[offset - 1] && text[offset - 1].trim().length > 0) {
+              if (
+                offset > 0 &&
+                offset <= text.length &&
+                text[offset - 1] &&
+                text[offset - 1].trim().length > 0
+              ) {
                 return true;
               }
               // Check character after cursor (within reasonable distance)
-              if (offset < text.length - 1 && text[offset + 1] && text[offset + 1].trim().length > 0) {
+              if (
+                offset < text.length - 1 &&
+                text[offset + 1] &&
+                text[offset + 1].trim().length > 0
+              ) {
                 return true;
               }
             }
@@ -187,15 +202,22 @@ export const useCustomCursor = () => {
 
             // For elements with -webkit-text-stroke, account for stroke width
             const computedStyle = window.getComputedStyle(element);
-            const textStroke = (style as any).webkitTextStroke ||
+            const textStroke =
+              (style as any).webkitTextStroke ||
               computedStyle.getPropertyValue('-webkit-text-stroke') ||
-              style.getPropertyValue('-webkit-text-stroke') || '';
+              style.getPropertyValue('-webkit-text-stroke') ||
+              '';
 
             let textStart = textRect.left;
             let textEnd = textRect.right;
 
             // For elements with -webkit-text-stroke, add stroke width to boundaries
-            if (textStroke && textStroke !== 'none' && textStroke !== '0px' && textStroke.trim() !== '') {
+            if (
+              textStroke &&
+              textStroke !== 'none' &&
+              textStroke !== '0px' &&
+              textStroke.trim() !== ''
+            ) {
               const strokeMatch = textStroke.match(/(\d+(?:\.\d+)?)px/);
               if (strokeMatch) {
                 const strokeWidth = parseFloat(strokeMatch[1]) || 0;
@@ -223,9 +245,12 @@ export const useCustomCursor = () => {
           // Get computed font properties - use same approach as checkCollision
           const computedStyle = window.getComputedStyle(element);
           const fontSize = computedStyle.getPropertyValue('font-size') || style.fontSize || '16px';
-          const fontFamily = computedStyle.getPropertyValue('font-family') || style.fontFamily || 'inherit';
-          const fontWeight = computedStyle.getPropertyValue('font-weight') || style.fontWeight || 'normal';
-          const fontStyle = computedStyle.getPropertyValue('font-style') || style.fontStyle || 'normal';
+          const fontFamily =
+            computedStyle.getPropertyValue('font-family') || style.fontFamily || 'inherit';
+          const fontWeight =
+            computedStyle.getPropertyValue('font-weight') || style.fontWeight || 'normal';
+          const fontStyle =
+            computedStyle.getPropertyValue('font-style') || style.fontStyle || 'normal';
 
           context.font = `${fontStyle} ${fontWeight} ${fontSize} ${fontFamily}`;
 
@@ -235,11 +260,18 @@ export const useCustomCursor = () => {
 
           // For elements with -webkit-text-stroke (like .highlight), add stroke width to measurement
           // Use same logic as checkCollision
-          const textStroke = (style as any).webkitTextStroke ||
+          const textStroke =
+            (style as any).webkitTextStroke ||
             computedStyle.getPropertyValue('-webkit-text-stroke') ||
-            style.getPropertyValue('-webkit-text-stroke') || '';
+            style.getPropertyValue('-webkit-text-stroke') ||
+            '';
 
-          if (textStroke && textStroke !== 'none' && textStroke !== '0px' && textStroke.trim() !== '') {
+          if (
+            textStroke &&
+            textStroke !== 'none' &&
+            textStroke !== '0px' &&
+            textStroke.trim() !== ''
+          ) {
             // Parse stroke width (format: "2px color" or just "2px")
             const strokeMatch = textStroke.match(/(\d+(?:\.\d+)?)px/);
             if (strokeMatch) {
@@ -250,7 +282,8 @@ export const useCustomCursor = () => {
           }
 
           // Get text alignment - use same logic as checkCollision
-          const textAlign = computedStyle.getPropertyValue('text-align') || style.textAlign || 'left';
+          const textAlign =
+            computedStyle.getPropertyValue('text-align') || style.textAlign || 'left';
           let textStart: number;
 
           if (textAlign === 'center') {
@@ -259,15 +292,24 @@ export const useCustomCursor = () => {
             textStart = rect.right - textWidth;
           } else {
             // left or default
-            const paddingLeft = parseFloat(computedStyle.getPropertyValue('padding-left')) || parseFloat(style.paddingLeft) || 0;
+            const paddingLeft =
+              parseFloat(computedStyle.getPropertyValue('padding-left')) ||
+              parseFloat(style.paddingLeft) ||
+              0;
             textStart = rect.left + paddingLeft;
           }
 
           const textEnd = textStart + textWidth;
 
           // Check if cursor is within the actual text area horizontally and vertically
-          const lineHeight = parseFloat(computedStyle.getPropertyValue('line-height')) || parseFloat(style.lineHeight) || parseFloat(fontSize);
-          const paddingTop = parseFloat(computedStyle.getPropertyValue('padding-top')) || parseFloat(style.paddingTop) || 0;
+          const lineHeight =
+            parseFloat(computedStyle.getPropertyValue('line-height')) ||
+            parseFloat(style.lineHeight) ||
+            parseFloat(fontSize);
+          const paddingTop =
+            parseFloat(computedStyle.getPropertyValue('padding-top')) ||
+            parseFloat(style.paddingTop) ||
+            0;
           const textTop = rect.top + paddingTop;
           const textBottom = textTop + lineHeight;
 
@@ -349,7 +391,7 @@ export const useCustomCursor = () => {
       cachedTargets.forEach((target) => {
         // Fast visibility check without getComputedStyle
         if (
-          !target.offsetParent && target.tagName !== 'BODY' && target.tagName !== 'HTML' ||
+          (!target.offsetParent && target.tagName !== 'BODY' && target.tagName !== 'HTML') ||
           target.offsetWidth === 0 ||
           target.offsetHeight === 0
         ) {
@@ -374,7 +416,9 @@ export const useCustomCursor = () => {
             if (target.tagName === 'SPAN' && target.parentElement === heroTitle) {
               // Это span с текстом внутри .hero-title - проверяем коллизию с реальной позицией мыши
               // Используем реальные координаты мыши для более точной проверки
-              if (checkCollision(mouseXRef.current, mouseYRef.current, cursorOutlineRadius, target)) {
+              if (
+                checkCollision(mouseXRef.current, mouseYRef.current, cursorOutlineRadius, target)
+              ) {
                 // Дополнительная проверка: курсор должен быть над видимым текстом, а не над пустым пространством
                 if (isOverText(mouseXRef.current, mouseYRef.current, target)) {
                   foundTarget = target;
@@ -392,7 +436,10 @@ export const useCustomCursor = () => {
         const marqueeSection = target.closest('.marquee');
         if (marqueeSection) {
           // Пропускаем все элементы внутри marquee, кроме .marquee-item с классом hover-target
-          if (!target.classList.contains('marquee-item') || !target.classList.contains('hover-target')) {
+          if (
+            !target.classList.contains('marquee-item') ||
+            !target.classList.contains('hover-target')
+          ) {
             return;
           }
         }
@@ -458,7 +505,9 @@ export const useCustomCursor = () => {
     };
 
     const handleMouseMoveRaf = rafThrottle(handleMouseMove);
-    window.addEventListener('mousemove', handleMouseMoveRaf, { passive: true } as AddEventListenerOptions);
+    window.addEventListener('mousemove', handleMouseMoveRaf, {
+      passive: true,
+    } as AddEventListenerOptions);
     window.addEventListener('mousedown', handleMouseDown, true);
     window.addEventListener('mouseup', handleMouseMoveRestore);
     window.addEventListener('blur', handleWindowBlur);
@@ -488,4 +537,3 @@ export const useCustomCursor = () => {
     cursorReactorRef,
   };
 };
-

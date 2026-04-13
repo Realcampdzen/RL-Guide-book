@@ -1,4 +1,4 @@
-import React from 'react';
+import type React from 'react';
 
 type SkinVariant = 'default' | 'my-art';
 
@@ -77,9 +77,7 @@ const ActionBar: React.FC<ActionBarProps> = ({
       </div>
 
       {pendingCount > 0 && (
-        <span className="badge-skin-toolbar__meta">
-          На согласовании: {pendingCount}
-        </span>
+        <span className="badge-skin-toolbar__meta">На согласовании: {pendingCount}</span>
       )}
     </div>
   );

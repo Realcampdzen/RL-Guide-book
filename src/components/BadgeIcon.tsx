@@ -1,8 +1,9 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { getBadgeImagePath, getPreferredBadgeImageVariant } from '../utils/badgeImages';
-import { toSiblingImageUrl } from '../utils/imageSources';
+import type React from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useUserProgress } from '../hooks/useUserProgress';
+import { getBadgeImagePath, getPreferredBadgeImageVariant } from '../utils/badgeImages';
 import { parseAiSkinSlotIndex, parseApprovedArtSkinSlotIndex } from '../utils/badgeSkins';
+import { toSiblingImageUrl } from '../utils/imageSources';
 
 interface BadgeIconProps {
   badgeId: string;
@@ -36,7 +37,9 @@ const BadgeIcon: React.FC<BadgeIconProps> = ({
   const imgRef = useRef<HTMLImageElement | null>(null);
 
   const baseBadgeId = useMemo(() => {
-    const parts = String(badgeId || '').split('.').filter(Boolean);
+    const parts = String(badgeId || '')
+      .split('.')
+      .filter(Boolean);
     return parts.length >= 2 ? `${parts[0]}.${parts[1]}` : badgeId;
   }, [badgeId]);
 
@@ -68,21 +71,23 @@ const BadgeIcon: React.FC<BadgeIconProps> = ({
     if (selectedSkin === 'custom' && userData.customBadgeImages?.[baseBadgeId]) {
       return userData.customBadgeImages[baseBadgeId];
     }
-    if (selectedSkin && (selectedSkin.startsWith('data:') || selectedSkin.startsWith('http') || selectedSkin.startsWith('/'))) {
+    if (
+      selectedSkin &&
+      (selectedSkin.startsWith('data:') ||
+        selectedSkin.startsWith('http') ||
+        selectedSkin.startsWith('/'))
+    ) {
       return selectedSkin;
     }
     return null;
   }, [selectedSkin, userData.customBadgeImages, baseBadgeId]);
 
   const variant = getPreferredBadgeImageVariant(categoryId);
-  const variantOrder = useMemo<('default' | 'realism')[]>(
-    () => {
-      if (selectedSkin === 'realism') return ['realism', 'default'];
-      if (selectedSkin === 'default') return ['default', 'realism'];
-      return variant === 'realism' ? ['realism', 'default'] : ['default', 'realism'];
-    },
-    [variant, selectedSkin]
-  );
+  const variantOrder = useMemo<('default' | 'realism')[]>(() => {
+    if (selectedSkin === 'realism') return ['realism', 'default'];
+    if (selectedSkin === 'default') return ['default', 'realism'];
+    return variant === 'realism' ? ['realism', 'default'] : ['default', 'realism'];
+  }, [variant, selectedSkin]);
 
   const imageCandidates = useMemo(() => {
     const candidates: string[] = [];
@@ -110,8 +115,12 @@ const BadgeIcon: React.FC<BadgeIconProps> = ({
       push(customImageUrl);
     }
 
-    const altBadgeTitle = badgeTitle ? badgeTitle.replace(/-/g, ' ').replace(/\s+/g, ' ').trim() : badgeTitle;
-    const altLevelTitle = levelTitle ? levelTitle.replace(/-/g, ' ').replace(/\s+/g, ' ').trim() : levelTitle;
+    const altBadgeTitle = badgeTitle
+      ? badgeTitle.replace(/-/g, ' ').replace(/\s+/g, ' ').trim()
+      : badgeTitle;
+    const altLevelTitle = levelTitle
+      ? levelTitle.replace(/-/g, ' ').replace(/\s+/g, ' ').trim()
+      : levelTitle;
     const hasAltTitle = altBadgeTitle !== badgeTitle || altLevelTitle !== levelTitle;
 
     if (levelId && levelTitle) {
@@ -126,11 +135,29 @@ const BadgeIcon: React.FC<BadgeIconProps> = ({
 
       if (hasAltTitle) {
         variantOrder.forEach((v) => {
-          push(getBadgeImagePath(badgeId, altBadgeTitle || badgeTitle, categoryId, levelId, altLevelTitle, v));
+          push(
+            getBadgeImagePath(
+              badgeId,
+              altBadgeTitle || badgeTitle,
+              categoryId,
+              levelId,
+              altLevelTitle,
+              v
+            )
+          );
         });
         if (altLevelTitle !== altBadgeTitle) {
           variantOrder.forEach((v) => {
-            push(getBadgeImagePath(badgeId, altBadgeTitle || badgeTitle, categoryId, levelId, altBadgeTitle || badgeTitle, v));
+            push(
+              getBadgeImagePath(
+                badgeId,
+                altBadgeTitle || badgeTitle,
+                categoryId,
+                levelId,
+                altBadgeTitle || badgeTitle,
+                v
+              )
+            );
           });
         }
       }
@@ -142,12 +169,31 @@ const BadgeIcon: React.FC<BadgeIconProps> = ({
 
     if (hasAltTitle) {
       variantOrder.forEach((v) => {
-        push(getBadgeImagePath(badgeId, altBadgeTitle || badgeTitle, categoryId, undefined, undefined, v));
+        push(
+          getBadgeImagePath(
+            badgeId,
+            altBadgeTitle || badgeTitle,
+            categoryId,
+            undefined,
+            undefined,
+            v
+          )
+        );
       });
     }
 
     return candidates;
-  }, [badgeId, badgeTitle, categoryId, levelId, levelTitle, variantOrder, customImageUrl, aiSkinImageUrl, approvedSkinImageUrl]);
+  }, [
+    badgeId,
+    badgeTitle,
+    categoryId,
+    levelId,
+    levelTitle,
+    variantOrder,
+    customImageUrl,
+    aiSkinImageUrl,
+    approvedSkinImageUrl,
+  ]);
 
   const imagePath = imageCandidates[pathIndex] ?? null;
   const imageWebp = useWebp && imagePath ? toSiblingImageUrl(imagePath, 'webp') : null;
@@ -205,7 +251,16 @@ const BadgeIcon: React.FC<BadgeIconProps> = ({
       }}
     >
       {!imageLoaded && !imageError && (
-        <div className="badge-emoji" style={{ fontSize: getEmojiSize(size), opacity: 0.3, position: 'absolute', pointerEvents: 'none', zIndex: 1 }}>
+        <div
+          className="badge-emoji"
+          style={{
+            fontSize: getEmojiSize(size),
+            opacity: 0.3,
+            position: 'absolute',
+            pointerEvents: 'none',
+            zIndex: 1,
+          }}
+        >
           {emoji}
         </div>
       )}

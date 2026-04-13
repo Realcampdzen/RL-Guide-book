@@ -2,13 +2,7 @@
 const http = require('http');
 
 const PORT = process.env.PORT || 4002;
-const TEST_URLS = [
-  '/',
-  '/bluenest.html',
-  '/bluenest',
-  '/categories.html',
-  '/categories'
-];
+const TEST_URLS = ['/', '/bluenest.html', '/bluenest', '/categories.html', '/categories'];
 
 console.log(`🧪 Тестирование HTML сервера на порту ${PORT}...\n`);
 
@@ -19,22 +13,22 @@ function testConnection(path) {
       port: PORT,
       path: path,
       method: 'GET',
-      timeout: 5000
+      timeout: 5000,
     };
 
     const req = http.request(options, (res) => {
       let data = '';
-      
+
       res.on('data', (chunk) => {
         data += chunk;
       });
-      
+
       res.on('end', () => {
         resolve({
           statusCode: res.statusCode,
           headers: res.headers,
           dataLength: data.length,
-          isHTML: res.headers['content-type']?.includes('text/html')
+          isHTML: res.headers['content-type']?.includes('text/html'),
         });
       });
     });
@@ -54,16 +48,18 @@ function testConnection(path) {
 
 async function runTests() {
   console.log('📋 Тестируемые URL:');
-  TEST_URLS.forEach(url => console.log(`   - http://localhost:${PORT}${url}`));
+  TEST_URLS.forEach((url) => console.log(`   - http://localhost:${PORT}${url}`));
   console.log('\n');
 
   for (const path of TEST_URLS) {
     try {
       console.log(`🔍 Тестирую: ${path}...`);
       const result = await testConnection(path);
-      
+
       if (result.statusCode === 200) {
-        console.log(`   ✅ Успешно! Статус: ${result.statusCode}, Размер: ${result.dataLength} байт, HTML: ${result.isHTML ? 'Да' : 'Нет'}`);
+        console.log(
+          `   ✅ Успешно! Статус: ${result.statusCode}, Размер: ${result.dataLength} байт, HTML: ${result.isHTML ? 'Да' : 'Нет'}`
+        );
       } else {
         console.log(`   ⚠️  Статус: ${result.statusCode}`);
       }
@@ -84,4 +80,3 @@ async function runTests() {
 }
 
 runTests().catch(console.error);
-

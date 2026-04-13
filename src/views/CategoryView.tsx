@@ -1,17 +1,17 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { pluralizeRu } from '../utils/textFormatting';
-import { useScrollReveal } from '../hooks/useScrollReveal';
-import { useTiltCard } from '../hooks/useTiltCard';
+import type React from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import BadgeIcon from '../components/BadgeIcon';
-import { getBadgeImagePath, hasBadgeImage } from '../utils/badgeImages'; // Import getBadgeImagePath
 import DataErrorState from '../components/DataErrorState';
 import { Skeleton } from '../components/Skeleton';
+import { useScrollReveal } from '../hooks/useScrollReveal';
+import { useTiltCard } from '../hooks/useTiltCard';
+import { getBadgeImagePath, hasBadgeImage } from '../utils/badgeImages'; // Import getBadgeImagePath
+import { pluralizeRu } from '../utils/textFormatting';
 import '../styles/category-view.css';
-import { useUserProgress } from '../hooks/useUserProgress';
 import { useAuth } from '../context/AuthContext';
 import { useTeam } from '../context/TeamContext';
-import type { Category, Badge } from '../types/guide';
-
+import { useUserProgress } from '../hooks/useUserProgress';
+import type { Badge, Category } from '../types/guide';
 
 const PREFETCH_BADGE_BG_COUNT = 12;
 
@@ -21,7 +21,8 @@ function shouldPrefetchBadgeBackgrounds(): boolean {
   if (document.documentElement?.dataset?.perf === 'lite') return false;
   const connection = (navigator as any).connection;
   if (connection?.saveData === true) return false;
-  if (connection?.effectiveType && ['2g', 'slow-2g'].includes(connection.effectiveType)) return false;
+  if (connection?.effectiveType && ['2g', 'slow-2g'].includes(connection.effectiveType))
+    return false;
   return true;
 }
 
@@ -37,18 +38,62 @@ function computeBadgeBackgroundLayerUrls(badge: Badge, category: Category): stri
   if (Array.isArray((badge as any).allLevels) && (badge as any).allLevels.length > 0) {
     const levels = (badge as any).allLevels;
     const targetLevel = levels[levels.length - 1];
-    realismBgUrl = getBadgeImagePath(baseBadgeId, badge.title, category.id, targetLevel.id, targetLevel.title, 'realism');
-    defaultBgUrl = getBadgeImagePath(baseBadgeId, badge.title, category.id, targetLevel.id, targetLevel.title, 'default');
+    realismBgUrl = getBadgeImagePath(
+      baseBadgeId,
+      badge.title,
+      category.id,
+      targetLevel.id,
+      targetLevel.title,
+      'realism'
+    );
+    defaultBgUrl = getBadgeImagePath(
+      baseBadgeId,
+      badge.title,
+      category.id,
+      targetLevel.id,
+      targetLevel.title,
+      'default'
+    );
   } else {
-    realismBgUrl = getBadgeImagePath(baseBadgeId, badge.title, category.id, undefined, undefined, 'realism');
-    defaultBgUrl = getBadgeImagePath(baseBadgeId, badge.title, category.id, undefined, undefined, 'default');
+    realismBgUrl = getBadgeImagePath(
+      baseBadgeId,
+      badge.title,
+      category.id,
+      undefined,
+      undefined,
+      'realism'
+    );
+    defaultBgUrl = getBadgeImagePath(
+      baseBadgeId,
+      badge.title,
+      category.id,
+      undefined,
+      undefined,
+      'default'
+    );
   }
 
   // Base (level-agnostic) fallback. Some badges have only "1 ..." images even if they have multiple levels.
-  realismBaseBgUrl = getBadgeImagePath(baseBadgeId, badge.title, category.id, undefined, undefined, 'realism');
-  defaultBaseBgUrl = getBadgeImagePath(baseBadgeId, badge.title, category.id, undefined, undefined, 'default');
+  realismBaseBgUrl = getBadgeImagePath(
+    baseBadgeId,
+    badge.title,
+    category.id,
+    undefined,
+    undefined,
+    'realism'
+  );
+  defaultBaseBgUrl = getBadgeImagePath(
+    baseBadgeId,
+    badge.title,
+    category.id,
+    undefined,
+    undefined,
+    'default'
+  );
 
-  return [realismBgUrl, realismBaseBgUrl, defaultBgUrl, defaultBaseBgUrl].filter(Boolean) as string[];
+  return [realismBgUrl, realismBaseBgUrl, defaultBgUrl, defaultBaseBgUrl].filter(
+    Boolean
+  ) as string[];
 }
 
 function warmImageCache(url: string) {
@@ -89,9 +134,9 @@ const TiltBadgeCard: React.FC<{
   progress?: { total: number; achieved: number; started: number };
   onBadgeClick: (badge: Badge) => void;
 }> = ({ badge, index, category, progress, onBadgeClick }) => {
-  const cardRef = useRef<HTMLElement>(null);
+  const cardRef = useRef<HTMLElement | null>(null);
   const [isIconExpanded, setIsIconExpanded] = useState(false);
-  const expandTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const expandTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useTiltCard(cardRef);
 
   // Cleanup timeout on unmount
@@ -117,19 +162,63 @@ const TiltBadgeCard: React.FC<{
   if (Array.isArray((badge as any).allLevels) && (badge as any).allLevels.length > 0) {
     const levels = (badge as any).allLevels;
     const targetLevel = levels[levels.length - 1]; // Use the last level
-    realismBgUrl = getBadgeImagePath(baseBadgeId, badge.title, category.id, targetLevel.id, targetLevel.title, 'realism');
-    defaultBgUrl = getBadgeImagePath(baseBadgeId, badge.title, category.id, targetLevel.id, targetLevel.title, 'default');
+    realismBgUrl = getBadgeImagePath(
+      baseBadgeId,
+      badge.title,
+      category.id,
+      targetLevel.id,
+      targetLevel.title,
+      'realism'
+    );
+    defaultBgUrl = getBadgeImagePath(
+      baseBadgeId,
+      badge.title,
+      category.id,
+      targetLevel.id,
+      targetLevel.title,
+      'default'
+    );
   } else {
     // Single level
-    realismBgUrl = getBadgeImagePath(baseBadgeId, badge.title, category.id, undefined, undefined, 'realism');
-    defaultBgUrl = getBadgeImagePath(baseBadgeId, badge.title, category.id, undefined, undefined, 'default');
+    realismBgUrl = getBadgeImagePath(
+      baseBadgeId,
+      badge.title,
+      category.id,
+      undefined,
+      undefined,
+      'realism'
+    );
+    defaultBgUrl = getBadgeImagePath(
+      baseBadgeId,
+      badge.title,
+      category.id,
+      undefined,
+      undefined,
+      'default'
+    );
   }
 
   // Base (level-agnostic) fallback. Some badges have only "1 ..." images even if they have multiple levels.
-  realismBaseBgUrl = getBadgeImagePath(baseBadgeId, badge.title, category.id, undefined, undefined, 'realism');
-  defaultBaseBgUrl = getBadgeImagePath(baseBadgeId, badge.title, category.id, undefined, undefined, 'default');
+  realismBaseBgUrl = getBadgeImagePath(
+    baseBadgeId,
+    badge.title,
+    category.id,
+    undefined,
+    undefined,
+    'realism'
+  );
+  defaultBaseBgUrl = getBadgeImagePath(
+    baseBadgeId,
+    badge.title,
+    category.id,
+    undefined,
+    undefined,
+    'default'
+  );
 
-  const bgLayers = [realismBgUrl, realismBaseBgUrl, defaultBgUrl, defaultBaseBgUrl].filter(Boolean) as string[];
+  const bgLayers = [realismBgUrl, realismBaseBgUrl, defaultBgUrl, defaultBaseBgUrl].filter(
+    Boolean
+  ) as string[];
   const cardBg = bgLayers.length ? bgLayers.map((u) => `url('${u}')`).join(', ') : undefined;
 
   const handleCardClick = () => {
@@ -163,7 +252,7 @@ const TiltBadgeCard: React.FC<{
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
-        cursor: 'pointer'
+        cursor: 'pointer',
       }}
       onClick={handleCardClick}
       onKeyDown={(e) => {
@@ -181,21 +270,28 @@ const TiltBadgeCard: React.FC<{
     >
       {/* Progress Chip */}
       {progress && (progress.achieved > 0 || progress.started > 0) && (
-        <div style={{
-          position: 'absolute',
-          top: '10px',
-          right: '10px',
-          background: progress.achieved === progress.total && progress.total > 0 ? '#4caf50' : 'rgba(0,0,0,0.6)',
-          backdropFilter: 'blur(4px)',
-          color: 'white',
-          padding: '2px 8px',
-          borderRadius: '12px',
-          fontSize: '11px',
-          fontWeight: 'bold',
-          border: '1px solid rgba(255,255,255,0.2)',
-          zIndex: 5
-        }}>
-          {progress.achieved === progress.total && progress.total > 0 ? '✓ Готово' : `${progress.achieved}/${progress.total}`}
+        <div
+          style={{
+            position: 'absolute',
+            top: '10px',
+            right: '10px',
+            background:
+              progress.achieved === progress.total && progress.total > 0
+                ? '#4caf50'
+                : 'rgba(0,0,0,0.6)',
+            backdropFilter: 'blur(4px)',
+            color: 'white',
+            padding: '2px 8px',
+            borderRadius: '12px',
+            fontSize: '11px',
+            fontWeight: 'bold',
+            border: '1px solid rgba(255,255,255,0.2)',
+            zIndex: 5,
+          }}
+        >
+          {progress.achieved === progress.total && progress.total > 0
+            ? '✓ Готово'
+            : `${progress.achieved}/${progress.total}`}
         </div>
       )}
 
@@ -218,7 +314,11 @@ const TiltBadgeCard: React.FC<{
               />
             );
           }
-          return <div className="badge-emoji" style={{ fontSize: '1em' }}>{badge.emoji || '🏆'}</div>;
+          return (
+            <div className="badge-emoji" style={{ fontSize: '1em' }}>
+              {badge.emoji || '🏆'}
+            </div>
+          );
         })()}
       </div>
 
@@ -267,16 +367,16 @@ const CategoryView: React.FC<CategoryViewProps> = ({
   const isTeamCategory = category.id === '8';
   const hasTeam = Boolean(
     myTeam ??
-    (typeof localStorage !== 'undefined' &&
-      (localStorage.getItem('rl_my_team_id') ||
-        (() => {
-          try {
-            const v = localStorage.getItem('rl_my_team_v1');
-            return v ? !!JSON.parse(v)?.id : false;
-          } catch {
-            return false;
-          }
-        })()))
+      (typeof localStorage !== 'undefined' &&
+        (localStorage.getItem('rl_my_team_id') ||
+          (() => {
+            try {
+              const v = localStorage.getItem('rl_my_team_v1');
+              return v ? !!JSON.parse(v)?.id : false;
+            } catch {
+              return false;
+            }
+          })()))
   );
   const isTeamUnlocked = hasTeam;
 
@@ -347,7 +447,9 @@ const CategoryView: React.FC<CategoryViewProps> = ({
     };
 
     // Prefer idle time so we don't compete with critical rendering; fall back to a small delay.
-    const ric = (window as any).requestIdleCallback as undefined | ((cb: () => void, opts?: { timeout: number }) => number);
+    const ric = (window as any).requestIdleCallback as
+      | undefined
+      | ((cb: () => void, opts?: { timeout: number }) => number);
     if (typeof ric === 'function') {
       ric(run, { timeout: 1200 });
     } else {
@@ -378,7 +480,9 @@ const CategoryView: React.FC<CategoryViewProps> = ({
     if (!isMenuOpen) return;
     // Focus first actionable element in the panel for keyboard users
     const panel = document.getElementById('category-mobile-menu-panel');
-    const firstFocusable = panel?.querySelector<HTMLButtonElement>('button, [href], [tabindex]:not([tabindex="-1"])');
+    const firstFocusable = panel?.querySelector<HTMLButtonElement>(
+      'button, [href], [tabindex]:not([tabindex="-1"])'
+    );
     firstFocusable?.focus();
   }, [isMenuOpen]);
 
@@ -399,9 +503,8 @@ const CategoryView: React.FC<CategoryViewProps> = ({
   };
 
   const titleWords = (category.title || '').trim().split(/\s+/);
-  const titleKicker = titleWords.length > 0 && titleWords[0].toLowerCase() === 'за'
-    ? titleWords.shift() || ''
-    : '';
+  const titleKicker =
+    titleWords.length > 0 && titleWords[0].toLowerCase() === 'за' ? titleWords.shift() || '' : '';
   const titleLastWord = titleWords.pop() || '';
   const titleLead = titleWords.join(' ');
   const breadcrumbLabel = titleKicker
@@ -456,12 +559,7 @@ const CategoryView: React.FC<CategoryViewProps> = ({
         aria-label="Навигация"
       >
         <div className="mobile-header-left">
-          <button
-            type="button"
-            className="mobile-header-back"
-            onClick={onBack}
-            aria-label="Назад"
-          >
+          <button type="button" className="mobile-header-back" onClick={onBack} aria-label="Назад">
             ←
           </button>
         </div>
@@ -470,7 +568,9 @@ const CategoryView: React.FC<CategoryViewProps> = ({
           type="button"
           className={`mobile-category-title${category.introduction?.has_introduction ? ' is-clickable' : ''}`}
           onClick={category.introduction?.has_introduction ? onIntroductionClick : undefined}
-          aria-label={category.introduction?.has_introduction ? 'Открыть введение категории' : 'Категория'}
+          aria-label={
+            category.introduction?.has_introduction ? 'Открыть введение категории' : 'Категория'
+          }
           disabled={!category.introduction?.has_introduction}
         >
           {titleKicker && <span className="category-title-kicker">{titleKicker}</span>}
@@ -481,7 +581,9 @@ const CategoryView: React.FC<CategoryViewProps> = ({
                 {titleLastWord}
               </span>
             )}
-            {!titleLead && !titleLastWord && <span className="category-title-lead">{category.title}</span>}
+            {!titleLead && !titleLastWord && (
+              <span className="category-title-lead">{category.title}</span>
+            )}
           </span>
         </button>
 
@@ -525,13 +627,24 @@ const CategoryView: React.FC<CategoryViewProps> = ({
         aria-hidden={!isMenuOpen}
       >
         <div className="mobile-menu-head">
-          <span id="category-menu-title" className="mobile-menu-title">Меню</span>
-          <button type="button" className="mobile-menu-close" onClick={closeMenu} aria-label="Закрыть меню">
+          <span id="category-menu-title" className="mobile-menu-title">
+            Меню
+          </span>
+          <button
+            type="button"
+            className="mobile-menu-close"
+            onClick={closeMenu}
+            aria-label="Закрыть меню"
+          >
             &times;
           </button>
         </div>
         <div className="mobile-menu-list">
-          <button type="button" className="mobile-menu-item" onClick={() => handleMenuAction(onBackToIntro)}>
+          <button
+            type="button"
+            className="mobile-menu-item"
+            onClick={() => handleMenuAction(onBackToIntro)}
+          >
             <span className="mobile-menu-item-label">Главная</span>
             <span className="mobile-menu-item-icon">&rsaquo;</span>
           </button>
@@ -544,7 +657,11 @@ const CategoryView: React.FC<CategoryViewProps> = ({
             <span className="mobile-menu-item-label">Категории</span>
             <span className="mobile-menu-item-icon">&bull;</span>
           </button>
-          <button type="button" className="mobile-menu-item mobile-menu-item-cta" onClick={() => handleMenuAction(onTelegramContact)}>
+          <button
+            type="button"
+            className="mobile-menu-item mobile-menu-item-cta"
+            onClick={() => handleMenuAction(onTelegramContact)}
+          >
             <span className="mobile-menu-item-label">Записаться через Telegram</span>
             <span className="mobile-menu-item-icon">&rsaquo;</span>
           </button>
@@ -596,9 +713,7 @@ const CategoryView: React.FC<CategoryViewProps> = ({
       <main className="category-main">
         {isLoadingBadges && badges.length === 0 && !errorState && (
           <>
-            <div style={{ padding: '10px 0', opacity: 0.85 }}>
-              Загрузка значков…
-            </div>
+            <div style={{ padding: '10px 0', opacity: 0.85 }}>Загрузка значков…</div>
             <div className="badges-grid" aria-label="Загрузка значков">
               {Array.from({ length: 8 }).map((_, i) => (
                 <Skeleton key={i} className="skeleton--card" />
@@ -616,8 +731,8 @@ const CategoryView: React.FC<CategoryViewProps> = ({
         {/* Hero Section */}
         <section className="category-hero reveal-on-scroll">
           <p className="category-subtitle">
-            {badgeCount} {pluralizeRu(badgeCount, ['значок', 'значка', 'значков'])} в этой категории.
-            Выберите значок, чтобы узнать подробности и критерии получения.
+            {badgeCount} {pluralizeRu(badgeCount, ['значок', 'значка', 'значков'])} в этой
+            категории. Выберите значок, чтобы узнать подробности и критерии получения.
           </p>
           <div className="category-actions">
             <button
@@ -661,7 +776,9 @@ const CategoryView: React.FC<CategoryViewProps> = ({
                   ✅ Активный
                 </button>
                 <button
-                  onClick={() => onAdditionalMaterialClick('methodology', 'inspector-methodology.md')}
+                  onClick={() =>
+                    onAdditionalMaterialClick('methodology', 'inspector-methodology.md')
+                  }
                   className="action-btn hover-target"
                 >
                   📘 Методика
@@ -685,13 +802,18 @@ const CategoryView: React.FC<CategoryViewProps> = ({
 
         {/* Badge filters */}
         {isTeamCategory && (
-          <div className="bro-gate-card reveal-on-scroll" role="region" aria-label="Движок — доступ к действиям">
+          <div
+            className="bro-gate-card reveal-on-scroll"
+            role="region"
+            aria-label="Движок — доступ к действиям"
+          >
             <div className="bro-gate-head">
               <div>
                 <div className="bro-gate-kicker">Значки Движков</div>
                 <div className="bro-gate-title">Движок</div>
                 <div className="bro-gate-subtitle">
-                  Просмотр открыт всем. Добавлять значки в путь и пользоваться действиями можно после создания или вступления в Движок в Личном кабинете.
+                  Просмотр открыт всем. Добавлять значки в путь и пользоваться действиями можно
+                  после создания или вступления в Движок в Личном кабинете.
                 </div>
               </div>
               <div className={`bro-gate-status${isTeamUnlocked ? ' is-unlocked' : ''}`}>
@@ -701,10 +823,17 @@ const CategoryView: React.FC<CategoryViewProps> = ({
 
             {!isTeamUnlocked ? (
               <div className="bro-gate-actions">
-                <button type="button" className="action-btn hover-target" onClick={openTeamDashboard}>
+                <button
+                  type="button"
+                  className="action-btn hover-target"
+                  onClick={openTeamDashboard}
+                >
                   🚀 Открыть ЛК → Движки
                 </button>
-                <div className="bro-gate-note">Создай свой Движок или вступи в команду по коду в разделе «Движки» личного кабинета.</div>
+                <div className="bro-gate-note">
+                  Создай свой Движок или вступи в команду по коду в разделе «Движки» личного
+                  кабинета.
+                </div>
               </div>
             ) : (
               <div className="bro-gate-note">
@@ -715,13 +844,19 @@ const CategoryView: React.FC<CategoryViewProps> = ({
         )}
 
         {isBroCategory && (
-          <div ref={broGateRef} className="bro-gate-card reveal-on-scroll" role="region" aria-label="Бросвящение — вход в Бро‑движение">
+          <div
+            ref={broGateRef}
+            className="bro-gate-card reveal-on-scroll"
+            role="region"
+            aria-label="Бросвящение — вход в Бро‑движение"
+          >
             <div className="bro-gate-head">
               <div>
                 <div className="bro-gate-kicker">Вход в Бро‑тему</div>
                 <div className="bro-gate-title">Бросвящение</div>
                 <div className="bro-gate-subtitle">
-                  Просмотр значков открыт всем. Прогресс и Бро‑фичи — только после подтверждения Бросвящения.
+                  Просмотр значков открыт всем. Прогресс и Бро‑фичи — только после подтверждения
+                  Бросвящения.
                 </div>
               </div>
               <div className={`bro-gate-status${isBroUnlocked ? ' is-unlocked' : ''}`}>
@@ -734,14 +869,21 @@ const CategoryView: React.FC<CategoryViewProps> = ({
                 <button type="button" className="action-btn hover-target" onClick={openBroPassport}>
                   📘 Открыть Бропаспорт (ЛК → БРО)
                 </button>
-                <button type="button" className="action-btn hover-target" onClick={openBroTelegramRequest}>
+                <button
+                  type="button"
+                  className="action-btn hover-target"
+                  onClick={openBroTelegramRequest}
+                >
                   ✉️ Запросить подтверждение в Telegram
                 </button>
-                <div className="bro-gate-note">Точка входа в Бросвящение — в личном кабинете: БРО → Бропаспорт.</div>
+                <div className="bro-gate-note">
+                  Точка входа в Бросвящение — в личном кабинете: БРО → Бропаспорт.
+                </div>
               </div>
             ) : (
               <div className="bro-gate-note">
-                Бро‑доступ активен на этом устройстве. Значки категории 9 можно выполнять и отправлять на подтверждение.
+                Бро‑доступ активен на этом устройстве. Значки категории 9 можно выполнять и
+                отправлять на подтверждение.
               </div>
             )}
           </div>
@@ -772,8 +914,13 @@ const CategoryView: React.FC<CategoryViewProps> = ({
         {!(isLoadingBadges && badges.length === 0) && (
           <>
             {filteredBadges.length === 0 ? (
-              <p className="category-filter-empty" style={{ padding: '2rem 1rem', color: 'rgba(255,255,255,0.7)', fontSize: '1rem' }}>
-                {badgeFilter === 'all' ? 'В этой категории пока нет значков.' : 'Нет значков по выбранному фильтру. Выбери «Все» или добавь значки в путь.'}
+              <p
+                className="category-filter-empty"
+                style={{ padding: '2rem 1rem', color: 'rgba(255,255,255,0.7)', fontSize: '1rem' }}
+              >
+                {badgeFilter === 'all'
+                  ? 'В этой категории пока нет значков.'
+                  : 'Нет значков по выбранному фильтру. Выбери «Все» или добавь значки в путь.'}
               </p>
             ) : (
               <div className="badges-grid">
@@ -785,7 +932,10 @@ const CategoryView: React.FC<CategoryViewProps> = ({
 
                   const storedProgress = getBadgeProgress(baseId);
                   let totalLevels = 1;
-                  if (Array.isArray((badge as any).allLevels) && (badge as any).allLevels.length > 0) {
+                  if (
+                    Array.isArray((badge as any).allLevels) &&
+                    (badge as any).allLevels.length > 0
+                  ) {
                     totalLevels = (badge as any).allLevels.length;
                   }
 
@@ -808,8 +958,6 @@ const CategoryView: React.FC<CategoryViewProps> = ({
           </>
         )}
       </main>
-
-
     </div>
   );
 };

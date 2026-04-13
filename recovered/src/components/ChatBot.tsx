@@ -1,5 +1,5 @@
-import React, { useCallback, useMemo, useState, useEffect, useRef } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import '../styles/chatbot.css';
 import { rafThrottle } from '../utils/rafThrottle';
 
@@ -43,15 +43,14 @@ type ChatPosition = { x: number; y: number };
 const CHAT_POS_STORAGE_KEY = 'rl-chatbot-position-v1';
 const clamp = (v: number, min: number, max: number): number => Math.max(min, Math.min(max, v));
 
-
-const ChatBot: React.FC<ChatBotProps> = ({ 
-  isOpen, 
-  onClose, 
+const ChatBot: React.FC<ChatBotProps> = ({
+  isOpen,
+  onClose,
   currentView,
-  currentCategory, 
+  currentCategory,
   currentBadge,
   currentLevel,
-  currentLevelBadgeTitle
+  currentLevelBadgeTitle,
 }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
@@ -63,13 +62,22 @@ const ChatBot: React.FC<ChatBotProps> = ({
   const scrollTimeoutRef = useRef<number | undefined>(undefined);
   const isNearBottomRef = useRef(true);
   const [showJumpToBottom, setShowJumpToBottom] = useState(false);
-  
+
   // Генерируем уникальный user_id для каждого сеанса
-  const [userId] = useState(() => `web_user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
+  const [userId] = useState(
+    () => `web_user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+  );
 
   const getViewportState = (): ViewportState => {
     if (typeof window === 'undefined') {
-      return { width: 1024, height: 768, innerWidth: 1024, innerHeight: 768, offsetTop: 0, offsetLeft: 0 };
+      return {
+        width: 1024,
+        height: 768,
+        innerWidth: 1024,
+        innerHeight: 768,
+        offsetTop: 0,
+        offsetLeft: 0,
+      };
     }
     const { innerWidth, innerHeight } = window;
     const visualViewport = window.visualViewport;
@@ -79,7 +87,7 @@ const ChatBot: React.FC<ChatBotProps> = ({
       innerWidth,
       innerHeight,
       offsetTop: visualViewport?.offsetTop ?? 0,
-      offsetLeft: visualViewport?.offsetLeft ?? 0
+      offsetLeft: visualViewport?.offsetLeft ?? 0,
     };
   };
 
@@ -93,7 +101,9 @@ const ChatBot: React.FC<ChatBotProps> = ({
 
   const readMobileNavHeight = useCallback(() => {
     if (typeof window === 'undefined') return 68;
-    const raw = getComputedStyle(document.documentElement).getPropertyValue('--mobile-nav-height').trim();
+    const raw = getComputedStyle(document.documentElement)
+      .getPropertyValue('--mobile-nav-height')
+      .trim();
     const parsed = Number.parseFloat(raw);
     return Number.isFinite(parsed) ? parsed : 68;
   }, []);
@@ -102,7 +112,9 @@ const ChatBot: React.FC<ChatBotProps> = ({
   const [isMessagesScrolling, setIsMessagesScrolling] = useState(false);
   const mobileBottomInset = isMobile ? Math.max(12, keyboardInset + mobileNavHeightPx + 16) : 0;
   const mobileOverlayBackground = isMobile
-    ? (isKeyboardOpen ? 'rgba(15, 10, 31, 0.94)' : 'rgba(15, 10, 31, 0.88)')
+    ? isKeyboardOpen
+      ? 'rgba(15, 10, 31, 0.94)'
+      : 'rgba(15, 10, 31, 0.88)'
     : 'transparent';
 
   const [chatPos, setChatPos] = useState<ChatPosition | null>(null);
@@ -162,7 +174,7 @@ const ChatBot: React.FC<ChatBotProps> = ({
         isNearBottomRef.current = isNearBottom;
         setShowJumpToBottom(!isNearBottom);
       }),
-    [],
+    []
   );
 
   useEffect(() => {
@@ -177,10 +189,16 @@ const ChatBot: React.FC<ChatBotProps> = ({
     }
 
     window.addEventListener('resize', handleResize, { passive: true } as AddEventListenerOptions);
-    window.addEventListener('orientationchange', handleResize, { passive: true } as AddEventListenerOptions);
+    window.addEventListener('orientationchange', handleResize, {
+      passive: true,
+    } as AddEventListenerOptions);
     const visualViewport = window.visualViewport;
-    visualViewport?.addEventListener('resize', handleResize, { passive: true } as AddEventListenerOptions);
-    visualViewport?.addEventListener('scroll', handleResize, { passive: true } as AddEventListenerOptions);
+    visualViewport?.addEventListener('resize', handleResize, {
+      passive: true,
+    } as AddEventListenerOptions);
+    visualViewport?.addEventListener('scroll', handleResize, {
+      passive: true,
+    } as AddEventListenerOptions);
 
     return () => {
       window.removeEventListener('resize', handleResize as unknown as EventListener);
@@ -238,7 +256,9 @@ const ChatBot: React.FC<ChatBotProps> = ({
     });
     update();
     window.addEventListener('resize', update, { passive: true } as AddEventListenerOptions);
-    window.addEventListener('orientationchange', update, { passive: true } as AddEventListenerOptions);
+    window.addEventListener('orientationchange', update, {
+      passive: true,
+    } as AddEventListenerOptions);
     return () => {
       window.removeEventListener('resize', update as unknown as EventListener);
       window.removeEventListener('orientationchange', update as unknown as EventListener);
@@ -279,10 +299,10 @@ const ChatBot: React.FC<ChatBotProps> = ({
       id: Date.now().toString(),
       text,
       isUser: true,
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
-    setMessages(prev => [...prev, userMessage]);
+    setMessages((prev) => [...prev, userMessage]);
     setInputText('');
     setIsLoading(true);
 
@@ -291,7 +311,8 @@ const ChatBot: React.FC<ChatBotProps> = ({
       // - в dev (Vite) — локальный Flask API через proxy (/api/chat)
       // - в prod — Cloudflare endpoint
       const hostname = window.location.hostname;
-      const useLocalApi = import.meta.env.DEV || hostname === 'localhost' || hostname === '127.0.0.1';
+      const useLocalApi =
+        import.meta.env.DEV || hostname === 'localhost' || hostname === '127.0.0.1';
       const chatbotUrl = useLocalApi
         ? '/api/chat' // Vite proxy к Flask backend на порту 5000
         : 'https://real-vibe-ai-studio.pages.dev/api/putevoditel/chat';
@@ -314,35 +335,35 @@ const ChatBot: React.FC<ChatBotProps> = ({
             current_category: currentCategory,
             current_badge: currentBadge,
             current_level: currentLevel,
-            current_level_badge_title: currentLevelBadgeTitle
-          }
+            current_level_badge_title: currentLevelBadgeTitle,
+          },
         }),
       });
       window.clearTimeout(timeoutId);
 
       const data = await response.json();
-      
+
       if (response.ok) {
         // Поддержка разных форматов ответа: Cloudflare возвращает 'reply', Flask возвращает 'response'
         const botMessage: Message = {
           id: (Date.now() + 1).toString(),
           text: data.reply || data.response || 'Извините, не могу ответить сейчас.',
           isUser: false,
-          timestamp: new Date()
+          timestamp: new Date(),
         };
-        setMessages(prev => [...prev, botMessage]);
+        setMessages((prev) => [...prev, botMessage]);
       } else {
         const errorMessage: Message = {
           id: (Date.now() + 1).toString(),
           text: data.message || 'Ошибка соединения. Проверьте, что чат-бот запущен.',
           isUser: false,
-          timestamp: new Date()
+          timestamp: new Date(),
         };
-        setMessages(prev => [...prev, errorMessage]);
+        setMessages((prev) => [...prev, errorMessage]);
       }
     } catch (error) {
       console.error('Ошибка при отправке сообщения:', error);
-      
+
       const isAbort = (error as any)?.name === 'AbortError';
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -350,9 +371,9 @@ const ChatBot: React.FC<ChatBotProps> = ({
           ? 'Чат сейчас не отвечает (таймаут). Попробуйте ещё раз через пару секунд.'
           : 'Извините, чат временно недоступен. Пожалуйста, попробуйте позже.',
         isUser: false,
-        timestamp: new Date()
+        timestamp: new Date(),
       };
-      setMessages(prev => [...prev, errorMessage]);
+      setMessages((prev) => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
       // Desktop only: on mobile this can re-open keyboard and cause viewport jank.
@@ -402,10 +423,7 @@ const ChatBot: React.FC<ChatBotProps> = ({
     ['--chat-mobile-nav' as any]: `${mobileNavHeightPx}px`,
   };
 
-  const availableHeight = Math.max(
-    320,
-    Math.round(viewport.height - mobileNavHeightPx - 24)
-  );
+  const availableHeight = Math.max(320, Math.round(viewport.height - mobileNavHeightPx - 24));
   const computedMobileHeight = clamp(
     Math.round(availableHeight),
     360,
@@ -422,7 +440,10 @@ const ChatBot: React.FC<ChatBotProps> = ({
   const clampPosToViewport = useCallback(
     (pos: ChatPosition, heightPx: number): ChatPosition => {
       const leftMin = Math.max(0, safeAreaLeft + 8);
-      const rightMax = Math.max(leftMin, viewport.innerWidth - safeAreaRight - 8 - containerWidthPx);
+      const rightMax = Math.max(
+        leftMin,
+        viewport.innerWidth - safeAreaRight - 8 - containerWidthPx
+      );
       const topMin = 8;
       const bottomMax = Math.max(
         topMin,
@@ -433,7 +454,15 @@ const ChatBot: React.FC<ChatBotProps> = ({
         y: clamp(pos.y, topMin, bottomMax),
       };
     },
-    [containerWidthPx, keyboardInset, mobileNavHeightPx, safeAreaLeft, safeAreaRight, viewport.height, viewport.innerWidth]
+    [
+      containerWidthPx,
+      keyboardInset,
+      mobileNavHeightPx,
+      safeAreaLeft,
+      safeAreaRight,
+      viewport.height,
+      viewport.innerWidth,
+    ]
   );
 
   const defaultPos: ChatPosition = useMemo(() => {
@@ -442,7 +471,14 @@ const ChatBot: React.FC<ChatBotProps> = ({
       : viewport.innerWidth - containerWidthPx - 24;
     const y = isMobile ? viewport.height - effectiveHeight : viewport.height - effectiveHeight - 24;
     return clampPosToViewport({ x, y }, effectiveHeight);
-  }, [clampPosToViewport, containerWidthPx, effectiveHeight, isMobile, viewport.height, viewport.innerWidth]);
+  }, [
+    clampPosToViewport,
+    containerWidthPx,
+    effectiveHeight,
+    isMobile,
+    viewport.height,
+    viewport.innerWidth,
+  ]);
 
   const effectivePos = useMemo(() => {
     if (isMobile) {
@@ -459,7 +495,8 @@ const ChatBot: React.FC<ChatBotProps> = ({
     : '0 24px 50px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(225, 29, 72, 0.5), 0 0 28px rgba(124, 58, 237, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.08)';
 
   const containerStyle: React.CSSProperties = {
-    background: 'linear-gradient(135deg, rgba(12, 12, 12, 0.7) 0%, rgba(32, 12, 24, 0.72) 45%, rgba(52, 16, 76, 0.78) 100%)',
+    background:
+      'linear-gradient(135deg, rgba(12, 12, 12, 0.7) 0%, rgba(32, 12, 24, 0.72) 45%, rgba(52, 16, 76, 0.78) 100%)',
     borderRadius: '24px',
     boxShadow: containerShadow,
     width: `${containerWidthPx}px`,
@@ -470,7 +507,9 @@ const ChatBot: React.FC<ChatBotProps> = ({
     flexDirection: 'column',
     fontFamily: 'system-ui, -apple-system, sans-serif',
     border: '1px solid rgba(225, 29, 72, 0.5)',
-    animation: isMobile ? 'chatSlideInFromBottom 0.4s ease-out' : 'chatSlideInFromRight 0.4s ease-out',
+    animation: isMobile
+      ? 'chatSlideInFromBottom 0.4s ease-out'
+      : 'chatSlideInFromRight 0.4s ease-out',
     backdropFilter: reduceEffects ? 'none' : 'blur(20px)',
     position: 'fixed',
     left: `${effectivePos.x}px`,
@@ -484,15 +523,13 @@ const ChatBot: React.FC<ChatBotProps> = ({
     overflow: 'hidden',
     isolation: 'isolate',
     transform: 'translateZ(0)',
-    willChange: reduceEffects ? 'auto' : 'transform'
+    willChange: reduceEffects ? 'auto' : 'transform',
   };
 
   const messagesContainerStyle: React.CSSProperties = {
     flex: 1,
     overflowY: 'auto',
-    padding: isMobile
-      ? '16px 16px calc(12px + env(safe-area-inset-bottom))'
-      : '16px',
+    padding: isMobile ? '16px 16px calc(12px + env(safe-area-inset-bottom))' : '16px',
     display: 'flex',
     flexDirection: 'column',
     gap: isMobile ? '16px' : '20px',
@@ -506,7 +543,7 @@ const ChatBot: React.FC<ChatBotProps> = ({
     paddingBottom: isMobile ? 'calc(14px + env(safe-area-inset-bottom))' : '16px',
     borderTop: 'none',
     background: 'transparent',
-    borderRadius: '0 0 24px 24px'
+    borderRadius: '0 0 24px 24px',
   };
 
   if (!isOpen) return null;
@@ -533,7 +570,10 @@ const ChatBot: React.FC<ChatBotProps> = ({
     if (!st?.isDragging) return;
     const dx = e.clientX - st.startX;
     const dy = e.clientY - st.startY;
-    const next = clampPosToViewport({ x: st.startPos.x + dx, y: st.startPos.y + dy }, effectiveHeight);
+    const next = clampPosToViewport(
+      { x: st.startPos.x + dx, y: st.startPos.y + dy },
+      effectiveHeight
+    );
     setChatPos(next);
     e.preventDefault();
   };
@@ -599,7 +639,10 @@ const ChatBot: React.FC<ChatBotProps> = ({
                 borderRadius: '24px 24px 0 0',
               }}
             >
-              <div className="chatbot-header-info" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div
+                className="chatbot-header-info"
+                style={{ display: 'flex', alignItems: 'center', gap: '12px' }}
+              >
                 <div className="chatbot-avatar" style={{ position: 'relative' }}>
                   <img
                     src="/RL-Guide-book/Валюша.jpg"
@@ -679,7 +722,12 @@ const ChatBot: React.FC<ChatBotProps> = ({
                   }}
                 >
                   <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
                   </svg>
                 </button>
               </Dialog.Close>
@@ -708,32 +756,36 @@ const ChatBot: React.FC<ChatBotProps> = ({
                   }}
                 >
                   {currentView && (
-                    <div className="chatbot-context-item" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <div
+                      className="chatbot-context-item"
+                      style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+                    >
                       <span className="chatbot-context-icon" style={{ fontSize: '14px' }}>
                         🧭
                       </span>
                       <span>
                         Экран:{' '}
-                        {
-                          (
-                            {
-                              intro: 'Главная',
-                              categories: 'Список категорий',
-                              category: 'Категория',
-                              badge: 'Страница значка',
-                              'badge-level': 'Уровень значка',
-                              introduction: 'Введение',
-                              'additional-material': 'Доп. материалы',
-                              'about-camp': 'Информация о лагере',
-                              'registration-form': 'Форма регистрации',
-                            } as Record<string, string>
-                          )[currentView] || currentView
-                        }
+                        {(
+                          {
+                            intro: 'Главная',
+                            categories: 'Список категорий',
+                            category: 'Категория',
+                            badge: 'Страница значка',
+                            'badge-level': 'Уровень значка',
+                            introduction: 'Введение',
+                            'additional-material': 'Доп. материалы',
+                            'about-camp': 'Информация о лагере',
+                            'registration-form': 'Форма регистрации',
+                          } as Record<string, string>
+                        )[currentView] || currentView}
                       </span>
                     </div>
                   )}
                   {currentCategory && (
-                    <div className="chatbot-context-item" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <div
+                      className="chatbot-context-item"
+                      style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+                    >
                       <span className="chatbot-context-icon" style={{ fontSize: '14px' }}>
                         📁
                       </span>
@@ -745,7 +797,12 @@ const ChatBot: React.FC<ChatBotProps> = ({
                   {currentBadge && (
                     <div
                       className="chatbot-context-item chatbot-context-item-with-margin"
-                      style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: currentCategory ? '3px' : '0' }}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        marginTop: currentCategory ? '3px' : '0',
+                      }}
                     >
                       <span className="chatbot-context-icon" style={{ fontSize: '14px' }}>
                         🏆
@@ -756,7 +813,10 @@ const ChatBot: React.FC<ChatBotProps> = ({
                     </div>
                   )}
                   {currentLevel && (
-                    <div className="chatbot-context-item" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <div
+                      className="chatbot-context-item"
+                      style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+                    >
                       <span className="chatbot-context-icon" style={{ fontSize: '14px' }}>
                         🎯
                       </span>
@@ -779,7 +839,10 @@ const ChatBot: React.FC<ChatBotProps> = ({
             >
               {messages.length === 0 && (
                 <div style={{ textAlign: 'center', color: '#a0aec0', padding: '30px 0' }}>
-                  <div className="chatbot-welcome-avatar" style={{ position: 'relative', display: 'inline-block', marginBottom: '20px' }}>
+                  <div
+                    className="chatbot-welcome-avatar"
+                    style={{ position: 'relative', display: 'inline-block', marginBottom: '20px' }}
+                  >
                     <img
                       src="/RL-Guide-book/Валюша.jpg"
                       alt="НейроВалюша"
@@ -869,8 +932,12 @@ const ChatBot: React.FC<ChatBotProps> = ({
                         ? 'linear-gradient(135deg, #ff4f8b 0%, #7c3aed 100%)'
                         : 'rgba(225, 29, 72, 0.12)',
                       color: message.isUser ? 'white' : '#e2e8f0',
-                      border: message.isUser ? '1px solid rgba(225, 29, 72, 0.35)' : '1px solid rgba(225, 29, 72, 0.22)',
-                      boxShadow: message.isUser ? '0 6px 20px rgba(225, 29, 72, 0.35)' : '0 3px 12px rgba(0, 0, 0, 0.1)',
+                      border: message.isUser
+                        ? '1px solid rgba(225, 29, 72, 0.35)'
+                        : '1px solid rgba(225, 29, 72, 0.22)',
+                      boxShadow: message.isUser
+                        ? '0 6px 20px rgba(225, 29, 72, 0.35)'
+                        : '0 3px 12px rgba(0, 0, 0, 0.1)',
                       backdropFilter: 'blur(10px)',
                     }}
                   >
@@ -891,7 +958,9 @@ const ChatBot: React.FC<ChatBotProps> = ({
                       style={{
                         fontSize: '10px',
                         marginTop: '6px',
-                        color: message.isUser ? 'rgba(255, 255, 255, 0.7)' : 'rgba(160, 174, 192, 0.6)',
+                        color: message.isUser
+                          ? 'rgba(255, 255, 255, 0.7)'
+                          : 'rgba(160, 174, 192, 0.6)',
                         fontWeight: '400',
                       }}
                     >
@@ -956,7 +1025,10 @@ const ChatBot: React.FC<ChatBotProps> = ({
 
             {/* Поле ввода */}
             <div style={inputAreaStyle}>
-              <div className="chatbot-input-wrapper" style={{ display: 'flex', gap: '8px', alignItems: 'flex-end' }}>
+              <div
+                className="chatbot-input-wrapper"
+                style={{ display: 'flex', gap: '8px', alignItems: 'flex-end' }}
+              >
                 <input
                   ref={inputRef}
                   autoFocus={!isMobile}

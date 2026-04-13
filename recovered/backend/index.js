@@ -16,7 +16,7 @@ export default function handler(req, res) {
     res.status(200).json({
       total_categories: 14,
       total_badges: 242,
-      message: "Статистика из Vercel API"
+      message: 'Статистика из Vercel API',
     });
     return;
   }
@@ -25,7 +25,7 @@ export default function handler(req, res) {
     if (req.method === 'POST') {
       const { message } = req.body;
       res.status(200).json({
-        response: `НейроВалюша: Привет! Я получила твое сообщение: "${message}". Я цифровая вожатая проекта "Реальный Лагерь" и готова помочь с системой значков!`
+        response: `НейроВалюша: Привет! Я получила твое сообщение: "${message}". Я цифровая вожатая проекта "Реальный Лагерь" и готова помочь с системой значков!`,
       });
       return;
     }
@@ -33,11 +33,8 @@ export default function handler(req, res) {
 
   // Главная страница
   res.status(200).json({
-    message: "API для Путеводителя Реального Лагеря",
-    endpoints: [
-      "/api/stats",
-      "/api/chat"
-    ],
-    status: "ready"
+    message: 'API для Путеводителя Реального Лагеря',
+    endpoints: ['/api/stats', '/api/chat'],
+    status: 'ready',
   });
 }

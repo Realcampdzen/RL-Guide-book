@@ -118,10 +118,46 @@ const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
       >
         <span className="mobile-nav-icon-wrap">
           <svg className="mobile-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-            <rect x="4" y="4" width="7" height="7" rx="2" fill="none" stroke="currentColor" strokeWidth="1.7" />
-            <rect x="13" y="4" width="7" height="7" rx="2" fill="none" stroke="currentColor" strokeWidth="1.7" />
-            <rect x="4" y="13" width="7" height="7" rx="2" fill="none" stroke="currentColor" strokeWidth="1.7" />
-            <rect x="13" y="13" width="7" height="7" rx="2" fill="none" stroke="currentColor" strokeWidth="1.7" />
+            <rect
+              x="4"
+              y="4"
+              width="7"
+              height="7"
+              rx="2"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.7"
+            />
+            <rect
+              x="13"
+              y="4"
+              width="7"
+              height="7"
+              rx="2"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.7"
+            />
+            <rect
+              x="4"
+              y="13"
+              width="7"
+              height="7"
+              rx="2"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.7"
+            />
+            <rect
+              x="13"
+              y="13"
+              width="7"
+              height="7"
+              rx="2"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.7"
+            />
           </svg>
         </span>
         <span className="mobile-nav-label">Значки</span>
@@ -135,7 +171,13 @@ const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
         <span className="mobile-nav-icon-wrap">
           <svg className="mobile-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
             <circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" strokeWidth="1.7" />
-            <path d="M12 10.5v5.5" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+            <path
+              d="M12 10.5v5.5"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.7"
+              strokeLinecap="round"
+            />
             <circle cx="12" cy="7.5" r="1" fill="currentColor" />
           </svg>
         </span>
@@ -157,12 +199,23 @@ const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
               strokeLinecap="round"
               strokeLinejoin="round"
             />
-            <path d="M9.8 13.6l9-8.1" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+            <path
+              d="M9.8 13.6l9-8.1"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+            />
           </svg>
         </span>
         <span className="mobile-nav-label">Записаться</span>
       </button>
-      <button type="button" className="mobile-nav-item mobile-nav-item-vk" onClick={handleVk} aria-label="ВКонтакте">
+      <button
+        type="button"
+        className="mobile-nav-item mobile-nav-item-vk"
+        onClick={handleVk}
+        aria-label="ВКонтакте"
+      >
         <span className="mobile-nav-icon-wrap">
           <span className="mobile-nav-icon mobile-nav-icon-text">VK</span>
         </span>

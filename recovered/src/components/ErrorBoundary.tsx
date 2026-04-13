@@ -40,7 +40,11 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
         <div style={{ opacity: 0.85, marginBottom: 12 }}>
           Попробуйте обновить страницу или вернуться назад.
         </div>
-        <button type="button" onClick={this.reset} style={{ padding: '10px 12px', borderRadius: 10 }}>
+        <button
+          type="button"
+          onClick={this.reset}
+          style={{ padding: '10px 12px', borderRadius: 10 }}
+        >
           Попробовать снова
         </button>
       </div>
@@ -49,4 +53,3 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
 }
 
 export default ErrorBoundary;
-

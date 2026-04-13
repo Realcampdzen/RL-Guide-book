@@ -8,7 +8,7 @@ export function useProfileModals() {
   const [initiativeModalOpen, setInitiativeModalOpen] = useState(false);
 
   // You can add more simple boolean toggles here
-  
+
   return {
     showAvatarUploadConfirm,
     setShowAvatarUploadConfirm,

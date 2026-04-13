@@ -1,36 +1,36 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import {
-  fixDescriptionFormatting,
-  fixCriteriaFormatting,
-  extractEvidenceSection,
-  shouldApplyFormatting,
-  stripDuplicateHeading
-} from '../utils/textFormatting';
-import { useScrollReveal } from '../hooks/useScrollReveal';
+import type React from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import BadgeIcon from '../components/BadgeIcon';
 import BadgeSkinPanel from '../components/BadgeSkinPanel';
 import { FeatureGate } from '../components/FeatureGate';
 import { Skeleton } from '../components/Skeleton';
-import { getBadgeImagePath, hasBadgeImage } from '../utils/badgeImages';
-import { toSiblingImageUrl } from '../utils/imageSources';
-import { useUserProgress } from '../hooks/useUserProgress';
 import { useAuth } from '../context/AuthContext';
 import { useTeam } from '../context/TeamContext';
+import { useScrollReveal } from '../hooks/useScrollReveal';
+import { useUserProgress } from '../hooks/useUserProgress';
 import { canRequestBadgeApproval } from '../types/authRole';
-import { createBadgeRequest } from '../utils/badgeApprovalApi';
 import { getRank } from '../types/userProgress';
+import { fetchAiSlogan, fetchVibeCheck } from '../utils/aiService';
+import { createBadgeRequest } from '../utils/badgeApprovalApi';
+import { getBadgeImagePath, hasBadgeImage } from '../utils/badgeImages';
+import { toSiblingImageUrl } from '../utils/imageSources';
 import {
   copyTextToClipboard,
   generateSocialCard,
   getBadgeShareUrl,
-  shareOrDownloadSocialCard,
   type SocialCardResult,
+  shareOrDownloadSocialCard,
 } from '../utils/socialGenerator';
-import { fetchAiSlogan, fetchVibeCheck } from '../utils/aiService';
+import {
+  extractEvidenceSection,
+  fixCriteriaFormatting,
+  fixDescriptionFormatting,
+  shouldApplyFormatting,
+  stripDuplicateHeading,
+} from '../utils/textFormatting';
 import '../styles/badge-view.css';
-import type { Category, Badge } from '../types/guide';
 import { ArtGallerySection } from '../components/ArtGallerySection';
-
+import type { Badge, Category } from '../types/guide';
 
 interface BadgeLevelViewProps {
   category: Category;
@@ -64,7 +64,16 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
   onBackToIntro,
 }) => {
   const { initReveal } = useScrollReveal();
-  const { getLevelProgress, getBadgeProgress, updateLevelStatus, toggleFavorite, startRoute, removeRoute, userData, addFlagBadgeRequest } = useUserProgress();
+  const {
+    getLevelProgress,
+    getBadgeProgress,
+    updateLevelStatus,
+    toggleFavorite,
+    startRoute,
+    removeRoute,
+    userData,
+    addFlagBadgeRequest,
+  } = useUserProgress();
   const { role, accessToken, deviceId } = useAuth();
   const { myTeam } = useTeam();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -94,26 +103,32 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
   const [routeResetConfirmOpen, setRouteResetConfirmOpen] = useState(false);
   const [routeResetNotice, setRouteResetNotice] = useState<string | null>(null);
 
-  const broLocked = category.id === '9' && !Boolean(userData?.broProgress?.isBro);
+  const broLocked = category.id === '9' && !userData?.broProgress?.isBro;
   const hasTeam = Boolean(
     myTeam ??
-    (typeof localStorage !== 'undefined' &&
-      (localStorage.getItem('rl_my_team_id') ||
-        (() => {
-          try {
-            const v = localStorage.getItem('rl_my_team_v1');
-            return v ? !!JSON.parse(v)?.id : false;
-          } catch {
-            return false;
-          }
-        })()))
+      (typeof localStorage !== 'undefined' &&
+        (localStorage.getItem('rl_my_team_id') ||
+          (() => {
+            try {
+              const v = localStorage.getItem('rl_my_team_v1');
+              return v ? !!JSON.parse(v)?.id : false;
+            } catch {
+              return false;
+            }
+          })()))
   );
   const teamLocked = category.id === '8' && !hasTeam;
   const mechanicLocked = broLocked || teamLocked;
-  const broGateReason = 'Прогресс по Бро‑значкам доступен после подтверждения Бросвящения у вожатого.';
-  const teamGateReason = 'Прогресс по значкам Движка доступен после создания или вступления в Движок в ЛК.';
+  const broGateReason =
+    'Прогресс по Бро‑значкам доступен после подтверждения Бросвящения у вожатого.';
+  const teamGateReason =
+    'Прогресс по значкам Движка доступен после создания или вступления в Движок в ЛК.';
   const mechanicGateReason = broLocked ? broGateReason : teamLocked ? teamGateReason : '';
-  const mechanicGateCtaLabel = broLocked ? 'Запросить подтверждение' : teamLocked ? 'Открыть ЛК → Движки' : '';
+  const mechanicGateCtaLabel = broLocked
+    ? 'Запросить подтверждение'
+    : teamLocked
+      ? 'Открыть ЛК → Движки'
+      : '';
 
   const requestBroConfirmation = () => {
     const nickname = userData?.profile?.nickname || 'Искатель';
@@ -136,7 +151,11 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
     if (typeof openProfile === 'function') openProfile();
   };
 
-  const mechanicGateOnCta = broLocked ? requestBroConfirmation : teamLocked ? openTeamDashboard : undefined;
+  const mechanicGateOnCta = broLocked
+    ? requestBroConfirmation
+    : teamLocked
+      ? openTeamDashboard
+      : undefined;
 
   // Derive current level ID safely
   // Assuming levelBadge is correctly derived below, we use its ID.
@@ -188,7 +207,9 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
     const baseTwo = segments.length >= 2 ? `${segments[0]}.${segments[1]}` : badgeId;
 
     const sameBaseTwo = (a: string, base: string): boolean => {
-      const as = String(a || '').split('.').filter(Boolean);
+      const as = String(a || '')
+        .split('.')
+        .filter(Boolean);
       if (as.length < 2) return false;
       return `${as[0]}.${as[1]}` === base;
     };
@@ -196,7 +217,12 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
     const tiered = badgeList
       .filter((b) => b.category_id === badge.category_id)
       .filter((b) => sameBaseTwo(String(b.id || ''), baseTwo))
-      .filter((b) => String(b.id || '').split('.').filter(Boolean).length === 3);
+      .filter(
+        (b) =>
+          String(b.id || '')
+            .split('.')
+            .filter(Boolean).length === 3
+      );
 
     const dedupeById = <T extends { id?: any }>(items: T[]): T[] => {
       const seen = new Set<string>();
@@ -218,7 +244,10 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
       ? tieredUnique
       : badgeList.filter((b) => (b.id || '') === (badge.id || ''));
 
-    const normalizeLevelValue = (value: unknown) => String(value ?? '').trim().toLowerCase();
+    const normalizeLevelValue = (value: unknown) =>
+      String(value ?? '')
+        .trim()
+        .toLowerCase();
     const requestedLevel = normalizeLevelValue(level);
     const requestedById = String(level || '').trim();
     const levelBadge =
@@ -252,7 +281,11 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
   }, [levelBadge?.level, level]);
 
   const isAdvancedOrExpert = useMemo(() => {
-    return levelLabel.includes('продвинут') || levelLabel.includes('эксперт') || levelLabel.includes('вожат');
+    return (
+      levelLabel.includes('продвинут') ||
+      levelLabel.includes('эксперт') ||
+      levelLabel.includes('вожат')
+    );
   }, [levelLabel]);
 
   const favoritesSet = useMemo(() => new Set(userData.favorites || []), [userData.favorites]);
@@ -262,7 +295,14 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
   // Initialize form state
   const currentProgress = getLevelProgress(levelBadge.id);
   const isCompleted = currentProgress?.status === 'achieved';
-  const levelBaseBadgeId = useMemo(() => String(badge.id || '').split('.').slice(0, 2).join('.'), [badge.id]);
+  const levelBaseBadgeId = useMemo(
+    () =>
+      String(badge.id || '')
+        .split('.')
+        .slice(0, 2)
+        .join('.'),
+    [badge.id]
+  );
   const badgeProgress = getBadgeProgress(levelBaseBadgeId);
   const totalLevels = levelsAll.length || 1;
   const startLevelId = String(levelsAll[0]?.id || levelBadge.id || '');
@@ -276,12 +316,14 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
       if (!plan) return false;
       const planBadgeId = String(plan.badgeId || '');
       if (!planBadgeId) return false;
-      const isSameSection = planBadgeId === levelBaseBadgeId || planBadgeId.startsWith(sectionPrefix);
+      const isSameSection =
+        planBadgeId === levelBaseBadgeId || planBadgeId.startsWith(sectionPrefix);
       if (!isSameSection) return false;
       return plan.status === 'approved';
     });
   }, [userData.badgePlans, levelBaseBadgeId]);
-  const canResetRouteFromInProgress = hasProgress && !isBadgeComplete && badgeProgress.achieved === 0 && !hasApprovedPlanForRoute;
+  const canResetRouteFromInProgress =
+    hasProgress && !isBadgeComplete && badgeProgress.achieved === 0 && !hasApprovedPlanForRoute;
   const routeResetBlockedReason = useMemo(() => {
     if (!hasProgress || isBadgeComplete) return null;
     if (badgeProgress.achieved > 0) {
@@ -301,7 +343,8 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
 
   const previousLevel = currentLevelIndex > 0 ? levelsAll[currentLevelIndex - 1] : null;
   const previousLevelProgress = previousLevel ? getLevelProgress(previousLevel.id) : undefined;
-  const canUseSkinPanel = role === 'developer' || !previousLevel || previousLevelProgress?.status === 'achieved';
+  const canUseSkinPanel =
+    role === 'developer' || !previousLevel || previousLevelProgress?.status === 'achieved';
   const skinPanelLockHint = previousLevel
     ? `Арты откроются после получения предыдущего уровня «${previousLevel.title || previousLevel.level || previousLevel.id}».`
     : 'Арты этого уровня пока недоступны.';
@@ -347,7 +390,11 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
     return () => window.clearTimeout(id);
   }, [favoriteShareOpen, favoriteShareBusy]);
 
-  const handleGenerateAchievementShareCards = async (opts?: { createdAt?: string; reflection?: string; levelsAchieved?: number }) => {
+  const handleGenerateAchievementShareCards = async (opts?: {
+    createdAt?: string;
+    reflection?: string;
+    levelsAchieved?: number;
+  }) => {
     if (shareBusy) return;
     setShareBusy(true);
     setShareStatus('Запрашиваем слоган у НейроВалюши…');
@@ -359,13 +406,29 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
       });
       const slogan = raw == null ? null : typeof raw === 'string' ? raw : raw.slogan;
 
-      const vibeRaw = await fetchVibeCheck({ variant: 'badge', badgeTitle: badge.title, categoryTitle: category.title, description: badge.description || badge.criteria });
-      const vibeCheck = vibeRaw ? { memeHeader: vibeRaw.meme_header, memeText: vibeRaw.meme_text, statBuff: vibeRaw.stat_buff } : undefined;
+      const vibeRaw = await fetchVibeCheck({
+        variant: 'badge',
+        badgeTitle: badge.title,
+        categoryTitle: category.title,
+        description: badge.description || badge.criteria,
+      });
+      const vibeCheck = vibeRaw
+        ? {
+            memeHeader: vibeRaw.meme_header,
+            memeText: vibeRaw.meme_text,
+            statBuff: vibeRaw.stat_buff,
+          }
+        : undefined;
 
       const createdAt = opts?.createdAt || new Date().toISOString();
       const reflectionText = String(opts?.reflection ?? reflection ?? '').trim();
-      const baseId = String(levelBadge?.id || badge.id || '').split('.').slice(0, 2).join('.');
-      const achievedCount = Number(opts?.levelsAchieved ?? userData.profile.stats.totalLevelsAchieved);
+      const baseId = String(levelBadge?.id || badge.id || '')
+        .split('.')
+        .slice(0, 2)
+        .join('.');
+      const achievedCount = Number(
+        opts?.levelsAchieved ?? userData.profile.stats.totalLevelsAchieved
+      );
       const rank = getRank(achievedCount);
 
       const profilePayload = {
@@ -435,7 +498,9 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
       }
 
       const copied = await copyTextToClipboard(result.text);
-      setShareStatus(copied ? 'PNG скачан, подпись скопирована.' : 'PNG скачан. Подпись можно скопировать ниже.');
+      setShareStatus(
+        copied ? 'PNG скачан, подпись скопирована.' : 'PNG скачан. Подпись можно скопировать ниже.'
+      );
     } catch (e) {
       console.error(e);
       setShareStatus('Не удалось поделиться/скачать. Попробуй ещё раз.');
@@ -452,7 +517,11 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
   };
 
   const handleCopyBadgeLink = async () => {
-    const baseId = String(badge?.id || '').split('.').slice(0, 2).join('.') || badge?.id;
+    const baseId =
+      String(badge?.id || '')
+        .split('.')
+        .slice(0, 2)
+        .join('.') || badge?.id;
     const url = getBadgeShareUrl(baseId);
     if (!url) return;
     const ok = await copyTextToClipboard(url);
@@ -499,7 +568,7 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
           setFavoriteShareStatus(null);
           setFavoriteShareOpen(true);
         },
-        onLimit: () => { },
+        onLimit: () => {},
       });
     }
   };
@@ -524,7 +593,7 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
         levelId: String(levelBadge.id || ''),
         badgeTitle: String(levelBadge.title || badge.title || '').trim(),
         evidence: reflectionText ? { reflection: reflectionText } : undefined,
-        nickname: userData.profile.nickname
+        nickname: userData.profile.nickname,
       });
       setBadgeRequestStatus('Заявка отправлена вожатому.');
     } catch (e) {
@@ -547,7 +616,7 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
           addFlagBadgeRequest(levelBaseBadgeId);
         }
       },
-      onLimit: () => { },
+      onLimit: () => {},
     });
   };
 
@@ -578,11 +647,25 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
     setFavoriteShareStatus('Генерируем карточку…');
 
     try {
-      const vibeRaw = await fetchVibeCheck({ variant: 'badge', badgeTitle: badge.title, categoryTitle: category.title, description: badge.description || badge.criteria });
-      const vibeCheck = vibeRaw ? { memeHeader: vibeRaw.meme_header, memeText: vibeRaw.meme_text, statBuff: vibeRaw.stat_buff } : undefined;
+      const vibeRaw = await fetchVibeCheck({
+        variant: 'badge',
+        badgeTitle: badge.title,
+        categoryTitle: category.title,
+        description: badge.description || badge.criteria,
+      });
+      const vibeCheck = vibeRaw
+        ? {
+            memeHeader: vibeRaw.meme_header,
+            memeText: vibeRaw.meme_text,
+            statBuff: vibeRaw.stat_buff,
+          }
+        : undefined;
 
       const createdAt = new Date().toISOString();
-      const baseId = String(levelBadge?.id || badge.id || '').split('.').slice(0, 2).join('.');
+      const baseId = String(levelBadge?.id || badge.id || '')
+        .split('.')
+        .slice(0, 2)
+        .join('.');
 
       const profilePayload = {
         nickname: userData.profile.nickname,
@@ -620,7 +703,11 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
       }
 
       const copied = await copyTextToClipboard(story.text);
-      setFavoriteShareStatus(copied ? 'PNG скачан, подпись скопирована.' : 'PNG скачан. Подпись можно скопировать в профиле.');
+      setFavoriteShareStatus(
+        copied
+          ? 'PNG скачан, подпись скопирована.'
+          : 'PNG скачан. Подпись можно скопировать в профиле.'
+      );
       window.setTimeout(() => setFavoriteShareOpen(false), 2600);
     } catch (e) {
       console.error(e);
@@ -641,23 +728,30 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
 
     if (levelBadge.confirmation) {
       const conf: string | string[] = levelBadge.confirmation as string | string[];
-      evidenceText = typeof conf === 'string'
-        ? conf
-        : Array.isArray(conf) ? conf.join('\n') : null;
+      evidenceText = typeof conf === 'string' ? conf : Array.isArray(conf) ? conf.join('\n') : null;
     }
 
     if (levelBadge.criteria) {
       const crit: string | string[] = levelBadge.criteria as string | string[];
-      const raw = typeof crit === 'string'
-        ? crit.replace(/^Как получить значок \«[^»]+\»: \s*/, '')
-        : Array.isArray(crit) ? crit.join('\n') : '';
+      const raw =
+        typeof crit === 'string'
+          ? crit.replace(/^Как получить значок «[^»]+»: \s*/, '')
+          : Array.isArray(crit)
+            ? crit.join('\n')
+            : '';
 
       const shouldFormat = shouldApplyFormatting(levelBadge.id);
       const processedRaw = shouldFormat ? fixCriteriaFormatting(raw) : raw;
 
-      criteria = processedRaw.split('\u2705').filter((c: string) => c.trim()).map((c: string) => c.trim());
+      criteria = processedRaw
+        .split('\u2705')
+        .filter((c: string) => c.trim())
+        .map((c: string) => c.trim());
       // If criteria came as bullet-list (e.g. from array in JSON), split by newlines
-      if (criteria.length === 1 && (criteria[0].includes('\n') || criteria[0].includes('•') || criteria[0].includes('\u2022'))) {
+      if (
+        criteria.length === 1 &&
+        (criteria[0].includes('\n') || criteria[0].includes('•') || criteria[0].includes('\u2022'))
+      ) {
         criteria = criteria[0]
           .split('\n')
           .map((line: string) => line.replace(/^[\s\u2022•]+/, '').trim())
@@ -669,12 +763,14 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
       criteria = [
         'Выполнить все базовые требования значка.',
         'Показать более глубокое понимание и навыки.',
-        'Демонстрировать постоянное развитие и улучшение.'
+        'Демонстрировать постоянное развитие и улучшение.',
       ];
     }
 
     const shouldFormatDesc = shouldApplyFormatting(levelBadge.id);
-    const processedDesc = shouldFormatDesc ? fixDescriptionFormatting(descriptionText) : descriptionText;
+    const processedDesc = shouldFormatDesc
+      ? fixDescriptionFormatting(descriptionText)
+      : descriptionText;
     const { mainText: descMain } = extractEvidenceSection(processedDesc);
 
     return { levelCriteria: criteria, levelEvidenceText: evidenceText, mainDescription: descMain };
@@ -720,7 +816,11 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
         />
       );
     }
-    return <div className={className} style={{ fontSize: size === 'xlarge' ? '5rem' : '4rem' }}>{b.emoji || '🏆'}</div>;
+    return (
+      <div className={className} style={{ fontSize: size === 'xlarge' ? '5rem' : '4rem' }}>
+        {b.emoji || '🏆'}
+      </div>
+    );
   };
 
   const levelHeroImageUrl = useMemo(() => {
@@ -804,13 +904,23 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
             aria-labelledby="route-reset-title"
             onClick={(event) => event.stopPropagation()}
           >
-            <h3 id="route-reset-title" className="route-confirm-modal__title">Сбросить маршрут?</h3>
+            <h3 id="route-reset-title" className="route-confirm-modal__title">
+              Сбросить маршрут?
+            </h3>
             <p className="route-confirm-modal__text">Если продолжить, маршрут будет сброшен.</p>
             <div className="route-confirm-modal__actions">
-              <button type="button" className="route-confirm-btn" onClick={() => setRouteResetConfirmOpen(false)}>
+              <button
+                type="button"
+                className="route-confirm-btn"
+                onClick={() => setRouteResetConfirmOpen(false)}
+              >
                 Отмена
               </button>
-              <button type="button" className="route-confirm-btn route-confirm-btn--danger" onClick={handleConfirmRouteReset}>
+              <button
+                type="button"
+                className="route-confirm-btn route-confirm-btn--danger"
+                onClick={handleConfirmRouteReset}
+              >
                 Сбросить
               </button>
             </div>
@@ -825,7 +935,10 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
       )}
 
       {/* Mobile Navigation Header */}
-      <header className={`mobile-glass-header${isChatOpen ? ' is-chat-open' : ''}`} aria-label="Навигация">
+      <header
+        className={`mobile-glass-header${isChatOpen ? ' is-chat-open' : ''}`}
+        aria-label="Навигация"
+      >
         <div className="mobile-header-left">
           <button type="button" className="mobile-header-back" onClick={onBack} aria-label="Назад">
             ←
@@ -856,7 +969,12 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
           >
             <picture>
               <source type="image/webp" srcSet={`${import.meta.env.BASE_URL}Валюша.webp`} />
-              <img src={`${import.meta.env.BASE_URL}Валюша.jpg`} alt="НейроВалюша" decoding="async" fetchpriority="high" />
+              <img
+                src={`${import.meta.env.BASE_URL}Валюша.jpg`}
+                alt="НейроВалюша"
+                decoding="async"
+                fetchpriority="high"
+              />
             </picture>
           </button>
         </div>
@@ -876,25 +994,48 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
         aria-hidden={!isMenuOpen}
       >
         <div className="mobile-menu-head">
-          <span id="badge-level-menu-title" className="mobile-menu-title">Меню</span>
-          <button type="button" className="mobile-menu-close" onClick={closeMenu} aria-label="Закрыть меню">
+          <span id="badge-level-menu-title" className="mobile-menu-title">
+            Меню
+          </span>
+          <button
+            type="button"
+            className="mobile-menu-close"
+            onClick={closeMenu}
+            aria-label="Закрыть меню"
+          >
             &times;
           </button>
         </div>
         <div className="mobile-menu-list">
-          <button type="button" className="mobile-menu-item" onClick={() => handleMenuAction(onBackToIntro)}>
+          <button
+            type="button"
+            className="mobile-menu-item"
+            onClick={() => handleMenuAction(onBackToIntro)}
+          >
             <span className="mobile-menu-item-label">Главная</span>
             <span className="mobile-menu-item-icon">&rsaquo;</span>
           </button>
-          <button type="button" className="mobile-menu-item" onClick={() => handleMenuAction(onOpenCategories)}>
+          <button
+            type="button"
+            className="mobile-menu-item"
+            onClick={() => handleMenuAction(onOpenCategories)}
+          >
             <span className="mobile-menu-item-label">Категории</span>
             <span className="mobile-menu-item-icon">&rsaquo;</span>
           </button>
-          <button type="button" className="mobile-menu-item" onClick={() => handleMenuAction(onBack)}>
+          <button
+            type="button"
+            className="mobile-menu-item"
+            onClick={() => handleMenuAction(onBack)}
+          >
             <span className="mobile-menu-item-label">Назад</span>
             <span className="mobile-menu-item-icon">&lsaquo;</span>
           </button>
-          <button type="button" className="mobile-menu-item mobile-menu-item-cta" onClick={() => handleMenuAction(onTelegramContact)}>
+          <button
+            type="button"
+            className="mobile-menu-item mobile-menu-item-cta"
+            onClick={() => handleMenuAction(onTelegramContact)}
+          >
             <span className="mobile-menu-item-label">Записаться через Telegram</span>
             <span className="mobile-menu-item-icon">&rsaquo;</span>
           </button>
@@ -902,20 +1043,25 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
       </div>
 
       <div className="sticky-back-nav">
-        <button onClick={onBack} className="nav-link-back hover-target">← Назад к значку</button>
+        <button onClick={onBack} className="nav-link-back hover-target">
+          ← Назад к значку
+        </button>
       </div>
 
       <main className="badge-main">
         {/* Header */}
         <section className="badge-hero reveal-on-scroll">
-          <div className="badge-hero-icon">
-            {renderIcon(levelBadge, 'xlarge', 'hero-emoji')}
-          </div>
+          <div className="badge-hero-icon">{renderIcon(levelBadge, 'xlarge', 'hero-emoji')}</div>
           <div className="badge-hero-content">
             <h1>{levelBadge.title}</h1>
             <div className="badge-hero-category">{level}</div>
             {isAdvancedOrExpert && favoriteTargetId && (
-              <FeatureGate allowed={!mechanicLocked} reason={mechanicGateReason} ctaLabel={mechanicGateCtaLabel} onCta={mechanicGateOnCta}>
+              <FeatureGate
+                allowed={!mechanicLocked}
+                reason={mechanicGateReason}
+                ctaLabel={mechanicGateCtaLabel}
+                onCta={mechanicGateOnCta}
+              >
                 <div className="badge-hero-actions">
                   <button
                     type="button"
@@ -925,7 +1071,9 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
                     aria-pressed={isFavorite}
                   >
                     <span className="badge-favorite-icon">{isFavorite ? '★' : '☆'}</span>
-                    <span className="badge-favorite-label">{isFavorite ? 'В избранном' : 'В избранное'}</span>
+                    <span className="badge-favorite-label">
+                      {isFavorite ? 'В избранном' : 'В избранное'}
+                    </span>
                   </button>
                 </div>
               </FeatureGate>
@@ -943,8 +1091,8 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
               disabledHint={skinPanelLockHint}
             />
 
-            {startLevelId && (
-              mechanicLocked ? (
+            {startLevelId &&
+              (mechanicLocked ? (
                 <FeatureGate
                   allowed={false}
                   reason={mechanicGateReason}
@@ -986,8 +1134,7 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
                     </button>
                   )}
                 </div>
-              )
-            )}
+              ))}
           </div>
         </section>
 
@@ -1021,15 +1168,13 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
         {/* Other Levels (Moved Higher) */}
         {otherLevels.length > 0 && (
           <div className="levels-dock reveal-on-scroll" style={{ marginBottom: '2rem' }}>
-            {otherLevels.map(lvl => (
+            {otherLevels.map((lvl) => (
               <div
                 key={lvl.id}
                 className="level-bubble hover-target"
                 onClick={() => onChangeLevel(String(lvl.level))}
               >
-                <div className="level-bubble-icon">
-                  {renderIcon(lvl, 'xlarge', '')}
-                </div>
+                <div className="level-bubble-icon">{renderIcon(lvl, 'xlarge', '')}</div>
                 <div className="level-bubble-title">{lvl.title}</div>
                 <div className="level-bubble-subtitle">{String(lvl.level)}</div>
               </div>
@@ -1043,26 +1188,45 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
           <div className="badge-left-col reveal-on-scroll">
             <div className="content-block">
               <h3>Общая информация</h3>
-              <p className="content-text" dangerouslySetInnerHTML={{ __html: mainDescription.replace(/\n/g, '<br/>') }} />
+              <p
+                className="content-text"
+                dangerouslySetInnerHTML={{ __html: mainDescription.replace(/\n/g, '<br/>') }}
+              />
 
               {levelBadge.nameExplanation && (
                 <>
                   <h4>Объяснение названия и ценности</h4>
-                  <p className="content-text">{stripDuplicateHeading(levelBadge.nameExplanation, 'Объяснение названия и ценности')}</p>
+                  <p className="content-text">
+                    {stripDuplicateHeading(
+                      levelBadge.nameExplanation,
+                      'Объяснение названия и ценности'
+                    )}
+                  </p>
                 </>
               )}
 
               {levelBadge.skillTips && (
                 <>
                   <h4>Как прокачать навык</h4>
-                  <p className="content-text" dangerouslySetInnerHTML={{ __html: stripDuplicateHeading(levelBadge.skillTips, 'Как прокачать навык').replace(/\n/g, '<br>') }}></p>
+                  <p
+                    className="content-text"
+                    dangerouslySetInnerHTML={{
+                      __html: stripDuplicateHeading(
+                        levelBadge.skillTips,
+                        'Как прокачать навык'
+                      ).replace(/\n/g, '<br>'),
+                    }}
+                  ></p>
                 </>
               )}
 
               {levelBadge.examples && (
                 <>
                   <h4>Примеры</h4>
-                  <p className="content-text" dangerouslySetInnerHTML={{ __html: levelBadge.examples.replace(/\n/g, '<br>') }}></p>
+                  <p
+                    className="content-text"
+                    dangerouslySetInnerHTML={{ __html: levelBadge.examples.replace(/\n/g, '<br>') }}
+                  ></p>
                 </>
               )}
 
@@ -1083,7 +1247,10 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
               {showHowToBecome && (
                 <>
                   <h4>Как получить</h4>
-                  <p className="content-text" dangerouslySetInnerHTML={{ __html: howToBecomeText.replace(/\n/g, '<br>') }}></p>
+                  <p
+                    className="content-text"
+                    dangerouslySetInnerHTML={{ __html: howToBecomeText.replace(/\n/g, '<br>') }}
+                  ></p>
                 </>
               )}
 
@@ -1107,16 +1274,37 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
           {/* Right Column */}
           <div className="badge-right-col reveal-on-scroll" style={{ transitionDelay: '0.1s' }}>
             {/* Completion Widget */}
-            <FeatureGate allowed={!mechanicLocked} reason={mechanicGateReason} ctaLabel={mechanicGateCtaLabel} onCta={mechanicGateOnCta}>
-              <div className="content-block" style={{ borderLeft: isCompleted ? '4px solid #4caf50' : '4px solid transparent' }}>
+            <FeatureGate
+              allowed={!mechanicLocked}
+              reason={mechanicGateReason}
+              ctaLabel={mechanicGateCtaLabel}
+              onCta={mechanicGateOnCta}
+            >
+              <div
+                className="content-block"
+                style={{ borderLeft: isCompleted ? '4px solid #4caf50' : '4px solid transparent' }}
+              >
                 <div style={{ display: 'flex', alignItems: 'center', marginBottom: '15px' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', fontSize: '18px', fontWeight: 'bold' }}>
+                  <label
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      cursor: 'pointer',
+                      fontSize: '18px',
+                      fontWeight: 'bold',
+                    }}
+                  >
                     <input
                       type="checkbox"
                       checked={isCompleted}
                       onChange={handleToggleComplete}
                       disabled={mechanicLocked}
-                      style={{ width: '24px', height: '24px', marginRight: '10px', accentColor: '#4caf50' }}
+                      style={{
+                        width: '24px',
+                        height: '24px',
+                        marginRight: '10px',
+                        accentColor: '#4caf50',
+                      }}
                     />
                     {isCompleted ? 'Уровень выполнен! 🎉' : 'Отметить выполнение'}
                   </label>
@@ -1124,7 +1312,14 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
 
                 {!isCompleted && (
                   <div style={{ marginBottom: '15px' }}>
-                    <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', opacity: 0.8 }}>
+                    <label
+                      style={{
+                        display: 'block',
+                        marginBottom: '5px',
+                        fontSize: '14px',
+                        opacity: 0.8,
+                      }}
+                    >
                       Рефлексия (обязательно): Что я сделал(а) и чему научился(ась)?
                     </label>
                     <textarea
@@ -1140,7 +1335,7 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
                         border: '1px solid rgba(255,255,255,0.2)',
                         background: 'rgba(0,0,0,0.2)',
                         color: 'white',
-                        fontFamily: 'inherit'
+                        fontFamily: 'inherit',
                       }}
                     />
                     <button
@@ -1149,13 +1344,17 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
                       style={{
                         marginTop: '10px',
                         padding: '8px 16px',
-                        background: !mechanicLocked && reflection.length >= 5 ? '#4caf50' : 'rgba(255,255,255,0.1)',
+                        background:
+                          !mechanicLocked && reflection.length >= 5
+                            ? '#4caf50'
+                            : 'rgba(255,255,255,0.1)',
                         color: 'white',
                         border: 'none',
                         borderRadius: '20px',
-                        cursor: !mechanicLocked && reflection.length >= 5 ? 'pointer' : 'not-allowed',
+                        cursor:
+                          !mechanicLocked && reflection.length >= 5 ? 'pointer' : 'not-allowed',
                         opacity: !mechanicLocked && reflection.length >= 5 ? 1 : 0.5,
-                        fontWeight: 'bold'
+                        fontWeight: 'bold',
                       }}
                     >
                       Сохранить прогресс
@@ -1175,7 +1374,7 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
                           borderRadius: '20px',
                           cursor: badgeRequestBusy ? 'not-allowed' : 'pointer',
                           opacity: badgeRequestBusy ? 0.6 : 1,
-                          fontWeight: 'bold'
+                          fontWeight: 'bold',
                         }}
                       >
                         {badgeRequestBusy ? 'Отправка...' : 'Отправить на подтверждение вожатому'}
@@ -1184,24 +1383,30 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
                   </div>
                 )}
                 {badgeRequestStatus && (
-                  <div style={{ marginTop: 8, fontSize: 12, opacity: 0.86 }}>{badgeRequestStatus}</div>
+                  <div style={{ marginTop: 8, fontSize: 12, opacity: 0.86 }}>
+                    {badgeRequestStatus}
+                  </div>
                 )}
 
                 {isCompleted && currentProgress?.reflection && (
-                  <div style={{
-                    background: 'rgba(76, 175, 80, 0.1)',
-                    padding: '10px',
-                    borderRadius: '8px',
-                    fontSize: '14px',
-                    fontStyle: 'italic',
-                    marginTop: '10px'
-                  }}>
+                  <div
+                    style={{
+                      background: 'rgba(76, 175, 80, 0.1)',
+                      padding: '10px',
+                      borderRadius: '8px',
+                      fontSize: '14px',
+                      fontStyle: 'italic',
+                      marginTop: '10px',
+                    }}
+                  >
                     "{currentProgress.reflection}"
                   </div>
                 )}
 
                 {isCompleted && (
-                  <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '12px' }}>
+                  <div
+                    style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '12px' }}
+                  >
                     <button
                       type="button"
                       onClick={() => {
@@ -1222,10 +1427,10 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
                         letterSpacing: '0.5px',
                         textTransform: 'uppercase',
                         boxShadow: '0 4px 15px rgba(139, 0, 255, 0.3)',
-                        transition: 'transform 0.2s'
+                        transition: 'transform 0.2s',
                       }}
-                      onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
-                      onMouseLeave={(e) => e.currentTarget.style.transform = 'none'}
+                      onMouseEnter={(e) => (e.currentTarget.style.transform = 'translateY(-2px)')}
+                      onMouseLeave={(e) => (e.currentTarget.style.transform = 'none')}
                     >
                       🚀 Поделиться успехом
                     </button>
@@ -1241,7 +1446,12 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
                 <ul className="criteria-list">
                   {levelCriteria.map((criterion, index) => {
                     // Simple example parsing logic if needed
-                    return <li key={index} dangerouslySetInnerHTML={{ __html: criterion.replace(/\n/g, '<br>') }} />;
+                    return (
+                      <li
+                        key={index}
+                        dangerouslySetInnerHTML={{ __html: criterion.replace(/\n/g, '<br>') }}
+                      />
+                    );
                   })}
                 </ul>
               ) : (
@@ -1251,7 +1461,10 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
               {levelEvidenceText && (
                 <>
                   <h4>Чем подтверждается</h4>
-                  <p className="content-text" style={{ color: 'var(--c-volt)', fontStyle: 'italic' }}>
+                  <p
+                    className="content-text"
+                    style={{ color: 'var(--c-volt)', fontStyle: 'italic' }}
+                  >
                     {levelEvidenceText}
                   </p>
                 </>
@@ -1263,8 +1476,6 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
         {/* Community Arts Gallery */}
         <ArtGallerySection badgeId={badge.id} />
       </main>
-
-
 
       {shareModalOpen && (
         <div
@@ -1298,9 +1509,21 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
               boxShadow: '0 20px 60px rgba(0, 0, 0, 0.45)',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px' }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                justifyContent: 'space-between',
+                gap: '12px',
+              }}
+            >
               <div>
-                <div id="badge-level-share-dialog-title" style={{ fontSize: '16px', fontWeight: 800 }}>Поделиться достижением</div>
+                <div
+                  id="badge-level-share-dialog-title"
+                  style={{ fontSize: '16px', fontWeight: 800 }}
+                >
+                  Поделиться достижением
+                </div>
                 <div style={{ fontSize: '12px', opacity: 0.7, marginTop: '4px', lineHeight: 1.4 }}>
                   Сделаем 2 PNG: сторис <b>9:16</b> и пост <b>16:9</b>. Ник скрыт по умолчанию.
                 </div>
@@ -1322,8 +1545,24 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
               </button>
             </div>
 
-            <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '13px' }}>
+            <div
+              style={{
+                marginTop: '12px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '14px',
+                flexWrap: 'wrap',
+              }}
+            >
+              <label
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  cursor: 'pointer',
+                  fontSize: '13px',
+                }}
+              >
                 <input
                   type="checkbox"
                   checked={shareHideNickname}
@@ -1397,7 +1636,9 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
 
             <div style={{ marginTop: '14px', display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
               <div style={{ flex: '1 1 260px', minWidth: '260px' }}>
-                <div style={{ fontSize: '12px', opacity: 0.7, marginBottom: '8px' }}>Сторис 9:16</div>
+                <div style={{ fontSize: '12px', opacity: 0.7, marginBottom: '8px' }}>
+                  Сторис 9:16
+                </div>
                 <div
                   style={{
                     width: '100%',
@@ -1412,9 +1653,21 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
                   }}
                 >
                   {shareStoryUrl ? (
-                    <img src={shareStoryUrl} alt="Story preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <img
+                      src={shareStoryUrl}
+                      alt="Story preview"
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    />
                   ) : (
-                    <div style={{ padding: '14px', fontSize: '12px', opacity: 0.55, textAlign: 'center', lineHeight: 1.4 }}>
+                    <div
+                      style={{
+                        padding: '14px',
+                        fontSize: '12px',
+                        opacity: 0.55,
+                        textAlign: 'center',
+                        lineHeight: 1.4,
+                      }}
+                    >
                       Нажми «Сгенерировать», чтобы увидеть предпросмотр.
                     </div>
                   )}
@@ -1456,9 +1709,21 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
                   }}
                 >
                   {shareWideUrl ? (
-                    <img src={shareWideUrl} alt="Wide preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <img
+                      src={shareWideUrl}
+                      alt="Wide preview"
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    />
                   ) : (
-                    <div style={{ padding: '14px', fontSize: '12px', opacity: 0.55, textAlign: 'center', lineHeight: 1.4 }}>
+                    <div
+                      style={{
+                        padding: '14px',
+                        fontSize: '12px',
+                        opacity: 0.55,
+                        textAlign: 'center',
+                        lineHeight: 1.4,
+                      }}
+                    >
                       Нажми «Сгенерировать», чтобы увидеть предпросмотр.
                     </div>
                   )}
@@ -1489,20 +1754,22 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
       )}
 
       {showConfetti && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100vw',
-          height: '100vh',
-          pointerEvents: 'none',
-          zIndex: 9999,
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          fontSize: '5rem',
-          animation: 'fade-out 3s forwards'
-        }}>
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            pointerEvents: 'none',
+            zIndex: 9999,
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            fontSize: '5rem',
+            animation: 'fade-out 3s forwards',
+          }}
+        >
           🎉 🌟 🚀
         </div>
       )}

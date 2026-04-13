@@ -14,8 +14,10 @@
 html[data-cursor="on"],
 html[data-cursor="on"] a,
 html[data-cursor="on"] button,
-html[data-cursor="on"] [role='button'] {
-  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1' height='1'/%3E") 0 0, auto !important;
+html[data-cursor="on"] [role="button"] {
+  cursor:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1' height='1'/%3E") 0 0,
+    auto !important;
 }
 
 html[data-cursor="on"] .cursor-dot,
@@ -47,7 +49,11 @@ html[data-cursor="on"] .cursor-outline {
   width: 40px;
   height: 40px;
   border: 1px solid rgba(139, 0, 255, 0.85);
-  transition: transform 0.2s var(--easing), border-color 0.2s var(--easing), background-color 0.2s var(--easing), opacity 0.2s var(--easing);
+  transition:
+    transform 0.2s var(--easing),
+    border-color 0.2s var(--easing),
+    background-color 0.2s var(--easing),
+    opacity 0.2s var(--easing);
   mix-blend-mode: difference;
 }
 
@@ -63,11 +69,18 @@ html[data-cursor="on"] .cursor-hover {
 html[data-cursor="on"] .cursor-reactor {
   width: 280px;
   height: 280px;
-  background: radial-gradient(circle, var(--c-volt-glow) 0%, var(--c-aurora) 38%, rgba(15, 10, 31, 0) 70%);
+  background: radial-gradient(
+    circle,
+    var(--c-volt-glow) 0%,
+    var(--c-aurora) 38%,
+    rgba(15, 10, 31, 0) 70%
+  );
   filter: blur(10px);
   opacity: 0.75;
   mix-blend-mode: soft-light;
-  transition: opacity 0.25s var(--easing), transform 0.25s var(--easing);
+  transition:
+    opacity 0.25s var(--easing),
+    transform 0.25s var(--easing);
   z-index: 20049; /* slightly behind dot/outline */
 }
 
@@ -83,4 +96,3 @@ html[data-perf="lite"][data-cursor="on"] .cursor-reactor {
   filter: blur(6px);
   opacity: 0.62;
 }
-

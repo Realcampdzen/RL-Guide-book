@@ -6,7 +6,11 @@ export interface DataErrorStateProps {
   onRetry?: () => void;
 }
 
-export const DataErrorState: React.FC<DataErrorStateProps> = ({ title = 'Не удалось загрузить данные', details, onRetry }) => {
+export const DataErrorState: React.FC<DataErrorStateProps> = ({
+  title = 'Не удалось загрузить данные',
+  details,
+  onRetry,
+}) => {
   return (
     <div style={{ padding: '14px 0' }}>
       <div style={{ fontWeight: 700, marginBottom: 6 }}>{title}</div>
@@ -21,4 +25,3 @@ export const DataErrorState: React.FC<DataErrorStateProps> = ({ title = 'Не у
 };
 
 export default React.memo(DataErrorState);
-

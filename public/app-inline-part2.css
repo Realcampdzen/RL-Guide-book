@@ -50,9 +50,9 @@
   min-height: 460px;
 }
 
-.badge-summary__right { 
-  display: grid; 
-  gap: 0.8rem; 
+.badge-summary__right {
+  display: grid;
+  gap: 0.8rem;
   align-items: start;
   height: auto;
   min-height: 100%;
@@ -125,21 +125,21 @@
   justify-content: space-between;
 }
 
-.badge-meta div + div { 
-  margin-left: 10px; 
+.badge-meta div + div {
+  margin-left: 10px;
 }
 
-.badge-meta div span { 
-  margin-right: 8px; 
+.badge-meta div span {
+  margin-right: 8px;
 }
 
-.badge-meta span { 
-  color: #9ec; 
+.badge-meta span {
+  color: #9ec;
 }
 
-.badge-meta strong { 
-  color: #fff; 
-  font-weight: 600; 
+.badge-meta strong {
+  color: #fff;
+  font-weight: 600;
 }
 
 .badge-description,
@@ -208,27 +208,27 @@
   transition: all 0.3s ease;
 }
 
-.level-card__head { 
-  display: flex; 
-  align-items: center; 
-  gap: 0.6rem; 
+.level-card__head {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
 }
 
-.level-card__emoji { 
-  font-size: 1.4rem; 
+.level-card__emoji {
+  font-size: 1.4rem;
 }
 
-.level-card__criteria { 
-  color: #ccc; 
-  margin: 0.4rem 0 0.2rem 0; 
-  white-space: pre-line; 
-  max-height: none; 
-  overflow: visible; 
+.level-card__criteria {
+  color: #ccc;
+  margin: 0.4rem 0 0.2rem 0;
+  white-space: pre-line;
+  max-height: none;
+  overflow: visible;
 }
 
-.level-card__desc { 
-  color: #bbb; 
-  margin: 0; 
+.level-card__desc {
+  color: #bbb;
+  margin: 0;
 }
 
 .level-card__btn {
@@ -241,8 +241,8 @@
   cursor: pointer;
 }
 
-.level-card__btn:hover { 
-  background: rgba(78, 205, 196, 0.35); 
+.level-card__btn:hover {
+  background: rgba(78, 205, 196, 0.35);
 }
 
 .level-card:hover {
@@ -262,38 +262,38 @@
 }
 
 /* Steps (right panel) */
-.badge-steps { 
-  background: rgba(255,255,255,0.06); 
-  border-radius: 16px; 
-  padding: 20px 24px; 
-  backdrop-filter: blur(6px); 
+.badge-steps {
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 16px;
+  padding: 20px 24px;
+  backdrop-filter: blur(6px);
 }
 
-.badge-steps__title { 
-  margin: 0 0 12px; 
-  font-size: 20px; 
-  font-weight: 700; 
+.badge-steps__title {
+  margin: 0 0 12px;
+  font-size: 20px;
+  font-weight: 700;
 }
 
-.badge-steps__list { 
-  margin: 0; 
-  padding-left: 0; 
-  list-style: none; 
+.badge-steps__list {
+  margin: 0;
+  padding-left: 0;
+  list-style: none;
 }
 
-.badge-steps__list li { 
-  position: relative; 
-  padding-left: 28px; 
-  margin: 10px 0; 
-  white-space: pre-line; 
+.badge-steps__list li {
+  position: relative;
+  padding-left: 28px;
+  margin: 10px 0;
+  white-space: pre-line;
 }
 
-.badge-steps__list li::before { 
-  content: '✅'; 
-  position: absolute; 
-  left: 0; 
-  top: 0; 
-  line-height: 1.1; 
+.badge-steps__list li::before {
+  content: "✅";
+  position: absolute;
+  left: 0;
+  top: 0;
+  line-height: 1.1;
 }
 
 /* Bottom levels grid */
@@ -306,57 +306,57 @@
   align-items: flex-start;
 }
 
-.level-card-bottom { 
-  display: flex; 
-  flex-direction: column; 
-  align-items: center; 
-  padding: 0; 
-  border-radius: 0; 
-  background: transparent; 
-  backdrop-filter: none; 
-  min-height: auto; 
-  cursor: pointer; 
-  transition: all 0.3s ease; 
+.level-card-bottom {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  backdrop-filter: none;
+  min-height: auto;
+  cursor: pointer;
+  transition: all 0.3s ease;
 }
 
-.level-card-bottom:hover { 
-  transform: translateY(-4px); 
-  background: transparent; 
+.level-card-bottom:hover {
+  transform: translateY(-4px);
+  background: transparent;
 }
 
-.level-card__icon { 
-  width: 100px; 
-  height: 100px; 
-  border-radius: 50%; 
-  display: grid; 
-  place-items: center; 
-  margin-bottom: 16px; 
-  background: rgba(0,0,0,0.45); 
-  border: 1px solid rgba(255,255,255,0.25); 
-  transition: all 0.3s ease; 
+.level-card__icon {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  margin-bottom: 16px;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  transition: all 0.3s ease;
 }
 
-.level-card__title { 
-  text-align: center; 
-  font-size: 17px; 
-  line-height: 1.2; 
-  margin: 6px 0 4px; 
-  display: -webkit-box; 
-  -webkit-line-clamp: 2; 
-  -webkit-box-orient: vertical; 
-  overflow: hidden; 
-  text-overflow: ellipsis; 
-  word-break: break-word; 
-  hyphens: auto; 
-  color: #4ecdc4; 
-  white-space: pre-line !important; 
+.level-card__title {
+  text-align: center;
+  font-size: 17px;
+  line-height: 1.2;
+  margin: 6px 0 4px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-word;
+  hyphens: auto;
+  color: #4ecdc4;
+  white-space: pre-line !important;
 }
 
-.level-card__subtitle { 
-  opacity: .85; 
-  font-size: 14px; 
-  text-align: center; 
-  color: #ccc; 
+.level-card__subtitle {
+  opacity: 0.85;
+  font-size: 14px;
+  text-align: center;
+  color: #ccc;
 }
 
 .level-card-bottom:hover .level-card__icon {

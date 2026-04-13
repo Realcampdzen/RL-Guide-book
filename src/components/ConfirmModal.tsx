@@ -1,4 +1,5 @@
-import React, { useEffect } from 'react';
+import type React from 'react';
+import { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import '../styles/confirm-modal.css';
 
@@ -23,7 +24,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
   confirmLabel,
   cancelLabel = 'Отмена',
   onConfirm,
-  danger = false
+  danger = false,
 }) => {
   useEffect(() => {
     if (!open) return;
@@ -42,11 +43,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
   };
 
   const modal = (
-    <div
-      className="confirm-modal-overlay"
-      onClick={onClose}
-      role="presentation"
-    >
+    <div className="confirm-modal-overlay" onClick={onClose} role="presentation">
       <div
         className="confirm-modal"
         role="dialog"
@@ -59,11 +56,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
         </h3>
         <p className="confirm-modal__text">{message}</p>
         <div className="confirm-modal__actions">
-          <button
-            type="button"
-            className="confirm-modal__btn"
-            onClick={onClose}
-          >
+          <button type="button" className="confirm-modal__btn" onClick={onClose}>
             {cancelLabel}
           </button>
           <button

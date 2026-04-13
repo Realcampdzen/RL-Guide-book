@@ -14,25 +14,25 @@ export default async function handler(req, res) {
 
   try {
     console.log('🧪 Тестируем загрузку данных...');
-    
+
     // Проверяем файл ai_data_complete.json
     const dataPath = path.join(process.cwd(), 'ai_data_complete.json');
     console.log('📁 Путь к данным:', dataPath);
     console.log('📂 Файл существует:', fs.existsSync(dataPath));
-    
+
     if (!fs.existsSync(dataPath)) {
       return res.status(200).json({
         status: 'error',
         message: 'Файл ai_data_complete.json не найден',
         path: dataPath,
         cwd: process.cwd(),
-        files: fs.readdirSync(process.cwd()).filter(f => f.includes('ai_data'))
+        files: fs.readdirSync(process.cwd()).filter((f) => f.includes('ai_data')),
       });
     }
-    
+
     // Читаем файл
     const data = JSON.parse(fs.readFileSync(dataPath, 'utf8'));
-    
+
     res.status(200).json({
       status: 'success',
       timestamp: new Date().toISOString(),
@@ -40,22 +40,21 @@ export default async function handler(req, res) {
         totalCategories: data.totalCategories,
         totalBadges: data.totalBadges,
         totalLevels: data.totalLevels,
-        categories: data.categories.map(c => ({
+        categories: data.categories.map((c) => ({
           id: c.id,
           name: c.name,
-          badgeCount: c.badges ? c.badges.length : 0
+          badgeCount: c.badges ? c.badges.length : 0,
         })),
         firstCategory: data.categories[0],
-        sampleBadge: data.badges[0]
-      }
+        sampleBadge: data.badges[0],
+      },
     });
-    
   } catch (error) {
     console.error('❌ Ошибка в test-data API:', error);
     res.status(500).json({
       status: 'error',
       message: error.message,
-      stack: error.stack
+      stack: error.stack,
     });
   }
 }

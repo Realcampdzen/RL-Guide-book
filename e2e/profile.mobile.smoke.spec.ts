@@ -13,7 +13,12 @@ test.describe('Profile mobile smoke', () => {
 
     let opened = false;
     for (const trigger of profileTriggers) {
-      if (await trigger.first().isVisible().catch(() => false)) {
+      if (
+        await trigger
+          .first()
+          .isVisible()
+          .catch(() => false)
+      ) {
         await trigger.first().click();
         opened = true;
         break;

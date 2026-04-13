@@ -8,15 +8,18 @@ const setRole = async (page: any, role: string) => {
     // Inject auth state into localStorage simulating hydratedKeyRef ecosystem
     const baseDeviceId = 'e2e-audit-bot-device';
     const activeKey = r === 'traveler' ? 'v1' : `user1`;
-    
+
     // Clear storage to prevent cross-contamination
     window.localStorage.clear();
-    
+
     if (r !== 'traveler') {
       window.localStorage.setItem('hydrated_state_key', activeKey);
-      window.localStorage.setItem(`putevoditel_progress_${activeKey}`, JSON.stringify({
-         profile: { role: r, baseDeviceId }
-      }));
+      window.localStorage.setItem(
+        `putevoditel_progress_${activeKey}`,
+        JSON.stringify({
+          profile: { role: r, baseDeviceId },
+        })
+      );
     }
   }, role);
   // Reload to apply injected state
@@ -24,10 +27,8 @@ const setRole = async (page: any, role: string) => {
 };
 
 test.describe('Personal Cabinet Automated Matrix Audit', () => {
-
   for (const role of ROLES) {
     test.describe(`Role: ${role.toUpperCase()}`, () => {
-      
       let consoleErrors: string[] = [];
       let networkErrors: string[] = [];
 
@@ -36,14 +37,14 @@ test.describe('Personal Cabinet Automated Matrix Audit', () => {
         networkErrors = [];
 
         // Error Catcher: Console Errors
-        page.on('console', msg => {
+        page.on('console', (msg) => {
           if (msg.type() === 'error') {
             consoleErrors.push(msg.text());
           }
         });
 
         // Error Catcher: Network 5xx Errors
-        page.on('response', response => {
+        page.on('response', (response) => {
           if (response.status() >= 500) {
             networkErrors.push(`[${response.status()}] ${response.url()}`);
           }
@@ -74,8 +75,8 @@ test.describe('Personal Cabinet Automated Matrix Audit', () => {
         if (role === 'developer') {
           // Dev elements should be accessible
           const devButton = page.getByRole('button', { name: /совет лагеря|админ/i });
-          if (await devButton.count() > 0) {
-             await expect(devButton.first()).toBeVisible();
+          if ((await devButton.count()) > 0) {
+            await expect(devButton.first()).toBeVisible();
           }
         }
 
@@ -86,9 +87,12 @@ test.describe('Personal Cabinet Automated Matrix Audit', () => {
         if (networkErrors.length > 0) {
           console.log(`[${role}] Network Errors detected:`, networkErrors);
         }
-        
+
         // Expose errors array to the test runner so we can triage them automatically
-        expect(networkErrors.length, `Expected 0 network 5xx errors, found: \n${networkErrors.join('\n')}`).toBe(0);
+        expect(
+          networkErrors.length,
+          `Expected 0 network 5xx errors, found: \n${networkErrors.join('\n')}`
+        ).toBe(0);
       });
     });
   }

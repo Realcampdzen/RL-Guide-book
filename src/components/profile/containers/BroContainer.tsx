@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import type React from 'react';
+import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { FeatureGate } from '../../../components/FeatureGate';
 import { BroInitiation } from '../../../components/BroInitiation';
+import { FeatureGate } from '../../../components/FeatureGate';
 import { WingDashboard } from '../../../components/WingDashboard';
 
 export type BroTabId = 'initiation' | 'wing';
@@ -40,7 +41,9 @@ export const BroContainer: React.FC<BroContainerProps> = ({
     return () => window.removeEventListener('profile:openTab', handleOpenTab as EventListener);
   }, []);
 
-  const renderBroTabsNav = (className = 'profile-tabs-nav profile-tabs-nav--docked profile-tabs-nav--bro') => (
+  const renderBroTabsNav = (
+    className = 'profile-tabs-nav profile-tabs-nav--docked profile-tabs-nav--bro'
+  ) => (
     <div className={className} role="tablist" aria-label="Разделы БРО">
       {broTabItems.map((t) => (
         <button
@@ -54,7 +57,9 @@ export const BroContainer: React.FC<BroContainerProps> = ({
           className={broActiveTab === t.id ? 'active' : ''}
           onClick={() => setBroActiveTab(t.id)}
         >
-          <span className="profile-tabs-nav__icon" aria-hidden="true">{t.icon}</span>
+          <span className="profile-tabs-nav__icon" aria-hidden="true">
+            {t.icon}
+          </span>
           <span className="profile-tabs-nav__label">{t.label}</span>
         </button>
       ))}
@@ -68,7 +73,12 @@ export const BroContainer: React.FC<BroContainerProps> = ({
           {broActiveTab === 'initiation' ? (
             <div id="bro-section-passport" className="bro-cabin-section">
               {travelerMode ? (
-                <FeatureGate allowed={false} reason={travelerGateReason || undefined} ctaLabel="Разблокировать по коду" onCta={openUnlockByCode}>
+                <FeatureGate
+                  allowed={false}
+                  reason={travelerGateReason || undefined}
+                  ctaLabel="Разблокировать по коду"
+                  onCta={openUnlockByCode}
+                >
                   <BroInitiation variant="cabin" />
                 </FeatureGate>
               ) : (
@@ -78,7 +88,12 @@ export const BroContainer: React.FC<BroContainerProps> = ({
           ) : (
             <div id="bro-section-wing" className="bro-cabin-section">
               {travelerMode ? (
-                <FeatureGate allowed={false} reason={travelerGateReason || undefined} ctaLabel="Разблокировать по коду" onCta={openUnlockByCode}>
+                <FeatureGate
+                  allowed={false}
+                  reason={travelerGateReason || undefined}
+                  ctaLabel="Разблокировать по коду"
+                  onCta={openUnlockByCode}
+                >
                   <WingDashboard variant="cabin" onSuggestInitiative={undefined} />
                 </FeatureGate>
               ) : (
@@ -101,7 +116,12 @@ export const BroContainer: React.FC<BroContainerProps> = ({
       <div className="profile-view-bro-two-columns">
         <div id="bro-section-passport" className="profile-view-bro-column">
           {travelerMode ? (
-            <FeatureGate allowed={false} reason={travelerGateReason || undefined} ctaLabel="Разблокировать по коду" onCta={openUnlockByCode}>
+            <FeatureGate
+              allowed={false}
+              reason={travelerGateReason || undefined}
+              ctaLabel="Разблокировать по коду"
+              onCta={openUnlockByCode}
+            >
               <BroInitiation />
             </FeatureGate>
           ) : (
@@ -110,7 +130,12 @@ export const BroContainer: React.FC<BroContainerProps> = ({
         </div>
         <div id="bro-section-wing" className="profile-view-bro-column">
           {travelerMode ? (
-            <FeatureGate allowed={false} reason={travelerGateReason || undefined} ctaLabel="Разблокировать по коду" onCta={openUnlockByCode}>
+            <FeatureGate
+              allowed={false}
+              reason={travelerGateReason || undefined}
+              ctaLabel="Разблокировать по коду"
+              onCta={openUnlockByCode}
+            >
               <WingDashboard onSuggestInitiative={openInitiativeModal} />
             </FeatureGate>
           ) : (
@@ -118,7 +143,11 @@ export const BroContainer: React.FC<BroContainerProps> = ({
               allowed={Boolean(userData?.broProgress?.isBro)}
               reason="Крылья и роли БРО открываются после 100% Бропаспорта и подтверждения Бросвящения у вожатого."
               ctaLabel="К Бропаспорту"
-              onCta={() => document.getElementById('bro-section-passport')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+              onCta={() =>
+                document
+                  .getElementById('bro-section-passport')
+                  ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+              }
             >
               <WingDashboard onSuggestInitiative={openInitiativeModal} />
             </FeatureGate>

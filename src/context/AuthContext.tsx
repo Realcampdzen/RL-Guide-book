@@ -1,7 +1,13 @@
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import { createContext, type ReactNode, useCallback, useContext, useEffect, useState } from 'react';
 import type { UserRole } from '../types/authRole';
 import { canUseChat as canUseChatByRole } from '../types/authRole';
-import { loadAuthStorage, saveAuthStorage, clearAuthStorage, setOn401, type AuthStorage } from '../utils/authStorage';
+import {
+  type AuthStorage,
+  clearAuthStorage,
+  loadAuthStorage,
+  saveAuthStorage,
+  setOn401,
+} from '../utils/authStorage';
 
 interface AuthContextType {
   role: UserRole;
@@ -53,21 +59,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setAuthState(loadAuthStorage());
   }, []);
 
-  const setAuth = useCallback((data: {
-    role: UserRole;
-    accessToken?: string;
-    campId?: string;
-    exp?: number;
-    personId?: string;
-    accountId?: string;
-    baseDeviceId?: string;
-    deviceId?: string;
-    legacyRoleOwner?: UserRole;
-    legacyMigrated?: boolean;
-  }) => {
-    saveAuthStorage(data);
-    setAuthState(loadAuthStorage());
-  }, []);
+  const setAuth = useCallback(
+    (data: {
+      role: UserRole;
+      accessToken?: string;
+      campId?: string;
+      exp?: number;
+      personId?: string;
+      accountId?: string;
+      baseDeviceId?: string;
+      deviceId?: string;
+      legacyRoleOwner?: UserRole;
+      legacyMigrated?: boolean;
+    }) => {
+      saveAuthStorage(data);
+      setAuthState(loadAuthStorage());
+    },
+    []
+  );
 
   const clearAuth = useCallback(() => {
     clearAuthStorage();

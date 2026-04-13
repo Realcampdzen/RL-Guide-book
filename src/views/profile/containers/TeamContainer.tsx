@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import type React from 'react';
+import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { TeamDashboard } from '../../../components/TeamDashboard';
-import { type TeamTabId } from '../../../components/TeamDashboard';
+import { TeamDashboard, type TeamTabId } from '../../../components/TeamDashboard';
 
 const teamTabItems: Array<{ id: TeamTabId; label: string; icon: string }> = [
   { id: 'engine', label: 'Мой Движок', icon: '🚀' },
@@ -28,7 +28,7 @@ export const TeamContainer: React.FC<TeamContainerProps> = ({
 
   useEffect(() => {
     setDockRendered(true);
-    
+
     // External tab opener event listener
     const handleOpenTab = (e: Event) => {
       const customEvent = e as CustomEvent;
@@ -40,7 +40,8 @@ export const TeamContainer: React.FC<TeamContainerProps> = ({
     return () => window.removeEventListener('profile:openTab', handleOpenTab);
   }, []);
 
-  const dockContainer = dockRendered && variant === 'cabin' ? document.getElementById('profile-dock-container') : null;
+  const dockContainer =
+    dockRendered && variant === 'cabin' ? document.getElementById('profile-dock-container') : null;
 
   return (
     <>
@@ -52,30 +53,38 @@ export const TeamContainer: React.FC<TeamContainerProps> = ({
         onNavigateToBadge={onNavigateToBadge}
         onSuggestInitiative={onSuggestInitiative}
       />
-      
-      {dockContainer && createPortal(
-        <div className="profile-tabs-nav profile-tabs-nav--docked profile-tabs-nav--team" role="tablist" aria-label="Разделы Движка">
-          {teamTabItems.map((t) => {
-            const isActive = activeTab === t.id;
-            return (
-              <button
-                key={t.id}
-                id={`team-tab-${t.id}`}
-                type="button"
-                role="tab"
-                aria-selected={isActive}
-                aria-controls="team-tabpanel"
-                data-label={t.label}
-                className={isActive ? 'active' : ''}
-                onClick={() => setActiveTab(t.id)}
-              >
-                <span className="profile-tabs-nav__icon" aria-hidden="true">{t.icon}</span>
-                <span className="profile-tabs-nav__label">{t.label}</span>
-              </button>
-            );
-          })}
-        </div>
-      , dockContainer)}
+
+      {dockContainer &&
+        createPortal(
+          <div
+            className="profile-tabs-nav profile-tabs-nav--docked profile-tabs-nav--team"
+            role="tablist"
+            aria-label="Разделы Движка"
+          >
+            {teamTabItems.map((t) => {
+              const isActive = activeTab === t.id;
+              return (
+                <button
+                  key={t.id}
+                  id={`team-tab-${t.id}`}
+                  type="button"
+                  role="tab"
+                  aria-selected={isActive}
+                  aria-controls="team-tabpanel"
+                  data-label={t.label}
+                  className={isActive ? 'active' : ''}
+                  onClick={() => setActiveTab(t.id)}
+                >
+                  <span className="profile-tabs-nav__icon" aria-hidden="true">
+                    {t.icon}
+                  </span>
+                  <span className="profile-tabs-nav__label">{t.label}</span>
+                </button>
+              );
+            })}
+          </div>,
+          dockContainer
+        )}
     </>
   );
 };

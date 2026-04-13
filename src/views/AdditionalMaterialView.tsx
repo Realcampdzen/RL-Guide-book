@@ -1,4 +1,4 @@
-import React from 'react';
+import type React from 'react';
 import '../styles/additional-material.css';
 
 interface AdditionalMaterialViewProps {
@@ -7,7 +7,11 @@ interface AdditionalMaterialViewProps {
   onBack: () => void;
 }
 
-const AdditionalMaterialView: React.FC<AdditionalMaterialViewProps> = ({ title, contentHtml, onBack }) => (
+const AdditionalMaterialView: React.FC<AdditionalMaterialViewProps> = ({
+  title,
+  contentHtml,
+  onBack,
+}) => (
   <div className="additional-material-view">
     <header className="additional-material-topbar" aria-label="Навигация">
       <div className="additional-material-topbar-inner">
@@ -20,10 +24,12 @@ const AdditionalMaterialView: React.FC<AdditionalMaterialViewProps> = ({ title, 
     </header>
 
     <main className="additional-material-content">
-      <article className="additional-material-prose" dangerouslySetInnerHTML={{ __html: contentHtml }} />
+      <article
+        className="additional-material-prose"
+        dangerouslySetInnerHTML={{ __html: contentHtml }}
+      />
     </main>
   </div>
 );
 
 export default AdditionalMaterialView;
-

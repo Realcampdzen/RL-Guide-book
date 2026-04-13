@@ -1,1 +1,3 @@
-how HEAD\~1:src/App.tsx
+how;
+HEAD;
+\~1:src/App.tsx

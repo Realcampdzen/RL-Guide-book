@@ -3,8 +3,10 @@ const path = 'src/views/ProfileView.tsx';
 let s = fs.readFileSync(path, 'utf8');
 
 // 1. Add Составить план button before Подтвердить
-const btnOld = /<button onClick=\{\(e\) => \{ e\.stopPropagation\(\); setProofForm\(\{ learned: '', impact: '', link: '' \}\); setProofPhotoCount\(0\); proofPhotoInputRef\.current && \(proofPhotoInputRef\.current\.value = ''\); setProofBadge\(\{ id, title: b\?\\.title \|\| id \}\); \}\} className="btn-confirm-main">Подтвердить <Icons\.Send \/><\/button>/;
-const btnNew = '<button onClick={(e) => { e.stopPropagation(); setPlanFormBadge({ id: baseId, title: b?.title || id, criteria: b?.criteria }); setPlanForm({ currentDay: userData?.diaryProgress?.currentDay ?? 1, squadProgram3d: \'\', campProgram3d: \'\', priority: \'both\' }); setPlanResult(null); }} className="btn-secondary" style={{ fontSize: 12 }}>Составить план</button>\n                        <button onClick={(e) => { e.stopPropagation(); setProofForm({ learned: \'\', impact: \'\', link: \'\' }); setProofPhotoCount(0); proofPhotoInputRef.current && (proofPhotoInputRef.current.value = \'\'); setProofBadge({ id, title: b?.title || id }); }} className="btn-confirm-main">Подтвердить <Icons.Send /></button>';
+const btnOld =
+  /<button onClick=\{\(e\) => \{ e\.stopPropagation\(\); setProofForm\(\{ learned: '', impact: '', link: '' \}\); setProofPhotoCount\(0\); proofPhotoInputRef\.current && \(proofPhotoInputRef\.current\.value = ''\); setProofBadge\(\{ id, title: b\?\\.title \|\| id \}\); \}\} className="btn-confirm-main">Подтвердить <Icons\.Send \/><\/button>/;
+const btnNew =
+  "<button onClick={(e) => { e.stopPropagation(); setPlanFormBadge({ id: baseId, title: b?.title || id, criteria: b?.criteria }); setPlanForm({ currentDay: userData?.diaryProgress?.currentDay ?? 1, squadProgram3d: '', campProgram3d: '', priority: 'both' }); setPlanResult(null); }} className=\"btn-secondary\" style={{ fontSize: 12 }}>Составить план</button>\n                        <button onClick={(e) => { e.stopPropagation(); setProofForm({ learned: '', impact: '', link: '' }); setProofPhotoCount(0); proofPhotoInputRef.current && (proofPhotoInputRef.current.value = ''); setProofBadge({ id, title: b?.title || id }); }} className=\"btn-confirm-main\">Подтвердить <Icons.Send /></button>";
 s = s.replace(btnOld, btnNew);
 console.log('1. Button:', btnOld.test(s) ? 'NOT replaced' : 'replaced');
 

@@ -1,4 +1,2351 @@
-import{u as le,g as ui,a as pi,b as Mi,_ as fi}from"./index-4b3fee4a.js";import{r as n,c as e,d as xi}from"./react-vendor-68fe51ac.js";import{B as ie}from"./BadgeIcon-161f99bf.js";import{g as ye,s as Re,c as Be,f as qi}from"./aiService-7c1a7acc.js";import"./badgeImages-9f1e8a7f.js";import"./textFormatting-50410d50.js";const Ce=[{day:1,title:"Миссия Дружбы",emoji:"🤝",goal:"Замечать, если кто-то остаётся один, и вовлекать его в общие дела.",resultTitle:"Инспектор Дружбы",tasks:[{id:"d1_t1",text:"Подойди к новенькому и предложи вместе поиграть или что-то обсудить"},{id:"d1_t2",text:"Похвали 3-х человек за что-то хорошее"},{id:"d1_t3",text:"Если увидишь спор – попробуй помочь мирно уладить ситуацию"},{id:"d1_c1",text:"Челлендж: Заведи разговор с человеком, с которым мало общаешься",isChallenge:!0},{id:"d1_coop",text:"Кооператив: Спроси другого Инспектора, как ему далась миссия",isCoop:!0}]},{day:2,title:"Миссия Вежливости",emoji:"🎩",goal:'Следить за тоном общения и использовать "Я-сообщения".',resultTitle:"Вежливый Инспектор",tasks:[{id:"d2_t1",text:"В течение дня не использовать резкие слова и критику"},{id:"d2_t2",text:"В случае конфликта сказать «Мне не нравится, когда…», а не обвинять"},{id:"d2_t3",text:"Поблагодарить 3-х человек за их поступки"},{id:"d2_c1",text:"Челлендж: Отражай эмоции людей словами (Зеркало эмоций)",isChallenge:!0},{id:"d2_coop",text:"Кооператив: Эстафета благодарности – передай спасибо по цепочке",isCoop:!0}]},{day:3,title:"Миссия Уюта",emoji:"🏠",goal:"Сделать отрядное место комфортным и приятным.",resultTitle:"Инспектор Чистоты и Уюта",tasks:[{id:"d3_t1",text:"Помочь навести порядок в комнате или игровом пространстве"},{id:"d3_t2",text:"Замечать и исправлять мелкие беспорядки"},{id:"d3_t3",text:"Напомнить товарищам о чистоте и показать пример"},{id:"d3_c1",text:"Челлендж: 30 секунд разглядывай предмет, замечая детали",isChallenge:!0},{id:"d3_coop",text:"Кооператив: Найдите вместе с напарником 3 вещи для улучшения лагеря",isCoop:!0}]}],Ui=()=>{const{userData:t,updateInspectorTask:m,setInspectorDay:f}=le(),[w,u]=n.useState(!1),[h,V]=n.useState(!1),D=t.inspectorProgress||{currentDay:1,completedTasks:{}},j=D.currentDay,g=Ce.find(p=>p.day===j)||Ce[0],P=D.completedTasks[String(j)]||[],d=g.tasks.length,x=P.length===d,_=async()=>{V(!0);try{const p=await ye({format:"story",kind:"inspector_mission",profile:{nickname:t.profile.nickname,avatar:t.profile.avatar,rank:ui(t.profile.stats.totalLevelsAchieved)},badge:{title:g.title,emoji:g.emoji,categoryId:"14",levelLabel:g.resultTitle}});await Re(p)}catch(p){console.error("Failed to generate report",p),alert("Не удалось создать рапорт.")}finally{V(!1)}};return e.jsxDEV("div",{className:"inspector-dashboard",style:{background:"linear-gradient(135deg, rgba(56, 239, 125, 0.1) 0%, rgba(17, 153, 142, 0.15) 100%)",borderRadius:"24px",padding:"20px",border:`1px solid ${x?"#38ef7d":"rgba(56, 239, 125, 0.3)"}`,marginBottom:"24px",transition:"all 0.3s cubic-bezier(0.16, 1, 0.3, 1)",position:"relative",overflow:"hidden"},children:[e.jsxDEV("div",{style:{position:"absolute",top:"-20px",right:"-20px",width:"100px",height:"100px",background:"#38ef7d",filter:"blur(50px)",opacity:x?.2:.1,pointerEvents:"none"}},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/InspectorDashboard.tsx",lineNumber:59,columnNumber:7},globalThis),e.jsxDEV("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:w?"20px":"0"},children:[e.jsxDEV("div",{onClick:()=>u(!w),style:{cursor:"pointer",flex:1},children:[e.jsxDEV("div",{style:{fontSize:"11px",fontWeight:800,textTransform:"uppercase",color:"#38ef7d",letterSpacing:"0.1em",marginBottom:"4px"},children:"Ветка: Инспектор Пользы"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/InspectorDashboard.tsx",lineNumber:73,columnNumber:11},globalThis),e.jsxDEV("h3",{style:{margin:0,fontSize:"18px",display:"flex",alignItems:"center",gap:"8px"},children:["День ",g.day,": ",g.title," ",g.emoji]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/components/InspectorDashboard.tsx",lineNumber:76,columnNumber:11},globalThis),!w&&e.jsxDEV("div",{style:{marginTop:"8px",display:"flex",alignItems:"center",gap:"10px"},children:[e.jsxDEV("div",{style:{flex:1,height:"4px",background:"rgba(255,255,255,0.1)",borderRadius:"2px",overflow:"hidden"},children:e.jsxDEV("div",{style:{width:`${P.length/d*100}%`,height:"100%",background:"#38ef7d",transition:"width 0.5s ease"}},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/InspectorDashboard.tsx",lineNumber:82,columnNumber:17},globalThis)},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/InspectorDashboard.tsx",lineNumber:81,columnNumber:15},globalThis),e.jsxDEV("span",{style:{fontSize:"12px",opacity:.6},children:[P.length," / ",d]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/components/InspectorDashboard.tsx",lineNumber:89,columnNumber:15},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/components/InspectorDashboard.tsx",lineNumber:80,columnNumber:13},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/components/InspectorDashboard.tsx",lineNumber:72,columnNumber:9},globalThis),e.jsxDEV("div",{style:{display:"flex",gap:"8px"},children:[e.jsxDEV("button",{onClick:()=>{const p=j<Ce.length?j+1:1;f(p)},style:{background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:"8px",padding:"4px 8px",color:"white",fontSize:"10px",cursor:"pointer"},children:"СЛЕД. ДЕНЬ"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/InspectorDashboard.tsx",lineNumber:95,columnNumber:12},globalThis),e.jsxDEV("button",{onClick:()=>u(!w),style:{background:"none",border:"none",color:"#38ef7d",fontSize:"20px",cursor:"pointer",padding:"0 4px",transform:w?"rotate(180deg)":"none",transition:"transform 0.3s ease"},children:"▾"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/InspectorDashboard.tsx",lineNumber:112,columnNumber:11},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/components/InspectorDashboard.tsx",lineNumber:94,columnNumber:9},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/components/InspectorDashboard.tsx",lineNumber:71,columnNumber:7},globalThis),w&&e.jsxDEV("div",{className:"fade-in",style:{display:"grid",gap:"12px"},children:[e.jsxDEV("p",{style:{fontSize:"13px",opacity:.8,fontStyle:"italic",padding:"10px",background:"rgba(0,0,0,0.15)",borderRadius:"12px",marginBottom:"8px"},children:["🎯 Цель: ",g.goal]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/components/InspectorDashboard.tsx",lineNumber:132,columnNumber:11},globalThis),g.tasks.map(p=>{const E=P.includes(p.id);return e.jsxDEV("div",{onClick:()=>m(j,p.id,!E),style:{display:"flex",alignItems:"center",gap:"12px",padding:"12px 16px",background:E?"rgba(56, 239, 125, 0.15)":"rgba(255,255,255,0.03)",borderRadius:"14px",border:`1px solid ${E?"rgba(56, 239, 125, 0.4)":"rgba(255,255,255,0.08)"}`,cursor:"pointer",transition:"all 0.2s ease"},children:[e.jsxDEV("div",{style:{width:"20px",height:"20px",borderRadius:"6px",border:`2px solid ${E?"#38ef7d":"rgba(255,255,255,0.3)"}`,background:E?"#38ef7d":"transparent",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"12px"},children:E&&"✓"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/InspectorDashboard.tsx",lineNumber:154,columnNumber:17},globalThis),e.jsxDEV("span",{style:{fontSize:"13px",opacity:E?.6:1,textDecoration:E?"line-through":"none",flex:1},children:p.text},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/InspectorDashboard.tsx",lineNumber:167,columnNumber:17},globalThis),p.isChallenge&&e.jsxDEV("span",{title:"Челлендж",style:{fontSize:"14px"},children:"🔥"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/InspectorDashboard.tsx",lineNumber:175,columnNumber:38},globalThis),p.isCoop&&e.jsxDEV("span",{title:"Кооператив",style:{fontSize:"14px"},children:"👥"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/InspectorDashboard.tsx",lineNumber:176,columnNumber:33},globalThis)]},p.id,!0,{fileName:"D:/Development/Путеводитель web_new/src/components/InspectorDashboard.tsx",lineNumber:139,columnNumber:15},globalThis)}),x&&e.jsxDEV("div",{className:"fade-in",style:{marginTop:"12px",padding:"16px",background:"rgba(56, 239, 125, 0.2)",borderRadius:"16px",textAlign:"center",border:"1px solid #38ef7d"},children:[e.jsxDEV("div",{style:{fontSize:"24px",marginBottom:"8px"},children:"🏆"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/InspectorDashboard.tsx",lineNumber:190,columnNumber:15},globalThis),e.jsxDEV("div",{style:{fontWeight:800,fontSize:"14px",color:"#38ef7d",textTransform:"uppercase"},children:"Миссия выполнена!"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/InspectorDashboard.tsx",lineNumber:191,columnNumber:15},globalThis),e.jsxDEV("div",{style:{fontSize:"12px",opacity:.9,marginTop:"4px"},children:["Сегодня ты — ",e.jsxDEV("strong",{children:g.resultTitle},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/InspectorDashboard.tsx",lineNumber:195,columnNumber:30},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/components/InspectorDashboard.tsx",lineNumber:194,columnNumber:15},globalThis),e.jsxDEV("button",{style:{marginTop:"12px",padding:"8px 16px",background:h?"rgba(255,255,255,0.1)":"#38ef7d",color:h?"rgba(255,255,255,0.3)":"#0b1b16",border:"none",borderRadius:"100px",fontSize:"12px",fontWeight:700,cursor:h?"not-allowed":"pointer"},onClick:p=>{p.stopPropagation(),_()},disabled:h,children:h?"ГЕНЕРИРУЕМ...":"ОТПРАВИТЬ РАПОРТ 9:16"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/InspectorDashboard.tsx",lineNumber:197,columnNumber:15},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/components/InspectorDashboard.tsx",lineNumber:182,columnNumber:13},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/components/InspectorDashboard.tsx",lineNumber:131,columnNumber:9},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/components/InspectorDashboard.tsx",lineNumber:48,columnNumber:5},globalThis)},Hi=()=>{const{myTeam:t,isLoading:m,createTeam:f,joinTeam:w,leaveTeam:u,deleteTeam:h}=pi(),{userData:V}=le(),[D,j]=n.useState(!1),[g,P]=n.useState(!1),[d,x]=n.useState({name:"",motto:"",logo:"🚀",theme:"Творчество",firstProject:"",goal:""}),[_,p]=n.useState(""),E=async()=>{if(!d.name.trim()||!d.firstProject.trim())return alert("Для запуска Движка нужно имя и описание первого проекта!");await f({name:d.name,motto:d.motto,logo:d.logo,leaderId:V.profile.id,goals:[]}),j(!1)},M=async()=>{if(!_.trim())return;await w(_.toUpperCase())?(P(!1),p("")):alert("Код не найден. Проверь символы!")};return m?e.jsxDEV("div",{style:{padding:"20px",textAlign:"center",opacity:.5},children:"Синхронизация Движка..."},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx",lineNumber:48,columnNumber:25},globalThis):e.jsxDEV("div",{className:"team-dashboard",style:{background:"linear-gradient(135deg, rgba(139, 0, 255, 0.1) 0%, rgba(77, 166, 255, 0.15) 100%)",borderRadius:"24px",padding:"24px",border:"1px solid rgba(139, 0, 255, 0.3)",marginBottom:"24px",position:"relative",overflow:"hidden"},children:t?e.jsxDEV("div",{className:"team-active-state",children:[e.jsxDEV("div",{style:{display:"flex",gap:"20px",alignItems:"center",marginBottom:"20px"},children:[e.jsxDEV("div",{style:{width:"64px",height:"64px",background:"rgba(139, 0, 255, 0.2)",borderRadius:"16px",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"32px",border:"2px solid #8b00ff"},children:t.logo},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx",lineNumber:152,columnNumber:13},globalThis),e.jsxDEV("div",{style:{flex:1},children:[e.jsxDEV("div",{style:{fontSize:"11px",fontWeight:800,color:"#8b00ff",textTransform:"uppercase",letterSpacing:"0.1em"},children:["Код Движка: ",t.id]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx",lineNumber:156,columnNumber:15},globalThis),e.jsxDEV("h3",{style:{margin:"2px 0",fontSize:"22px"},children:t.name},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx",lineNumber:157,columnNumber:15},globalThis),e.jsxDEV("p",{style:{margin:0,fontSize:"13px",opacity:.7,fontStyle:"italic"},children:["«",t.motto,"»"]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx",lineNumber:158,columnNumber:15},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx",lineNumber:155,columnNumber:13},globalThis),e.jsxDEV("div",{style:{display:"flex",flexDirection:"column",gap:"6px"},children:[e.jsxDEV("button",{onClick:u,style:{padding:"6px 10px",background:"rgba(255,77,77,0.1)",color:"#ff4d4d",border:"1px solid rgba(255,77,77,0.2)",borderRadius:"8px",fontSize:"10px",fontWeight:700,cursor:"pointer"},children:"ВЫЙТИ"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx",lineNumber:161,columnNumber:16},globalThis),t.leaderId===V.profile.id&&e.jsxDEV("button",{onClick:h,style:{padding:"6px 10px",background:"rgba(255,77,77,0.2)",color:"#ff4d4d",border:"1px solid rgba(255,77,77,0.4)",borderRadius:"8px",fontSize:"10px",fontWeight:700,cursor:"pointer"},children:"УДАЛИТЬ"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx",lineNumber:165,columnNumber:17},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx",lineNumber:160,columnNumber:13},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx",lineNumber:151,columnNumber:11},globalThis),e.jsxDEV("div",{style:{borderTop:"1px solid rgba(255,255,255,0.1)",paddingTop:"16px"},children:[e.jsxDEV("div",{style:{fontSize:"12px",fontWeight:700,marginBottom:"12px",opacity:.6},children:["ЭКИПАЖ (",t.members.length,"):"]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx",lineNumber:173,columnNumber:13},globalThis),e.jsxDEV("div",{style:{display:"flex",gap:"8px",flexWrap:"wrap"},children:[t.members.map(c=>e.jsxDEV("div",{title:`${c.nickname} (${c.rank})`,style:{width:"40px",height:"40px",borderRadius:"50%",background:"rgba(255,255,255,0.1)",border:`2px solid ${c.id===t.leaderId?"#ffd700":"rgba(255,255,255,0.2)"}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:"18px",position:"relative"},children:[c.avatar||"🧑‍🚀",c.id===t.leaderId&&e.jsxDEV("span",{style:{position:"absolute",top:"-8px",right:"-4px",fontSize:"12px"},children:"👑"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx",lineNumber:189,columnNumber:53},globalThis)]},c.id,!0,{fileName:"D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx",lineNumber:176,columnNumber:17},globalThis)),e.jsxDEV("button",{onClick:()=>{navigator.clipboard.writeText(t.id),alert("Код скопирован! Отправь его друзьям.")},style:{width:"40px",height:"40px",borderRadius:"50%",background:"rgba(255,255,255,0.05)",border:"2px dashed rgba(255,255,255,0.3)",color:"white",fontSize:"20px",cursor:"pointer"},children:"+"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx",lineNumber:192,columnNumber:15},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx",lineNumber:174,columnNumber:13},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx",lineNumber:172,columnNumber:11},globalThis),e.jsxDEV("div",{style:{borderTop:"1px solid rgba(255,255,255,0.1)",paddingTop:"16px",marginTop:"16px"},children:[e.jsxDEV("div",{style:{fontSize:"12px",fontWeight:700,marginBottom:"12px",opacity:.6},children:"ПУТЬ ДВИЖКА (КАТЕГОРИЯ 8):"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx",lineNumber:209,columnNumber:13},globalThis),e.jsxDEV("div",{style:{display:"flex",gap:"12px",overflowX:"auto",paddingBottom:"8px",scrollbarWidth:"none"},children:[{id:"8.1",title:"Реальный Движок",emoji:"⚙️"},{id:"8.2",title:"Движок Прогресса",emoji:"📈"},{id:"8.3",title:"Командный Дух",emoji:"🔥"},{id:"8.4",title:"Масштабирование",emoji:"🚀"}].map(c=>{const J=t.achievements.includes(c.id);return e.jsxDEV("div",{style:{flexShrink:0,width:"80px",textAlign:"center",opacity:J?1:.4,filter:J?"none":"grayscale(0.5)",transition:"all 0.3s ease"},children:[e.jsxDEV("div",{style:{width:"60px",height:"60px",margin:"0 auto 6px"},children:e.jsxDEV(ie,{badgeId:c.id,badgeTitle:c.title,categoryId:"8",emoji:c.emoji,size:"responsive"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx",lineNumber:228,columnNumber:23},globalThis)},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx",lineNumber:227,columnNumber:21},globalThis),e.jsxDEV("div",{style:{fontSize:"9px",fontWeight:700,textTransform:"uppercase",lineHeight:"1.1"},children:c.title},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx",lineNumber:236,columnNumber:21},globalThis)]},c.id,!0,{fileName:"D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx",lineNumber:219,columnNumber:19},globalThis)})},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx",lineNumber:210,columnNumber:13},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx",lineNumber:208,columnNumber:11},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx",lineNumber:150,columnNumber:9},globalThis):e.jsxDEV("div",{className:"team-empty-state",children:[e.jsxDEV("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"16px"},children:[e.jsxDEV("h3",{style:{margin:0,fontSize:"18px"},children:"🚀 Твой Движок"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx",lineNumber:63,columnNumber:13},globalThis),e.jsxDEV("div",{style:{display:"flex",gap:"8px"},children:[e.jsxDEV("button",{onClick:()=>{j(!D),P(!1)},style:{padding:"6px 12px",background:"#8b00ff",color:"white",border:"none",borderRadius:"8px",fontSize:"12px",fontWeight:700,cursor:"pointer"},children:"СОЗДАТЬ"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx",lineNumber:65,columnNumber:15},globalThis),e.jsxDEV("button",{onClick:()=>{P(!g),j(!1)},style:{padding:"6px 12px",background:"rgba(255,255,255,0.1)",color:"white",border:"1px solid rgba(255,255,255,0.2)",borderRadius:"8px",fontSize:"12px",fontWeight:700,cursor:"pointer"},children:"ВСТУПИТЬ"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx",lineNumber:71,columnNumber:15},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx",lineNumber:64,columnNumber:13},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx",lineNumber:62,columnNumber:11},globalThis),D&&e.jsxDEV("div",{className:"fade-in",style:{display:"grid",gap:"16px",marginTop:"20px",padding:"20px",background:"rgba(0,0,0,0.25)",borderRadius:"20px",border:"1px solid rgba(139, 0, 255, 0.2)"},children:[e.jsxDEV("div",{style:{display:"grid",gridTemplateColumns:"1fr auto",gap:"12px"},children:[e.jsxDEV("input",{placeholder:"Название Движка",value:d.name,onChange:c=>x({...d,name:c.target.value}),style:{padding:"12px",borderRadius:"12px",background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.1)",color:"white"}},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx",lineNumber:83,columnNumber:17},globalThis),e.jsxDEV("input",{placeholder:"🚀",value:d.logo,onChange:c=>x({...d,logo:c.target.value}),style:{width:"50px",textAlign:"center",padding:"12px",borderRadius:"12px",background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.1)",color:"white"}},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx",lineNumber:89,columnNumber:17},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx",lineNumber:82,columnNumber:15},globalThis),e.jsxDEV("select",{value:d.theme,onChange:c=>x({...d,theme:c.target.value}),style:{padding:"12px",borderRadius:"12px",background:"#1a0b2e",border:"1px solid rgba(255,255,255,0.1)",color:"white"},children:[e.jsxDEV("option",{value:"Творчество",children:"🎨 Творчество и Арт"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx",lineNumber:102,columnNumber:17},globalThis),e.jsxDEV("option",{value:"Спорт",children:"🏆 Спорт и ЗОЖ"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx",lineNumber:103,columnNumber:17},globalThis),e.jsxDEV("option",{value:"Медиа",children:"📱 Медиа и Контент"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx",lineNumber:104,columnNumber:17},globalThis),e.jsxDEV("option",{value:"Технологии",children:"🤖 Технологии и ИИ"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx",lineNumber:105,columnNumber:17},globalThis),e.jsxDEV("option",{value:"Экология",children:"🌿 Экология и Природа"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx",lineNumber:106,columnNumber:17},globalThis),e.jsxDEV("option",{value:"Организация",children:"📢 Организация событий"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx",lineNumber:107,columnNumber:17},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx",lineNumber:97,columnNumber:15},globalThis),e.jsxDEV("textarea",{placeholder:"Первый проект (что сделаете в лагере?)",value:d.firstProject,onChange:c=>x({...d,firstProject:c.target.value}),rows:2,style:{padding:"12px",borderRadius:"12px",background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.1)",color:"white",resize:"none"}},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx",lineNumber:110,columnNumber:15},globalThis),e.jsxDEV("input",{placeholder:"Главная цель Движка",value:d.goal,onChange:c=>x({...d,goal:c.target.value}),style:{padding:"12px",borderRadius:"12px",background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.1)",color:"white"}},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx",lineNumber:118,columnNumber:15},globalThis),e.jsxDEV("div",{style:{padding:"12px",background:"rgba(139, 0, 255, 0.1)",borderRadius:"12px",fontSize:"11px",lineHeight:"1.4",fontStyle:"italic",borderLeft:"3px solid #8b00ff"},children:[e.jsxDEV("strong",{children:"🤖 Совет Валюши:"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx",lineNumber:126,columnNumber:17},globalThis)," Начни с малого — например, организуй мастер-класс для своего отряда. Хороший Движок растет от дела к делу!"]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx",lineNumber:125,columnNumber:15},globalThis),e.jsxDEV("button",{onClick:E,style:{padding:"16px",background:"linear-gradient(90deg, #8b00ff, #4dacff)",color:"white",border:"none",borderRadius:"14px",fontWeight:800,cursor:"pointer",boxShadow:"0 4px 15px rgba(139, 0, 255, 0.3)"},children:"ЗАПУСТИТЬ ДВИЖОК"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx",lineNumber:129,columnNumber:15},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx",lineNumber:81,columnNumber:13},globalThis),g&&e.jsxDEV("div",{className:"fade-in",style:{display:"flex",gap:"10px",marginTop:"20px"},children:[e.jsxDEV("input",{placeholder:"Код Движка (напр: T-XJ29)",value:_,onChange:c=>p(c.target.value),style:{flex:1,padding:"10px",borderRadius:"10px",background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.1)",color:"white"}},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx",lineNumber:137,columnNumber:15},globalThis),e.jsxDEV("button",{onClick:M,style:{padding:"0 20px",background:"#4dacff",color:"white",border:"none",borderRadius:"10px",fontWeight:800,cursor:"pointer"},children:"ВСТУПИТЬ"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx",lineNumber:143,columnNumber:15},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx",lineNumber:136,columnNumber:13},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx",lineNumber:61,columnNumber:9},globalThis)},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx",lineNumber:51,columnNumber:5},globalThis)},Oi=[{day:1,title:"Теория и Основы",emoji:"📘",deeds:[{id:"b1_lecture",text:"Прослушать лекцию по лагерной педагогике",description:"Основы общения с детьми и принципы Бро-Движения."},{id:"b1_cases",text:"Участие в обсуждении вожатских кейсов",description:"Разбор реальных ситуаций из жизни отряда."},{id:"b1_chants",text:"Знать и громко кричать отрядные кричалки",description:"Голос отряда — это его энергия!"}]},{day:2,title:"Культура и Дух",emoji:"🎭",deeds:[{id:"b2_dances",text:"Знать и танцевать отрядные танцы",description:"Движение в ритме Бро-Движения."},{id:"b2_traditions",text:"Знать отрядные традиции",description:"История и ритуалы, которые нас объединяют."},{id:"b2_meme",text:"Знать и понимать отрядный мем",description:"Юмор — важная часть нашей идентичности."}]},{day:3,title:"Действие и Артефакт",emoji:"🔥",deeds:[{id:"b3_activity",text:"Провести собственное отрядное дело",description:"Практика лидерства и организации."},{id:"b3_artifact",text:"Оформить физический Бропаспорт",description:"Создать красивый артефакт с твердой обложкой."},{id:"b3_approval",text:"Получить подписи вожатых и админа",description:"Финальный апрув твоего пути в Бро-Движение."}]}],Yi=({onComplete:t})=>{const{selectWingMentor:m}=le(),[f,w]=n.useState("intro"),[u,h]=n.useState("");return e.jsxDEV("div",{style:{position:"fixed",inset:0,background:"#0b061a",zIndex:2e4,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"40px 24px",textAlign:"center",overflowY:"auto"},children:[e.jsxDEV("div",{className:"bonfire-glow"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/BroBonfire.tsx",lineNumber:15,columnNumber:7},globalThis),f==="intro"&&e.jsxDEV("div",{className:"fade-in",children:[e.jsxDEV("div",{style:{fontSize:"80px",marginBottom:"20px"},children:"🔥"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/BroBonfire.tsx",lineNumber:19,columnNumber:11},globalThis),e.jsxDEV("h2",{style:{fontSize:"32px",color:"#ffd700",marginBottom:"16px"},children:"БРО-КОСТЕР"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/BroBonfire.tsx",lineNumber:20,columnNumber:11},globalThis),e.jsxDEV("p",{style:{fontSize:"18px",opacity:.8,maxWidth:"500px",lineHeight:"1.6"},children:"Время финала. Самый теплый момент Бросвящения. Собираемся в круг..."},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/BroBonfire.tsx",lineNumber:21,columnNumber:11},globalThis),e.jsxDEV("button",{onClick:()=>w("recipe"),style:{marginTop:"40px",padding:"16px 40px",background:"#ff8c42",border:"none",borderRadius:"100px",color:"white",fontWeight:900,cursor:"pointer"},children:"ГОТОВИТЬ БРОТЕРБРОДЫ"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/BroBonfire.tsx",lineNumber:24,columnNumber:11},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/components/BroBonfire.tsx",lineNumber:18,columnNumber:9},globalThis),f==="recipe"&&e.jsxDEV("div",{className:"fade-in",children:[e.jsxDEV("div",{style:{fontSize:"64px",marginBottom:"20px"},children:"🍞🧂🌻"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/BroBonfire.tsx",lineNumber:35,columnNumber:11},globalThis),e.jsxDEV("h2",{style:{fontSize:"28px",color:"#ff8c42",marginBottom:"24px"},children:"ОСОБЫЙ РЕЦЕПТ"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/BroBonfire.tsx",lineNumber:36,columnNumber:11},globalThis),e.jsxDEV("ul",{style:{textAlign:"left",display:"inline-block",fontSize:"16px",lineHeight:"2",opacity:.9},children:[e.jsxDEV("li",{children:"🔹 Нарежь хлеб аккуратными кусочками"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/BroBonfire.tsx",lineNumber:38,columnNumber:13},globalThis),e.jsxDEV("li",{children:"🔹 Посыпь крупной солью с любовью"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/BroBonfire.tsx",lineNumber:39,columnNumber:13},globalThis),e.jsxDEV("li",{children:"🔹 Сбрызни подсолнечным маслом"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/BroBonfire.tsx",lineNumber:40,columnNumber:13},globalThis),e.jsxDEV("li",{children:"🔹 Жарь на костре как шашлычок до хруста"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/BroBonfire.tsx",lineNumber:41,columnNumber:13},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/components/BroBonfire.tsx",lineNumber:37,columnNumber:11},globalThis),e.jsxDEV("div",{style:{marginTop:"32px"},children:e.jsxDEV("button",{onClick:()=>w("words"),style:{padding:"16px 40px",background:"#8b00ff",border:"none",borderRadius:"100px",color:"white",fontWeight:900,cursor:"pointer"},children:"СЛУШАТЬ НАПУТСТВИЯ"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/BroBonfire.tsx",lineNumber:44,columnNumber:13},globalThis)},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/BroBonfire.tsx",lineNumber:43,columnNumber:11},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/components/BroBonfire.tsx",lineNumber:34,columnNumber:9},globalThis),f==="words"&&e.jsxDEV("div",{className:"fade-in",children:[e.jsxDEV("div",{style:{fontSize:"64px",marginBottom:"20px"},children:"📢"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/BroBonfire.tsx",lineNumber:56,columnNumber:11},globalThis),e.jsxDEV("h2",{style:{fontSize:"28px",color:"#c9b8ff",marginBottom:"24px"},children:"СЛОВА СТАРШИХ"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/BroBonfire.tsx",lineNumber:57,columnNumber:11},globalThis),e.jsxDEV("p",{style:{fontSize:"16px",fontStyle:"italic",maxWidth:"500px",marginBottom:"32px"},children:'"Бро — это не просто статус. Это ответственность за младших, за лагерь и за самих себя. Помни традиции, храни огонь."'},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/BroBonfire.tsx",lineNumber:58,columnNumber:11},globalThis),e.jsxDEV("button",{onClick:()=>w("wing"),style:{padding:"16px 40px",background:"#ffd700",color:"#1a1a2e",border:"none",borderRadius:"100px",fontWeight:900,cursor:"pointer"},children:"СФОРМИРОВАТЬ КРЫЛО"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/BroBonfire.tsx",lineNumber:61,columnNumber:11},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/components/BroBonfire.tsx",lineNumber:55,columnNumber:9},globalThis),f==="wing"&&e.jsxDEV("div",{className:"fade-in",children:[e.jsxDEV("div",{style:{fontSize:"64px",marginBottom:"20px"},children:"🦅"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/BroBonfire.tsx",lineNumber:72,columnNumber:11},globalThis),e.jsxDEV("h2",{style:{fontSize:"28px",color:"#ffd700",marginBottom:"16px"},children:"ТВОЁ КРЫЛО"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/BroBonfire.tsx",lineNumber:73,columnNumber:11},globalThis),e.jsxDEV("p",{style:{fontSize:"14px",opacity:.7,marginBottom:"24px"},children:"Объединитесь и выберите своего Наставника"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/BroBonfire.tsx",lineNumber:74,columnNumber:11},globalThis),e.jsxDEV("input",{placeholder:"Название вашего Крыла",value:u,onChange:V=>h(V.target.value),style:{padding:"16px",width:"100%",maxWidth:"300px",borderRadius:"16px",background:"rgba(255,255,255,0.05)",border:"1px solid #ffd700",color:"white",marginBottom:"20px"}},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/BroBonfire.tsx",lineNumber:76,columnNumber:11},globalThis),e.jsxDEV("div",{style:{fontSize:"12px",opacity:.5,marginBottom:"12px"},children:"ВЫБЕРИТЕ НАСТАВНИКА ИЗ ОПЫТНЫХ БРО:"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/BroBonfire.tsx",lineNumber:83,columnNumber:11},globalThis),e.jsxDEV("div",{style:{display:"flex",gap:"10px",justifyContent:"center",marginBottom:"32px"},children:["Степан И.","Максим В.","Анна К."].map(V=>e.jsxDEV("button",{onClick:()=>{if(!u)return alert("Сначала дай Крылу имя!");m(V,u),t()},style:{padding:"10px 16px",background:"rgba(255,255,255,0.1)",border:"1px solid rgba(255,255,255,0.2)",borderRadius:"12px",color:"white",cursor:"pointer"},children:V},V,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/BroBonfire.tsx",lineNumber:86,columnNumber:15},globalThis))},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/BroBonfire.tsx",lineNumber:84,columnNumber:11},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/components/BroBonfire.tsx",lineNumber:71,columnNumber:9},globalThis),e.jsxDEV("style",{children:`
+import { c as Be, f as qi, s as Re, g as ye } from './aiService-7c1a7acc.js';
+import { B as ie } from './BadgeIcon-161f99bf.js';
+import { _ as fi, u as le, b as Mi, a as pi, g as ui } from './index-4b3fee4a.js';
+import { c as e, r as n, d as xi } from './react-vendor-68fe51ac.js';
+import './badgeImages-9f1e8a7f.js';
+import './textFormatting-50410d50.js';
+const Ce = [
+    {
+      day: 1,
+      title: 'Миссия Дружбы',
+      emoji: '🤝',
+      goal: 'Замечать, если кто-то остаётся один, и вовлекать его в общие дела.',
+      resultTitle: 'Инспектор Дружбы',
+      tasks: [
+        {
+          id: 'd1_t1',
+          text: 'Подойди к новенькому и предложи вместе поиграть или что-то обсудить',
+        },
+        { id: 'd1_t2', text: 'Похвали 3-х человек за что-то хорошее' },
+        { id: 'd1_t3', text: 'Если увидишь спор – попробуй помочь мирно уладить ситуацию' },
+        {
+          id: 'd1_c1',
+          text: 'Челлендж: Заведи разговор с человеком, с которым мало общаешься',
+          isChallenge: !0,
+        },
+        {
+          id: 'd1_coop',
+          text: 'Кооператив: Спроси другого Инспектора, как ему далась миссия',
+          isCoop: !0,
+        },
+      ],
+    },
+    {
+      day: 2,
+      title: 'Миссия Вежливости',
+      emoji: '🎩',
+      goal: 'Следить за тоном общения и использовать "Я-сообщения".',
+      resultTitle: 'Вежливый Инспектор',
+      tasks: [
+        { id: 'd2_t1', text: 'В течение дня не использовать резкие слова и критику' },
+        {
+          id: 'd2_t2',
+          text: 'В случае конфликта сказать «Мне не нравится, когда…», а не обвинять',
+        },
+        { id: 'd2_t3', text: 'Поблагодарить 3-х человек за их поступки' },
+        {
+          id: 'd2_c1',
+          text: 'Челлендж: Отражай эмоции людей словами (Зеркало эмоций)',
+          isChallenge: !0,
+        },
+        {
+          id: 'd2_coop',
+          text: 'Кооператив: Эстафета благодарности – передай спасибо по цепочке',
+          isCoop: !0,
+        },
+      ],
+    },
+    {
+      day: 3,
+      title: 'Миссия Уюта',
+      emoji: '🏠',
+      goal: 'Сделать отрядное место комфортным и приятным.',
+      resultTitle: 'Инспектор Чистоты и Уюта',
+      tasks: [
+        { id: 'd3_t1', text: 'Помочь навести порядок в комнате или игровом пространстве' },
+        { id: 'd3_t2', text: 'Замечать и исправлять мелкие беспорядки' },
+        { id: 'd3_t3', text: 'Напомнить товарищам о чистоте и показать пример' },
+        {
+          id: 'd3_c1',
+          text: 'Челлендж: 30 секунд разглядывай предмет, замечая детали',
+          isChallenge: !0,
+        },
+        {
+          id: 'd3_coop',
+          text: 'Кооператив: Найдите вместе с напарником 3 вещи для улучшения лагеря',
+          isCoop: !0,
+        },
+      ],
+    },
+  ],
+  Ui = () => {
+    const { userData: t, updateInspectorTask: m, setInspectorDay: f } = le(),
+      [w, u] = n.useState(!1),
+      [h, V] = n.useState(!1),
+      D = t.inspectorProgress || { currentDay: 1, completedTasks: {} },
+      j = D.currentDay,
+      g = Ce.find((p) => p.day === j) || Ce[0],
+      P = D.completedTasks[String(j)] || [],
+      d = g.tasks.length,
+      x = P.length === d,
+      _ = async () => {
+        V(!0);
+        try {
+          const p = await ye({
+            format: 'story',
+            kind: 'inspector_mission',
+            profile: {
+              nickname: t.profile.nickname,
+              avatar: t.profile.avatar,
+              rank: ui(t.profile.stats.totalLevelsAchieved),
+            },
+            badge: { title: g.title, emoji: g.emoji, categoryId: '14', levelLabel: g.resultTitle },
+          });
+          await Re(p);
+        } catch (p) {
+          console.error('Failed to generate report', p), alert('Не удалось создать рапорт.');
+        } finally {
+          V(!1);
+        }
+      };
+    return e.jsxDEV(
+      'div',
+      {
+        className: 'inspector-dashboard',
+        style: {
+          background:
+            'linear-gradient(135deg, rgba(56, 239, 125, 0.1) 0%, rgba(17, 153, 142, 0.15) 100%)',
+          borderRadius: '24px',
+          padding: '20px',
+          border: `1px solid ${x ? '#38ef7d' : 'rgba(56, 239, 125, 0.3)'}`,
+          marginBottom: '24px',
+          transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+          position: 'relative',
+          overflow: 'hidden',
+        },
+        children: [
+          e.jsxDEV(
+            'div',
+            {
+              style: {
+                position: 'absolute',
+                top: '-20px',
+                right: '-20px',
+                width: '100px',
+                height: '100px',
+                background: '#38ef7d',
+                filter: 'blur(50px)',
+                opacity: x ? 0.2 : 0.1,
+                pointerEvents: 'none',
+              },
+            },
+            void 0,
+            !1,
+            {
+              fileName: 'D:/Development/Путеводитель web_new/src/components/InspectorDashboard.tsx',
+              lineNumber: 59,
+              columnNumber: 7,
+            },
+            globalThis
+          ),
+          e.jsxDEV(
+            'div',
+            {
+              style: {
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'flex-start',
+                marginBottom: w ? '20px' : '0',
+              },
+              children: [
+                e.jsxDEV(
+                  'div',
+                  {
+                    onClick: () => u(!w),
+                    style: { cursor: 'pointer', flex: 1 },
+                    children: [
+                      e.jsxDEV(
+                        'div',
+                        {
+                          style: {
+                            fontSize: '11px',
+                            fontWeight: 800,
+                            textTransform: 'uppercase',
+                            color: '#38ef7d',
+                            letterSpacing: '0.1em',
+                            marginBottom: '4px',
+                          },
+                          children: 'Ветка: Инспектор Пользы',
+                        },
+                        void 0,
+                        !1,
+                        {
+                          fileName:
+                            'D:/Development/Путеводитель web_new/src/components/InspectorDashboard.tsx',
+                          lineNumber: 73,
+                          columnNumber: 11,
+                        },
+                        globalThis
+                      ),
+                      e.jsxDEV(
+                        'h3',
+                        {
+                          style: {
+                            margin: 0,
+                            fontSize: '18px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                          },
+                          children: ['День ', g.day, ': ', g.title, ' ', g.emoji],
+                        },
+                        void 0,
+                        !0,
+                        {
+                          fileName:
+                            'D:/Development/Путеводитель web_new/src/components/InspectorDashboard.tsx',
+                          lineNumber: 76,
+                          columnNumber: 11,
+                        },
+                        globalThis
+                      ),
+                      !w &&
+                        e.jsxDEV(
+                          'div',
+                          {
+                            style: {
+                              marginTop: '8px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '10px',
+                            },
+                            children: [
+                              e.jsxDEV(
+                                'div',
+                                {
+                                  style: {
+                                    flex: 1,
+                                    height: '4px',
+                                    background: 'rgba(255,255,255,0.1)',
+                                    borderRadius: '2px',
+                                    overflow: 'hidden',
+                                  },
+                                  children: e.jsxDEV(
+                                    'div',
+                                    {
+                                      style: {
+                                        width: `${(P.length / d) * 100}%`,
+                                        height: '100%',
+                                        background: '#38ef7d',
+                                        transition: 'width 0.5s ease',
+                                      },
+                                    },
+                                    void 0,
+                                    !1,
+                                    {
+                                      fileName:
+                                        'D:/Development/Путеводитель web_new/src/components/InspectorDashboard.tsx',
+                                      lineNumber: 82,
+                                      columnNumber: 17,
+                                    },
+                                    globalThis
+                                  ),
+                                },
+                                void 0,
+                                !1,
+                                {
+                                  fileName:
+                                    'D:/Development/Путеводитель web_new/src/components/InspectorDashboard.tsx',
+                                  lineNumber: 81,
+                                  columnNumber: 15,
+                                },
+                                globalThis
+                              ),
+                              e.jsxDEV(
+                                'span',
+                                {
+                                  style: { fontSize: '12px', opacity: 0.6 },
+                                  children: [P.length, ' / ', d],
+                                },
+                                void 0,
+                                !0,
+                                {
+                                  fileName:
+                                    'D:/Development/Путеводитель web_new/src/components/InspectorDashboard.tsx',
+                                  lineNumber: 89,
+                                  columnNumber: 15,
+                                },
+                                globalThis
+                              ),
+                            ],
+                          },
+                          void 0,
+                          !0,
+                          {
+                            fileName:
+                              'D:/Development/Путеводитель web_new/src/components/InspectorDashboard.tsx',
+                            lineNumber: 80,
+                            columnNumber: 13,
+                          },
+                          globalThis
+                        ),
+                    ],
+                  },
+                  void 0,
+                  !0,
+                  {
+                    fileName:
+                      'D:/Development/Путеводитель web_new/src/components/InspectorDashboard.tsx',
+                    lineNumber: 72,
+                    columnNumber: 9,
+                  },
+                  globalThis
+                ),
+                e.jsxDEV(
+                  'div',
+                  {
+                    style: { display: 'flex', gap: '8px' },
+                    children: [
+                      e.jsxDEV(
+                        'button',
+                        {
+                          onClick: () => {
+                            const p = j < Ce.length ? j + 1 : 1;
+                            f(p);
+                          },
+                          style: {
+                            background: 'rgba(255,255,255,0.05)',
+                            border: '1px solid rgba(255,255,255,0.1)',
+                            borderRadius: '8px',
+                            padding: '4px 8px',
+                            color: 'white',
+                            fontSize: '10px',
+                            cursor: 'pointer',
+                          },
+                          children: 'СЛЕД. ДЕНЬ',
+                        },
+                        void 0,
+                        !1,
+                        {
+                          fileName:
+                            'D:/Development/Путеводитель web_new/src/components/InspectorDashboard.tsx',
+                          lineNumber: 95,
+                          columnNumber: 12,
+                        },
+                        globalThis
+                      ),
+                      e.jsxDEV(
+                        'button',
+                        {
+                          onClick: () => u(!w),
+                          style: {
+                            background: 'none',
+                            border: 'none',
+                            color: '#38ef7d',
+                            fontSize: '20px',
+                            cursor: 'pointer',
+                            padding: '0 4px',
+                            transform: w ? 'rotate(180deg)' : 'none',
+                            transition: 'transform 0.3s ease',
+                          },
+                          children: '▾',
+                        },
+                        void 0,
+                        !1,
+                        {
+                          fileName:
+                            'D:/Development/Путеводитель web_new/src/components/InspectorDashboard.tsx',
+                          lineNumber: 112,
+                          columnNumber: 11,
+                        },
+                        globalThis
+                      ),
+                    ],
+                  },
+                  void 0,
+                  !0,
+                  {
+                    fileName:
+                      'D:/Development/Путеводитель web_new/src/components/InspectorDashboard.tsx',
+                    lineNumber: 94,
+                    columnNumber: 9,
+                  },
+                  globalThis
+                ),
+              ],
+            },
+            void 0,
+            !0,
+            {
+              fileName: 'D:/Development/Путеводитель web_new/src/components/InspectorDashboard.tsx',
+              lineNumber: 71,
+              columnNumber: 7,
+            },
+            globalThis
+          ),
+          w &&
+            e.jsxDEV(
+              'div',
+              {
+                className: 'fade-in',
+                style: { display: 'grid', gap: '12px' },
+                children: [
+                  e.jsxDEV(
+                    'p',
+                    {
+                      style: {
+                        fontSize: '13px',
+                        opacity: 0.8,
+                        fontStyle: 'italic',
+                        padding: '10px',
+                        background: 'rgba(0,0,0,0.15)',
+                        borderRadius: '12px',
+                        marginBottom: '8px',
+                      },
+                      children: ['🎯 Цель: ', g.goal],
+                    },
+                    void 0,
+                    !0,
+                    {
+                      fileName:
+                        'D:/Development/Путеводитель web_new/src/components/InspectorDashboard.tsx',
+                      lineNumber: 132,
+                      columnNumber: 11,
+                    },
+                    globalThis
+                  ),
+                  g.tasks.map((p) => {
+                    const E = P.includes(p.id);
+                    return e.jsxDEV(
+                      'div',
+                      {
+                        onClick: () => m(j, p.id, !E),
+                        style: {
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '12px',
+                          padding: '12px 16px',
+                          background: E ? 'rgba(56, 239, 125, 0.15)' : 'rgba(255,255,255,0.03)',
+                          borderRadius: '14px',
+                          border: `1px solid ${E ? 'rgba(56, 239, 125, 0.4)' : 'rgba(255,255,255,0.08)'}`,
+                          cursor: 'pointer',
+                          transition: 'all 0.2s ease',
+                        },
+                        children: [
+                          e.jsxDEV(
+                            'div',
+                            {
+                              style: {
+                                width: '20px',
+                                height: '20px',
+                                borderRadius: '6px',
+                                border: `2px solid ${E ? '#38ef7d' : 'rgba(255,255,255,0.3)'}`,
+                                background: E ? '#38ef7d' : 'transparent',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: '12px',
+                              },
+                              children: E && '✓',
+                            },
+                            void 0,
+                            !1,
+                            {
+                              fileName:
+                                'D:/Development/Путеводитель web_new/src/components/InspectorDashboard.tsx',
+                              lineNumber: 154,
+                              columnNumber: 17,
+                            },
+                            globalThis
+                          ),
+                          e.jsxDEV(
+                            'span',
+                            {
+                              style: {
+                                fontSize: '13px',
+                                opacity: E ? 0.6 : 1,
+                                textDecoration: E ? 'line-through' : 'none',
+                                flex: 1,
+                              },
+                              children: p.text,
+                            },
+                            void 0,
+                            !1,
+                            {
+                              fileName:
+                                'D:/Development/Путеводитель web_new/src/components/InspectorDashboard.tsx',
+                              lineNumber: 167,
+                              columnNumber: 17,
+                            },
+                            globalThis
+                          ),
+                          p.isChallenge &&
+                            e.jsxDEV(
+                              'span',
+                              { title: 'Челлендж', style: { fontSize: '14px' }, children: '🔥' },
+                              void 0,
+                              !1,
+                              {
+                                fileName:
+                                  'D:/Development/Путеводитель web_new/src/components/InspectorDashboard.tsx',
+                                lineNumber: 175,
+                                columnNumber: 38,
+                              },
+                              globalThis
+                            ),
+                          p.isCoop &&
+                            e.jsxDEV(
+                              'span',
+                              { title: 'Кооператив', style: { fontSize: '14px' }, children: '👥' },
+                              void 0,
+                              !1,
+                              {
+                                fileName:
+                                  'D:/Development/Путеводитель web_new/src/components/InspectorDashboard.tsx',
+                                lineNumber: 176,
+                                columnNumber: 33,
+                              },
+                              globalThis
+                            ),
+                        ],
+                      },
+                      p.id,
+                      !0,
+                      {
+                        fileName:
+                          'D:/Development/Путеводитель web_new/src/components/InspectorDashboard.tsx',
+                        lineNumber: 139,
+                        columnNumber: 15,
+                      },
+                      globalThis
+                    );
+                  }),
+                  x &&
+                    e.jsxDEV(
+                      'div',
+                      {
+                        className: 'fade-in',
+                        style: {
+                          marginTop: '12px',
+                          padding: '16px',
+                          background: 'rgba(56, 239, 125, 0.2)',
+                          borderRadius: '16px',
+                          textAlign: 'center',
+                          border: '1px solid #38ef7d',
+                        },
+                        children: [
+                          e.jsxDEV(
+                            'div',
+                            { style: { fontSize: '24px', marginBottom: '8px' }, children: '🏆' },
+                            void 0,
+                            !1,
+                            {
+                              fileName:
+                                'D:/Development/Путеводитель web_new/src/components/InspectorDashboard.tsx',
+                              lineNumber: 190,
+                              columnNumber: 15,
+                            },
+                            globalThis
+                          ),
+                          e.jsxDEV(
+                            'div',
+                            {
+                              style: {
+                                fontWeight: 800,
+                                fontSize: '14px',
+                                color: '#38ef7d',
+                                textTransform: 'uppercase',
+                              },
+                              children: 'Миссия выполнена!',
+                            },
+                            void 0,
+                            !1,
+                            {
+                              fileName:
+                                'D:/Development/Путеводитель web_new/src/components/InspectorDashboard.tsx',
+                              lineNumber: 191,
+                              columnNumber: 15,
+                            },
+                            globalThis
+                          ),
+                          e.jsxDEV(
+                            'div',
+                            {
+                              style: { fontSize: '12px', opacity: 0.9, marginTop: '4px' },
+                              children: [
+                                'Сегодня ты — ',
+                                e.jsxDEV(
+                                  'strong',
+                                  { children: g.resultTitle },
+                                  void 0,
+                                  !1,
+                                  {
+                                    fileName:
+                                      'D:/Development/Путеводитель web_new/src/components/InspectorDashboard.tsx',
+                                    lineNumber: 195,
+                                    columnNumber: 30,
+                                  },
+                                  globalThis
+                                ),
+                              ],
+                            },
+                            void 0,
+                            !0,
+                            {
+                              fileName:
+                                'D:/Development/Путеводитель web_new/src/components/InspectorDashboard.tsx',
+                              lineNumber: 194,
+                              columnNumber: 15,
+                            },
+                            globalThis
+                          ),
+                          e.jsxDEV(
+                            'button',
+                            {
+                              style: {
+                                marginTop: '12px',
+                                padding: '8px 16px',
+                                background: h ? 'rgba(255,255,255,0.1)' : '#38ef7d',
+                                color: h ? 'rgba(255,255,255,0.3)' : '#0b1b16',
+                                border: 'none',
+                                borderRadius: '100px',
+                                fontSize: '12px',
+                                fontWeight: 700,
+                                cursor: h ? 'not-allowed' : 'pointer',
+                              },
+                              onClick: (p) => {
+                                p.stopPropagation(), _();
+                              },
+                              disabled: h,
+                              children: h ? 'ГЕНЕРИРУЕМ...' : 'ОТПРАВИТЬ РАПОРТ 9:16',
+                            },
+                            void 0,
+                            !1,
+                            {
+                              fileName:
+                                'D:/Development/Путеводитель web_new/src/components/InspectorDashboard.tsx',
+                              lineNumber: 197,
+                              columnNumber: 15,
+                            },
+                            globalThis
+                          ),
+                        ],
+                      },
+                      void 0,
+                      !0,
+                      {
+                        fileName:
+                          'D:/Development/Путеводитель web_new/src/components/InspectorDashboard.tsx',
+                        lineNumber: 182,
+                        columnNumber: 13,
+                      },
+                      globalThis
+                    ),
+                ],
+              },
+              void 0,
+              !0,
+              {
+                fileName:
+                  'D:/Development/Путеводитель web_new/src/components/InspectorDashboard.tsx',
+                lineNumber: 131,
+                columnNumber: 9,
+              },
+              globalThis
+            ),
+        ],
+      },
+      void 0,
+      !0,
+      {
+        fileName: 'D:/Development/Путеводитель web_new/src/components/InspectorDashboard.tsx',
+        lineNumber: 48,
+        columnNumber: 5,
+      },
+      globalThis
+    );
+  },
+  Hi = () => {
+    const {
+        myTeam: t,
+        isLoading: m,
+        createTeam: f,
+        joinTeam: w,
+        leaveTeam: u,
+        deleteTeam: h,
+      } = pi(),
+      { userData: V } = le(),
+      [D, j] = n.useState(!1),
+      [g, P] = n.useState(!1),
+      [d, x] = n.useState({
+        name: '',
+        motto: '',
+        logo: '🚀',
+        theme: 'Творчество',
+        firstProject: '',
+        goal: '',
+      }),
+      [_, p] = n.useState(''),
+      E = async () => {
+        if (!d.name.trim() || !d.firstProject.trim())
+          return alert('Для запуска Движка нужно имя и описание первого проекта!');
+        await f({ name: d.name, motto: d.motto, logo: d.logo, leaderId: V.profile.id, goals: [] }),
+          j(!1);
+      },
+      M = async () => {
+        if (!_.trim()) return;
+        (await w(_.toUpperCase())) ? (P(!1), p('')) : alert('Код не найден. Проверь символы!');
+      };
+    return m
+      ? e.jsxDEV(
+          'div',
+          {
+            style: { padding: '20px', textAlign: 'center', opacity: 0.5 },
+            children: 'Синхронизация Движка...',
+          },
+          void 0,
+          !1,
+          {
+            fileName: 'D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx',
+            lineNumber: 48,
+            columnNumber: 25,
+          },
+          globalThis
+        )
+      : e.jsxDEV(
+          'div',
+          {
+            className: 'team-dashboard',
+            style: {
+              background:
+                'linear-gradient(135deg, rgba(139, 0, 255, 0.1) 0%, rgba(77, 166, 255, 0.15) 100%)',
+              borderRadius: '24px',
+              padding: '24px',
+              border: '1px solid rgba(139, 0, 255, 0.3)',
+              marginBottom: '24px',
+              position: 'relative',
+              overflow: 'hidden',
+            },
+            children: t
+              ? e.jsxDEV(
+                  'div',
+                  {
+                    className: 'team-active-state',
+                    children: [
+                      e.jsxDEV(
+                        'div',
+                        {
+                          style: {
+                            display: 'flex',
+                            gap: '20px',
+                            alignItems: 'center',
+                            marginBottom: '20px',
+                          },
+                          children: [
+                            e.jsxDEV(
+                              'div',
+                              {
+                                style: {
+                                  width: '64px',
+                                  height: '64px',
+                                  background: 'rgba(139, 0, 255, 0.2)',
+                                  borderRadius: '16px',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  fontSize: '32px',
+                                  border: '2px solid #8b00ff',
+                                },
+                                children: t.logo,
+                              },
+                              void 0,
+                              !1,
+                              {
+                                fileName:
+                                  'D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx',
+                                lineNumber: 152,
+                                columnNumber: 13,
+                              },
+                              globalThis
+                            ),
+                            e.jsxDEV(
+                              'div',
+                              {
+                                style: { flex: 1 },
+                                children: [
+                                  e.jsxDEV(
+                                    'div',
+                                    {
+                                      style: {
+                                        fontSize: '11px',
+                                        fontWeight: 800,
+                                        color: '#8b00ff',
+                                        textTransform: 'uppercase',
+                                        letterSpacing: '0.1em',
+                                      },
+                                      children: ['Код Движка: ', t.id],
+                                    },
+                                    void 0,
+                                    !0,
+                                    {
+                                      fileName:
+                                        'D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx',
+                                      lineNumber: 156,
+                                      columnNumber: 15,
+                                    },
+                                    globalThis
+                                  ),
+                                  e.jsxDEV(
+                                    'h3',
+                                    {
+                                      style: { margin: '2px 0', fontSize: '22px' },
+                                      children: t.name,
+                                    },
+                                    void 0,
+                                    !1,
+                                    {
+                                      fileName:
+                                        'D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx',
+                                      lineNumber: 157,
+                                      columnNumber: 15,
+                                    },
+                                    globalThis
+                                  ),
+                                  e.jsxDEV(
+                                    'p',
+                                    {
+                                      style: {
+                                        margin: 0,
+                                        fontSize: '13px',
+                                        opacity: 0.7,
+                                        fontStyle: 'italic',
+                                      },
+                                      children: ['«', t.motto, '»'],
+                                    },
+                                    void 0,
+                                    !0,
+                                    {
+                                      fileName:
+                                        'D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx',
+                                      lineNumber: 158,
+                                      columnNumber: 15,
+                                    },
+                                    globalThis
+                                  ),
+                                ],
+                              },
+                              void 0,
+                              !0,
+                              {
+                                fileName:
+                                  'D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx',
+                                lineNumber: 155,
+                                columnNumber: 13,
+                              },
+                              globalThis
+                            ),
+                            e.jsxDEV(
+                              'div',
+                              {
+                                style: { display: 'flex', flexDirection: 'column', gap: '6px' },
+                                children: [
+                                  e.jsxDEV(
+                                    'button',
+                                    {
+                                      onClick: u,
+                                      style: {
+                                        padding: '6px 10px',
+                                        background: 'rgba(255,77,77,0.1)',
+                                        color: '#ff4d4d',
+                                        border: '1px solid rgba(255,77,77,0.2)',
+                                        borderRadius: '8px',
+                                        fontSize: '10px',
+                                        fontWeight: 700,
+                                        cursor: 'pointer',
+                                      },
+                                      children: 'ВЫЙТИ',
+                                    },
+                                    void 0,
+                                    !1,
+                                    {
+                                      fileName:
+                                        'D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx',
+                                      lineNumber: 161,
+                                      columnNumber: 16,
+                                    },
+                                    globalThis
+                                  ),
+                                  t.leaderId === V.profile.id &&
+                                    e.jsxDEV(
+                                      'button',
+                                      {
+                                        onClick: h,
+                                        style: {
+                                          padding: '6px 10px',
+                                          background: 'rgba(255,77,77,0.2)',
+                                          color: '#ff4d4d',
+                                          border: '1px solid rgba(255,77,77,0.4)',
+                                          borderRadius: '8px',
+                                          fontSize: '10px',
+                                          fontWeight: 700,
+                                          cursor: 'pointer',
+                                        },
+                                        children: 'УДАЛИТЬ',
+                                      },
+                                      void 0,
+                                      !1,
+                                      {
+                                        fileName:
+                                          'D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx',
+                                        lineNumber: 165,
+                                        columnNumber: 17,
+                                      },
+                                      globalThis
+                                    ),
+                                ],
+                              },
+                              void 0,
+                              !0,
+                              {
+                                fileName:
+                                  'D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx',
+                                lineNumber: 160,
+                                columnNumber: 13,
+                              },
+                              globalThis
+                            ),
+                          ],
+                        },
+                        void 0,
+                        !0,
+                        {
+                          fileName:
+                            'D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx',
+                          lineNumber: 151,
+                          columnNumber: 11,
+                        },
+                        globalThis
+                      ),
+                      e.jsxDEV(
+                        'div',
+                        {
+                          style: {
+                            borderTop: '1px solid rgba(255,255,255,0.1)',
+                            paddingTop: '16px',
+                          },
+                          children: [
+                            e.jsxDEV(
+                              'div',
+                              {
+                                style: {
+                                  fontSize: '12px',
+                                  fontWeight: 700,
+                                  marginBottom: '12px',
+                                  opacity: 0.6,
+                                },
+                                children: ['ЭКИПАЖ (', t.members.length, '):'],
+                              },
+                              void 0,
+                              !0,
+                              {
+                                fileName:
+                                  'D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx',
+                                lineNumber: 173,
+                                columnNumber: 13,
+                              },
+                              globalThis
+                            ),
+                            e.jsxDEV(
+                              'div',
+                              {
+                                style: { display: 'flex', gap: '8px', flexWrap: 'wrap' },
+                                children: [
+                                  t.members.map((c) =>
+                                    e.jsxDEV(
+                                      'div',
+                                      {
+                                        title: `${c.nickname} (${c.rank})`,
+                                        style: {
+                                          width: '40px',
+                                          height: '40px',
+                                          borderRadius: '50%',
+                                          background: 'rgba(255,255,255,0.1)',
+                                          border: `2px solid ${c.id === t.leaderId ? '#ffd700' : 'rgba(255,255,255,0.2)'}`,
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          justifyContent: 'center',
+                                          fontSize: '18px',
+                                          position: 'relative',
+                                        },
+                                        children: [
+                                          c.avatar || '🧑‍🚀',
+                                          c.id === t.leaderId &&
+                                            e.jsxDEV(
+                                              'span',
+                                              {
+                                                style: {
+                                                  position: 'absolute',
+                                                  top: '-8px',
+                                                  right: '-4px',
+                                                  fontSize: '12px',
+                                                },
+                                                children: '👑',
+                                              },
+                                              void 0,
+                                              !1,
+                                              {
+                                                fileName:
+                                                  'D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx',
+                                                lineNumber: 189,
+                                                columnNumber: 53,
+                                              },
+                                              globalThis
+                                            ),
+                                        ],
+                                      },
+                                      c.id,
+                                      !0,
+                                      {
+                                        fileName:
+                                          'D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx',
+                                        lineNumber: 176,
+                                        columnNumber: 17,
+                                      },
+                                      globalThis
+                                    )
+                                  ),
+                                  e.jsxDEV(
+                                    'button',
+                                    {
+                                      onClick: () => {
+                                        navigator.clipboard.writeText(t.id),
+                                          alert('Код скопирован! Отправь его друзьям.');
+                                      },
+                                      style: {
+                                        width: '40px',
+                                        height: '40px',
+                                        borderRadius: '50%',
+                                        background: 'rgba(255,255,255,0.05)',
+                                        border: '2px dashed rgba(255,255,255,0.3)',
+                                        color: 'white',
+                                        fontSize: '20px',
+                                        cursor: 'pointer',
+                                      },
+                                      children: '+',
+                                    },
+                                    void 0,
+                                    !1,
+                                    {
+                                      fileName:
+                                        'D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx',
+                                      lineNumber: 192,
+                                      columnNumber: 15,
+                                    },
+                                    globalThis
+                                  ),
+                                ],
+                              },
+                              void 0,
+                              !0,
+                              {
+                                fileName:
+                                  'D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx',
+                                lineNumber: 174,
+                                columnNumber: 13,
+                              },
+                              globalThis
+                            ),
+                          ],
+                        },
+                        void 0,
+                        !0,
+                        {
+                          fileName:
+                            'D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx',
+                          lineNumber: 172,
+                          columnNumber: 11,
+                        },
+                        globalThis
+                      ),
+                      e.jsxDEV(
+                        'div',
+                        {
+                          style: {
+                            borderTop: '1px solid rgba(255,255,255,0.1)',
+                            paddingTop: '16px',
+                            marginTop: '16px',
+                          },
+                          children: [
+                            e.jsxDEV(
+                              'div',
+                              {
+                                style: {
+                                  fontSize: '12px',
+                                  fontWeight: 700,
+                                  marginBottom: '12px',
+                                  opacity: 0.6,
+                                },
+                                children: 'ПУТЬ ДВИЖКА (КАТЕГОРИЯ 8):',
+                              },
+                              void 0,
+                              !1,
+                              {
+                                fileName:
+                                  'D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx',
+                                lineNumber: 209,
+                                columnNumber: 13,
+                              },
+                              globalThis
+                            ),
+                            e.jsxDEV(
+                              'div',
+                              {
+                                style: {
+                                  display: 'flex',
+                                  gap: '12px',
+                                  overflowX: 'auto',
+                                  paddingBottom: '8px',
+                                  scrollbarWidth: 'none',
+                                },
+                                children: [
+                                  { id: '8.1', title: 'Реальный Движок', emoji: '⚙️' },
+                                  { id: '8.2', title: 'Движок Прогресса', emoji: '📈' },
+                                  { id: '8.3', title: 'Командный Дух', emoji: '🔥' },
+                                  { id: '8.4', title: 'Масштабирование', emoji: '🚀' },
+                                ].map((c) => {
+                                  const J = t.achievements.includes(c.id);
+                                  return e.jsxDEV(
+                                    'div',
+                                    {
+                                      style: {
+                                        flexShrink: 0,
+                                        width: '80px',
+                                        textAlign: 'center',
+                                        opacity: J ? 1 : 0.4,
+                                        filter: J ? 'none' : 'grayscale(0.5)',
+                                        transition: 'all 0.3s ease',
+                                      },
+                                      children: [
+                                        e.jsxDEV(
+                                          'div',
+                                          {
+                                            style: {
+                                              width: '60px',
+                                              height: '60px',
+                                              margin: '0 auto 6px',
+                                            },
+                                            children: e.jsxDEV(
+                                              ie,
+                                              {
+                                                badgeId: c.id,
+                                                badgeTitle: c.title,
+                                                categoryId: '8',
+                                                emoji: c.emoji,
+                                                size: 'responsive',
+                                              },
+                                              void 0,
+                                              !1,
+                                              {
+                                                fileName:
+                                                  'D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx',
+                                                lineNumber: 228,
+                                                columnNumber: 23,
+                                              },
+                                              globalThis
+                                            ),
+                                          },
+                                          void 0,
+                                          !1,
+                                          {
+                                            fileName:
+                                              'D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx',
+                                            lineNumber: 227,
+                                            columnNumber: 21,
+                                          },
+                                          globalThis
+                                        ),
+                                        e.jsxDEV(
+                                          'div',
+                                          {
+                                            style: {
+                                              fontSize: '9px',
+                                              fontWeight: 700,
+                                              textTransform: 'uppercase',
+                                              lineHeight: '1.1',
+                                            },
+                                            children: c.title,
+                                          },
+                                          void 0,
+                                          !1,
+                                          {
+                                            fileName:
+                                              'D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx',
+                                            lineNumber: 236,
+                                            columnNumber: 21,
+                                          },
+                                          globalThis
+                                        ),
+                                      ],
+                                    },
+                                    c.id,
+                                    !0,
+                                    {
+                                      fileName:
+                                        'D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx',
+                                      lineNumber: 219,
+                                      columnNumber: 19,
+                                    },
+                                    globalThis
+                                  );
+                                }),
+                              },
+                              void 0,
+                              !1,
+                              {
+                                fileName:
+                                  'D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx',
+                                lineNumber: 210,
+                                columnNumber: 13,
+                              },
+                              globalThis
+                            ),
+                          ],
+                        },
+                        void 0,
+                        !0,
+                        {
+                          fileName:
+                            'D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx',
+                          lineNumber: 208,
+                          columnNumber: 11,
+                        },
+                        globalThis
+                      ),
+                    ],
+                  },
+                  void 0,
+                  !0,
+                  {
+                    fileName:
+                      'D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx',
+                    lineNumber: 150,
+                    columnNumber: 9,
+                  },
+                  globalThis
+                )
+              : e.jsxDEV(
+                  'div',
+                  {
+                    className: 'team-empty-state',
+                    children: [
+                      e.jsxDEV(
+                        'div',
+                        {
+                          style: {
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            marginBottom: '16px',
+                          },
+                          children: [
+                            e.jsxDEV(
+                              'h3',
+                              {
+                                style: { margin: 0, fontSize: '18px' },
+                                children: '🚀 Твой Движок',
+                              },
+                              void 0,
+                              !1,
+                              {
+                                fileName:
+                                  'D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx',
+                                lineNumber: 63,
+                                columnNumber: 13,
+                              },
+                              globalThis
+                            ),
+                            e.jsxDEV(
+                              'div',
+                              {
+                                style: { display: 'flex', gap: '8px' },
+                                children: [
+                                  e.jsxDEV(
+                                    'button',
+                                    {
+                                      onClick: () => {
+                                        j(!D), P(!1);
+                                      },
+                                      style: {
+                                        padding: '6px 12px',
+                                        background: '#8b00ff',
+                                        color: 'white',
+                                        border: 'none',
+                                        borderRadius: '8px',
+                                        fontSize: '12px',
+                                        fontWeight: 700,
+                                        cursor: 'pointer',
+                                      },
+                                      children: 'СОЗДАТЬ',
+                                    },
+                                    void 0,
+                                    !1,
+                                    {
+                                      fileName:
+                                        'D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx',
+                                      lineNumber: 65,
+                                      columnNumber: 15,
+                                    },
+                                    globalThis
+                                  ),
+                                  e.jsxDEV(
+                                    'button',
+                                    {
+                                      onClick: () => {
+                                        P(!g), j(!1);
+                                      },
+                                      style: {
+                                        padding: '6px 12px',
+                                        background: 'rgba(255,255,255,0.1)',
+                                        color: 'white',
+                                        border: '1px solid rgba(255,255,255,0.2)',
+                                        borderRadius: '8px',
+                                        fontSize: '12px',
+                                        fontWeight: 700,
+                                        cursor: 'pointer',
+                                      },
+                                      children: 'ВСТУПИТЬ',
+                                    },
+                                    void 0,
+                                    !1,
+                                    {
+                                      fileName:
+                                        'D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx',
+                                      lineNumber: 71,
+                                      columnNumber: 15,
+                                    },
+                                    globalThis
+                                  ),
+                                ],
+                              },
+                              void 0,
+                              !0,
+                              {
+                                fileName:
+                                  'D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx',
+                                lineNumber: 64,
+                                columnNumber: 13,
+                              },
+                              globalThis
+                            ),
+                          ],
+                        },
+                        void 0,
+                        !0,
+                        {
+                          fileName:
+                            'D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx',
+                          lineNumber: 62,
+                          columnNumber: 11,
+                        },
+                        globalThis
+                      ),
+                      D &&
+                        e.jsxDEV(
+                          'div',
+                          {
+                            className: 'fade-in',
+                            style: {
+                              display: 'grid',
+                              gap: '16px',
+                              marginTop: '20px',
+                              padding: '20px',
+                              background: 'rgba(0,0,0,0.25)',
+                              borderRadius: '20px',
+                              border: '1px solid rgba(139, 0, 255, 0.2)',
+                            },
+                            children: [
+                              e.jsxDEV(
+                                'div',
+                                {
+                                  style: {
+                                    display: 'grid',
+                                    gridTemplateColumns: '1fr auto',
+                                    gap: '12px',
+                                  },
+                                  children: [
+                                    e.jsxDEV(
+                                      'input',
+                                      {
+                                        placeholder: 'Название Движка',
+                                        value: d.name,
+                                        onChange: (c) => x({ ...d, name: c.target.value }),
+                                        style: {
+                                          padding: '12px',
+                                          borderRadius: '12px',
+                                          background: 'rgba(255,255,255,0.05)',
+                                          border: '1px solid rgba(255,255,255,0.1)',
+                                          color: 'white',
+                                        },
+                                      },
+                                      void 0,
+                                      !1,
+                                      {
+                                        fileName:
+                                          'D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx',
+                                        lineNumber: 83,
+                                        columnNumber: 17,
+                                      },
+                                      globalThis
+                                    ),
+                                    e.jsxDEV(
+                                      'input',
+                                      {
+                                        placeholder: '🚀',
+                                        value: d.logo,
+                                        onChange: (c) => x({ ...d, logo: c.target.value }),
+                                        style: {
+                                          width: '50px',
+                                          textAlign: 'center',
+                                          padding: '12px',
+                                          borderRadius: '12px',
+                                          background: 'rgba(255,255,255,0.05)',
+                                          border: '1px solid rgba(255,255,255,0.1)',
+                                          color: 'white',
+                                        },
+                                      },
+                                      void 0,
+                                      !1,
+                                      {
+                                        fileName:
+                                          'D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx',
+                                        lineNumber: 89,
+                                        columnNumber: 17,
+                                      },
+                                      globalThis
+                                    ),
+                                  ],
+                                },
+                                void 0,
+                                !0,
+                                {
+                                  fileName:
+                                    'D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx',
+                                  lineNumber: 82,
+                                  columnNumber: 15,
+                                },
+                                globalThis
+                              ),
+                              e.jsxDEV(
+                                'select',
+                                {
+                                  value: d.theme,
+                                  onChange: (c) => x({ ...d, theme: c.target.value }),
+                                  style: {
+                                    padding: '12px',
+                                    borderRadius: '12px',
+                                    background: '#1a0b2e',
+                                    border: '1px solid rgba(255,255,255,0.1)',
+                                    color: 'white',
+                                  },
+                                  children: [
+                                    e.jsxDEV(
+                                      'option',
+                                      { value: 'Творчество', children: '🎨 Творчество и Арт' },
+                                      void 0,
+                                      !1,
+                                      {
+                                        fileName:
+                                          'D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx',
+                                        lineNumber: 102,
+                                        columnNumber: 17,
+                                      },
+                                      globalThis
+                                    ),
+                                    e.jsxDEV(
+                                      'option',
+                                      { value: 'Спорт', children: '🏆 Спорт и ЗОЖ' },
+                                      void 0,
+                                      !1,
+                                      {
+                                        fileName:
+                                          'D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx',
+                                        lineNumber: 103,
+                                        columnNumber: 17,
+                                      },
+                                      globalThis
+                                    ),
+                                    e.jsxDEV(
+                                      'option',
+                                      { value: 'Медиа', children: '📱 Медиа и Контент' },
+                                      void 0,
+                                      !1,
+                                      {
+                                        fileName:
+                                          'D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx',
+                                        lineNumber: 104,
+                                        columnNumber: 17,
+                                      },
+                                      globalThis
+                                    ),
+                                    e.jsxDEV(
+                                      'option',
+                                      { value: 'Технологии', children: '🤖 Технологии и ИИ' },
+                                      void 0,
+                                      !1,
+                                      {
+                                        fileName:
+                                          'D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx',
+                                        lineNumber: 105,
+                                        columnNumber: 17,
+                                      },
+                                      globalThis
+                                    ),
+                                    e.jsxDEV(
+                                      'option',
+                                      { value: 'Экология', children: '🌿 Экология и Природа' },
+                                      void 0,
+                                      !1,
+                                      {
+                                        fileName:
+                                          'D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx',
+                                        lineNumber: 106,
+                                        columnNumber: 17,
+                                      },
+                                      globalThis
+                                    ),
+                                    e.jsxDEV(
+                                      'option',
+                                      { value: 'Организация', children: '📢 Организация событий' },
+                                      void 0,
+                                      !1,
+                                      {
+                                        fileName:
+                                          'D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx',
+                                        lineNumber: 107,
+                                        columnNumber: 17,
+                                      },
+                                      globalThis
+                                    ),
+                                  ],
+                                },
+                                void 0,
+                                !0,
+                                {
+                                  fileName:
+                                    'D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx',
+                                  lineNumber: 97,
+                                  columnNumber: 15,
+                                },
+                                globalThis
+                              ),
+                              e.jsxDEV(
+                                'textarea',
+                                {
+                                  placeholder: 'Первый проект (что сделаете в лагере?)',
+                                  value: d.firstProject,
+                                  onChange: (c) => x({ ...d, firstProject: c.target.value }),
+                                  rows: 2,
+                                  style: {
+                                    padding: '12px',
+                                    borderRadius: '12px',
+                                    background: 'rgba(255,255,255,0.05)',
+                                    border: '1px solid rgba(255,255,255,0.1)',
+                                    color: 'white',
+                                    resize: 'none',
+                                  },
+                                },
+                                void 0,
+                                !1,
+                                {
+                                  fileName:
+                                    'D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx',
+                                  lineNumber: 110,
+                                  columnNumber: 15,
+                                },
+                                globalThis
+                              ),
+                              e.jsxDEV(
+                                'input',
+                                {
+                                  placeholder: 'Главная цель Движка',
+                                  value: d.goal,
+                                  onChange: (c) => x({ ...d, goal: c.target.value }),
+                                  style: {
+                                    padding: '12px',
+                                    borderRadius: '12px',
+                                    background: 'rgba(255,255,255,0.05)',
+                                    border: '1px solid rgba(255,255,255,0.1)',
+                                    color: 'white',
+                                  },
+                                },
+                                void 0,
+                                !1,
+                                {
+                                  fileName:
+                                    'D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx',
+                                  lineNumber: 118,
+                                  columnNumber: 15,
+                                },
+                                globalThis
+                              ),
+                              e.jsxDEV(
+                                'div',
+                                {
+                                  style: {
+                                    padding: '12px',
+                                    background: 'rgba(139, 0, 255, 0.1)',
+                                    borderRadius: '12px',
+                                    fontSize: '11px',
+                                    lineHeight: '1.4',
+                                    fontStyle: 'italic',
+                                    borderLeft: '3px solid #8b00ff',
+                                  },
+                                  children: [
+                                    e.jsxDEV(
+                                      'strong',
+                                      { children: '🤖 Совет Валюши:' },
+                                      void 0,
+                                      !1,
+                                      {
+                                        fileName:
+                                          'D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx',
+                                        lineNumber: 126,
+                                        columnNumber: 17,
+                                      },
+                                      globalThis
+                                    ),
+                                    ' Начни с малого — например, организуй мастер-класс для своего отряда. Хороший Движок растет от дела к делу!',
+                                  ],
+                                },
+                                void 0,
+                                !0,
+                                {
+                                  fileName:
+                                    'D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx',
+                                  lineNumber: 125,
+                                  columnNumber: 15,
+                                },
+                                globalThis
+                              ),
+                              e.jsxDEV(
+                                'button',
+                                {
+                                  onClick: E,
+                                  style: {
+                                    padding: '16px',
+                                    background: 'linear-gradient(90deg, #8b00ff, #4dacff)',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '14px',
+                                    fontWeight: 800,
+                                    cursor: 'pointer',
+                                    boxShadow: '0 4px 15px rgba(139, 0, 255, 0.3)',
+                                  },
+                                  children: 'ЗАПУСТИТЬ ДВИЖОК',
+                                },
+                                void 0,
+                                !1,
+                                {
+                                  fileName:
+                                    'D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx',
+                                  lineNumber: 129,
+                                  columnNumber: 15,
+                                },
+                                globalThis
+                              ),
+                            ],
+                          },
+                          void 0,
+                          !0,
+                          {
+                            fileName:
+                              'D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx',
+                            lineNumber: 81,
+                            columnNumber: 13,
+                          },
+                          globalThis
+                        ),
+                      g &&
+                        e.jsxDEV(
+                          'div',
+                          {
+                            className: 'fade-in',
+                            style: { display: 'flex', gap: '10px', marginTop: '20px' },
+                            children: [
+                              e.jsxDEV(
+                                'input',
+                                {
+                                  placeholder: 'Код Движка (напр: T-XJ29)',
+                                  value: _,
+                                  onChange: (c) => p(c.target.value),
+                                  style: {
+                                    flex: 1,
+                                    padding: '10px',
+                                    borderRadius: '10px',
+                                    background: 'rgba(255,255,255,0.05)',
+                                    border: '1px solid rgba(255,255,255,0.1)',
+                                    color: 'white',
+                                  },
+                                },
+                                void 0,
+                                !1,
+                                {
+                                  fileName:
+                                    'D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx',
+                                  lineNumber: 137,
+                                  columnNumber: 15,
+                                },
+                                globalThis
+                              ),
+                              e.jsxDEV(
+                                'button',
+                                {
+                                  onClick: M,
+                                  style: {
+                                    padding: '0 20px',
+                                    background: '#4dacff',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '10px',
+                                    fontWeight: 800,
+                                    cursor: 'pointer',
+                                  },
+                                  children: 'ВСТУПИТЬ',
+                                },
+                                void 0,
+                                !1,
+                                {
+                                  fileName:
+                                    'D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx',
+                                  lineNumber: 143,
+                                  columnNumber: 15,
+                                },
+                                globalThis
+                              ),
+                            ],
+                          },
+                          void 0,
+                          !0,
+                          {
+                            fileName:
+                              'D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx',
+                            lineNumber: 136,
+                            columnNumber: 13,
+                          },
+                          globalThis
+                        ),
+                    ],
+                  },
+                  void 0,
+                  !0,
+                  {
+                    fileName:
+                      'D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx',
+                    lineNumber: 61,
+                    columnNumber: 9,
+                  },
+                  globalThis
+                ),
+          },
+          void 0,
+          !1,
+          {
+            fileName: 'D:/Development/Путеводитель web_new/src/components/TeamDashboard.tsx',
+            lineNumber: 51,
+            columnNumber: 5,
+          },
+          globalThis
+        );
+  },
+  Oi = [
+    {
+      day: 1,
+      title: 'Теория и Основы',
+      emoji: '📘',
+      deeds: [
+        {
+          id: 'b1_lecture',
+          text: 'Прослушать лекцию по лагерной педагогике',
+          description: 'Основы общения с детьми и принципы Бро-Движения.',
+        },
+        {
+          id: 'b1_cases',
+          text: 'Участие в обсуждении вожатских кейсов',
+          description: 'Разбор реальных ситуаций из жизни отряда.',
+        },
+        {
+          id: 'b1_chants',
+          text: 'Знать и громко кричать отрядные кричалки',
+          description: 'Голос отряда — это его энергия!',
+        },
+      ],
+    },
+    {
+      day: 2,
+      title: 'Культура и Дух',
+      emoji: '🎭',
+      deeds: [
+        {
+          id: 'b2_dances',
+          text: 'Знать и танцевать отрядные танцы',
+          description: 'Движение в ритме Бро-Движения.',
+        },
+        {
+          id: 'b2_traditions',
+          text: 'Знать отрядные традиции',
+          description: 'История и ритуалы, которые нас объединяют.',
+        },
+        {
+          id: 'b2_meme',
+          text: 'Знать и понимать отрядный мем',
+          description: 'Юмор — важная часть нашей идентичности.',
+        },
+      ],
+    },
+    {
+      day: 3,
+      title: 'Действие и Артефакт',
+      emoji: '🔥',
+      deeds: [
+        {
+          id: 'b3_activity',
+          text: 'Провести собственное отрядное дело',
+          description: 'Практика лидерства и организации.',
+        },
+        {
+          id: 'b3_artifact',
+          text: 'Оформить физический Бропаспорт',
+          description: 'Создать красивый артефакт с твердой обложкой.',
+        },
+        {
+          id: 'b3_approval',
+          text: 'Получить подписи вожатых и админа',
+          description: 'Финальный апрув твоего пути в Бро-Движение.',
+        },
+      ],
+    },
+  ],
+  Yi = ({ onComplete: t }) => {
+    const { selectWingMentor: m } = le(),
+      [f, w] = n.useState('intro'),
+      [u, h] = n.useState('');
+    return e.jsxDEV(
+      'div',
+      {
+        style: {
+          position: 'fixed',
+          inset: 0,
+          background: '#0b061a',
+          zIndex: 2e4,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '40px 24px',
+          textAlign: 'center',
+          overflowY: 'auto',
+        },
+        children: [
+          e.jsxDEV(
+            'div',
+            { className: 'bonfire-glow' },
+            void 0,
+            !1,
+            {
+              fileName: 'D:/Development/Путеводитель web_new/src/components/BroBonfire.tsx',
+              lineNumber: 15,
+              columnNumber: 7,
+            },
+            globalThis
+          ),
+          f === 'intro' &&
+            e.jsxDEV(
+              'div',
+              {
+                className: 'fade-in',
+                children: [
+                  e.jsxDEV(
+                    'div',
+                    { style: { fontSize: '80px', marginBottom: '20px' }, children: '🔥' },
+                    void 0,
+                    !1,
+                    {
+                      fileName: 'D:/Development/Путеводитель web_new/src/components/BroBonfire.tsx',
+                      lineNumber: 19,
+                      columnNumber: 11,
+                    },
+                    globalThis
+                  ),
+                  e.jsxDEV(
+                    'h2',
+                    {
+                      style: { fontSize: '32px', color: '#ffd700', marginBottom: '16px' },
+                      children: 'БРО-КОСТЕР',
+                    },
+                    void 0,
+                    !1,
+                    {
+                      fileName: 'D:/Development/Путеводитель web_new/src/components/BroBonfire.tsx',
+                      lineNumber: 20,
+                      columnNumber: 11,
+                    },
+                    globalThis
+                  ),
+                  e.jsxDEV(
+                    'p',
+                    {
+                      style: {
+                        fontSize: '18px',
+                        opacity: 0.8,
+                        maxWidth: '500px',
+                        lineHeight: '1.6',
+                      },
+                      children:
+                        'Время финала. Самый теплый момент Бросвящения. Собираемся в круг...',
+                    },
+                    void 0,
+                    !1,
+                    {
+                      fileName: 'D:/Development/Путеводитель web_new/src/components/BroBonfire.tsx',
+                      lineNumber: 21,
+                      columnNumber: 11,
+                    },
+                    globalThis
+                  ),
+                  e.jsxDEV(
+                    'button',
+                    {
+                      onClick: () => w('recipe'),
+                      style: {
+                        marginTop: '40px',
+                        padding: '16px 40px',
+                        background: '#ff8c42',
+                        border: 'none',
+                        borderRadius: '100px',
+                        color: 'white',
+                        fontWeight: 900,
+                        cursor: 'pointer',
+                      },
+                      children: 'ГОТОВИТЬ БРОТЕРБРОДЫ',
+                    },
+                    void 0,
+                    !1,
+                    {
+                      fileName: 'D:/Development/Путеводитель web_new/src/components/BroBonfire.tsx',
+                      lineNumber: 24,
+                      columnNumber: 11,
+                    },
+                    globalThis
+                  ),
+                ],
+              },
+              void 0,
+              !0,
+              {
+                fileName: 'D:/Development/Путеводитель web_new/src/components/BroBonfire.tsx',
+                lineNumber: 18,
+                columnNumber: 9,
+              },
+              globalThis
+            ),
+          f === 'recipe' &&
+            e.jsxDEV(
+              'div',
+              {
+                className: 'fade-in',
+                children: [
+                  e.jsxDEV(
+                    'div',
+                    { style: { fontSize: '64px', marginBottom: '20px' }, children: '🍞🧂🌻' },
+                    void 0,
+                    !1,
+                    {
+                      fileName: 'D:/Development/Путеводитель web_new/src/components/BroBonfire.tsx',
+                      lineNumber: 35,
+                      columnNumber: 11,
+                    },
+                    globalThis
+                  ),
+                  e.jsxDEV(
+                    'h2',
+                    {
+                      style: { fontSize: '28px', color: '#ff8c42', marginBottom: '24px' },
+                      children: 'ОСОБЫЙ РЕЦЕПТ',
+                    },
+                    void 0,
+                    !1,
+                    {
+                      fileName: 'D:/Development/Путеводитель web_new/src/components/BroBonfire.tsx',
+                      lineNumber: 36,
+                      columnNumber: 11,
+                    },
+                    globalThis
+                  ),
+                  e.jsxDEV(
+                    'ul',
+                    {
+                      style: {
+                        textAlign: 'left',
+                        display: 'inline-block',
+                        fontSize: '16px',
+                        lineHeight: '2',
+                        opacity: 0.9,
+                      },
+                      children: [
+                        e.jsxDEV(
+                          'li',
+                          { children: '🔹 Нарежь хлеб аккуратными кусочками' },
+                          void 0,
+                          !1,
+                          {
+                            fileName:
+                              'D:/Development/Путеводитель web_new/src/components/BroBonfire.tsx',
+                            lineNumber: 38,
+                            columnNumber: 13,
+                          },
+                          globalThis
+                        ),
+                        e.jsxDEV(
+                          'li',
+                          { children: '🔹 Посыпь крупной солью с любовью' },
+                          void 0,
+                          !1,
+                          {
+                            fileName:
+                              'D:/Development/Путеводитель web_new/src/components/BroBonfire.tsx',
+                            lineNumber: 39,
+                            columnNumber: 13,
+                          },
+                          globalThis
+                        ),
+                        e.jsxDEV(
+                          'li',
+                          { children: '🔹 Сбрызни подсолнечным маслом' },
+                          void 0,
+                          !1,
+                          {
+                            fileName:
+                              'D:/Development/Путеводитель web_new/src/components/BroBonfire.tsx',
+                            lineNumber: 40,
+                            columnNumber: 13,
+                          },
+                          globalThis
+                        ),
+                        e.jsxDEV(
+                          'li',
+                          { children: '🔹 Жарь на костре как шашлычок до хруста' },
+                          void 0,
+                          !1,
+                          {
+                            fileName:
+                              'D:/Development/Путеводитель web_new/src/components/BroBonfire.tsx',
+                            lineNumber: 41,
+                            columnNumber: 13,
+                          },
+                          globalThis
+                        ),
+                      ],
+                    },
+                    void 0,
+                    !0,
+                    {
+                      fileName: 'D:/Development/Путеводитель web_new/src/components/BroBonfire.tsx',
+                      lineNumber: 37,
+                      columnNumber: 11,
+                    },
+                    globalThis
+                  ),
+                  e.jsxDEV(
+                    'div',
+                    {
+                      style: { marginTop: '32px' },
+                      children: e.jsxDEV(
+                        'button',
+                        {
+                          onClick: () => w('words'),
+                          style: {
+                            padding: '16px 40px',
+                            background: '#8b00ff',
+                            border: 'none',
+                            borderRadius: '100px',
+                            color: 'white',
+                            fontWeight: 900,
+                            cursor: 'pointer',
+                          },
+                          children: 'СЛУШАТЬ НАПУТСТВИЯ',
+                        },
+                        void 0,
+                        !1,
+                        {
+                          fileName:
+                            'D:/Development/Путеводитель web_new/src/components/BroBonfire.tsx',
+                          lineNumber: 44,
+                          columnNumber: 13,
+                        },
+                        globalThis
+                      ),
+                    },
+                    void 0,
+                    !1,
+                    {
+                      fileName: 'D:/Development/Путеводитель web_new/src/components/BroBonfire.tsx',
+                      lineNumber: 43,
+                      columnNumber: 11,
+                    },
+                    globalThis
+                  ),
+                ],
+              },
+              void 0,
+              !0,
+              {
+                fileName: 'D:/Development/Путеводитель web_new/src/components/BroBonfire.tsx',
+                lineNumber: 34,
+                columnNumber: 9,
+              },
+              globalThis
+            ),
+          f === 'words' &&
+            e.jsxDEV(
+              'div',
+              {
+                className: 'fade-in',
+                children: [
+                  e.jsxDEV(
+                    'div',
+                    { style: { fontSize: '64px', marginBottom: '20px' }, children: '📢' },
+                    void 0,
+                    !1,
+                    {
+                      fileName: 'D:/Development/Путеводитель web_new/src/components/BroBonfire.tsx',
+                      lineNumber: 56,
+                      columnNumber: 11,
+                    },
+                    globalThis
+                  ),
+                  e.jsxDEV(
+                    'h2',
+                    {
+                      style: { fontSize: '28px', color: '#c9b8ff', marginBottom: '24px' },
+                      children: 'СЛОВА СТАРШИХ',
+                    },
+                    void 0,
+                    !1,
+                    {
+                      fileName: 'D:/Development/Путеводитель web_new/src/components/BroBonfire.tsx',
+                      lineNumber: 57,
+                      columnNumber: 11,
+                    },
+                    globalThis
+                  ),
+                  e.jsxDEV(
+                    'p',
+                    {
+                      style: {
+                        fontSize: '16px',
+                        fontStyle: 'italic',
+                        maxWidth: '500px',
+                        marginBottom: '32px',
+                      },
+                      children:
+                        '"Бро — это не просто статус. Это ответственность за младших, за лагерь и за самих себя. Помни традиции, храни огонь."',
+                    },
+                    void 0,
+                    !1,
+                    {
+                      fileName: 'D:/Development/Путеводитель web_new/src/components/BroBonfire.tsx',
+                      lineNumber: 58,
+                      columnNumber: 11,
+                    },
+                    globalThis
+                  ),
+                  e.jsxDEV(
+                    'button',
+                    {
+                      onClick: () => w('wing'),
+                      style: {
+                        padding: '16px 40px',
+                        background: '#ffd700',
+                        color: '#1a1a2e',
+                        border: 'none',
+                        borderRadius: '100px',
+                        fontWeight: 900,
+                        cursor: 'pointer',
+                      },
+                      children: 'СФОРМИРОВАТЬ КРЫЛО',
+                    },
+                    void 0,
+                    !1,
+                    {
+                      fileName: 'D:/Development/Путеводитель web_new/src/components/BroBonfire.tsx',
+                      lineNumber: 61,
+                      columnNumber: 11,
+                    },
+                    globalThis
+                  ),
+                ],
+              },
+              void 0,
+              !0,
+              {
+                fileName: 'D:/Development/Путеводитель web_new/src/components/BroBonfire.tsx',
+                lineNumber: 55,
+                columnNumber: 9,
+              },
+              globalThis
+            ),
+          f === 'wing' &&
+            e.jsxDEV(
+              'div',
+              {
+                className: 'fade-in',
+                children: [
+                  e.jsxDEV(
+                    'div',
+                    { style: { fontSize: '64px', marginBottom: '20px' }, children: '🦅' },
+                    void 0,
+                    !1,
+                    {
+                      fileName: 'D:/Development/Путеводитель web_new/src/components/BroBonfire.tsx',
+                      lineNumber: 72,
+                      columnNumber: 11,
+                    },
+                    globalThis
+                  ),
+                  e.jsxDEV(
+                    'h2',
+                    {
+                      style: { fontSize: '28px', color: '#ffd700', marginBottom: '16px' },
+                      children: 'ТВОЁ КРЫЛО',
+                    },
+                    void 0,
+                    !1,
+                    {
+                      fileName: 'D:/Development/Путеводитель web_new/src/components/BroBonfire.tsx',
+                      lineNumber: 73,
+                      columnNumber: 11,
+                    },
+                    globalThis
+                  ),
+                  e.jsxDEV(
+                    'p',
+                    {
+                      style: { fontSize: '14px', opacity: 0.7, marginBottom: '24px' },
+                      children: 'Объединитесь и выберите своего Наставника',
+                    },
+                    void 0,
+                    !1,
+                    {
+                      fileName: 'D:/Development/Путеводитель web_new/src/components/BroBonfire.tsx',
+                      lineNumber: 74,
+                      columnNumber: 11,
+                    },
+                    globalThis
+                  ),
+                  e.jsxDEV(
+                    'input',
+                    {
+                      placeholder: 'Название вашего Крыла',
+                      value: u,
+                      onChange: (V) => h(V.target.value),
+                      style: {
+                        padding: '16px',
+                        width: '100%',
+                        maxWidth: '300px',
+                        borderRadius: '16px',
+                        background: 'rgba(255,255,255,0.05)',
+                        border: '1px solid #ffd700',
+                        color: 'white',
+                        marginBottom: '20px',
+                      },
+                    },
+                    void 0,
+                    !1,
+                    {
+                      fileName: 'D:/Development/Путеводитель web_new/src/components/BroBonfire.tsx',
+                      lineNumber: 76,
+                      columnNumber: 11,
+                    },
+                    globalThis
+                  ),
+                  e.jsxDEV(
+                    'div',
+                    {
+                      style: { fontSize: '12px', opacity: 0.5, marginBottom: '12px' },
+                      children: 'ВЫБЕРИТЕ НАСТАВНИКА ИЗ ОПЫТНЫХ БРО:',
+                    },
+                    void 0,
+                    !1,
+                    {
+                      fileName: 'D:/Development/Путеводитель web_new/src/components/BroBonfire.tsx',
+                      lineNumber: 83,
+                      columnNumber: 11,
+                    },
+                    globalThis
+                  ),
+                  e.jsxDEV(
+                    'div',
+                    {
+                      style: {
+                        display: 'flex',
+                        gap: '10px',
+                        justifyContent: 'center',
+                        marginBottom: '32px',
+                      },
+                      children: ['Степан И.', 'Максим В.', 'Анна К.'].map((V) =>
+                        e.jsxDEV(
+                          'button',
+                          {
+                            onClick: () => {
+                              if (!u) return alert('Сначала дай Крылу имя!');
+                              m(V, u), t();
+                            },
+                            style: {
+                              padding: '10px 16px',
+                              background: 'rgba(255,255,255,0.1)',
+                              border: '1px solid rgba(255,255,255,0.2)',
+                              borderRadius: '12px',
+                              color: 'white',
+                              cursor: 'pointer',
+                            },
+                            children: V,
+                          },
+                          V,
+                          !1,
+                          {
+                            fileName:
+                              'D:/Development/Путеводитель web_new/src/components/BroBonfire.tsx',
+                            lineNumber: 86,
+                            columnNumber: 15,
+                          },
+                          globalThis
+                        )
+                      ),
+                    },
+                    void 0,
+                    !1,
+                    {
+                      fileName: 'D:/Development/Путеводитель web_new/src/components/BroBonfire.tsx',
+                      lineNumber: 84,
+                      columnNumber: 11,
+                    },
+                    globalThis
+                  ),
+                ],
+              },
+              void 0,
+              !0,
+              {
+                fileName: 'D:/Development/Путеводитель web_new/src/components/BroBonfire.tsx',
+                lineNumber: 71,
+                columnNumber: 9,
+              },
+              globalThis
+            ),
+          e.jsxDEV(
+            'style',
+            {
+              children: `
         .bonfire-glow {
           position: absolute; width: 100%; height: 100%;
           background: radial-gradient(circle, rgba(255, 105, 0, 0.2) 0%, transparent 70%);
@@ -7,7 +2354,829 @@ import{u as le,g as ui,a as pi,b as Mi,_ as fi}from"./index-4b3fee4a.js";import{
         }
         .fade-in { animation: fadeIn 0.8s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-      `},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/BroBonfire.tsx",lineNumber:102,columnNumber:7},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/components/BroBonfire.tsx",lineNumber:10,columnNumber:5},globalThis)},Gi=({dynamicBroMissions:t,onUpdateMissions:m})=>{var be;const{userData:f,updateBroDeed:w,setBroDay:u,receivePassport:h,becomeBro:V}=le(),[D,j]=n.useState(!1),[g,P]=n.useState(!1),d=t&&t.length>0?t:Oi,x=f.broProgress||{isBro:!1,hasPassport:!1,currentDay:1,completedDeeds:{}},_=x.currentDay,p=d.find(v=>v.day===_)||d[0],E=x.completedDeeds[String(_)]||[],M=d.reduce((v,N)=>v+N.deeds.length,0),c=Object.values(x.completedDeeds).reduce((v,N)=>v+N.length,0),J=c===M,Ve=((be=f.broProgress)==null?void 0:be.isBro)||f.profile.stats.totalLevelsAchieved>30,oe=()=>{j(!0)},Te=()=>{V(),j(!1)};return D?e.jsxDEV(Yi,{onComplete:Te},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx",lineNumber:50,columnNumber:12},globalThis):x.isBro?e.jsxDEV("div",{style:{background:"linear-gradient(135deg, rgba(139, 0, 255, 0.25) 0%, rgba(106, 13, 173, 0.4) 100%)",borderRadius:"24px",padding:"32px 24px",border:"2px solid #8b00ff",boxShadow:"0 0 30px rgba(139, 0, 255, 0.3)",marginBottom:"24px",textAlign:"center",position:"relative",overflow:"hidden"},children:[e.jsxDEV("div",{style:{fontSize:"56px",marginBottom:"16px",filter:"drop-shadow(0 0 10px #8b00ff)"},children:"🟣"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx",lineNumber:66,columnNumber:9},globalThis),e.jsxDEV("h3",{style:{margin:0,color:"#c9b8ff",fontSize:"24px",fontWeight:900,letterSpacing:"0.15em",textTransform:"uppercase"},children:"ТЫ — БРО"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx",lineNumber:67,columnNumber:9},globalThis),e.jsxDEV("p",{style:{fontSize:"13px",opacity:.8,marginTop:"10px",color:"#e0d4ff"},children:"Хранитель легендарных традиций с 2013 года"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx",lineNumber:68,columnNumber:9},globalThis),e.jsxDEV("div",{style:{position:"absolute",top:"15px",right:"15px",background:"#8b00ff",color:"white",fontSize:"10px",padding:"5px 12px",borderRadius:"100px",fontWeight:900,boxShadow:"0 4px 10px rgba(0,0,0,0.3)"},children:"EST. 2013"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx",lineNumber:69,columnNumber:9},globalThis),e.jsxDEV("div",{style:{marginTop:"24px",fontSize:"11px",textTransform:"uppercase",letterSpacing:"0.1em",opacity:.6},children:"Доступ к Категории 9 открыт"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx",lineNumber:75,columnNumber:9},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx",lineNumber:55,columnNumber:7},globalThis):x.hasPassport?e.jsxDEV("div",{className:"bro-initiation",style:{background:"rgba(20, 10, 40, 0.6)",borderRadius:"24px",padding:"24px",border:"1px solid rgba(139, 0, 255, 0.3)",marginBottom:"24px",position:"relative",backdropFilter:"blur(10px)"},children:[e.jsxDEV("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"24px"},children:[e.jsxDEV("div",{children:[e.jsxDEV("div",{style:{fontSize:"10px",fontWeight:800,color:"#8b00ff",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:"4px",display:"flex",gap:"10px",alignItems:"center"},children:[e.jsxDEV("span",{children:["Бропаспорт: ",c," / ",M]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx",lineNumber:134,columnNumber:13},globalThis),Ve&&e.jsxDEV("button",{onClick:()=>P(!g),style:{background:"rgba(255,215,0,0.1)",border:"1px solid rgba(255,215,0,0.3)",color:"#ffd700",borderRadius:"4px",padding:"2px 6px",fontSize:"8px",cursor:"pointer",fontWeight:800},children:g?"ЗАКОНЧИТЬ":"РЕДАКТИРОВАТЬ"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx",lineNumber:136,columnNumber:15},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx",lineNumber:133,columnNumber:11},globalThis),e.jsxDEV("h3",{style:{margin:0,fontSize:"18px",display:"flex",alignItems:"center",gap:"8px"},children:["День ",p.day,": ",p.title," ",p.emoji]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx",lineNumber:144,columnNumber:11},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx",lineNumber:132,columnNumber:9},globalThis),e.jsxDEV("div",{style:{display:"flex",gap:"6px"},children:[1,2,3].map(v=>e.jsxDEV("button",{onClick:()=>u(v),style:{width:"32px",height:"32px",borderRadius:"8px",background:_===v?"#8b00ff":"rgba(255,255,255,0.05)",border:`1px solid ${_===v?"#c9b8ff":"rgba(255,255,255,0.1)"}`,color:"white",fontWeight:800,fontSize:"12px",cursor:"pointer"},children:v},v,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx",lineNumber:150,columnNumber:13},globalThis))},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx",lineNumber:148,columnNumber:9},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx",lineNumber:131,columnNumber:7},globalThis),e.jsxDEV("div",{style:{display:"grid",gap:"12px",marginBottom:"24px"},children:p.deeds.map(v=>{const N=E.includes(v.id);return e.jsxDEV("div",{onClick:()=>!g&&w(_,v.id,!N),style:{padding:"16px",background:N?"rgba(139, 0, 255, 0.15)":"rgba(255,255,255,0.03)",borderRadius:"16px",border:`1px solid ${N?"rgba(139, 0, 255, 0.4)":"rgba(255,255,255,0.08)"}`,cursor:g?"default":"pointer",transition:"all 0.2s ease",display:"flex",gap:"12px",alignItems:"flex-start"},children:[!g&&e.jsxDEV("div",{style:{width:"22px",height:"22px",borderRadius:"6px",border:`2px solid ${N?"#8b00ff":"rgba(255,255,255,0.2)"}`,background:N?"#8b00ff":"transparent",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"12px",flexShrink:0},children:N&&"✓"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx",lineNumber:187,columnNumber:17},globalThis),e.jsxDEV("div",{style:{flex:1},children:g?e.jsxDEV("div",{style:{display:"grid",gap:"8px"},children:[e.jsxDEV("input",{value:v.text,onChange:re=>{const ne=d.map(z=>z.day===_?{...z,deeds:z.deeds.map(R=>R.id===v.id?{...R,text:re.target.value}:R)}:z);m&&m(ne)},style:{background:"rgba(0,0,0,0.3)",border:"1px solid rgba(255,255,255,0.1)",color:"white",borderRadius:"8px",padding:"6px 10px",fontSize:"13px"}},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx",lineNumber:199,columnNumber:21},globalThis),e.jsxDEV("textarea",{value:v.description,onChange:re=>{const ne=d.map(z=>z.day===_?{...z,deeds:z.deeds.map(R=>R.id===v.id?{...R,description:re.target.value}:R)}:z);m&&m(ne)},style:{background:"rgba(0,0,0,0.3)",border:"1px solid rgba(255,255,255,0.1)",color:"white",borderRadius:"8px",padding:"6px 10px",fontSize:"11px",resize:"none"},rows:2},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx",lineNumber:215,columnNumber:21},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx",lineNumber:198,columnNumber:19},globalThis):e.jsxDEV(e.Fragment,{children:[e.jsxDEV("div",{style:{fontSize:"13px",fontWeight:700,opacity:N?.6:1,textDecoration:N?"line-through":"none"},children:v.text},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx",lineNumber:235,columnNumber:21},globalThis),e.jsxDEV("div",{style:{fontSize:"11px",opacity:.5,marginTop:"4px"},children:v.description},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx",lineNumber:238,columnNumber:21},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx",lineNumber:234,columnNumber:19},globalThis)},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx",lineNumber:196,columnNumber:15},globalThis)]},v.id,!0,{fileName:"D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx",lineNumber:171,columnNumber:13},globalThis)})},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx",lineNumber:167,columnNumber:7},globalThis),e.jsxDEV("div",{style:{marginTop:"20px",display:"flex",alignItems:"center",gap:"12px"},children:[e.jsxDEV("div",{style:{flex:1,height:"6px",background:"rgba(255,255,255,0.1)",borderRadius:"3px",overflow:"hidden"},children:e.jsxDEV("div",{style:{width:`${c/M*100}%`,height:"100%",background:"linear-gradient(90deg, #8b00ff, #c9b8ff)",boxShadow:"0 0 10px #8b00ff",transition:"width 0.5s ease"}},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx",lineNumber:250,columnNumber:11},globalThis)},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx",lineNumber:249,columnNumber:9},globalThis),e.jsxDEV("span",{style:{fontSize:"12px",fontWeight:800,color:"#c9b8ff"},children:[Math.round(c/M*100),"%"]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx",lineNumber:258,columnNumber:9},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx",lineNumber:248,columnNumber:7},globalThis),J&&!D&&e.jsxDEV("button",{onClick:oe,style:{marginTop:"24px",width:"100%",padding:"18px",background:"linear-gradient(90deg, #8b00ff, #6a0dad)",color:"white",border:"none",borderRadius:"16px",fontWeight:900,fontSize:"15px",textTransform:"uppercase",letterSpacing:"0.15em",cursor:"pointer",boxShadow:"0 10px 30px rgba(139, 0, 255, 0.5)",animation:"pulse 2s infinite"},children:"ПРОЙТИ ИНИЦИАЦИЮ"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx",lineNumber:262,columnNumber:9},globalThis),D&&e.jsxDEV("div",{style:{position:"absolute",inset:0,background:"#0b061a",borderRadius:"24px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",zIndex:100,animation:"fadeIn 0.5s ease"},children:[e.jsxDEV("div",{className:"ritual-glow"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx",lineNumber:291,columnNumber:11},globalThis),e.jsxDEV("div",{style:{fontSize:"64px",animation:"spin 3s linear infinite"},children:"🌀"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx",lineNumber:292,columnNumber:11},globalThis),e.jsxDEV("div",{style:{marginTop:"24px",fontWeight:900,color:"#c9b8ff",letterSpacing:"0.3em",textAlign:"center"},children:"ПРИНИМАЕМ В БРО-СЕМЬЮ..."},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx",lineNumber:293,columnNumber:11},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx",lineNumber:286,columnNumber:9},globalThis),e.jsxDEV("style",{children:`
+      `,
+            },
+            void 0,
+            !1,
+            {
+              fileName: 'D:/Development/Путеводитель web_new/src/components/BroBonfire.tsx',
+              lineNumber: 102,
+              columnNumber: 7,
+            },
+            globalThis
+          ),
+        ],
+      },
+      void 0,
+      !0,
+      {
+        fileName: 'D:/Development/Путеводитель web_new/src/components/BroBonfire.tsx',
+        lineNumber: 10,
+        columnNumber: 5,
+      },
+      globalThis
+    );
+  },
+  Gi = ({ dynamicBroMissions: t, onUpdateMissions: m }) => {
+    var be;
+    const { userData: f, updateBroDeed: w, setBroDay: u, receivePassport: h, becomeBro: V } = le(),
+      [D, j] = n.useState(!1),
+      [g, P] = n.useState(!1),
+      d = t && t.length > 0 ? t : Oi,
+      x = f.broProgress || { isBro: !1, hasPassport: !1, currentDay: 1, completedDeeds: {} },
+      _ = x.currentDay,
+      p = d.find((v) => v.day === _) || d[0],
+      E = x.completedDeeds[String(_)] || [],
+      M = d.reduce((v, N) => v + N.deeds.length, 0),
+      c = Object.values(x.completedDeeds).reduce((v, N) => v + N.length, 0),
+      J = c === M,
+      Ve =
+        ((be = f.broProgress) == null ? void 0 : be.isBro) ||
+        f.profile.stats.totalLevelsAchieved > 30,
+      oe = () => {
+        j(!0);
+      },
+      Te = () => {
+        V(), j(!1);
+      };
+    return D
+      ? e.jsxDEV(
+          Yi,
+          { onComplete: Te },
+          void 0,
+          !1,
+          {
+            fileName: 'D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx',
+            lineNumber: 50,
+            columnNumber: 12,
+          },
+          globalThis
+        )
+      : x.isBro
+        ? e.jsxDEV(
+            'div',
+            {
+              style: {
+                background:
+                  'linear-gradient(135deg, rgba(139, 0, 255, 0.25) 0%, rgba(106, 13, 173, 0.4) 100%)',
+                borderRadius: '24px',
+                padding: '32px 24px',
+                border: '2px solid #8b00ff',
+                boxShadow: '0 0 30px rgba(139, 0, 255, 0.3)',
+                marginBottom: '24px',
+                textAlign: 'center',
+                position: 'relative',
+                overflow: 'hidden',
+              },
+              children: [
+                e.jsxDEV(
+                  'div',
+                  {
+                    style: {
+                      fontSize: '56px',
+                      marginBottom: '16px',
+                      filter: 'drop-shadow(0 0 10px #8b00ff)',
+                    },
+                    children: '🟣',
+                  },
+                  void 0,
+                  !1,
+                  {
+                    fileName:
+                      'D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx',
+                    lineNumber: 66,
+                    columnNumber: 9,
+                  },
+                  globalThis
+                ),
+                e.jsxDEV(
+                  'h3',
+                  {
+                    style: {
+                      margin: 0,
+                      color: '#c9b8ff',
+                      fontSize: '24px',
+                      fontWeight: 900,
+                      letterSpacing: '0.15em',
+                      textTransform: 'uppercase',
+                    },
+                    children: 'ТЫ — БРО',
+                  },
+                  void 0,
+                  !1,
+                  {
+                    fileName:
+                      'D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx',
+                    lineNumber: 67,
+                    columnNumber: 9,
+                  },
+                  globalThis
+                ),
+                e.jsxDEV(
+                  'p',
+                  {
+                    style: { fontSize: '13px', opacity: 0.8, marginTop: '10px', color: '#e0d4ff' },
+                    children: 'Хранитель легендарных традиций с 2013 года',
+                  },
+                  void 0,
+                  !1,
+                  {
+                    fileName:
+                      'D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx',
+                    lineNumber: 68,
+                    columnNumber: 9,
+                  },
+                  globalThis
+                ),
+                e.jsxDEV(
+                  'div',
+                  {
+                    style: {
+                      position: 'absolute',
+                      top: '15px',
+                      right: '15px',
+                      background: '#8b00ff',
+                      color: 'white',
+                      fontSize: '10px',
+                      padding: '5px 12px',
+                      borderRadius: '100px',
+                      fontWeight: 900,
+                      boxShadow: '0 4px 10px rgba(0,0,0,0.3)',
+                    },
+                    children: 'EST. 2013',
+                  },
+                  void 0,
+                  !1,
+                  {
+                    fileName:
+                      'D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx',
+                    lineNumber: 69,
+                    columnNumber: 9,
+                  },
+                  globalThis
+                ),
+                e.jsxDEV(
+                  'div',
+                  {
+                    style: {
+                      marginTop: '24px',
+                      fontSize: '11px',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.1em',
+                      opacity: 0.6,
+                    },
+                    children: 'Доступ к Категории 9 открыт',
+                  },
+                  void 0,
+                  !1,
+                  {
+                    fileName:
+                      'D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx',
+                    lineNumber: 75,
+                    columnNumber: 9,
+                  },
+                  globalThis
+                ),
+              ],
+            },
+            void 0,
+            !0,
+            {
+              fileName: 'D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx',
+              lineNumber: 55,
+              columnNumber: 7,
+            },
+            globalThis
+          )
+        : x.hasPassport
+          ? e.jsxDEV(
+              'div',
+              {
+                className: 'bro-initiation',
+                style: {
+                  background: 'rgba(20, 10, 40, 0.6)',
+                  borderRadius: '24px',
+                  padding: '24px',
+                  border: '1px solid rgba(139, 0, 255, 0.3)',
+                  marginBottom: '24px',
+                  position: 'relative',
+                  backdropFilter: 'blur(10px)',
+                },
+                children: [
+                  e.jsxDEV(
+                    'div',
+                    {
+                      style: {
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        marginBottom: '24px',
+                      },
+                      children: [
+                        e.jsxDEV(
+                          'div',
+                          {
+                            children: [
+                              e.jsxDEV(
+                                'div',
+                                {
+                                  style: {
+                                    fontSize: '10px',
+                                    fontWeight: 800,
+                                    color: '#8b00ff',
+                                    textTransform: 'uppercase',
+                                    letterSpacing: '0.1em',
+                                    marginBottom: '4px',
+                                    display: 'flex',
+                                    gap: '10px',
+                                    alignItems: 'center',
+                                  },
+                                  children: [
+                                    e.jsxDEV(
+                                      'span',
+                                      { children: ['Бропаспорт: ', c, ' / ', M] },
+                                      void 0,
+                                      !0,
+                                      {
+                                        fileName:
+                                          'D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx',
+                                        lineNumber: 134,
+                                        columnNumber: 13,
+                                      },
+                                      globalThis
+                                    ),
+                                    Ve &&
+                                      e.jsxDEV(
+                                        'button',
+                                        {
+                                          onClick: () => P(!g),
+                                          style: {
+                                            background: 'rgba(255,215,0,0.1)',
+                                            border: '1px solid rgba(255,215,0,0.3)',
+                                            color: '#ffd700',
+                                            borderRadius: '4px',
+                                            padding: '2px 6px',
+                                            fontSize: '8px',
+                                            cursor: 'pointer',
+                                            fontWeight: 800,
+                                          },
+                                          children: g ? 'ЗАКОНЧИТЬ' : 'РЕДАКТИРОВАТЬ',
+                                        },
+                                        void 0,
+                                        !1,
+                                        {
+                                          fileName:
+                                            'D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx',
+                                          lineNumber: 136,
+                                          columnNumber: 15,
+                                        },
+                                        globalThis
+                                      ),
+                                  ],
+                                },
+                                void 0,
+                                !0,
+                                {
+                                  fileName:
+                                    'D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx',
+                                  lineNumber: 133,
+                                  columnNumber: 11,
+                                },
+                                globalThis
+                              ),
+                              e.jsxDEV(
+                                'h3',
+                                {
+                                  style: {
+                                    margin: 0,
+                                    fontSize: '18px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '8px',
+                                  },
+                                  children: ['День ', p.day, ': ', p.title, ' ', p.emoji],
+                                },
+                                void 0,
+                                !0,
+                                {
+                                  fileName:
+                                    'D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx',
+                                  lineNumber: 144,
+                                  columnNumber: 11,
+                                },
+                                globalThis
+                              ),
+                            ],
+                          },
+                          void 0,
+                          !0,
+                          {
+                            fileName:
+                              'D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx',
+                            lineNumber: 132,
+                            columnNumber: 9,
+                          },
+                          globalThis
+                        ),
+                        e.jsxDEV(
+                          'div',
+                          {
+                            style: { display: 'flex', gap: '6px' },
+                            children: [1, 2, 3].map((v) =>
+                              e.jsxDEV(
+                                'button',
+                                {
+                                  onClick: () => u(v),
+                                  style: {
+                                    width: '32px',
+                                    height: '32px',
+                                    borderRadius: '8px',
+                                    background: _ === v ? '#8b00ff' : 'rgba(255,255,255,0.05)',
+                                    border: `1px solid ${_ === v ? '#c9b8ff' : 'rgba(255,255,255,0.1)'}`,
+                                    color: 'white',
+                                    fontWeight: 800,
+                                    fontSize: '12px',
+                                    cursor: 'pointer',
+                                  },
+                                  children: v,
+                                },
+                                v,
+                                !1,
+                                {
+                                  fileName:
+                                    'D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx',
+                                  lineNumber: 150,
+                                  columnNumber: 13,
+                                },
+                                globalThis
+                              )
+                            ),
+                          },
+                          void 0,
+                          !1,
+                          {
+                            fileName:
+                              'D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx',
+                            lineNumber: 148,
+                            columnNumber: 9,
+                          },
+                          globalThis
+                        ),
+                      ],
+                    },
+                    void 0,
+                    !0,
+                    {
+                      fileName:
+                        'D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx',
+                      lineNumber: 131,
+                      columnNumber: 7,
+                    },
+                    globalThis
+                  ),
+                  e.jsxDEV(
+                    'div',
+                    {
+                      style: { display: 'grid', gap: '12px', marginBottom: '24px' },
+                      children: p.deeds.map((v) => {
+                        const N = E.includes(v.id);
+                        return e.jsxDEV(
+                          'div',
+                          {
+                            onClick: () => !g && w(_, v.id, !N),
+                            style: {
+                              padding: '16px',
+                              background: N ? 'rgba(139, 0, 255, 0.15)' : 'rgba(255,255,255,0.03)',
+                              borderRadius: '16px',
+                              border: `1px solid ${N ? 'rgba(139, 0, 255, 0.4)' : 'rgba(255,255,255,0.08)'}`,
+                              cursor: g ? 'default' : 'pointer',
+                              transition: 'all 0.2s ease',
+                              display: 'flex',
+                              gap: '12px',
+                              alignItems: 'flex-start',
+                            },
+                            children: [
+                              !g &&
+                                e.jsxDEV(
+                                  'div',
+                                  {
+                                    style: {
+                                      width: '22px',
+                                      height: '22px',
+                                      borderRadius: '6px',
+                                      border: `2px solid ${N ? '#8b00ff' : 'rgba(255,255,255,0.2)'}`,
+                                      background: N ? '#8b00ff' : 'transparent',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      fontSize: '12px',
+                                      flexShrink: 0,
+                                    },
+                                    children: N && '✓',
+                                  },
+                                  void 0,
+                                  !1,
+                                  {
+                                    fileName:
+                                      'D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx',
+                                    lineNumber: 187,
+                                    columnNumber: 17,
+                                  },
+                                  globalThis
+                                ),
+                              e.jsxDEV(
+                                'div',
+                                {
+                                  style: { flex: 1 },
+                                  children: g
+                                    ? e.jsxDEV(
+                                        'div',
+                                        {
+                                          style: { display: 'grid', gap: '8px' },
+                                          children: [
+                                            e.jsxDEV(
+                                              'input',
+                                              {
+                                                value: v.text,
+                                                onChange: (re) => {
+                                                  const ne = d.map((z) =>
+                                                    z.day === _
+                                                      ? {
+                                                          ...z,
+                                                          deeds: z.deeds.map((R) =>
+                                                            R.id === v.id
+                                                              ? { ...R, text: re.target.value }
+                                                              : R
+                                                          ),
+                                                        }
+                                                      : z
+                                                  );
+                                                  m && m(ne);
+                                                },
+                                                style: {
+                                                  background: 'rgba(0,0,0,0.3)',
+                                                  border: '1px solid rgba(255,255,255,0.1)',
+                                                  color: 'white',
+                                                  borderRadius: '8px',
+                                                  padding: '6px 10px',
+                                                  fontSize: '13px',
+                                                },
+                                              },
+                                              void 0,
+                                              !1,
+                                              {
+                                                fileName:
+                                                  'D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx',
+                                                lineNumber: 199,
+                                                columnNumber: 21,
+                                              },
+                                              globalThis
+                                            ),
+                                            e.jsxDEV(
+                                              'textarea',
+                                              {
+                                                value: v.description,
+                                                onChange: (re) => {
+                                                  const ne = d.map((z) =>
+                                                    z.day === _
+                                                      ? {
+                                                          ...z,
+                                                          deeds: z.deeds.map((R) =>
+                                                            R.id === v.id
+                                                              ? {
+                                                                  ...R,
+                                                                  description: re.target.value,
+                                                                }
+                                                              : R
+                                                          ),
+                                                        }
+                                                      : z
+                                                  );
+                                                  m && m(ne);
+                                                },
+                                                style: {
+                                                  background: 'rgba(0,0,0,0.3)',
+                                                  border: '1px solid rgba(255,255,255,0.1)',
+                                                  color: 'white',
+                                                  borderRadius: '8px',
+                                                  padding: '6px 10px',
+                                                  fontSize: '11px',
+                                                  resize: 'none',
+                                                },
+                                                rows: 2,
+                                              },
+                                              void 0,
+                                              !1,
+                                              {
+                                                fileName:
+                                                  'D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx',
+                                                lineNumber: 215,
+                                                columnNumber: 21,
+                                              },
+                                              globalThis
+                                            ),
+                                          ],
+                                        },
+                                        void 0,
+                                        !0,
+                                        {
+                                          fileName:
+                                            'D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx',
+                                          lineNumber: 198,
+                                          columnNumber: 19,
+                                        },
+                                        globalThis
+                                      )
+                                    : e.jsxDEV(
+                                        e.Fragment,
+                                        {
+                                          children: [
+                                            e.jsxDEV(
+                                              'div',
+                                              {
+                                                style: {
+                                                  fontSize: '13px',
+                                                  fontWeight: 700,
+                                                  opacity: N ? 0.6 : 1,
+                                                  textDecoration: N ? 'line-through' : 'none',
+                                                },
+                                                children: v.text,
+                                              },
+                                              void 0,
+                                              !1,
+                                              {
+                                                fileName:
+                                                  'D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx',
+                                                lineNumber: 235,
+                                                columnNumber: 21,
+                                              },
+                                              globalThis
+                                            ),
+                                            e.jsxDEV(
+                                              'div',
+                                              {
+                                                style: {
+                                                  fontSize: '11px',
+                                                  opacity: 0.5,
+                                                  marginTop: '4px',
+                                                },
+                                                children: v.description,
+                                              },
+                                              void 0,
+                                              !1,
+                                              {
+                                                fileName:
+                                                  'D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx',
+                                                lineNumber: 238,
+                                                columnNumber: 21,
+                                              },
+                                              globalThis
+                                            ),
+                                          ],
+                                        },
+                                        void 0,
+                                        !0,
+                                        {
+                                          fileName:
+                                            'D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx',
+                                          lineNumber: 234,
+                                          columnNumber: 19,
+                                        },
+                                        globalThis
+                                      ),
+                                },
+                                void 0,
+                                !1,
+                                {
+                                  fileName:
+                                    'D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx',
+                                  lineNumber: 196,
+                                  columnNumber: 15,
+                                },
+                                globalThis
+                              ),
+                            ],
+                          },
+                          v.id,
+                          !0,
+                          {
+                            fileName:
+                              'D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx',
+                            lineNumber: 171,
+                            columnNumber: 13,
+                          },
+                          globalThis
+                        );
+                      }),
+                    },
+                    void 0,
+                    !1,
+                    {
+                      fileName:
+                        'D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx',
+                      lineNumber: 167,
+                      columnNumber: 7,
+                    },
+                    globalThis
+                  ),
+                  e.jsxDEV(
+                    'div',
+                    {
+                      style: {
+                        marginTop: '20px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '12px',
+                      },
+                      children: [
+                        e.jsxDEV(
+                          'div',
+                          {
+                            style: {
+                              flex: 1,
+                              height: '6px',
+                              background: 'rgba(255,255,255,0.1)',
+                              borderRadius: '3px',
+                              overflow: 'hidden',
+                            },
+                            children: e.jsxDEV(
+                              'div',
+                              {
+                                style: {
+                                  width: `${(c / M) * 100}%`,
+                                  height: '100%',
+                                  background: 'linear-gradient(90deg, #8b00ff, #c9b8ff)',
+                                  boxShadow: '0 0 10px #8b00ff',
+                                  transition: 'width 0.5s ease',
+                                },
+                              },
+                              void 0,
+                              !1,
+                              {
+                                fileName:
+                                  'D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx',
+                                lineNumber: 250,
+                                columnNumber: 11,
+                              },
+                              globalThis
+                            ),
+                          },
+                          void 0,
+                          !1,
+                          {
+                            fileName:
+                              'D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx',
+                            lineNumber: 249,
+                            columnNumber: 9,
+                          },
+                          globalThis
+                        ),
+                        e.jsxDEV(
+                          'span',
+                          {
+                            style: { fontSize: '12px', fontWeight: 800, color: '#c9b8ff' },
+                            children: [Math.round((c / M) * 100), '%'],
+                          },
+                          void 0,
+                          !0,
+                          {
+                            fileName:
+                              'D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx',
+                            lineNumber: 258,
+                            columnNumber: 9,
+                          },
+                          globalThis
+                        ),
+                      ],
+                    },
+                    void 0,
+                    !0,
+                    {
+                      fileName:
+                        'D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx',
+                      lineNumber: 248,
+                      columnNumber: 7,
+                    },
+                    globalThis
+                  ),
+                  J &&
+                    !D &&
+                    e.jsxDEV(
+                      'button',
+                      {
+                        onClick: oe,
+                        style: {
+                          marginTop: '24px',
+                          width: '100%',
+                          padding: '18px',
+                          background: 'linear-gradient(90deg, #8b00ff, #6a0dad)',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '16px',
+                          fontWeight: 900,
+                          fontSize: '15px',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.15em',
+                          cursor: 'pointer',
+                          boxShadow: '0 10px 30px rgba(139, 0, 255, 0.5)',
+                          animation: 'pulse 2s infinite',
+                        },
+                        children: 'ПРОЙТИ ИНИЦИАЦИЮ',
+                      },
+                      void 0,
+                      !1,
+                      {
+                        fileName:
+                          'D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx',
+                        lineNumber: 262,
+                        columnNumber: 9,
+                      },
+                      globalThis
+                    ),
+                  D &&
+                    e.jsxDEV(
+                      'div',
+                      {
+                        style: {
+                          position: 'absolute',
+                          inset: 0,
+                          background: '#0b061a',
+                          borderRadius: '24px',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          zIndex: 100,
+                          animation: 'fadeIn 0.5s ease',
+                        },
+                        children: [
+                          e.jsxDEV(
+                            'div',
+                            { className: 'ritual-glow' },
+                            void 0,
+                            !1,
+                            {
+                              fileName:
+                                'D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx',
+                              lineNumber: 291,
+                              columnNumber: 11,
+                            },
+                            globalThis
+                          ),
+                          e.jsxDEV(
+                            'div',
+                            {
+                              style: { fontSize: '64px', animation: 'spin 3s linear infinite' },
+                              children: '🌀',
+                            },
+                            void 0,
+                            !1,
+                            {
+                              fileName:
+                                'D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx',
+                              lineNumber: 292,
+                              columnNumber: 11,
+                            },
+                            globalThis
+                          ),
+                          e.jsxDEV(
+                            'div',
+                            {
+                              style: {
+                                marginTop: '24px',
+                                fontWeight: 900,
+                                color: '#c9b8ff',
+                                letterSpacing: '0.3em',
+                                textAlign: 'center',
+                              },
+                              children: 'ПРИНИМАЕМ В БРО-СЕМЬЮ...',
+                            },
+                            void 0,
+                            !1,
+                            {
+                              fileName:
+                                'D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx',
+                              lineNumber: 293,
+                              columnNumber: 11,
+                            },
+                            globalThis
+                          ),
+                        ],
+                      },
+                      void 0,
+                      !0,
+                      {
+                        fileName:
+                          'D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx',
+                        lineNumber: 286,
+                        columnNumber: 9,
+                      },
+                      globalThis
+                    ),
+                  e.jsxDEV(
+                    'style',
+                    {
+                      children: `
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         .ritual-glow {
           position: absolute; width: 100%; height: 100%;
@@ -15,11 +3184,8894 @@ import{u as le,g as ui,a as pi,b as Mi,_ as fi}from"./index-4b3fee4a.js";import{
           animation: pulse 1s infinite alternate;
         }
         @keyframes pulse { from { transform: scale(1); opacity: 0.8; } to { transform: scale(1.05); opacity: 1; } }
-      `},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx",lineNumber:299,columnNumber:7},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx",lineNumber:121,columnNumber:5},globalThis):e.jsxDEV("div",{style:{background:"rgba(20, 10, 40, 0.7)",borderRadius:"24px",padding:"32px 24px",border:"1px solid rgba(139, 0, 255, 0.4)",marginBottom:"24px",textAlign:"center"},children:[e.jsxDEV("div",{style:{fontSize:"48px",marginBottom:"16px"},children:"📘"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx",lineNumber:92,columnNumber:9},globalThis),e.jsxDEV("h3",{style:{margin:0,fontSize:"20px",fontWeight:800},children:"БРОСВЯЩЕНИЕ"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx",lineNumber:93,columnNumber:9},globalThis),e.jsxDEV("p",{style:{fontSize:"14px",opacity:.7,marginTop:"12px",lineHeight:"1.5"},children:"Готов начать путь вожатого? Получи свой цифровой Бропаспорт и начни выполнять Бродела!"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx",lineNumber:94,columnNumber:9},globalThis),e.jsxDEV("button",{onClick:h,style:{marginTop:"24px",width:"100%",padding:"16px",background:"linear-gradient(90deg, #8b00ff, #4dacff)",color:"white",border:"none",borderRadius:"16px",fontWeight:900,fontSize:"14px",textTransform:"uppercase",cursor:"pointer",boxShadow:"0 8px 20px rgba(139, 0, 255, 0.3)"},children:"ПОЛУЧИТЬ БРОПАСПОРТ"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx",lineNumber:97,columnNumber:9},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx",lineNumber:84,columnNumber:7},globalThis)},Ji=()=>{const[t,m]=n.useState(1),[f,w]=n.useState(""),[u,h]=n.useState([]),V=["🔥 Свечка (Огонек)","💃 Отрядный танец","🎤 Уникальная кричалка","🤐 Ритуал тишины","🎁 Тайный друг","🏳️ Поднятие флага"];return e.jsxDEV("div",{className:"fade-in",style:{marginTop:"20px",padding:"20px",background:"rgba(0,0,0,0.3)",borderRadius:"16px",border:"1px dashed rgba(255,255,255,0.1)"},children:[e.jsxDEV("h4",{style:{margin:"0 0 16px 0",color:"#ffd700",textTransform:"uppercase",fontSize:"14px"},children:"🏗️ Архитектор Отряда"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/SquadArchitect.tsx",lineNumber:21,columnNumber:7},globalThis),t===1&&e.jsxDEV("div",{children:[e.jsxDEV("label",{style:{fontSize:"12px",opacity:.7,display:"block",marginBottom:"8px"},children:"Название Отряда (Стартапа)"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/SquadArchitect.tsx",lineNumber:27,columnNumber:11},globalThis),e.jsxDEV("input",{value:f,onChange:D=>w(D.target.value),placeholder:"Напр: 'Искра', 'Космодром', 'Новые Горизонты'",style:{width:"100%",padding:"12px",borderRadius:"10px",background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.1)",color:"white",marginBottom:"16px"}},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/SquadArchitect.tsx",lineNumber:28,columnNumber:11},globalThis),e.jsxDEV("button",{onClick:()=>m(2),style:{padding:"8px 16px",background:"#8b00ff",color:"white",border:"none",borderRadius:"8px",cursor:"pointer"},children:"ДАЛЕЕ"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/SquadArchitect.tsx",lineNumber:34,columnNumber:11},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/components/SquadArchitect.tsx",lineNumber:26,columnNumber:9},globalThis),t===2&&e.jsxDEV("div",{children:[e.jsxDEV("label",{style:{fontSize:"12px",opacity:.7,display:"block",marginBottom:"8px"},children:"Код Традиций (Выберите 3)"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/SquadArchitect.tsx",lineNumber:42,columnNumber:11},globalThis),e.jsxDEV("div",{style:{display:"flex",flexWrap:"wrap",gap:"8px",marginBottom:"16px"},children:V.map(D=>e.jsxDEV("button",{onClick:()=>h(j=>j.includes(D)?j.filter(g=>g!==D):[...j,D]),style:{padding:"6px 10px",borderRadius:"8px",border:`1px solid ${u.includes(D)?"#38ef7d":"rgba(255,255,255,0.1)"}`,background:u.includes(D)?"rgba(56, 239, 125, 0.1)":"transparent",color:u.includes(D)?"#38ef7d":"white",fontSize:"11px",cursor:"pointer"},children:D},D,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/SquadArchitect.tsx",lineNumber:45,columnNumber:15},globalThis))},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/SquadArchitect.tsx",lineNumber:43,columnNumber:11},globalThis),e.jsxDEV("button",{onClick:()=>m(3),style:{padding:"8px 16px",background:"#8b00ff",color:"white",border:"none",borderRadius:"8px",cursor:"pointer"},children:"СГЕНЕРИРОВАТЬ ПОСВЯЩЕНИЕ"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/SquadArchitect.tsx",lineNumber:62,columnNumber:11},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/components/SquadArchitect.tsx",lineNumber:41,columnNumber:9},globalThis),t===3&&e.jsxDEV("div",{style:{textAlign:"center"},children:[e.jsxDEV("div",{style:{fontSize:"48px",marginBottom:"12px"},children:"📜"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/SquadArchitect.tsx",lineNumber:70,columnNumber:11},globalThis),e.jsxDEV("div",{style:{fontSize:"16px",fontWeight:800,marginBottom:"8px"},children:f},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/SquadArchitect.tsx",lineNumber:71,columnNumber:11},globalThis),e.jsxDEV("div",{style:{fontSize:"12px",opacity:.7,marginBottom:"16px"},children:"Сценарий Посвящения готов"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/SquadArchitect.tsx",lineNumber:72,columnNumber:11},globalThis),e.jsxDEV("div",{style:{textAlign:"left",background:"rgba(255,255,255,0.05)",padding:"12px",borderRadius:"8px",fontSize:"12px",lineHeight:"1.5",marginBottom:"16px"},children:["1. Сбор: Атмосфера таинственности.",e.jsxDEV("br",{},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/SquadArchitect.tsx",lineNumber:74,columnNumber:47},globalThis),"2. Ритуал: ",u[0]||"Традиция 1",".",e.jsxDEV("br",{},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/SquadArchitect.tsx",lineNumber:75,columnNumber:56},globalThis),"3. Испытание: ",u[1]||"Традиция 2",".",e.jsxDEV("br",{},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/SquadArchitect.tsx",lineNumber:76,columnNumber:59},globalThis),"4. Финал: ",u[2]||"Традиция 3"," и вручение символики."]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/components/SquadArchitect.tsx",lineNumber:73,columnNumber:11},globalThis),e.jsxDEV("button",{onClick:()=>alert("Сценарий сохранен в Крыле!"),style:{width:"100%",padding:"12px",background:"#ffd700",color:"#1a1a2e",border:"none",borderRadius:"10px",fontWeight:800,cursor:"pointer"},children:"УТВЕРДИТЬ МЕТОДИКУ"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/SquadArchitect.tsx",lineNumber:79,columnNumber:11},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/components/SquadArchitect.tsx",lineNumber:69,columnNumber:9},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/components/SquadArchitect.tsx",lineNumber:18,columnNumber:5},globalThis)},Ki=()=>{const{userData:t}=le(),[m,f]=n.useState(!1),w=t.broProgress;if(!(w!=null&&w.wingId))return null;const u=w.isBro;return e.jsxDEV("div",{style:{background:"linear-gradient(135deg, #1a0b2e 0%, #2d1b4e 100%)",borderRadius:"24px",padding:"24px",border:"1px solid rgba(139, 0, 255, 0.3)",marginBottom:"24px",position:"relative",overflow:"hidden"},children:[e.jsxDEV("div",{style:{position:"absolute",top:"-50px",right:"-50px",width:"150px",height:"150px",background:"#8b00ff",filter:"blur(60px)",opacity:.2}},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/WingDashboard.tsx",lineNumber:24,columnNumber:7},globalThis),e.jsxDEV("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"20px"},children:[e.jsxDEV("div",{children:[e.jsxDEV("div",{style:{fontSize:"10px",fontWeight:800,color:"#c9b8ff",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:"4px"},children:u?"ТВОЕ КРЫЛО (ШТАБ)":"КРЫЛО (КАНДИДАТ)"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/WingDashboard.tsx",lineNumber:32,columnNumber:11},globalThis),e.jsxDEV("h3",{style:{margin:0,fontSize:"20px",color:"white",display:"flex",alignItems:"center",gap:"8px"},children:"🦅 Небесные Стражи"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/WingDashboard.tsx",lineNumber:35,columnNumber:11},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/components/WingDashboard.tsx",lineNumber:31,columnNumber:9},globalThis),e.jsxDEV("div",{style:{width:"40px",height:"40px",borderRadius:"50%",background:"linear-gradient(135deg, #222 50%, #8b00ff 50%)",border:"2px solid rgba(255,255,255,0.2)",boxShadow:"0 4px 12px rgba(0,0,0,0.3)"},title:"Двухцветный галстук Наставника"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/WingDashboard.tsx",lineNumber:39,columnNumber:9},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/components/WingDashboard.tsx",lineNumber:30,columnNumber:7},globalThis),e.jsxDEV("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"12px",marginBottom:"20px"},children:[e.jsxDEV("div",{style:{background:"rgba(255,255,255,0.05)",borderRadius:"16px",padding:"16px"},children:[e.jsxDEV("div",{style:{fontSize:"11px",opacity:.5,marginBottom:"4px"},children:"НАСТАВНИК"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/WingDashboard.tsx",lineNumber:49,columnNumber:11},globalThis),e.jsxDEV("div",{style:{fontWeight:700,fontSize:"14px",display:"flex",alignItems:"center",gap:"6px"},children:["👑 Степан И. ",e.jsxDEV("span",{style:{fontSize:"10px",background:"#000",padding:"2px 6px",borderRadius:"4px",border:"1px solid #333"},children:"BLACK"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/WingDashboard.tsx",lineNumber:51,columnNumber:26},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/components/WingDashboard.tsx",lineNumber:50,columnNumber:11},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/components/WingDashboard.tsx",lineNumber:48,columnNumber:9},globalThis),e.jsxDEV("div",{style:{background:"rgba(255,255,255,0.05)",borderRadius:"16px",padding:"16px"},children:[e.jsxDEV("div",{style:{fontSize:"11px",opacity:.5,marginBottom:"4px"},children:"СТАТУС"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/WingDashboard.tsx",lineNumber:55,columnNumber:11},globalThis),e.jsxDEV("div",{style:{fontWeight:700,fontSize:"14px",color:u?"#38ef7d":"#ffd700"},children:u?"БРО-НАСТАВНИК":"ПРОХОЖДЕНИЕ"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/WingDashboard.tsx",lineNumber:56,columnNumber:11},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/components/WingDashboard.tsx",lineNumber:54,columnNumber:9},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/components/WingDashboard.tsx",lineNumber:47,columnNumber:7},globalThis),u&&e.jsxDEV("div",{style:{borderTop:"1px solid rgba(255,255,255,0.1)",paddingTop:"16px"},children:[e.jsxDEV("div",{style:{fontSize:"12px",fontWeight:700,marginBottom:"12px",opacity:.6},children:"УПРАВЛЕНИЕ:"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/WingDashboard.tsx",lineNumber:64,columnNumber:11},globalThis),e.jsxDEV("button",{onClick:()=>f(!m),style:{width:"100%",padding:"12px",background:"rgba(139, 0, 255, 0.2)",border:"1px solid #8b00ff",color:"#c9b8ff",borderRadius:"12px",fontWeight:700,cursor:"pointer",marginBottom:"12px"},children:m?"ЗАКРЫТЬ АРХИТЕКТОР":"🏗️ СОЗДАТЬ ПОСВЯЩЕНИЕ ОТРЯДА"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/WingDashboard.tsx",lineNumber:65,columnNumber:11},globalThis),m&&e.jsxDEV(Ji,{},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/WingDashboard.tsx",lineNumber:72,columnNumber:29},globalThis),!m&&e.jsxDEV("div",{style:{display:"grid",gap:"8px"},children:["Организовать сюрприз для младших",'Провести "Свечку" в отряде',"Помочь вожатому с документами"].map((h,V)=>e.jsxDEV("div",{style:{display:"flex",alignItems:"center",gap:"10px",fontSize:"13px",padding:"8px",background:"rgba(255,255,255,0.03)",borderRadius:"8px"},children:[e.jsxDEV("div",{style:{width:"16px",height:"16px",borderRadius:"4px",border:"1px solid rgba(255,255,255,0.3)"}},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/WingDashboard.tsx",lineNumber:78,columnNumber:19},globalThis),h]},V,!0,{fileName:"D:/Development/Путеводитель web_new/src/components/WingDashboard.tsx",lineNumber:77,columnNumber:17},globalThis))},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/components/WingDashboard.tsx",lineNumber:75,columnNumber:13},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/components/WingDashboard.tsx",lineNumber:63,columnNumber:9},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/components/WingDashboard.tsx",lineNumber:15,columnNumber:5},globalThis)};const ci=[{title:"Центр управления",content:'Это твой паспорт Реального Лагеря. Здесь растет твой Ранг и сохраняются главные достижения. Нажми "Редактировать", чтобы выбрать свой уникальный аватар-эмодзи!',targetSelector:"#profile-passport-card"},{title:"Твои маршруты",content:'Во вкладке "В пути" находятся значки, которые ты выбрал сейчас. Здесь можно отправить подтверждение вожатым через Telegram, чтобы получить значок официально.',targetSelector:"#profile-tab-active"},{title:"Коллекция трофеев",content:"Тут хранятся все твои завершенные значки. Собери их все, чтобы стать Легендой Реального Лагеря!",targetSelector:"#profile-tab-collection"},{title:"Помощь НейроВалюши",content:"Если запутаешься — нажми на аватар Валюши. Она твой персональный ИИ-гид: подскажет требования к значкам и поможет сориентироваться в лагере.",targetSelector:".chat-avatar"}],ze=()=>({text:"",learned:"",impact:"",link:"",photo:null,selfie:null,document:null,file:null}),bi=t=>{if(!Number.isFinite(t))return"";if(t<1024)return`${t} B`;const m=t/1024;return m<1024?`${m.toFixed(1)} KB`:`${(m/1024).toFixed(1)} MB`},Xi=t=>{if(!t)return"";const m=new Date(t);return Number.isNaN(m.getTime())?"":m.toLocaleString("ru-RU")},$={ArrowRight:()=>e.jsxDEV("svg",{width:"20",height:"20",viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2",strokeLinecap:"round",strokeLinejoin:"round",children:e.jsxDEV("path",{d:"M5 12h14M12 5l7 7-7 7"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:100,columnNumber:164},globalThis)},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:100,columnNumber:21},globalThis),Send:()=>e.jsxDEV("svg",{width:"18",height:"18",viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2",strokeLinecap:"round",strokeLinejoin:"round",children:[e.jsxDEV("line",{x1:"22",y1:"2",x2:"11",y2:"13"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:101,columnNumber:158},globalThis),e.jsxDEV("polygon",{points:"22 2 15 22 11 13 2 9 22 2"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:101,columnNumber:196},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:101,columnNumber:15},globalThis),Star:({filled:t})=>e.jsxDEV("svg",{width:"18",height:"18",viewBox:"0 0 24 24",fill:t?"currentColor":"none",stroke:"currentColor",strokeWidth:"2",strokeLinecap:"round",strokeLinejoin:"round",children:e.jsxDEV("polygon",{points:"12 2 15.09 8.26 22 12.27 17 17.14 18.18 21.02 12 17.77 5.82 21.02 7 17.14 2 12.27 8.91 8.26 12 2"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:102,columnNumber:218},globalThis)},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:102,columnNumber:47},globalThis),Trash:()=>e.jsxDEV("svg",{width:"18",height:"18",viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2",strokeLinecap:"round",strokeLinejoin:"round",children:[e.jsxDEV("polyline",{points:"3 6 5 6 21 6"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:103,columnNumber:159},globalThis),e.jsxDEV("path",{d:"M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:103,columnNumber:192},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:103,columnNumber:16},globalThis),Edit:()=>e.jsxDEV("svg",{width:"14",height:"14",viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2",strokeLinecap:"round",strokeLinejoin:"round",children:[e.jsxDEV("path",{d:"M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:104,columnNumber:158},globalThis),e.jsxDEV("path",{d:"M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:104,columnNumber:228},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:104,columnNumber:15},globalThis),Back:()=>e.jsxDEV("svg",{width:"16",height:"16",viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2",strokeLinecap:"round",strokeLinejoin:"round",children:[e.jsxDEV("line",{x1:"19",y1:"12",x2:"5",y2:"12"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:105,columnNumber:158},globalThis),e.jsxDEV("polyline",{points:"12 19 5 12 12 5"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:105,columnNumber:196},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:105,columnNumber:15},globalThis),Close:()=>e.jsxDEV("svg",{width:"14",height:"14",viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2",strokeLinecap:"round",strokeLinejoin:"round",children:[e.jsxDEV("line",{x1:"18",y1:"6",x2:"6",y2:"18"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:106,columnNumber:159},globalThis),e.jsxDEV("line",{x1:"6",y1:"6",x2:"18",y2:"18"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:106,columnNumber:196},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:106,columnNumber:16},globalThis)},Qi=()=>fi(()=>import("./ChatBot-b6c3b02d.js"),["assets/ChatBot-b6c3b02d.js","assets/react-vendor-68fe51ac.js","assets/vendor-02e1e5cd.js","assets/index-4b3fee4a.js","assets/index-91dfb7f4.css","assets/ChatBot-f1b9b7ad.css"]),Zi=()=>fi(()=>import("./ChatAvatar-486417d9.js"),["assets/ChatAvatar-486417d9.js","assets/react-vendor-68fe51ac.js","assets/badgeImages-9f1e8a7f.js","assets/ChatAvatar-2d205e72.css"]),el=xi.lazy(Qi),il=xi.lazy(Zi),di=t=>{const m=String(t||"").trim();if(!m)return"";const f=m.split(".").filter(Boolean);return f.length>=2?`${f[0]}.${f[1]}`:m},ml=({onBack:t,onNavigateToBadge:m,badges:f,categories:w,ensureBadgeLoaded:u,addCustomBadge:h,publishBadgeToCommunity:V,dynamicBroMissions:D,updateBroMissionsOnServer:j,onChatToggle:g,onChatClose:P,isChatOpen:d})=>{var ai;typeof window<"u"&&fetch("http://127.0.0.1:7242/ingest/96284863-607a-4bc5-9cb2-27956a8c59cf",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({location:"ProfileView.tsx:mount",message:"ProfileView mounted",data:{hasAddCustomBadge:typeof h<"u",hasOnNavigateToBadge:typeof m<"u",hasWindowOpenBadge:typeof window.openBadgeById<"u"},timestamp:Date.now(),sessionId:"debug-session",hypothesisId:"A,C"})}).catch(()=>{});const{userData:x,exportData:_,importData:p,resetProgress:E,removeRoute:M,toggleFavorite:c,setNickname:J,setAvatar:Ve,completeTutorial:oe,isTestMode:Te,setIsTestMode:be,updateBadgeSkin:v}=le(),{myTeam:N,createTeam:re,generateInviteUrl:ne,leaveTeam:z}=pi(),{startTutorial:R,showHint:We}=Mi(),[L,H]=n.useState("active"),[je,gi]=n.useState(!1),[K,_e]=n.useState(!1),[wi,de]=n.useState(!1);n.useEffect(()=>{sessionStorage.getItem("rl_trigger_team_editor")==="true"&&(de(!0),sessionStorage.removeItem("rl_trigger_team_editor"))},[]);const[A,Ee]=n.useState({name:"",motto:"",logo:"🚀",goals:[]}),[ue,vi]=n.useState(!0),[T,O]=n.useState(!1),[Le,I]=n.useState(null),[B,Ae]=n.useState(null),[C,Fe]=n.useState(null),[te,$e]=n.useState(null),[se,Me]=n.useState(null),[s,q]=n.useState({title:"",emoji:"⭐",description:"",category_id:"8",coreSkill:"Коллаборация",impact:"",criteriaLevel1:"",criteriaLevel2:"",criteriaLevel3:""}),[X,qe]=n.useState(null),Ue=n.useRef(null),hi=i=>{if(!i)return;if(!i.type.startsWith("image/")){alert("Выберите файл изображения");return}const l=new FileReader;l.onload=()=>{const o=l.result;o&&qe(o)},l.readAsDataURL(i)};n.useEffect(()=>{if(!x.meta.hasCompletedTutorial){const i=setTimeout(()=>{R(ci,{onStepChange:l=>{l===1&&H("active"),l===2&&H("collection")},onComplete:()=>{oe()}})},1e3);return()=>clearTimeout(i)}},[x.meta.hasCompletedTutorial,R,oe]);const Di=()=>{R(ci,{onStepChange:i=>{i===1&&H("active"),i===2&&H("collection")},onComplete:()=>{oe()}})},{profile:b,progress:F}=x,pe=n.useMemo(()=>{var l,o,r;return[(l=F["1.16"])==null?void 0:l.status,(o=F["1.16.1"])==null?void 0:o.status,(r=F["1.16.2"])==null?void 0:r.status].some(a=>a==="achieved"||a==="in_progress")},[F]),Ni=n.useMemo(()=>{const i=["active","collection","journal"];return pe&&i.push("workshop"),i},[pe]);n.useEffect(()=>{pe&&x.meta.hasCompletedTutorial&&!localStorage.getItem("rl_workshop_unlocked_notified")&&(We({title:"Мастерская открыта!",content:"Поздравляем! Твой опыт позволил открыть «Мастерскую Создателя». Теперь ты можешь предлагать свои значки и менять реальность лагеря."}),localStorage.setItem("rl_workshop_unlocked_notified","true"))},[pe,x.meta.hasCompletedTutorial,We]);const Q=ui(b.stats.totalLevelsAchieved),He=!!(b.nickname&&b.nickname!=="Искатель"),yi=He?b.nickname:Q,Z=x.favorites||[],Y=n.useMemo(()=>{const i=new Set;return Z.forEach(l=>{const o=di(l);o&&i.add(o)}),i},[Z]),Se=Object.entries(F).filter(([i,l])=>l.status==="in_progress"),fe=Object.entries(F).filter(([i,l])=>l.status==="achieved"),ke=n.useMemo(()=>fe.slice().sort((i,l)=>{const o=i[1].achievedAt?new Date(i[1].achievedAt).getTime():0;return(l[1].achievedAt?new Date(l[1].achievedAt).getTime():0)-o}),[fe]),xe=n.useMemo(()=>{const i=new Map,l=new Map;for(const r of f){i.set(String(r.id),r);const a=String(r.id||"").split(".").slice(0,2).join(".");l.has(a)||l.set(a,[]),l.get(a).push(r)}const o=new Map;for(const[r,a]of l.entries()){const Ne=a.find(ce=>String(ce.level||"").toLowerCase().includes("баз"))||a.find(ce=>String(ce.level||"").toLowerCase().includes("одноуровнев"))||a[0];Ne&&o.set(r,Ne)}return{byId:i,byBaseId:o}},[f]),Oe=n.useMemo(()=>{const i=new Set;return Object.keys(F).forEach(l=>{const o=String(l||"").split(".");o.length>=2&&i.add(`${o[0]}.${o[1]}`)}),Array.from(i)},[F]),Ye=n.useMemo(()=>{const i=new Set;return Z.forEach(l=>{const o=di(l);o&&i.add(o)}),Array.from(i)},[Z]),Ge=n.useRef(new Set);n.useEffect(()=>{if(!u)return;const l=Array.from(new Set([...Oe,...Ye])).filter(o=>!xe.byBaseId.has(o)&&!Ge.current.has(o));l.length&&(l.forEach(o=>Ge.current.add(o)),l.forEach(o=>{u(o)}))},[u,Oe,Ye,xe]),n.useEffect(()=>()=>{te&&URL.revokeObjectURL(te),se&&URL.revokeObjectURL(se)},[te,se]),n.useEffect(()=>{Ae(null),Fe(null),$e(null),Me(null),I(null)},[ue]),n.useEffect(()=>{if(typeof window>"u")return;const i=String(window.location.hash||"").replace(/^#/,"").toLowerCase();if(i&&!(i!=="share"&&i!=="share-center"&&i!=="sharecenter")){requestAnimationFrame(()=>{const l=document.getElementById("profile-share-center");l&&l.scrollIntoView({behavior:"smooth",block:"start"})});try{const l=new URL(window.location.href);l.hash="",window.history.replaceState({},"",l.toString())}catch{}}},[]);const ge=i=>{const l=String(i||"").split(".").slice(0,2).join("."),o=xe.byId.get(i),r=xe.byBaseId.get(l),a=o||r,Ne=(a==null?void 0:a.title)||`Значок ${l}`,ce=(o==null?void 0:o.level)||(a==null?void 0:a.level)||"",Ai=(r==null?void 0:r.title)||(a==null?void 0:a.title)||"",Fi=(a==null?void 0:a.category_id)||(r==null?void 0:r.category_id)||"",$i=(o==null?void 0:o.emoji)||(a==null?void 0:a.emoji)||(r==null?void 0:r.emoji)||"🏆",mi=!!(o&&String(o.id).split(".").length===3);return{baseId:l,title:Ne,levelLabel:ce,iconBadgeTitle:Ai,iconCategoryId:Fi,iconEmoji:$i,levelId:mi?o==null?void 0:o.id:void 0,levelTitle:mi?o==null?void 0:o.title:void 0}},[S,Je]=n.useState(null),[ae,Ke]=n.useState(null),[y,Pe]=n.useState(ze()),Xe=n.useRef(null),Qe=n.useRef(null),Ze=n.useRef(null),ei=n.useRef(null);n.useEffect(()=>{if(!S)return;const i=document.body.style.overflow;return document.body.style.overflow="hidden",()=>{document.body.style.overflow=i}},[S]);const[ii,Ie]=n.useState(b.nickname||""),[U,me]=n.useState(b.avatar||""),li=n.useRef(null),oi=n.useRef(null);n.useEffect(()=>{Ie(b.nickname||""),me(b.avatar||"")},[b.avatar,b.nickname]);const Vi=i=>{confirm("Убрать этот маршрут из пути?")&&M(i)},ri=i=>{c(i)},Ti=()=>{J(ii),Ve(U),_e(!1)},ji=()=>{confirm("Сбросить изменения?")&&(Ie(b.nickname||""),me(b.avatar||""),_e(!1))},_i=["🧑‍🚀","🦊","🦄","🐼","🐯","🦁","🐙","🤖","⭐","🌙"],we=i=>{if(!i)return!1;const l=i.trim();return l.startsWith("data:image/")||l.startsWith("http://")||l.startsWith("https://")||l.startsWith("/")},ni=i=>{if(!i)return;if(!i.type.startsWith("image/")){alert("Выберите файл изображения");return}if(i.size>2e6&&!confirm("Файл больше 2 МБ. Может не сохраниться в браузере. Продолжить?"))return;const l=new FileReader;l.onload=()=>{const o=l.result;o&&me(o)},l.onerror=()=>{alert("Не удалось загрузить изображение")},l.readAsDataURL(i)},Ei=i=>{var o;const l=(o=i.target.files)==null?void 0:o[0];ni(l),i.target.value=""},Si=i=>{var o;const l=(o=i.target.files)==null?void 0:o[0];ni(l),i.target.value=""},ki=we(U)?"":U,Pi=(i,l)=>{Je(i),Ke(l),Pe(ze())},ve=()=>{Je(null),Ke(null),Pe(ze())},ee=(i,l)=>{Pe(o=>({...o,[i]:l}))},he=i=>l=>{var r;const o=((r=l.target.files)==null?void 0:r[0])||null;if(o&&(i==="photo"||i==="selfie")&&!o.type.startsWith("image/")){alert("Пожалуйста, выберите изображение."),l.target.value="";return}ee(i,o),l.target.value=""},Ii=i=>{if(!i)return"не указан";const l=i.trim();return l?l.startsWith("data:image/")?"изображение (в ЛК)":l:"не указан"},Bi=()=>{if(!S)return"";const i=[],l=ae?F[ae]:void 0,o=Ii(b.avatar);i.push("✅ Подтверждение значка"),i.push(`Значок: ${S.title} (${S.baseId})`),S.levelLabel&&i.push(`Уровень: ${S.levelLabel}`),ae&&ae!==S.baseId&&i.push(`ID уровня: ${ae}`),l!=null&&l.selectedAt&&i.push(`Старт пути: ${Xi(l.selectedAt)}`),i.push(""),i.push(`Пользователь: ${b.nickname||"Искатель"}`),i.push(`ID пользователя: ${b.id||"local"}`),i.push(`Аватар: ${o}`),i.push(`Статистика: ${b.stats.totalLevelsAchieved} уровней, ${b.stats.totalBadgesStarted} в пути`),i.push(""),y.text.trim()&&(i.push("Комментарий:"),i.push(y.text.trim())),y.learned.trim()&&(i.push("Чему я научился(лась):"),i.push(y.learned.trim())),y.impact.trim()&&(i.push("Как это повлияло на мой коллектив и лагерь:"),i.push(y.impact.trim())),y.link.trim()&&i.push(`Ссылка: ${y.link.trim()}`);const r=[{label:"Фото",file:y.photo},{label:"Селфи",file:y.selfie},{label:"Документ",file:y.document},{label:"Файл",file:y.file}].filter(a=>a.file).map(a=>`${a.label}: ${a.file.name} (${bi(a.file.size)})`);return r.length&&(i.push("Файлы:"),i.push(...r)),i.push(""),i.push("Запрос на подтверждение получения значка."),i.push(`Время: ${new Date().toLocaleString("ru-RU")}`),i.join(`
-`)},Ci=()=>{if(!S)return;const i=Bi(),l=`https://t.me/Stivanovv?text=${encodeURIComponent(i)}`;window.open(l,"_blank","noopener,noreferrer"),ve()},zi=i=>{var l;(l=i.target.files)!=null&&l[0]&&p(i.target.files[0]).then(o=>{o&&alert("Прогресс успешно восстановлен!")})},Ri=async()=>{if(!T){O(!0),I("Запрашиваем слоган у НейроВалюши…");try{const i=await qi({kind:"progress_summary",nickname:b.nickname,rank:Q}),l=new Date().toISOString(),o={nickname:b.nickname,avatar:we(b.avatar)?"":b.avatar,rank:Q,totalLevelsAchieved:b.stats.totalLevelsAchieved,totalBadgesStarted:b.stats.totalBadgesStarted},r=await ye({kind:"progress_summary",format:"story",hideNickname:ue,profile:o,createdAt:l,customCaption:i||void 0}),a=await ye({kind:"progress_summary",format:"wide",hideNickname:ue,profile:o,createdAt:l,customCaption:i||void 0});Ae(r),Fe(a),$e(URL.createObjectURL(r.blob)),Me(URL.createObjectURL(a.blob)),I("Карточки готовы: 9:16 и 16:9.")}catch(i){console.error(i),I("Не удалось сгенерировать карточки. Попробуй ещё раз.")}finally{O(!1)}}},ti=async i=>{if(!T){O(!0),I(null);try{const l=await Re(i);if(l==="canceled"){I("Отмена.");return}if(l==="shared"){I("Отправлено через системное меню шеринга.");return}const o=await Be(i.text);I(o?"PNG скачан, подпись скопирована.":"PNG скачан. Подпись можно скопировать ниже.")}catch(l){console.error(l),I("Не удалось поделиться/скачать. Попробуй ещё раз.")}finally{O(!1)}}},Wi=async()=>{const i=(B==null?void 0:B.text)||(C==null?void 0:C.text)||"";if(!i)return;const l=await Be(i);I(l?"Подпись скопирована.":"Не удалось скопировать подпись.")},G=(i=>i.includes("Легенда")?"#FFD700":i.includes("Мастер")?"#E0FFFF":i.includes("Организатор")?"#FF69B4":"#4DA6FF")(Q),W={activeIcon:86,activeFont:40,favoriteIcon:76,favoriteFont:36,collectionMin:150,collectionGap:18,collectionIcon:"clamp(96px, 16vw, 128px)",collectionFont:"clamp(38px, 8vw, 52px)"},k={padding:"10px 12px",borderRadius:"10px",border:"1px solid rgba(255,255,255,0.15)",background:"rgba(0,0,0,0.25)",color:"white",fontFamily:"inherit"},De={padding:"8px 12px",background:"rgba(255,255,255,0.08)",border:"1px solid rgba(255,255,255,0.15)",borderRadius:"10px",color:"white",cursor:"pointer",fontSize:"12px",fontWeight:600},si=[{key:"photo",label:"Фото",file:y.photo},{key:"selfie",label:"Селфи",file:y.selfie},{key:"document",label:"Документ",file:y.document},{key:"file",label:"Файл",file:y.file}],Li=si.some(i=>!!i.file);return e.jsxDEV("div",{className:"profile-view",style:{width:"100%",height:"100%",overflowY:"auto",color:"white",fontFamily:'"Montserrat", sans-serif',paddingBottom:"100px"},children:[e.jsxDEV("div",{style:{height:"60px"},className:"mobile-only-spacer"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:772,columnNumber:7},globalThis),e.jsxDEV("div",{style:{maxWidth:"600px",margin:"0 auto",padding:"20px",display:"flex",flexDirection:"column",gap:"24px"},children:[e.jsxDEV("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between"},children:[e.jsxDEV("button",{onClick:t,style:{padding:"10px 18px",borderRadius:"100px",border:"1px solid var(--cat-glass-border, rgba(255,255,255,0.1))",background:"var(--cat-glass-bg, rgba(255,255,255,0.05))",color:"white",fontSize:"13px",fontWeight:600,cursor:"pointer",display:"flex",alignItems:"center",gap:"8px",transition:"all 0.2s",backdropFilter:"blur(10px)",fontFamily:"var(--f-display-nav)"},onMouseEnter:i=>i.currentTarget.style.background="rgba(255,255,255,0.1)",onMouseLeave:i=>i.currentTarget.style.background="var(--cat-glass-bg, rgba(255,255,255,0.05))",children:[e.jsxDEV($.Back,{},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:804,columnNumber:13},globalThis)," Назад"]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:783,columnNumber:11},globalThis),e.jsxDEV("div",{style:{display:"flex",gap:"8px"},children:[e.jsxDEV("button",{onClick:Di,title:"Показать подсказки",style:{width:"40px",height:"40px",borderRadius:"50%",border:"1px solid var(--cat-glass-border, rgba(255,255,255,0.1))",background:"var(--cat-glass-bg, rgba(255,255,255,0.05))",color:"white",fontSize:"18px",fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",transition:"all 0.2s",backdropFilter:"blur(10px)"},onMouseEnter:i=>i.currentTarget.style.background="rgba(255,255,255,0.1)",onMouseLeave:i=>i.currentTarget.style.background="var(--cat-glass-bg, rgba(255,255,255,0.05))",children:"?"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:807,columnNumber:13},globalThis),e.jsxDEV("button",{onClick:()=>_e(i=>!i),style:{padding:"10px 18px",borderRadius:"100px",border:"1px solid var(--cat-glass-border, rgba(255,255,255,0.1))",background:K?"rgba(255, 255, 255, 0.15)":"var(--cat-glass-bg, rgba(255,255,255,0.05))",color:"white",fontSize:"13px",fontWeight:600,cursor:"pointer",display:"flex",alignItems:"center",gap:"8px",transition:"all 0.2s",backdropFilter:"blur(10px)",fontFamily:"var(--f-display-nav)"},onMouseEnter:i=>i.currentTarget.style.background=K?"rgba(255, 255, 255, 0.2)":"rgba(255,255,255,0.1)",onMouseLeave:i=>i.currentTarget.style.background=K?"rgba(255, 255, 255, 0.15)":"var(--cat-glass-bg, rgba(255,255,255,0.05))",children:[K?e.jsxDEV($.Close,{},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:852,columnNumber:36},globalThis):e.jsxDEV($.Edit,{},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:852,columnNumber:54},globalThis),K?"Закрыть":"Редактировать"]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:831,columnNumber:13},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:806,columnNumber:11},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:782,columnNumber:9},globalThis),e.jsxDEV("div",{id:"profile-passport-card",style:{background:"var(--cat-glass-bg, rgba(20, 20, 35, 0.7))",backdropFilter:"blur(20px)",borderRadius:"24px",padding:"24px",border:"1px solid var(--cat-glass-border, rgba(255, 255, 255, 0.12))",boxShadow:"var(--shadow-medium, 0 8px 32px rgba(0, 0, 0, 0.3))",position:"relative",overflow:"hidden"},children:[e.jsxDEV("div",{style:{position:"absolute",top:"-50px",right:"-50px",width:"180px",height:"180px",background:G,opacity:.12,filter:"blur(60px)",borderRadius:"50%",pointerEvents:"none"}},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:870,columnNumber:11},globalThis),e.jsxDEV("div",{style:{display:"flex",alignItems:"center",gap:"32px"},children:[e.jsxDEV("div",{style:{position:"relative"},children:[e.jsxDEV("div",{style:{fontSize:"64px",background:"linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%)",borderRadius:"50%",width:"140px",height:"140px",display:"flex",alignItems:"center",justifyContent:"center",border:`3px solid ${G}`,boxShadow:`0 0 30px ${G}40`,overflow:"hidden"},children:we(b.avatar)?e.jsxDEV("img",{src:b.avatar,alt:"Аватар",style:{width:"100%",height:"100%",objectFit:"cover"}},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:899,columnNumber:19},globalThis):b.avatar||"🧑‍🚀"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:885,columnNumber:15},globalThis),e.jsxDEV("div",{style:{position:"absolute",bottom:"4px",right:"4px",background:"var(--c-deep-blue, #1a0f2e)",borderRadius:"50%",width:"44px",height:"44px",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"20px",border:"2px solid rgba(255,255,255,0.15)",boxShadow:"0 6px 12px rgba(0,0,0,0.4)"},children:"✨"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:908,columnNumber:15},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:884,columnNumber:13},globalThis),e.jsxDEV("div",{style:{flex:1,display:"flex",flexDirection:"column",justifyContent:"center"},children:[e.jsxDEV("h2",{style:{margin:0,fontSize:"28px",fontWeight:800,letterSpacing:"0.02em",fontFamily:'var(--f-display, "Syne", sans-serif)',background:"linear-gradient(135deg, #fff 30%, #a5a5a5 100%)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",textShadow:"0 2px 10px rgba(255,255,255,0.1)",lineHeight:"1.1"},children:yi},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:928,columnNumber:15},globalThis),e.jsxDEV("div",{style:{color:G,fontWeight:700,marginTop:"4px",fontSize:"12px",textTransform:"uppercase",letterSpacing:"0.15em",display:"flex",alignItems:"center",gap:"8px",opacity:.9,fontFamily:'var(--f-body, "Space Grotesk", sans-serif)',textShadow:`0 0 12px ${G}60`},children:He?Q:"Исследователь"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:943,columnNumber:15},globalThis),e.jsxDEV("div",{style:{marginTop:"16px",display:"grid",gridTemplateColumns:"1fr 1fr",gap:"12px",background:"rgba(0,0,0,0.2)",padding:"10px",borderRadius:"12px",border:"1px solid rgba(255,255,255,0.05)"},children:[e.jsxDEV("div",{children:[e.jsxDEV("div",{style:{fontSize:"10px",textTransform:"uppercase",opacity:.5,letterSpacing:"0.05em"},children:"Уровень"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:972,columnNumber:21},globalThis),e.jsxDEV("div",{style:{fontSize:"16px",fontWeight:700,color:"white"},children:b.stats.totalLevelsAchieved},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:973,columnNumber:21},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:971,columnNumber:18},globalThis),e.jsxDEV("div",{children:[e.jsxDEV("div",{style:{fontSize:"10px",textTransform:"uppercase",opacity:.5,letterSpacing:"0.05em"},children:"В пути"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:976,columnNumber:21},globalThis),e.jsxDEV("div",{style:{fontSize:"16px",fontWeight:700,color:"#4dacff"},children:Se.length},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:977,columnNumber:21},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:975,columnNumber:18},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:961,columnNumber:15},globalThis),e.jsxDEV("div",{style:{marginTop:"12px",display:"flex",alignItems:"center",gap:"8px"},children:[e.jsxDEV("div",{style:{flex:1,height:"4px",background:"rgba(255,255,255,0.08)",borderRadius:"2px",overflow:"hidden"},children:e.jsxDEV("div",{style:{width:`${Math.min(100,Math.max(5,b.stats.totalLevelsAchieved%10*10))}%`,height:"100%",background:`linear-gradient(90deg, ${G}, #fff)`,borderRadius:"2px",boxShadow:`0 0 10px ${G}60`}},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:984,columnNumber:19},globalThis)},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:983,columnNumber:17},globalThis),e.jsxDEV("div",{style:{fontSize:"10px",opacity:.4,width:"24px",textAlign:"right"},children:"XP"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:992,columnNumber:17},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:982,columnNumber:15},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:927,columnNumber:13},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:883,columnNumber:11},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:859,columnNumber:9},globalThis),K&&e.jsxDEV("div",{style:{padding:"16px",background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:"16px",display:"flex",flexDirection:"column",gap:"10px"},children:[e.jsxDEV("div",{style:{fontSize:"12px",fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase",opacity:.7},children:"Профиль"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1008,columnNumber:13},globalThis),e.jsxDEV("label",{style:{fontSize:"12px",opacity:.7},children:"Ник"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1011,columnNumber:13},globalThis),e.jsxDEV("input",{value:ii,onChange:i=>Ie(i.target.value),placeholder:"Ваш ник",maxLength:24,style:{padding:"10px 12px",borderRadius:"10px",border:"1px solid rgba(255,255,255,0.15)",background:"rgba(0,0,0,0.2)",color:"white",fontFamily:"inherit"}},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1012,columnNumber:13},globalThis),e.jsxDEV("label",{style:{fontSize:"12px",opacity:.7},children:"Аватар (эмодзи)"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1026,columnNumber:13},globalThis),e.jsxDEV("input",{value:ki,onChange:i=>me(i.target.value),placeholder:"Например: 🧑‍🚀",maxLength:3,style:{padding:"10px 12px",borderRadius:"10px",border:"1px solid rgba(255,255,255,0.15)",background:"rgba(0,0,0,0.2)",color:"white",fontFamily:"inherit"}},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1027,columnNumber:13},globalThis),e.jsxDEV("div",{style:{display:"flex",gap:"10px",flexWrap:"wrap"},children:[e.jsxDEV("button",{type:"button",onClick:()=>{var i;return(i=li.current)==null?void 0:i.click()},style:{padding:"8px 12px",background:"rgba(255,255,255,0.08)",border:"1px solid rgba(255,255,255,0.15)",borderRadius:"10px",color:"white",cursor:"pointer",fontSize:"12px",fontWeight:600},children:"📁 Загрузить фото"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1042,columnNumber:15},globalThis),e.jsxDEV("button",{type:"button",onClick:()=>{var i;return(i=oi.current)==null?void 0:i.click()},style:{padding:"8px 12px",background:"rgba(255,255,255,0.08)",border:"1px solid rgba(255,255,255,0.15)",borderRadius:"10px",color:"white",cursor:"pointer",fontSize:"12px",fontWeight:600},children:"📷 Сделать селфи"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1058,columnNumber:15},globalThis),e.jsxDEV("input",{ref:li,type:"file",accept:"image/*",style:{display:"none"},onChange:Ei},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1074,columnNumber:15},globalThis),e.jsxDEV("input",{ref:oi,type:"file",accept:"image/*",capture:"user",style:{display:"none"},onChange:Si},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1081,columnNumber:15},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1041,columnNumber:13},globalThis),U&&e.jsxDEV("div",{style:{display:"flex",alignItems:"center",gap:"10px",marginTop:"4px"},children:[e.jsxDEV("div",{style:{width:"44px",height:"44px",borderRadius:"50%",background:"rgba(255,255,255,0.08)",border:"1px solid rgba(255,255,255,0.15)",display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden"},children:we(U)?e.jsxDEV("img",{src:U,alt:"Предпросмотр аватара",style:{width:"100%",height:"100%",objectFit:"cover"}},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1104,columnNumber:21},globalThis):e.jsxDEV("span",{style:{fontSize:"20px"},children:U},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1106,columnNumber:21},globalThis)},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1092,columnNumber:17},globalThis),e.jsxDEV("div",{style:{fontSize:"12px",opacity:.6},children:"Предпросмотр"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1109,columnNumber:17},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1091,columnNumber:15},globalThis),e.jsxDEV("div",{style:{display:"flex",flexWrap:"wrap",gap:"8px"},children:_i.map(i=>e.jsxDEV("button",{type:"button",onClick:()=>me(i),style:{width:"34px",height:"34px",borderRadius:"10px",border:"1px solid rgba(255,255,255,0.15)",background:U===i?"rgba(255,255,255,0.15)":"rgba(255,255,255,0.05)",cursor:"pointer",fontSize:"16px"},"aria-label":`Выбрать аватар ${i}`,children:i},i,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1116,columnNumber:17},globalThis))},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1114,columnNumber:13},globalThis),e.jsxDEV("div",{style:{display:"flex",gap:"10px"},children:[e.jsxDEV("button",{onClick:Ti,style:{flex:1,padding:"10px",background:"rgba(255,255,255,0.12)",color:"white",border:"1px solid rgba(255,255,255,0.18)",borderRadius:"10px",cursor:"pointer",fontWeight:600},children:"Сохранить"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1136,columnNumber:15},globalThis),e.jsxDEV("button",{onClick:ji,style:{padding:"10px 12px",background:"rgba(255, 77, 77, 0.12)",color:"#ff8a8a",border:"1px solid rgba(255, 77, 77, 0.35)",borderRadius:"10px",cursor:"pointer",fontWeight:600},children:"Сбросить изменения"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1151,columnNumber:15},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1135,columnNumber:13},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:999,columnNumber:11},globalThis),e.jsxDEV("div",{id:"profile-team-card",style:{background:"var(--cat-glass-bg, rgba(30, 20, 50, 0.6))",backdropFilter:"blur(20px)",borderRadius:"24px",padding:"24px",border:"1px solid rgba(255, 255, 255, 0.08)",boxShadow:"var(--shadow-medium, 0 8px 32px rgba(0, 0, 0, 0.25))"},children:N?e.jsxDEV("div",{children:[e.jsxDEV("div",{style:{display:"flex",alignItems:"center",gap:"16px",marginBottom:"16px"},children:[e.jsxDEV("div",{style:{fontSize:"40px",background:"rgba(0,0,0,0.2)",width:"70px",height:"70px",borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",border:"2px solid rgba(255,255,255,0.1)"},children:N.logo},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1203,columnNumber:17},globalThis),e.jsxDEV("div",{style:{flex:1},children:[e.jsxDEV("div",{style:{fontSize:"12px",color:"#4dacff",fontWeight:700,textTransform:"uppercase",letterSpacing:"0.1em"},children:"Мой Движок"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1207,columnNumber:19},globalThis),e.jsxDEV("h3",{style:{margin:0,fontSize:"20px"},children:N.name},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1208,columnNumber:19},globalThis),e.jsxDEV("div",{style:{fontSize:"13px",opacity:.6,fontStyle:"italic"},children:["«",N.motto,"»"]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1209,columnNumber:19},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1206,columnNumber:17},globalThis),e.jsxDEV("button",{onClick:()=>{confirm("Выйти из команды?")&&z()},style:{background:"none",border:"none",color:"#ff4d4d",cursor:"pointer",fontSize:"18px"},title:"Выйти",children:"🚪"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1211,columnNumber:17},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1202,columnNumber:15},globalThis),N.goals.length>0&&e.jsxDEV("div",{style:{background:"rgba(0,0,0,0.2)",borderRadius:"16px",padding:"12px",marginBottom:"16px"},children:[e.jsxDEV("div",{style:{fontSize:"11px",opacity:.5,textTransform:"uppercase",marginBottom:"8px"},children:"Наши цели"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1225,columnNumber:19},globalThis),e.jsxDEV("div",{style:{display:"flex",gap:"8px"},children:N.goals.map(i=>e.jsxDEV("div",{onClick:()=>m(i),style:{cursor:"pointer"},children:e.jsxDEV(ie,{badgeId:i,badgeTitle:"",categoryId:i.split(".")[0],emoji:"🎯",size:"small"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1229,columnNumber:25},globalThis)},i,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1228,columnNumber:23},globalThis))},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1226,columnNumber:19},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1224,columnNumber:17},globalThis),e.jsxDEV("div",{style:{display:"flex",gap:"10px"},children:e.jsxDEV("button",{onClick:async()=>{const i=ne(),l=`Присоединяйся к моему Движку «${N.name}» в Реальном Лагере! Вместе веселее. 🚀`;try{navigator.share?await navigator.share({title:`Движок ${N.name}`,text:l,url:i}):(await Be(`${l}
+      `,
+                    },
+                    void 0,
+                    !1,
+                    {
+                      fileName:
+                        'D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx',
+                      lineNumber: 299,
+                      columnNumber: 7,
+                    },
+                    globalThis
+                  ),
+                ],
+              },
+              void 0,
+              !0,
+              {
+                fileName: 'D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx',
+                lineNumber: 121,
+                columnNumber: 5,
+              },
+              globalThis
+            )
+          : e.jsxDEV(
+              'div',
+              {
+                style: {
+                  background: 'rgba(20, 10, 40, 0.7)',
+                  borderRadius: '24px',
+                  padding: '32px 24px',
+                  border: '1px solid rgba(139, 0, 255, 0.4)',
+                  marginBottom: '24px',
+                  textAlign: 'center',
+                },
+                children: [
+                  e.jsxDEV(
+                    'div',
+                    { style: { fontSize: '48px', marginBottom: '16px' }, children: '📘' },
+                    void 0,
+                    !1,
+                    {
+                      fileName:
+                        'D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx',
+                      lineNumber: 92,
+                      columnNumber: 9,
+                    },
+                    globalThis
+                  ),
+                  e.jsxDEV(
+                    'h3',
+                    {
+                      style: { margin: 0, fontSize: '20px', fontWeight: 800 },
+                      children: 'БРОСВЯЩЕНИЕ',
+                    },
+                    void 0,
+                    !1,
+                    {
+                      fileName:
+                        'D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx',
+                      lineNumber: 93,
+                      columnNumber: 9,
+                    },
+                    globalThis
+                  ),
+                  e.jsxDEV(
+                    'p',
+                    {
+                      style: {
+                        fontSize: '14px',
+                        opacity: 0.7,
+                        marginTop: '12px',
+                        lineHeight: '1.5',
+                      },
+                      children:
+                        'Готов начать путь вожатого? Получи свой цифровой Бропаспорт и начни выполнять Бродела!',
+                    },
+                    void 0,
+                    !1,
+                    {
+                      fileName:
+                        'D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx',
+                      lineNumber: 94,
+                      columnNumber: 9,
+                    },
+                    globalThis
+                  ),
+                  e.jsxDEV(
+                    'button',
+                    {
+                      onClick: h,
+                      style: {
+                        marginTop: '24px',
+                        width: '100%',
+                        padding: '16px',
+                        background: 'linear-gradient(90deg, #8b00ff, #4dacff)',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '16px',
+                        fontWeight: 900,
+                        fontSize: '14px',
+                        textTransform: 'uppercase',
+                        cursor: 'pointer',
+                        boxShadow: '0 8px 20px rgba(139, 0, 255, 0.3)',
+                      },
+                      children: 'ПОЛУЧИТЬ БРОПАСПОРТ',
+                    },
+                    void 0,
+                    !1,
+                    {
+                      fileName:
+                        'D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx',
+                      lineNumber: 97,
+                      columnNumber: 9,
+                    },
+                    globalThis
+                  ),
+                ],
+              },
+              void 0,
+              !0,
+              {
+                fileName: 'D:/Development/Путеводитель web_new/src/components/BroInitiation.tsx',
+                lineNumber: 84,
+                columnNumber: 7,
+              },
+              globalThis
+            );
+  },
+  Ji = () => {
+    const [t, m] = n.useState(1),
+      [f, w] = n.useState(''),
+      [u, h] = n.useState([]),
+      V = [
+        '🔥 Свечка (Огонек)',
+        '💃 Отрядный танец',
+        '🎤 Уникальная кричалка',
+        '🤐 Ритуал тишины',
+        '🎁 Тайный друг',
+        '🏳️ Поднятие флага',
+      ];
+    return e.jsxDEV(
+      'div',
+      {
+        className: 'fade-in',
+        style: {
+          marginTop: '20px',
+          padding: '20px',
+          background: 'rgba(0,0,0,0.3)',
+          borderRadius: '16px',
+          border: '1px dashed rgba(255,255,255,0.1)',
+        },
+        children: [
+          e.jsxDEV(
+            'h4',
+            {
+              style: {
+                margin: '0 0 16px 0',
+                color: '#ffd700',
+                textTransform: 'uppercase',
+                fontSize: '14px',
+              },
+              children: '🏗️ Архитектор Отряда',
+            },
+            void 0,
+            !1,
+            {
+              fileName: 'D:/Development/Путеводитель web_new/src/components/SquadArchitect.tsx',
+              lineNumber: 21,
+              columnNumber: 7,
+            },
+            globalThis
+          ),
+          t === 1 &&
+            e.jsxDEV(
+              'div',
+              {
+                children: [
+                  e.jsxDEV(
+                    'label',
+                    {
+                      style: {
+                        fontSize: '12px',
+                        opacity: 0.7,
+                        display: 'block',
+                        marginBottom: '8px',
+                      },
+                      children: 'Название Отряда (Стартапа)',
+                    },
+                    void 0,
+                    !1,
+                    {
+                      fileName:
+                        'D:/Development/Путеводитель web_new/src/components/SquadArchitect.tsx',
+                      lineNumber: 27,
+                      columnNumber: 11,
+                    },
+                    globalThis
+                  ),
+                  e.jsxDEV(
+                    'input',
+                    {
+                      value: f,
+                      onChange: (D) => w(D.target.value),
+                      placeholder: "Напр: 'Искра', 'Космодром', 'Новые Горизонты'",
+                      style: {
+                        width: '100%',
+                        padding: '12px',
+                        borderRadius: '10px',
+                        background: 'rgba(255,255,255,0.05)',
+                        border: '1px solid rgba(255,255,255,0.1)',
+                        color: 'white',
+                        marginBottom: '16px',
+                      },
+                    },
+                    void 0,
+                    !1,
+                    {
+                      fileName:
+                        'D:/Development/Путеводитель web_new/src/components/SquadArchitect.tsx',
+                      lineNumber: 28,
+                      columnNumber: 11,
+                    },
+                    globalThis
+                  ),
+                  e.jsxDEV(
+                    'button',
+                    {
+                      onClick: () => m(2),
+                      style: {
+                        padding: '8px 16px',
+                        background: '#8b00ff',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '8px',
+                        cursor: 'pointer',
+                      },
+                      children: 'ДАЛЕЕ',
+                    },
+                    void 0,
+                    !1,
+                    {
+                      fileName:
+                        'D:/Development/Путеводитель web_new/src/components/SquadArchitect.tsx',
+                      lineNumber: 34,
+                      columnNumber: 11,
+                    },
+                    globalThis
+                  ),
+                ],
+              },
+              void 0,
+              !0,
+              {
+                fileName: 'D:/Development/Путеводитель web_new/src/components/SquadArchitect.tsx',
+                lineNumber: 26,
+                columnNumber: 9,
+              },
+              globalThis
+            ),
+          t === 2 &&
+            e.jsxDEV(
+              'div',
+              {
+                children: [
+                  e.jsxDEV(
+                    'label',
+                    {
+                      style: {
+                        fontSize: '12px',
+                        opacity: 0.7,
+                        display: 'block',
+                        marginBottom: '8px',
+                      },
+                      children: 'Код Традиций (Выберите 3)',
+                    },
+                    void 0,
+                    !1,
+                    {
+                      fileName:
+                        'D:/Development/Путеводитель web_new/src/components/SquadArchitect.tsx',
+                      lineNumber: 42,
+                      columnNumber: 11,
+                    },
+                    globalThis
+                  ),
+                  e.jsxDEV(
+                    'div',
+                    {
+                      style: {
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        gap: '8px',
+                        marginBottom: '16px',
+                      },
+                      children: V.map((D) =>
+                        e.jsxDEV(
+                          'button',
+                          {
+                            onClick: () =>
+                              h((j) => (j.includes(D) ? j.filter((g) => g !== D) : [...j, D])),
+                            style: {
+                              padding: '6px 10px',
+                              borderRadius: '8px',
+                              border: `1px solid ${u.includes(D) ? '#38ef7d' : 'rgba(255,255,255,0.1)'}`,
+                              background: u.includes(D) ? 'rgba(56, 239, 125, 0.1)' : 'transparent',
+                              color: u.includes(D) ? '#38ef7d' : 'white',
+                              fontSize: '11px',
+                              cursor: 'pointer',
+                            },
+                            children: D,
+                          },
+                          D,
+                          !1,
+                          {
+                            fileName:
+                              'D:/Development/Путеводитель web_new/src/components/SquadArchitect.tsx',
+                            lineNumber: 45,
+                            columnNumber: 15,
+                          },
+                          globalThis
+                        )
+                      ),
+                    },
+                    void 0,
+                    !1,
+                    {
+                      fileName:
+                        'D:/Development/Путеводитель web_new/src/components/SquadArchitect.tsx',
+                      lineNumber: 43,
+                      columnNumber: 11,
+                    },
+                    globalThis
+                  ),
+                  e.jsxDEV(
+                    'button',
+                    {
+                      onClick: () => m(3),
+                      style: {
+                        padding: '8px 16px',
+                        background: '#8b00ff',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '8px',
+                        cursor: 'pointer',
+                      },
+                      children: 'СГЕНЕРИРОВАТЬ ПОСВЯЩЕНИЕ',
+                    },
+                    void 0,
+                    !1,
+                    {
+                      fileName:
+                        'D:/Development/Путеводитель web_new/src/components/SquadArchitect.tsx',
+                      lineNumber: 62,
+                      columnNumber: 11,
+                    },
+                    globalThis
+                  ),
+                ],
+              },
+              void 0,
+              !0,
+              {
+                fileName: 'D:/Development/Путеводитель web_new/src/components/SquadArchitect.tsx',
+                lineNumber: 41,
+                columnNumber: 9,
+              },
+              globalThis
+            ),
+          t === 3 &&
+            e.jsxDEV(
+              'div',
+              {
+                style: { textAlign: 'center' },
+                children: [
+                  e.jsxDEV(
+                    'div',
+                    { style: { fontSize: '48px', marginBottom: '12px' }, children: '📜' },
+                    void 0,
+                    !1,
+                    {
+                      fileName:
+                        'D:/Development/Путеводитель web_new/src/components/SquadArchitect.tsx',
+                      lineNumber: 70,
+                      columnNumber: 11,
+                    },
+                    globalThis
+                  ),
+                  e.jsxDEV(
+                    'div',
+                    {
+                      style: { fontSize: '16px', fontWeight: 800, marginBottom: '8px' },
+                      children: f,
+                    },
+                    void 0,
+                    !1,
+                    {
+                      fileName:
+                        'D:/Development/Путеводитель web_new/src/components/SquadArchitect.tsx',
+                      lineNumber: 71,
+                      columnNumber: 11,
+                    },
+                    globalThis
+                  ),
+                  e.jsxDEV(
+                    'div',
+                    {
+                      style: { fontSize: '12px', opacity: 0.7, marginBottom: '16px' },
+                      children: 'Сценарий Посвящения готов',
+                    },
+                    void 0,
+                    !1,
+                    {
+                      fileName:
+                        'D:/Development/Путеводитель web_new/src/components/SquadArchitect.tsx',
+                      lineNumber: 72,
+                      columnNumber: 11,
+                    },
+                    globalThis
+                  ),
+                  e.jsxDEV(
+                    'div',
+                    {
+                      style: {
+                        textAlign: 'left',
+                        background: 'rgba(255,255,255,0.05)',
+                        padding: '12px',
+                        borderRadius: '8px',
+                        fontSize: '12px',
+                        lineHeight: '1.5',
+                        marginBottom: '16px',
+                      },
+                      children: [
+                        '1. Сбор: Атмосфера таинственности.',
+                        e.jsxDEV(
+                          'br',
+                          {},
+                          void 0,
+                          !1,
+                          {
+                            fileName:
+                              'D:/Development/Путеводитель web_new/src/components/SquadArchitect.tsx',
+                            lineNumber: 74,
+                            columnNumber: 47,
+                          },
+                          globalThis
+                        ),
+                        '2. Ритуал: ',
+                        u[0] || 'Традиция 1',
+                        '.',
+                        e.jsxDEV(
+                          'br',
+                          {},
+                          void 0,
+                          !1,
+                          {
+                            fileName:
+                              'D:/Development/Путеводитель web_new/src/components/SquadArchitect.tsx',
+                            lineNumber: 75,
+                            columnNumber: 56,
+                          },
+                          globalThis
+                        ),
+                        '3. Испытание: ',
+                        u[1] || 'Традиция 2',
+                        '.',
+                        e.jsxDEV(
+                          'br',
+                          {},
+                          void 0,
+                          !1,
+                          {
+                            fileName:
+                              'D:/Development/Путеводитель web_new/src/components/SquadArchitect.tsx',
+                            lineNumber: 76,
+                            columnNumber: 59,
+                          },
+                          globalThis
+                        ),
+                        '4. Финал: ',
+                        u[2] || 'Традиция 3',
+                        ' и вручение символики.',
+                      ],
+                    },
+                    void 0,
+                    !0,
+                    {
+                      fileName:
+                        'D:/Development/Путеводитель web_new/src/components/SquadArchitect.tsx',
+                      lineNumber: 73,
+                      columnNumber: 11,
+                    },
+                    globalThis
+                  ),
+                  e.jsxDEV(
+                    'button',
+                    {
+                      onClick: () => alert('Сценарий сохранен в Крыле!'),
+                      style: {
+                        width: '100%',
+                        padding: '12px',
+                        background: '#ffd700',
+                        color: '#1a1a2e',
+                        border: 'none',
+                        borderRadius: '10px',
+                        fontWeight: 800,
+                        cursor: 'pointer',
+                      },
+                      children: 'УТВЕРДИТЬ МЕТОДИКУ',
+                    },
+                    void 0,
+                    !1,
+                    {
+                      fileName:
+                        'D:/Development/Путеводитель web_new/src/components/SquadArchitect.tsx',
+                      lineNumber: 79,
+                      columnNumber: 11,
+                    },
+                    globalThis
+                  ),
+                ],
+              },
+              void 0,
+              !0,
+              {
+                fileName: 'D:/Development/Путеводитель web_new/src/components/SquadArchitect.tsx',
+                lineNumber: 69,
+                columnNumber: 9,
+              },
+              globalThis
+            ),
+        ],
+      },
+      void 0,
+      !0,
+      {
+        fileName: 'D:/Development/Путеводитель web_new/src/components/SquadArchitect.tsx',
+        lineNumber: 18,
+        columnNumber: 5,
+      },
+      globalThis
+    );
+  },
+  Ki = () => {
+    const { userData: t } = le(),
+      [m, f] = n.useState(!1),
+      w = t.broProgress;
+    if (!(w != null && w.wingId)) return null;
+    const u = w.isBro;
+    return e.jsxDEV(
+      'div',
+      {
+        style: {
+          background: 'linear-gradient(135deg, #1a0b2e 0%, #2d1b4e 100%)',
+          borderRadius: '24px',
+          padding: '24px',
+          border: '1px solid rgba(139, 0, 255, 0.3)',
+          marginBottom: '24px',
+          position: 'relative',
+          overflow: 'hidden',
+        },
+        children: [
+          e.jsxDEV(
+            'div',
+            {
+              style: {
+                position: 'absolute',
+                top: '-50px',
+                right: '-50px',
+                width: '150px',
+                height: '150px',
+                background: '#8b00ff',
+                filter: 'blur(60px)',
+                opacity: 0.2,
+              },
+            },
+            void 0,
+            !1,
+            {
+              fileName: 'D:/Development/Путеводитель web_new/src/components/WingDashboard.tsx',
+              lineNumber: 24,
+              columnNumber: 7,
+            },
+            globalThis
+          ),
+          e.jsxDEV(
+            'div',
+            {
+              style: {
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '20px',
+              },
+              children: [
+                e.jsxDEV(
+                  'div',
+                  {
+                    children: [
+                      e.jsxDEV(
+                        'div',
+                        {
+                          style: {
+                            fontSize: '10px',
+                            fontWeight: 800,
+                            color: '#c9b8ff',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.1em',
+                            marginBottom: '4px',
+                          },
+                          children: u ? 'ТВОЕ КРЫЛО (ШТАБ)' : 'КРЫЛО (КАНДИДАТ)',
+                        },
+                        void 0,
+                        !1,
+                        {
+                          fileName:
+                            'D:/Development/Путеводитель web_new/src/components/WingDashboard.tsx',
+                          lineNumber: 32,
+                          columnNumber: 11,
+                        },
+                        globalThis
+                      ),
+                      e.jsxDEV(
+                        'h3',
+                        {
+                          style: {
+                            margin: 0,
+                            fontSize: '20px',
+                            color: 'white',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                          },
+                          children: '🦅 Небесные Стражи',
+                        },
+                        void 0,
+                        !1,
+                        {
+                          fileName:
+                            'D:/Development/Путеводитель web_new/src/components/WingDashboard.tsx',
+                          lineNumber: 35,
+                          columnNumber: 11,
+                        },
+                        globalThis
+                      ),
+                    ],
+                  },
+                  void 0,
+                  !0,
+                  {
+                    fileName:
+                      'D:/Development/Путеводитель web_new/src/components/WingDashboard.tsx',
+                    lineNumber: 31,
+                    columnNumber: 9,
+                  },
+                  globalThis
+                ),
+                e.jsxDEV(
+                  'div',
+                  {
+                    style: {
+                      width: '40px',
+                      height: '40px',
+                      borderRadius: '50%',
+                      background: 'linear-gradient(135deg, #222 50%, #8b00ff 50%)',
+                      border: '2px solid rgba(255,255,255,0.2)',
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+                    },
+                    title: 'Двухцветный галстук Наставника',
+                  },
+                  void 0,
+                  !1,
+                  {
+                    fileName:
+                      'D:/Development/Путеводитель web_new/src/components/WingDashboard.tsx',
+                    lineNumber: 39,
+                    columnNumber: 9,
+                  },
+                  globalThis
+                ),
+              ],
+            },
+            void 0,
+            !0,
+            {
+              fileName: 'D:/Development/Путеводитель web_new/src/components/WingDashboard.tsx',
+              lineNumber: 30,
+              columnNumber: 7,
+            },
+            globalThis
+          ),
+          e.jsxDEV(
+            'div',
+            {
+              style: {
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr',
+                gap: '12px',
+                marginBottom: '20px',
+              },
+              children: [
+                e.jsxDEV(
+                  'div',
+                  {
+                    style: {
+                      background: 'rgba(255,255,255,0.05)',
+                      borderRadius: '16px',
+                      padding: '16px',
+                    },
+                    children: [
+                      e.jsxDEV(
+                        'div',
+                        {
+                          style: { fontSize: '11px', opacity: 0.5, marginBottom: '4px' },
+                          children: 'НАСТАВНИК',
+                        },
+                        void 0,
+                        !1,
+                        {
+                          fileName:
+                            'D:/Development/Путеводитель web_new/src/components/WingDashboard.tsx',
+                          lineNumber: 49,
+                          columnNumber: 11,
+                        },
+                        globalThis
+                      ),
+                      e.jsxDEV(
+                        'div',
+                        {
+                          style: {
+                            fontWeight: 700,
+                            fontSize: '14px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                          },
+                          children: [
+                            '👑 Степан И. ',
+                            e.jsxDEV(
+                              'span',
+                              {
+                                style: {
+                                  fontSize: '10px',
+                                  background: '#000',
+                                  padding: '2px 6px',
+                                  borderRadius: '4px',
+                                  border: '1px solid #333',
+                                },
+                                children: 'BLACK',
+                              },
+                              void 0,
+                              !1,
+                              {
+                                fileName:
+                                  'D:/Development/Путеводитель web_new/src/components/WingDashboard.tsx',
+                                lineNumber: 51,
+                                columnNumber: 26,
+                              },
+                              globalThis
+                            ),
+                          ],
+                        },
+                        void 0,
+                        !0,
+                        {
+                          fileName:
+                            'D:/Development/Путеводитель web_new/src/components/WingDashboard.tsx',
+                          lineNumber: 50,
+                          columnNumber: 11,
+                        },
+                        globalThis
+                      ),
+                    ],
+                  },
+                  void 0,
+                  !0,
+                  {
+                    fileName:
+                      'D:/Development/Путеводитель web_new/src/components/WingDashboard.tsx',
+                    lineNumber: 48,
+                    columnNumber: 9,
+                  },
+                  globalThis
+                ),
+                e.jsxDEV(
+                  'div',
+                  {
+                    style: {
+                      background: 'rgba(255,255,255,0.05)',
+                      borderRadius: '16px',
+                      padding: '16px',
+                    },
+                    children: [
+                      e.jsxDEV(
+                        'div',
+                        {
+                          style: { fontSize: '11px', opacity: 0.5, marginBottom: '4px' },
+                          children: 'СТАТУС',
+                        },
+                        void 0,
+                        !1,
+                        {
+                          fileName:
+                            'D:/Development/Путеводитель web_new/src/components/WingDashboard.tsx',
+                          lineNumber: 55,
+                          columnNumber: 11,
+                        },
+                        globalThis
+                      ),
+                      e.jsxDEV(
+                        'div',
+                        {
+                          style: {
+                            fontWeight: 700,
+                            fontSize: '14px',
+                            color: u ? '#38ef7d' : '#ffd700',
+                          },
+                          children: u ? 'БРО-НАСТАВНИК' : 'ПРОХОЖДЕНИЕ',
+                        },
+                        void 0,
+                        !1,
+                        {
+                          fileName:
+                            'D:/Development/Путеводитель web_new/src/components/WingDashboard.tsx',
+                          lineNumber: 56,
+                          columnNumber: 11,
+                        },
+                        globalThis
+                      ),
+                    ],
+                  },
+                  void 0,
+                  !0,
+                  {
+                    fileName:
+                      'D:/Development/Путеводитель web_new/src/components/WingDashboard.tsx',
+                    lineNumber: 54,
+                    columnNumber: 9,
+                  },
+                  globalThis
+                ),
+              ],
+            },
+            void 0,
+            !0,
+            {
+              fileName: 'D:/Development/Путеводитель web_new/src/components/WingDashboard.tsx',
+              lineNumber: 47,
+              columnNumber: 7,
+            },
+            globalThis
+          ),
+          u &&
+            e.jsxDEV(
+              'div',
+              {
+                style: { borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '16px' },
+                children: [
+                  e.jsxDEV(
+                    'div',
+                    {
+                      style: {
+                        fontSize: '12px',
+                        fontWeight: 700,
+                        marginBottom: '12px',
+                        opacity: 0.6,
+                      },
+                      children: 'УПРАВЛЕНИЕ:',
+                    },
+                    void 0,
+                    !1,
+                    {
+                      fileName:
+                        'D:/Development/Путеводитель web_new/src/components/WingDashboard.tsx',
+                      lineNumber: 64,
+                      columnNumber: 11,
+                    },
+                    globalThis
+                  ),
+                  e.jsxDEV(
+                    'button',
+                    {
+                      onClick: () => f(!m),
+                      style: {
+                        width: '100%',
+                        padding: '12px',
+                        background: 'rgba(139, 0, 255, 0.2)',
+                        border: '1px solid #8b00ff',
+                        color: '#c9b8ff',
+                        borderRadius: '12px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        marginBottom: '12px',
+                      },
+                      children: m ? 'ЗАКРЫТЬ АРХИТЕКТОР' : '🏗️ СОЗДАТЬ ПОСВЯЩЕНИЕ ОТРЯДА',
+                    },
+                    void 0,
+                    !1,
+                    {
+                      fileName:
+                        'D:/Development/Путеводитель web_new/src/components/WingDashboard.tsx',
+                      lineNumber: 65,
+                      columnNumber: 11,
+                    },
+                    globalThis
+                  ),
+                  m &&
+                    e.jsxDEV(
+                      Ji,
+                      {},
+                      void 0,
+                      !1,
+                      {
+                        fileName:
+                          'D:/Development/Путеводитель web_new/src/components/WingDashboard.tsx',
+                        lineNumber: 72,
+                        columnNumber: 29,
+                      },
+                      globalThis
+                    ),
+                  !m &&
+                    e.jsxDEV(
+                      'div',
+                      {
+                        style: { display: 'grid', gap: '8px' },
+                        children: [
+                          'Организовать сюрприз для младших',
+                          'Провести "Свечку" в отряде',
+                          'Помочь вожатому с документами',
+                        ].map((h, V) =>
+                          e.jsxDEV(
+                            'div',
+                            {
+                              style: {
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '10px',
+                                fontSize: '13px',
+                                padding: '8px',
+                                background: 'rgba(255,255,255,0.03)',
+                                borderRadius: '8px',
+                              },
+                              children: [
+                                e.jsxDEV(
+                                  'div',
+                                  {
+                                    style: {
+                                      width: '16px',
+                                      height: '16px',
+                                      borderRadius: '4px',
+                                      border: '1px solid rgba(255,255,255,0.3)',
+                                    },
+                                  },
+                                  void 0,
+                                  !1,
+                                  {
+                                    fileName:
+                                      'D:/Development/Путеводитель web_new/src/components/WingDashboard.tsx',
+                                    lineNumber: 78,
+                                    columnNumber: 19,
+                                  },
+                                  globalThis
+                                ),
+                                h,
+                              ],
+                            },
+                            V,
+                            !0,
+                            {
+                              fileName:
+                                'D:/Development/Путеводитель web_new/src/components/WingDashboard.tsx',
+                              lineNumber: 77,
+                              columnNumber: 17,
+                            },
+                            globalThis
+                          )
+                        ),
+                      },
+                      void 0,
+                      !1,
+                      {
+                        fileName:
+                          'D:/Development/Путеводитель web_new/src/components/WingDashboard.tsx',
+                        lineNumber: 75,
+                        columnNumber: 13,
+                      },
+                      globalThis
+                    ),
+                ],
+              },
+              void 0,
+              !0,
+              {
+                fileName: 'D:/Development/Путеводитель web_new/src/components/WingDashboard.tsx',
+                lineNumber: 63,
+                columnNumber: 9,
+              },
+              globalThis
+            ),
+        ],
+      },
+      void 0,
+      !0,
+      {
+        fileName: 'D:/Development/Путеводитель web_new/src/components/WingDashboard.tsx',
+        lineNumber: 15,
+        columnNumber: 5,
+      },
+      globalThis
+    );
+  };
+const ci = [
+    {
+      title: 'Центр управления',
+      content:
+        'Это твой паспорт Реального Лагеря. Здесь растет твой Ранг и сохраняются главные достижения. Нажми "Редактировать", чтобы выбрать свой уникальный аватар-эмодзи!',
+      targetSelector: '#profile-passport-card',
+    },
+    {
+      title: 'Твои маршруты',
+      content:
+        'Во вкладке "В пути" находятся значки, которые ты выбрал сейчас. Здесь можно отправить подтверждение вожатым через Telegram, чтобы получить значок официально.',
+      targetSelector: '#profile-tab-active',
+    },
+    {
+      title: 'Коллекция трофеев',
+      content:
+        'Тут хранятся все твои завершенные значки. Собери их все, чтобы стать Легендой Реального Лагеря!',
+      targetSelector: '#profile-tab-collection',
+    },
+    {
+      title: 'Помощь НейроВалюши',
+      content:
+        'Если запутаешься — нажми на аватар Валюши. Она твой персональный ИИ-гид: подскажет требования к значкам и поможет сориентироваться в лагере.',
+      targetSelector: '.chat-avatar',
+    },
+  ],
+  ze = () => ({
+    text: '',
+    learned: '',
+    impact: '',
+    link: '',
+    photo: null,
+    selfie: null,
+    document: null,
+    file: null,
+  }),
+  bi = (t) => {
+    if (!Number.isFinite(t)) return '';
+    if (t < 1024) return `${t} B`;
+    const m = t / 1024;
+    return m < 1024 ? `${m.toFixed(1)} KB` : `${(m / 1024).toFixed(1)} MB`;
+  },
+  Xi = (t) => {
+    if (!t) return '';
+    const m = new Date(t);
+    return Number.isNaN(m.getTime()) ? '' : m.toLocaleString('ru-RU');
+  },
+  $ = {
+    ArrowRight: () =>
+      e.jsxDEV(
+        'svg',
+        {
+          width: '20',
+          height: '20',
+          viewBox: '0 0 24 24',
+          fill: 'none',
+          stroke: 'currentColor',
+          strokeWidth: '2',
+          strokeLinecap: 'round',
+          strokeLinejoin: 'round',
+          children: e.jsxDEV(
+            'path',
+            { d: 'M5 12h14M12 5l7 7-7 7' },
+            void 0,
+            !1,
+            {
+              fileName: 'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+              lineNumber: 100,
+              columnNumber: 164,
+            },
+            globalThis
+          ),
+        },
+        void 0,
+        !1,
+        {
+          fileName: 'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+          lineNumber: 100,
+          columnNumber: 21,
+        },
+        globalThis
+      ),
+    Send: () =>
+      e.jsxDEV(
+        'svg',
+        {
+          width: '18',
+          height: '18',
+          viewBox: '0 0 24 24',
+          fill: 'none',
+          stroke: 'currentColor',
+          strokeWidth: '2',
+          strokeLinecap: 'round',
+          strokeLinejoin: 'round',
+          children: [
+            e.jsxDEV(
+              'line',
+              { x1: '22', y1: '2', x2: '11', y2: '13' },
+              void 0,
+              !1,
+              {
+                fileName: 'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                lineNumber: 101,
+                columnNumber: 158,
+              },
+              globalThis
+            ),
+            e.jsxDEV(
+              'polygon',
+              { points: '22 2 15 22 11 13 2 9 22 2' },
+              void 0,
+              !1,
+              {
+                fileName: 'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                lineNumber: 101,
+                columnNumber: 196,
+              },
+              globalThis
+            ),
+          ],
+        },
+        void 0,
+        !0,
+        {
+          fileName: 'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+          lineNumber: 101,
+          columnNumber: 15,
+        },
+        globalThis
+      ),
+    Star: ({ filled: t }) =>
+      e.jsxDEV(
+        'svg',
+        {
+          width: '18',
+          height: '18',
+          viewBox: '0 0 24 24',
+          fill: t ? 'currentColor' : 'none',
+          stroke: 'currentColor',
+          strokeWidth: '2',
+          strokeLinecap: 'round',
+          strokeLinejoin: 'round',
+          children: e.jsxDEV(
+            'polygon',
+            {
+              points:
+                '12 2 15.09 8.26 22 12.27 17 17.14 18.18 21.02 12 17.77 5.82 21.02 7 17.14 2 12.27 8.91 8.26 12 2',
+            },
+            void 0,
+            !1,
+            {
+              fileName: 'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+              lineNumber: 102,
+              columnNumber: 218,
+            },
+            globalThis
+          ),
+        },
+        void 0,
+        !1,
+        {
+          fileName: 'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+          lineNumber: 102,
+          columnNumber: 47,
+        },
+        globalThis
+      ),
+    Trash: () =>
+      e.jsxDEV(
+        'svg',
+        {
+          width: '18',
+          height: '18',
+          viewBox: '0 0 24 24',
+          fill: 'none',
+          stroke: 'currentColor',
+          strokeWidth: '2',
+          strokeLinecap: 'round',
+          strokeLinejoin: 'round',
+          children: [
+            e.jsxDEV(
+              'polyline',
+              { points: '3 6 5 6 21 6' },
+              void 0,
+              !1,
+              {
+                fileName: 'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                lineNumber: 103,
+                columnNumber: 159,
+              },
+              globalThis
+            ),
+            e.jsxDEV(
+              'path',
+              {
+                d: 'M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2',
+              },
+              void 0,
+              !1,
+              {
+                fileName: 'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                lineNumber: 103,
+                columnNumber: 192,
+              },
+              globalThis
+            ),
+          ],
+        },
+        void 0,
+        !0,
+        {
+          fileName: 'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+          lineNumber: 103,
+          columnNumber: 16,
+        },
+        globalThis
+      ),
+    Edit: () =>
+      e.jsxDEV(
+        'svg',
+        {
+          width: '14',
+          height: '14',
+          viewBox: '0 0 24 24',
+          fill: 'none',
+          stroke: 'currentColor',
+          strokeWidth: '2',
+          strokeLinecap: 'round',
+          strokeLinejoin: 'round',
+          children: [
+            e.jsxDEV(
+              'path',
+              { d: 'M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7' },
+              void 0,
+              !1,
+              {
+                fileName: 'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                lineNumber: 104,
+                columnNumber: 158,
+              },
+              globalThis
+            ),
+            e.jsxDEV(
+              'path',
+              { d: 'M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z' },
+              void 0,
+              !1,
+              {
+                fileName: 'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                lineNumber: 104,
+                columnNumber: 228,
+              },
+              globalThis
+            ),
+          ],
+        },
+        void 0,
+        !0,
+        {
+          fileName: 'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+          lineNumber: 104,
+          columnNumber: 15,
+        },
+        globalThis
+      ),
+    Back: () =>
+      e.jsxDEV(
+        'svg',
+        {
+          width: '16',
+          height: '16',
+          viewBox: '0 0 24 24',
+          fill: 'none',
+          stroke: 'currentColor',
+          strokeWidth: '2',
+          strokeLinecap: 'round',
+          strokeLinejoin: 'round',
+          children: [
+            e.jsxDEV(
+              'line',
+              { x1: '19', y1: '12', x2: '5', y2: '12' },
+              void 0,
+              !1,
+              {
+                fileName: 'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                lineNumber: 105,
+                columnNumber: 158,
+              },
+              globalThis
+            ),
+            e.jsxDEV(
+              'polyline',
+              { points: '12 19 5 12 12 5' },
+              void 0,
+              !1,
+              {
+                fileName: 'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                lineNumber: 105,
+                columnNumber: 196,
+              },
+              globalThis
+            ),
+          ],
+        },
+        void 0,
+        !0,
+        {
+          fileName: 'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+          lineNumber: 105,
+          columnNumber: 15,
+        },
+        globalThis
+      ),
+    Close: () =>
+      e.jsxDEV(
+        'svg',
+        {
+          width: '14',
+          height: '14',
+          viewBox: '0 0 24 24',
+          fill: 'none',
+          stroke: 'currentColor',
+          strokeWidth: '2',
+          strokeLinecap: 'round',
+          strokeLinejoin: 'round',
+          children: [
+            e.jsxDEV(
+              'line',
+              { x1: '18', y1: '6', x2: '6', y2: '18' },
+              void 0,
+              !1,
+              {
+                fileName: 'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                lineNumber: 106,
+                columnNumber: 159,
+              },
+              globalThis
+            ),
+            e.jsxDEV(
+              'line',
+              { x1: '6', y1: '6', x2: '18', y2: '18' },
+              void 0,
+              !1,
+              {
+                fileName: 'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                lineNumber: 106,
+                columnNumber: 196,
+              },
+              globalThis
+            ),
+          ],
+        },
+        void 0,
+        !0,
+        {
+          fileName: 'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+          lineNumber: 106,
+          columnNumber: 16,
+        },
+        globalThis
+      ),
+  },
+  Qi = () =>
+    fi(
+      () => import('./ChatBot-b6c3b02d.js'),
+      [
+        'assets/ChatBot-b6c3b02d.js',
+        'assets/react-vendor-68fe51ac.js',
+        'assets/vendor-02e1e5cd.js',
+        'assets/index-4b3fee4a.js',
+        'assets/index-91dfb7f4.css',
+        'assets/ChatBot-f1b9b7ad.css',
+      ]
+    ),
+  Zi = () =>
+    fi(
+      () => import('./ChatAvatar-486417d9.js'),
+      [
+        'assets/ChatAvatar-486417d9.js',
+        'assets/react-vendor-68fe51ac.js',
+        'assets/badgeImages-9f1e8a7f.js',
+        'assets/ChatAvatar-2d205e72.css',
+      ]
+    ),
+  el = xi.lazy(Qi),
+  il = xi.lazy(Zi),
+  di = (t) => {
+    const m = String(t || '').trim();
+    if (!m) return '';
+    const f = m.split('.').filter(Boolean);
+    return f.length >= 2 ? `${f[0]}.${f[1]}` : m;
+  },
+  ml = ({
+    onBack: t,
+    onNavigateToBadge: m,
+    badges: f,
+    categories: w,
+    ensureBadgeLoaded: u,
+    addCustomBadge: h,
+    publishBadgeToCommunity: V,
+    dynamicBroMissions: D,
+    updateBroMissionsOnServer: j,
+    onChatToggle: g,
+    onChatClose: P,
+    isChatOpen: d,
+  }) => {
+    var ai;
+    typeof window < 'u' &&
+      fetch('http://127.0.0.1:7242/ingest/96284863-607a-4bc5-9cb2-27956a8c59cf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          location: 'ProfileView.tsx:mount',
+          message: 'ProfileView mounted',
+          data: {
+            hasAddCustomBadge: typeof h < 'u',
+            hasOnNavigateToBadge: typeof m < 'u',
+            hasWindowOpenBadge: typeof window.openBadgeById < 'u',
+          },
+          timestamp: Date.now(),
+          sessionId: 'debug-session',
+          hypothesisId: 'A,C',
+        }),
+      }).catch(() => {});
+    const {
+        userData: x,
+        exportData: _,
+        importData: p,
+        resetProgress: E,
+        removeRoute: M,
+        toggleFavorite: c,
+        setNickname: J,
+        setAvatar: Ve,
+        completeTutorial: oe,
+        isTestMode: Te,
+        setIsTestMode: be,
+        updateBadgeSkin: v,
+      } = le(),
+      { myTeam: N, createTeam: re, generateInviteUrl: ne, leaveTeam: z } = pi(),
+      { startTutorial: R, showHint: We } = Mi(),
+      [L, H] = n.useState('active'),
+      [je, gi] = n.useState(!1),
+      [K, _e] = n.useState(!1),
+      [wi, de] = n.useState(!1);
+    n.useEffect(() => {
+      sessionStorage.getItem('rl_trigger_team_editor') === 'true' &&
+        (de(!0), sessionStorage.removeItem('rl_trigger_team_editor'));
+    }, []);
+    const [A, Ee] = n.useState({ name: '', motto: '', logo: '🚀', goals: [] }),
+      [ue, vi] = n.useState(!0),
+      [T, O] = n.useState(!1),
+      [Le, I] = n.useState(null),
+      [B, Ae] = n.useState(null),
+      [C, Fe] = n.useState(null),
+      [te, $e] = n.useState(null),
+      [se, Me] = n.useState(null),
+      [s, q] = n.useState({
+        title: '',
+        emoji: '⭐',
+        description: '',
+        category_id: '8',
+        coreSkill: 'Коллаборация',
+        impact: '',
+        criteriaLevel1: '',
+        criteriaLevel2: '',
+        criteriaLevel3: '',
+      }),
+      [X, qe] = n.useState(null),
+      Ue = n.useRef(null),
+      hi = (i) => {
+        if (!i) return;
+        if (!i.type.startsWith('image/')) {
+          alert('Выберите файл изображения');
+          return;
+        }
+        const l = new FileReader();
+        (l.onload = () => {
+          const o = l.result;
+          o && qe(o);
+        }),
+          l.readAsDataURL(i);
+      };
+    n.useEffect(() => {
+      if (!x.meta.hasCompletedTutorial) {
+        const i = setTimeout(() => {
+          R(ci, {
+            onStepChange: (l) => {
+              l === 1 && H('active'), l === 2 && H('collection');
+            },
+            onComplete: () => {
+              oe();
+            },
+          });
+        }, 1e3);
+        return () => clearTimeout(i);
+      }
+    }, [x.meta.hasCompletedTutorial, R, oe]);
+    const Di = () => {
+        R(ci, {
+          onStepChange: (i) => {
+            i === 1 && H('active'), i === 2 && H('collection');
+          },
+          onComplete: () => {
+            oe();
+          },
+        });
+      },
+      { profile: b, progress: F } = x,
+      pe = n.useMemo(() => {
+        var l, o, r;
+        return [
+          (l = F['1.16']) == null ? void 0 : l.status,
+          (o = F['1.16.1']) == null ? void 0 : o.status,
+          (r = F['1.16.2']) == null ? void 0 : r.status,
+        ].some((a) => a === 'achieved' || a === 'in_progress');
+      }, [F]),
+      Ni = n.useMemo(() => {
+        const i = ['active', 'collection', 'journal'];
+        return pe && i.push('workshop'), i;
+      }, [pe]);
+    n.useEffect(() => {
+      pe &&
+        x.meta.hasCompletedTutorial &&
+        !localStorage.getItem('rl_workshop_unlocked_notified') &&
+        (We({
+          title: 'Мастерская открыта!',
+          content:
+            'Поздравляем! Твой опыт позволил открыть «Мастерскую Создателя». Теперь ты можешь предлагать свои значки и менять реальность лагеря.',
+        }),
+        localStorage.setItem('rl_workshop_unlocked_notified', 'true'));
+    }, [pe, x.meta.hasCompletedTutorial, We]);
+    const Q = ui(b.stats.totalLevelsAchieved),
+      He = !!(b.nickname && b.nickname !== 'Искатель'),
+      yi = He ? b.nickname : Q,
+      Z = x.favorites || [],
+      Y = n.useMemo(() => {
+        const i = new Set();
+        return (
+          Z.forEach((l) => {
+            const o = di(l);
+            o && i.add(o);
+          }),
+          i
+        );
+      }, [Z]),
+      Se = Object.entries(F).filter(([i, l]) => l.status === 'in_progress'),
+      fe = Object.entries(F).filter(([i, l]) => l.status === 'achieved'),
+      ke = n.useMemo(
+        () =>
+          fe.slice().sort((i, l) => {
+            const o = i[1].achievedAt ? new Date(i[1].achievedAt).getTime() : 0;
+            return (l[1].achievedAt ? new Date(l[1].achievedAt).getTime() : 0) - o;
+          }),
+        [fe]
+      ),
+      xe = n.useMemo(() => {
+        const i = new Map(),
+          l = new Map();
+        for (const r of f) {
+          i.set(String(r.id), r);
+          const a = String(r.id || '')
+            .split('.')
+            .slice(0, 2)
+            .join('.');
+          l.has(a) || l.set(a, []), l.get(a).push(r);
+        }
+        const o = new Map();
+        for (const [r, a] of l.entries()) {
+          const Ne =
+            a.find((ce) =>
+              String(ce.level || '')
+                .toLowerCase()
+                .includes('баз')
+            ) ||
+            a.find((ce) =>
+              String(ce.level || '')
+                .toLowerCase()
+                .includes('одноуровнев')
+            ) ||
+            a[0];
+          Ne && o.set(r, Ne);
+        }
+        return { byId: i, byBaseId: o };
+      }, [f]),
+      Oe = n.useMemo(() => {
+        const i = new Set();
+        return (
+          Object.keys(F).forEach((l) => {
+            const o = String(l || '').split('.');
+            o.length >= 2 && i.add(`${o[0]}.${o[1]}`);
+          }),
+          Array.from(i)
+        );
+      }, [F]),
+      Ye = n.useMemo(() => {
+        const i = new Set();
+        return (
+          Z.forEach((l) => {
+            const o = di(l);
+            o && i.add(o);
+          }),
+          Array.from(i)
+        );
+      }, [Z]),
+      Ge = n.useRef(new Set());
+    n.useEffect(() => {
+      if (!u) return;
+      const l = Array.from(new Set([...Oe, ...Ye])).filter(
+        (o) => !xe.byBaseId.has(o) && !Ge.current.has(o)
+      );
+      l.length &&
+        (l.forEach((o) => Ge.current.add(o)),
+        l.forEach((o) => {
+          u(o);
+        }));
+    }, [u, Oe, Ye, xe]),
+      n.useEffect(
+        () => () => {
+          te && URL.revokeObjectURL(te), se && URL.revokeObjectURL(se);
+        },
+        [te, se]
+      ),
+      n.useEffect(() => {
+        Ae(null), Fe(null), $e(null), Me(null), I(null);
+      }, [ue]),
+      n.useEffect(() => {
+        if (typeof window > 'u') return;
+        const i = String(window.location.hash || '')
+          .replace(/^#/, '')
+          .toLowerCase();
+        if (i && !(i !== 'share' && i !== 'share-center' && i !== 'sharecenter')) {
+          requestAnimationFrame(() => {
+            const l = document.getElementById('profile-share-center');
+            l && l.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          });
+          try {
+            const l = new URL(window.location.href);
+            (l.hash = ''), window.history.replaceState({}, '', l.toString());
+          } catch {}
+        }
+      }, []);
+    const ge = (i) => {
+        const l = String(i || '')
+            .split('.')
+            .slice(0, 2)
+            .join('.'),
+          o = xe.byId.get(i),
+          r = xe.byBaseId.get(l),
+          a = o || r,
+          Ne = (a == null ? void 0 : a.title) || `Значок ${l}`,
+          ce = (o == null ? void 0 : o.level) || (a == null ? void 0 : a.level) || '',
+          Ai = (r == null ? void 0 : r.title) || (a == null ? void 0 : a.title) || '',
+          Fi = (a == null ? void 0 : a.category_id) || (r == null ? void 0 : r.category_id) || '',
+          $i =
+            (o == null ? void 0 : o.emoji) ||
+            (a == null ? void 0 : a.emoji) ||
+            (r == null ? void 0 : r.emoji) ||
+            '🏆',
+          mi = !!(o && String(o.id).split('.').length === 3);
+        return {
+          baseId: l,
+          title: Ne,
+          levelLabel: ce,
+          iconBadgeTitle: Ai,
+          iconCategoryId: Fi,
+          iconEmoji: $i,
+          levelId: mi ? (o == null ? void 0 : o.id) : void 0,
+          levelTitle: mi ? (o == null ? void 0 : o.title) : void 0,
+        };
+      },
+      [S, Je] = n.useState(null),
+      [ae, Ke] = n.useState(null),
+      [y, Pe] = n.useState(ze()),
+      Xe = n.useRef(null),
+      Qe = n.useRef(null),
+      Ze = n.useRef(null),
+      ei = n.useRef(null);
+    n.useEffect(() => {
+      if (!S) return;
+      const i = document.body.style.overflow;
+      return (
+        (document.body.style.overflow = 'hidden'),
+        () => {
+          document.body.style.overflow = i;
+        }
+      );
+    }, [S]);
+    const [ii, Ie] = n.useState(b.nickname || ''),
+      [U, me] = n.useState(b.avatar || ''),
+      li = n.useRef(null),
+      oi = n.useRef(null);
+    n.useEffect(() => {
+      Ie(b.nickname || ''), me(b.avatar || '');
+    }, [b.avatar, b.nickname]);
+    const Vi = (i) => {
+        confirm('Убрать этот маршрут из пути?') && M(i);
+      },
+      ri = (i) => {
+        c(i);
+      },
+      Ti = () => {
+        J(ii), Ve(U), _e(!1);
+      },
+      ji = () => {
+        confirm('Сбросить изменения?') && (Ie(b.nickname || ''), me(b.avatar || ''), _e(!1));
+      },
+      _i = ['🧑‍🚀', '🦊', '🦄', '🐼', '🐯', '🦁', '🐙', '🤖', '⭐', '🌙'],
+      we = (i) => {
+        if (!i) return !1;
+        const l = i.trim();
+        return (
+          l.startsWith('data:image/') ||
+          l.startsWith('http://') ||
+          l.startsWith('https://') ||
+          l.startsWith('/')
+        );
+      },
+      ni = (i) => {
+        if (!i) return;
+        if (!i.type.startsWith('image/')) {
+          alert('Выберите файл изображения');
+          return;
+        }
+        if (
+          i.size > 2e6 &&
+          !confirm('Файл больше 2 МБ. Может не сохраниться в браузере. Продолжить?')
+        )
+          return;
+        const l = new FileReader();
+        (l.onload = () => {
+          const o = l.result;
+          o && me(o);
+        }),
+          (l.onerror = () => {
+            alert('Не удалось загрузить изображение');
+          }),
+          l.readAsDataURL(i);
+      },
+      Ei = (i) => {
+        var o;
+        const l = (o = i.target.files) == null ? void 0 : o[0];
+        ni(l), (i.target.value = '');
+      },
+      Si = (i) => {
+        var o;
+        const l = (o = i.target.files) == null ? void 0 : o[0];
+        ni(l), (i.target.value = '');
+      },
+      ki = we(U) ? '' : U,
+      Pi = (i, l) => {
+        Je(i), Ke(l), Pe(ze());
+      },
+      ve = () => {
+        Je(null), Ke(null), Pe(ze());
+      },
+      ee = (i, l) => {
+        Pe((o) => ({ ...o, [i]: l }));
+      },
+      he = (i) => (l) => {
+        var r;
+        const o = ((r = l.target.files) == null ? void 0 : r[0]) || null;
+        if (o && (i === 'photo' || i === 'selfie') && !o.type.startsWith('image/')) {
+          alert('Пожалуйста, выберите изображение.'), (l.target.value = '');
+          return;
+        }
+        ee(i, o), (l.target.value = '');
+      },
+      Ii = (i) => {
+        if (!i) return 'не указан';
+        const l = i.trim();
+        return l ? (l.startsWith('data:image/') ? 'изображение (в ЛК)' : l) : 'не указан';
+      },
+      Bi = () => {
+        if (!S) return '';
+        const i = [],
+          l = ae ? F[ae] : void 0,
+          o = Ii(b.avatar);
+        i.push('✅ Подтверждение значка'),
+          i.push(`Значок: ${S.title} (${S.baseId})`),
+          S.levelLabel && i.push(`Уровень: ${S.levelLabel}`),
+          ae && ae !== S.baseId && i.push(`ID уровня: ${ae}`),
+          l != null && l.selectedAt && i.push(`Старт пути: ${Xi(l.selectedAt)}`),
+          i.push(''),
+          i.push(`Пользователь: ${b.nickname || 'Искатель'}`),
+          i.push(`ID пользователя: ${b.id || 'local'}`),
+          i.push(`Аватар: ${o}`),
+          i.push(
+            `Статистика: ${b.stats.totalLevelsAchieved} уровней, ${b.stats.totalBadgesStarted} в пути`
+          ),
+          i.push(''),
+          y.text.trim() && (i.push('Комментарий:'), i.push(y.text.trim())),
+          y.learned.trim() && (i.push('Чему я научился(лась):'), i.push(y.learned.trim())),
+          y.impact.trim() &&
+            (i.push('Как это повлияло на мой коллектив и лагерь:'), i.push(y.impact.trim())),
+          y.link.trim() && i.push(`Ссылка: ${y.link.trim()}`);
+        const r = [
+          { label: 'Фото', file: y.photo },
+          { label: 'Селфи', file: y.selfie },
+          { label: 'Документ', file: y.document },
+          { label: 'Файл', file: y.file },
+        ]
+          .filter((a) => a.file)
+          .map((a) => `${a.label}: ${a.file.name} (${bi(a.file.size)})`);
+        return (
+          r.length && (i.push('Файлы:'), i.push(...r)),
+          i.push(''),
+          i.push('Запрос на подтверждение получения значка.'),
+          i.push(`Время: ${new Date().toLocaleString('ru-RU')}`),
+          i.join(`
+`)
+        );
+      },
+      Ci = () => {
+        if (!S) return;
+        const i = Bi(),
+          l = `https://t.me/Stivanovv?text=${encodeURIComponent(i)}`;
+        window.open(l, '_blank', 'noopener,noreferrer'), ve();
+      },
+      zi = (i) => {
+        var l;
+        (l = i.target.files) != null &&
+          l[0] &&
+          p(i.target.files[0]).then((o) => {
+            o && alert('Прогресс успешно восстановлен!');
+          });
+      },
+      Ri = async () => {
+        if (!T) {
+          O(!0), I('Запрашиваем слоган у НейроВалюши…');
+          try {
+            const i = await qi({ kind: 'progress_summary', nickname: b.nickname, rank: Q }),
+              l = new Date().toISOString(),
+              o = {
+                nickname: b.nickname,
+                avatar: we(b.avatar) ? '' : b.avatar,
+                rank: Q,
+                totalLevelsAchieved: b.stats.totalLevelsAchieved,
+                totalBadgesStarted: b.stats.totalBadgesStarted,
+              },
+              r = await ye({
+                kind: 'progress_summary',
+                format: 'story',
+                hideNickname: ue,
+                profile: o,
+                createdAt: l,
+                customCaption: i || void 0,
+              }),
+              a = await ye({
+                kind: 'progress_summary',
+                format: 'wide',
+                hideNickname: ue,
+                profile: o,
+                createdAt: l,
+                customCaption: i || void 0,
+              });
+            Ae(r),
+              Fe(a),
+              $e(URL.createObjectURL(r.blob)),
+              Me(URL.createObjectURL(a.blob)),
+              I('Карточки готовы: 9:16 и 16:9.');
+          } catch (i) {
+            console.error(i), I('Не удалось сгенерировать карточки. Попробуй ещё раз.');
+          } finally {
+            O(!1);
+          }
+        }
+      },
+      ti = async (i) => {
+        if (!T) {
+          O(!0), I(null);
+          try {
+            const l = await Re(i);
+            if (l === 'canceled') {
+              I('Отмена.');
+              return;
+            }
+            if (l === 'shared') {
+              I('Отправлено через системное меню шеринга.');
+              return;
+            }
+            const o = await Be(i.text);
+            I(
+              o ? 'PNG скачан, подпись скопирована.' : 'PNG скачан. Подпись можно скопировать ниже.'
+            );
+          } catch (l) {
+            console.error(l), I('Не удалось поделиться/скачать. Попробуй ещё раз.');
+          } finally {
+            O(!1);
+          }
+        }
+      },
+      Wi = async () => {
+        const i = (B == null ? void 0 : B.text) || (C == null ? void 0 : C.text) || '';
+        if (!i) return;
+        const l = await Be(i);
+        I(l ? 'Подпись скопирована.' : 'Не удалось скопировать подпись.');
+      },
+      G = ((i) =>
+        i.includes('Легенда')
+          ? '#FFD700'
+          : i.includes('Мастер')
+            ? '#E0FFFF'
+            : i.includes('Организатор')
+              ? '#FF69B4'
+              : '#4DA6FF')(Q),
+      W = {
+        activeIcon: 86,
+        activeFont: 40,
+        favoriteIcon: 76,
+        favoriteFont: 36,
+        collectionMin: 150,
+        collectionGap: 18,
+        collectionIcon: 'clamp(96px, 16vw, 128px)',
+        collectionFont: 'clamp(38px, 8vw, 52px)',
+      },
+      k = {
+        padding: '10px 12px',
+        borderRadius: '10px',
+        border: '1px solid rgba(255,255,255,0.15)',
+        background: 'rgba(0,0,0,0.25)',
+        color: 'white',
+        fontFamily: 'inherit',
+      },
+      De = {
+        padding: '8px 12px',
+        background: 'rgba(255,255,255,0.08)',
+        border: '1px solid rgba(255,255,255,0.15)',
+        borderRadius: '10px',
+        color: 'white',
+        cursor: 'pointer',
+        fontSize: '12px',
+        fontWeight: 600,
+      },
+      si = [
+        { key: 'photo', label: 'Фото', file: y.photo },
+        { key: 'selfie', label: 'Селфи', file: y.selfie },
+        { key: 'document', label: 'Документ', file: y.document },
+        { key: 'file', label: 'Файл', file: y.file },
+      ],
+      Li = si.some((i) => !!i.file);
+    return e.jsxDEV(
+      'div',
+      {
+        className: 'profile-view',
+        style: {
+          width: '100%',
+          height: '100%',
+          overflowY: 'auto',
+          color: 'white',
+          fontFamily: '"Montserrat", sans-serif',
+          paddingBottom: '100px',
+        },
+        children: [
+          e.jsxDEV(
+            'div',
+            { style: { height: '60px' }, className: 'mobile-only-spacer' },
+            void 0,
+            !1,
+            {
+              fileName: 'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+              lineNumber: 772,
+              columnNumber: 7,
+            },
+            globalThis
+          ),
+          e.jsxDEV(
+            'div',
+            {
+              style: {
+                maxWidth: '600px',
+                margin: '0 auto',
+                padding: '20px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '24px',
+              },
+              children: [
+                e.jsxDEV(
+                  'div',
+                  {
+                    style: {
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                    },
+                    children: [
+                      e.jsxDEV(
+                        'button',
+                        {
+                          onClick: t,
+                          style: {
+                            padding: '10px 18px',
+                            borderRadius: '100px',
+                            border: '1px solid var(--cat-glass-border, rgba(255,255,255,0.1))',
+                            background: 'var(--cat-glass-bg, rgba(255,255,255,0.05))',
+                            color: 'white',
+                            fontSize: '13px',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            transition: 'all 0.2s',
+                            backdropFilter: 'blur(10px)',
+                            fontFamily: 'var(--f-display-nav)',
+                          },
+                          onMouseEnter: (i) =>
+                            (i.currentTarget.style.background = 'rgba(255,255,255,0.1)'),
+                          onMouseLeave: (i) =>
+                            (i.currentTarget.style.background =
+                              'var(--cat-glass-bg, rgba(255,255,255,0.05))'),
+                          children: [
+                            e.jsxDEV(
+                              $.Back,
+                              {},
+                              void 0,
+                              !1,
+                              {
+                                fileName:
+                                  'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                lineNumber: 804,
+                                columnNumber: 13,
+                              },
+                              globalThis
+                            ),
+                            ' Назад',
+                          ],
+                        },
+                        void 0,
+                        !0,
+                        {
+                          fileName: 'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                          lineNumber: 783,
+                          columnNumber: 11,
+                        },
+                        globalThis
+                      ),
+                      e.jsxDEV(
+                        'div',
+                        {
+                          style: { display: 'flex', gap: '8px' },
+                          children: [
+                            e.jsxDEV(
+                              'button',
+                              {
+                                onClick: Di,
+                                title: 'Показать подсказки',
+                                style: {
+                                  width: '40px',
+                                  height: '40px',
+                                  borderRadius: '50%',
+                                  border:
+                                    '1px solid var(--cat-glass-border, rgba(255,255,255,0.1))',
+                                  background: 'var(--cat-glass-bg, rgba(255,255,255,0.05))',
+                                  color: 'white',
+                                  fontSize: '18px',
+                                  fontWeight: 700,
+                                  cursor: 'pointer',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  transition: 'all 0.2s',
+                                  backdropFilter: 'blur(10px)',
+                                },
+                                onMouseEnter: (i) =>
+                                  (i.currentTarget.style.background = 'rgba(255,255,255,0.1)'),
+                                onMouseLeave: (i) =>
+                                  (i.currentTarget.style.background =
+                                    'var(--cat-glass-bg, rgba(255,255,255,0.05))'),
+                                children: '?',
+                              },
+                              void 0,
+                              !1,
+                              {
+                                fileName:
+                                  'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                lineNumber: 807,
+                                columnNumber: 13,
+                              },
+                              globalThis
+                            ),
+                            e.jsxDEV(
+                              'button',
+                              {
+                                onClick: () => _e((i) => !i),
+                                style: {
+                                  padding: '10px 18px',
+                                  borderRadius: '100px',
+                                  border:
+                                    '1px solid var(--cat-glass-border, rgba(255,255,255,0.1))',
+                                  background: K
+                                    ? 'rgba(255, 255, 255, 0.15)'
+                                    : 'var(--cat-glass-bg, rgba(255,255,255,0.05))',
+                                  color: 'white',
+                                  fontSize: '13px',
+                                  fontWeight: 600,
+                                  cursor: 'pointer',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '8px',
+                                  transition: 'all 0.2s',
+                                  backdropFilter: 'blur(10px)',
+                                  fontFamily: 'var(--f-display-nav)',
+                                },
+                                onMouseEnter: (i) =>
+                                  (i.currentTarget.style.background = K
+                                    ? 'rgba(255, 255, 255, 0.2)'
+                                    : 'rgba(255,255,255,0.1)'),
+                                onMouseLeave: (i) =>
+                                  (i.currentTarget.style.background = K
+                                    ? 'rgba(255, 255, 255, 0.15)'
+                                    : 'var(--cat-glass-bg, rgba(255,255,255,0.05))'),
+                                children: [
+                                  K
+                                    ? e.jsxDEV(
+                                        $.Close,
+                                        {},
+                                        void 0,
+                                        !1,
+                                        {
+                                          fileName:
+                                            'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                          lineNumber: 852,
+                                          columnNumber: 36,
+                                        },
+                                        globalThis
+                                      )
+                                    : e.jsxDEV(
+                                        $.Edit,
+                                        {},
+                                        void 0,
+                                        !1,
+                                        {
+                                          fileName:
+                                            'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                          lineNumber: 852,
+                                          columnNumber: 54,
+                                        },
+                                        globalThis
+                                      ),
+                                  K ? 'Закрыть' : 'Редактировать',
+                                ],
+                              },
+                              void 0,
+                              !0,
+                              {
+                                fileName:
+                                  'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                lineNumber: 831,
+                                columnNumber: 13,
+                              },
+                              globalThis
+                            ),
+                          ],
+                        },
+                        void 0,
+                        !0,
+                        {
+                          fileName: 'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                          lineNumber: 806,
+                          columnNumber: 11,
+                        },
+                        globalThis
+                      ),
+                    ],
+                  },
+                  void 0,
+                  !0,
+                  {
+                    fileName: 'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                    lineNumber: 782,
+                    columnNumber: 9,
+                  },
+                  globalThis
+                ),
+                e.jsxDEV(
+                  'div',
+                  {
+                    id: 'profile-passport-card',
+                    style: {
+                      background: 'var(--cat-glass-bg, rgba(20, 20, 35, 0.7))',
+                      backdropFilter: 'blur(20px)',
+                      borderRadius: '24px',
+                      padding: '24px',
+                      border: '1px solid var(--cat-glass-border, rgba(255, 255, 255, 0.12))',
+                      boxShadow: 'var(--shadow-medium, 0 8px 32px rgba(0, 0, 0, 0.3))',
+                      position: 'relative',
+                      overflow: 'hidden',
+                    },
+                    children: [
+                      e.jsxDEV(
+                        'div',
+                        {
+                          style: {
+                            position: 'absolute',
+                            top: '-50px',
+                            right: '-50px',
+                            width: '180px',
+                            height: '180px',
+                            background: G,
+                            opacity: 0.12,
+                            filter: 'blur(60px)',
+                            borderRadius: '50%',
+                            pointerEvents: 'none',
+                          },
+                        },
+                        void 0,
+                        !1,
+                        {
+                          fileName: 'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                          lineNumber: 870,
+                          columnNumber: 11,
+                        },
+                        globalThis
+                      ),
+                      e.jsxDEV(
+                        'div',
+                        {
+                          style: { display: 'flex', alignItems: 'center', gap: '32px' },
+                          children: [
+                            e.jsxDEV(
+                              'div',
+                              {
+                                style: { position: 'relative' },
+                                children: [
+                                  e.jsxDEV(
+                                    'div',
+                                    {
+                                      style: {
+                                        fontSize: '64px',
+                                        background:
+                                          'linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%)',
+                                        borderRadius: '50%',
+                                        width: '140px',
+                                        height: '140px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        border: `3px solid ${G}`,
+                                        boxShadow: `0 0 30px ${G}40`,
+                                        overflow: 'hidden',
+                                      },
+                                      children: we(b.avatar)
+                                        ? e.jsxDEV(
+                                            'img',
+                                            {
+                                              src: b.avatar,
+                                              alt: 'Аватар',
+                                              style: {
+                                                width: '100%',
+                                                height: '100%',
+                                                objectFit: 'cover',
+                                              },
+                                            },
+                                            void 0,
+                                            !1,
+                                            {
+                                              fileName:
+                                                'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                              lineNumber: 899,
+                                              columnNumber: 19,
+                                            },
+                                            globalThis
+                                          )
+                                        : b.avatar || '🧑‍🚀',
+                                    },
+                                    void 0,
+                                    !1,
+                                    {
+                                      fileName:
+                                        'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                      lineNumber: 885,
+                                      columnNumber: 15,
+                                    },
+                                    globalThis
+                                  ),
+                                  e.jsxDEV(
+                                    'div',
+                                    {
+                                      style: {
+                                        position: 'absolute',
+                                        bottom: '4px',
+                                        right: '4px',
+                                        background: 'var(--c-deep-blue, #1a0f2e)',
+                                        borderRadius: '50%',
+                                        width: '44px',
+                                        height: '44px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        fontSize: '20px',
+                                        border: '2px solid rgba(255,255,255,0.15)',
+                                        boxShadow: '0 6px 12px rgba(0,0,0,0.4)',
+                                      },
+                                      children: '✨',
+                                    },
+                                    void 0,
+                                    !1,
+                                    {
+                                      fileName:
+                                        'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                      lineNumber: 908,
+                                      columnNumber: 15,
+                                    },
+                                    globalThis
+                                  ),
+                                ],
+                              },
+                              void 0,
+                              !0,
+                              {
+                                fileName:
+                                  'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                lineNumber: 884,
+                                columnNumber: 13,
+                              },
+                              globalThis
+                            ),
+                            e.jsxDEV(
+                              'div',
+                              {
+                                style: {
+                                  flex: 1,
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                  justifyContent: 'center',
+                                },
+                                children: [
+                                  e.jsxDEV(
+                                    'h2',
+                                    {
+                                      style: {
+                                        margin: 0,
+                                        fontSize: '28px',
+                                        fontWeight: 800,
+                                        letterSpacing: '0.02em',
+                                        fontFamily: 'var(--f-display, "Syne", sans-serif)',
+                                        background:
+                                          'linear-gradient(135deg, #fff 30%, #a5a5a5 100%)',
+                                        WebkitBackgroundClip: 'text',
+                                        WebkitTextFillColor: 'transparent',
+                                        textShadow: '0 2px 10px rgba(255,255,255,0.1)',
+                                        lineHeight: '1.1',
+                                      },
+                                      children: yi,
+                                    },
+                                    void 0,
+                                    !1,
+                                    {
+                                      fileName:
+                                        'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                      lineNumber: 928,
+                                      columnNumber: 15,
+                                    },
+                                    globalThis
+                                  ),
+                                  e.jsxDEV(
+                                    'div',
+                                    {
+                                      style: {
+                                        color: G,
+                                        fontWeight: 700,
+                                        marginTop: '4px',
+                                        fontSize: '12px',
+                                        textTransform: 'uppercase',
+                                        letterSpacing: '0.15em',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '8px',
+                                        opacity: 0.9,
+                                        fontFamily: 'var(--f-body, "Space Grotesk", sans-serif)',
+                                        textShadow: `0 0 12px ${G}60`,
+                                      },
+                                      children: He ? Q : 'Исследователь',
+                                    },
+                                    void 0,
+                                    !1,
+                                    {
+                                      fileName:
+                                        'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                      lineNumber: 943,
+                                      columnNumber: 15,
+                                    },
+                                    globalThis
+                                  ),
+                                  e.jsxDEV(
+                                    'div',
+                                    {
+                                      style: {
+                                        marginTop: '16px',
+                                        display: 'grid',
+                                        gridTemplateColumns: '1fr 1fr',
+                                        gap: '12px',
+                                        background: 'rgba(0,0,0,0.2)',
+                                        padding: '10px',
+                                        borderRadius: '12px',
+                                        border: '1px solid rgba(255,255,255,0.05)',
+                                      },
+                                      children: [
+                                        e.jsxDEV(
+                                          'div',
+                                          {
+                                            children: [
+                                              e.jsxDEV(
+                                                'div',
+                                                {
+                                                  style: {
+                                                    fontSize: '10px',
+                                                    textTransform: 'uppercase',
+                                                    opacity: 0.5,
+                                                    letterSpacing: '0.05em',
+                                                  },
+                                                  children: 'Уровень',
+                                                },
+                                                void 0,
+                                                !1,
+                                                {
+                                                  fileName:
+                                                    'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                  lineNumber: 972,
+                                                  columnNumber: 21,
+                                                },
+                                                globalThis
+                                              ),
+                                              e.jsxDEV(
+                                                'div',
+                                                {
+                                                  style: {
+                                                    fontSize: '16px',
+                                                    fontWeight: 700,
+                                                    color: 'white',
+                                                  },
+                                                  children: b.stats.totalLevelsAchieved,
+                                                },
+                                                void 0,
+                                                !1,
+                                                {
+                                                  fileName:
+                                                    'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                  lineNumber: 973,
+                                                  columnNumber: 21,
+                                                },
+                                                globalThis
+                                              ),
+                                            ],
+                                          },
+                                          void 0,
+                                          !0,
+                                          {
+                                            fileName:
+                                              'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                            lineNumber: 971,
+                                            columnNumber: 18,
+                                          },
+                                          globalThis
+                                        ),
+                                        e.jsxDEV(
+                                          'div',
+                                          {
+                                            children: [
+                                              e.jsxDEV(
+                                                'div',
+                                                {
+                                                  style: {
+                                                    fontSize: '10px',
+                                                    textTransform: 'uppercase',
+                                                    opacity: 0.5,
+                                                    letterSpacing: '0.05em',
+                                                  },
+                                                  children: 'В пути',
+                                                },
+                                                void 0,
+                                                !1,
+                                                {
+                                                  fileName:
+                                                    'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                  lineNumber: 976,
+                                                  columnNumber: 21,
+                                                },
+                                                globalThis
+                                              ),
+                                              e.jsxDEV(
+                                                'div',
+                                                {
+                                                  style: {
+                                                    fontSize: '16px',
+                                                    fontWeight: 700,
+                                                    color: '#4dacff',
+                                                  },
+                                                  children: Se.length,
+                                                },
+                                                void 0,
+                                                !1,
+                                                {
+                                                  fileName:
+                                                    'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                  lineNumber: 977,
+                                                  columnNumber: 21,
+                                                },
+                                                globalThis
+                                              ),
+                                            ],
+                                          },
+                                          void 0,
+                                          !0,
+                                          {
+                                            fileName:
+                                              'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                            lineNumber: 975,
+                                            columnNumber: 18,
+                                          },
+                                          globalThis
+                                        ),
+                                      ],
+                                    },
+                                    void 0,
+                                    !0,
+                                    {
+                                      fileName:
+                                        'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                      lineNumber: 961,
+                                      columnNumber: 15,
+                                    },
+                                    globalThis
+                                  ),
+                                  e.jsxDEV(
+                                    'div',
+                                    {
+                                      style: {
+                                        marginTop: '12px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '8px',
+                                      },
+                                      children: [
+                                        e.jsxDEV(
+                                          'div',
+                                          {
+                                            style: {
+                                              flex: 1,
+                                              height: '4px',
+                                              background: 'rgba(255,255,255,0.08)',
+                                              borderRadius: '2px',
+                                              overflow: 'hidden',
+                                            },
+                                            children: e.jsxDEV(
+                                              'div',
+                                              {
+                                                style: {
+                                                  width: `${Math.min(100, Math.max(5, (b.stats.totalLevelsAchieved % 10) * 10))}%`,
+                                                  height: '100%',
+                                                  background: `linear-gradient(90deg, ${G}, #fff)`,
+                                                  borderRadius: '2px',
+                                                  boxShadow: `0 0 10px ${G}60`,
+                                                },
+                                              },
+                                              void 0,
+                                              !1,
+                                              {
+                                                fileName:
+                                                  'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                lineNumber: 984,
+                                                columnNumber: 19,
+                                              },
+                                              globalThis
+                                            ),
+                                          },
+                                          void 0,
+                                          !1,
+                                          {
+                                            fileName:
+                                              'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                            lineNumber: 983,
+                                            columnNumber: 17,
+                                          },
+                                          globalThis
+                                        ),
+                                        e.jsxDEV(
+                                          'div',
+                                          {
+                                            style: {
+                                              fontSize: '10px',
+                                              opacity: 0.4,
+                                              width: '24px',
+                                              textAlign: 'right',
+                                            },
+                                            children: 'XP',
+                                          },
+                                          void 0,
+                                          !1,
+                                          {
+                                            fileName:
+                                              'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                            lineNumber: 992,
+                                            columnNumber: 17,
+                                          },
+                                          globalThis
+                                        ),
+                                      ],
+                                    },
+                                    void 0,
+                                    !0,
+                                    {
+                                      fileName:
+                                        'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                      lineNumber: 982,
+                                      columnNumber: 15,
+                                    },
+                                    globalThis
+                                  ),
+                                ],
+                              },
+                              void 0,
+                              !0,
+                              {
+                                fileName:
+                                  'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                lineNumber: 927,
+                                columnNumber: 13,
+                              },
+                              globalThis
+                            ),
+                          ],
+                        },
+                        void 0,
+                        !0,
+                        {
+                          fileName: 'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                          lineNumber: 883,
+                          columnNumber: 11,
+                        },
+                        globalThis
+                      ),
+                    ],
+                  },
+                  void 0,
+                  !0,
+                  {
+                    fileName: 'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                    lineNumber: 859,
+                    columnNumber: 9,
+                  },
+                  globalThis
+                ),
+                K &&
+                  e.jsxDEV(
+                    'div',
+                    {
+                      style: {
+                        padding: '16px',
+                        background: 'rgba(255,255,255,0.04)',
+                        border: '1px solid rgba(255,255,255,0.1)',
+                        borderRadius: '16px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '10px',
+                      },
+                      children: [
+                        e.jsxDEV(
+                          'div',
+                          {
+                            style: {
+                              fontSize: '12px',
+                              fontWeight: 700,
+                              letterSpacing: '0.08em',
+                              textTransform: 'uppercase',
+                              opacity: 0.7,
+                            },
+                            children: 'Профиль',
+                          },
+                          void 0,
+                          !1,
+                          {
+                            fileName:
+                              'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                            lineNumber: 1008,
+                            columnNumber: 13,
+                          },
+                          globalThis
+                        ),
+                        e.jsxDEV(
+                          'label',
+                          { style: { fontSize: '12px', opacity: 0.7 }, children: 'Ник' },
+                          void 0,
+                          !1,
+                          {
+                            fileName:
+                              'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                            lineNumber: 1011,
+                            columnNumber: 13,
+                          },
+                          globalThis
+                        ),
+                        e.jsxDEV(
+                          'input',
+                          {
+                            value: ii,
+                            onChange: (i) => Ie(i.target.value),
+                            placeholder: 'Ваш ник',
+                            maxLength: 24,
+                            style: {
+                              padding: '10px 12px',
+                              borderRadius: '10px',
+                              border: '1px solid rgba(255,255,255,0.15)',
+                              background: 'rgba(0,0,0,0.2)',
+                              color: 'white',
+                              fontFamily: 'inherit',
+                            },
+                          },
+                          void 0,
+                          !1,
+                          {
+                            fileName:
+                              'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                            lineNumber: 1012,
+                            columnNumber: 13,
+                          },
+                          globalThis
+                        ),
+                        e.jsxDEV(
+                          'label',
+                          {
+                            style: { fontSize: '12px', opacity: 0.7 },
+                            children: 'Аватар (эмодзи)',
+                          },
+                          void 0,
+                          !1,
+                          {
+                            fileName:
+                              'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                            lineNumber: 1026,
+                            columnNumber: 13,
+                          },
+                          globalThis
+                        ),
+                        e.jsxDEV(
+                          'input',
+                          {
+                            value: ki,
+                            onChange: (i) => me(i.target.value),
+                            placeholder: 'Например: 🧑‍🚀',
+                            maxLength: 3,
+                            style: {
+                              padding: '10px 12px',
+                              borderRadius: '10px',
+                              border: '1px solid rgba(255,255,255,0.15)',
+                              background: 'rgba(0,0,0,0.2)',
+                              color: 'white',
+                              fontFamily: 'inherit',
+                            },
+                          },
+                          void 0,
+                          !1,
+                          {
+                            fileName:
+                              'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                            lineNumber: 1027,
+                            columnNumber: 13,
+                          },
+                          globalThis
+                        ),
+                        e.jsxDEV(
+                          'div',
+                          {
+                            style: { display: 'flex', gap: '10px', flexWrap: 'wrap' },
+                            children: [
+                              e.jsxDEV(
+                                'button',
+                                {
+                                  type: 'button',
+                                  onClick: () => {
+                                    var i;
+                                    return (i = li.current) == null ? void 0 : i.click();
+                                  },
+                                  style: {
+                                    padding: '8px 12px',
+                                    background: 'rgba(255,255,255,0.08)',
+                                    border: '1px solid rgba(255,255,255,0.15)',
+                                    borderRadius: '10px',
+                                    color: 'white',
+                                    cursor: 'pointer',
+                                    fontSize: '12px',
+                                    fontWeight: 600,
+                                  },
+                                  children: '📁 Загрузить фото',
+                                },
+                                void 0,
+                                !1,
+                                {
+                                  fileName:
+                                    'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                  lineNumber: 1042,
+                                  columnNumber: 15,
+                                },
+                                globalThis
+                              ),
+                              e.jsxDEV(
+                                'button',
+                                {
+                                  type: 'button',
+                                  onClick: () => {
+                                    var i;
+                                    return (i = oi.current) == null ? void 0 : i.click();
+                                  },
+                                  style: {
+                                    padding: '8px 12px',
+                                    background: 'rgba(255,255,255,0.08)',
+                                    border: '1px solid rgba(255,255,255,0.15)',
+                                    borderRadius: '10px',
+                                    color: 'white',
+                                    cursor: 'pointer',
+                                    fontSize: '12px',
+                                    fontWeight: 600,
+                                  },
+                                  children: '📷 Сделать селфи',
+                                },
+                                void 0,
+                                !1,
+                                {
+                                  fileName:
+                                    'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                  lineNumber: 1058,
+                                  columnNumber: 15,
+                                },
+                                globalThis
+                              ),
+                              e.jsxDEV(
+                                'input',
+                                {
+                                  ref: li,
+                                  type: 'file',
+                                  accept: 'image/*',
+                                  style: { display: 'none' },
+                                  onChange: Ei,
+                                },
+                                void 0,
+                                !1,
+                                {
+                                  fileName:
+                                    'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                  lineNumber: 1074,
+                                  columnNumber: 15,
+                                },
+                                globalThis
+                              ),
+                              e.jsxDEV(
+                                'input',
+                                {
+                                  ref: oi,
+                                  type: 'file',
+                                  accept: 'image/*',
+                                  capture: 'user',
+                                  style: { display: 'none' },
+                                  onChange: Si,
+                                },
+                                void 0,
+                                !1,
+                                {
+                                  fileName:
+                                    'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                  lineNumber: 1081,
+                                  columnNumber: 15,
+                                },
+                                globalThis
+                              ),
+                            ],
+                          },
+                          void 0,
+                          !0,
+                          {
+                            fileName:
+                              'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                            lineNumber: 1041,
+                            columnNumber: 13,
+                          },
+                          globalThis
+                        ),
+                        U &&
+                          e.jsxDEV(
+                            'div',
+                            {
+                              style: {
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '10px',
+                                marginTop: '4px',
+                              },
+                              children: [
+                                e.jsxDEV(
+                                  'div',
+                                  {
+                                    style: {
+                                      width: '44px',
+                                      height: '44px',
+                                      borderRadius: '50%',
+                                      background: 'rgba(255,255,255,0.08)',
+                                      border: '1px solid rgba(255,255,255,0.15)',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      overflow: 'hidden',
+                                    },
+                                    children: we(U)
+                                      ? e.jsxDEV(
+                                          'img',
+                                          {
+                                            src: U,
+                                            alt: 'Предпросмотр аватара',
+                                            style: {
+                                              width: '100%',
+                                              height: '100%',
+                                              objectFit: 'cover',
+                                            },
+                                          },
+                                          void 0,
+                                          !1,
+                                          {
+                                            fileName:
+                                              'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                            lineNumber: 1104,
+                                            columnNumber: 21,
+                                          },
+                                          globalThis
+                                        )
+                                      : e.jsxDEV(
+                                          'span',
+                                          { style: { fontSize: '20px' }, children: U },
+                                          void 0,
+                                          !1,
+                                          {
+                                            fileName:
+                                              'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                            lineNumber: 1106,
+                                            columnNumber: 21,
+                                          },
+                                          globalThis
+                                        ),
+                                  },
+                                  void 0,
+                                  !1,
+                                  {
+                                    fileName:
+                                      'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                    lineNumber: 1092,
+                                    columnNumber: 17,
+                                  },
+                                  globalThis
+                                ),
+                                e.jsxDEV(
+                                  'div',
+                                  {
+                                    style: { fontSize: '12px', opacity: 0.6 },
+                                    children: 'Предпросмотр',
+                                  },
+                                  void 0,
+                                  !1,
+                                  {
+                                    fileName:
+                                      'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                    lineNumber: 1109,
+                                    columnNumber: 17,
+                                  },
+                                  globalThis
+                                ),
+                              ],
+                            },
+                            void 0,
+                            !0,
+                            {
+                              fileName:
+                                'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                              lineNumber: 1091,
+                              columnNumber: 15,
+                            },
+                            globalThis
+                          ),
+                        e.jsxDEV(
+                          'div',
+                          {
+                            style: { display: 'flex', flexWrap: 'wrap', gap: '8px' },
+                            children: _i.map((i) =>
+                              e.jsxDEV(
+                                'button',
+                                {
+                                  type: 'button',
+                                  onClick: () => me(i),
+                                  style: {
+                                    width: '34px',
+                                    height: '34px',
+                                    borderRadius: '10px',
+                                    border: '1px solid rgba(255,255,255,0.15)',
+                                    background:
+                                      U === i ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.05)',
+                                    cursor: 'pointer',
+                                    fontSize: '16px',
+                                  },
+                                  'aria-label': `Выбрать аватар ${i}`,
+                                  children: i,
+                                },
+                                i,
+                                !1,
+                                {
+                                  fileName:
+                                    'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                  lineNumber: 1116,
+                                  columnNumber: 17,
+                                },
+                                globalThis
+                              )
+                            ),
+                          },
+                          void 0,
+                          !1,
+                          {
+                            fileName:
+                              'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                            lineNumber: 1114,
+                            columnNumber: 13,
+                          },
+                          globalThis
+                        ),
+                        e.jsxDEV(
+                          'div',
+                          {
+                            style: { display: 'flex', gap: '10px' },
+                            children: [
+                              e.jsxDEV(
+                                'button',
+                                {
+                                  onClick: Ti,
+                                  style: {
+                                    flex: 1,
+                                    padding: '10px',
+                                    background: 'rgba(255,255,255,0.12)',
+                                    color: 'white',
+                                    border: '1px solid rgba(255,255,255,0.18)',
+                                    borderRadius: '10px',
+                                    cursor: 'pointer',
+                                    fontWeight: 600,
+                                  },
+                                  children: 'Сохранить',
+                                },
+                                void 0,
+                                !1,
+                                {
+                                  fileName:
+                                    'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                  lineNumber: 1136,
+                                  columnNumber: 15,
+                                },
+                                globalThis
+                              ),
+                              e.jsxDEV(
+                                'button',
+                                {
+                                  onClick: ji,
+                                  style: {
+                                    padding: '10px 12px',
+                                    background: 'rgba(255, 77, 77, 0.12)',
+                                    color: '#ff8a8a',
+                                    border: '1px solid rgba(255, 77, 77, 0.35)',
+                                    borderRadius: '10px',
+                                    cursor: 'pointer',
+                                    fontWeight: 600,
+                                  },
+                                  children: 'Сбросить изменения',
+                                },
+                                void 0,
+                                !1,
+                                {
+                                  fileName:
+                                    'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                  lineNumber: 1151,
+                                  columnNumber: 15,
+                                },
+                                globalThis
+                              ),
+                            ],
+                          },
+                          void 0,
+                          !0,
+                          {
+                            fileName:
+                              'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                            lineNumber: 1135,
+                            columnNumber: 13,
+                          },
+                          globalThis
+                        ),
+                      ],
+                    },
+                    void 0,
+                    !0,
+                    {
+                      fileName: 'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                      lineNumber: 999,
+                      columnNumber: 11,
+                    },
+                    globalThis
+                  ),
+                e.jsxDEV(
+                  'div',
+                  {
+                    id: 'profile-team-card',
+                    style: {
+                      background: 'var(--cat-glass-bg, rgba(30, 20, 50, 0.6))',
+                      backdropFilter: 'blur(20px)',
+                      borderRadius: '24px',
+                      padding: '24px',
+                      border: '1px solid rgba(255, 255, 255, 0.08)',
+                      boxShadow: 'var(--shadow-medium, 0 8px 32px rgba(0, 0, 0, 0.25))',
+                    },
+                    children: N
+                      ? e.jsxDEV(
+                          'div',
+                          {
+                            children: [
+                              e.jsxDEV(
+                                'div',
+                                {
+                                  style: {
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '16px',
+                                    marginBottom: '16px',
+                                  },
+                                  children: [
+                                    e.jsxDEV(
+                                      'div',
+                                      {
+                                        style: {
+                                          fontSize: '40px',
+                                          background: 'rgba(0,0,0,0.2)',
+                                          width: '70px',
+                                          height: '70px',
+                                          borderRadius: '50%',
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          justifyContent: 'center',
+                                          border: '2px solid rgba(255,255,255,0.1)',
+                                        },
+                                        children: N.logo,
+                                      },
+                                      void 0,
+                                      !1,
+                                      {
+                                        fileName:
+                                          'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                        lineNumber: 1203,
+                                        columnNumber: 17,
+                                      },
+                                      globalThis
+                                    ),
+                                    e.jsxDEV(
+                                      'div',
+                                      {
+                                        style: { flex: 1 },
+                                        children: [
+                                          e.jsxDEV(
+                                            'div',
+                                            {
+                                              style: {
+                                                fontSize: '12px',
+                                                color: '#4dacff',
+                                                fontWeight: 700,
+                                                textTransform: 'uppercase',
+                                                letterSpacing: '0.1em',
+                                              },
+                                              children: 'Мой Движок',
+                                            },
+                                            void 0,
+                                            !1,
+                                            {
+                                              fileName:
+                                                'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                              lineNumber: 1207,
+                                              columnNumber: 19,
+                                            },
+                                            globalThis
+                                          ),
+                                          e.jsxDEV(
+                                            'h3',
+                                            {
+                                              style: { margin: 0, fontSize: '20px' },
+                                              children: N.name,
+                                            },
+                                            void 0,
+                                            !1,
+                                            {
+                                              fileName:
+                                                'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                              lineNumber: 1208,
+                                              columnNumber: 19,
+                                            },
+                                            globalThis
+                                          ),
+                                          e.jsxDEV(
+                                            'div',
+                                            {
+                                              style: {
+                                                fontSize: '13px',
+                                                opacity: 0.6,
+                                                fontStyle: 'italic',
+                                              },
+                                              children: ['«', N.motto, '»'],
+                                            },
+                                            void 0,
+                                            !0,
+                                            {
+                                              fileName:
+                                                'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                              lineNumber: 1209,
+                                              columnNumber: 19,
+                                            },
+                                            globalThis
+                                          ),
+                                        ],
+                                      },
+                                      void 0,
+                                      !0,
+                                      {
+                                        fileName:
+                                          'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                        lineNumber: 1206,
+                                        columnNumber: 17,
+                                      },
+                                      globalThis
+                                    ),
+                                    e.jsxDEV(
+                                      'button',
+                                      {
+                                        onClick: () => {
+                                          confirm('Выйти из команды?') && z();
+                                        },
+                                        style: {
+                                          background: 'none',
+                                          border: 'none',
+                                          color: '#ff4d4d',
+                                          cursor: 'pointer',
+                                          fontSize: '18px',
+                                        },
+                                        title: 'Выйти',
+                                        children: '🚪',
+                                      },
+                                      void 0,
+                                      !1,
+                                      {
+                                        fileName:
+                                          'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                        lineNumber: 1211,
+                                        columnNumber: 17,
+                                      },
+                                      globalThis
+                                    ),
+                                  ],
+                                },
+                                void 0,
+                                !0,
+                                {
+                                  fileName:
+                                    'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                  lineNumber: 1202,
+                                  columnNumber: 15,
+                                },
+                                globalThis
+                              ),
+                              N.goals.length > 0 &&
+                                e.jsxDEV(
+                                  'div',
+                                  {
+                                    style: {
+                                      background: 'rgba(0,0,0,0.2)',
+                                      borderRadius: '16px',
+                                      padding: '12px',
+                                      marginBottom: '16px',
+                                    },
+                                    children: [
+                                      e.jsxDEV(
+                                        'div',
+                                        {
+                                          style: {
+                                            fontSize: '11px',
+                                            opacity: 0.5,
+                                            textTransform: 'uppercase',
+                                            marginBottom: '8px',
+                                          },
+                                          children: 'Наши цели',
+                                        },
+                                        void 0,
+                                        !1,
+                                        {
+                                          fileName:
+                                            'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                          lineNumber: 1225,
+                                          columnNumber: 19,
+                                        },
+                                        globalThis
+                                      ),
+                                      e.jsxDEV(
+                                        'div',
+                                        {
+                                          style: { display: 'flex', gap: '8px' },
+                                          children: N.goals.map((i) =>
+                                            e.jsxDEV(
+                                              'div',
+                                              {
+                                                onClick: () => m(i),
+                                                style: { cursor: 'pointer' },
+                                                children: e.jsxDEV(
+                                                  ie,
+                                                  {
+                                                    badgeId: i,
+                                                    badgeTitle: '',
+                                                    categoryId: i.split('.')[0],
+                                                    emoji: '🎯',
+                                                    size: 'small',
+                                                  },
+                                                  void 0,
+                                                  !1,
+                                                  {
+                                                    fileName:
+                                                      'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                    lineNumber: 1229,
+                                                    columnNumber: 25,
+                                                  },
+                                                  globalThis
+                                                ),
+                                              },
+                                              i,
+                                              !1,
+                                              {
+                                                fileName:
+                                                  'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                lineNumber: 1228,
+                                                columnNumber: 23,
+                                              },
+                                              globalThis
+                                            )
+                                          ),
+                                        },
+                                        void 0,
+                                        !1,
+                                        {
+                                          fileName:
+                                            'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                          lineNumber: 1226,
+                                          columnNumber: 19,
+                                        },
+                                        globalThis
+                                      ),
+                                    ],
+                                  },
+                                  void 0,
+                                  !0,
+                                  {
+                                    fileName:
+                                      'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                    lineNumber: 1224,
+                                    columnNumber: 17,
+                                  },
+                                  globalThis
+                                ),
+                              e.jsxDEV(
+                                'div',
+                                {
+                                  style: { display: 'flex', gap: '10px' },
+                                  children: e.jsxDEV(
+                                    'button',
+                                    {
+                                      onClick: async () => {
+                                        const i = ne(),
+                                          l = `Присоединяйся к моему Движку «${N.name}» в Реальном Лагере! Вместе веселее. 🚀`;
+                                        try {
+                                          navigator.share
+                                            ? await navigator.share({
+                                                title: `Движок ${N.name}`,
+                                                text: l,
+                                                url: i,
+                                              })
+                                            : (await Be(`${l}
 
-${i}`),alert("Ссылка приглашения скопирована в буфер обмена!"))}catch{}},style:{flex:1,padding:"12px",background:"linear-gradient(90deg, #4dacff, #8b00ff)",border:"none",borderRadius:"12px",color:"white",fontWeight:800,cursor:"pointer",fontSize:"13px"},children:"🔗 Пригласить друзей"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1237,columnNumber:17},globalThis)},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1236,columnNumber:15},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1201,columnNumber:13},globalThis):e.jsxDEV("div",{style:{textAlign:"center"},children:[e.jsxDEV("div",{style:{fontSize:"32px",marginBottom:"12px"},children:"🤝"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1180,columnNumber:15},globalThis),e.jsxDEV("h3",{style:{margin:"0 0 8px 0",fontSize:"18px"},children:"Свой Движок"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1181,columnNumber:15},globalThis),e.jsxDEV("p",{style:{margin:"0 0 20px 0",opacity:.6,fontSize:"13px",lineHeight:"1.5"},children:"Создайте команду, выберите общие цели и пригласите друзей по QR-коду!"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1182,columnNumber:15},globalThis),e.jsxDEV("button",{onClick:()=>de(!0),style:{padding:"10px 20px",background:"rgba(255,255,255,0.1)",border:"1px solid rgba(255,255,255,0.2)",borderRadius:"12px",color:"white",fontWeight:700,cursor:"pointer"},children:"Создать команду"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1185,columnNumber:15},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1179,columnNumber:13},globalThis)},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1170,columnNumber:9},globalThis),wi&&e.jsxDEV("div",{style:{padding:"24px",background:"rgba(25, 20, 40, 0.95)",border:"1px solid rgba(255, 255, 255, 0.15)",borderRadius:"24px",display:"flex",flexDirection:"column",gap:"16px",boxShadow:"0 20px 50px rgba(0,0,0,0.5)",position:"relative",zIndex:1e3},children:[e.jsxDEV("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center"},children:[e.jsxDEV("h3",{style:{margin:0,textTransform:"uppercase",fontSize:"16px",letterSpacing:"0.1em"},children:"Создание Движка"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1290,columnNumber:15},globalThis),e.jsxDEV("button",{onClick:()=>de(!1),style:{background:"none",border:"none",color:"white",cursor:"pointer",fontSize:"20px"},children:"✕"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1291,columnNumber:15},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1289,columnNumber:13},globalThis),e.jsxDEV("label",{style:{fontSize:"12px",opacity:.7},children:"Название команды"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1294,columnNumber:13},globalThis),e.jsxDEV("input",{value:A.name,onChange:i=>Ee(l=>({...l,name:i.target.value})),placeholder:"Напр: Хранители Времени",style:{...k,width:"100%"}},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1295,columnNumber:13},globalThis),e.jsxDEV("label",{style:{fontSize:"12px",opacity:.7},children:"Девиз"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1302,columnNumber:13},globalThis),e.jsxDEV("input",{value:A.motto,onChange:i=>Ee(l=>({...l,motto:i.target.value})),placeholder:"Коротко и громко!",style:{...k,width:"100%"}},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1303,columnNumber:13},globalThis),e.jsxDEV("div",{style:{display:"flex",gap:"16px",alignItems:"center"},children:[e.jsxDEV("div",{style:{flex:1},children:[e.jsxDEV("label",{style:{fontSize:"12px",opacity:.7,display:"block",marginBottom:"8px"},children:"Эмблема (эмодзи)"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1312,columnNumber:17},globalThis),e.jsxDEV("div",{style:{display:"flex",flexWrap:"wrap",gap:"8px"},children:["🚀","⚡","🐉","🐺","🪐","🔥","💎","🎨"].map(i=>e.jsxDEV("button",{onClick:()=>Ee(l=>({...l,logo:i})),style:{fontSize:"20px",width:"40px",height:"40px",borderRadius:"10px",border:A.logo===i?"2px solid #4dacff":"1px solid rgba(255,255,255,0.1)",background:A.logo===i?"rgba(77, 172, 255, 0.2)":"rgba(0,0,0,0.2)",cursor:"pointer"},children:i},i,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1315,columnNumber:21},globalThis))},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1313,columnNumber:17},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1311,columnNumber:15},globalThis),e.jsxDEV("div",{style:{width:"80px",height:"80px",borderRadius:"50%",background:"rgba(0,0,0,0.3)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"40px",border:"2px solid rgba(255,255,255,0.1)"},children:A.logo},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1333,columnNumber:15},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1310,columnNumber:13},globalThis),e.jsxDEV("button",{onClick:()=>{if(!A.name.trim()){alert("Придумайте название команды!");return}re({name:A.name,motto:A.motto,logo:A.logo,goals:x.favorites.slice(0,3),leaderId:x.profile.id}),de(!1)},style:{marginTop:"10px",padding:"14px",background:"linear-gradient(90deg, #4dacff, #38ef7d)",border:"none",borderRadius:"12px",color:"#0b1b16",fontWeight:900,cursor:"pointer",textTransform:"uppercase"},children:"Запустить Движок!"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1348,columnNumber:13},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1277,columnNumber:11},globalThis),e.jsxDEV(Ui,{},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1381,columnNumber:9},globalThis),e.jsxDEV(Hi,{},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1384,columnNumber:9},globalThis),(ai=x.broProgress)!=null&&ai.isBro?e.jsxDEV(Ki,{},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1387,columnNumber:40},globalThis):e.jsxDEV(Gi,{},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1387,columnNumber:60},globalThis),e.jsxDEV("div",{style:{background:"var(--cat-glass-bg, rgba(0, 0, 0, 0.3))",borderRadius:"100px",padding:"6px",display:"flex",position:"relative",border:"1px solid var(--cat-glass-border, rgba(255,255,255,0.08))"},children:Ni.map(i=>e.jsxDEV("button",{id:`profile-tab-${i}`,onClick:()=>H(i),style:{flex:1,padding:"12px 20px",background:L===i?"var(--c-volt-glow, rgba(139, 0, 255, 0.35))":"transparent",border:L===i?"1px solid rgba(255,255,255,0.15)":"1px solid transparent",borderRadius:"100px",color:L===i?"white":"rgba(255, 255, 255, 0.6)",fontWeight:L===i?700:500,fontSize:"13px",fontFamily:'var(--f-display-nav, "Syne", sans-serif)',letterSpacing:"0.04em",textTransform:"uppercase",cursor:"pointer",transition:"all 0.3s cubic-bezier(0.16, 1, 0.3, 1)",backdropFilter:L===i?"blur(10px)":"none",boxShadow:L===i?"0 4px 20px rgba(139, 0, 255, 0.25)":"none"},children:[i==="active"&&"В пути",i==="collection"&&"Коллекция",i==="journal"&&"Журнал",i==="workshop"&&"Мастерская"]},i,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1399,columnNumber:13},globalThis))},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1390,columnNumber:9},globalThis),e.jsxDEV("div",{style:{minHeight:"300px"},children:[L==="active"&&e.jsxDEV("div",{className:"fade-in",children:[Se.length===0?e.jsxDEV("div",{style:{textAlign:"center",padding:"40px 20px",background:"rgba(255,255,255,0.03)",borderRadius:"20px",border:"1px dashed rgba(255,255,255,0.1)"},children:[e.jsxDEV("div",{style:{fontSize:"48px",marginBottom:"16px",opacity:.8,animation:"pulse 2s infinite"},children:"📡"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1443,columnNumber:19},globalThis),e.jsxDEV("h3",{style:{margin:"0 0 8px 0",fontSize:"18px"},children:"Твой радар чист"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1449,columnNumber:19},globalThis),e.jsxDEV("p",{style:{margin:"0 0 24px 0",opacity:.6,fontSize:"14px",lineHeight:"1.5"},children:["Сейчас самое время выбрать новый маршрут.",e.jsxDEV("br",{},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1451,columnNumber:62},globalThis),"Загляни в категории!"]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1450,columnNumber:19},globalThis),e.jsxDEV("button",{onClick:t,style:{padding:"12px 24px",background:"linear-gradient(90deg, #ffd700, #ffaa00)",color:"#1a1a2e",border:"none",borderRadius:"12px",fontWeight:700,fontSize:"14px",cursor:"pointer",boxShadow:"0 4px 15px rgba(255, 215, 0, 0.3)",transform:"translateY(0)",transition:"transform 0.2s"},children:"Выбрать маршрут"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1453,columnNumber:19},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1436,columnNumber:17},globalThis):e.jsxDEV("div",{style:{display:"grid",gap:"12px"},children:Se.map(([i],l)=>{const o=ge(i);return e.jsxDEV("div",{style:{background:"radial-gradient(circle at 10% 20%, rgba(255, 255, 255, 0.03) 0%, transparent 20%), linear-gradient(135deg, rgba(35, 35, 50, 0.8) 0%, rgba(20, 20, 30, 0.9) 100%)",padding:"16px",borderRadius:"24px",border:"1px solid rgba(255, 255, 255, 0.08)",display:"flex",justifyContent:"space-between",alignItems:"center",gap:"16px",boxShadow:"0 10px 30px -10px rgba(0,0,0,0.3)",transition:"transform 0.2s ease, box-shadow 0.2s ease",animation:"fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) backwards",animationDelay:`${l*.05}s`},onMouseEnter:r=>{r.currentTarget.style.transform="translateY(-2px)",r.currentTarget.style.boxShadow="0 14px 40px -10px rgba(0,0,0,0.4)",r.currentTarget.style.border="1px solid rgba(255, 255, 255, 0.15)"},onMouseLeave:r=>{r.currentTarget.style.transform="none",r.currentTarget.style.boxShadow="0 10px 30px -10px rgba(0,0,0,0.3)",r.currentTarget.style.border="1px solid rgba(255, 255, 255, 0.08)"},children:[e.jsxDEV("div",{onClick:()=>m(o.baseId),style:{display:"flex",alignItems:"center",gap:"16px",flex:1,cursor:"pointer"},className:"profile-badge-row-trigger",children:[e.jsxDEV("div",{style:{width:W.activeIcon,height:W.activeIcon,display:"flex",alignItems:"center",justifyContent:"center",fontSize:W.activeFont,flexShrink:0,position:"relative"},children:[e.jsxDEV("div",{className:"badge-glow-effect"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1517,columnNumber:29},globalThis),e.jsxDEV("div",{className:"badge-icon-wrapper",style:{position:"relative",zIndex:1},children:o.iconCategoryId?e.jsxDEV(ie,{badgeId:o.baseId,badgeTitle:o.iconBadgeTitle||o.title,categoryId:o.iconCategoryId,emoji:o.iconEmoji,levelId:o.levelId,levelTitle:o.levelTitle,size:"responsive"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1520,columnNumber:33},globalThis):e.jsxDEV("div",{style:{fontSize:"1em"},children:"🏅"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1530,columnNumber:33},globalThis)},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1518,columnNumber:29},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1507,columnNumber:27},globalThis),e.jsxDEV("div",{children:[e.jsxDEV("div",{style:{fontSize:"16px",fontWeight:700,marginBottom:"4px"},children:o.title},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1535,columnNumber:29},globalThis),e.jsxDEV("div",{style:{fontSize:"13px",opacity:.6,display:"flex",alignItems:"center",gap:"6px"},children:[e.jsxDEV("span",{style:{display:"inline-block",width:"6px",height:"6px",borderRadius:"50%",background:"#4dacff",boxShadow:"0 0 8px #4dacff"}},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1537,columnNumber:31},globalThis),o.levelLabel?o.levelLabel:"В процессе"]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1536,columnNumber:29},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1534,columnNumber:27},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1502,columnNumber:25},globalThis),e.jsxDEV("div",{style:{display:"flex",gap:"8px",alignItems:"center"},children:[e.jsxDEV("button",{onClick:()=>Pi(o,i),title:"Отправить подтверждение",style:{width:"40px",height:"40px",display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(72, 187, 120, 0.15)",border:"1px solid rgba(72, 187, 120, 0.3)",borderRadius:"12px",color:"#8af5b3",cursor:"pointer",transition:"all 0.2s"},onMouseEnter:r=>{r.currentTarget.style.transform="scale(1.15)",r.currentTarget.style.background="rgba(72, 187, 120, 0.25)",r.currentTarget.style.boxShadow="0 0 15px rgba(72, 187, 120, 0.4)"},onMouseLeave:r=>{r.currentTarget.style.transform="scale(1)",r.currentTarget.style.background="rgba(72, 187, 120, 0.15)",r.currentTarget.style.boxShadow="none"},children:e.jsxDEV($.Send,{},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1577,columnNumber:29},globalThis)},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1550,columnNumber:27},globalThis),e.jsxDEV("button",{onClick:()=>ri(o.baseId),title:Y.has(o.baseId)?"Убрать из избранного":"Добавить в избранное",style:{width:"40px",height:"40px",display:"flex",alignItems:"center",justifyContent:"center",background:Y.has(o.baseId)?"rgba(255, 215, 0, 0.15)":"rgba(255, 255, 255, 0.05)",border:Y.has(o.baseId)?"1px solid rgba(255, 215, 0, 0.4)":"1px solid rgba(255, 255, 255, 0.1)",borderRadius:"12px",color:Y.has(o.baseId)?"#ffd700":"rgba(255,255,255,0.4)",cursor:"pointer",transition:"all 0.2s"},onMouseEnter:r=>{r.currentTarget.style.transform="scale(1.15)",Y.has(o.baseId)?(r.currentTarget.style.background="rgba(255, 215, 0, 0.25)",r.currentTarget.style.boxShadow="0 0 15px rgba(255, 215, 0, 0.4)"):(r.currentTarget.style.background="rgba(255, 255, 255, 0.12)",r.currentTarget.style.boxShadow="0 0 15px rgba(255, 255, 255, 0.1)")},onMouseLeave:r=>{r.currentTarget.style.transform="scale(1)",r.currentTarget.style.background=Y.has(o.baseId)?"rgba(255, 215, 0, 0.15)":"rgba(255, 255, 255, 0.05)",r.currentTarget.style.boxShadow="none"},children:e.jsxDEV($.Star,{filled:Y.has(o.baseId)},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1613,columnNumber:29},globalThis)},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1579,columnNumber:27},globalThis),e.jsxDEV("button",{onClick:()=>Vi(o.baseId),title:"Убрать маршрут",style:{width:"40px",height:"40px",display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(255, 77, 77, 0.1)",border:"1px solid rgba(255, 77, 77, 0.25)",borderRadius:"12px",color:"#ff8a8a",cursor:"pointer",transition:"all 0.2s"},onMouseEnter:r=>{r.currentTarget.style.transform="scale(1.15)",r.currentTarget.style.background="rgba(255, 77, 77, 0.2)",r.currentTarget.style.boxShadow="0 0 15px rgba(255, 77, 77, 0.3)"},onMouseLeave:r=>{r.currentTarget.style.transform="scale(1)",r.currentTarget.style.background="rgba(255, 77, 77, 0.1)",r.currentTarget.style.boxShadow="none"},children:e.jsxDEV($.Trash,{},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1642,columnNumber:29},globalThis)},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1615,columnNumber:27},globalThis),e.jsxDEV("div",{style:{width:"1px",height:"24px",background:"rgba(255,255,255,0.1)",margin:"0 4px"}},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1645,columnNumber:27},globalThis),e.jsxDEV("button",{onClick:()=>m(o.baseId),title:"Перейти к значку",style:{width:"40px",height:"40px",display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(255, 255, 255, 0.1)",border:"1px solid rgba(255, 255, 255, 0.1)",borderRadius:"12px",color:"white",cursor:"pointer",transition:"all 0.2s"},onMouseEnter:r=>{r.currentTarget.style.transform="scale(1.15)",r.currentTarget.style.background="rgba(255, 255, 255, 0.2)",r.currentTarget.style.boxShadow="0 0 15px rgba(255, 255, 255, 0.2)"},onMouseLeave:r=>{r.currentTarget.style.transform="scale(1)",r.currentTarget.style.background="rgba(255, 255, 255, 0.1)",r.currentTarget.style.boxShadow="none"},children:e.jsxDEV($.ArrowRight,{},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1674,columnNumber:29},globalThis)},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1647,columnNumber:27},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1549,columnNumber:25},globalThis)]},i,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1477,columnNumber:23},globalThis)})},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1473,columnNumber:17},globalThis),e.jsxDEV("div",{style:{marginTop:"20px",paddingTop:"8px"},children:[e.jsxDEV("div",{style:{fontSize:"13px",fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase",marginBottom:"10px",opacity:.7},children:"Избранное"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1684,columnNumber:17},globalThis),Z.length===0?e.jsxDEV("div",{style:{padding:"30px",background:"rgba(255,255,255,0.02)",borderRadius:"20px",border:"1px dashed rgba(255,255,255,0.1)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:"12px"},children:[e.jsxDEV("div",{style:{fontSize:"32px",opacity:.2,filter:"grayscale(1)",animation:"pulse 3s infinite ease-in-out"},children:"⭐"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1699,columnNumber:21},globalThis),e.jsxDEV("div",{style:{fontSize:"13px",opacity:.5,textAlign:"center"},children:["Пока нет избранных значков.",e.jsxDEV("br",{},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1708,columnNumber:50},globalThis),"Отмечайте интересные маршруты звёздочкой."]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1707,columnNumber:21},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1688,columnNumber:19},globalThis):e.jsxDEV("div",{style:{display:"grid",gap:"10px"},children:Z.map((i,l)=>{const o=ge(i);return e.jsxDEV("div",{style:{background:"linear-gradient(145deg, rgba(25, 25, 40, 0.6) 0%, rgba(15, 15, 25, 0.6) 100%)",padding:"12px",borderRadius:"18px",border:"1px solid rgba(255, 255, 255, 0.06)",display:"flex",alignItems:"center",justifyContent:"space-between",gap:"12px",transition:"all 0.2s",animation:"fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) backwards",animationDelay:`${l*.05}s`},onMouseEnter:r=>{r.currentTarget.style.background="linear-gradient(145deg, rgba(35, 35, 50, 0.7) 0%, rgba(20, 20, 30, 0.7) 100%)",r.currentTarget.style.transform="translateY(-2px)"},onMouseLeave:r=>{r.currentTarget.style.background="linear-gradient(145deg, rgba(25, 25, 40, 0.6) 0%, rgba(15, 15, 25, 0.6) 100%)",r.currentTarget.style.transform="none"},children:[e.jsxDEV("div",{onClick:()=>m(o.baseId),style:{display:"flex",alignItems:"center",gap:"12px",flex:1,cursor:"pointer"},className:"profile-badge-row-trigger",children:[e.jsxDEV("div",{style:{width:W.favoriteIcon,height:W.favoriteIcon,display:"flex",alignItems:"center",justifyContent:"center",fontSize:W.favoriteFont,position:"relative"},children:[e.jsxDEV("div",{className:"badge-glow-effect"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1753,columnNumber:31},globalThis),e.jsxDEV("div",{className:"badge-icon-wrapper",style:{position:"relative",zIndex:1},children:o.iconCategoryId?e.jsxDEV(ie,{badgeId:o.baseId,badgeTitle:o.iconBadgeTitle||o.title,categoryId:o.iconCategoryId,emoji:o.iconEmoji,size:"responsive"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1756,columnNumber:35},globalThis):e.jsxDEV("div",{style:{fontSize:"1em"},children:"⭐"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1764,columnNumber:35},globalThis)},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1754,columnNumber:31},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1744,columnNumber:29},globalThis),e.jsxDEV("div",{children:[e.jsxDEV("div",{style:{fontSize:"14px",fontWeight:600},children:o.title},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1769,columnNumber:31},globalThis),o.levelLabel&&e.jsxDEV("div",{style:{fontSize:"12px",opacity:.6},children:o.levelLabel},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1771,columnNumber:33},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1768,columnNumber:29},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1739,columnNumber:27},globalThis),e.jsxDEV("div",{style:{display:"flex",gap:"8px",alignItems:"center"},children:[e.jsxDEV("button",{onClick:()=>ri(i),title:"Убрать из избранного",style:{width:"32px",height:"32px",display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(255, 215, 0, 0.15)",border:"1px solid rgba(255, 215, 0, 0.4)",borderRadius:"10px",color:"#ffd700",cursor:"pointer",transition:"all 0.2s"},onMouseEnter:r=>{r.currentTarget.style.transform="scale(1.15)",r.currentTarget.style.background="rgba(255, 215, 0, 0.25)",r.currentTarget.style.boxShadow="0 0 12px rgba(255, 215, 0, 0.4)"},onMouseLeave:r=>{r.currentTarget.style.transform="scale(1)",r.currentTarget.style.background="rgba(255, 215, 0, 0.15)",r.currentTarget.style.boxShadow="none"},children:e.jsxDEV($.Star,{filled:!0},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1803,columnNumber:31},globalThis)},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1776,columnNumber:29},globalThis),e.jsxDEV("button",{onClick:()=>m(o.baseId),title:"Перейти",style:{width:"32px",height:"32px",display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(255, 255, 255, 0.1)",border:"1px solid rgba(255, 255, 255, 0.1)",borderRadius:"10px",color:"white",cursor:"pointer",transition:"all 0.2s"},onMouseEnter:r=>{r.currentTarget.style.transform="scale(1.15)",r.currentTarget.style.background="rgba(255, 255, 255, 0.2)",r.currentTarget.style.boxShadow="0 0 12px rgba(255, 255, 255, 0.2)"},onMouseLeave:r=>{r.currentTarget.style.transform="scale(1)",r.currentTarget.style.background="rgba(255, 255, 255, 0.1)",r.currentTarget.style.boxShadow="none"},children:e.jsxDEV($.ArrowRight,{},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1833,columnNumber:31},globalThis)},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1806,columnNumber:29},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1775,columnNumber:27},globalThis)]},i,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1717,columnNumber:25},globalThis)})},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1713,columnNumber:19},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1683,columnNumber:15},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1434,columnNumber:13},globalThis),L==="collection"&&e.jsxDEV("div",{className:"fade-in",children:e.jsxDEV("div",{style:{display:"grid",gridTemplateColumns:`repeat(auto-fill, minmax(${W.collectionMin}px, 1fr))`,gap:W.collectionGap},children:[ke.map(([i])=>{const l=ge(i);return e.jsxDEV("div",{className:"collection-badge-card",style:{aspectRatio:"1",borderRadius:"16px",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",position:"relative",overflow:"visible",background:"transparent",border:"none",boxShadow:"none"},onClick:()=>m(l.baseId),children:e.jsxDEV("div",{style:{width:W.collectionIcon,height:W.collectionIcon,display:"flex",alignItems:"center",justifyContent:"center",fontSize:W.collectionFont,position:"relative"},children:[e.jsxDEV("div",{className:"collection-badge-glow",style:{position:"absolute",inset:"-22px",borderRadius:"50%",background:"radial-gradient(circle, rgba(255, 170, 0, 0.9) 0%, rgba(255, 140, 0, 0.35) 45%, rgba(255, 140, 0, 0) 72%)",filter:"blur(10px)",opacity:0,boxShadow:"0 0 18px rgba(255, 170, 0, 0.55), 0 0 42px rgba(255, 140, 0, 0.4)",pointerEvents:"none"}},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1883,columnNumber:23},globalThis),e.jsxDEV("div",{className:"collection-badge-icon",style:{position:"relative",zIndex:1,width:"100%",height:"100%",display:"flex",alignItems:"center",justifyContent:"center"},children:l.iconCategoryId?e.jsxDEV(ie,{badgeId:l.baseId,badgeTitle:l.iconBadgeTitle||l.title,categoryId:l.iconCategoryId,emoji:l.iconEmoji,levelId:l.levelId,levelTitle:l.levelTitle,size:"responsive"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1898,columnNumber:26},globalThis):e.jsxDEV("div",{style:{fontSize:"1em"},children:l.iconEmoji||"🏅"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1908,columnNumber:25},globalThis)},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1896,columnNumber:23},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1874,columnNumber:22},globalThis)},i,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1856,columnNumber:20},globalThis)}),ke.length===0&&e.jsxDEV("div",{style:{gridColumn:"1 / -1",textAlign:"center",padding:"40px",opacity:.6},children:[e.jsxDEV("div",{style:{fontSize:"32px",marginBottom:"10px",filter:"grayscale(1)"},children:"🏆"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1917,columnNumber:22},globalThis),"Пока нет завершённых значков."]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1916,columnNumber:20},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1848,columnNumber:16},globalThis)},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1847,columnNumber:13},globalThis),L==="workshop"&&e.jsxDEV("div",{className:"fade-in workshop-container",children:e.jsxDEV("div",{style:{background:"rgba(25, 20, 45, 0.8)",borderRadius:"24px",padding:"24px",border:"1px solid rgba(255, 255, 255, 0.12)",boxShadow:"0 15px 40px rgba(0,0,0,0.3)"},children:[e.jsxDEV("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"24px"},children:[e.jsxDEV("h3",{style:{margin:0,fontSize:"22px",fontWeight:800,color:"#ffd700",letterSpacing:"0.02em"},children:"🛠️ КОНСТРУКТОР СМЫСЛОВ"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1936,columnNumber:19},globalThis),e.jsxDEV("div",{style:{background:"rgba(255,215,0,0.1)",padding:"6px 12px",borderRadius:"100px",fontSize:"12px",color:"#ffd700",fontWeight:700},children:"Статус: Создатель Пути"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1939,columnNumber:19},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1935,columnNumber:17},globalThis),e.jsxDEV("section",{style:{marginBottom:"32px",padding:"20px",background:"rgba(255,255,255,0.03)",borderRadius:"20px",border:"1px solid rgba(255,255,255,0.05)"},children:[e.jsxDEV("div",{style:{display:"flex",gap:"8px",alignItems:"center",marginBottom:"16px"},children:[e.jsxDEV("span",{style:{width:"24px",height:"24px",background:"#ffd700",color:"#1a1a2e",borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"12px",fontWeight:900},children:"1"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1947,columnNumber:21},globalThis),e.jsxDEV("h4",{style:{margin:0,textTransform:"uppercase",fontSize:"14px",letterSpacing:"0.1em"},children:"Идея и Влияние"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1948,columnNumber:21},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1946,columnNumber:19},globalThis),e.jsxDEV("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fit, minmax(200px, 1fr))",gap:"16px",marginBottom:"16px"},children:[e.jsxDEV("div",{children:[e.jsxDEV("label",{style:{fontSize:"11px",opacity:.5,textTransform:"uppercase",marginBottom:"6px",display:"block"},children:"Название"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1953,columnNumber:23},globalThis),e.jsxDEV("input",{type:"text",value:s.title,onChange:i=>q(l=>({...l,title:i.target.value})),placeholder:"Напр: Хранитель Традиций",style:{...k,width:"100%"}},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1954,columnNumber:23},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1952,columnNumber:21},globalThis),e.jsxDEV("div",{children:[e.jsxDEV("label",{style:{fontSize:"11px",opacity:.5,textTransform:"uppercase",marginBottom:"6px",display:"block"},children:"Основной 4К Навык"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1963,columnNumber:23},globalThis),e.jsxDEV("select",{value:s.coreSkill,onChange:i=>q(l=>({...l,coreSkill:i.target.value})),style:{...k,width:"100%",appearance:"none"},children:[e.jsxDEV("option",{value:"Коллаборация",children:"🤝 Коллаборация (Работа в команде)"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1969,columnNumber:25},globalThis),e.jsxDEV("option",{value:"Коммуникация",children:"💬 Коммуникация (Общение)"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1970,columnNumber:25},globalThis),e.jsxDEV("option",{value:"Креативность",children:"💡 Креативность (Творчество)"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1971,columnNumber:25},globalThis),e.jsxDEV("option",{value:"Критическое мышление",children:"🧠 Критическое мышление"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1972,columnNumber:25},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1964,columnNumber:23},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1962,columnNumber:21},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1951,columnNumber:19},globalThis),e.jsxDEV("div",{style:{marginBottom:"16px"},children:[e.jsxDEV("label",{style:{fontSize:"11px",opacity:.5,textTransform:"uppercase",marginBottom:"6px",display:"block"},children:"Реальный вклад (Что изменится в лагере?)"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1978,columnNumber:21},globalThis),e.jsxDEV("textarea",{value:s.impact,onChange:i=>q(l=>({...l,impact:i.target.value})),placeholder:"Напр: В лагере появится новая традиция вечерних костров или уютная зона отдыха...",rows:2,style:{...k,width:"100%",resize:"none"}},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1979,columnNumber:21},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1977,columnNumber:19},globalThis),e.jsxDEV("div",{style:{padding:"12px 16px",background:"rgba(139, 0, 255, 0.1)",border:"1px solid rgba(139, 0, 255, 0.2)",borderRadius:"12px",display:"flex",gap:"12px",alignItems:"flex-start"},children:[e.jsxDEV("span",{style:{fontSize:"20px"},children:"🤖"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1998,columnNumber:21},globalThis),e.jsxDEV("div",{style:{fontSize:"12px",lineHeight:"1.4",fontStyle:"italic",opacity:.9},children:[e.jsxDEV("strong",{children:"Совет Валюши:"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2e3,columnNumber:23},globalThis),' Хороший значок в Путеводителе всегда отвечает на вопрос: "Как это действие делает наш лагерь лучше для всех?". Попробуй связать навык ',s.coreSkill," с конкретным делом."]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1999,columnNumber:21},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1989,columnNumber:19},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1945,columnNumber:17},globalThis),e.jsxDEV("section",{style:{marginBottom:"32px",padding:"20px",background:"rgba(255,255,255,0.03)",borderRadius:"20px",border:"1px solid rgba(255,255,255,0.05)"},children:[e.jsxDEV("div",{style:{display:"flex",gap:"8px",alignItems:"center",marginBottom:"20px"},children:[e.jsxDEV("span",{style:{width:"24px",height:"24px",background:"#ffd700",color:"#1a1a2e",borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"12px",fontWeight:900},children:"2"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2008,columnNumber:21},globalThis),e.jsxDEV("h4",{style:{margin:0,textTransform:"uppercase",fontSize:"14px",letterSpacing:"0.1em"},children:"Ступени Мастерства"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2009,columnNumber:21},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2007,columnNumber:19},globalThis),e.jsxDEV("div",{style:{display:"grid",gap:"16px"},children:[e.jsxDEV("div",{style:{padding:"12px",background:"rgba(0,0,0,0.2)",borderRadius:"12px",borderLeft:"4px solid #38ef7d"},children:[e.jsxDEV("label",{style:{fontSize:"11px",fontWeight:700,color:"#38ef7d",display:"block",marginBottom:"6px"},children:"1 УРОВЕНЬ: БАЗОВЫЙ (Попробовать)"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2014,columnNumber:23},globalThis),e.jsxDEV("input",{type:"text",value:s.criteriaLevel1,onChange:i=>q(l=>({...l,criteriaLevel1:i.target.value})),placeholder:"Что нужно сделать в первый раз? (Напр: Собрать команду из 3 человек)",style:{...k,width:"100%",border:"none",background:"transparent",padding:"4px 0"}},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2015,columnNumber:23},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2013,columnNumber:21},globalThis),e.jsxDEV("div",{style:{padding:"12px",background:"rgba(0,0,0,0.2)",borderRadius:"12px",borderLeft:"4px solid #4dacff"},children:[e.jsxDEV("label",{style:{fontSize:"11px",fontWeight:700,color:"#4dacff",display:"block",marginBottom:"6px"},children:"2 УРОВЕНЬ: ПРОДВИНУТЫЙ (Действовать)"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2024,columnNumber:23},globalThis),e.jsxDEV("input",{type:"text",value:s.criteriaLevel2,onChange:i=>q(l=>({...l,criteriaLevel2:i.target.value})),placeholder:"Как закрепить результат? (Напр: Провести мероприятие для отряда)",style:{...k,width:"100%",border:"none",background:"transparent",padding:"4px 0"}},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2025,columnNumber:23},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2023,columnNumber:21},globalThis),e.jsxDEV("div",{style:{padding:"12px",background:"rgba(0,0,0,0.2)",borderRadius:"12px",borderLeft:"4px solid #ffd700"},children:[e.jsxDEV("label",{style:{fontSize:"11px",fontWeight:700,color:"#ffd700",display:"block",marginBottom:"6px"},children:"3 УРОВЕНЬ: ЭКСПЕРТНЫЙ (Вдохновлять)"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2034,columnNumber:23},globalThis),e.jsxDEV("input",{type:"text",value:s.criteriaLevel3,onChange:i=>q(l=>({...l,criteriaLevel3:i.target.value})),placeholder:"Как передать опыт другим? (Напр: Обучить ребят из другого отряда)",style:{...k,width:"100%",border:"none",background:"transparent",padding:"4px 0"}},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2035,columnNumber:23},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2033,columnNumber:21},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2012,columnNumber:19},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2006,columnNumber:17},globalThis),e.jsxDEV("section",{style:{display:"flex",gap:"24px",alignItems:"center",padding:"20px",background:"rgba(255,215,0,0.05)",borderRadius:"24px",border:"1px solid rgba(255,215,0,0.1)"},children:[e.jsxDEV("div",{style:{flexShrink:0,position:"relative"},children:[e.jsxDEV("div",{onClick:()=>{var i;return(i=Ue.current)==null?void 0:i.click()},style:{width:"100px",height:"100px",background:"rgba(0,0,0,0.3)",borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",border:"2px solid #ffd700",boxShadow:"0 0 20px rgba(255,215,0,0.2)",fontSize:"48px",cursor:"pointer",overflow:"hidden"},children:X?e.jsxDEV("img",{src:X,alt:"Custom art",style:{width:"100%",height:"100%",objectFit:"cover"}},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2067,columnNumber:25},globalThis):e.jsxDEV(ie,{badgeId:"custom",badgeTitle:s.title||"Новый значок",categoryId:s.category_id,emoji:s.emoji,size:"responsive"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2069,columnNumber:25},globalThis)},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2049,columnNumber:21},globalThis),X&&e.jsxDEV("button",{onClick:()=>qe(null),style:{position:"absolute",top:"-5px",right:"-5px",width:"24px",height:"24px",borderRadius:"50%",background:"#ff4d4d",border:"none",color:"white",fontSize:"14px",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 2px 8px rgba(0,0,0,0.3)",zIndex:2},children:"✕"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2079,columnNumber:23},globalThis),e.jsxDEV("input",{ref:Ue,type:"file",accept:"image/*",style:{display:"none"},onChange:i=>{var l;return hi((l=i.target.files)==null?void 0:l[0])}},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2103,columnNumber:21},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2048,columnNumber:19},globalThis),e.jsxDEV("div",{style:{flex:1},children:[e.jsxDEV("div",{style:{display:"flex",gap:"10px",marginBottom:"12px"},children:[e.jsxDEV("input",{type:"text",value:s.emoji,onChange:i=>q(l=>({...l,emoji:i.target.value})),style:{...k,width:"50px",textAlign:"center",fontSize:"20px"}},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2114,columnNumber:24},globalThis),e.jsxDEV("select",{value:s.category_id,onChange:i=>q(l=>({...l,category_id:i.target.value})),style:{...k,flex:1,fontSize:"12px"},children:w.map(i=>e.jsxDEV("option",{value:i.id,children:[i.emoji," ",i.title]},i.id,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2126,columnNumber:27},globalThis))},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2120,columnNumber:23},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2113,columnNumber:21},globalThis),e.jsxDEV("button",{onClick:()=>{if(!s.title.trim()){alert("Придумай название для своего значка!");return}if(!s.criteriaLevel1.trim()){alert("Опиши хотя бы первый шаг (Базовый уровень)!");return}if(!s.impact.trim()){alert("Расскажи, как этот значок изменит жизнь в лагере? Это важно для одобрения!");return}h&&(O(!0),I("Куём новый смысл…"),setTimeout(()=>{const i=`custom.${Date.now()}`,l={id:`${i}.1`,title:s.title,emoji:s.emoji,category_id:s.category_id,level:"Базовый",description:`Концепт: ${s.impact}`,criteria:s.criteriaLevel1,importance:`Развивает навык: ${s.coreSkill}. Влияние: ${s.impact}`};h(l),s.criteriaLevel2&&h({id:`${i}.2`,title:s.title,emoji:s.emoji,category_id:s.category_id,level:"Продвинутый",criteria:s.criteriaLevel2}),s.criteriaLevel3&&h({id:`${i}.3`,title:s.title,emoji:s.emoji,category_id:s.category_id,level:"Экспертный",criteria:s.criteriaLevel3}),X&&v(i,X),I("Готово! Значок добавлен в твой Путеводитель.");const o=["🛠️ ЗАЯВКА НА КАНОН (НОВЫЙ ЗНАЧОК)",`Название: ${s.title}`,`Категория ID: ${s.category_id}`,`Основной навык (4К): ${s.coreSkill}`,`Вклад в Реальность: ${s.impact}`,"","📋 КРИТЕРИИ:",`1. Базовый: ${s.criteriaLevel1}`,s.criteriaLevel2?`2. Продвинутый: ${s.criteriaLevel2}`:"",s.criteriaLevel3?`3. Экспертный: ${s.criteriaLevel3}`:"","",`Автор: ${b.nickname} (ID: ${b.id})`,X?"🎨 Арт загружен автором.":"✨ Используется эмодзи."].filter(Boolean).join(`
-`);if(confirm("Концепт успешно выкован! Отправить заявку вожатым в Telegram и создать карточку Созидателя?")){const r=`https://t.me/Stivanovv?text=${encodeURIComponent(o)}`;window.open(r,"_blank","noopener,noreferrer"),(async()=>{try{const a=await ye({format:"story",kind:"start_route",profile:{nickname:b.nickname,avatar:b.avatar,rank:Q},badge:{title:l.title,emoji:l.emoji,categoryId:l.category_id,levelLabel:"НОВЫЙ СМЫСЛ"}});await Re(a)}catch(a){console.error(a)}finally{O(!1),H("active")}})()}else O(!1),H("active")},1500))},disabled:T,style:{width:"100%",padding:"14px",background:T?"rgba(255,255,255,0.1)":"linear-gradient(90deg, #ffd700, #ff8c42)",color:T?"rgba(255,255,255,0.3)":"#1a1a2e",border:"none",borderRadius:"12px",fontWeight:900,fontSize:"14px",textTransform:"uppercase",letterSpacing:"0.05em",cursor:T?"not-allowed":"pointer",boxShadow:T?"none":"0 8px 25px rgba(255, 215, 0, 0.3)"},children:T?"ГЕНЕРИРУЕМ...":"АКТИВИРОВАТЬ В ПУТЕВОДИТЕЛЕ"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2131,columnNumber:21},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2112,columnNumber:19},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2047,columnNumber:17},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1928,columnNumber:15},globalThis)},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1927,columnNumber:13},globalThis),L==="journal"&&e.jsxDEV("div",{className:"fade-in",style:{display:"flex",flexDirection:"column",gap:"0"},children:fe.length===0?e.jsxDEV("div",{style:{textAlign:"center",padding:"40px",opacity:.6},children:[e.jsxDEV("div",{style:{fontSize:"32px",marginBottom:"10px",filter:"grayscale(1)"},children:"📖"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2266,columnNumber:20},globalThis),"История пуста."]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2265,columnNumber:18},globalThis):ke.map(([i,l],o)=>{const r=ge(i);return e.jsxDEV("div",{style:{display:"flex",gap:"16px",position:"relative",paddingBottom:"24px"},children:[o!==fe.length-1&&e.jsxDEV("div",{style:{position:"absolute",left:"6px",top:"16px",bottom:"0",width:"2px",background:"rgba(255, 255, 255, 0.1)"}},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2277,columnNumber:23},globalThis),e.jsxDEV("div",{style:{width:"14px",height:"14px",background:"#ffd700",borderRadius:"50%",marginTop:"4px",flexShrink:0,boxShadow:"0 0 0 4px rgba(255, 215, 0, 0.2)"}},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2288,columnNumber:21},globalThis),e.jsxDEV("div",{style:{flex:1},children:[e.jsxDEV("div",{style:{fontSize:"12px",opacity:.5,marginBottom:"2px"},children:new Date(l.achievedAt).toLocaleDateString()},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2299,columnNumber:23},globalThis),e.jsxDEV("div",{style:{fontWeight:600,fontSize:"16px",marginBottom:"8px"},children:r.title},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2302,columnNumber:23},globalThis),r.levelLabel&&e.jsxDEV("div",{style:{fontSize:"12px",opacity:.6,marginBottom:"8px"},children:r.levelLabel},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2306,columnNumber:25},globalThis),l.reflection&&e.jsxDEV("div",{style:{background:"rgba(255, 255, 255, 0.05)",padding:"12px",borderRadius:"12px",fontSize:"14px",lineHeight:"1.5",fontStyle:"italic",borderLeft:"2px solid rgba(255, 255, 255, 0.2)"},children:['"',l.reflection,'"']},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2311,columnNumber:25},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2298,columnNumber:21},globalThis)]},i,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2274,columnNumber:19},globalThis)})},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2263,columnNumber:13},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:1430,columnNumber:9},globalThis),e.jsxDEV("div",{id:"profile-share-center",style:{background:"var(--cat-glass-bg, rgba(20, 20, 35, 0.6))",backdropFilter:"blur(16px)",borderRadius:"22px",padding:"18px",border:"1px solid var(--cat-glass-border, rgba(255, 255, 255, 0.12))",boxShadow:"var(--shadow-medium, 0 8px 32px rgba(0, 0, 0, 0.28))"},children:[e.jsxDEV("div",{style:{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:"12px",flexWrap:"wrap"},children:[e.jsxDEV("div",{style:{minWidth:"240px"},children:[e.jsxDEV("div",{style:{fontSize:"16px",fontWeight:800,letterSpacing:"0.2px"},children:"Поделиться прогрессом"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2346,columnNumber:15},globalThis),e.jsxDEV("div",{style:{fontSize:"12px",opacity:.7,marginTop:"6px",lineHeight:1.45},children:["Сделаем 2 PNG: сторис ",e.jsxDEV("b",{children:"9:16"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2348,columnNumber:39},globalThis)," и пост ",e.jsxDEV("b",{children:"16:9"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2348,columnNumber:58},globalThis),". По умолчанию — без персональных данных (ник скрыт, фото-аватар не добавляется)."]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2347,columnNumber:15},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2345,columnNumber:13},globalThis),e.jsxDEV("button",{type:"button",onClick:Ri,disabled:T,style:{padding:"10px 14px",borderRadius:"14px",border:"1px solid rgba(255,255,255,0.14)",background:T?"rgba(255,255,255,0.06)":"rgba(255,255,255,0.10)",color:"white",cursor:T?"not-allowed":"pointer",fontSize:"12px",fontWeight:800,letterSpacing:"0.6px",textTransform:"uppercase"},children:T?"Генерируем…":B&&C?"Обновить":"Сгенерировать"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2352,columnNumber:13},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2344,columnNumber:11},globalThis),e.jsxDEV("div",{style:{marginTop:"12px",display:"flex",alignItems:"center",gap:"14px",flexWrap:"wrap"},children:[e.jsxDEV("label",{style:{display:"flex",alignItems:"center",gap:"10px",cursor:"pointer",fontSize:"13px"},children:[e.jsxDEV("input",{type:"checkbox",checked:ue,onChange:i=>vi(i.target.checked)},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2375,columnNumber:15},globalThis),"Скрыть ник"]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2374,columnNumber:13},globalThis),e.jsxDEV("div",{style:{fontSize:"12px",opacity:.6},children:"Никнейм — опционально; в карточке нет ФИО/телефона/почты."},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2382,columnNumber:13},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2373,columnNumber:11},globalThis),Le&&e.jsxDEV("div",{style:{marginTop:"10px",fontSize:"12px",opacity:.85},children:Le},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2388,columnNumber:13},globalThis),e.jsxDEV("div",{style:{marginTop:"14px",display:"flex",gap:"12px",flexWrap:"wrap"},children:[e.jsxDEV("div",{style:{flex:"1 1 260px",minWidth:"260px"},children:[e.jsxDEV("div",{style:{fontSize:"12px",opacity:.7,marginBottom:"8px"},children:"Сторис 9:16"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2395,columnNumber:15},globalThis),e.jsxDEV("div",{style:{width:"100%",aspectRatio:"9 / 16",borderRadius:"16px",border:"1px solid rgba(255,255,255,0.12)",overflow:"hidden",background:"rgba(0,0,0,0.22)",display:"flex",alignItems:"center",justifyContent:"center"},children:te?e.jsxDEV("img",{src:te,alt:"Story preview",style:{width:"100%",height:"100%",objectFit:"cover"}},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2410,columnNumber:19},globalThis):e.jsxDEV("div",{style:{padding:"14px",fontSize:"12px",opacity:.55,textAlign:"center",lineHeight:1.4},children:"Нажми «Сгенерировать», чтобы увидеть предпросмотр."},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2412,columnNumber:19},globalThis)},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2396,columnNumber:15},globalThis),e.jsxDEV("div",{style:{display:"flex",gap:"10px",flexWrap:"wrap",marginTop:"10px"},children:e.jsxDEV("button",{type:"button",disabled:!B||T,onClick:()=>B&&ti(B),style:{padding:"10px 12px",borderRadius:"12px",border:"1px solid rgba(255,255,255,0.14)",background:"rgba(255,255,255,0.08)",color:"white",cursor:!B||T?"not-allowed":"pointer",fontSize:"12px",fontWeight:700},children:"Поделиться / скачать"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2418,columnNumber:17},globalThis)},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2417,columnNumber:15},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2394,columnNumber:13},globalThis),e.jsxDEV("div",{style:{flex:"1 1 260px",minWidth:"260px"},children:[e.jsxDEV("div",{style:{fontSize:"12px",opacity:.7,marginBottom:"8px"},children:"Пост 16:9"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2439,columnNumber:15},globalThis),e.jsxDEV("div",{style:{width:"100%",aspectRatio:"16 / 9",borderRadius:"16px",border:"1px solid rgba(255,255,255,0.12)",overflow:"hidden",background:"rgba(0,0,0,0.22)",display:"flex",alignItems:"center",justifyContent:"center"},children:se?e.jsxDEV("img",{src:se,alt:"Wide preview",style:{width:"100%",height:"100%",objectFit:"cover"}},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2454,columnNumber:19},globalThis):e.jsxDEV("div",{style:{padding:"14px",fontSize:"12px",opacity:.55,textAlign:"center",lineHeight:1.4},children:"Нажми «Сгенерировать», чтобы увидеть предпросмотр."},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2456,columnNumber:19},globalThis)},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2440,columnNumber:15},globalThis),e.jsxDEV("div",{style:{display:"flex",gap:"10px",flexWrap:"wrap",marginTop:"10px"},children:e.jsxDEV("button",{type:"button",disabled:!C||T,onClick:()=>C&&ti(C),style:{padding:"10px 12px",borderRadius:"12px",border:"1px solid rgba(255,255,255,0.14)",background:"rgba(255,255,255,0.08)",color:"white",cursor:!C||T?"not-allowed":"pointer",fontSize:"12px",fontWeight:700},children:"Поделиться / скачать"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2462,columnNumber:17},globalThis)},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2461,columnNumber:15},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2438,columnNumber:13},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2393,columnNumber:11},globalThis),(B||C)&&e.jsxDEV("div",{style:{marginTop:"14px"},children:[e.jsxDEV("div",{style:{fontSize:"12px",opacity:.7,marginBottom:"8px"},children:"Подпись"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2485,columnNumber:15},globalThis),e.jsxDEV("textarea",{readOnly:!0,value:(B==null?void 0:B.text)||(C==null?void 0:C.text)||"",rows:3,style:{width:"100%",resize:"vertical",borderRadius:"14px",padding:"12px",border:"1px solid rgba(255,255,255,0.14)",background:"rgba(0,0,0,0.22)",color:"white",fontFamily:"inherit",fontSize:"13px",lineHeight:1.4}},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2486,columnNumber:15},globalThis),e.jsxDEV("div",{style:{marginTop:"10px",display:"flex",gap:"10px",flexWrap:"wrap"},children:e.jsxDEV("button",{type:"button",onClick:Wi,disabled:T,style:{padding:"10px 12px",borderRadius:"12px",border:"1px solid rgba(255,255,255,0.14)",background:"rgba(255,255,255,0.08)",color:"white",cursor:T?"not-allowed":"pointer",fontSize:"12px",fontWeight:700},children:"Скопировать подпись"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2504,columnNumber:17},globalThis)},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2503,columnNumber:15},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2484,columnNumber:13},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2333,columnNumber:9},globalThis),e.jsxDEV("div",{style:{marginTop:"20px",borderTop:"1px solid rgba(255,255,255,0.1)",paddingTop:"20px"},children:[e.jsxDEV("button",{onClick:()=>gi(!je),style:{background:"none",border:"none",color:"rgba(255,255,255,0.4)",cursor:"pointer",width:"100%",fontSize:"12px",textTransform:"uppercase",letterSpacing:"1px"},children:je?"Скрыть настройки ▲":"Настройки данных ▼"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2528,columnNumber:11},globalThis),je&&e.jsxDEV("div",{style:{marginTop:"20px",display:"flex",flexDirection:"column",gap:"12px"},children:[e.jsxDEV("label",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"12px",background:"rgba(255,215,0,0.05)",border:"1px solid rgba(255,215,0,0.1)",borderRadius:"12px",cursor:"pointer"},children:[e.jsxDEV("div",{style:{display:"flex",flexDirection:"column",gap:"2px"},children:[e.jsxDEV("span",{style:{fontSize:"13px",fontWeight:700,color:"#ffd700"},children:"Тестовый режим"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2557,columnNumber:19},globalThis),e.jsxDEV("span",{style:{fontSize:"10px",opacity:.5},children:"Открывает доступ к Мастерской"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2558,columnNumber:19},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2556,columnNumber:17},globalThis),e.jsxDEV("input",{type:"checkbox",checked:Te,onChange:i=>be(i.target.checked),style:{width:"20px",height:"20px",cursor:"pointer"}},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2560,columnNumber:17},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2546,columnNumber:15},globalThis),e.jsxDEV("button",{onClick:_,style:{padding:"12px",background:"rgba(255,255,255,0.05)",color:"white",border:"1px solid rgba(255,255,255,0.1)",borderRadius:"12px",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:"8px"},children:[e.jsxDEV("span",{children:"📥"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2577,columnNumber:17},globalThis)," Сохранить резервную копию"]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2568,columnNumber:15},globalThis),e.jsxDEV("label",{style:{padding:"12px",background:"rgba(255,255,255,0.05)",color:"white",border:"1px solid rgba(255,255,255,0.1)",borderRadius:"12px",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:"8px"},children:[e.jsxDEV("span",{children:"📤"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2588,columnNumber:17},globalThis)," Восстановить из файла",e.jsxDEV("input",{type:"file",accept:".json",onChange:zi,style:{display:"none"}},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2589,columnNumber:17},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2579,columnNumber:15},globalThis),e.jsxDEV("button",{onClick:E,style:{padding:"12px",background:"rgba(255, 77, 77, 0.1)",color:"#ff6b6b",border:"1px solid rgba(255, 77, 77, 0.3)",borderRadius:"12px",marginTop:"10px",cursor:"pointer"},children:"🗑️ Сброс прогресса"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2591,columnNumber:15},globalThis),e.jsxDEV("div",{style:{fontSize:"10px",textAlign:"center",opacity:.3,marginTop:"10px"},children:"v1.0.12 • LocalStorage Mode"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2602,columnNumber:16},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2545,columnNumber:13},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2527,columnNumber:9},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:774,columnNumber:7},globalThis),S&&e.jsxDEV("div",{className:"proof-modal-overlay",role:"dialog","aria-modal":"true",onClick:ve,children:e.jsxDEV("div",{className:"proof-modal",onClick:i=>i.stopPropagation(),children:[e.jsxDEV("div",{style:{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:"12px"},children:[e.jsxDEV("div",{children:[e.jsxDEV("div",{style:{fontSize:"16px",fontWeight:700},children:"Подтверждение значка"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2620,columnNumber:17},globalThis),e.jsxDEV("div",{style:{fontSize:"12px",opacity:.7,marginTop:"4px"},children:[S.title," • ",S.baseId,S.levelLabel?` • ${S.levelLabel}`:""]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2621,columnNumber:17},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2619,columnNumber:15},globalThis),e.jsxDEV("button",{type:"button",onClick:ve,style:{border:"none",background:"rgba(255,255,255,0.08)",color:"white",borderRadius:"10px",padding:"6px 10px",cursor:"pointer"},"aria-label":"Закрыть",children:"✕"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2626,columnNumber:15},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2618,columnNumber:13},globalThis),e.jsxDEV("div",{style:{display:"grid",gap:"12px",marginTop:"16px"},children:[e.jsxDEV("div",{children:[e.jsxDEV("label",{style:{fontSize:"12px",opacity:.7},children:"Что именно сделано"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2645,columnNumber:17},globalThis),e.jsxDEV("textarea",{value:y.text,onChange:i=>ee("text",i.target.value),placeholder:"Коротко опишите выполненные шаги, результат, что получилось.",rows:4,style:{...k,width:"100%",resize:"vertical",marginTop:"6px"}},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2646,columnNumber:17},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2644,columnNumber:15},globalThis),e.jsxDEV("div",{children:[e.jsxDEV("label",{style:{fontSize:"12px",opacity:.7},children:"Чему я научился(лась)"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2656,columnNumber:17},globalThis),e.jsxDEV("textarea",{value:y.learned,onChange:i=>ee("learned",i.target.value),placeholder:"Какой навык, опыт или открытие я получил(а).",rows:3,style:{...k,width:"100%",resize:"vertical",marginTop:"6px"}},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2657,columnNumber:17},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2655,columnNumber:15},globalThis),e.jsxDEV("div",{children:[e.jsxDEV("label",{style:{fontSize:"12px",opacity:.7},children:"Как это повлияло на мой коллектив и лагерь"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2667,columnNumber:17},globalThis),e.jsxDEV("textarea",{value:y.impact,onChange:i=>ee("impact",i.target.value),placeholder:"Какая была польза для команды, отряда, лагеря.",rows:3,style:{...k,width:"100%",resize:"vertical",marginTop:"6px"}},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2668,columnNumber:17},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2666,columnNumber:15},globalThis),e.jsxDEV("div",{children:[e.jsxDEV("label",{style:{fontSize:"12px",opacity:.7},children:"Ссылка (посты в соцсетях лагеря, отряда, вашей страницы и т.д.)"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2678,columnNumber:17},globalThis),e.jsxDEV("input",{type:"url",value:y.link,onChange:i=>ee("link",i.target.value),placeholder:"https://... (например, пост в VK/Telegram/Instagram)",style:{...k,width:"100%",marginTop:"6px"}},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2681,columnNumber:17},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2677,columnNumber:15},globalThis),e.jsxDEV("div",{children:[e.jsxDEV("div",{style:{fontSize:"12px",opacity:.7,marginBottom:"8px"},children:"Файлы и медиа"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2691,columnNumber:17},globalThis),e.jsxDEV("div",{style:{display:"flex",flexWrap:"wrap",gap:"8px"},children:[e.jsxDEV("button",{type:"button",onClick:()=>{var i;return(i=Xe.current)==null?void 0:i.click()},style:De,children:"📷 Фото"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2693,columnNumber:19},globalThis),e.jsxDEV("button",{type:"button",onClick:()=>{var i;return(i=Qe.current)==null?void 0:i.click()},style:De,children:"🤳 Селфи"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2696,columnNumber:19},globalThis),e.jsxDEV("button",{type:"button",onClick:()=>{var i;return(i=Ze.current)==null?void 0:i.click()},style:De,children:"📄 Документ"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2699,columnNumber:19},globalThis),e.jsxDEV("button",{type:"button",onClick:()=>{var i;return(i=ei.current)==null?void 0:i.click()},style:De,children:"📎 Файл"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2702,columnNumber:19},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2692,columnNumber:17},globalThis),e.jsxDEV("input",{ref:Xe,type:"file",accept:"image/*",style:{display:"none"},onChange:he("photo")},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2706,columnNumber:17},globalThis),e.jsxDEV("input",{ref:Qe,type:"file",accept:"image/*",capture:"user",style:{display:"none"},onChange:he("selfie")},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2713,columnNumber:17},globalThis),e.jsxDEV("input",{ref:Ze,type:"file",accept:".pdf,.doc,.docx,.txt",style:{display:"none"},onChange:he("document")},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2721,columnNumber:17},globalThis),e.jsxDEV("input",{ref:ei,type:"file",style:{display:"none"},onChange:he("file")},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2728,columnNumber:17},globalThis),Li&&e.jsxDEV("div",{style:{display:"grid",gap:"6px",marginTop:"10px"},children:si.filter(i=>i.file).map(i=>{var l;return e.jsxDEV("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",gap:"10px",padding:"8px 10px",borderRadius:"10px",border:"1px solid rgba(255,255,255,0.1)",background:"rgba(255,255,255,0.04)"},children:[e.jsxDEV("div",{style:{fontSize:"12px"},children:[e.jsxDEV("strong",{children:[i.label,":"]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2754,columnNumber:29},globalThis)," ",(l=i.file)==null?void 0:l.name," ",i.file?`(${bi(i.file.size)})`:""]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2753,columnNumber:27},globalThis),e.jsxDEV("button",{type:"button",onClick:()=>ee(i.key,null),style:{border:"none",background:"rgba(255,255,255,0.08)",color:"white",borderRadius:"8px",padding:"4px 8px",cursor:"pointer",fontSize:"12px"},"aria-label":`Удалить ${i.label}`,children:"✕"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2757,columnNumber:27},globalThis)]},i.key,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2740,columnNumber:25},globalThis)})},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2736,columnNumber:19},globalThis),e.jsxDEV("div",{style:{fontSize:"11px",opacity:.55,marginTop:"10px",lineHeight:"1.4"},children:"После открытия Telegram прикрепите выбранные файлы вручную, если нужно. Текст и ссылка будут подставлены автоматически."},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2778,columnNumber:17},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2690,columnNumber:15},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2643,columnNumber:13},globalThis),e.jsxDEV("div",{style:{display:"flex",flexWrap:"wrap",gap:"10px",justifyContent:"flex-end",marginTop:"18px"},children:[e.jsxDEV("button",{type:"button",onClick:ve,style:{padding:"10px 14px",borderRadius:"12px",border:"1px solid rgba(255,255,255,0.15)",background:"rgba(255,255,255,0.06)",color:"rgba(255,255,255,0.85)",fontSize:"12px",letterSpacing:"0.06em",textTransform:"uppercase",cursor:"pointer"},children:"Отмена"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2786,columnNumber:15},globalThis),e.jsxDEV("button",{type:"button",onClick:Ci,style:{padding:"10px 16px",borderRadius:"12px",border:"none",background:"linear-gradient(90deg, #38ef7d, #11998e)",color:"#0b1b16",fontSize:"12px",letterSpacing:"0.06em",textTransform:"uppercase",fontWeight:700,cursor:"pointer"},children:"Отправить в Telegram"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2803,columnNumber:15},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2785,columnNumber:13},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2617,columnNumber:11},globalThis)},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2611,columnNumber:9},globalThis),e.jsxDEV(n.Suspense,{fallback:null,children:[e.jsxDEV(il,{onClick:g,isOpen:d},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2827,columnNumber:9},globalThis),e.jsxDEV(el,{isOpen:d,onClose:P,currentView:"profile"},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2828,columnNumber:9},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2826,columnNumber:7},globalThis),e.jsxDEV("style",{children:`
+${i}`),
+                                              alert(
+                                                'Ссылка приглашения скопирована в буфер обмена!'
+                                              ));
+                                        } catch {}
+                                      },
+                                      style: {
+                                        flex: 1,
+                                        padding: '12px',
+                                        background: 'linear-gradient(90deg, #4dacff, #8b00ff)',
+                                        border: 'none',
+                                        borderRadius: '12px',
+                                        color: 'white',
+                                        fontWeight: 800,
+                                        cursor: 'pointer',
+                                        fontSize: '13px',
+                                      },
+                                      children: '🔗 Пригласить друзей',
+                                    },
+                                    void 0,
+                                    !1,
+                                    {
+                                      fileName:
+                                        'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                      lineNumber: 1237,
+                                      columnNumber: 17,
+                                    },
+                                    globalThis
+                                  ),
+                                },
+                                void 0,
+                                !1,
+                                {
+                                  fileName:
+                                    'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                  lineNumber: 1236,
+                                  columnNumber: 15,
+                                },
+                                globalThis
+                              ),
+                            ],
+                          },
+                          void 0,
+                          !0,
+                          {
+                            fileName:
+                              'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                            lineNumber: 1201,
+                            columnNumber: 13,
+                          },
+                          globalThis
+                        )
+                      : e.jsxDEV(
+                          'div',
+                          {
+                            style: { textAlign: 'center' },
+                            children: [
+                              e.jsxDEV(
+                                'div',
+                                {
+                                  style: { fontSize: '32px', marginBottom: '12px' },
+                                  children: '🤝',
+                                },
+                                void 0,
+                                !1,
+                                {
+                                  fileName:
+                                    'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                  lineNumber: 1180,
+                                  columnNumber: 15,
+                                },
+                                globalThis
+                              ),
+                              e.jsxDEV(
+                                'h3',
+                                {
+                                  style: { margin: '0 0 8px 0', fontSize: '18px' },
+                                  children: 'Свой Движок',
+                                },
+                                void 0,
+                                !1,
+                                {
+                                  fileName:
+                                    'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                  lineNumber: 1181,
+                                  columnNumber: 15,
+                                },
+                                globalThis
+                              ),
+                              e.jsxDEV(
+                                'p',
+                                {
+                                  style: {
+                                    margin: '0 0 20px 0',
+                                    opacity: 0.6,
+                                    fontSize: '13px',
+                                    lineHeight: '1.5',
+                                  },
+                                  children:
+                                    'Создайте команду, выберите общие цели и пригласите друзей по QR-коду!',
+                                },
+                                void 0,
+                                !1,
+                                {
+                                  fileName:
+                                    'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                  lineNumber: 1182,
+                                  columnNumber: 15,
+                                },
+                                globalThis
+                              ),
+                              e.jsxDEV(
+                                'button',
+                                {
+                                  onClick: () => de(!0),
+                                  style: {
+                                    padding: '10px 20px',
+                                    background: 'rgba(255,255,255,0.1)',
+                                    border: '1px solid rgba(255,255,255,0.2)',
+                                    borderRadius: '12px',
+                                    color: 'white',
+                                    fontWeight: 700,
+                                    cursor: 'pointer',
+                                  },
+                                  children: 'Создать команду',
+                                },
+                                void 0,
+                                !1,
+                                {
+                                  fileName:
+                                    'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                  lineNumber: 1185,
+                                  columnNumber: 15,
+                                },
+                                globalThis
+                              ),
+                            ],
+                          },
+                          void 0,
+                          !0,
+                          {
+                            fileName:
+                              'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                            lineNumber: 1179,
+                            columnNumber: 13,
+                          },
+                          globalThis
+                        ),
+                  },
+                  void 0,
+                  !1,
+                  {
+                    fileName: 'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                    lineNumber: 1170,
+                    columnNumber: 9,
+                  },
+                  globalThis
+                ),
+                wi &&
+                  e.jsxDEV(
+                    'div',
+                    {
+                      style: {
+                        padding: '24px',
+                        background: 'rgba(25, 20, 40, 0.95)',
+                        border: '1px solid rgba(255, 255, 255, 0.15)',
+                        borderRadius: '24px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '16px',
+                        boxShadow: '0 20px 50px rgba(0,0,0,0.5)',
+                        position: 'relative',
+                        zIndex: 1e3,
+                      },
+                      children: [
+                        e.jsxDEV(
+                          'div',
+                          {
+                            style: {
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                            },
+                            children: [
+                              e.jsxDEV(
+                                'h3',
+                                {
+                                  style: {
+                                    margin: 0,
+                                    textTransform: 'uppercase',
+                                    fontSize: '16px',
+                                    letterSpacing: '0.1em',
+                                  },
+                                  children: 'Создание Движка',
+                                },
+                                void 0,
+                                !1,
+                                {
+                                  fileName:
+                                    'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                  lineNumber: 1290,
+                                  columnNumber: 15,
+                                },
+                                globalThis
+                              ),
+                              e.jsxDEV(
+                                'button',
+                                {
+                                  onClick: () => de(!1),
+                                  style: {
+                                    background: 'none',
+                                    border: 'none',
+                                    color: 'white',
+                                    cursor: 'pointer',
+                                    fontSize: '20px',
+                                  },
+                                  children: '✕',
+                                },
+                                void 0,
+                                !1,
+                                {
+                                  fileName:
+                                    'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                  lineNumber: 1291,
+                                  columnNumber: 15,
+                                },
+                                globalThis
+                              ),
+                            ],
+                          },
+                          void 0,
+                          !0,
+                          {
+                            fileName:
+                              'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                            lineNumber: 1289,
+                            columnNumber: 13,
+                          },
+                          globalThis
+                        ),
+                        e.jsxDEV(
+                          'label',
+                          {
+                            style: { fontSize: '12px', opacity: 0.7 },
+                            children: 'Название команды',
+                          },
+                          void 0,
+                          !1,
+                          {
+                            fileName:
+                              'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                            lineNumber: 1294,
+                            columnNumber: 13,
+                          },
+                          globalThis
+                        ),
+                        e.jsxDEV(
+                          'input',
+                          {
+                            value: A.name,
+                            onChange: (i) => Ee((l) => ({ ...l, name: i.target.value })),
+                            placeholder: 'Напр: Хранители Времени',
+                            style: { ...k, width: '100%' },
+                          },
+                          void 0,
+                          !1,
+                          {
+                            fileName:
+                              'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                            lineNumber: 1295,
+                            columnNumber: 13,
+                          },
+                          globalThis
+                        ),
+                        e.jsxDEV(
+                          'label',
+                          { style: { fontSize: '12px', opacity: 0.7 }, children: 'Девиз' },
+                          void 0,
+                          !1,
+                          {
+                            fileName:
+                              'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                            lineNumber: 1302,
+                            columnNumber: 13,
+                          },
+                          globalThis
+                        ),
+                        e.jsxDEV(
+                          'input',
+                          {
+                            value: A.motto,
+                            onChange: (i) => Ee((l) => ({ ...l, motto: i.target.value })),
+                            placeholder: 'Коротко и громко!',
+                            style: { ...k, width: '100%' },
+                          },
+                          void 0,
+                          !1,
+                          {
+                            fileName:
+                              'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                            lineNumber: 1303,
+                            columnNumber: 13,
+                          },
+                          globalThis
+                        ),
+                        e.jsxDEV(
+                          'div',
+                          {
+                            style: { display: 'flex', gap: '16px', alignItems: 'center' },
+                            children: [
+                              e.jsxDEV(
+                                'div',
+                                {
+                                  style: { flex: 1 },
+                                  children: [
+                                    e.jsxDEV(
+                                      'label',
+                                      {
+                                        style: {
+                                          fontSize: '12px',
+                                          opacity: 0.7,
+                                          display: 'block',
+                                          marginBottom: '8px',
+                                        },
+                                        children: 'Эмблема (эмодзи)',
+                                      },
+                                      void 0,
+                                      !1,
+                                      {
+                                        fileName:
+                                          'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                        lineNumber: 1312,
+                                        columnNumber: 17,
+                                      },
+                                      globalThis
+                                    ),
+                                    e.jsxDEV(
+                                      'div',
+                                      {
+                                        style: { display: 'flex', flexWrap: 'wrap', gap: '8px' },
+                                        children: [
+                                          '🚀',
+                                          '⚡',
+                                          '🐉',
+                                          '🐺',
+                                          '🪐',
+                                          '🔥',
+                                          '💎',
+                                          '🎨',
+                                        ].map((i) =>
+                                          e.jsxDEV(
+                                            'button',
+                                            {
+                                              onClick: () => Ee((l) => ({ ...l, logo: i })),
+                                              style: {
+                                                fontSize: '20px',
+                                                width: '40px',
+                                                height: '40px',
+                                                borderRadius: '10px',
+                                                border:
+                                                  A.logo === i
+                                                    ? '2px solid #4dacff'
+                                                    : '1px solid rgba(255,255,255,0.1)',
+                                                background:
+                                                  A.logo === i
+                                                    ? 'rgba(77, 172, 255, 0.2)'
+                                                    : 'rgba(0,0,0,0.2)',
+                                                cursor: 'pointer',
+                                              },
+                                              children: i,
+                                            },
+                                            i,
+                                            !1,
+                                            {
+                                              fileName:
+                                                'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                              lineNumber: 1315,
+                                              columnNumber: 21,
+                                            },
+                                            globalThis
+                                          )
+                                        ),
+                                      },
+                                      void 0,
+                                      !1,
+                                      {
+                                        fileName:
+                                          'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                        lineNumber: 1313,
+                                        columnNumber: 17,
+                                      },
+                                      globalThis
+                                    ),
+                                  ],
+                                },
+                                void 0,
+                                !0,
+                                {
+                                  fileName:
+                                    'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                  lineNumber: 1311,
+                                  columnNumber: 15,
+                                },
+                                globalThis
+                              ),
+                              e.jsxDEV(
+                                'div',
+                                {
+                                  style: {
+                                    width: '80px',
+                                    height: '80px',
+                                    borderRadius: '50%',
+                                    background: 'rgba(0,0,0,0.3)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    fontSize: '40px',
+                                    border: '2px solid rgba(255,255,255,0.1)',
+                                  },
+                                  children: A.logo,
+                                },
+                                void 0,
+                                !1,
+                                {
+                                  fileName:
+                                    'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                  lineNumber: 1333,
+                                  columnNumber: 15,
+                                },
+                                globalThis
+                              ),
+                            ],
+                          },
+                          void 0,
+                          !0,
+                          {
+                            fileName:
+                              'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                            lineNumber: 1310,
+                            columnNumber: 13,
+                          },
+                          globalThis
+                        ),
+                        e.jsxDEV(
+                          'button',
+                          {
+                            onClick: () => {
+                              if (!A.name.trim()) {
+                                alert('Придумайте название команды!');
+                                return;
+                              }
+                              re({
+                                name: A.name,
+                                motto: A.motto,
+                                logo: A.logo,
+                                goals: x.favorites.slice(0, 3),
+                                leaderId: x.profile.id,
+                              }),
+                                de(!1);
+                            },
+                            style: {
+                              marginTop: '10px',
+                              padding: '14px',
+                              background: 'linear-gradient(90deg, #4dacff, #38ef7d)',
+                              border: 'none',
+                              borderRadius: '12px',
+                              color: '#0b1b16',
+                              fontWeight: 900,
+                              cursor: 'pointer',
+                              textTransform: 'uppercase',
+                            },
+                            children: 'Запустить Движок!',
+                          },
+                          void 0,
+                          !1,
+                          {
+                            fileName:
+                              'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                            lineNumber: 1348,
+                            columnNumber: 13,
+                          },
+                          globalThis
+                        ),
+                      ],
+                    },
+                    void 0,
+                    !0,
+                    {
+                      fileName: 'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                      lineNumber: 1277,
+                      columnNumber: 11,
+                    },
+                    globalThis
+                  ),
+                e.jsxDEV(
+                  Ui,
+                  {},
+                  void 0,
+                  !1,
+                  {
+                    fileName: 'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                    lineNumber: 1381,
+                    columnNumber: 9,
+                  },
+                  globalThis
+                ),
+                e.jsxDEV(
+                  Hi,
+                  {},
+                  void 0,
+                  !1,
+                  {
+                    fileName: 'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                    lineNumber: 1384,
+                    columnNumber: 9,
+                  },
+                  globalThis
+                ),
+                (ai = x.broProgress) != null && ai.isBro
+                  ? e.jsxDEV(
+                      Ki,
+                      {},
+                      void 0,
+                      !1,
+                      {
+                        fileName: 'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                        lineNumber: 1387,
+                        columnNumber: 40,
+                      },
+                      globalThis
+                    )
+                  : e.jsxDEV(
+                      Gi,
+                      {},
+                      void 0,
+                      !1,
+                      {
+                        fileName: 'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                        lineNumber: 1387,
+                        columnNumber: 60,
+                      },
+                      globalThis
+                    ),
+                e.jsxDEV(
+                  'div',
+                  {
+                    style: {
+                      background: 'var(--cat-glass-bg, rgba(0, 0, 0, 0.3))',
+                      borderRadius: '100px',
+                      padding: '6px',
+                      display: 'flex',
+                      position: 'relative',
+                      border: '1px solid var(--cat-glass-border, rgba(255,255,255,0.08))',
+                    },
+                    children: Ni.map((i) =>
+                      e.jsxDEV(
+                        'button',
+                        {
+                          id: `profile-tab-${i}`,
+                          onClick: () => H(i),
+                          style: {
+                            flex: 1,
+                            padding: '12px 20px',
+                            background:
+                              L === i
+                                ? 'var(--c-volt-glow, rgba(139, 0, 255, 0.35))'
+                                : 'transparent',
+                            border:
+                              L === i
+                                ? '1px solid rgba(255,255,255,0.15)'
+                                : '1px solid transparent',
+                            borderRadius: '100px',
+                            color: L === i ? 'white' : 'rgba(255, 255, 255, 0.6)',
+                            fontWeight: L === i ? 700 : 500,
+                            fontSize: '13px',
+                            fontFamily: 'var(--f-display-nav, "Syne", sans-serif)',
+                            letterSpacing: '0.04em',
+                            textTransform: 'uppercase',
+                            cursor: 'pointer',
+                            transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+                            backdropFilter: L === i ? 'blur(10px)' : 'none',
+                            boxShadow: L === i ? '0 4px 20px rgba(139, 0, 255, 0.25)' : 'none',
+                          },
+                          children: [
+                            i === 'active' && 'В пути',
+                            i === 'collection' && 'Коллекция',
+                            i === 'journal' && 'Журнал',
+                            i === 'workshop' && 'Мастерская',
+                          ],
+                        },
+                        i,
+                        !0,
+                        {
+                          fileName: 'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                          lineNumber: 1399,
+                          columnNumber: 13,
+                        },
+                        globalThis
+                      )
+                    ),
+                  },
+                  void 0,
+                  !1,
+                  {
+                    fileName: 'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                    lineNumber: 1390,
+                    columnNumber: 9,
+                  },
+                  globalThis
+                ),
+                e.jsxDEV(
+                  'div',
+                  {
+                    style: { minHeight: '300px' },
+                    children: [
+                      L === 'active' &&
+                        e.jsxDEV(
+                          'div',
+                          {
+                            className: 'fade-in',
+                            children: [
+                              Se.length === 0
+                                ? e.jsxDEV(
+                                    'div',
+                                    {
+                                      style: {
+                                        textAlign: 'center',
+                                        padding: '40px 20px',
+                                        background: 'rgba(255,255,255,0.03)',
+                                        borderRadius: '20px',
+                                        border: '1px dashed rgba(255,255,255,0.1)',
+                                      },
+                                      children: [
+                                        e.jsxDEV(
+                                          'div',
+                                          {
+                                            style: {
+                                              fontSize: '48px',
+                                              marginBottom: '16px',
+                                              opacity: 0.8,
+                                              animation: 'pulse 2s infinite',
+                                            },
+                                            children: '📡',
+                                          },
+                                          void 0,
+                                          !1,
+                                          {
+                                            fileName:
+                                              'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                            lineNumber: 1443,
+                                            columnNumber: 19,
+                                          },
+                                          globalThis
+                                        ),
+                                        e.jsxDEV(
+                                          'h3',
+                                          {
+                                            style: { margin: '0 0 8px 0', fontSize: '18px' },
+                                            children: 'Твой радар чист',
+                                          },
+                                          void 0,
+                                          !1,
+                                          {
+                                            fileName:
+                                              'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                            lineNumber: 1449,
+                                            columnNumber: 19,
+                                          },
+                                          globalThis
+                                        ),
+                                        e.jsxDEV(
+                                          'p',
+                                          {
+                                            style: {
+                                              margin: '0 0 24px 0',
+                                              opacity: 0.6,
+                                              fontSize: '14px',
+                                              lineHeight: '1.5',
+                                            },
+                                            children: [
+                                              'Сейчас самое время выбрать новый маршрут.',
+                                              e.jsxDEV(
+                                                'br',
+                                                {},
+                                                void 0,
+                                                !1,
+                                                {
+                                                  fileName:
+                                                    'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                  lineNumber: 1451,
+                                                  columnNumber: 62,
+                                                },
+                                                globalThis
+                                              ),
+                                              'Загляни в категории!',
+                                            ],
+                                          },
+                                          void 0,
+                                          !0,
+                                          {
+                                            fileName:
+                                              'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                            lineNumber: 1450,
+                                            columnNumber: 19,
+                                          },
+                                          globalThis
+                                        ),
+                                        e.jsxDEV(
+                                          'button',
+                                          {
+                                            onClick: t,
+                                            style: {
+                                              padding: '12px 24px',
+                                              background:
+                                                'linear-gradient(90deg, #ffd700, #ffaa00)',
+                                              color: '#1a1a2e',
+                                              border: 'none',
+                                              borderRadius: '12px',
+                                              fontWeight: 700,
+                                              fontSize: '14px',
+                                              cursor: 'pointer',
+                                              boxShadow: '0 4px 15px rgba(255, 215, 0, 0.3)',
+                                              transform: 'translateY(0)',
+                                              transition: 'transform 0.2s',
+                                            },
+                                            children: 'Выбрать маршрут',
+                                          },
+                                          void 0,
+                                          !1,
+                                          {
+                                            fileName:
+                                              'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                            lineNumber: 1453,
+                                            columnNumber: 19,
+                                          },
+                                          globalThis
+                                        ),
+                                      ],
+                                    },
+                                    void 0,
+                                    !0,
+                                    {
+                                      fileName:
+                                        'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                      lineNumber: 1436,
+                                      columnNumber: 17,
+                                    },
+                                    globalThis
+                                  )
+                                : e.jsxDEV(
+                                    'div',
+                                    {
+                                      style: { display: 'grid', gap: '12px' },
+                                      children: Se.map(([i], l) => {
+                                        const o = ge(i);
+                                        return e.jsxDEV(
+                                          'div',
+                                          {
+                                            style: {
+                                              background:
+                                                'radial-gradient(circle at 10% 20%, rgba(255, 255, 255, 0.03) 0%, transparent 20%), linear-gradient(135deg, rgba(35, 35, 50, 0.8) 0%, rgba(20, 20, 30, 0.9) 100%)',
+                                              padding: '16px',
+                                              borderRadius: '24px',
+                                              border: '1px solid rgba(255, 255, 255, 0.08)',
+                                              display: 'flex',
+                                              justifyContent: 'space-between',
+                                              alignItems: 'center',
+                                              gap: '16px',
+                                              boxShadow: '0 10px 30px -10px rgba(0,0,0,0.3)',
+                                              transition:
+                                                'transform 0.2s ease, box-shadow 0.2s ease',
+                                              animation:
+                                                'fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) backwards',
+                                              animationDelay: `${l * 0.05}s`,
+                                            },
+                                            onMouseEnter: (r) => {
+                                              (r.currentTarget.style.transform =
+                                                'translateY(-2px)'),
+                                                (r.currentTarget.style.boxShadow =
+                                                  '0 14px 40px -10px rgba(0,0,0,0.4)'),
+                                                (r.currentTarget.style.border =
+                                                  '1px solid rgba(255, 255, 255, 0.15)');
+                                            },
+                                            onMouseLeave: (r) => {
+                                              (r.currentTarget.style.transform = 'none'),
+                                                (r.currentTarget.style.boxShadow =
+                                                  '0 10px 30px -10px rgba(0,0,0,0.3)'),
+                                                (r.currentTarget.style.border =
+                                                  '1px solid rgba(255, 255, 255, 0.08)');
+                                            },
+                                            children: [
+                                              e.jsxDEV(
+                                                'div',
+                                                {
+                                                  onClick: () => m(o.baseId),
+                                                  style: {
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '16px',
+                                                    flex: 1,
+                                                    cursor: 'pointer',
+                                                  },
+                                                  className: 'profile-badge-row-trigger',
+                                                  children: [
+                                                    e.jsxDEV(
+                                                      'div',
+                                                      {
+                                                        style: {
+                                                          width: W.activeIcon,
+                                                          height: W.activeIcon,
+                                                          display: 'flex',
+                                                          alignItems: 'center',
+                                                          justifyContent: 'center',
+                                                          fontSize: W.activeFont,
+                                                          flexShrink: 0,
+                                                          position: 'relative',
+                                                        },
+                                                        children: [
+                                                          e.jsxDEV(
+                                                            'div',
+                                                            { className: 'badge-glow-effect' },
+                                                            void 0,
+                                                            !1,
+                                                            {
+                                                              fileName:
+                                                                'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                              lineNumber: 1517,
+                                                              columnNumber: 29,
+                                                            },
+                                                            globalThis
+                                                          ),
+                                                          e.jsxDEV(
+                                                            'div',
+                                                            {
+                                                              className: 'badge-icon-wrapper',
+                                                              style: {
+                                                                position: 'relative',
+                                                                zIndex: 1,
+                                                              },
+                                                              children: o.iconCategoryId
+                                                                ? e.jsxDEV(
+                                                                    ie,
+                                                                    {
+                                                                      badgeId: o.baseId,
+                                                                      badgeTitle:
+                                                                        o.iconBadgeTitle || o.title,
+                                                                      categoryId: o.iconCategoryId,
+                                                                      emoji: o.iconEmoji,
+                                                                      levelId: o.levelId,
+                                                                      levelTitle: o.levelTitle,
+                                                                      size: 'responsive',
+                                                                    },
+                                                                    void 0,
+                                                                    !1,
+                                                                    {
+                                                                      fileName:
+                                                                        'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                                      lineNumber: 1520,
+                                                                      columnNumber: 33,
+                                                                    },
+                                                                    globalThis
+                                                                  )
+                                                                : e.jsxDEV(
+                                                                    'div',
+                                                                    {
+                                                                      style: { fontSize: '1em' },
+                                                                      children: '🏅',
+                                                                    },
+                                                                    void 0,
+                                                                    !1,
+                                                                    {
+                                                                      fileName:
+                                                                        'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                                      lineNumber: 1530,
+                                                                      columnNumber: 33,
+                                                                    },
+                                                                    globalThis
+                                                                  ),
+                                                            },
+                                                            void 0,
+                                                            !1,
+                                                            {
+                                                              fileName:
+                                                                'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                              lineNumber: 1518,
+                                                              columnNumber: 29,
+                                                            },
+                                                            globalThis
+                                                          ),
+                                                        ],
+                                                      },
+                                                      void 0,
+                                                      !0,
+                                                      {
+                                                        fileName:
+                                                          'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                        lineNumber: 1507,
+                                                        columnNumber: 27,
+                                                      },
+                                                      globalThis
+                                                    ),
+                                                    e.jsxDEV(
+                                                      'div',
+                                                      {
+                                                        children: [
+                                                          e.jsxDEV(
+                                                            'div',
+                                                            {
+                                                              style: {
+                                                                fontSize: '16px',
+                                                                fontWeight: 700,
+                                                                marginBottom: '4px',
+                                                              },
+                                                              children: o.title,
+                                                            },
+                                                            void 0,
+                                                            !1,
+                                                            {
+                                                              fileName:
+                                                                'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                              lineNumber: 1535,
+                                                              columnNumber: 29,
+                                                            },
+                                                            globalThis
+                                                          ),
+                                                          e.jsxDEV(
+                                                            'div',
+                                                            {
+                                                              style: {
+                                                                fontSize: '13px',
+                                                                opacity: 0.6,
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                gap: '6px',
+                                                              },
+                                                              children: [
+                                                                e.jsxDEV(
+                                                                  'span',
+                                                                  {
+                                                                    style: {
+                                                                      display: 'inline-block',
+                                                                      width: '6px',
+                                                                      height: '6px',
+                                                                      borderRadius: '50%',
+                                                                      background: '#4dacff',
+                                                                      boxShadow: '0 0 8px #4dacff',
+                                                                    },
+                                                                  },
+                                                                  void 0,
+                                                                  !1,
+                                                                  {
+                                                                    fileName:
+                                                                      'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                                    lineNumber: 1537,
+                                                                    columnNumber: 31,
+                                                                  },
+                                                                  globalThis
+                                                                ),
+                                                                o.levelLabel
+                                                                  ? o.levelLabel
+                                                                  : 'В процессе',
+                                                              ],
+                                                            },
+                                                            void 0,
+                                                            !0,
+                                                            {
+                                                              fileName:
+                                                                'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                              lineNumber: 1536,
+                                                              columnNumber: 29,
+                                                            },
+                                                            globalThis
+                                                          ),
+                                                        ],
+                                                      },
+                                                      void 0,
+                                                      !0,
+                                                      {
+                                                        fileName:
+                                                          'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                        lineNumber: 1534,
+                                                        columnNumber: 27,
+                                                      },
+                                                      globalThis
+                                                    ),
+                                                  ],
+                                                },
+                                                void 0,
+                                                !0,
+                                                {
+                                                  fileName:
+                                                    'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                  lineNumber: 1502,
+                                                  columnNumber: 25,
+                                                },
+                                                globalThis
+                                              ),
+                                              e.jsxDEV(
+                                                'div',
+                                                {
+                                                  style: {
+                                                    display: 'flex',
+                                                    gap: '8px',
+                                                    alignItems: 'center',
+                                                  },
+                                                  children: [
+                                                    e.jsxDEV(
+                                                      'button',
+                                                      {
+                                                        onClick: () => Pi(o, i),
+                                                        title: 'Отправить подтверждение',
+                                                        style: {
+                                                          width: '40px',
+                                                          height: '40px',
+                                                          display: 'flex',
+                                                          alignItems: 'center',
+                                                          justifyContent: 'center',
+                                                          background: 'rgba(72, 187, 120, 0.15)',
+                                                          border:
+                                                            '1px solid rgba(72, 187, 120, 0.3)',
+                                                          borderRadius: '12px',
+                                                          color: '#8af5b3',
+                                                          cursor: 'pointer',
+                                                          transition: 'all 0.2s',
+                                                        },
+                                                        onMouseEnter: (r) => {
+                                                          (r.currentTarget.style.transform =
+                                                            'scale(1.15)'),
+                                                            (r.currentTarget.style.background =
+                                                              'rgba(72, 187, 120, 0.25)'),
+                                                            (r.currentTarget.style.boxShadow =
+                                                              '0 0 15px rgba(72, 187, 120, 0.4)');
+                                                        },
+                                                        onMouseLeave: (r) => {
+                                                          (r.currentTarget.style.transform =
+                                                            'scale(1)'),
+                                                            (r.currentTarget.style.background =
+                                                              'rgba(72, 187, 120, 0.15)'),
+                                                            (r.currentTarget.style.boxShadow =
+                                                              'none');
+                                                        },
+                                                        children: e.jsxDEV(
+                                                          $.Send,
+                                                          {},
+                                                          void 0,
+                                                          !1,
+                                                          {
+                                                            fileName:
+                                                              'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                            lineNumber: 1577,
+                                                            columnNumber: 29,
+                                                          },
+                                                          globalThis
+                                                        ),
+                                                      },
+                                                      void 0,
+                                                      !1,
+                                                      {
+                                                        fileName:
+                                                          'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                        lineNumber: 1550,
+                                                        columnNumber: 27,
+                                                      },
+                                                      globalThis
+                                                    ),
+                                                    e.jsxDEV(
+                                                      'button',
+                                                      {
+                                                        onClick: () => ri(o.baseId),
+                                                        title: Y.has(o.baseId)
+                                                          ? 'Убрать из избранного'
+                                                          : 'Добавить в избранное',
+                                                        style: {
+                                                          width: '40px',
+                                                          height: '40px',
+                                                          display: 'flex',
+                                                          alignItems: 'center',
+                                                          justifyContent: 'center',
+                                                          background: Y.has(o.baseId)
+                                                            ? 'rgba(255, 215, 0, 0.15)'
+                                                            : 'rgba(255, 255, 255, 0.05)',
+                                                          border: Y.has(o.baseId)
+                                                            ? '1px solid rgba(255, 215, 0, 0.4)'
+                                                            : '1px solid rgba(255, 255, 255, 0.1)',
+                                                          borderRadius: '12px',
+                                                          color: Y.has(o.baseId)
+                                                            ? '#ffd700'
+                                                            : 'rgba(255,255,255,0.4)',
+                                                          cursor: 'pointer',
+                                                          transition: 'all 0.2s',
+                                                        },
+                                                        onMouseEnter: (r) => {
+                                                          (r.currentTarget.style.transform =
+                                                            'scale(1.15)'),
+                                                            Y.has(o.baseId)
+                                                              ? ((r.currentTarget.style.background =
+                                                                  'rgba(255, 215, 0, 0.25)'),
+                                                                (r.currentTarget.style.boxShadow =
+                                                                  '0 0 15px rgba(255, 215, 0, 0.4)'))
+                                                              : ((r.currentTarget.style.background =
+                                                                  'rgba(255, 255, 255, 0.12)'),
+                                                                (r.currentTarget.style.boxShadow =
+                                                                  '0 0 15px rgba(255, 255, 255, 0.1)'));
+                                                        },
+                                                        onMouseLeave: (r) => {
+                                                          (r.currentTarget.style.transform =
+                                                            'scale(1)'),
+                                                            (r.currentTarget.style.background =
+                                                              Y.has(o.baseId)
+                                                                ? 'rgba(255, 215, 0, 0.15)'
+                                                                : 'rgba(255, 255, 255, 0.05)'),
+                                                            (r.currentTarget.style.boxShadow =
+                                                              'none');
+                                                        },
+                                                        children: e.jsxDEV(
+                                                          $.Star,
+                                                          { filled: Y.has(o.baseId) },
+                                                          void 0,
+                                                          !1,
+                                                          {
+                                                            fileName:
+                                                              'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                            lineNumber: 1613,
+                                                            columnNumber: 29,
+                                                          },
+                                                          globalThis
+                                                        ),
+                                                      },
+                                                      void 0,
+                                                      !1,
+                                                      {
+                                                        fileName:
+                                                          'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                        lineNumber: 1579,
+                                                        columnNumber: 27,
+                                                      },
+                                                      globalThis
+                                                    ),
+                                                    e.jsxDEV(
+                                                      'button',
+                                                      {
+                                                        onClick: () => Vi(o.baseId),
+                                                        title: 'Убрать маршрут',
+                                                        style: {
+                                                          width: '40px',
+                                                          height: '40px',
+                                                          display: 'flex',
+                                                          alignItems: 'center',
+                                                          justifyContent: 'center',
+                                                          background: 'rgba(255, 77, 77, 0.1)',
+                                                          border:
+                                                            '1px solid rgba(255, 77, 77, 0.25)',
+                                                          borderRadius: '12px',
+                                                          color: '#ff8a8a',
+                                                          cursor: 'pointer',
+                                                          transition: 'all 0.2s',
+                                                        },
+                                                        onMouseEnter: (r) => {
+                                                          (r.currentTarget.style.transform =
+                                                            'scale(1.15)'),
+                                                            (r.currentTarget.style.background =
+                                                              'rgba(255, 77, 77, 0.2)'),
+                                                            (r.currentTarget.style.boxShadow =
+                                                              '0 0 15px rgba(255, 77, 77, 0.3)');
+                                                        },
+                                                        onMouseLeave: (r) => {
+                                                          (r.currentTarget.style.transform =
+                                                            'scale(1)'),
+                                                            (r.currentTarget.style.background =
+                                                              'rgba(255, 77, 77, 0.1)'),
+                                                            (r.currentTarget.style.boxShadow =
+                                                              'none');
+                                                        },
+                                                        children: e.jsxDEV(
+                                                          $.Trash,
+                                                          {},
+                                                          void 0,
+                                                          !1,
+                                                          {
+                                                            fileName:
+                                                              'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                            lineNumber: 1642,
+                                                            columnNumber: 29,
+                                                          },
+                                                          globalThis
+                                                        ),
+                                                      },
+                                                      void 0,
+                                                      !1,
+                                                      {
+                                                        fileName:
+                                                          'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                        lineNumber: 1615,
+                                                        columnNumber: 27,
+                                                      },
+                                                      globalThis
+                                                    ),
+                                                    e.jsxDEV(
+                                                      'div',
+                                                      {
+                                                        style: {
+                                                          width: '1px',
+                                                          height: '24px',
+                                                          background: 'rgba(255,255,255,0.1)',
+                                                          margin: '0 4px',
+                                                        },
+                                                      },
+                                                      void 0,
+                                                      !1,
+                                                      {
+                                                        fileName:
+                                                          'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                        lineNumber: 1645,
+                                                        columnNumber: 27,
+                                                      },
+                                                      globalThis
+                                                    ),
+                                                    e.jsxDEV(
+                                                      'button',
+                                                      {
+                                                        onClick: () => m(o.baseId),
+                                                        title: 'Перейти к значку',
+                                                        style: {
+                                                          width: '40px',
+                                                          height: '40px',
+                                                          display: 'flex',
+                                                          alignItems: 'center',
+                                                          justifyContent: 'center',
+                                                          background: 'rgba(255, 255, 255, 0.1)',
+                                                          border:
+                                                            '1px solid rgba(255, 255, 255, 0.1)',
+                                                          borderRadius: '12px',
+                                                          color: 'white',
+                                                          cursor: 'pointer',
+                                                          transition: 'all 0.2s',
+                                                        },
+                                                        onMouseEnter: (r) => {
+                                                          (r.currentTarget.style.transform =
+                                                            'scale(1.15)'),
+                                                            (r.currentTarget.style.background =
+                                                              'rgba(255, 255, 255, 0.2)'),
+                                                            (r.currentTarget.style.boxShadow =
+                                                              '0 0 15px rgba(255, 255, 255, 0.2)');
+                                                        },
+                                                        onMouseLeave: (r) => {
+                                                          (r.currentTarget.style.transform =
+                                                            'scale(1)'),
+                                                            (r.currentTarget.style.background =
+                                                              'rgba(255, 255, 255, 0.1)'),
+                                                            (r.currentTarget.style.boxShadow =
+                                                              'none');
+                                                        },
+                                                        children: e.jsxDEV(
+                                                          $.ArrowRight,
+                                                          {},
+                                                          void 0,
+                                                          !1,
+                                                          {
+                                                            fileName:
+                                                              'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                            lineNumber: 1674,
+                                                            columnNumber: 29,
+                                                          },
+                                                          globalThis
+                                                        ),
+                                                      },
+                                                      void 0,
+                                                      !1,
+                                                      {
+                                                        fileName:
+                                                          'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                        lineNumber: 1647,
+                                                        columnNumber: 27,
+                                                      },
+                                                      globalThis
+                                                    ),
+                                                  ],
+                                                },
+                                                void 0,
+                                                !0,
+                                                {
+                                                  fileName:
+                                                    'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                  lineNumber: 1549,
+                                                  columnNumber: 25,
+                                                },
+                                                globalThis
+                                              ),
+                                            ],
+                                          },
+                                          i,
+                                          !0,
+                                          {
+                                            fileName:
+                                              'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                            lineNumber: 1477,
+                                            columnNumber: 23,
+                                          },
+                                          globalThis
+                                        );
+                                      }),
+                                    },
+                                    void 0,
+                                    !1,
+                                    {
+                                      fileName:
+                                        'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                      lineNumber: 1473,
+                                      columnNumber: 17,
+                                    },
+                                    globalThis
+                                  ),
+                              e.jsxDEV(
+                                'div',
+                                {
+                                  style: { marginTop: '20px', paddingTop: '8px' },
+                                  children: [
+                                    e.jsxDEV(
+                                      'div',
+                                      {
+                                        style: {
+                                          fontSize: '13px',
+                                          fontWeight: 700,
+                                          letterSpacing: '0.08em',
+                                          textTransform: 'uppercase',
+                                          marginBottom: '10px',
+                                          opacity: 0.7,
+                                        },
+                                        children: 'Избранное',
+                                      },
+                                      void 0,
+                                      !1,
+                                      {
+                                        fileName:
+                                          'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                        lineNumber: 1684,
+                                        columnNumber: 17,
+                                      },
+                                      globalThis
+                                    ),
+                                    Z.length === 0
+                                      ? e.jsxDEV(
+                                          'div',
+                                          {
+                                            style: {
+                                              padding: '30px',
+                                              background: 'rgba(255,255,255,0.02)',
+                                              borderRadius: '20px',
+                                              border: '1px dashed rgba(255,255,255,0.1)',
+                                              display: 'flex',
+                                              flexDirection: 'column',
+                                              alignItems: 'center',
+                                              justifyContent: 'center',
+                                              gap: '12px',
+                                            },
+                                            children: [
+                                              e.jsxDEV(
+                                                'div',
+                                                {
+                                                  style: {
+                                                    fontSize: '32px',
+                                                    opacity: 0.2,
+                                                    filter: 'grayscale(1)',
+                                                    animation: 'pulse 3s infinite ease-in-out',
+                                                  },
+                                                  children: '⭐',
+                                                },
+                                                void 0,
+                                                !1,
+                                                {
+                                                  fileName:
+                                                    'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                  lineNumber: 1699,
+                                                  columnNumber: 21,
+                                                },
+                                                globalThis
+                                              ),
+                                              e.jsxDEV(
+                                                'div',
+                                                {
+                                                  style: {
+                                                    fontSize: '13px',
+                                                    opacity: 0.5,
+                                                    textAlign: 'center',
+                                                  },
+                                                  children: [
+                                                    'Пока нет избранных значков.',
+                                                    e.jsxDEV(
+                                                      'br',
+                                                      {},
+                                                      void 0,
+                                                      !1,
+                                                      {
+                                                        fileName:
+                                                          'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                        lineNumber: 1708,
+                                                        columnNumber: 50,
+                                                      },
+                                                      globalThis
+                                                    ),
+                                                    'Отмечайте интересные маршруты звёздочкой.',
+                                                  ],
+                                                },
+                                                void 0,
+                                                !0,
+                                                {
+                                                  fileName:
+                                                    'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                  lineNumber: 1707,
+                                                  columnNumber: 21,
+                                                },
+                                                globalThis
+                                              ),
+                                            ],
+                                          },
+                                          void 0,
+                                          !0,
+                                          {
+                                            fileName:
+                                              'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                            lineNumber: 1688,
+                                            columnNumber: 19,
+                                          },
+                                          globalThis
+                                        )
+                                      : e.jsxDEV(
+                                          'div',
+                                          {
+                                            style: { display: 'grid', gap: '10px' },
+                                            children: Z.map((i, l) => {
+                                              const o = ge(i);
+                                              return e.jsxDEV(
+                                                'div',
+                                                {
+                                                  style: {
+                                                    background:
+                                                      'linear-gradient(145deg, rgba(25, 25, 40, 0.6) 0%, rgba(15, 15, 25, 0.6) 100%)',
+                                                    padding: '12px',
+                                                    borderRadius: '18px',
+                                                    border: '1px solid rgba(255, 255, 255, 0.06)',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'space-between',
+                                                    gap: '12px',
+                                                    transition: 'all 0.2s',
+                                                    animation:
+                                                      'fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) backwards',
+                                                    animationDelay: `${l * 0.05}s`,
+                                                  },
+                                                  onMouseEnter: (r) => {
+                                                    (r.currentTarget.style.background =
+                                                      'linear-gradient(145deg, rgba(35, 35, 50, 0.7) 0%, rgba(20, 20, 30, 0.7) 100%)'),
+                                                      (r.currentTarget.style.transform =
+                                                        'translateY(-2px)');
+                                                  },
+                                                  onMouseLeave: (r) => {
+                                                    (r.currentTarget.style.background =
+                                                      'linear-gradient(145deg, rgba(25, 25, 40, 0.6) 0%, rgba(15, 15, 25, 0.6) 100%)'),
+                                                      (r.currentTarget.style.transform = 'none');
+                                                  },
+                                                  children: [
+                                                    e.jsxDEV(
+                                                      'div',
+                                                      {
+                                                        onClick: () => m(o.baseId),
+                                                        style: {
+                                                          display: 'flex',
+                                                          alignItems: 'center',
+                                                          gap: '12px',
+                                                          flex: 1,
+                                                          cursor: 'pointer',
+                                                        },
+                                                        className: 'profile-badge-row-trigger',
+                                                        children: [
+                                                          e.jsxDEV(
+                                                            'div',
+                                                            {
+                                                              style: {
+                                                                width: W.favoriteIcon,
+                                                                height: W.favoriteIcon,
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                justifyContent: 'center',
+                                                                fontSize: W.favoriteFont,
+                                                                position: 'relative',
+                                                              },
+                                                              children: [
+                                                                e.jsxDEV(
+                                                                  'div',
+                                                                  {
+                                                                    className: 'badge-glow-effect',
+                                                                  },
+                                                                  void 0,
+                                                                  !1,
+                                                                  {
+                                                                    fileName:
+                                                                      'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                                    lineNumber: 1753,
+                                                                    columnNumber: 31,
+                                                                  },
+                                                                  globalThis
+                                                                ),
+                                                                e.jsxDEV(
+                                                                  'div',
+                                                                  {
+                                                                    className: 'badge-icon-wrapper',
+                                                                    style: {
+                                                                      position: 'relative',
+                                                                      zIndex: 1,
+                                                                    },
+                                                                    children: o.iconCategoryId
+                                                                      ? e.jsxDEV(
+                                                                          ie,
+                                                                          {
+                                                                            badgeId: o.baseId,
+                                                                            badgeTitle:
+                                                                              o.iconBadgeTitle ||
+                                                                              o.title,
+                                                                            categoryId:
+                                                                              o.iconCategoryId,
+                                                                            emoji: o.iconEmoji,
+                                                                            size: 'responsive',
+                                                                          },
+                                                                          void 0,
+                                                                          !1,
+                                                                          {
+                                                                            fileName:
+                                                                              'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                                            lineNumber: 1756,
+                                                                            columnNumber: 35,
+                                                                          },
+                                                                          globalThis
+                                                                        )
+                                                                      : e.jsxDEV(
+                                                                          'div',
+                                                                          {
+                                                                            style: {
+                                                                              fontSize: '1em',
+                                                                            },
+                                                                            children: '⭐',
+                                                                          },
+                                                                          void 0,
+                                                                          !1,
+                                                                          {
+                                                                            fileName:
+                                                                              'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                                            lineNumber: 1764,
+                                                                            columnNumber: 35,
+                                                                          },
+                                                                          globalThis
+                                                                        ),
+                                                                  },
+                                                                  void 0,
+                                                                  !1,
+                                                                  {
+                                                                    fileName:
+                                                                      'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                                    lineNumber: 1754,
+                                                                    columnNumber: 31,
+                                                                  },
+                                                                  globalThis
+                                                                ),
+                                                              ],
+                                                            },
+                                                            void 0,
+                                                            !0,
+                                                            {
+                                                              fileName:
+                                                                'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                              lineNumber: 1744,
+                                                              columnNumber: 29,
+                                                            },
+                                                            globalThis
+                                                          ),
+                                                          e.jsxDEV(
+                                                            'div',
+                                                            {
+                                                              children: [
+                                                                e.jsxDEV(
+                                                                  'div',
+                                                                  {
+                                                                    style: {
+                                                                      fontSize: '14px',
+                                                                      fontWeight: 600,
+                                                                    },
+                                                                    children: o.title,
+                                                                  },
+                                                                  void 0,
+                                                                  !1,
+                                                                  {
+                                                                    fileName:
+                                                                      'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                                    lineNumber: 1769,
+                                                                    columnNumber: 31,
+                                                                  },
+                                                                  globalThis
+                                                                ),
+                                                                o.levelLabel &&
+                                                                  e.jsxDEV(
+                                                                    'div',
+                                                                    {
+                                                                      style: {
+                                                                        fontSize: '12px',
+                                                                        opacity: 0.6,
+                                                                      },
+                                                                      children: o.levelLabel,
+                                                                    },
+                                                                    void 0,
+                                                                    !1,
+                                                                    {
+                                                                      fileName:
+                                                                        'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                                      lineNumber: 1771,
+                                                                      columnNumber: 33,
+                                                                    },
+                                                                    globalThis
+                                                                  ),
+                                                              ],
+                                                            },
+                                                            void 0,
+                                                            !0,
+                                                            {
+                                                              fileName:
+                                                                'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                              lineNumber: 1768,
+                                                              columnNumber: 29,
+                                                            },
+                                                            globalThis
+                                                          ),
+                                                        ],
+                                                      },
+                                                      void 0,
+                                                      !0,
+                                                      {
+                                                        fileName:
+                                                          'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                        lineNumber: 1739,
+                                                        columnNumber: 27,
+                                                      },
+                                                      globalThis
+                                                    ),
+                                                    e.jsxDEV(
+                                                      'div',
+                                                      {
+                                                        style: {
+                                                          display: 'flex',
+                                                          gap: '8px',
+                                                          alignItems: 'center',
+                                                        },
+                                                        children: [
+                                                          e.jsxDEV(
+                                                            'button',
+                                                            {
+                                                              onClick: () => ri(i),
+                                                              title: 'Убрать из избранного',
+                                                              style: {
+                                                                width: '32px',
+                                                                height: '32px',
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                justifyContent: 'center',
+                                                                background:
+                                                                  'rgba(255, 215, 0, 0.15)',
+                                                                border:
+                                                                  '1px solid rgba(255, 215, 0, 0.4)',
+                                                                borderRadius: '10px',
+                                                                color: '#ffd700',
+                                                                cursor: 'pointer',
+                                                                transition: 'all 0.2s',
+                                                              },
+                                                              onMouseEnter: (r) => {
+                                                                (r.currentTarget.style.transform =
+                                                                  'scale(1.15)'),
+                                                                  (r.currentTarget.style.background =
+                                                                    'rgba(255, 215, 0, 0.25)'),
+                                                                  (r.currentTarget.style.boxShadow =
+                                                                    '0 0 12px rgba(255, 215, 0, 0.4)');
+                                                              },
+                                                              onMouseLeave: (r) => {
+                                                                (r.currentTarget.style.transform =
+                                                                  'scale(1)'),
+                                                                  (r.currentTarget.style.background =
+                                                                    'rgba(255, 215, 0, 0.15)'),
+                                                                  (r.currentTarget.style.boxShadow =
+                                                                    'none');
+                                                              },
+                                                              children: e.jsxDEV(
+                                                                $.Star,
+                                                                { filled: !0 },
+                                                                void 0,
+                                                                !1,
+                                                                {
+                                                                  fileName:
+                                                                    'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                                  lineNumber: 1803,
+                                                                  columnNumber: 31,
+                                                                },
+                                                                globalThis
+                                                              ),
+                                                            },
+                                                            void 0,
+                                                            !1,
+                                                            {
+                                                              fileName:
+                                                                'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                              lineNumber: 1776,
+                                                              columnNumber: 29,
+                                                            },
+                                                            globalThis
+                                                          ),
+                                                          e.jsxDEV(
+                                                            'button',
+                                                            {
+                                                              onClick: () => m(o.baseId),
+                                                              title: 'Перейти',
+                                                              style: {
+                                                                width: '32px',
+                                                                height: '32px',
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                justifyContent: 'center',
+                                                                background:
+                                                                  'rgba(255, 255, 255, 0.1)',
+                                                                border:
+                                                                  '1px solid rgba(255, 255, 255, 0.1)',
+                                                                borderRadius: '10px',
+                                                                color: 'white',
+                                                                cursor: 'pointer',
+                                                                transition: 'all 0.2s',
+                                                              },
+                                                              onMouseEnter: (r) => {
+                                                                (r.currentTarget.style.transform =
+                                                                  'scale(1.15)'),
+                                                                  (r.currentTarget.style.background =
+                                                                    'rgba(255, 255, 255, 0.2)'),
+                                                                  (r.currentTarget.style.boxShadow =
+                                                                    '0 0 12px rgba(255, 255, 255, 0.2)');
+                                                              },
+                                                              onMouseLeave: (r) => {
+                                                                (r.currentTarget.style.transform =
+                                                                  'scale(1)'),
+                                                                  (r.currentTarget.style.background =
+                                                                    'rgba(255, 255, 255, 0.1)'),
+                                                                  (r.currentTarget.style.boxShadow =
+                                                                    'none');
+                                                              },
+                                                              children: e.jsxDEV(
+                                                                $.ArrowRight,
+                                                                {},
+                                                                void 0,
+                                                                !1,
+                                                                {
+                                                                  fileName:
+                                                                    'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                                  lineNumber: 1833,
+                                                                  columnNumber: 31,
+                                                                },
+                                                                globalThis
+                                                              ),
+                                                            },
+                                                            void 0,
+                                                            !1,
+                                                            {
+                                                              fileName:
+                                                                'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                              lineNumber: 1806,
+                                                              columnNumber: 29,
+                                                            },
+                                                            globalThis
+                                                          ),
+                                                        ],
+                                                      },
+                                                      void 0,
+                                                      !0,
+                                                      {
+                                                        fileName:
+                                                          'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                        lineNumber: 1775,
+                                                        columnNumber: 27,
+                                                      },
+                                                      globalThis
+                                                    ),
+                                                  ],
+                                                },
+                                                i,
+                                                !0,
+                                                {
+                                                  fileName:
+                                                    'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                  lineNumber: 1717,
+                                                  columnNumber: 25,
+                                                },
+                                                globalThis
+                                              );
+                                            }),
+                                          },
+                                          void 0,
+                                          !1,
+                                          {
+                                            fileName:
+                                              'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                            lineNumber: 1713,
+                                            columnNumber: 19,
+                                          },
+                                          globalThis
+                                        ),
+                                  ],
+                                },
+                                void 0,
+                                !0,
+                                {
+                                  fileName:
+                                    'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                  lineNumber: 1683,
+                                  columnNumber: 15,
+                                },
+                                globalThis
+                              ),
+                            ],
+                          },
+                          void 0,
+                          !0,
+                          {
+                            fileName:
+                              'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                            lineNumber: 1434,
+                            columnNumber: 13,
+                          },
+                          globalThis
+                        ),
+                      L === 'collection' &&
+                        e.jsxDEV(
+                          'div',
+                          {
+                            className: 'fade-in',
+                            children: e.jsxDEV(
+                              'div',
+                              {
+                                style: {
+                                  display: 'grid',
+                                  gridTemplateColumns: `repeat(auto-fill, minmax(${W.collectionMin}px, 1fr))`,
+                                  gap: W.collectionGap,
+                                },
+                                children: [
+                                  ke.map(([i]) => {
+                                    const l = ge(i);
+                                    return e.jsxDEV(
+                                      'div',
+                                      {
+                                        className: 'collection-badge-card',
+                                        style: {
+                                          aspectRatio: '1',
+                                          borderRadius: '16px',
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          justifyContent: 'center',
+                                          cursor: 'pointer',
+                                          position: 'relative',
+                                          overflow: 'visible',
+                                          background: 'transparent',
+                                          border: 'none',
+                                          boxShadow: 'none',
+                                        },
+                                        onClick: () => m(l.baseId),
+                                        children: e.jsxDEV(
+                                          'div',
+                                          {
+                                            style: {
+                                              width: W.collectionIcon,
+                                              height: W.collectionIcon,
+                                              display: 'flex',
+                                              alignItems: 'center',
+                                              justifyContent: 'center',
+                                              fontSize: W.collectionFont,
+                                              position: 'relative',
+                                            },
+                                            children: [
+                                              e.jsxDEV(
+                                                'div',
+                                                {
+                                                  className: 'collection-badge-glow',
+                                                  style: {
+                                                    position: 'absolute',
+                                                    inset: '-22px',
+                                                    borderRadius: '50%',
+                                                    background:
+                                                      'radial-gradient(circle, rgba(255, 170, 0, 0.9) 0%, rgba(255, 140, 0, 0.35) 45%, rgba(255, 140, 0, 0) 72%)',
+                                                    filter: 'blur(10px)',
+                                                    opacity: 0,
+                                                    boxShadow:
+                                                      '0 0 18px rgba(255, 170, 0, 0.55), 0 0 42px rgba(255, 140, 0, 0.4)',
+                                                    pointerEvents: 'none',
+                                                  },
+                                                },
+                                                void 0,
+                                                !1,
+                                                {
+                                                  fileName:
+                                                    'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                  lineNumber: 1883,
+                                                  columnNumber: 23,
+                                                },
+                                                globalThis
+                                              ),
+                                              e.jsxDEV(
+                                                'div',
+                                                {
+                                                  className: 'collection-badge-icon',
+                                                  style: {
+                                                    position: 'relative',
+                                                    zIndex: 1,
+                                                    width: '100%',
+                                                    height: '100%',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                  },
+                                                  children: l.iconCategoryId
+                                                    ? e.jsxDEV(
+                                                        ie,
+                                                        {
+                                                          badgeId: l.baseId,
+                                                          badgeTitle: l.iconBadgeTitle || l.title,
+                                                          categoryId: l.iconCategoryId,
+                                                          emoji: l.iconEmoji,
+                                                          levelId: l.levelId,
+                                                          levelTitle: l.levelTitle,
+                                                          size: 'responsive',
+                                                        },
+                                                        void 0,
+                                                        !1,
+                                                        {
+                                                          fileName:
+                                                            'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                          lineNumber: 1898,
+                                                          columnNumber: 26,
+                                                        },
+                                                        globalThis
+                                                      )
+                                                    : e.jsxDEV(
+                                                        'div',
+                                                        {
+                                                          style: { fontSize: '1em' },
+                                                          children: l.iconEmoji || '🏅',
+                                                        },
+                                                        void 0,
+                                                        !1,
+                                                        {
+                                                          fileName:
+                                                            'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                          lineNumber: 1908,
+                                                          columnNumber: 25,
+                                                        },
+                                                        globalThis
+                                                      ),
+                                                },
+                                                void 0,
+                                                !1,
+                                                {
+                                                  fileName:
+                                                    'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                  lineNumber: 1896,
+                                                  columnNumber: 23,
+                                                },
+                                                globalThis
+                                              ),
+                                            ],
+                                          },
+                                          void 0,
+                                          !0,
+                                          {
+                                            fileName:
+                                              'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                            lineNumber: 1874,
+                                            columnNumber: 22,
+                                          },
+                                          globalThis
+                                        ),
+                                      },
+                                      i,
+                                      !1,
+                                      {
+                                        fileName:
+                                          'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                        lineNumber: 1856,
+                                        columnNumber: 20,
+                                      },
+                                      globalThis
+                                    );
+                                  }),
+                                  ke.length === 0 &&
+                                    e.jsxDEV(
+                                      'div',
+                                      {
+                                        style: {
+                                          gridColumn: '1 / -1',
+                                          textAlign: 'center',
+                                          padding: '40px',
+                                          opacity: 0.6,
+                                        },
+                                        children: [
+                                          e.jsxDEV(
+                                            'div',
+                                            {
+                                              style: {
+                                                fontSize: '32px',
+                                                marginBottom: '10px',
+                                                filter: 'grayscale(1)',
+                                              },
+                                              children: '🏆',
+                                            },
+                                            void 0,
+                                            !1,
+                                            {
+                                              fileName:
+                                                'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                              lineNumber: 1917,
+                                              columnNumber: 22,
+                                            },
+                                            globalThis
+                                          ),
+                                          'Пока нет завершённых значков.',
+                                        ],
+                                      },
+                                      void 0,
+                                      !0,
+                                      {
+                                        fileName:
+                                          'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                        lineNumber: 1916,
+                                        columnNumber: 20,
+                                      },
+                                      globalThis
+                                    ),
+                                ],
+                              },
+                              void 0,
+                              !0,
+                              {
+                                fileName:
+                                  'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                lineNumber: 1848,
+                                columnNumber: 16,
+                              },
+                              globalThis
+                            ),
+                          },
+                          void 0,
+                          !1,
+                          {
+                            fileName:
+                              'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                            lineNumber: 1847,
+                            columnNumber: 13,
+                          },
+                          globalThis
+                        ),
+                      L === 'workshop' &&
+                        e.jsxDEV(
+                          'div',
+                          {
+                            className: 'fade-in workshop-container',
+                            children: e.jsxDEV(
+                              'div',
+                              {
+                                style: {
+                                  background: 'rgba(25, 20, 45, 0.8)',
+                                  borderRadius: '24px',
+                                  padding: '24px',
+                                  border: '1px solid rgba(255, 255, 255, 0.12)',
+                                  boxShadow: '0 15px 40px rgba(0,0,0,0.3)',
+                                },
+                                children: [
+                                  e.jsxDEV(
+                                    'div',
+                                    {
+                                      style: {
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'space-between',
+                                        marginBottom: '24px',
+                                      },
+                                      children: [
+                                        e.jsxDEV(
+                                          'h3',
+                                          {
+                                            style: {
+                                              margin: 0,
+                                              fontSize: '22px',
+                                              fontWeight: 800,
+                                              color: '#ffd700',
+                                              letterSpacing: '0.02em',
+                                            },
+                                            children: '🛠️ КОНСТРУКТОР СМЫСЛОВ',
+                                          },
+                                          void 0,
+                                          !1,
+                                          {
+                                            fileName:
+                                              'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                            lineNumber: 1936,
+                                            columnNumber: 19,
+                                          },
+                                          globalThis
+                                        ),
+                                        e.jsxDEV(
+                                          'div',
+                                          {
+                                            style: {
+                                              background: 'rgba(255,215,0,0.1)',
+                                              padding: '6px 12px',
+                                              borderRadius: '100px',
+                                              fontSize: '12px',
+                                              color: '#ffd700',
+                                              fontWeight: 700,
+                                            },
+                                            children: 'Статус: Создатель Пути',
+                                          },
+                                          void 0,
+                                          !1,
+                                          {
+                                            fileName:
+                                              'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                            lineNumber: 1939,
+                                            columnNumber: 19,
+                                          },
+                                          globalThis
+                                        ),
+                                      ],
+                                    },
+                                    void 0,
+                                    !0,
+                                    {
+                                      fileName:
+                                        'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                      lineNumber: 1935,
+                                      columnNumber: 17,
+                                    },
+                                    globalThis
+                                  ),
+                                  e.jsxDEV(
+                                    'section',
+                                    {
+                                      style: {
+                                        marginBottom: '32px',
+                                        padding: '20px',
+                                        background: 'rgba(255,255,255,0.03)',
+                                        borderRadius: '20px',
+                                        border: '1px solid rgba(255,255,255,0.05)',
+                                      },
+                                      children: [
+                                        e.jsxDEV(
+                                          'div',
+                                          {
+                                            style: {
+                                              display: 'flex',
+                                              gap: '8px',
+                                              alignItems: 'center',
+                                              marginBottom: '16px',
+                                            },
+                                            children: [
+                                              e.jsxDEV(
+                                                'span',
+                                                {
+                                                  style: {
+                                                    width: '24px',
+                                                    height: '24px',
+                                                    background: '#ffd700',
+                                                    color: '#1a1a2e',
+                                                    borderRadius: '50%',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    fontSize: '12px',
+                                                    fontWeight: 900,
+                                                  },
+                                                  children: '1',
+                                                },
+                                                void 0,
+                                                !1,
+                                                {
+                                                  fileName:
+                                                    'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                  lineNumber: 1947,
+                                                  columnNumber: 21,
+                                                },
+                                                globalThis
+                                              ),
+                                              e.jsxDEV(
+                                                'h4',
+                                                {
+                                                  style: {
+                                                    margin: 0,
+                                                    textTransform: 'uppercase',
+                                                    fontSize: '14px',
+                                                    letterSpacing: '0.1em',
+                                                  },
+                                                  children: 'Идея и Влияние',
+                                                },
+                                                void 0,
+                                                !1,
+                                                {
+                                                  fileName:
+                                                    'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                  lineNumber: 1948,
+                                                  columnNumber: 21,
+                                                },
+                                                globalThis
+                                              ),
+                                            ],
+                                          },
+                                          void 0,
+                                          !0,
+                                          {
+                                            fileName:
+                                              'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                            lineNumber: 1946,
+                                            columnNumber: 19,
+                                          },
+                                          globalThis
+                                        ),
+                                        e.jsxDEV(
+                                          'div',
+                                          {
+                                            style: {
+                                              display: 'grid',
+                                              gridTemplateColumns:
+                                                'repeat(auto-fit, minmax(200px, 1fr))',
+                                              gap: '16px',
+                                              marginBottom: '16px',
+                                            },
+                                            children: [
+                                              e.jsxDEV(
+                                                'div',
+                                                {
+                                                  children: [
+                                                    e.jsxDEV(
+                                                      'label',
+                                                      {
+                                                        style: {
+                                                          fontSize: '11px',
+                                                          opacity: 0.5,
+                                                          textTransform: 'uppercase',
+                                                          marginBottom: '6px',
+                                                          display: 'block',
+                                                        },
+                                                        children: 'Название',
+                                                      },
+                                                      void 0,
+                                                      !1,
+                                                      {
+                                                        fileName:
+                                                          'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                        lineNumber: 1953,
+                                                        columnNumber: 23,
+                                                      },
+                                                      globalThis
+                                                    ),
+                                                    e.jsxDEV(
+                                                      'input',
+                                                      {
+                                                        type: 'text',
+                                                        value: s.title,
+                                                        onChange: (i) =>
+                                                          q((l) => ({
+                                                            ...l,
+                                                            title: i.target.value,
+                                                          })),
+                                                        placeholder: 'Напр: Хранитель Традиций',
+                                                        style: { ...k, width: '100%' },
+                                                      },
+                                                      void 0,
+                                                      !1,
+                                                      {
+                                                        fileName:
+                                                          'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                        lineNumber: 1954,
+                                                        columnNumber: 23,
+                                                      },
+                                                      globalThis
+                                                    ),
+                                                  ],
+                                                },
+                                                void 0,
+                                                !0,
+                                                {
+                                                  fileName:
+                                                    'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                  lineNumber: 1952,
+                                                  columnNumber: 21,
+                                                },
+                                                globalThis
+                                              ),
+                                              e.jsxDEV(
+                                                'div',
+                                                {
+                                                  children: [
+                                                    e.jsxDEV(
+                                                      'label',
+                                                      {
+                                                        style: {
+                                                          fontSize: '11px',
+                                                          opacity: 0.5,
+                                                          textTransform: 'uppercase',
+                                                          marginBottom: '6px',
+                                                          display: 'block',
+                                                        },
+                                                        children: 'Основной 4К Навык',
+                                                      },
+                                                      void 0,
+                                                      !1,
+                                                      {
+                                                        fileName:
+                                                          'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                        lineNumber: 1963,
+                                                        columnNumber: 23,
+                                                      },
+                                                      globalThis
+                                                    ),
+                                                    e.jsxDEV(
+                                                      'select',
+                                                      {
+                                                        value: s.coreSkill,
+                                                        onChange: (i) =>
+                                                          q((l) => ({
+                                                            ...l,
+                                                            coreSkill: i.target.value,
+                                                          })),
+                                                        style: {
+                                                          ...k,
+                                                          width: '100%',
+                                                          appearance: 'none',
+                                                        },
+                                                        children: [
+                                                          e.jsxDEV(
+                                                            'option',
+                                                            {
+                                                              value: 'Коллаборация',
+                                                              children:
+                                                                '🤝 Коллаборация (Работа в команде)',
+                                                            },
+                                                            void 0,
+                                                            !1,
+                                                            {
+                                                              fileName:
+                                                                'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                              lineNumber: 1969,
+                                                              columnNumber: 25,
+                                                            },
+                                                            globalThis
+                                                          ),
+                                                          e.jsxDEV(
+                                                            'option',
+                                                            {
+                                                              value: 'Коммуникация',
+                                                              children: '💬 Коммуникация (Общение)',
+                                                            },
+                                                            void 0,
+                                                            !1,
+                                                            {
+                                                              fileName:
+                                                                'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                              lineNumber: 1970,
+                                                              columnNumber: 25,
+                                                            },
+                                                            globalThis
+                                                          ),
+                                                          e.jsxDEV(
+                                                            'option',
+                                                            {
+                                                              value: 'Креативность',
+                                                              children:
+                                                                '💡 Креативность (Творчество)',
+                                                            },
+                                                            void 0,
+                                                            !1,
+                                                            {
+                                                              fileName:
+                                                                'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                              lineNumber: 1971,
+                                                              columnNumber: 25,
+                                                            },
+                                                            globalThis
+                                                          ),
+                                                          e.jsxDEV(
+                                                            'option',
+                                                            {
+                                                              value: 'Критическое мышление',
+                                                              children: '🧠 Критическое мышление',
+                                                            },
+                                                            void 0,
+                                                            !1,
+                                                            {
+                                                              fileName:
+                                                                'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                              lineNumber: 1972,
+                                                              columnNumber: 25,
+                                                            },
+                                                            globalThis
+                                                          ),
+                                                        ],
+                                                      },
+                                                      void 0,
+                                                      !0,
+                                                      {
+                                                        fileName:
+                                                          'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                        lineNumber: 1964,
+                                                        columnNumber: 23,
+                                                      },
+                                                      globalThis
+                                                    ),
+                                                  ],
+                                                },
+                                                void 0,
+                                                !0,
+                                                {
+                                                  fileName:
+                                                    'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                  lineNumber: 1962,
+                                                  columnNumber: 21,
+                                                },
+                                                globalThis
+                                              ),
+                                            ],
+                                          },
+                                          void 0,
+                                          !0,
+                                          {
+                                            fileName:
+                                              'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                            lineNumber: 1951,
+                                            columnNumber: 19,
+                                          },
+                                          globalThis
+                                        ),
+                                        e.jsxDEV(
+                                          'div',
+                                          {
+                                            style: { marginBottom: '16px' },
+                                            children: [
+                                              e.jsxDEV(
+                                                'label',
+                                                {
+                                                  style: {
+                                                    fontSize: '11px',
+                                                    opacity: 0.5,
+                                                    textTransform: 'uppercase',
+                                                    marginBottom: '6px',
+                                                    display: 'block',
+                                                  },
+                                                  children:
+                                                    'Реальный вклад (Что изменится в лагере?)',
+                                                },
+                                                void 0,
+                                                !1,
+                                                {
+                                                  fileName:
+                                                    'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                  lineNumber: 1978,
+                                                  columnNumber: 21,
+                                                },
+                                                globalThis
+                                              ),
+                                              e.jsxDEV(
+                                                'textarea',
+                                                {
+                                                  value: s.impact,
+                                                  onChange: (i) =>
+                                                    q((l) => ({ ...l, impact: i.target.value })),
+                                                  placeholder:
+                                                    'Напр: В лагере появится новая традиция вечерних костров или уютная зона отдыха...',
+                                                  rows: 2,
+                                                  style: { ...k, width: '100%', resize: 'none' },
+                                                },
+                                                void 0,
+                                                !1,
+                                                {
+                                                  fileName:
+                                                    'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                  lineNumber: 1979,
+                                                  columnNumber: 21,
+                                                },
+                                                globalThis
+                                              ),
+                                            ],
+                                          },
+                                          void 0,
+                                          !0,
+                                          {
+                                            fileName:
+                                              'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                            lineNumber: 1977,
+                                            columnNumber: 19,
+                                          },
+                                          globalThis
+                                        ),
+                                        e.jsxDEV(
+                                          'div',
+                                          {
+                                            style: {
+                                              padding: '12px 16px',
+                                              background: 'rgba(139, 0, 255, 0.1)',
+                                              border: '1px solid rgba(139, 0, 255, 0.2)',
+                                              borderRadius: '12px',
+                                              display: 'flex',
+                                              gap: '12px',
+                                              alignItems: 'flex-start',
+                                            },
+                                            children: [
+                                              e.jsxDEV(
+                                                'span',
+                                                { style: { fontSize: '20px' }, children: '🤖' },
+                                                void 0,
+                                                !1,
+                                                {
+                                                  fileName:
+                                                    'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                  lineNumber: 1998,
+                                                  columnNumber: 21,
+                                                },
+                                                globalThis
+                                              ),
+                                              e.jsxDEV(
+                                                'div',
+                                                {
+                                                  style: {
+                                                    fontSize: '12px',
+                                                    lineHeight: '1.4',
+                                                    fontStyle: 'italic',
+                                                    opacity: 0.9,
+                                                  },
+                                                  children: [
+                                                    e.jsxDEV(
+                                                      'strong',
+                                                      { children: 'Совет Валюши:' },
+                                                      void 0,
+                                                      !1,
+                                                      {
+                                                        fileName:
+                                                          'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                        lineNumber: 2e3,
+                                                        columnNumber: 23,
+                                                      },
+                                                      globalThis
+                                                    ),
+                                                    ' Хороший значок в Путеводителе всегда отвечает на вопрос: "Как это действие делает наш лагерь лучше для всех?". Попробуй связать навык ',
+                                                    s.coreSkill,
+                                                    ' с конкретным делом.',
+                                                  ],
+                                                },
+                                                void 0,
+                                                !0,
+                                                {
+                                                  fileName:
+                                                    'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                  lineNumber: 1999,
+                                                  columnNumber: 21,
+                                                },
+                                                globalThis
+                                              ),
+                                            ],
+                                          },
+                                          void 0,
+                                          !0,
+                                          {
+                                            fileName:
+                                              'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                            lineNumber: 1989,
+                                            columnNumber: 19,
+                                          },
+                                          globalThis
+                                        ),
+                                      ],
+                                    },
+                                    void 0,
+                                    !0,
+                                    {
+                                      fileName:
+                                        'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                      lineNumber: 1945,
+                                      columnNumber: 17,
+                                    },
+                                    globalThis
+                                  ),
+                                  e.jsxDEV(
+                                    'section',
+                                    {
+                                      style: {
+                                        marginBottom: '32px',
+                                        padding: '20px',
+                                        background: 'rgba(255,255,255,0.03)',
+                                        borderRadius: '20px',
+                                        border: '1px solid rgba(255,255,255,0.05)',
+                                      },
+                                      children: [
+                                        e.jsxDEV(
+                                          'div',
+                                          {
+                                            style: {
+                                              display: 'flex',
+                                              gap: '8px',
+                                              alignItems: 'center',
+                                              marginBottom: '20px',
+                                            },
+                                            children: [
+                                              e.jsxDEV(
+                                                'span',
+                                                {
+                                                  style: {
+                                                    width: '24px',
+                                                    height: '24px',
+                                                    background: '#ffd700',
+                                                    color: '#1a1a2e',
+                                                    borderRadius: '50%',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    fontSize: '12px',
+                                                    fontWeight: 900,
+                                                  },
+                                                  children: '2',
+                                                },
+                                                void 0,
+                                                !1,
+                                                {
+                                                  fileName:
+                                                    'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                  lineNumber: 2008,
+                                                  columnNumber: 21,
+                                                },
+                                                globalThis
+                                              ),
+                                              e.jsxDEV(
+                                                'h4',
+                                                {
+                                                  style: {
+                                                    margin: 0,
+                                                    textTransform: 'uppercase',
+                                                    fontSize: '14px',
+                                                    letterSpacing: '0.1em',
+                                                  },
+                                                  children: 'Ступени Мастерства',
+                                                },
+                                                void 0,
+                                                !1,
+                                                {
+                                                  fileName:
+                                                    'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                  lineNumber: 2009,
+                                                  columnNumber: 21,
+                                                },
+                                                globalThis
+                                              ),
+                                            ],
+                                          },
+                                          void 0,
+                                          !0,
+                                          {
+                                            fileName:
+                                              'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                            lineNumber: 2007,
+                                            columnNumber: 19,
+                                          },
+                                          globalThis
+                                        ),
+                                        e.jsxDEV(
+                                          'div',
+                                          {
+                                            style: { display: 'grid', gap: '16px' },
+                                            children: [
+                                              e.jsxDEV(
+                                                'div',
+                                                {
+                                                  style: {
+                                                    padding: '12px',
+                                                    background: 'rgba(0,0,0,0.2)',
+                                                    borderRadius: '12px',
+                                                    borderLeft: '4px solid #38ef7d',
+                                                  },
+                                                  children: [
+                                                    e.jsxDEV(
+                                                      'label',
+                                                      {
+                                                        style: {
+                                                          fontSize: '11px',
+                                                          fontWeight: 700,
+                                                          color: '#38ef7d',
+                                                          display: 'block',
+                                                          marginBottom: '6px',
+                                                        },
+                                                        children:
+                                                          '1 УРОВЕНЬ: БАЗОВЫЙ (Попробовать)',
+                                                      },
+                                                      void 0,
+                                                      !1,
+                                                      {
+                                                        fileName:
+                                                          'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                        lineNumber: 2014,
+                                                        columnNumber: 23,
+                                                      },
+                                                      globalThis
+                                                    ),
+                                                    e.jsxDEV(
+                                                      'input',
+                                                      {
+                                                        type: 'text',
+                                                        value: s.criteriaLevel1,
+                                                        onChange: (i) =>
+                                                          q((l) => ({
+                                                            ...l,
+                                                            criteriaLevel1: i.target.value,
+                                                          })),
+                                                        placeholder:
+                                                          'Что нужно сделать в первый раз? (Напр: Собрать команду из 3 человек)',
+                                                        style: {
+                                                          ...k,
+                                                          width: '100%',
+                                                          border: 'none',
+                                                          background: 'transparent',
+                                                          padding: '4px 0',
+                                                        },
+                                                      },
+                                                      void 0,
+                                                      !1,
+                                                      {
+                                                        fileName:
+                                                          'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                        lineNumber: 2015,
+                                                        columnNumber: 23,
+                                                      },
+                                                      globalThis
+                                                    ),
+                                                  ],
+                                                },
+                                                void 0,
+                                                !0,
+                                                {
+                                                  fileName:
+                                                    'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                  lineNumber: 2013,
+                                                  columnNumber: 21,
+                                                },
+                                                globalThis
+                                              ),
+                                              e.jsxDEV(
+                                                'div',
+                                                {
+                                                  style: {
+                                                    padding: '12px',
+                                                    background: 'rgba(0,0,0,0.2)',
+                                                    borderRadius: '12px',
+                                                    borderLeft: '4px solid #4dacff',
+                                                  },
+                                                  children: [
+                                                    e.jsxDEV(
+                                                      'label',
+                                                      {
+                                                        style: {
+                                                          fontSize: '11px',
+                                                          fontWeight: 700,
+                                                          color: '#4dacff',
+                                                          display: 'block',
+                                                          marginBottom: '6px',
+                                                        },
+                                                        children:
+                                                          '2 УРОВЕНЬ: ПРОДВИНУТЫЙ (Действовать)',
+                                                      },
+                                                      void 0,
+                                                      !1,
+                                                      {
+                                                        fileName:
+                                                          'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                        lineNumber: 2024,
+                                                        columnNumber: 23,
+                                                      },
+                                                      globalThis
+                                                    ),
+                                                    e.jsxDEV(
+                                                      'input',
+                                                      {
+                                                        type: 'text',
+                                                        value: s.criteriaLevel2,
+                                                        onChange: (i) =>
+                                                          q((l) => ({
+                                                            ...l,
+                                                            criteriaLevel2: i.target.value,
+                                                          })),
+                                                        placeholder:
+                                                          'Как закрепить результат? (Напр: Провести мероприятие для отряда)',
+                                                        style: {
+                                                          ...k,
+                                                          width: '100%',
+                                                          border: 'none',
+                                                          background: 'transparent',
+                                                          padding: '4px 0',
+                                                        },
+                                                      },
+                                                      void 0,
+                                                      !1,
+                                                      {
+                                                        fileName:
+                                                          'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                        lineNumber: 2025,
+                                                        columnNumber: 23,
+                                                      },
+                                                      globalThis
+                                                    ),
+                                                  ],
+                                                },
+                                                void 0,
+                                                !0,
+                                                {
+                                                  fileName:
+                                                    'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                  lineNumber: 2023,
+                                                  columnNumber: 21,
+                                                },
+                                                globalThis
+                                              ),
+                                              e.jsxDEV(
+                                                'div',
+                                                {
+                                                  style: {
+                                                    padding: '12px',
+                                                    background: 'rgba(0,0,0,0.2)',
+                                                    borderRadius: '12px',
+                                                    borderLeft: '4px solid #ffd700',
+                                                  },
+                                                  children: [
+                                                    e.jsxDEV(
+                                                      'label',
+                                                      {
+                                                        style: {
+                                                          fontSize: '11px',
+                                                          fontWeight: 700,
+                                                          color: '#ffd700',
+                                                          display: 'block',
+                                                          marginBottom: '6px',
+                                                        },
+                                                        children:
+                                                          '3 УРОВЕНЬ: ЭКСПЕРТНЫЙ (Вдохновлять)',
+                                                      },
+                                                      void 0,
+                                                      !1,
+                                                      {
+                                                        fileName:
+                                                          'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                        lineNumber: 2034,
+                                                        columnNumber: 23,
+                                                      },
+                                                      globalThis
+                                                    ),
+                                                    e.jsxDEV(
+                                                      'input',
+                                                      {
+                                                        type: 'text',
+                                                        value: s.criteriaLevel3,
+                                                        onChange: (i) =>
+                                                          q((l) => ({
+                                                            ...l,
+                                                            criteriaLevel3: i.target.value,
+                                                          })),
+                                                        placeholder:
+                                                          'Как передать опыт другим? (Напр: Обучить ребят из другого отряда)',
+                                                        style: {
+                                                          ...k,
+                                                          width: '100%',
+                                                          border: 'none',
+                                                          background: 'transparent',
+                                                          padding: '4px 0',
+                                                        },
+                                                      },
+                                                      void 0,
+                                                      !1,
+                                                      {
+                                                        fileName:
+                                                          'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                        lineNumber: 2035,
+                                                        columnNumber: 23,
+                                                      },
+                                                      globalThis
+                                                    ),
+                                                  ],
+                                                },
+                                                void 0,
+                                                !0,
+                                                {
+                                                  fileName:
+                                                    'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                  lineNumber: 2033,
+                                                  columnNumber: 21,
+                                                },
+                                                globalThis
+                                              ),
+                                            ],
+                                          },
+                                          void 0,
+                                          !0,
+                                          {
+                                            fileName:
+                                              'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                            lineNumber: 2012,
+                                            columnNumber: 19,
+                                          },
+                                          globalThis
+                                        ),
+                                      ],
+                                    },
+                                    void 0,
+                                    !0,
+                                    {
+                                      fileName:
+                                        'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                      lineNumber: 2006,
+                                      columnNumber: 17,
+                                    },
+                                    globalThis
+                                  ),
+                                  e.jsxDEV(
+                                    'section',
+                                    {
+                                      style: {
+                                        display: 'flex',
+                                        gap: '24px',
+                                        alignItems: 'center',
+                                        padding: '20px',
+                                        background: 'rgba(255,215,0,0.05)',
+                                        borderRadius: '24px',
+                                        border: '1px solid rgba(255,215,0,0.1)',
+                                      },
+                                      children: [
+                                        e.jsxDEV(
+                                          'div',
+                                          {
+                                            style: { flexShrink: 0, position: 'relative' },
+                                            children: [
+                                              e.jsxDEV(
+                                                'div',
+                                                {
+                                                  onClick: () => {
+                                                    var i;
+                                                    return (i = Ue.current) == null
+                                                      ? void 0
+                                                      : i.click();
+                                                  },
+                                                  style: {
+                                                    width: '100px',
+                                                    height: '100px',
+                                                    background: 'rgba(0,0,0,0.3)',
+                                                    borderRadius: '50%',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    border: '2px solid #ffd700',
+                                                    boxShadow: '0 0 20px rgba(255,215,0,0.2)',
+                                                    fontSize: '48px',
+                                                    cursor: 'pointer',
+                                                    overflow: 'hidden',
+                                                  },
+                                                  children: X
+                                                    ? e.jsxDEV(
+                                                        'img',
+                                                        {
+                                                          src: X,
+                                                          alt: 'Custom art',
+                                                          style: {
+                                                            width: '100%',
+                                                            height: '100%',
+                                                            objectFit: 'cover',
+                                                          },
+                                                        },
+                                                        void 0,
+                                                        !1,
+                                                        {
+                                                          fileName:
+                                                            'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                          lineNumber: 2067,
+                                                          columnNumber: 25,
+                                                        },
+                                                        globalThis
+                                                      )
+                                                    : e.jsxDEV(
+                                                        ie,
+                                                        {
+                                                          badgeId: 'custom',
+                                                          badgeTitle: s.title || 'Новый значок',
+                                                          categoryId: s.category_id,
+                                                          emoji: s.emoji,
+                                                          size: 'responsive',
+                                                        },
+                                                        void 0,
+                                                        !1,
+                                                        {
+                                                          fileName:
+                                                            'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                          lineNumber: 2069,
+                                                          columnNumber: 25,
+                                                        },
+                                                        globalThis
+                                                      ),
+                                                },
+                                                void 0,
+                                                !1,
+                                                {
+                                                  fileName:
+                                                    'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                  lineNumber: 2049,
+                                                  columnNumber: 21,
+                                                },
+                                                globalThis
+                                              ),
+                                              X &&
+                                                e.jsxDEV(
+                                                  'button',
+                                                  {
+                                                    onClick: () => qe(null),
+                                                    style: {
+                                                      position: 'absolute',
+                                                      top: '-5px',
+                                                      right: '-5px',
+                                                      width: '24px',
+                                                      height: '24px',
+                                                      borderRadius: '50%',
+                                                      background: '#ff4d4d',
+                                                      border: 'none',
+                                                      color: 'white',
+                                                      fontSize: '14px',
+                                                      cursor: 'pointer',
+                                                      display: 'flex',
+                                                      alignItems: 'center',
+                                                      justifyContent: 'center',
+                                                      boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+                                                      zIndex: 2,
+                                                    },
+                                                    children: '✕',
+                                                  },
+                                                  void 0,
+                                                  !1,
+                                                  {
+                                                    fileName:
+                                                      'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                    lineNumber: 2079,
+                                                    columnNumber: 23,
+                                                  },
+                                                  globalThis
+                                                ),
+                                              e.jsxDEV(
+                                                'input',
+                                                {
+                                                  ref: Ue,
+                                                  type: 'file',
+                                                  accept: 'image/*',
+                                                  style: { display: 'none' },
+                                                  onChange: (i) => {
+                                                    var l;
+                                                    return hi(
+                                                      (l = i.target.files) == null ? void 0 : l[0]
+                                                    );
+                                                  },
+                                                },
+                                                void 0,
+                                                !1,
+                                                {
+                                                  fileName:
+                                                    'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                  lineNumber: 2103,
+                                                  columnNumber: 21,
+                                                },
+                                                globalThis
+                                              ),
+                                            ],
+                                          },
+                                          void 0,
+                                          !0,
+                                          {
+                                            fileName:
+                                              'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                            lineNumber: 2048,
+                                            columnNumber: 19,
+                                          },
+                                          globalThis
+                                        ),
+                                        e.jsxDEV(
+                                          'div',
+                                          {
+                                            style: { flex: 1 },
+                                            children: [
+                                              e.jsxDEV(
+                                                'div',
+                                                {
+                                                  style: {
+                                                    display: 'flex',
+                                                    gap: '10px',
+                                                    marginBottom: '12px',
+                                                  },
+                                                  children: [
+                                                    e.jsxDEV(
+                                                      'input',
+                                                      {
+                                                        type: 'text',
+                                                        value: s.emoji,
+                                                        onChange: (i) =>
+                                                          q((l) => ({
+                                                            ...l,
+                                                            emoji: i.target.value,
+                                                          })),
+                                                        style: {
+                                                          ...k,
+                                                          width: '50px',
+                                                          textAlign: 'center',
+                                                          fontSize: '20px',
+                                                        },
+                                                      },
+                                                      void 0,
+                                                      !1,
+                                                      {
+                                                        fileName:
+                                                          'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                        lineNumber: 2114,
+                                                        columnNumber: 24,
+                                                      },
+                                                      globalThis
+                                                    ),
+                                                    e.jsxDEV(
+                                                      'select',
+                                                      {
+                                                        value: s.category_id,
+                                                        onChange: (i) =>
+                                                          q((l) => ({
+                                                            ...l,
+                                                            category_id: i.target.value,
+                                                          })),
+                                                        style: { ...k, flex: 1, fontSize: '12px' },
+                                                        children: w.map((i) =>
+                                                          e.jsxDEV(
+                                                            'option',
+                                                            {
+                                                              value: i.id,
+                                                              children: [i.emoji, ' ', i.title],
+                                                            },
+                                                            i.id,
+                                                            !0,
+                                                            {
+                                                              fileName:
+                                                                'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                              lineNumber: 2126,
+                                                              columnNumber: 27,
+                                                            },
+                                                            globalThis
+                                                          )
+                                                        ),
+                                                      },
+                                                      void 0,
+                                                      !1,
+                                                      {
+                                                        fileName:
+                                                          'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                        lineNumber: 2120,
+                                                        columnNumber: 23,
+                                                      },
+                                                      globalThis
+                                                    ),
+                                                  ],
+                                                },
+                                                void 0,
+                                                !0,
+                                                {
+                                                  fileName:
+                                                    'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                  lineNumber: 2113,
+                                                  columnNumber: 21,
+                                                },
+                                                globalThis
+                                              ),
+                                              e.jsxDEV(
+                                                'button',
+                                                {
+                                                  onClick: () => {
+                                                    if (!s.title.trim()) {
+                                                      alert('Придумай название для своего значка!');
+                                                      return;
+                                                    }
+                                                    if (!s.criteriaLevel1.trim()) {
+                                                      alert(
+                                                        'Опиши хотя бы первый шаг (Базовый уровень)!'
+                                                      );
+                                                      return;
+                                                    }
+                                                    if (!s.impact.trim()) {
+                                                      alert(
+                                                        'Расскажи, как этот значок изменит жизнь в лагере? Это важно для одобрения!'
+                                                      );
+                                                      return;
+                                                    }
+                                                    h &&
+                                                      (O(!0),
+                                                      I('Куём новый смысл…'),
+                                                      setTimeout(() => {
+                                                        const i = `custom.${Date.now()}`,
+                                                          l = {
+                                                            id: `${i}.1`,
+                                                            title: s.title,
+                                                            emoji: s.emoji,
+                                                            category_id: s.category_id,
+                                                            level: 'Базовый',
+                                                            description: `Концепт: ${s.impact}`,
+                                                            criteria: s.criteriaLevel1,
+                                                            importance: `Развивает навык: ${s.coreSkill}. Влияние: ${s.impact}`,
+                                                          };
+                                                        h(l),
+                                                          s.criteriaLevel2 &&
+                                                            h({
+                                                              id: `${i}.2`,
+                                                              title: s.title,
+                                                              emoji: s.emoji,
+                                                              category_id: s.category_id,
+                                                              level: 'Продвинутый',
+                                                              criteria: s.criteriaLevel2,
+                                                            }),
+                                                          s.criteriaLevel3 &&
+                                                            h({
+                                                              id: `${i}.3`,
+                                                              title: s.title,
+                                                              emoji: s.emoji,
+                                                              category_id: s.category_id,
+                                                              level: 'Экспертный',
+                                                              criteria: s.criteriaLevel3,
+                                                            }),
+                                                          X && v(i, X),
+                                                          I(
+                                                            'Готово! Значок добавлен в твой Путеводитель.'
+                                                          );
+                                                        const o = [
+                                                          '🛠️ ЗАЯВКА НА КАНОН (НОВЫЙ ЗНАЧОК)',
+                                                          `Название: ${s.title}`,
+                                                          `Категория ID: ${s.category_id}`,
+                                                          `Основной навык (4К): ${s.coreSkill}`,
+                                                          `Вклад в Реальность: ${s.impact}`,
+                                                          '',
+                                                          '📋 КРИТЕРИИ:',
+                                                          `1. Базовый: ${s.criteriaLevel1}`,
+                                                          s.criteriaLevel2
+                                                            ? `2. Продвинутый: ${s.criteriaLevel2}`
+                                                            : '',
+                                                          s.criteriaLevel3
+                                                            ? `3. Экспертный: ${s.criteriaLevel3}`
+                                                            : '',
+                                                          '',
+                                                          `Автор: ${b.nickname} (ID: ${b.id})`,
+                                                          X
+                                                            ? '🎨 Арт загружен автором.'
+                                                            : '✨ Используется эмодзи.',
+                                                        ]
+                                                          .filter(Boolean)
+                                                          .join(`
+`);
+                                                        if (
+                                                          confirm(
+                                                            'Концепт успешно выкован! Отправить заявку вожатым в Telegram и создать карточку Созидателя?'
+                                                          )
+                                                        ) {
+                                                          const r = `https://t.me/Stivanovv?text=${encodeURIComponent(o)}`;
+                                                          window.open(
+                                                            r,
+                                                            '_blank',
+                                                            'noopener,noreferrer'
+                                                          ),
+                                                            (async () => {
+                                                              try {
+                                                                const a = await ye({
+                                                                  format: 'story',
+                                                                  kind: 'start_route',
+                                                                  profile: {
+                                                                    nickname: b.nickname,
+                                                                    avatar: b.avatar,
+                                                                    rank: Q,
+                                                                  },
+                                                                  badge: {
+                                                                    title: l.title,
+                                                                    emoji: l.emoji,
+                                                                    categoryId: l.category_id,
+                                                                    levelLabel: 'НОВЫЙ СМЫСЛ',
+                                                                  },
+                                                                });
+                                                                await Re(a);
+                                                              } catch (a) {
+                                                                console.error(a);
+                                                              } finally {
+                                                                O(!1), H('active');
+                                                              }
+                                                            })();
+                                                        } else O(!1), H('active');
+                                                      }, 1500));
+                                                  },
+                                                  disabled: T,
+                                                  style: {
+                                                    width: '100%',
+                                                    padding: '14px',
+                                                    background: T
+                                                      ? 'rgba(255,255,255,0.1)'
+                                                      : 'linear-gradient(90deg, #ffd700, #ff8c42)',
+                                                    color: T ? 'rgba(255,255,255,0.3)' : '#1a1a2e',
+                                                    border: 'none',
+                                                    borderRadius: '12px',
+                                                    fontWeight: 900,
+                                                    fontSize: '14px',
+                                                    textTransform: 'uppercase',
+                                                    letterSpacing: '0.05em',
+                                                    cursor: T ? 'not-allowed' : 'pointer',
+                                                    boxShadow: T
+                                                      ? 'none'
+                                                      : '0 8px 25px rgba(255, 215, 0, 0.3)',
+                                                  },
+                                                  children: T
+                                                    ? 'ГЕНЕРИРУЕМ...'
+                                                    : 'АКТИВИРОВАТЬ В ПУТЕВОДИТЕЛЕ',
+                                                },
+                                                void 0,
+                                                !1,
+                                                {
+                                                  fileName:
+                                                    'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                  lineNumber: 2131,
+                                                  columnNumber: 21,
+                                                },
+                                                globalThis
+                                              ),
+                                            ],
+                                          },
+                                          void 0,
+                                          !0,
+                                          {
+                                            fileName:
+                                              'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                            lineNumber: 2112,
+                                            columnNumber: 19,
+                                          },
+                                          globalThis
+                                        ),
+                                      ],
+                                    },
+                                    void 0,
+                                    !0,
+                                    {
+                                      fileName:
+                                        'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                      lineNumber: 2047,
+                                      columnNumber: 17,
+                                    },
+                                    globalThis
+                                  ),
+                                ],
+                              },
+                              void 0,
+                              !0,
+                              {
+                                fileName:
+                                  'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                lineNumber: 1928,
+                                columnNumber: 15,
+                              },
+                              globalThis
+                            ),
+                          },
+                          void 0,
+                          !1,
+                          {
+                            fileName:
+                              'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                            lineNumber: 1927,
+                            columnNumber: 13,
+                          },
+                          globalThis
+                        ),
+                      L === 'journal' &&
+                        e.jsxDEV(
+                          'div',
+                          {
+                            className: 'fade-in',
+                            style: { display: 'flex', flexDirection: 'column', gap: '0' },
+                            children:
+                              fe.length === 0
+                                ? e.jsxDEV(
+                                    'div',
+                                    {
+                                      style: { textAlign: 'center', padding: '40px', opacity: 0.6 },
+                                      children: [
+                                        e.jsxDEV(
+                                          'div',
+                                          {
+                                            style: {
+                                              fontSize: '32px',
+                                              marginBottom: '10px',
+                                              filter: 'grayscale(1)',
+                                            },
+                                            children: '📖',
+                                          },
+                                          void 0,
+                                          !1,
+                                          {
+                                            fileName:
+                                              'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                            lineNumber: 2266,
+                                            columnNumber: 20,
+                                          },
+                                          globalThis
+                                        ),
+                                        'История пуста.',
+                                      ],
+                                    },
+                                    void 0,
+                                    !0,
+                                    {
+                                      fileName:
+                                        'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                      lineNumber: 2265,
+                                      columnNumber: 18,
+                                    },
+                                    globalThis
+                                  )
+                                : ke.map(([i, l], o) => {
+                                    const r = ge(i);
+                                    return e.jsxDEV(
+                                      'div',
+                                      {
+                                        style: {
+                                          display: 'flex',
+                                          gap: '16px',
+                                          position: 'relative',
+                                          paddingBottom: '24px',
+                                        },
+                                        children: [
+                                          o !== fe.length - 1 &&
+                                            e.jsxDEV(
+                                              'div',
+                                              {
+                                                style: {
+                                                  position: 'absolute',
+                                                  left: '6px',
+                                                  top: '16px',
+                                                  bottom: '0',
+                                                  width: '2px',
+                                                  background: 'rgba(255, 255, 255, 0.1)',
+                                                },
+                                              },
+                                              void 0,
+                                              !1,
+                                              {
+                                                fileName:
+                                                  'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                lineNumber: 2277,
+                                                columnNumber: 23,
+                                              },
+                                              globalThis
+                                            ),
+                                          e.jsxDEV(
+                                            'div',
+                                            {
+                                              style: {
+                                                width: '14px',
+                                                height: '14px',
+                                                background: '#ffd700',
+                                                borderRadius: '50%',
+                                                marginTop: '4px',
+                                                flexShrink: 0,
+                                                boxShadow: '0 0 0 4px rgba(255, 215, 0, 0.2)',
+                                              },
+                                            },
+                                            void 0,
+                                            !1,
+                                            {
+                                              fileName:
+                                                'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                              lineNumber: 2288,
+                                              columnNumber: 21,
+                                            },
+                                            globalThis
+                                          ),
+                                          e.jsxDEV(
+                                            'div',
+                                            {
+                                              style: { flex: 1 },
+                                              children: [
+                                                e.jsxDEV(
+                                                  'div',
+                                                  {
+                                                    style: {
+                                                      fontSize: '12px',
+                                                      opacity: 0.5,
+                                                      marginBottom: '2px',
+                                                    },
+                                                    children: new Date(
+                                                      l.achievedAt
+                                                    ).toLocaleDateString(),
+                                                  },
+                                                  void 0,
+                                                  !1,
+                                                  {
+                                                    fileName:
+                                                      'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                    lineNumber: 2299,
+                                                    columnNumber: 23,
+                                                  },
+                                                  globalThis
+                                                ),
+                                                e.jsxDEV(
+                                                  'div',
+                                                  {
+                                                    style: {
+                                                      fontWeight: 600,
+                                                      fontSize: '16px',
+                                                      marginBottom: '8px',
+                                                    },
+                                                    children: r.title,
+                                                  },
+                                                  void 0,
+                                                  !1,
+                                                  {
+                                                    fileName:
+                                                      'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                    lineNumber: 2302,
+                                                    columnNumber: 23,
+                                                  },
+                                                  globalThis
+                                                ),
+                                                r.levelLabel &&
+                                                  e.jsxDEV(
+                                                    'div',
+                                                    {
+                                                      style: {
+                                                        fontSize: '12px',
+                                                        opacity: 0.6,
+                                                        marginBottom: '8px',
+                                                      },
+                                                      children: r.levelLabel,
+                                                    },
+                                                    void 0,
+                                                    !1,
+                                                    {
+                                                      fileName:
+                                                        'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                      lineNumber: 2306,
+                                                      columnNumber: 25,
+                                                    },
+                                                    globalThis
+                                                  ),
+                                                l.reflection &&
+                                                  e.jsxDEV(
+                                                    'div',
+                                                    {
+                                                      style: {
+                                                        background: 'rgba(255, 255, 255, 0.05)',
+                                                        padding: '12px',
+                                                        borderRadius: '12px',
+                                                        fontSize: '14px',
+                                                        lineHeight: '1.5',
+                                                        fontStyle: 'italic',
+                                                        borderLeft:
+                                                          '2px solid rgba(255, 255, 255, 0.2)',
+                                                      },
+                                                      children: ['"', l.reflection, '"'],
+                                                    },
+                                                    void 0,
+                                                    !0,
+                                                    {
+                                                      fileName:
+                                                        'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                      lineNumber: 2311,
+                                                      columnNumber: 25,
+                                                    },
+                                                    globalThis
+                                                  ),
+                                              ],
+                                            },
+                                            void 0,
+                                            !0,
+                                            {
+                                              fileName:
+                                                'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                              lineNumber: 2298,
+                                              columnNumber: 21,
+                                            },
+                                            globalThis
+                                          ),
+                                        ],
+                                      },
+                                      i,
+                                      !0,
+                                      {
+                                        fileName:
+                                          'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                        lineNumber: 2274,
+                                        columnNumber: 19,
+                                      },
+                                      globalThis
+                                    );
+                                  }),
+                          },
+                          void 0,
+                          !1,
+                          {
+                            fileName:
+                              'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                            lineNumber: 2263,
+                            columnNumber: 13,
+                          },
+                          globalThis
+                        ),
+                    ],
+                  },
+                  void 0,
+                  !0,
+                  {
+                    fileName: 'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                    lineNumber: 1430,
+                    columnNumber: 9,
+                  },
+                  globalThis
+                ),
+                e.jsxDEV(
+                  'div',
+                  {
+                    id: 'profile-share-center',
+                    style: {
+                      background: 'var(--cat-glass-bg, rgba(20, 20, 35, 0.6))',
+                      backdropFilter: 'blur(16px)',
+                      borderRadius: '22px',
+                      padding: '18px',
+                      border: '1px solid var(--cat-glass-border, rgba(255, 255, 255, 0.12))',
+                      boxShadow: 'var(--shadow-medium, 0 8px 32px rgba(0, 0, 0, 0.28))',
+                    },
+                    children: [
+                      e.jsxDEV(
+                        'div',
+                        {
+                          style: {
+                            display: 'flex',
+                            alignItems: 'flex-start',
+                            justifyContent: 'space-between',
+                            gap: '12px',
+                            flexWrap: 'wrap',
+                          },
+                          children: [
+                            e.jsxDEV(
+                              'div',
+                              {
+                                style: { minWidth: '240px' },
+                                children: [
+                                  e.jsxDEV(
+                                    'div',
+                                    {
+                                      style: {
+                                        fontSize: '16px',
+                                        fontWeight: 800,
+                                        letterSpacing: '0.2px',
+                                      },
+                                      children: 'Поделиться прогрессом',
+                                    },
+                                    void 0,
+                                    !1,
+                                    {
+                                      fileName:
+                                        'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                      lineNumber: 2346,
+                                      columnNumber: 15,
+                                    },
+                                    globalThis
+                                  ),
+                                  e.jsxDEV(
+                                    'div',
+                                    {
+                                      style: {
+                                        fontSize: '12px',
+                                        opacity: 0.7,
+                                        marginTop: '6px',
+                                        lineHeight: 1.45,
+                                      },
+                                      children: [
+                                        'Сделаем 2 PNG: сторис ',
+                                        e.jsxDEV(
+                                          'b',
+                                          { children: '9:16' },
+                                          void 0,
+                                          !1,
+                                          {
+                                            fileName:
+                                              'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                            lineNumber: 2348,
+                                            columnNumber: 39,
+                                          },
+                                          globalThis
+                                        ),
+                                        ' и пост ',
+                                        e.jsxDEV(
+                                          'b',
+                                          { children: '16:9' },
+                                          void 0,
+                                          !1,
+                                          {
+                                            fileName:
+                                              'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                            lineNumber: 2348,
+                                            columnNumber: 58,
+                                          },
+                                          globalThis
+                                        ),
+                                        '. По умолчанию — без персональных данных (ник скрыт, фото-аватар не добавляется).',
+                                      ],
+                                    },
+                                    void 0,
+                                    !0,
+                                    {
+                                      fileName:
+                                        'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                      lineNumber: 2347,
+                                      columnNumber: 15,
+                                    },
+                                    globalThis
+                                  ),
+                                ],
+                              },
+                              void 0,
+                              !0,
+                              {
+                                fileName:
+                                  'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                lineNumber: 2345,
+                                columnNumber: 13,
+                              },
+                              globalThis
+                            ),
+                            e.jsxDEV(
+                              'button',
+                              {
+                                type: 'button',
+                                onClick: Ri,
+                                disabled: T,
+                                style: {
+                                  padding: '10px 14px',
+                                  borderRadius: '14px',
+                                  border: '1px solid rgba(255,255,255,0.14)',
+                                  background: T
+                                    ? 'rgba(255,255,255,0.06)'
+                                    : 'rgba(255,255,255,0.10)',
+                                  color: 'white',
+                                  cursor: T ? 'not-allowed' : 'pointer',
+                                  fontSize: '12px',
+                                  fontWeight: 800,
+                                  letterSpacing: '0.6px',
+                                  textTransform: 'uppercase',
+                                },
+                                children: T ? 'Генерируем…' : B && C ? 'Обновить' : 'Сгенерировать',
+                              },
+                              void 0,
+                              !1,
+                              {
+                                fileName:
+                                  'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                lineNumber: 2352,
+                                columnNumber: 13,
+                              },
+                              globalThis
+                            ),
+                          ],
+                        },
+                        void 0,
+                        !0,
+                        {
+                          fileName: 'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                          lineNumber: 2344,
+                          columnNumber: 11,
+                        },
+                        globalThis
+                      ),
+                      e.jsxDEV(
+                        'div',
+                        {
+                          style: {
+                            marginTop: '12px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '14px',
+                            flexWrap: 'wrap',
+                          },
+                          children: [
+                            e.jsxDEV(
+                              'label',
+                              {
+                                style: {
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '10px',
+                                  cursor: 'pointer',
+                                  fontSize: '13px',
+                                },
+                                children: [
+                                  e.jsxDEV(
+                                    'input',
+                                    {
+                                      type: 'checkbox',
+                                      checked: ue,
+                                      onChange: (i) => vi(i.target.checked),
+                                    },
+                                    void 0,
+                                    !1,
+                                    {
+                                      fileName:
+                                        'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                      lineNumber: 2375,
+                                      columnNumber: 15,
+                                    },
+                                    globalThis
+                                  ),
+                                  'Скрыть ник',
+                                ],
+                              },
+                              void 0,
+                              !0,
+                              {
+                                fileName:
+                                  'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                lineNumber: 2374,
+                                columnNumber: 13,
+                              },
+                              globalThis
+                            ),
+                            e.jsxDEV(
+                              'div',
+                              {
+                                style: { fontSize: '12px', opacity: 0.6 },
+                                children:
+                                  'Никнейм — опционально; в карточке нет ФИО/телефона/почты.',
+                              },
+                              void 0,
+                              !1,
+                              {
+                                fileName:
+                                  'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                lineNumber: 2382,
+                                columnNumber: 13,
+                              },
+                              globalThis
+                            ),
+                          ],
+                        },
+                        void 0,
+                        !0,
+                        {
+                          fileName: 'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                          lineNumber: 2373,
+                          columnNumber: 11,
+                        },
+                        globalThis
+                      ),
+                      Le &&
+                        e.jsxDEV(
+                          'div',
+                          {
+                            style: { marginTop: '10px', fontSize: '12px', opacity: 0.85 },
+                            children: Le,
+                          },
+                          void 0,
+                          !1,
+                          {
+                            fileName:
+                              'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                            lineNumber: 2388,
+                            columnNumber: 13,
+                          },
+                          globalThis
+                        ),
+                      e.jsxDEV(
+                        'div',
+                        {
+                          style: {
+                            marginTop: '14px',
+                            display: 'flex',
+                            gap: '12px',
+                            flexWrap: 'wrap',
+                          },
+                          children: [
+                            e.jsxDEV(
+                              'div',
+                              {
+                                style: { flex: '1 1 260px', minWidth: '260px' },
+                                children: [
+                                  e.jsxDEV(
+                                    'div',
+                                    {
+                                      style: {
+                                        fontSize: '12px',
+                                        opacity: 0.7,
+                                        marginBottom: '8px',
+                                      },
+                                      children: 'Сторис 9:16',
+                                    },
+                                    void 0,
+                                    !1,
+                                    {
+                                      fileName:
+                                        'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                      lineNumber: 2395,
+                                      columnNumber: 15,
+                                    },
+                                    globalThis
+                                  ),
+                                  e.jsxDEV(
+                                    'div',
+                                    {
+                                      style: {
+                                        width: '100%',
+                                        aspectRatio: '9 / 16',
+                                        borderRadius: '16px',
+                                        border: '1px solid rgba(255,255,255,0.12)',
+                                        overflow: 'hidden',
+                                        background: 'rgba(0,0,0,0.22)',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                      },
+                                      children: te
+                                        ? e.jsxDEV(
+                                            'img',
+                                            {
+                                              src: te,
+                                              alt: 'Story preview',
+                                              style: {
+                                                width: '100%',
+                                                height: '100%',
+                                                objectFit: 'cover',
+                                              },
+                                            },
+                                            void 0,
+                                            !1,
+                                            {
+                                              fileName:
+                                                'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                              lineNumber: 2410,
+                                              columnNumber: 19,
+                                            },
+                                            globalThis
+                                          )
+                                        : e.jsxDEV(
+                                            'div',
+                                            {
+                                              style: {
+                                                padding: '14px',
+                                                fontSize: '12px',
+                                                opacity: 0.55,
+                                                textAlign: 'center',
+                                                lineHeight: 1.4,
+                                              },
+                                              children:
+                                                'Нажми «Сгенерировать», чтобы увидеть предпросмотр.',
+                                            },
+                                            void 0,
+                                            !1,
+                                            {
+                                              fileName:
+                                                'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                              lineNumber: 2412,
+                                              columnNumber: 19,
+                                            },
+                                            globalThis
+                                          ),
+                                    },
+                                    void 0,
+                                    !1,
+                                    {
+                                      fileName:
+                                        'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                      lineNumber: 2396,
+                                      columnNumber: 15,
+                                    },
+                                    globalThis
+                                  ),
+                                  e.jsxDEV(
+                                    'div',
+                                    {
+                                      style: {
+                                        display: 'flex',
+                                        gap: '10px',
+                                        flexWrap: 'wrap',
+                                        marginTop: '10px',
+                                      },
+                                      children: e.jsxDEV(
+                                        'button',
+                                        {
+                                          type: 'button',
+                                          disabled: !B || T,
+                                          onClick: () => B && ti(B),
+                                          style: {
+                                            padding: '10px 12px',
+                                            borderRadius: '12px',
+                                            border: '1px solid rgba(255,255,255,0.14)',
+                                            background: 'rgba(255,255,255,0.08)',
+                                            color: 'white',
+                                            cursor: !B || T ? 'not-allowed' : 'pointer',
+                                            fontSize: '12px',
+                                            fontWeight: 700,
+                                          },
+                                          children: 'Поделиться / скачать',
+                                        },
+                                        void 0,
+                                        !1,
+                                        {
+                                          fileName:
+                                            'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                          lineNumber: 2418,
+                                          columnNumber: 17,
+                                        },
+                                        globalThis
+                                      ),
+                                    },
+                                    void 0,
+                                    !1,
+                                    {
+                                      fileName:
+                                        'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                      lineNumber: 2417,
+                                      columnNumber: 15,
+                                    },
+                                    globalThis
+                                  ),
+                                ],
+                              },
+                              void 0,
+                              !0,
+                              {
+                                fileName:
+                                  'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                lineNumber: 2394,
+                                columnNumber: 13,
+                              },
+                              globalThis
+                            ),
+                            e.jsxDEV(
+                              'div',
+                              {
+                                style: { flex: '1 1 260px', minWidth: '260px' },
+                                children: [
+                                  e.jsxDEV(
+                                    'div',
+                                    {
+                                      style: {
+                                        fontSize: '12px',
+                                        opacity: 0.7,
+                                        marginBottom: '8px',
+                                      },
+                                      children: 'Пост 16:9',
+                                    },
+                                    void 0,
+                                    !1,
+                                    {
+                                      fileName:
+                                        'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                      lineNumber: 2439,
+                                      columnNumber: 15,
+                                    },
+                                    globalThis
+                                  ),
+                                  e.jsxDEV(
+                                    'div',
+                                    {
+                                      style: {
+                                        width: '100%',
+                                        aspectRatio: '16 / 9',
+                                        borderRadius: '16px',
+                                        border: '1px solid rgba(255,255,255,0.12)',
+                                        overflow: 'hidden',
+                                        background: 'rgba(0,0,0,0.22)',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                      },
+                                      children: se
+                                        ? e.jsxDEV(
+                                            'img',
+                                            {
+                                              src: se,
+                                              alt: 'Wide preview',
+                                              style: {
+                                                width: '100%',
+                                                height: '100%',
+                                                objectFit: 'cover',
+                                              },
+                                            },
+                                            void 0,
+                                            !1,
+                                            {
+                                              fileName:
+                                                'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                              lineNumber: 2454,
+                                              columnNumber: 19,
+                                            },
+                                            globalThis
+                                          )
+                                        : e.jsxDEV(
+                                            'div',
+                                            {
+                                              style: {
+                                                padding: '14px',
+                                                fontSize: '12px',
+                                                opacity: 0.55,
+                                                textAlign: 'center',
+                                                lineHeight: 1.4,
+                                              },
+                                              children:
+                                                'Нажми «Сгенерировать», чтобы увидеть предпросмотр.',
+                                            },
+                                            void 0,
+                                            !1,
+                                            {
+                                              fileName:
+                                                'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                              lineNumber: 2456,
+                                              columnNumber: 19,
+                                            },
+                                            globalThis
+                                          ),
+                                    },
+                                    void 0,
+                                    !1,
+                                    {
+                                      fileName:
+                                        'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                      lineNumber: 2440,
+                                      columnNumber: 15,
+                                    },
+                                    globalThis
+                                  ),
+                                  e.jsxDEV(
+                                    'div',
+                                    {
+                                      style: {
+                                        display: 'flex',
+                                        gap: '10px',
+                                        flexWrap: 'wrap',
+                                        marginTop: '10px',
+                                      },
+                                      children: e.jsxDEV(
+                                        'button',
+                                        {
+                                          type: 'button',
+                                          disabled: !C || T,
+                                          onClick: () => C && ti(C),
+                                          style: {
+                                            padding: '10px 12px',
+                                            borderRadius: '12px',
+                                            border: '1px solid rgba(255,255,255,0.14)',
+                                            background: 'rgba(255,255,255,0.08)',
+                                            color: 'white',
+                                            cursor: !C || T ? 'not-allowed' : 'pointer',
+                                            fontSize: '12px',
+                                            fontWeight: 700,
+                                          },
+                                          children: 'Поделиться / скачать',
+                                        },
+                                        void 0,
+                                        !1,
+                                        {
+                                          fileName:
+                                            'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                          lineNumber: 2462,
+                                          columnNumber: 17,
+                                        },
+                                        globalThis
+                                      ),
+                                    },
+                                    void 0,
+                                    !1,
+                                    {
+                                      fileName:
+                                        'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                      lineNumber: 2461,
+                                      columnNumber: 15,
+                                    },
+                                    globalThis
+                                  ),
+                                ],
+                              },
+                              void 0,
+                              !0,
+                              {
+                                fileName:
+                                  'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                lineNumber: 2438,
+                                columnNumber: 13,
+                              },
+                              globalThis
+                            ),
+                          ],
+                        },
+                        void 0,
+                        !0,
+                        {
+                          fileName: 'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                          lineNumber: 2393,
+                          columnNumber: 11,
+                        },
+                        globalThis
+                      ),
+                      (B || C) &&
+                        e.jsxDEV(
+                          'div',
+                          {
+                            style: { marginTop: '14px' },
+                            children: [
+                              e.jsxDEV(
+                                'div',
+                                {
+                                  style: { fontSize: '12px', opacity: 0.7, marginBottom: '8px' },
+                                  children: 'Подпись',
+                                },
+                                void 0,
+                                !1,
+                                {
+                                  fileName:
+                                    'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                  lineNumber: 2485,
+                                  columnNumber: 15,
+                                },
+                                globalThis
+                              ),
+                              e.jsxDEV(
+                                'textarea',
+                                {
+                                  readOnly: !0,
+                                  value:
+                                    (B == null ? void 0 : B.text) ||
+                                    (C == null ? void 0 : C.text) ||
+                                    '',
+                                  rows: 3,
+                                  style: {
+                                    width: '100%',
+                                    resize: 'vertical',
+                                    borderRadius: '14px',
+                                    padding: '12px',
+                                    border: '1px solid rgba(255,255,255,0.14)',
+                                    background: 'rgba(0,0,0,0.22)',
+                                    color: 'white',
+                                    fontFamily: 'inherit',
+                                    fontSize: '13px',
+                                    lineHeight: 1.4,
+                                  },
+                                },
+                                void 0,
+                                !1,
+                                {
+                                  fileName:
+                                    'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                  lineNumber: 2486,
+                                  columnNumber: 15,
+                                },
+                                globalThis
+                              ),
+                              e.jsxDEV(
+                                'div',
+                                {
+                                  style: {
+                                    marginTop: '10px',
+                                    display: 'flex',
+                                    gap: '10px',
+                                    flexWrap: 'wrap',
+                                  },
+                                  children: e.jsxDEV(
+                                    'button',
+                                    {
+                                      type: 'button',
+                                      onClick: Wi,
+                                      disabled: T,
+                                      style: {
+                                        padding: '10px 12px',
+                                        borderRadius: '12px',
+                                        border: '1px solid rgba(255,255,255,0.14)',
+                                        background: 'rgba(255,255,255,0.08)',
+                                        color: 'white',
+                                        cursor: T ? 'not-allowed' : 'pointer',
+                                        fontSize: '12px',
+                                        fontWeight: 700,
+                                      },
+                                      children: 'Скопировать подпись',
+                                    },
+                                    void 0,
+                                    !1,
+                                    {
+                                      fileName:
+                                        'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                      lineNumber: 2504,
+                                      columnNumber: 17,
+                                    },
+                                    globalThis
+                                  ),
+                                },
+                                void 0,
+                                !1,
+                                {
+                                  fileName:
+                                    'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                  lineNumber: 2503,
+                                  columnNumber: 15,
+                                },
+                                globalThis
+                              ),
+                            ],
+                          },
+                          void 0,
+                          !0,
+                          {
+                            fileName:
+                              'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                            lineNumber: 2484,
+                            columnNumber: 13,
+                          },
+                          globalThis
+                        ),
+                    ],
+                  },
+                  void 0,
+                  !0,
+                  {
+                    fileName: 'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                    lineNumber: 2333,
+                    columnNumber: 9,
+                  },
+                  globalThis
+                ),
+                e.jsxDEV(
+                  'div',
+                  {
+                    style: {
+                      marginTop: '20px',
+                      borderTop: '1px solid rgba(255,255,255,0.1)',
+                      paddingTop: '20px',
+                    },
+                    children: [
+                      e.jsxDEV(
+                        'button',
+                        {
+                          onClick: () => gi(!je),
+                          style: {
+                            background: 'none',
+                            border: 'none',
+                            color: 'rgba(255,255,255,0.4)',
+                            cursor: 'pointer',
+                            width: '100%',
+                            fontSize: '12px',
+                            textTransform: 'uppercase',
+                            letterSpacing: '1px',
+                          },
+                          children: je ? 'Скрыть настройки ▲' : 'Настройки данных ▼',
+                        },
+                        void 0,
+                        !1,
+                        {
+                          fileName: 'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                          lineNumber: 2528,
+                          columnNumber: 11,
+                        },
+                        globalThis
+                      ),
+                      je &&
+                        e.jsxDEV(
+                          'div',
+                          {
+                            style: {
+                              marginTop: '20px',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              gap: '12px',
+                            },
+                            children: [
+                              e.jsxDEV(
+                                'label',
+                                {
+                                  style: {
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'space-between',
+                                    padding: '12px',
+                                    background: 'rgba(255,215,0,0.05)',
+                                    border: '1px solid rgba(255,215,0,0.1)',
+                                    borderRadius: '12px',
+                                    cursor: 'pointer',
+                                  },
+                                  children: [
+                                    e.jsxDEV(
+                                      'div',
+                                      {
+                                        style: {
+                                          display: 'flex',
+                                          flexDirection: 'column',
+                                          gap: '2px',
+                                        },
+                                        children: [
+                                          e.jsxDEV(
+                                            'span',
+                                            {
+                                              style: {
+                                                fontSize: '13px',
+                                                fontWeight: 700,
+                                                color: '#ffd700',
+                                              },
+                                              children: 'Тестовый режим',
+                                            },
+                                            void 0,
+                                            !1,
+                                            {
+                                              fileName:
+                                                'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                              lineNumber: 2557,
+                                              columnNumber: 19,
+                                            },
+                                            globalThis
+                                          ),
+                                          e.jsxDEV(
+                                            'span',
+                                            {
+                                              style: { fontSize: '10px', opacity: 0.5 },
+                                              children: 'Открывает доступ к Мастерской',
+                                            },
+                                            void 0,
+                                            !1,
+                                            {
+                                              fileName:
+                                                'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                              lineNumber: 2558,
+                                              columnNumber: 19,
+                                            },
+                                            globalThis
+                                          ),
+                                        ],
+                                      },
+                                      void 0,
+                                      !0,
+                                      {
+                                        fileName:
+                                          'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                        lineNumber: 2556,
+                                        columnNumber: 17,
+                                      },
+                                      globalThis
+                                    ),
+                                    e.jsxDEV(
+                                      'input',
+                                      {
+                                        type: 'checkbox',
+                                        checked: Te,
+                                        onChange: (i) => be(i.target.checked),
+                                        style: { width: '20px', height: '20px', cursor: 'pointer' },
+                                      },
+                                      void 0,
+                                      !1,
+                                      {
+                                        fileName:
+                                          'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                        lineNumber: 2560,
+                                        columnNumber: 17,
+                                      },
+                                      globalThis
+                                    ),
+                                  ],
+                                },
+                                void 0,
+                                !0,
+                                {
+                                  fileName:
+                                    'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                  lineNumber: 2546,
+                                  columnNumber: 15,
+                                },
+                                globalThis
+                              ),
+                              e.jsxDEV(
+                                'button',
+                                {
+                                  onClick: _,
+                                  style: {
+                                    padding: '12px',
+                                    background: 'rgba(255,255,255,0.05)',
+                                    color: 'white',
+                                    border: '1px solid rgba(255,255,255,0.1)',
+                                    borderRadius: '12px',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '8px',
+                                  },
+                                  children: [
+                                    e.jsxDEV(
+                                      'span',
+                                      { children: '📥' },
+                                      void 0,
+                                      !1,
+                                      {
+                                        fileName:
+                                          'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                        lineNumber: 2577,
+                                        columnNumber: 17,
+                                      },
+                                      globalThis
+                                    ),
+                                    ' Сохранить резервную копию',
+                                  ],
+                                },
+                                void 0,
+                                !0,
+                                {
+                                  fileName:
+                                    'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                  lineNumber: 2568,
+                                  columnNumber: 15,
+                                },
+                                globalThis
+                              ),
+                              e.jsxDEV(
+                                'label',
+                                {
+                                  style: {
+                                    padding: '12px',
+                                    background: 'rgba(255,255,255,0.05)',
+                                    color: 'white',
+                                    border: '1px solid rgba(255,255,255,0.1)',
+                                    borderRadius: '12px',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '8px',
+                                  },
+                                  children: [
+                                    e.jsxDEV(
+                                      'span',
+                                      { children: '📤' },
+                                      void 0,
+                                      !1,
+                                      {
+                                        fileName:
+                                          'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                        lineNumber: 2588,
+                                        columnNumber: 17,
+                                      },
+                                      globalThis
+                                    ),
+                                    ' Восстановить из файла',
+                                    e.jsxDEV(
+                                      'input',
+                                      {
+                                        type: 'file',
+                                        accept: '.json',
+                                        onChange: zi,
+                                        style: { display: 'none' },
+                                      },
+                                      void 0,
+                                      !1,
+                                      {
+                                        fileName:
+                                          'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                        lineNumber: 2589,
+                                        columnNumber: 17,
+                                      },
+                                      globalThis
+                                    ),
+                                  ],
+                                },
+                                void 0,
+                                !0,
+                                {
+                                  fileName:
+                                    'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                  lineNumber: 2579,
+                                  columnNumber: 15,
+                                },
+                                globalThis
+                              ),
+                              e.jsxDEV(
+                                'button',
+                                {
+                                  onClick: E,
+                                  style: {
+                                    padding: '12px',
+                                    background: 'rgba(255, 77, 77, 0.1)',
+                                    color: '#ff6b6b',
+                                    border: '1px solid rgba(255, 77, 77, 0.3)',
+                                    borderRadius: '12px',
+                                    marginTop: '10px',
+                                    cursor: 'pointer',
+                                  },
+                                  children: '🗑️ Сброс прогресса',
+                                },
+                                void 0,
+                                !1,
+                                {
+                                  fileName:
+                                    'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                  lineNumber: 2591,
+                                  columnNumber: 15,
+                                },
+                                globalThis
+                              ),
+                              e.jsxDEV(
+                                'div',
+                                {
+                                  style: {
+                                    fontSize: '10px',
+                                    textAlign: 'center',
+                                    opacity: 0.3,
+                                    marginTop: '10px',
+                                  },
+                                  children: 'v1.0.12 • LocalStorage Mode',
+                                },
+                                void 0,
+                                !1,
+                                {
+                                  fileName:
+                                    'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                  lineNumber: 2602,
+                                  columnNumber: 16,
+                                },
+                                globalThis
+                              ),
+                            ],
+                          },
+                          void 0,
+                          !0,
+                          {
+                            fileName:
+                              'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                            lineNumber: 2545,
+                            columnNumber: 13,
+                          },
+                          globalThis
+                        ),
+                    ],
+                  },
+                  void 0,
+                  !0,
+                  {
+                    fileName: 'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                    lineNumber: 2527,
+                    columnNumber: 9,
+                  },
+                  globalThis
+                ),
+              ],
+            },
+            void 0,
+            !0,
+            {
+              fileName: 'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+              lineNumber: 774,
+              columnNumber: 7,
+            },
+            globalThis
+          ),
+          S &&
+            e.jsxDEV(
+              'div',
+              {
+                className: 'proof-modal-overlay',
+                role: 'dialog',
+                'aria-modal': 'true',
+                onClick: ve,
+                children: e.jsxDEV(
+                  'div',
+                  {
+                    className: 'proof-modal',
+                    onClick: (i) => i.stopPropagation(),
+                    children: [
+                      e.jsxDEV(
+                        'div',
+                        {
+                          style: {
+                            display: 'flex',
+                            alignItems: 'flex-start',
+                            justifyContent: 'space-between',
+                            gap: '12px',
+                          },
+                          children: [
+                            e.jsxDEV(
+                              'div',
+                              {
+                                children: [
+                                  e.jsxDEV(
+                                    'div',
+                                    {
+                                      style: { fontSize: '16px', fontWeight: 700 },
+                                      children: 'Подтверждение значка',
+                                    },
+                                    void 0,
+                                    !1,
+                                    {
+                                      fileName:
+                                        'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                      lineNumber: 2620,
+                                      columnNumber: 17,
+                                    },
+                                    globalThis
+                                  ),
+                                  e.jsxDEV(
+                                    'div',
+                                    {
+                                      style: { fontSize: '12px', opacity: 0.7, marginTop: '4px' },
+                                      children: [
+                                        S.title,
+                                        ' • ',
+                                        S.baseId,
+                                        S.levelLabel ? ` • ${S.levelLabel}` : '',
+                                      ],
+                                    },
+                                    void 0,
+                                    !0,
+                                    {
+                                      fileName:
+                                        'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                      lineNumber: 2621,
+                                      columnNumber: 17,
+                                    },
+                                    globalThis
+                                  ),
+                                ],
+                              },
+                              void 0,
+                              !0,
+                              {
+                                fileName:
+                                  'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                lineNumber: 2619,
+                                columnNumber: 15,
+                              },
+                              globalThis
+                            ),
+                            e.jsxDEV(
+                              'button',
+                              {
+                                type: 'button',
+                                onClick: ve,
+                                style: {
+                                  border: 'none',
+                                  background: 'rgba(255,255,255,0.08)',
+                                  color: 'white',
+                                  borderRadius: '10px',
+                                  padding: '6px 10px',
+                                  cursor: 'pointer',
+                                },
+                                'aria-label': 'Закрыть',
+                                children: '✕',
+                              },
+                              void 0,
+                              !1,
+                              {
+                                fileName:
+                                  'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                lineNumber: 2626,
+                                columnNumber: 15,
+                              },
+                              globalThis
+                            ),
+                          ],
+                        },
+                        void 0,
+                        !0,
+                        {
+                          fileName: 'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                          lineNumber: 2618,
+                          columnNumber: 13,
+                        },
+                        globalThis
+                      ),
+                      e.jsxDEV(
+                        'div',
+                        {
+                          style: { display: 'grid', gap: '12px', marginTop: '16px' },
+                          children: [
+                            e.jsxDEV(
+                              'div',
+                              {
+                                children: [
+                                  e.jsxDEV(
+                                    'label',
+                                    {
+                                      style: { fontSize: '12px', opacity: 0.7 },
+                                      children: 'Что именно сделано',
+                                    },
+                                    void 0,
+                                    !1,
+                                    {
+                                      fileName:
+                                        'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                      lineNumber: 2645,
+                                      columnNumber: 17,
+                                    },
+                                    globalThis
+                                  ),
+                                  e.jsxDEV(
+                                    'textarea',
+                                    {
+                                      value: y.text,
+                                      onChange: (i) => ee('text', i.target.value),
+                                      placeholder:
+                                        'Коротко опишите выполненные шаги, результат, что получилось.',
+                                      rows: 4,
+                                      style: {
+                                        ...k,
+                                        width: '100%',
+                                        resize: 'vertical',
+                                        marginTop: '6px',
+                                      },
+                                    },
+                                    void 0,
+                                    !1,
+                                    {
+                                      fileName:
+                                        'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                      lineNumber: 2646,
+                                      columnNumber: 17,
+                                    },
+                                    globalThis
+                                  ),
+                                ],
+                              },
+                              void 0,
+                              !0,
+                              {
+                                fileName:
+                                  'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                lineNumber: 2644,
+                                columnNumber: 15,
+                              },
+                              globalThis
+                            ),
+                            e.jsxDEV(
+                              'div',
+                              {
+                                children: [
+                                  e.jsxDEV(
+                                    'label',
+                                    {
+                                      style: { fontSize: '12px', opacity: 0.7 },
+                                      children: 'Чему я научился(лась)',
+                                    },
+                                    void 0,
+                                    !1,
+                                    {
+                                      fileName:
+                                        'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                      lineNumber: 2656,
+                                      columnNumber: 17,
+                                    },
+                                    globalThis
+                                  ),
+                                  e.jsxDEV(
+                                    'textarea',
+                                    {
+                                      value: y.learned,
+                                      onChange: (i) => ee('learned', i.target.value),
+                                      placeholder: 'Какой навык, опыт или открытие я получил(а).',
+                                      rows: 3,
+                                      style: {
+                                        ...k,
+                                        width: '100%',
+                                        resize: 'vertical',
+                                        marginTop: '6px',
+                                      },
+                                    },
+                                    void 0,
+                                    !1,
+                                    {
+                                      fileName:
+                                        'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                      lineNumber: 2657,
+                                      columnNumber: 17,
+                                    },
+                                    globalThis
+                                  ),
+                                ],
+                              },
+                              void 0,
+                              !0,
+                              {
+                                fileName:
+                                  'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                lineNumber: 2655,
+                                columnNumber: 15,
+                              },
+                              globalThis
+                            ),
+                            e.jsxDEV(
+                              'div',
+                              {
+                                children: [
+                                  e.jsxDEV(
+                                    'label',
+                                    {
+                                      style: { fontSize: '12px', opacity: 0.7 },
+                                      children: 'Как это повлияло на мой коллектив и лагерь',
+                                    },
+                                    void 0,
+                                    !1,
+                                    {
+                                      fileName:
+                                        'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                      lineNumber: 2667,
+                                      columnNumber: 17,
+                                    },
+                                    globalThis
+                                  ),
+                                  e.jsxDEV(
+                                    'textarea',
+                                    {
+                                      value: y.impact,
+                                      onChange: (i) => ee('impact', i.target.value),
+                                      placeholder: 'Какая была польза для команды, отряда, лагеря.',
+                                      rows: 3,
+                                      style: {
+                                        ...k,
+                                        width: '100%',
+                                        resize: 'vertical',
+                                        marginTop: '6px',
+                                      },
+                                    },
+                                    void 0,
+                                    !1,
+                                    {
+                                      fileName:
+                                        'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                      lineNumber: 2668,
+                                      columnNumber: 17,
+                                    },
+                                    globalThis
+                                  ),
+                                ],
+                              },
+                              void 0,
+                              !0,
+                              {
+                                fileName:
+                                  'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                lineNumber: 2666,
+                                columnNumber: 15,
+                              },
+                              globalThis
+                            ),
+                            e.jsxDEV(
+                              'div',
+                              {
+                                children: [
+                                  e.jsxDEV(
+                                    'label',
+                                    {
+                                      style: { fontSize: '12px', opacity: 0.7 },
+                                      children:
+                                        'Ссылка (посты в соцсетях лагеря, отряда, вашей страницы и т.д.)',
+                                    },
+                                    void 0,
+                                    !1,
+                                    {
+                                      fileName:
+                                        'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                      lineNumber: 2678,
+                                      columnNumber: 17,
+                                    },
+                                    globalThis
+                                  ),
+                                  e.jsxDEV(
+                                    'input',
+                                    {
+                                      type: 'url',
+                                      value: y.link,
+                                      onChange: (i) => ee('link', i.target.value),
+                                      placeholder:
+                                        'https://... (например, пост в VK/Telegram/Instagram)',
+                                      style: { ...k, width: '100%', marginTop: '6px' },
+                                    },
+                                    void 0,
+                                    !1,
+                                    {
+                                      fileName:
+                                        'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                      lineNumber: 2681,
+                                      columnNumber: 17,
+                                    },
+                                    globalThis
+                                  ),
+                                ],
+                              },
+                              void 0,
+                              !0,
+                              {
+                                fileName:
+                                  'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                lineNumber: 2677,
+                                columnNumber: 15,
+                              },
+                              globalThis
+                            ),
+                            e.jsxDEV(
+                              'div',
+                              {
+                                children: [
+                                  e.jsxDEV(
+                                    'div',
+                                    {
+                                      style: {
+                                        fontSize: '12px',
+                                        opacity: 0.7,
+                                        marginBottom: '8px',
+                                      },
+                                      children: 'Файлы и медиа',
+                                    },
+                                    void 0,
+                                    !1,
+                                    {
+                                      fileName:
+                                        'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                      lineNumber: 2691,
+                                      columnNumber: 17,
+                                    },
+                                    globalThis
+                                  ),
+                                  e.jsxDEV(
+                                    'div',
+                                    {
+                                      style: { display: 'flex', flexWrap: 'wrap', gap: '8px' },
+                                      children: [
+                                        e.jsxDEV(
+                                          'button',
+                                          {
+                                            type: 'button',
+                                            onClick: () => {
+                                              var i;
+                                              return (i = Xe.current) == null ? void 0 : i.click();
+                                            },
+                                            style: De,
+                                            children: '📷 Фото',
+                                          },
+                                          void 0,
+                                          !1,
+                                          {
+                                            fileName:
+                                              'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                            lineNumber: 2693,
+                                            columnNumber: 19,
+                                          },
+                                          globalThis
+                                        ),
+                                        e.jsxDEV(
+                                          'button',
+                                          {
+                                            type: 'button',
+                                            onClick: () => {
+                                              var i;
+                                              return (i = Qe.current) == null ? void 0 : i.click();
+                                            },
+                                            style: De,
+                                            children: '🤳 Селфи',
+                                          },
+                                          void 0,
+                                          !1,
+                                          {
+                                            fileName:
+                                              'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                            lineNumber: 2696,
+                                            columnNumber: 19,
+                                          },
+                                          globalThis
+                                        ),
+                                        e.jsxDEV(
+                                          'button',
+                                          {
+                                            type: 'button',
+                                            onClick: () => {
+                                              var i;
+                                              return (i = Ze.current) == null ? void 0 : i.click();
+                                            },
+                                            style: De,
+                                            children: '📄 Документ',
+                                          },
+                                          void 0,
+                                          !1,
+                                          {
+                                            fileName:
+                                              'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                            lineNumber: 2699,
+                                            columnNumber: 19,
+                                          },
+                                          globalThis
+                                        ),
+                                        e.jsxDEV(
+                                          'button',
+                                          {
+                                            type: 'button',
+                                            onClick: () => {
+                                              var i;
+                                              return (i = ei.current) == null ? void 0 : i.click();
+                                            },
+                                            style: De,
+                                            children: '📎 Файл',
+                                          },
+                                          void 0,
+                                          !1,
+                                          {
+                                            fileName:
+                                              'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                            lineNumber: 2702,
+                                            columnNumber: 19,
+                                          },
+                                          globalThis
+                                        ),
+                                      ],
+                                    },
+                                    void 0,
+                                    !0,
+                                    {
+                                      fileName:
+                                        'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                      lineNumber: 2692,
+                                      columnNumber: 17,
+                                    },
+                                    globalThis
+                                  ),
+                                  e.jsxDEV(
+                                    'input',
+                                    {
+                                      ref: Xe,
+                                      type: 'file',
+                                      accept: 'image/*',
+                                      style: { display: 'none' },
+                                      onChange: he('photo'),
+                                    },
+                                    void 0,
+                                    !1,
+                                    {
+                                      fileName:
+                                        'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                      lineNumber: 2706,
+                                      columnNumber: 17,
+                                    },
+                                    globalThis
+                                  ),
+                                  e.jsxDEV(
+                                    'input',
+                                    {
+                                      ref: Qe,
+                                      type: 'file',
+                                      accept: 'image/*',
+                                      capture: 'user',
+                                      style: { display: 'none' },
+                                      onChange: he('selfie'),
+                                    },
+                                    void 0,
+                                    !1,
+                                    {
+                                      fileName:
+                                        'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                      lineNumber: 2713,
+                                      columnNumber: 17,
+                                    },
+                                    globalThis
+                                  ),
+                                  e.jsxDEV(
+                                    'input',
+                                    {
+                                      ref: Ze,
+                                      type: 'file',
+                                      accept: '.pdf,.doc,.docx,.txt',
+                                      style: { display: 'none' },
+                                      onChange: he('document'),
+                                    },
+                                    void 0,
+                                    !1,
+                                    {
+                                      fileName:
+                                        'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                      lineNumber: 2721,
+                                      columnNumber: 17,
+                                    },
+                                    globalThis
+                                  ),
+                                  e.jsxDEV(
+                                    'input',
+                                    {
+                                      ref: ei,
+                                      type: 'file',
+                                      style: { display: 'none' },
+                                      onChange: he('file'),
+                                    },
+                                    void 0,
+                                    !1,
+                                    {
+                                      fileName:
+                                        'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                      lineNumber: 2728,
+                                      columnNumber: 17,
+                                    },
+                                    globalThis
+                                  ),
+                                  Li &&
+                                    e.jsxDEV(
+                                      'div',
+                                      {
+                                        style: { display: 'grid', gap: '6px', marginTop: '10px' },
+                                        children: si
+                                          .filter((i) => i.file)
+                                          .map((i) => {
+                                            var l;
+                                            return e.jsxDEV(
+                                              'div',
+                                              {
+                                                style: {
+                                                  display: 'flex',
+                                                  alignItems: 'center',
+                                                  justifyContent: 'space-between',
+                                                  gap: '10px',
+                                                  padding: '8px 10px',
+                                                  borderRadius: '10px',
+                                                  border: '1px solid rgba(255,255,255,0.1)',
+                                                  background: 'rgba(255,255,255,0.04)',
+                                                },
+                                                children: [
+                                                  e.jsxDEV(
+                                                    'div',
+                                                    {
+                                                      style: { fontSize: '12px' },
+                                                      children: [
+                                                        e.jsxDEV(
+                                                          'strong',
+                                                          { children: [i.label, ':'] },
+                                                          void 0,
+                                                          !0,
+                                                          {
+                                                            fileName:
+                                                              'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                            lineNumber: 2754,
+                                                            columnNumber: 29,
+                                                          },
+                                                          globalThis
+                                                        ),
+                                                        ' ',
+                                                        (l = i.file) == null ? void 0 : l.name,
+                                                        ' ',
+                                                        i.file ? `(${bi(i.file.size)})` : '',
+                                                      ],
+                                                    },
+                                                    void 0,
+                                                    !0,
+                                                    {
+                                                      fileName:
+                                                        'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                      lineNumber: 2753,
+                                                      columnNumber: 27,
+                                                    },
+                                                    globalThis
+                                                  ),
+                                                  e.jsxDEV(
+                                                    'button',
+                                                    {
+                                                      type: 'button',
+                                                      onClick: () => ee(i.key, null),
+                                                      style: {
+                                                        border: 'none',
+                                                        background: 'rgba(255,255,255,0.08)',
+                                                        color: 'white',
+                                                        borderRadius: '8px',
+                                                        padding: '4px 8px',
+                                                        cursor: 'pointer',
+                                                        fontSize: '12px',
+                                                      },
+                                                      'aria-label': `Удалить ${i.label}`,
+                                                      children: '✕',
+                                                    },
+                                                    void 0,
+                                                    !1,
+                                                    {
+                                                      fileName:
+                                                        'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                      lineNumber: 2757,
+                                                      columnNumber: 27,
+                                                    },
+                                                    globalThis
+                                                  ),
+                                                ],
+                                              },
+                                              i.key,
+                                              !0,
+                                              {
+                                                fileName:
+                                                  'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                                lineNumber: 2740,
+                                                columnNumber: 25,
+                                              },
+                                              globalThis
+                                            );
+                                          }),
+                                      },
+                                      void 0,
+                                      !1,
+                                      {
+                                        fileName:
+                                          'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                        lineNumber: 2736,
+                                        columnNumber: 19,
+                                      },
+                                      globalThis
+                                    ),
+                                  e.jsxDEV(
+                                    'div',
+                                    {
+                                      style: {
+                                        fontSize: '11px',
+                                        opacity: 0.55,
+                                        marginTop: '10px',
+                                        lineHeight: '1.4',
+                                      },
+                                      children:
+                                        'После открытия Telegram прикрепите выбранные файлы вручную, если нужно. Текст и ссылка будут подставлены автоматически.',
+                                    },
+                                    void 0,
+                                    !1,
+                                    {
+                                      fileName:
+                                        'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                      lineNumber: 2778,
+                                      columnNumber: 17,
+                                    },
+                                    globalThis
+                                  ),
+                                ],
+                              },
+                              void 0,
+                              !0,
+                              {
+                                fileName:
+                                  'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                lineNumber: 2690,
+                                columnNumber: 15,
+                              },
+                              globalThis
+                            ),
+                          ],
+                        },
+                        void 0,
+                        !0,
+                        {
+                          fileName: 'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                          lineNumber: 2643,
+                          columnNumber: 13,
+                        },
+                        globalThis
+                      ),
+                      e.jsxDEV(
+                        'div',
+                        {
+                          style: {
+                            display: 'flex',
+                            flexWrap: 'wrap',
+                            gap: '10px',
+                            justifyContent: 'flex-end',
+                            marginTop: '18px',
+                          },
+                          children: [
+                            e.jsxDEV(
+                              'button',
+                              {
+                                type: 'button',
+                                onClick: ve,
+                                style: {
+                                  padding: '10px 14px',
+                                  borderRadius: '12px',
+                                  border: '1px solid rgba(255,255,255,0.15)',
+                                  background: 'rgba(255,255,255,0.06)',
+                                  color: 'rgba(255,255,255,0.85)',
+                                  fontSize: '12px',
+                                  letterSpacing: '0.06em',
+                                  textTransform: 'uppercase',
+                                  cursor: 'pointer',
+                                },
+                                children: 'Отмена',
+                              },
+                              void 0,
+                              !1,
+                              {
+                                fileName:
+                                  'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                lineNumber: 2786,
+                                columnNumber: 15,
+                              },
+                              globalThis
+                            ),
+                            e.jsxDEV(
+                              'button',
+                              {
+                                type: 'button',
+                                onClick: Ci,
+                                style: {
+                                  padding: '10px 16px',
+                                  borderRadius: '12px',
+                                  border: 'none',
+                                  background: 'linear-gradient(90deg, #38ef7d, #11998e)',
+                                  color: '#0b1b16',
+                                  fontSize: '12px',
+                                  letterSpacing: '0.06em',
+                                  textTransform: 'uppercase',
+                                  fontWeight: 700,
+                                  cursor: 'pointer',
+                                },
+                                children: 'Отправить в Telegram',
+                              },
+                              void 0,
+                              !1,
+                              {
+                                fileName:
+                                  'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                                lineNumber: 2803,
+                                columnNumber: 15,
+                              },
+                              globalThis
+                            ),
+                          ],
+                        },
+                        void 0,
+                        !0,
+                        {
+                          fileName: 'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                          lineNumber: 2785,
+                          columnNumber: 13,
+                        },
+                        globalThis
+                      ),
+                    ],
+                  },
+                  void 0,
+                  !0,
+                  {
+                    fileName: 'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                    lineNumber: 2617,
+                    columnNumber: 11,
+                  },
+                  globalThis
+                ),
+              },
+              void 0,
+              !1,
+              {
+                fileName: 'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                lineNumber: 2611,
+                columnNumber: 9,
+              },
+              globalThis
+            ),
+          e.jsxDEV(
+            n.Suspense,
+            {
+              fallback: null,
+              children: [
+                e.jsxDEV(
+                  il,
+                  { onClick: g, isOpen: d },
+                  void 0,
+                  !1,
+                  {
+                    fileName: 'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                    lineNumber: 2827,
+                    columnNumber: 9,
+                  },
+                  globalThis
+                ),
+                e.jsxDEV(
+                  el,
+                  { isOpen: d, onClose: P, currentView: 'profile' },
+                  void 0,
+                  !1,
+                  {
+                    fileName: 'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+                    lineNumber: 2828,
+                    columnNumber: 9,
+                  },
+                  globalThis
+                ),
+              ],
+            },
+            void 0,
+            !0,
+            {
+              fileName: 'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+              lineNumber: 2826,
+              columnNumber: 7,
+            },
+            globalThis
+          ),
+          e.jsxDEV(
+            'style',
+            {
+              children: `
         .proof-modal-overlay {
           position: fixed;
           inset: 0;
@@ -102,4 +12154,27 @@ ${i}`),alert("Ссылка приглашения скопирована в бу
           from { opacity: 0; transform: translateY(10px); }
           to { opacity: 1; transform: translateY(0); }
         }
-      `},void 0,!1,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:2831,columnNumber:7},globalThis)]},void 0,!0,{fileName:"D:/Development/Путеводитель web_new/src/views/ProfileView.tsx",lineNumber:763,columnNumber:5},globalThis)};export{ml as ProfileView};
+      `,
+            },
+            void 0,
+            !1,
+            {
+              fileName: 'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+              lineNumber: 2831,
+              columnNumber: 7,
+            },
+            globalThis
+          ),
+        ],
+      },
+      void 0,
+      !0,
+      {
+        fileName: 'D:/Development/Путеводитель web_new/src/views/ProfileView.tsx',
+        lineNumber: 763,
+        columnNumber: 5,
+      },
+      globalThis
+    );
+  };
+export { ml as ProfileView };

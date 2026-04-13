@@ -7,22 +7,19 @@
  * иначе React оставляет один экземпляр в дереве и контент виден только в одной полосе / исчезает.
  */
 
-import React, { useRef, useState, useEffect, Children, cloneElement, isValidElement } from 'react';
+import type React from 'react';
+import { Children, cloneElement, isValidElement, useEffect, useRef, useState } from 'react';
 import {
+  type CylinderParams,
   getCylinderStripQuads,
   getCylinderStripTransforms,
-  type CylinderParams,
 } from '../utils/cabinCylinderProjection';
 
 const DEFAULT_STRIPS = 20;
 const DEFAULT_SAG = 14;
 
 /** Рекурсивно клонирует дерево элементов с уникальными ключами для полосы — чтобы React не объединял экземпляры */
-function deepCloneForStrip(
-  child: React.ReactNode,
-  stripId: number,
-  path: string
-): React.ReactNode {
+function deepCloneForStrip(child: React.ReactNode, stripId: number, path: string): React.ReactNode {
   if (child == null || typeof child !== 'object') return child;
   if (!isValidElement(child)) return child;
 
@@ -37,10 +34,10 @@ function deepCloneForStrip(
           deepCloneForStrip(c as React.ReactNode, stripId, `${path}-${i}`)
         );
 
-  return cloneElement(
-    child as React.ReactElement<{ key?: string }>,
-    { key, ...(newChildren !== undefined ? { children: newChildren } : {}) }
-  );
+  return cloneElement(child as React.ReactElement<{ key?: string }>, {
+    key,
+    ...(newChildren !== undefined ? { children: newChildren } : {}),
+  });
 }
 
 export interface InspectorMonitorCurveProps {
@@ -75,9 +72,7 @@ export function InspectorMonitorCurve({
       const { width, height } = entry.contentRect;
       if (width >= 10 && height >= 10) {
         const next = { w: Math.round(width), h: Math.round(height) };
-        setSize((prev) =>
-          prev && prev.w === next.w && prev.h === next.h ? prev : next
-        );
+        setSize((prev) => (prev && prev.w === next.w && prev.h === next.h ? prev : next));
       } else {
         setSize(null);
       }
@@ -95,8 +90,7 @@ export function InspectorMonitorCurve({
     return () => cancelAnimationFrame(t);
   }, [curve, size?.w, size?.h]);
 
-  const curveEnabled =
-    curve && curveReady && size !== null && size.w >= 50 && size.h >= 20;
+  const curveEnabled = curve && curveReady && size !== null && size.w >= 50 && size.h >= 20;
   const W = size?.w ?? 0;
   const H = size?.h ?? 0;
 
@@ -111,58 +105,57 @@ export function InspectorMonitorCurve({
   return (
     <div ref={wrapRef} className={className} style={rootStyle}>
       {!curveEnabled && (
-        <div className="profile-view-cabin-inspector-monitor__strip-content">
-          {children}
-        </div>
+        <div className="profile-view-cabin-inspector-monitor__strip-content">{children}</div>
       )}
 
-      {curveEnabled && W > 0 && H > 0 && (() => {
-        const params: CylinderParams = { W, H, N, s: sag };
-        const quads = getCylinderStripQuads(params);
-        const transforms = getCylinderStripTransforms(params);
+      {curveEnabled &&
+        W > 0 &&
+        H > 0 &&
+        (() => {
+          const params: CylinderParams = { W, H, N, s: sag };
+          const quads = getCylinderStripQuads(params);
+          const transforms = getCylinderStripTransforms(params);
 
-        const clamp = (v: number) => Math.max(0, Math.min(100, v));
-        return transforms.map((matrix3d, j) => {
-          const q = quads[j];
-          const clipPath = `polygon(${q.map((p) => `${clamp((p.x / W) * 100)}% ${clamp((p.y / H) * 100)}%`).join(', ')})`;
-          const sliceLeft = (j * W) / N;
+          const clamp = (v: number) => Math.max(0, Math.min(100, v));
+          return transforms.map((matrix3d, j) => {
+            const q = quads[j];
+            const clipPath = `polygon(${q.map((p) => `${clamp((p.x / W) * 100)}% ${clamp((p.y / H) * 100)}%`).join(', ')})`;
+            const sliceLeft = (j * W) / N;
 
-          return (
-            <div
-              key={j}
-              className="profile-view-cabin-inspector-monitor__strip"
-              style={{
-                position: 'absolute',
-                left: 0,
-                top: 0,
-                width: W,
-                height: H,
-                clipPath,
-                WebkitClipPath: clipPath,
-                pointerEvents: 'auto',
-              }}
-            >
+            return (
               <div
-                className="profile-view-cabin-inspector-monitor__strip-content"
+                key={j}
+                className="profile-view-cabin-inspector-monitor__strip"
                 style={{
                   position: 'absolute',
                   left: 0,
                   top: 0,
                   width: W,
                   height: H,
-                  transformOrigin: '0 0',
-                  transform: `translate(${-sliceLeft}px, 0) ${matrix3d}`,
-                  pointerEvents: 'none',
+                  clipPath,
+                  WebkitClipPath: clipPath,
+                  pointerEvents: 'auto',
                 }}
               >
-                {Children.map(children, (child, i) =>
-                  deepCloneForStrip(child, j, String(i))
-                )}
+                <div
+                  className="profile-view-cabin-inspector-monitor__strip-content"
+                  style={{
+                    position: 'absolute',
+                    left: 0,
+                    top: 0,
+                    width: W,
+                    height: H,
+                    transformOrigin: '0 0',
+                    transform: `translate(${-sliceLeft}px, 0) ${matrix3d}`,
+                    pointerEvents: 'none',
+                  }}
+                >
+                  {Children.map(children, (child, i) => deepCloneForStrip(child, j, String(i)))}
+                </div>
               </div>
-            </div>
-          );
-        });
-      })()}
+            );
+          });
+        })()}
     </div>
   );
 }

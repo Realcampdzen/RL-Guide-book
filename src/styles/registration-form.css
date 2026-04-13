@@ -15,25 +15,36 @@
 
 /* Fixed background layer to prevent flashes during fast scroll/compositing */
 .registration-form-view::before {
-  content: '';
+  content: "";
   position: fixed;
   inset: 0;
   pointer-events: none;
   z-index: -1;
   background:
-    linear-gradient(135deg, rgba(15, 10, 31, 0.85) 0%, rgba(26, 15, 46, 0.8) 50%, rgba(42, 26, 61, 0.8) 100%),
-    url('/RL-Guide-book/screen3_bg.png') center top / 100% auto repeat-y;
+    linear-gradient(
+      135deg,
+      rgba(15, 10, 31, 0.85) 0%,
+      rgba(26, 15, 46, 0.8) 50%,
+      rgba(42, 26, 61, 0.8) 100%
+    ),
+    url("/RL-Guide-book/screen3_bg.png") center top / 100% auto repeat-y;
   background-color: var(--c-midnight);
 }
 
-@supports (background-image: image-set(url('/RL-Guide-book/screen3_bg.webp') type('image/webp'))) {
+@supports (background-image: image-set(url("/RL-Guide-book/screen3_bg.webp") type("image/webp"))) {
   .registration-form-view::before {
     background:
-      linear-gradient(135deg, rgba(15, 10, 31, 0.85) 0%, rgba(26, 15, 46, 0.8) 50%, rgba(42, 26, 61, 0.8) 100%),
+      linear-gradient(
+        135deg,
+        rgba(15, 10, 31, 0.85) 0%,
+        rgba(26, 15, 46, 0.8) 50%,
+        rgba(42, 26, 61, 0.8) 100%
+      ),
       image-set(
-        url('/RL-Guide-book/screen3_bg.webp') type('image/webp'),
-        url('/RL-Guide-book/screen3_bg.png') type('image/png')
-      ) center top / 100% auto repeat-y;
+        url("/RL-Guide-book/screen3_bg.webp") type("image/webp"),
+        url("/RL-Guide-book/screen3_bg.png") type("image/png")
+      )
+      center top / 100% auto repeat-y;
     background-color: var(--c-midnight);
   }
 }
@@ -75,7 +86,10 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
   font-size: 0.72rem;
-  transition: transform 0.18s var(--easing), box-shadow 0.18s var(--easing), background 0.18s var(--easing);
+  transition:
+    transform 0.18s var(--easing),
+    box-shadow 0.18s var(--easing),
+    background 0.18s var(--easing);
 }
 
 .registration-form-back:hover {
@@ -96,20 +110,25 @@
   letter-spacing: 0.06em;
   font-size: clamp(1.05rem, 2.2vw, 1.35rem);
   line-height: 1.1;
-  text-shadow: 0 0 22px rgba(139, 0, 255, 0.35), 0 2px 10px rgba(0, 0, 0, 0.7);
+  text-shadow:
+    0 0 22px rgba(139, 0, 255, 0.35),
+    0 2px 10px rgba(0, 0, 0, 0.7);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .registration-form-content {
-  padding: var(--rf-topbar-offset) 12px calc(env(safe-area-inset-bottom) + var(--mobile-nav-height) + 24px);
+  padding: var(--rf-topbar-offset) 12px
+    calc(env(safe-area-inset-bottom) + var(--mobile-nav-height) + 24px);
   width: min(980px, calc(100% - 24px));
   margin: 0 auto;
 }
 
 .registration-form-card {
-  background: linear-gradient(140deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.03)), var(--cat-glass-bg);
+  background:
+    linear-gradient(140deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.03)),
+    var(--cat-glass-bg);
   border: 1px solid var(--cat-glass-border);
   border-radius: 18px;
   box-shadow: 0 18px 38px rgba(0, 0, 0, 0.45);
@@ -126,7 +145,9 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
   font-size: 1.05rem;
-  text-shadow: 0 0 18px rgba(139, 0, 255, 0.28), 0 2px 10px rgba(0, 0, 0, 0.7);
+  text-shadow:
+    0 0 18px rgba(139, 0, 255, 0.28),
+    0 2px 10px rgba(0, 0, 0, 0.7);
 }
 
 .registration-form-card p {
@@ -149,7 +170,9 @@
   font-size: 0.74rem;
   line-height: 1.2;
   color: rgba(244, 239, 228, 0.86);
-  text-shadow: 0 0 14px rgba(139, 0, 255, 0.18), 0 2px 10px rgba(0, 0, 0, 0.55);
+  text-shadow:
+    0 0 14px rgba(139, 0, 255, 0.18),
+    0 2px 10px rgba(0, 0, 0, 0.55);
 }
 
 .rf-group input,
@@ -163,7 +186,10 @@
   font-family: inherit;
   outline: none;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
-  transition: border-color 0.18s var(--easing), box-shadow 0.18s var(--easing), background 0.18s var(--easing);
+  transition:
+    border-color 0.18s var(--easing),
+    box-shadow 0.18s var(--easing),
+    background 0.18s var(--easing);
 }
 
 .rf-group input::placeholder,
@@ -196,7 +222,10 @@
   color: #0a0614;
   background: linear-gradient(90deg, #ffffff 0%, #d1b3ff 55%, #a855f7 100%);
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
-  transition: transform 0.18s var(--easing), box-shadow 0.18s var(--easing), filter 0.18s var(--easing);
+  transition:
+    transform 0.18s var(--easing),
+    box-shadow 0.18s var(--easing),
+    filter 0.18s var(--easing);
 }
 
 .rf-submit:hover:not(:disabled) {
@@ -242,4 +271,3 @@ html[data-perf="lite"] .registration-form-card {
   -webkit-backdrop-filter: blur(10px) saturate(1.05);
   box-shadow: 0 12px 26px rgba(9, 6, 20, 0.48);
 }
-

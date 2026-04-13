@@ -83,4 +83,3 @@ export const useScrollReveal = (selector: string = '.reveal-on-scroll') => {
 
   return { initReveal };
 };
-

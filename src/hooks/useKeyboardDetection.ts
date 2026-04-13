@@ -13,7 +13,7 @@ export function useKeyboardDetection() {
 
     // Check if device is potentially a touch device
     const isTouch = window.matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window;
-    
+
     // We only care about keyboard jumping on touch devices
     if (!isTouch) return;
 
@@ -23,7 +23,9 @@ export function useKeyboardDetection() {
         target &&
         (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') &&
         // Ignore inputs that typically don't trigger the keyboard (checkbox, radio, button etc.)
-        !['checkbox', 'radio', 'button', 'submit', 'color', 'file'].includes((target as HTMLInputElement).type)
+        !['checkbox', 'radio', 'button', 'submit', 'color', 'file'].includes(
+          (target as HTMLInputElement).type
+        )
       ) {
         document.body.classList.add('keyboard-open');
       }
@@ -33,10 +35,7 @@ export function useKeyboardDetection() {
       // Small delay prevents flickering if focus moves quickly between two inputs
       setTimeout(() => {
         const activeElem = document.activeElement as HTMLElement;
-        if (
-          !activeElem ||
-          (activeElem.tagName !== 'INPUT' && activeElem.tagName !== 'TEXTAREA')
-        ) {
+        if (!activeElem || (activeElem.tagName !== 'INPUT' && activeElem.tagName !== 'TEXTAREA')) {
           document.body.classList.remove('keyboard-open');
         }
       }, 50);

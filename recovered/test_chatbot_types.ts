@@ -33,8 +33,8 @@ async function testSendMessage(message: string, user_id: string, context: any) {
       body: JSON.stringify({
         message,
         user_id,
-        context
-      })
+        context,
+      }),
     });
 
     if (response.ok) {
@@ -43,20 +43,20 @@ async function testSendMessage(message: string, user_id: string, context: any) {
         success: true,
         response: data.response,
         suggestions: data.suggestions,
-        context_updates: data.context_updates
+        context_updates: data.context_updates,
       };
     } else {
       const errorData = await response.json();
       return {
         success: false,
         error: errorData.message || 'Неизвестная ошибка',
-        status: response.status
+        status: response.status,
       };
     }
   } catch (error) {
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Неизвестная ошибка'
+      error: error instanceof Error ? error.message : 'Неизвестная ошибка',
     };
   }
 }
@@ -65,9 +65,9 @@ async function testSendMessage(message: string, user_id: string, context: any) {
 testSendMessage('Привет!', 'test_user', {
   current_view: 'intro',
   current_category: null,
-  current_badge: null
-}).then(result => {
+  current_badge: null,
+}).then((result) => {
   console.log('Результат теста:', result);
 });
 
-export { testSendMessage, Message, ChatRequest, ChatResponse };
+export { type ChatRequest, type ChatResponse, type Message, testSendMessage };

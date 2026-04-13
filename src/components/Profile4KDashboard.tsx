@@ -1,26 +1,27 @@
 import React, { useMemo, useState } from 'react';
-import {
-  type Skill4K,
-  type ProgramTrack2026,
-  compute4kProfile,
-  normalize4kProfile,
-  getSkillLabel,
-  getSkillEmoji,
-  ALL_SKILLS,
-  computeProgram2026Profile,
-  normalizeProgram2026Profile,
-  getProgramTrackLabel,
-  getProgramTrackEmoji,
-  ALL_PROGRAM_TRACKS,
-  getProgram2026CategoryIds
-} from '../utils/profile4k';
-import type { IUserData } from '../types/userProgress';
 import type { Badge } from '../types/guide';
+import type { IUserData } from '../types/userProgress';
 import { fetchPedagogy4k } from '../utils/aiService';
+import {
+  ALL_PROGRAM_TRACKS,
+  ALL_SKILLS,
+  compute4kProfile,
+  computeProgram2026Profile,
+  getProgram2026CategoryIds,
+  getProgramTrackEmoji,
+  getProgramTrackLabel,
+  getSkillEmoji,
+  getSkillLabel,
+  normalize4kProfile,
+  normalizeProgram2026Profile,
+  type ProgramTrack2026,
+  type Skill4K,
+} from '../utils/profile4k';
 
 const PROFILE4K_ACCENT = '#14b8a6';
 const PROFILE4K_ACCENT_LIGHT = 'rgba(20, 184, 166, 0.2)';
-const PROFILE4K_GRADIENT = 'linear-gradient(135deg, rgba(20, 184, 166, 0.08) 0%, rgba(13, 148, 136, 0.12) 100%)';
+const PROFILE4K_GRADIENT =
+  'linear-gradient(135deg, rgba(20, 184, 166, 0.08) 0%, rgba(13, 148, 136, 0.12) 100%)';
 
 export type Profile4KTabId = 'skills' | 'camp-progress';
 
@@ -45,7 +46,7 @@ export const Profile4KDashboard: React.FC<Profile4KDashboardProps> = ({
   nickname,
   variant = 'accordion',
   activeTab = 'skills',
-  onTabChange
+  onTabChange,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [characteristic, setCharacteristic] = useState<string | null>(null);
@@ -61,29 +62,51 @@ export const Profile4KDashboard: React.FC<Profile4KDashboardProps> = ({
     return { raw, normalized, program2026Raw, program2026Normalized };
   }, [userData?.progress, userData?.favorites]);
 
-  const hasAny = Object.values(raw).some(v => v > 0);
-  const hasAnyProgram2026 = Object.values(program2026Raw).some(v => v > 0);
+  const hasAny = Object.values(raw).some((v) => v > 0);
+  const hasAnyProgram2026 = Object.values(program2026Raw).some((v) => v > 0);
 
   React.useEffect(() => {
     if (variant === 'cabin' && onTabChange) onTabChange(activeTab);
   }, [variant, activeTab, onTabChange]);
 
   const renderSkillsSection = () => (
-    <div className={variant === 'cabin' ? 'profile4k-cabin-section' : undefined} style={variant === 'accordion' ? {} : { display: 'flex', flexDirection: 'column', gap: 14 }}>
+    <div
+      className={variant === 'cabin' ? 'profile4k-cabin-section' : undefined}
+      style={variant === 'accordion' ? {} : { display: 'flex', flexDirection: 'column', gap: 14 }}
+    >
       <p style={{ fontSize: '12px', opacity: 0.7, marginBottom: '4px' }}>
         По твоим значкам в пути и достижениям
       </p>
       {characteristic && (
-        <div style={{ padding: '12px', background: 'rgba(0,0,0,0.2)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.08)', fontSize: '14px', fontStyle: 'italic', color: PROFILE4K_ACCENT }}>
+        <div
+          style={{
+            padding: '12px',
+            background: 'rgba(0,0,0,0.2)',
+            borderRadius: '12px',
+            border: '1px solid rgba(255,255,255,0.08)',
+            fontSize: '14px',
+            fontStyle: 'italic',
+            color: PROFILE4K_ACCENT,
+          }}
+        >
           {characteristic}
         </div>
       )}
-      <div style={{ fontSize: '12px', fontWeight: 700, color: PROFILE4K_ACCENT, marginBottom: '8px' }}>
+      <div
+        style={{ fontSize: '12px', fontWeight: 700, color: PROFILE4K_ACCENT, marginBottom: '8px' }}
+      >
         Твой профиль 4К
       </div>
       {(ALL_SKILLS as Skill4K[]).map((skill) => (
         <div key={skill} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '8px',
+            }}
+          >
             <span style={{ fontSize: '13px', fontWeight: 600, color: 'rgba(255,255,255,0.9)' }}>
               {getSkillEmoji(skill)} {getSkillLabel(skill)}
             </span>
@@ -96,7 +119,7 @@ export const Profile4KDashboard: React.FC<Profile4KDashboardProps> = ({
               height: '6px',
               background: 'rgba(255,255,255,0.1)',
               borderRadius: '3px',
-              overflow: 'hidden'
+              overflow: 'hidden',
             }}
           >
             <div
@@ -105,7 +128,7 @@ export const Profile4KDashboard: React.FC<Profile4KDashboardProps> = ({
                 height: '100%',
                 background: PROFILE4K_ACCENT,
                 borderRadius: '3px',
-                transition: 'width 0.5s ease'
+                transition: 'width 0.5s ease',
               }}
             />
           </div>
@@ -123,7 +146,7 @@ export const Profile4KDashboard: React.FC<Profile4KDashboardProps> = ({
               badgeTitlesInPath,
               favoriteBadgeTitles,
               rank,
-              nickname
+              nickname,
             });
             setCharacteristic(line || 'Не удалось получить характеристику.');
           } catch {
@@ -143,7 +166,7 @@ export const Profile4KDashboard: React.FC<Profile4KDashboardProps> = ({
           fontWeight: 600,
           cursor: characteristicLoading ? 'wait' : 'pointer',
           alignSelf: 'flex-start',
-          marginTop: '4px'
+          marginTop: '4px',
         }}
       >
         {characteristicLoading ? 'Генерируем…' : 'Получить характеристику'}
@@ -152,16 +175,37 @@ export const Profile4KDashboard: React.FC<Profile4KDashboardProps> = ({
   );
 
   const renderCampProgressSection = () => (
-    <div className={variant === 'cabin' ? 'profile4k-cabin-section' : undefined} style={variant === 'accordion' ? { marginTop: '8px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.08)' } : { display: 'flex', flexDirection: 'column', gap: 10 }}>
-      <div style={{ fontSize: '12px', fontWeight: 700, color: PROFILE4K_ACCENT, marginBottom: '8px' }}>
+    <div
+      className={variant === 'cabin' ? 'profile4k-cabin-section' : undefined}
+      style={
+        variant === 'accordion'
+          ? { marginTop: '8px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.08)' }
+          : { display: 'flex', flexDirection: 'column', gap: 10 }
+      }
+    >
+      <div
+        style={{ fontSize: '12px', fontWeight: 700, color: PROFILE4K_ACCENT, marginBottom: '8px' }}
+      >
         Программа Реального Лагеря 2026
       </div>
       <p style={{ fontSize: '11px', opacity: 0.65, marginBottom: '12px' }}>
-        {hasAnyProgram2026 ? 'Распределение достижений по направлениям' : `Выбери значки из категорий ${getProgram2026CategoryIds()}`}
+        {hasAnyProgram2026
+          ? 'Распределение достижений по направлениям'
+          : `Выбери значки из категорий ${getProgram2026CategoryIds()}`}
       </p>
       {(ALL_PROGRAM_TRACKS as ProgramTrack2026[]).map((track) => (
-        <div key={track} style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '10px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+        <div
+          key={track}
+          style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '10px' }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '8px',
+            }}
+          >
             <span style={{ fontSize: '13px', fontWeight: 600, color: 'rgba(255,255,255,0.9)' }}>
               {getProgramTrackEmoji(track)} {getProgramTrackLabel(track)}
             </span>
@@ -174,7 +218,7 @@ export const Profile4KDashboard: React.FC<Profile4KDashboardProps> = ({
               height: '6px',
               background: 'rgba(255,255,255,0.1)',
               borderRadius: '3px',
-              overflow: 'hidden'
+              overflow: 'hidden',
             }}
           >
             <div
@@ -183,7 +227,7 @@ export const Profile4KDashboard: React.FC<Profile4KDashboardProps> = ({
                 height: '100%',
                 background: PROFILE4K_ACCENT,
                 borderRadius: '3px',
-                transition: 'width 0.5s ease'
+                transition: 'width 0.5s ease',
               }}
             />
           </div>
@@ -193,8 +237,18 @@ export const Profile4KDashboard: React.FC<Profile4KDashboardProps> = ({
   );
 
   const summary = (
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: variant === 'accordion' && isExpanded ? '20px' : '0' }}>
-      <div onClick={variant === 'accordion' ? () => setIsExpanded(!isExpanded) : undefined} style={{ cursor: variant === 'accordion' ? 'pointer' : 'default', flex: 1 }}>
+    <div
+      style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+        marginBottom: variant === 'accordion' && isExpanded ? '20px' : '0',
+      }}
+    >
+      <div
+        onClick={variant === 'accordion' ? () => setIsExpanded(!isExpanded) : undefined}
+        style={{ cursor: variant === 'accordion' ? 'pointer' : 'default', flex: 1 }}
+      >
         <div
           style={{
             fontSize: '11px',
@@ -202,17 +256,21 @@ export const Profile4KDashboard: React.FC<Profile4KDashboardProps> = ({
             textTransform: 'uppercase',
             color: PROFILE4K_ACCENT,
             letterSpacing: '0.1em',
-            marginBottom: '4px'
+            marginBottom: '4px',
           }}
         >
           Аналитика
         </div>
-        <h3 style={{ margin: 0, fontSize: '18px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <h3
+          style={{ margin: 0, fontSize: '18px', display: 'flex', alignItems: 'center', gap: '8px' }}
+        >
           🧩 Твой профиль 4К
         </h3>
         {(variant === 'cabin' || !isExpanded) && (
           <p style={{ margin: '8px 0 0', fontSize: '13px', opacity: 0.75, lineHeight: 1.4 }}>
-            {hasAny ? 'Распределение по навыкам по твоим значкам' : 'Пока нет данных — выбери значки в путь'}
+            {hasAny
+              ? 'Распределение по навыкам по твоим значкам'
+              : 'Пока нет данных — выбери значки в путь'}
           </p>
         )}
       </div>
@@ -231,7 +289,7 @@ export const Profile4KDashboard: React.FC<Profile4KDashboardProps> = ({
             cursor: 'pointer',
             padding: '0 4px',
             transform: isExpanded ? 'rotate(180deg)' : 'none',
-            transition: 'transform 0.3s ease'
+            transition: 'transform 0.3s ease',
           }}
         >
           ▾
@@ -252,7 +310,7 @@ export const Profile4KDashboard: React.FC<Profile4KDashboardProps> = ({
           marginBottom: '24px',
           transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
           position: 'relative',
-          overflow: 'hidden'
+          overflow: 'hidden',
         }}
       >
         <div
@@ -265,12 +323,15 @@ export const Profile4KDashboard: React.FC<Profile4KDashboardProps> = ({
             background: PROFILE4K_ACCENT,
             filter: 'blur(50px)',
             opacity: hasAny ? 0.15 : 0.08,
-            pointerEvents: 'none'
+            pointerEvents: 'none',
           }}
         />
         {summary}
         {isExpanded && (
-          <div className="fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <div
+            className="fade-in"
+            style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}
+          >
             {renderSkillsSection()}
             {renderCampProgressSection()}
           </div>
@@ -280,7 +341,20 @@ export const Profile4KDashboard: React.FC<Profile4KDashboardProps> = ({
   }
 
   return (
-    <div className="fade-in profile4k-cabin-content" style={{ display: 'flex', flexDirection: 'column', gap: 14, background: 'rgba(8, 20, 40, 0.15)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', borderRadius: 18, border: '1px solid rgba(93, 228, 255, 0.12)', padding: '24px 28px' }}>
+    <div
+      className="fade-in profile4k-cabin-content"
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 14,
+        background: 'rgba(8, 20, 40, 0.15)',
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
+        borderRadius: 18,
+        border: '1px solid rgba(93, 228, 255, 0.12)',
+        padding: '24px 28px',
+      }}
+    >
       {summary}
       {activeTab === 'skills' ? renderSkillsSection() : renderCampProgressSection()}
     </div>

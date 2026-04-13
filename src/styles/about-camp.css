@@ -9,7 +9,7 @@
   background-color: var(--c-midnight);
   /* Create a local stacking context so ::before can sit behind content reliably */
   isolation: isolate;
-  font-family: var(--f-body); 
+  font-family: var(--f-body);
   --cat-glass-bg: rgba(17, 14, 32, 0.68);
   --cat-glass-border: rgba(255, 255, 255, 0.12);
   --cat-mobile-header-height: 58px;
@@ -17,7 +17,7 @@
 }
 
 .about-camp-container::before {
-  content: '';
+  content: "";
   position: fixed;
   top: 0;
   left: 0;
@@ -29,19 +29,32 @@
   /* Match the global "cosmos" background from bluenest.css, but scoped to this screen
      to avoid fast-scroll/compositing white flashes. */
   background:
-    linear-gradient(135deg, rgba(15, 10, 31, 0.6) 0%, rgba(26, 15, 46, 0.55) 50%, rgba(42, 26, 61, 0.5) 100%),
-    url('/RL-Guide-book/экран 1 фон copy.png') center top / 120% calc(100vh + 5vh) no-repeat;
+    linear-gradient(
+      135deg,
+      rgba(15, 10, 31, 0.6) 0%,
+      rgba(26, 15, 46, 0.55) 50%,
+      rgba(42, 26, 61, 0.5) 100%
+    ),
+    url("/RL-Guide-book/экран 1 фон copy.png") center top / 120% calc(100vh + 5vh) no-repeat;
   background-color: #0f0a1f;
 }
 
-@supports (background-image: image-set(url('/RL-Guide-book/экран 1 фон copy.webp') type('image/webp'))) {
+@supports (
+    background-image: image-set(url("/RL-Guide-book/экран 1 фон copy.webp") type("image/webp"))
+  ) {
   .about-camp-container::before {
     background:
-      linear-gradient(135deg, rgba(15, 10, 31, 0.6) 0%, rgba(26, 15, 46, 0.55) 50%, rgba(42, 26, 61, 0.5) 100%),
+      linear-gradient(
+        135deg,
+        rgba(15, 10, 31, 0.6) 0%,
+        rgba(26, 15, 46, 0.55) 50%,
+        rgba(42, 26, 61, 0.5) 100%
+      ),
       image-set(
-        url('/RL-Guide-book/экран 1 фон copy.webp') type('image/webp'),
-        url('/RL-Guide-book/экран 1 фон copy.png') type('image/png')
-      ) center top / 120% calc(100vh + 5vh) no-repeat;
+        url("/RL-Guide-book/экран 1 фон copy.webp") type("image/webp"),
+        url("/RL-Guide-book/экран 1 фон copy.png") type("image/png")
+      )
+      center top / 120% calc(100vh + 5vh) no-repeat;
   }
 }
 
@@ -72,9 +85,9 @@
 
 .nav-link-back:hover {
   -webkit-text-stroke: 1.5px var(--c-stark);
-  text-shadow: 
-      0 0 5px #ff6b35,
-      0 0 10px #ff6b35;
+  text-shadow:
+    0 0 5px #ff6b35,
+    0 0 10px #ff6b35;
   transform: translateX(5px);
 }
 
@@ -102,11 +115,11 @@
 }
 
 .nav-active {
-  text-shadow: 
-      0 0 4px #ff8c42,
-      0 0 8px #ff8c42,
-      0 0 12px #ff8c42,
-      0 0 16px #ff8c42;
+  text-shadow:
+    0 0 4px #ff8c42,
+    0 0 8px #ff8c42,
+    0 0 12px #ff8c42,
+    0 0 16px #ff8c42;
 }
 
 /* Mobile Glass Navigation (About Camp only) */
@@ -120,7 +133,9 @@
   display: none;
   align-items: center;
   justify-content: space-between;
-  background: linear-gradient(120deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03)), var(--cat-glass-bg);
+  background:
+    linear-gradient(120deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03)),
+    var(--cat-glass-bg);
   backdrop-filter: blur(18px) saturate(1.1);
   -webkit-backdrop-filter: blur(18px) saturate(1.1);
   border: 1px solid var(--cat-glass-border);
@@ -131,7 +146,7 @@
 }
 
 .about-camp-container .mobile-glass-header::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: 1px;
   border-radius: 16px;
@@ -174,7 +189,9 @@ html[data-perf="lite"] .about-camp-container .mobile-bottom-nav {
 
 .about-camp-container .mobile-glass-header.is-chat-open {
   border-color: rgba(192, 132, 252, 0.5);
-  box-shadow: 0 14px 32px rgba(9, 6, 20, 0.55), 0 0 24px rgba(168, 85, 247, 0.35);
+  box-shadow:
+    0 14px 32px rgba(9, 6, 20, 0.55),
+    0 0 24px rgba(168, 85, 247, 0.35);
 }
 
 .about-camp-container .mobile-header-logo {
@@ -199,7 +216,9 @@ html[data-perf="lite"] .about-camp-container .mobile-bottom-nav {
 }
 
 .about-camp-container .mobile-header-logo.is-active {
-  text-shadow: 0 0 18px rgba(192, 132, 252, 0.6), 0 0 32px rgba(168, 85, 247, 0.45);
+  text-shadow:
+    0 0 18px rgba(192, 132, 252, 0.6),
+    0 0 32px rgba(168, 85, 247, 0.45);
   animation-duration: 2s;
 }
 
@@ -219,7 +238,10 @@ html[data-perf="lite"] .about-camp-container .mobile-bottom-nav {
   place-items: center;
   cursor: pointer;
   padding: 0;
-  transition: transform 0.2s var(--easing), box-shadow 0.2s var(--easing), background 0.2s var(--easing);
+  transition:
+    transform 0.2s var(--easing),
+    box-shadow 0.2s var(--easing),
+    background 0.2s var(--easing);
   position: relative;
   z-index: 12001;
   pointer-events: auto;
@@ -264,7 +286,10 @@ html[data-perf="lite"] .about-camp-container .mobile-bottom-nav {
   overflow: hidden;
   cursor: pointer;
   box-shadow: 0 0 10px rgba(92, 64, 156, 0.35);
-  transition: transform 0.2s var(--easing), box-shadow 0.2s var(--easing), border-color 0.2s var(--easing);
+  transition:
+    transform 0.2s var(--easing),
+    box-shadow 0.2s var(--easing),
+    border-color 0.2s var(--easing);
   animation: avatarPulse 3.2s ease-in-out infinite;
 }
 
@@ -311,7 +336,9 @@ html[data-perf="lite"] .about-camp-container .mobile-bottom-nav {
   right: calc(12px + 14px + 38px + 10px);
   width: min(88vw, 320px);
   max-width: calc(100vw - 12px - 14px - 38px - 10px - 12px);
-  background: linear-gradient(140deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.03)), var(--cat-glass-bg);
+  background:
+    linear-gradient(140deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.03)),
+    var(--cat-glass-bg);
   border: 1px solid var(--cat-glass-border);
   border-radius: 20px;
   padding: 14px;
@@ -320,7 +347,9 @@ html[data-perf="lite"] .about-camp-container .mobile-bottom-nav {
   transform: translateY(-10px) scale(0.98);
   transform-origin: top right;
   pointer-events: none;
-  transition: opacity 0.25s var(--easing), transform 0.25s var(--easing);
+  transition:
+    opacity 0.25s var(--easing),
+    transform 0.25s var(--easing);
   z-index: 12005;
   display: block;
 }
@@ -360,7 +389,9 @@ html[data-perf="lite"] .about-camp-container .mobile-bottom-nav {
   display: grid;
   place-items: center;
   cursor: pointer;
-  transition: transform 0.2s var(--easing), box-shadow 0.2s var(--easing);
+  transition:
+    transform 0.2s var(--easing),
+    box-shadow 0.2s var(--easing);
 }
 
 .about-camp-container .mobile-menu-close:hover {
@@ -384,7 +415,10 @@ html[data-perf="lite"] .about-camp-container .mobile-bottom-nav {
   justify-content: space-between;
   gap: 10px;
   cursor: pointer;
-  transition: background 0.2s var(--easing), border-color 0.2s var(--easing), transform 0.2s var(--easing);
+  transition:
+    background 0.2s var(--easing),
+    border-color 0.2s var(--easing),
+    transform 0.2s var(--easing);
 }
 
 .about-camp-container .mobile-menu-item:hover {
@@ -400,7 +434,9 @@ html[data-perf="lite"] .about-camp-container .mobile-bottom-nav {
 }
 
 .about-camp-container .mobile-menu-item.is-active .mobile-menu-item-label {
-  text-shadow: 0 0 18px rgba(192, 132, 252, 0.6), 0 0 32px rgba(168, 85, 247, 0.45);
+  text-shadow:
+    0 0 18px rgba(192, 132, 252, 0.6),
+    0 0 32px rgba(168, 85, 247, 0.45);
   animation-duration: 2s;
 }
 
@@ -469,7 +505,9 @@ html[data-perf="lite"] .about-camp-container .mobile-bottom-nav {
   display: none;
   align-items: center;
   justify-content: space-between;
-  background: linear-gradient(140deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02)), var(--cat-glass-bg);
+  background:
+    linear-gradient(140deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02)),
+    var(--cat-glass-bg);
   backdrop-filter: blur(18px) saturate(1.1);
   -webkit-backdrop-filter: blur(18px) saturate(1.1);
   border: 1px solid var(--cat-glass-border);
@@ -505,7 +543,9 @@ html[data-perf="lite"] .about-camp-container .mobile-bottom-nav {
   align-items: center;
   gap: 6px;
   cursor: pointer;
-  transition: color 0.2s var(--easing), transform 0.2s var(--easing);
+  transition:
+    color 0.2s var(--easing),
+    transform 0.2s var(--easing);
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
 }
 
@@ -528,7 +568,10 @@ html[data-perf="lite"] .about-camp-container .mobile-bottom-nav {
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.14);
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
-  transition: transform 0.2s var(--easing), box-shadow 0.2s var(--easing), background 0.2s var(--easing);
+  transition:
+    transform 0.2s var(--easing),
+    box-shadow 0.2s var(--easing),
+    background 0.2s var(--easing);
 }
 
 .about-camp-container .mobile-nav-icon {
@@ -564,34 +607,46 @@ html[data-perf="lite"] .about-camp-container .mobile-bottom-nav {
 
 @keyframes aiGlow {
   0% {
-    text-shadow: 0 0 10px rgba(168, 85, 247, 0.25), 0 0 18px rgba(200, 170, 255, 0.2);
+    text-shadow:
+      0 0 10px rgba(168, 85, 247, 0.25),
+      0 0 18px rgba(200, 170, 255, 0.2);
     transform: translateY(0);
   }
   50% {
-    text-shadow: 0 0 18px rgba(192, 132, 252, 0.55), 0 0 30px rgba(168, 85, 247, 0.35);
+    text-shadow:
+      0 0 18px rgba(192, 132, 252, 0.55),
+      0 0 30px rgba(168, 85, 247, 0.35);
     transform: translateY(-0.5px);
   }
   100% {
-    text-shadow: 0 0 10px rgba(168, 85, 247, 0.25), 0 0 18px rgba(200, 170, 255, 0.2);
+    text-shadow:
+      0 0 10px rgba(168, 85, 247, 0.25),
+      0 0 18px rgba(200, 170, 255, 0.2);
     transform: translateY(0);
   }
 }
 
 @keyframes avatarPulse {
   0% {
-    box-shadow: 0 0 10px rgba(92, 64, 156, 0.35), 0 0 0 rgba(168, 85, 247, 0.2);
+    box-shadow:
+      0 0 10px rgba(92, 64, 156, 0.35),
+      0 0 0 rgba(168, 85, 247, 0.2);
   }
   50% {
-    box-shadow: 0 0 14px rgba(168, 85, 247, 0.55), 0 0 20px rgba(168, 85, 247, 0.25);
+    box-shadow:
+      0 0 14px rgba(168, 85, 247, 0.55),
+      0 0 20px rgba(168, 85, 247, 0.25);
   }
   100% {
-    box-shadow: 0 0 10px rgba(92, 64, 156, 0.35), 0 0 0 rgba(168, 85, 247, 0.2);
+    box-shadow:
+      0 0 10px rgba(92, 64, 156, 0.35),
+      0 0 0 rgba(168, 85, 247, 0.2);
   }
 }
 
 /* TYPOGRAPHY UTILITIES */
 .text-gradient-gold {
-  background: linear-gradient(135deg, #FFD700 0%, #FFA500 50%, #FF8C00 100%);
+  background: linear-gradient(135deg, #ffd700 0%, #ffa500 50%, #ff8c00 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -669,7 +724,7 @@ html[data-perf="lite"] .about-camp-container .mobile-bottom-nav {
   background: rgba(255, 255, 255, 0.04);
   border-color: rgba(255, 215, 0, 0.3);
   transform: translateY(-5px);
-  box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
 }
 
 .intro-title {
@@ -689,7 +744,7 @@ html[data-perf="lite"] .about-camp-container .mobile-bottom-nav {
   padding: 0.6rem 1.2rem;
   border-radius: 100px;
   border: 1px solid rgba(255, 215, 0, 0.3);
-  color: #FFD700;
+  color: #ffd700;
   font-family: var(--f-display-nav); /* Added improved font */
   font-weight: 700;
   font-size: 0.9rem;
@@ -701,7 +756,7 @@ html[data-perf="lite"] .about-camp-container .mobile-bottom-nav {
 }
 
 .skill-chip:hover {
-  background: #FFD700;
+  background: #ffd700;
   color: #000;
   box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
 }
@@ -712,7 +767,7 @@ html[data-perf="lite"] .about-camp-container .mobile-bottom-nav {
   line-height: 1;
   font-weight: 800;
   color: transparent;
-  -webkit-text-stroke: 2px #FFD700;
+  -webkit-text-stroke: 2px #ffd700;
   margin-right: 1rem;
   float: left;
 }
@@ -761,10 +816,12 @@ html[data-perf="lite"] .about-camp-container .mobile-bottom-nav {
   background: rgba(255, 255, 255, 0.03);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--c-smoke); 
+  border: 1px solid var(--c-smoke);
   border-radius: 24px;
   padding: 3rem; /* Increased padding */
-  transition: transform 0.5s var(--easing), border-color 0.3s;
+  transition:
+    transform 0.5s var(--easing),
+    border-color 0.3s;
   display: flex;
   flex-direction: column;
   position: relative;
@@ -773,10 +830,15 @@ html[data-perf="lite"] .about-camp-container .mobile-bottom-nav {
 
 /* Specific overlay for clearer text on image backgrounds */
 .glass-card::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(to top, rgba(15, 10, 31, 0.95) 0%, rgba(15, 10, 31, 0.4) 60%, transparent 100%);
+  background: linear-gradient(
+    to top,
+    rgba(15, 10, 31, 0.95) 0%,
+    rgba(15, 10, 31, 0.4) 60%,
+    transparent 100%
+  );
   z-index: 1;
 }
 
@@ -786,7 +848,7 @@ html[data-perf="lite"] .about-camp-container .mobile-bottom-nav {
 }
 
 .glass-card:hover {
-  border-color: var(--c-volt); 
+  border-color: var(--c-volt);
   transform: translateY(-5px);
   box-shadow: 0 10px 40px rgba(106, 13, 173, 0.2);
 }
@@ -797,8 +859,8 @@ html[data-perf="lite"] .about-camp-container .mobile-bottom-nav {
   text-transform: uppercase;
   font-size: 2.2rem;
   margin-bottom: 1rem;
-  color: #FFD700; 
-  text-shadow: 0 4px 20px rgba(0,0,0,0.8);
+  color: #ffd700;
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
 }
 
 .card-text {
@@ -806,7 +868,7 @@ html[data-perf="lite"] .about-camp-container .mobile-bottom-nav {
   font-size: 1.15rem;
   color: rgba(244, 239, 228, 0.9);
   line-height: 1.5;
-  text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
 }
 
 /* CARDS & GRID */
@@ -843,7 +905,7 @@ html[data-perf="lite"] .about-camp-container .mobile-bottom-nav {
 
 .post-img-box {
   width: 100%;
-  aspect-ratio: 16/10;
+  aspect-ratio: 16 / 10;
   overflow: hidden;
 }
 
@@ -923,7 +985,7 @@ html[data-perf="lite"] .about-camp-container .mobile-bottom-nav {
 }
 
 .session-card-glow::after {
-  content: '';
+  content: "";
   position: absolute;
   top: -50%;
   left: -50%;
@@ -941,8 +1003,12 @@ html[data-perf="lite"] .about-camp-container .mobile-bottom-nav {
 }
 
 @keyframes rotateGlow {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* LINKS GRID */
@@ -1033,24 +1099,24 @@ html[data-perf="lite"] .about-camp-container .mobile-bottom-nav {
     right: calc(var(--about-header-side) + 14px + 38px + 10px);
     max-width: calc(100vw - var(--about-header-side) - 14px - 38px - 10px - 12px);
   }
-  
+
   .about-camp-container .mobile-menu-scrim,
   .about-camp-container .mobile-menu-panel {
     display: block;
   }
-  
+
   .about-camp-container .mobile-menu-scrim {
     display: block;
   }
-  
+
   .mobile-bottom-nav {
     display: flex !important;
   }
-  
+
   .about-camp-container .sticky-nav {
     display: none !important;
   }
-  
+
   .about-camp-container main {
     padding-top: calc(var(--cat-mobile-header-height) + env(safe-area-inset-top) + 32px) !important;
   }
@@ -1078,7 +1144,11 @@ html[data-perf="lite"] .about-camp-container .mobile-bottom-nav {
 
   .about-camp-container main {
     padding-top: calc(var(--cat-mobile-header-height) + env(safe-area-inset-top) + 32px) !important;
-    padding-bottom: calc(var(--cat-mobile-nav-height) + env(safe-area-inset-bottom) + 32px) !important;
+    padding-bottom: calc(
+      var(--cat-mobile-nav-height) +
+      env(safe-area-inset-bottom) +
+      32px
+    ) !important;
   }
 
   .hero-big-title {

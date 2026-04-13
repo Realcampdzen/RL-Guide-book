@@ -18,7 +18,10 @@ export interface CounselorSquadJoined {
 
 export interface CounselorSquadPlanGridData {
   shiftLength: 9 | 21;
-  days: Record<string, { morning?: string; quietHour?: string; day?: string; evening?: string; night?: string }>;
+  days: Record<
+    string,
+    { morning?: string; quietHour?: string; day?: string; evening?: string; night?: string }
+  >;
 }
 
 export interface CounselorFlagBadgeRequest {

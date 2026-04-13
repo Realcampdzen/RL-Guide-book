@@ -19,4 +19,5 @@ export function canRunParentChildMutation(ctx: ParentReadonlyContext): boolean {
 
 export const PARENT_READONLY_BADGE_TEXT = 'Режим родителя · просмотр ребёнка (read-only)';
 
-export const PARENT_READONLY_TOOLTIP = 'В режиме просмотра ребёнка доступны только безопасные read-only действия';
+export const PARENT_READONLY_TOOLTIP =
+  'В режиме просмотра ребёнка доступны только безопасные read-only действия';

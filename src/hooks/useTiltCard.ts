@@ -1,10 +1,10 @@
-import { useEffect, RefObject } from 'react';
+import { type RefObject, useEffect } from 'react';
 import { rafThrottle } from '../utils/rafThrottle';
 
-export const useTiltCard = (cardRef: RefObject<HTMLElement>) => {
+export const useTiltCard = (cardRef: RefObject<HTMLElement | null>) => {
   useEffect(() => {
     if (!cardRef.current) return;
-    
+
     // Отключаем tilt эффект на touch устройствах для производительности
     const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
     if (isTouchDevice) return;
@@ -29,7 +29,9 @@ export const useTiltCard = (cardRef: RefObject<HTMLElement>) => {
       card.style.transform = `perspective(1000px) rotateX(0) rotateY(0) scale3d(1, 1, 1)`;
     };
 
-    card.addEventListener('mousemove', handleMouseMove, { passive: true } as AddEventListenerOptions);
+    card.addEventListener('mousemove', handleMouseMove, {
+      passive: true,
+    } as AddEventListenerOptions);
     card.addEventListener('mouseleave', handleMouseLeave);
 
     return () => {
@@ -38,4 +40,3 @@ export const useTiltCard = (cardRef: RefObject<HTMLElement>) => {
     };
   }, [cardRef]);
 };
-

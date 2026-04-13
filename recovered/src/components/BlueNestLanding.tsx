@@ -80,9 +80,9 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
 
       {/* Sticky Navigation Panel (Top Right) */}
       <div className="sticky-nav">
-        <button 
+        <button
           type="button"
-          className="nav-link nav-bot-btn hover-target" 
+          className="nav-link nav-bot-btn hover-target"
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
@@ -96,20 +96,17 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
             e.preventDefault();
             e.stopPropagation();
           }}
-          style={{ 
-            cursor: 'pointer', 
-            pointerEvents: 'auto', 
-            position: 'relative', 
+          style={{
+            cursor: 'pointer',
+            pointerEvents: 'auto',
+            position: 'relative',
             zIndex: 1000,
-            isolation: 'isolate'
+            isolation: 'isolate',
           }}
         >
           NEUROVALUSHA
         </button>
-        <button 
-          className="nav-link hover-target" 
-          onClick={onStartClick}
-        >
+        <button className="nav-link hover-target" onClick={onStartClick}>
           Значки
         </button>
       </div>
@@ -148,10 +145,12 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
         <div className="marquee">
           <div className="marquee-track">
             <div className="marquee-item hover-target">
-              ВЫБИРАЙ ЗВЕЗДУ. ДВИГАЙСЯ ВПЕРЁД. ОСТАВЛЯЙ СЛЕД. ТВОЙ ОПЫТ — ТВОЙ ПУТЬ. РЕАЛЬНЫЕ ЗНАЧКИ ПОДСКАЖУТ, КУДА ИДТИ. •{' '}
+              ВЫБИРАЙ ЗВЕЗДУ. ДВИГАЙСЯ ВПЕРЁД. ОСТАВЛЯЙ СЛЕД. ТВОЙ ОПЫТ — ТВОЙ ПУТЬ. РЕАЛЬНЫЕ ЗНАЧКИ
+              ПОДСКАЖУТ, КУДА ИДТИ. •{' '}
             </div>
             <div className="marquee-item hover-target">
-              ВЫБИРАЙ ЗВЕЗДУ. ДВИГАЙСЯ ВПЕРЁД. ОСТАВЛЯЙ СЛЕД. ТВОЙ ОПЫТ — ТВОЙ ПУТЬ. РЕАЛЬНЫЕ ЗНАЧКИ ПОДСКАЖУТ, КУДА ИДТИ. •{' '}
+              ВЫБИРАЙ ЗВЕЗДУ. ДВИГАЙСЯ ВПЕРЁД. ОСТАВЛЯЙ СЛЕД. ТВОЙ ОПЫТ — ТВОЙ ПУТЬ. РЕАЛЬНЫЕ ЗНАЧКИ
+              ПОДСКАЖУТ, КУДА ИДТИ. •{' '}
             </div>
           </div>
         </div>
@@ -171,12 +170,18 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
           <div className="manifesto-statement reveal-on-scroll">
             <h2>Значки здесь — не награды, а маршруты развития.</h2>
             <p>
-              В Реальном Лагере значки — не просто «ачивки» за выполнение заданий. Это путеводные звёзды, которые помогают выбрать твой собственный путь. Каждый значок — не медаль за прошлое, а маяк, освещающий направления твоего развития.
+              В Реальном Лагере значки — не просто «ачивки» за выполнение заданий. Это путеводные
+              звёзды, которые помогают выбрать твой собственный путь. Каждый значок — не медаль за
+              прошлое, а маяк, освещающий направления твоего развития.
             </p>
           </div>
           <div className="manifesto-visual reveal-on-scroll">
             <div className="manifesto-sticker">
-              <img src={`${import.meta.env.BASE_URL}image.png`} alt="Стикер" className="sticker-image" />
+              <img
+                src={`${import.meta.env.BASE_URL}image.png`}
+                alt="Стикер"
+                className="sticker-image"
+              />
             </div>
             <div className="orb orb-1"></div>
             <div className="orb orb-2"></div>
@@ -187,7 +192,11 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
         <section className="features">
           <div className="features-grid">
             {/* Feature 2 */}
-            <div className="feature-card tilt-card reveal-on-scroll" ref={featureCard1Ref} style={{ transitionDelay: '0.1s' }}>
+            <div
+              className="feature-card tilt-card reveal-on-scroll"
+              ref={featureCard1Ref}
+              style={{ transitionDelay: '0.1s' }}
+            >
               <img
                 src={`${import.meta.env.BASE_URL}image (24).jpg`}
                 alt="Реальный Значок = Опыт"
@@ -199,16 +208,23 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
                   borderRadius: '16px',
                   marginBottom: '1.5rem',
                   objectFit: 'cover',
-                  boxShadow: '0 20px 60px rgba(139, 0, 255, 0.4), 0 10px 30px rgba(139, 0, 255, 0.3)',
+                  boxShadow:
+                    '0 20px 60px rgba(139, 0, 255, 0.4), 0 10px 30px rgba(139, 0, 255, 0.3)',
                 }}
               />
               <h3>Реальный Значок = Опыт</h3>
               <p>
-                Здесь главная награда — не значок, а опыт и навыки, которые ты получаешь, выполняя задания. Новые друзья, настоящие проекты, полезные привычки и идеи — всё это остаётся с тобой.
+                Здесь главная награда — не значок, а опыт и навыки, которые ты получаешь, выполняя
+                задания. Новые друзья, настоящие проекты, полезные привычки и идеи — всё это
+                остаётся с тобой.
               </p>
             </div>
             {/* Feature 3 */}
-            <div className="feature-card tilt-card reveal-on-scroll" ref={featureCard2Ref} style={{ transitionDelay: '0.2s' }}>
+            <div
+              className="feature-card tilt-card reveal-on-scroll"
+              ref={featureCard2Ref}
+              style={{ transitionDelay: '0.2s' }}
+            >
               <img
                 src={`${import.meta.env.BASE_URL}image (1).png`}
                 alt="Реальный Значок — компас"
@@ -224,11 +240,15 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
                   display: 'block',
                   maxWidth: 'none',
                   marginLeft: '-20%',
-                  filter: 'drop-shadow(0 30px 80px rgba(139, 0, 255, 0.6)) drop-shadow(0 15px 50px rgba(139, 92, 246, 0.5))',
+                  filter:
+                    'drop-shadow(0 30px 80px rgba(139, 0, 255, 0.6)) drop-shadow(0 15px 50px rgba(139, 92, 246, 0.5))',
                 }}
               />
               <h3>Реальный Значок — компас</h3>
-              <p>Только ты выбираешь, какие значки будут на твоём пути. Вожатые и Путеводитель предложат варианты, но выбор и движение всегда за тобой.</p>
+              <p>
+                Только ты выбираешь, какие значки будут на твоём пути. Вожатые и Путеводитель
+                предложат варианты, но выбор и движение всегда за тобой.
+              </p>
             </div>
           </div>
         </section>
@@ -236,7 +256,11 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
         {/* Final Footer CTA */}
         <footer className="footer">
           <h2 className="reveal-on-scroll">Готов начать?</h2>
-          <button className="btn-agency hover-target reveal-on-scroll" onClick={onStartClick} id="footer-start-btn">
+          <button
+            className="btn-agency hover-target reveal-on-scroll"
+            onClick={onStartClick}
+            id="footer-start-btn"
+          >
             <span>Начать путешествие</span>
           </button>
 
@@ -247,7 +271,12 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
             <button className="hover-target" onClick={onAboutCampClick}>
               О лагере
             </button>
-            <a href="https://vk.com/realcampspb" className="hover-target" target="_blank" rel="noopener noreferrer">
+            <a
+              href="https://vk.com/realcampspb"
+              className="hover-target"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               ВКонтакте
             </a>
           </div>
@@ -256,13 +285,10 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
 
       {/* ChatBot and ChatAvatar */}
       <Suspense fallback={null}>
-        <ChatAvatar 
-          onClick={onChatToggle} 
-          isOpen={isChatOpen} 
-        />
-        <ChatBot 
-          isOpen={isChatOpen} 
-          onClose={onChatClose} 
+        <ChatAvatar onClick={onChatToggle} isOpen={isChatOpen} />
+        <ChatBot
+          isOpen={isChatOpen}
+          onClose={onChatClose}
           currentView={currentView}
           currentCategory={selectedCategory}
           currentBadge={selectedBadge}
@@ -275,4 +301,3 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
 };
 
 export default BlueNestLanding;
-

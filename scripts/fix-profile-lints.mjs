@@ -1,4 +1,5 @@
 import fs from 'fs';
+
 const path = 'src/views/ProfileView.tsx';
 let s = fs.readFileSync(path, 'utf8');
 
@@ -20,10 +21,16 @@ s = s.replace(
 s = s.replace(/\s*const workshopImageRef = useRef<HTMLInputElement \| null>\(null\);[\r\n]*/, '\n');
 
 // 3. Fix badges.forEach(b => - add Badge type
-s = s.replace(/if \(badges\) badges\.forEach\(b => m\.set/, 'if (badges) badges.forEach((b: Badge) => m.set');
+s = s.replace(
+  /if \(badges\) badges\.forEach\(b => m\.set/,
+  'if (badges) badges.forEach((b: Badge) => m.set'
+);
 
 // 4. Remove unused isFavorite
-s = s.replace(/\n\s*const _isFavorite = \(id: string\) => favorites\.some\(fav => getBaseId\(fav\) === getBaseId\(id\)\);[\r\n]*/, '\n');
+s = s.replace(
+  /\n\s*const _isFavorite = \(id: string\) => favorites\.some\(fav => getBaseId\(fav\) === getBaseId\(id\)\);[\r\n]*/,
+  '\n'
+);
 
 fs.writeFileSync(path, s);
 console.log('Fixed ProfileView lints');

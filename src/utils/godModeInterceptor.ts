@@ -2,7 +2,7 @@ export function setupGodModeInterceptor() {
   if (typeof window === 'undefined') return;
 
   const isGodMode = localStorage.getItem('rl_god_mode') === 'true';
-  
+
   // Inject global toggler
   (window as any).__enableGodMode__ = () => {
     localStorage.setItem('rl_god_mode', 'true');
@@ -26,14 +26,16 @@ export function setupGodModeInterceptor() {
         if (tapCount >= 5) {
           (window as any).__enableGodMode__();
         } else {
-          tapTimeout = setTimeout(() => tapCount = 0, 500);
+          tapTimeout = setTimeout(() => (tapCount = 0), 500);
         }
       }
     });
     return;
   }
 
-  console.warn('🟡 [GOD MODE] Presenter Protocol Active. Post/Patch/Delete requests are intercepted.');
+  console.warn(
+    '🟡 [GOD MODE] Presenter Protocol Active. Post/Patch/Delete requests are intercepted.'
+  );
 
   // Inject UI Banner
   window.addEventListener('DOMContentLoaded', () => {
@@ -72,7 +74,7 @@ export function setupGodModeInterceptor() {
             // Inject developer into all returned teams so the UI treats them as 'mine'
             const devTeams = Object.values(teamsDict).map((t: any) => ({
               ...t,
-              members: [...(t.members || []), { deviceId: 'presenter-device', role: 'developer' }]
+              members: [...(t.members || []), { deviceId: 'presenter-device', role: 'developer' }],
             }));
             return new Response(JSON.stringify(devTeams), { status: 200, headers: res.headers });
           }
@@ -88,28 +90,31 @@ export function setupGodModeInterceptor() {
           try {
             const squadMeta = JSON.parse(storedSquad);
             const devMembership = {
-               deviceId: 'presenter-device',
-               campId: squadMeta.shiftId || 'god-mode-shift',
-               squadId: squadMeta.squadId,
-               role: 'developer',
-               joinedAt: new Date().toISOString()
+              deviceId: 'presenter-device',
+              campId: squadMeta.shiftId || 'god-mode-shift',
+              squadId: squadMeta.squadId,
+              role: 'developer',
+              joinedAt: new Date().toISOString(),
             };
             const mockMineResponse = {
-               membership: devMembership,
-               squad: {
-                  id: squadMeta.squadId,
-                  shiftId: squadMeta.shiftId || 'god-mode-shift',
-                  name: squadMeta.squadName || squadMeta.squadId
-               },
-               shift: {
-                  id: squadMeta.shiftId || 'god-mode-shift',
-                  name: squadMeta.shiftName || 'Демонстрационная Смена',
-                  durationDays: 9
-               },
-               participants: [],
-               members: [devMembership]
+              membership: devMembership,
+              squad: {
+                id: squadMeta.squadId,
+                shiftId: squadMeta.shiftId || 'god-mode-shift',
+                name: squadMeta.squadName || squadMeta.squadId,
+              },
+              shift: {
+                id: squadMeta.shiftId || 'god-mode-shift',
+                name: squadMeta.shiftName || 'Демонстрационная Смена',
+                durationDays: 9,
+              },
+              participants: [],
+              members: [devMembership],
             };
-            return new Response(JSON.stringify(mockMineResponse), { status: 200, headers: { 'Content-Type': 'application/json' } });
+            return new Response(JSON.stringify(mockMineResponse), {
+              status: 200,
+              headers: { 'Content-Type': 'application/json' },
+            });
           } catch (e) {}
         }
       }
@@ -134,61 +139,70 @@ export function setupGodModeInterceptor() {
 
     if (urlStr.includes('/api/images/generate')) {
       // Dummy 1x1 transparent PNG to satisfy image loaders
-      mockResponse = { imageBase64: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=' };
-    } 
-    else if (urlStr.includes('/api/teams')) {
-      const matchJoin = urlStr.match(/\/api\/teams\/([^\/]+)\/join/);
+      mockResponse = {
+        imageBase64:
+          'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=',
+      };
+    } else if (urlStr.includes('/api/teams')) {
+      const matchJoin = urlStr.match(/\/api\/teams\/([^/]+)\/join/);
       if (matchJoin) {
-         mockResponse = { id: matchJoin[1], name: 'Mock Team' };
+        mockResponse = { id: matchJoin[1], name: 'Mock Team' };
       } else {
-         mockResponse = {
-           id: bodyObj.id || 'god-mode-team-123',
-           name: bodyObj.name || 'Mock Team',
-           motto: bodyObj.motto || 'To infinity and beyond',
-           goals: bodyObj.goals || [],
-           members: [{ deviceId: 'presenter-device', role: 'developer' }],
-           achievements: [],
-           createdAt: new Date().toISOString(),
-           ...bodyObj
-         };
+        mockResponse = {
+          id: bodyObj.id || 'god-mode-team-123',
+          name: bodyObj.name || 'Mock Team',
+          motto: bodyObj.motto || 'To infinity and beyond',
+          goals: bodyObj.goals || [],
+          members: [{ deviceId: 'presenter-device', role: 'developer' }],
+          achievements: [],
+          createdAt: new Date().toISOString(),
+          ...bodyObj,
+        };
       }
     }
     // Phase 2: Virtual Squad Join
     else if (urlStr.includes('/api/squads') && urlStr.includes('/join')) {
-      const matchSquad = urlStr.match(/\/api\/squads\/([^\/]+)\/join/);
+      const matchSquad = urlStr.match(/\/api\/squads\/([^/]+)\/join/);
       if (matchSquad) {
-         const squadId = decodeURIComponent(matchSquad[1]);
-         localStorage.setItem('rl_god_mode_squad', JSON.stringify({ squadId, squadName: bodyObj.squadName || squadId, shiftId: bodyObj.shiftId || '' }));
-         mockResponse = { membership: { squadId, role: 'developer' }, squad: { id: squadId, name: bodyObj.squadName || squadId } };
+        const squadId = decodeURIComponent(matchSquad[1]);
+        localStorage.setItem(
+          'rl_god_mode_squad',
+          JSON.stringify({
+            squadId,
+            squadName: bodyObj.squadName || squadId,
+            shiftId: bodyObj.shiftId || '',
+          })
+        );
+        mockResponse = {
+          membership: { squadId, role: 'developer' },
+          squad: { id: squadId, name: bodyObj.squadName || squadId },
+        };
       }
-    }
-    else if (urlStr.includes('/api/squads') && urlStr.includes('/leave')) {
+    } else if (urlStr.includes('/api/squads') && urlStr.includes('/leave')) {
       localStorage.removeItem('rl_god_mode_squad');
-      mockResponse = { status: "success", squadId: "mock", membership: null };
-    }
-    else if (urlStr.includes('/api/auth/verify-code')) {
+      mockResponse = { status: 'success', squadId: 'mock', membership: null };
+    } else if (urlStr.includes('/api/auth/verify-code')) {
       mockResponse = {
         accessToken: 'god-mode-mock-token',
         role: bodyObj.role || 'developer',
         campId: 'god-mode-camp-123',
-        exp: Math.floor(Date.now() / 1000) + 86400
+        exp: Math.floor(Date.now() / 1000) + 86400,
       };
-    }
-    else if (urlStr.includes('/api/chat')) {
+    } else if (urlStr.includes('/api/chat')) {
       mockResponse = {
         response: 'Это симуляция ответа сервера. Валюша спит.',
         suggestions: ['Что дальше?'],
-        metadata: { badgeAssigned: false }
+        metadata: { badgeAssigned: false },
       };
     }
 
     // Simulate network delay for natural UI feel
-    await new Promise(r => setTimeout(r, 600));
+    await new Promise((r) => setTimeout(r, 600));
 
     return new Response(JSON.stringify(mockResponse), {
       status: 200,
       statusText: 'OK',
-      headers: { 'Content-Type': 'application/json' }
+      headers: { 'Content-Type': 'application/json' },
     });
   };
 }

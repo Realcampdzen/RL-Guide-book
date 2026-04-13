@@ -1,4 +1,4 @@
-import React from 'react';
+import type React from 'react';
 
 export const LoadingScreen: React.FC = () => (
   <div className="loading-screen">
@@ -8,4 +8,3 @@ export const LoadingScreen: React.FC = () => (
     </div>
   </div>
 );
-

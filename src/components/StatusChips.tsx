@@ -1,4 +1,4 @@
-import React from 'react';
+import type React from 'react';
 
 export interface StatusChipItem {
   id: string;
@@ -29,7 +29,9 @@ const StatusChips: React.FC<StatusChipsProps> = ({ items }) => {
             >
               <div className="badge-status-chip__line">
                 <span className="badge-status-chip__title">{item.title}</span>
-                <span className="badge-status-chip__count">{item.count}/{item.max}</span>
+                <span className="badge-status-chip__count">
+                  {item.count}/{item.max}
+                </span>
               </div>
               <div className="badge-status-chip__hint">{item.hint}</div>
             </button>

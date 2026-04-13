@@ -8,7 +8,7 @@
 }
 
 .skeleton::after {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
   transform: translateX(-60%);
@@ -66,4 +66,3 @@
 .skeleton--media {
   border-radius: 22px;
 }
-

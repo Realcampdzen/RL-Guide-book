@@ -19,19 +19,21 @@ export const SHIFT_ITEMS: Array<ScheduleItem<ShiftScheduleKey>> = [
   { key: 'dinner', label: 'Ужин' },
   { key: 'eveningEvent', label: 'Вечернее событие' },
   { key: 'orlyatskyCircle', label: 'Орлятский круг' },
-  { key: 'lightsOut', label: 'Отбой' }
+  { key: 'lightsOut', label: 'Отбой' },
 ];
 
 export const ACTIVITY_ITEMS: Array<ScheduleItem<MyActivityKey>> = [
   { key: 'morning', label: 'Утро' },
   { key: 'day', label: 'День' },
   { key: 'evening', label: 'Вечер' },
-  { key: 'additional', label: 'Дополнительно' }
+  { key: 'additional', label: 'Дополнительно' },
 ];
 
 export function hasValues<K extends string>(
   data: Partial<Record<K, ScheduleCell>> | undefined,
   items: Array<ScheduleItem<K>>
 ): boolean {
-  return items.some(({ key }) => Boolean((data?.[key]?.time || '').trim() || (data?.[key]?.note || '').trim()));
+  return items.some(({ key }) =>
+    Boolean((data?.[key]?.time || '').trim() || (data?.[key]?.note || '').trim())
+  );
 }

@@ -2,12 +2,28 @@
  * User roles for Путеводитель.
  * See docs/FEATURE_AUTH_ROLES_DVIZHKI_PLAN.md
  */
-export type UserRole = 'traveler' | 'participant' | 'parent' | 'counselor' | 'educator' | 'shift_leader' | 'camp_director' | 'developer';
+export type UserRole =
+  | 'traveler'
+  | 'participant'
+  | 'parent'
+  | 'counselor'
+  | 'educator'
+  | 'shift_leader'
+  | 'camp_director'
+  | 'developer';
 
 export const DEFAULT_ROLE: UserRole = 'traveler';
 
 /** Roles that have access to chat/ИИ */
-export const CHAT_ALLOWED_ROLES: UserRole[] = ['participant', 'parent', 'counselor', 'educator', 'shift_leader', 'camp_director', 'developer'];
+export const CHAT_ALLOWED_ROLES: UserRole[] = [
+  'participant',
+  'parent',
+  'counselor',
+  'educator',
+  'shift_leader',
+  'camp_director',
+  'developer',
+];
 
 export function canUseChat(role: UserRole): boolean {
   return CHAT_ALLOWED_ROLES.includes(role);
@@ -40,12 +56,25 @@ export function canRequestBadgeApproval(role: UserRole): boolean {
 
 /** Staff (или developer) может разбирать входящие заявки. */
 export function canModerateBadgeApprovals(role: UserRole): boolean {
-  return role === 'counselor' || role === 'educator' || role === 'shift_leader' || role === 'camp_director' || role === 'developer';
+  return (
+    role === 'counselor' ||
+    role === 'educator' ||
+    role === 'shift_leader' ||
+    role === 'camp_director' ||
+    role === 'developer'
+  );
 }
 
 /** Показывать панель «Входящие заявки» без песочницы: родитель + staff роли + разработчик. */
 export function showEventsPanelForRole(role: UserRole): boolean {
-  return role === 'parent' || role === 'counselor' || role === 'educator' || role === 'shift_leader' || role === 'camp_director' || role === 'developer';
+  return (
+    role === 'parent' ||
+    role === 'counselor' ||
+    role === 'educator' ||
+    role === 'shift_leader' ||
+    role === 'camp_director' ||
+    role === 'developer'
+  );
 }
 
 /** Может создавать отряд из вожатых (приглашать вожатых в свой отряд): руководитель смены, начальник лагеря, разработчик. */
@@ -67,18 +96,28 @@ export const ROLE_LABELS: Record<UserRole, string> = {
   educator: 'Педагог/Тренер',
   shift_leader: 'Старший Вожатый',
   camp_director: 'Начальник Лагеря',
-  developer: 'Разработчик'
+  developer: 'Разработчик',
 };
 
 /** Подпись под названием роли (для отображения в две строки: крупно название, мелко подпись). */
 export const ROLE_SUBTITLES: Partial<Record<UserRole, string>> = {
   shift_leader: 'руководитель смены',
   educator: 'кружковод, руководитель мастерской',
-  camp_director: 'создай кабинет Лагеря, взаимодействуй и получай обратную связь и статистику от всех участников',
+  camp_director:
+    'создай кабинет Лагеря, взаимодействуй и получай обратную связь и статистику от всех участников',
 };
 
 /** Явный порядок ролей для списков (селекты, переключатель). */
-export const ROLE_ORDER: UserRole[] = ['traveler', 'participant', 'parent', 'counselor', 'educator', 'shift_leader', 'camp_director', 'developer'];
+export const ROLE_ORDER: UserRole[] = [
+  'traveler',
+  'participant',
+  'parent',
+  'counselor',
+  'educator',
+  'shift_leader',
+  'camp_director',
+  'developer',
+];
 
 /** Единый источник отображения роли: заголовок и опциональная подпись (для двухстрочного вывода). */
 export function getRoleDisplay(role: UserRole): { title: string; subtitle?: string } {

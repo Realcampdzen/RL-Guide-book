@@ -1,33 +1,33 @@
 {
-    "name": "symphony-github",
-    "version": "1.0.0",
-    "description": "Custom Symphony orchestrator for GitHub Issues — based on OpenAI SPEC.md",
-    "type": "module",
-    "main": "dist/cli.js",
-    "bin": {
-        "symphony": "dist/cli.js"
-    },
-    "scripts": {
-        "start": "tsx src/cli.ts",
-        "dev": "tsx watch src/cli.ts",
-        "build": "tsc",
-        "test": "vitest run",
-        "test:watch": "vitest"
-    },
-    "dependencies": {
-        "@octokit/rest": "^21.1.1",
-        "js-yaml": "^4.1.0",
-        "liquidjs": "^10.21.0",
-        "chalk": "^5.4.1"
-    },
-    "devDependencies": {
-        "@types/js-yaml": "^4.0.9",
-        "@types/node": "^22.15.0",
-        "tsx": "^4.19.0",
-        "typescript": "^5.7.0",
-        "vitest": "^3.1.0"
-    },
-    "engines": {
-        "node": ">=18"
-    }
+  "name": "symphony-github",
+  "version": "1.0.0",
+  "description": "Custom Symphony orchestrator for GitHub Issues — based on OpenAI SPEC.md",
+  "type": "module",
+  "main": "dist/cli.js",
+  "bin": {
+    "symphony": "dist/cli.js"
+  },
+  "scripts": {
+    "start": "tsx src/cli.ts",
+    "dev": "tsx watch src/cli.ts",
+    "build": "tsc",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@octokit/rest": "^21.1.1",
+    "js-yaml": "^4.1.0",
+    "liquidjs": "^10.21.0",
+    "chalk": "^5.4.1"
+  },
+  "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^22.15.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.1.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
 }

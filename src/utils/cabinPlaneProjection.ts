@@ -120,11 +120,7 @@ export type Quad = Array<{ x: number; y: number }>;
 /**
  * Homography from rectangle (0,0)-(w,h) to dst quad (TL, TR, BR, BL).
  */
-export function homographyFromRectToQuad(
-  w: number,
-  h: number,
-  quad: Quad
-): number[][] {
+export function homographyFromRectToQuad(w: number, h: number, quad: Quad): number[][] {
   const src: Array<[number, number]> = [
     [0, 0],
     [w, 0],
@@ -200,7 +196,7 @@ export function getCxCyForTLAtOrigin(params: {
 }): { cx: number; cy: number } {
   const { W, H, f, tz, yaw, pitch } = params;
   const R = matMul3(rotX(deg(pitch)), rotY(deg(yaw)));
-  const tl = [(-W / 2), (-H / 2), 0] as const;
+  const tl = [-W / 2, -H / 2, 0] as const;
   const [X, Y, Z0] = matVec3(R, [...tl]);
   const Z = Z0 + tz;
   return {
@@ -260,5 +256,3 @@ export function getCardTransforms(params: CabinPlaneParams): string[] {
 
   return out;
 }
-
-

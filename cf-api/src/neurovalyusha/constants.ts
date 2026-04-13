@@ -1,8 +1,8 @@
-import { formatCampFacts, CAMP_FACTS } from './camp_facts'
-import { NEUROVALYUSHA_FULL_CHAT_PROMPT } from './generated_chat_prompt'
+import { CAMP_FACTS, formatCampFacts } from './camp_facts';
+import { NEUROVALYUSHA_FULL_CHAT_PROMPT } from './generated_chat_prompt';
 
-export const NEUROVALYUSHA_MODEL = 'gpt-4o'
-export { NEUROVALYUSHA_FULL_CHAT_PROMPT }
+export const NEUROVALYUSHA_MODEL = 'gpt-4o';
+export { NEUROVALYUSHA_FULL_CHAT_PROMPT };
 
 // Источник: блоки из chatbot/prompts/putevoditel_system_prompt_optimized.py. При изменении там — обновлять вручную. См. docs/DATA_SYNC.md. (sync 2026-02)
 export const CAMP_STATIC_INFO = `## 📋 Медицинские документы
@@ -54,7 +54,7 @@ export const CAMP_STATIC_INFO = `## 📋 Медицинские документ
 ## 🚀 БРО Движение
 Бро — это легенда лагеря. Всё началось в 2013 году, когда старшие ребята решили не просто участвовать в смене, а создавать атмосферу сами. Они проводили игры по станциям, мастер-классы, подбадривали младших и даже придумали отрядного супергероя — Железного Бро 🦸‍♂️.
 
-Каждый старший может стать Бро: придумать кричалку, провести дело для других, подарить радость младшим. Это как волшебный круг, где ты получаешь поддержку, а потом сам передаёшь её дальше 🔄.`
+Каждый старший может стать Бро: придумать кричалку, провести дело для других, подарить радость младшим. Это как волшебный круг, где ты получаешь поддержку, а потом сам передаёшь её дальше 🔄.`;
 
 // ЧАТ-версия (для сайта/приложения): не упоминает "посты/комментарии".
 export const NEUROVALYUSHA_CHAT_SYSTEM = `Ты — НейроВалюша 💜, дружелюбная цифровая вожатая и нейро‑ассистент детского лагеря.
@@ -67,7 +67,7 @@ export const NEUROVALYUSHA_CHAT_SYSTEM = `Ты — НейроВалюша 💜, 
 3) изучение ИИ для обучения и творчества.
 
 Стиль: тепло, поддерживающе, умно, с лёгким юмором. Без markdown (**, __ и т.п.). 2–3 коротких абзаца, 0–3 эмодзи.
-Если не уверена в факте — уточни или скажи, что можешь проверить.`
+Если не уверена в факте — уточни или скажи, что можешь проверить.`;
 
 // СОЦ-версия (VK/TG): посты и комментарии. При смене тона/правил НейроВалюши в Python — вручную проверить и при необходимости обновить. См. docs/DATA_SYNC.md.
 // Важно: без markdown-форматирования, без выдуманных фактов, без токсичности.
@@ -101,7 +101,7 @@ export const NEUROVALYUSHA_SOCIAL_SYSTEM = `Ты — НейроВалюша, н�
 - Под новым постом: оставить уместный комментарий, который добавляет ценность (идея, пример, совет по 4K/софт-скиллам/ИИ, вопрос для вовлечения).
 - В ветке обсуждения: отвечать, сохраняя контекст последних сообщений, помогать мыслить, предлагать следующий шаг, иногда задавать 1 вопрос.
 
-Важно: В системном промпте ниже добавлена полная информация о лагере (контакты, адрес, текущая смена, документы, педагоги, мемы, БРО движение). Используй эти данные при ответах на вопросы.`
+Важно: В системном промпте ниже добавлена полная информация о лагере (контакты, адрес, текущая смена, документы, педагоги, мемы, БРО движение). Используй эти данные при ответах на вопросы.`;
 
 export const NEUROVALYUSHA_BADGE_EXPERTISE = `## 🏆 СИСТЕМА ЗНАЧКОВ ПУТЕВОДИТЕЛЯ "РЕАЛЬНОГО ЛАГЕРЯ"
 
@@ -212,12 +212,12 @@ export const NEUROVALYUSHA_BADGE_EXPERTISE = `## 🏆 СИСТЕМА ЗНАЧК�
 - Поддерживай, объясняй простым языком, избегай морализаторства
 - Не давай медицинских/юридических/финансовых советов
 - Если не уверена — говори осторожно и предлагай уточнить
-- Лучше честно признаться в незнании или уточнить, чем пытаться угадать`
+- Лучше честно признаться в незнании или уточнить, чем пытаться угадать`;
 
 // Запрещённые эмодзи для НейроВалюши (не использовать нигде)
-export const FORBIDDEN_EMOJIS = ['🌈'] // радуга запрещена на сайте и в соцсетях
+export const FORBIDDEN_EMOJIS = ['🌈']; // радуга запрещена на сайте и в соцсетях
 
-export type PromptMode = 'social' | 'chat-basic' | 'chat-with-badge'
+export type PromptMode = 'social' | 'chat-basic' | 'chat-with-badge';
 
 /**
  * Строит системный промпт с учётом режима и фактов о лагере
@@ -230,18 +230,17 @@ export type PromptMode = 'social' | 'chat-basic' | 'chat-with-badge'
  * @param includeFacts - включать ли динамические факты (адрес, контакты, текущая смена), по умолчанию true
  */
 export function buildSystemPrompt(mode: PromptMode, includeFacts: boolean = true): string {
-  const factsSection = includeFacts ? formatCampFacts(CAMP_FACTS) : ''
-  const staticInfo = `\n\n${CAMP_STATIC_INFO}`
+  const factsSection = includeFacts ? formatCampFacts(CAMP_FACTS) : '';
+  const staticInfo = `\n\n${CAMP_STATIC_INFO}`;
 
   if (mode === 'social') {
-    return NEUROVALYUSHA_SOCIAL_SYSTEM + staticInfo + factsSection
+    return NEUROVALYUSHA_SOCIAL_SYSTEM + staticInfo + factsSection;
   }
   if (mode === 'chat-basic') {
-    return NEUROVALYUSHA_FULL_CHAT_PROMPT + factsSection
+    return NEUROVALYUSHA_FULL_CHAT_PROMPT + factsSection;
   }
   if (mode === 'chat-with-badge') {
-    return NEUROVALYUSHA_FULL_CHAT_PROMPT + '\n\n' + NEUROVALYUSHA_BADGE_EXPERTISE + factsSection
+    return NEUROVALYUSHA_FULL_CHAT_PROMPT + '\n\n' + NEUROVALYUSHA_BADGE_EXPERTISE + factsSection;
   }
-  return NEUROVALYUSHA_FULL_CHAT_PROMPT + factsSection
+  return NEUROVALYUSHA_FULL_CHAT_PROMPT + factsSection;
 }
-

@@ -1,4 +1,4 @@
-import React from 'react';
+import type React from 'react';
 import getCategoryIcon from '../components/CategoryIcon';
 
 type CategoryLite = {
@@ -24,7 +24,11 @@ const getCircleSize = (badgeCount: number) => {
   return Math.round(size);
 };
 
-const CategoriesScreen: React.FC<CategoriesScreenProps> = ({ categories, onBack, onSelectCategory }) => {
+const CategoriesScreen: React.FC<CategoriesScreenProps> = ({
+  categories,
+  onBack,
+  onSelectCategory,
+}) => {
   return (
     <div className="categories-screen">
       <div className="header">

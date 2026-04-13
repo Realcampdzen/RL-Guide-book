@@ -31,24 +31,24 @@ const getMimeType = (filePath) => {
 
 const server = http.createServer((req, res) => {
   let url = req.url.split('?')[0];
-  
+
   // Убираем base path из URL
   if (url.startsWith(BASE_PATH)) {
     url = url.substring(BASE_PATH.length);
   }
-  
+
   // Если корневой путь, отдаем index.html
   if (url === '/' || url === '') {
     url = '/index.html';
   }
-  
+
   // Убираем ведущий слэш для работы с path.join
   if (url.startsWith('/')) {
     url = url.substring(1);
   }
-  
+
   const filePath = path.join(DIST_DIR, url);
-  
+
   // Проверяем существование файла
   if (!fs.existsSync(filePath)) {
     // Если файл не найден, пробуем index.html (для SPA routing)
@@ -63,7 +63,7 @@ const server = http.createServer((req, res) => {
     res.end('404 Not Found');
     return;
   }
-  
+
   // Проверяем, что это файл, а не директория
   const stats = fs.statSync(filePath);
   if (stats.isDirectory()) {
@@ -78,7 +78,7 @@ const server = http.createServer((req, res) => {
     res.end('404 Not Found');
     return;
   }
-  
+
   // Читаем и отдаем файл
   try {
     const content = fs.readFileSync(filePath);
@@ -98,4 +98,3 @@ server.listen(PORT, '0.0.0.0', () => {
   console.log(`📱 Для мобильного тестирования используйте IP вашего компьютера`);
   console.log(`💡 Пример: http://192.168.1.X:${PORT}${BASE_PATH}`);
 });
-

@@ -1,4 +1,4 @@
-import React from 'react';
+import type React from 'react';
 import '../styles/registration-form.css';
 
 interface RegistrationFormData {
@@ -17,8 +17,14 @@ interface RegistrationFormViewProps {
   onSubmit: () => void;
 }
 
-const RegistrationFormView: React.FC<RegistrationFormViewProps> = ({ formData, onBack, onChange, onSubmit }) => {
-  const disabled = !formData.childName || !formData.parentName || !formData.phone || !formData.childAge;
+const RegistrationFormView: React.FC<RegistrationFormViewProps> = ({
+  formData,
+  onBack,
+  onChange,
+  onSubmit,
+}) => {
+  const disabled =
+    !formData.childName || !formData.parentName || !formData.phone || !formData.childAge;
   return (
     <div className="registration-form-view">
       <header className="registration-form-topbar" aria-label="Навигация">
@@ -111,4 +117,3 @@ const RegistrationFormView: React.FC<RegistrationFormViewProps> = ({ formData, o
 };
 
 export default RegistrationFormView;
-

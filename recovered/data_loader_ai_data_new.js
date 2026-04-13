@@ -9,16 +9,16 @@ const __dirname = path.dirname(__filename);
 
 // Кэш для данных
 let masterIndexCache = null;
-let categoriesCache = new Map();
-let badgesCache = new Map();
-let introductionsCache = new Map();
+const categoriesCache = new Map();
+const badgesCache = new Map();
+const introductionsCache = new Map();
 
 // Статистика загрузки
-let loadStats = {
+const loadStats = {
   masterIndexLoads: 0,
   categoryLoads: 0,
   badgeLoads: 0,
-  introductionLoads: 0
+  introductionLoads: 0,
 };
 
 export class DataLoaderAIDataNew {
@@ -31,21 +31,21 @@ export class DataLoaderAIDataNew {
         path.join(__dirname, '../public/ai-data'),
         path.join(__dirname, '../../public/ai-data'),
       ];
-      
+
       for (const possiblePath of possiblePaths) {
         if (fs.existsSync(path.join(possiblePath, 'MASTER_INDEX.json'))) {
           this.basePath = possiblePath;
           break;
         }
       }
-      
+
       if (!this.basePath) {
         throw new Error('Не найдена папка ai-data с MASTER_INDEX.json');
       }
     } else {
       this.basePath = path.join(process.cwd(), basePath);
     }
-    
+
     console.log('📁 Путь к ai-data:', this.basePath);
   }
 
@@ -58,16 +58,16 @@ export class DataLoaderAIDataNew {
     try {
       const masterIndexPath = path.join(this.basePath, 'MASTER_INDEX.json');
       const data = JSON.parse(fs.readFileSync(masterIndexPath, 'utf8'));
-      
+
       masterIndexCache = data;
       loadStats.masterIndexLoads++;
-      
+
       console.log('✅ MASTER_INDEX загружен:', {
         categories: data.totalCategories,
         badges: data.totalBadges,
-        levels: data.totalLevels
+        levels: data.totalLevels,
       });
-      
+
       return data;
     } catch (error) {
       console.error('❌ Ошибка загрузки MASTER_INDEX:', error.message);
@@ -78,7 +78,7 @@ export class DataLoaderAIDataNew {
   // Получает информацию о категории из MASTER_INDEX
   getCategoryInfo(categoryId) {
     const masterIndex = this.getMasterIndex();
-    return masterIndex.categories?.find(cat => cat.id === categoryId);
+    return masterIndex.categories?.find((cat) => cat.id === categoryId);
   }
 
   // Загружает категорию с её значками
@@ -118,17 +118,17 @@ export class DataLoaderAIDataNew {
         badges: badges,
         introduction: introduction,
         totalBadges: categoryData.badges || 0,
-        totalLevels: categoryData.levels || 0
+        totalLevels: categoryData.levels || 0,
       };
 
       categoriesCache.set(categoryId, category);
       loadStats.categoryLoads++;
-      
+
       console.log(`✅ Категория ${categoryId} загружена:`, {
         badges: badges.length,
-        hasIntroduction: !!introduction
+        hasIntroduction: !!introduction,
       });
-      
+
       return category;
     } catch (error) {
       console.error(`❌ Ошибка загрузки категории ${categoryId}:`, error.message);
@@ -152,7 +152,7 @@ export class DataLoaderAIDataNew {
 
       // Загружаем файл значка
       const badgePath = path.join(this.basePath, categoryInfo.path, `${badgeId}.json`);
-      
+
       if (!fs.existsSync(badgePath)) {
         console.warn(`⚠️ Файл значка не найден: ${badgePath}`);
         return null;
@@ -162,7 +162,7 @@ export class DataLoaderAIDataNew {
 
       badgesCache.set(badgeId, badgeData);
       loadStats.badgeLoads++;
-      
+
       return badgeData;
     } catch (error) {
       console.error(`❌ Ошибка загрузки значка ${badgeId}:`, error.message);
@@ -183,16 +183,16 @@ export class DataLoaderAIDataNew {
       }
 
       const introductionPath = path.join(this.basePath, categoryInfo.path, 'introduction.md');
-      
+
       if (!fs.existsSync(introductionPath)) {
         return null;
       }
 
       const introduction = fs.readFileSync(introductionPath, 'utf8');
-      
+
       introductionsCache.set(categoryId, introduction);
       loadStats.introductionLoads++;
-      
+
       return introduction;
     } catch (error) {
       console.error(`❌ Ошибка загрузки introduction для категории ${categoryId}:`, error.message);
@@ -207,9 +207,11 @@ export class DataLoaderAIDataNew {
 
     // Сначала ищем в кэше
     for (const [badgeId, badge] of badgesCache) {
-      if (badge.title.toLowerCase().includes(queryLower) ||
-          (badge.description && badge.description.toLowerCase().includes(queryLower)) ||
-          (badge.skillTips && badge.skillTips.toLowerCase().includes(queryLower))) {
+      if (
+        badge.title.toLowerCase().includes(queryLower) ||
+        (badge.description && badge.description.toLowerCase().includes(queryLower)) ||
+        (badge.skillTips && badge.skillTips.toLowerCase().includes(queryLower))
+      ) {
         results.push({ badge, matchType: 'exact', score: 1.0 });
       }
     }
@@ -221,11 +223,13 @@ export class DataLoaderAIDataNew {
         const category = this.getCategory(categoryInfo.id);
         if (category) {
           for (const badge of category.badges) {
-            const existingMatch = results.find(r => r.badge.id === badge.id);
+            const existingMatch = results.find((r) => r.badge.id === badge.id);
             if (!existingMatch) {
-              if (badge.title.toLowerCase().includes(queryLower) ||
-                  (badge.description && badge.description.toLowerCase().includes(queryLower)) ||
-                  (badge.skillTips && badge.skillTips.toLowerCase().includes(queryLower))) {
+              if (
+                badge.title.toLowerCase().includes(queryLower) ||
+                (badge.description && badge.description.toLowerCase().includes(queryLower)) ||
+                (badge.skillTips && badge.skillTips.toLowerCase().includes(queryLower))
+              ) {
                 results.push({ badge, matchType: 'category', score: 0.8 });
               }
             }
@@ -236,7 +240,7 @@ export class DataLoaderAIDataNew {
 
     // Сортировка по релевантности
     results.sort((a, b) => b.score - a.score);
-    
+
     return results.slice(0, 10); // Возвращаем максимум 10 результатов
   }
 
@@ -265,14 +269,14 @@ export class DataLoaderAIDataNew {
   getAllBadges() {
     const allBadges = [];
     const masterIndex = this.getMasterIndex();
-    
+
     for (const categoryInfo of masterIndex.categories || []) {
       const category = this.getCategory(categoryInfo.id);
       if (category) {
         allBadges.push(...category.badges);
       }
     }
-    
+
     return allBadges;
   }
 
@@ -288,7 +292,7 @@ export class DataLoaderAIDataNew {
       ...loadStats,
       cachedCategories: categoriesCache.size,
       cachedBadges: badgesCache.size,
-      cachedIntroductions: introductionsCache.size
+      cachedIntroductions: introductionsCache.size,
     };
   }
 

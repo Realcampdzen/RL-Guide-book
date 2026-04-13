@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import type React from 'react';
+import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { CouncilDashboard } from '../../../components/CouncilDashboard';
-import { type CouncilTabId } from '../../../components/CouncilDashboard';
+import { CouncilDashboard, type CouncilTabId } from '../../../components/CouncilDashboard';
 
 const councilTabItems: Array<{ id: CouncilTabId; label: string; icon: string }> = [
   { id: 'council', label: 'Совет', icon: '👑' },
@@ -33,7 +33,7 @@ export const CouncilContainer: React.FC<CouncilContainerProps> = ({
 
   useEffect(() => {
     setDockRendered(true);
-    
+
     // External tab opener event listener
     const handleOpenTab = (e: Event) => {
       const customEvent = e as CustomEvent;
@@ -45,10 +45,11 @@ export const CouncilContainer: React.FC<CouncilContainerProps> = ({
     return () => window.removeEventListener('profile:openTab', handleOpenTab);
   }, []);
 
-  const dockContainer = dockRendered && variant === 'cabin' ? document.getElementById('profile-dock-container') : null;
+  const dockContainer =
+    dockRendered && variant === 'cabin' ? document.getElementById('profile-dock-container') : null;
 
   // Filter out the 'management' tab if the user cannot moderate
-  const activeTabs = councilTabItems.filter(t => t.id === 'management' ? canModerate : true);
+  const activeTabs = councilTabItems.filter((t) => (t.id === 'management' ? canModerate : true));
 
   return (
     <>
@@ -62,30 +63,38 @@ export const CouncilContainer: React.FC<CouncilContainerProps> = ({
         onSuggestInitiative={onSuggestInitiative}
         canModerate={canModerate}
       />
-      
-      {dockContainer && createPortal(
-        <div className="profile-tabs-nav profile-tabs-nav--docked profile-tabs-nav--council" role="tablist" aria-label="Разделы Совета Лагеря">
-          {activeTabs.map((t) => {
-            const isActive = activeTab === t.id;
-            return (
-              <button
-                key={t.id}
-                id={`council-tab-${t.id}`}
-                type="button"
-                role="tab"
-                aria-selected={isActive}
-                aria-controls="council-tabpanel"
-                data-label={t.label}
-                className={isActive ? 'active' : ''}
-                onClick={() => setActiveTab(t.id)}
-              >
-                <span className="profile-tabs-nav__icon" aria-hidden="true">{t.icon}</span>
-                <span className="profile-tabs-nav__label">{t.label}</span>
-              </button>
-            );
-          })}
-        </div>
-      , dockContainer)}
+
+      {dockContainer &&
+        createPortal(
+          <div
+            className="profile-tabs-nav profile-tabs-nav--docked profile-tabs-nav--council"
+            role="tablist"
+            aria-label="Разделы Совета Лагеря"
+          >
+            {activeTabs.map((t) => {
+              const isActive = activeTab === t.id;
+              return (
+                <button
+                  key={t.id}
+                  id={`council-tab-${t.id}`}
+                  type="button"
+                  role="tab"
+                  aria-selected={isActive}
+                  aria-controls="council-tabpanel"
+                  data-label={t.label}
+                  className={isActive ? 'active' : ''}
+                  onClick={() => setActiveTab(t.id)}
+                >
+                  <span className="profile-tabs-nav__icon" aria-hidden="true">
+                    {t.icon}
+                  </span>
+                  <span className="profile-tabs-nav__label">{t.label}</span>
+                </button>
+              );
+            })}
+          </div>,
+          dockContainer
+        )}
     </>
   );
 };

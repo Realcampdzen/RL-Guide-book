@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 export interface PlanFormBadge {
   id: string;
@@ -12,7 +12,7 @@ export interface PlanFormBadge {
 
 export function usePlannerState(initialDay: number) {
   const [planFormBadge, setPlanFormBadge] = useState<PlanFormBadge | null>(null);
-  
+
   const [planForm, setPlanForm] = useState({
     currentDay: initialDay,
     shiftLength: 21 as 21 | 9,
@@ -20,20 +20,23 @@ export function usePlannerState(initialDay: number) {
     squadPlan3d: '',
     campProgram3d: '',
     priority: 'both',
-    myPlanDraft: ''
+    myPlanDraft: '',
   });
-  
+
   const [planStep, setPlanStep] = useState<'context' | 'structured' | 'result'>('context');
   const [planChecklistItems, setPlanChecklistItems] = useState<string[]>([]);
   const [planBusy, setPlanBusy] = useState(false);
-  const [planResult, setPlanResult] = useState<{ planText: string; checklistItems: string[] } | null>(null);
+  const [planResult, setPlanResult] = useState<{
+    planText: string;
+    checklistItems: string[];
+  } | null>(null);
   const [planError, setPlanError] = useState<string | null>(null);
   const [planApiAvailable, setPlanApiAvailable] = useState<boolean | null>(null);
 
   useEffect(() => {
     (window as any).__openBadgePlan__ = (badgeInfo: PlanFormBadge) => {
       setPlanFormBadge(badgeInfo);
-      setPlanForm(prev => ({ ...prev, currentDay: Math.min(21, Math.max(1, initialDay)) }));
+      setPlanForm((prev) => ({ ...prev, currentDay: Math.min(21, Math.max(1, initialDay)) }));
       setPlanResult(null);
       setPlanError(null);
       setPlanStep('context');
@@ -69,6 +72,6 @@ export function usePlannerState(initialDay: number) {
     setPlanError,
     planApiAvailable,
     setPlanApiAvailable,
-    resetPlanner
+    resetPlanner,
   };
 }

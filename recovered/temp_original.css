@@ -5,7 +5,7 @@
 }
 
 body {
-  font-family: 'Arial', sans-serif;
+  font-family: "Arial", sans-serif;
   background: #000011;
   color: white;
   overflow: hidden;
@@ -29,44 +29,44 @@ html {
   body {
     font-size: 16px; /* Минимальный размер для предотвращения зума на iOS */
   }
-  
+
   /* Улучшаем скролл */
   body {
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
   }
-  
+
   #root {
     overflow-x: hidden;
   }
-  
+
   /* Улучшаем типографику для мобильных */
   .intro-content h1 {
     font-size: 1.8rem !important;
     line-height: 1.2 !important;
     margin-bottom: 1rem !important;
   }
-  
+
   .intro-content p {
     font-size: 0.95rem !important;
     line-height: 1.4 !important;
     margin-bottom: 0.8rem !important;
   }
-  
+
   .philosophy-main {
     font-size: 1.1rem !important;
     margin-bottom: 1rem !important;
   }
-  
+
   .point {
     padding: 0.8rem !important;
     margin-bottom: 0.8rem !important;
   }
-  
+
   .point-icon {
     font-size: 1.3rem !important;
   }
-  
+
   /* Улучшаем заголовки экранов */
   .header h1 {
     font-size: 1.6rem !important;
@@ -77,9 +77,11 @@ html {
     font-weight: 700 !important;
     letter-spacing: 0.04em !important;
     color: #f1fbff !important;
-    text-shadow: 0 0 12px rgba(46, 134, 222, 0.45), 0 0 26px rgba(255, 99, 214, 0.3) !important;
+    text-shadow:
+      0 0 12px rgba(46, 134, 222, 0.45),
+      0 0 26px rgba(255, 99, 214, 0.3) !important;
   }
-  
+
   .header p {
     font-size: 0.8rem !important;
     text-align: center !important;
@@ -93,7 +95,7 @@ html {
     align-items: center !important;
     gap: 0.25rem !important;
   }
-  
+
   /* Нормализуем контейнер заголовка */
   .header {
     padding: 1.5rem !important;
@@ -119,22 +121,22 @@ html {
     position: relative !important;
     z-index: 2 !important;
   }
-  
+
   /* Улучшаем текст карточек */
   .category-text h3 {
     font-size: 0.8rem !important;
     line-height: 1.2 !important;
   }
-  
+
   .category-text p {
     font-size: 0.6rem !important;
   }
-  
+
   .badge-card__title {
     font-size: 0.9rem !important;
     line-height: 1.2 !important;
   }
-  
+
   .badge-card__level {
     font-size: 0.7rem !important;
   }
@@ -252,7 +254,9 @@ html {
     bottom: -36px !important;
     color: #fff7c2 !important;
     text-transform: uppercase !important;
-    text-shadow: 0 0 12px rgba(255, 215, 0, 0.75), 0 0 22px rgba(255, 195, 110, 0.55) !important;
+    text-shadow:
+      0 0 12px rgba(255, 215, 0, 0.75),
+      0 0 22px rgba(255, 195, 110, 0.55) !important;
     filter: drop-shadow(0 0 18px rgba(255, 215, 0, 0.45)) !important;
     animation: logoTaglinePulse 3.6s ease-in-out infinite !important;
   }
@@ -276,7 +280,7 @@ html {
     -webkit-overflow-scrolling: touch !important;
     box-sizing: border-box !important;
   }
-  
+
   /* Адаптируем все основные экраны */
   .intro-screen,
   .categories-screen,
@@ -301,7 +305,7 @@ html {
     align-items: center !important;
     padding: 1rem !important;
   }
-  
+
   /* Адаптируем контейнеры контента */
   .introduction-content,
   .additional-material-content,
@@ -311,12 +315,12 @@ html {
     margin: 0.5rem !important;
     padding: 1rem !important;
   }
-  
+
   /* Логотип крупнее и заметнее */
-    .intro-logo img {
-      width: 180px !important;
-      height: 180px !important;
-    }
+  .intro-logo img {
+    width: 180px !important;
+    height: 180px !important;
+  }
 
   .intro-logo {
     position: static !important; /* Убираем абсолютное позиционирование */
@@ -331,12 +335,14 @@ html {
     bottom: -32px !important;
     color: #fff7c2 !important;
     text-transform: uppercase !important;
-    text-shadow: 0 0 14px rgba(255, 215, 0, 0.8), 0 0 24px rgba(255, 195, 110, 0.6) !important;
+    text-shadow:
+      0 0 14px rgba(255, 215, 0, 0.8),
+      0 0 24px rgba(255, 195, 110, 0.6) !important;
     filter: drop-shadow(0 0 18px rgba(255, 215, 0, 0.5)) !important;
     animation: logoTaglinePulse 3.6s ease-in-out infinite !important;
     opacity: 1 !important;
   }
-  
+
   /* ГЕНИАЛЬНОЕ РЕШЕНИЕ: Контент использует всю ширину без перекрытий */
   .intro-content {
     flex: 1 !important; /* Занимает оставшееся пространство */
@@ -348,26 +354,26 @@ html {
     overflow-y: auto !important; /* Скролл если нужно */
     -webkit-overflow-scrolling: touch !important;
   }
-  
+
   /* Уменьшаем заголовок */
   .intro-content h1 {
     font-size: 1.5rem !important;
     line-height: 1.3 !important;
   }
-  
+
   /* Уменьшаем текст */
   .intro-content p {
     font-size: 0.9rem !important;
     line-height: 1.4 !important;
   }
-  
+
   /* Кнопка на всю ширину */
   .start-button {
     width: 100% !important;
     max-width: 280px !important;
     min-height: 44px !important;
   }
-  
+
   /* Сетки в одну колонку */
   .categories-grid,
   .badges-grid {
@@ -380,7 +386,7 @@ html {
     align-items: center !important; /* Центрируем элементы по вертикали */
     justify-content: center !important; /* Центрируем сетку по горизонтали */
   }
-  
+
   /* Адаптируем карточки категорий */
   .category-card {
     min-width: 60px !important;
@@ -388,28 +394,28 @@ html {
     max-width: 80px !important;
     max-height: 80px !important;
   }
-  
+
   /* Адаптируем карточки значков */
   .badge-card {
     min-width: 140px !important;
     max-width: 160px !important;
   }
-  
+
   .badge-card__icon {
     width: 60px !important;
     height: 60px !important;
   }
-  
+
   .badge-emoji {
     font-size: 2.5rem !important;
   }
-  
+
   /* Кнопки навигации */
   .back-button {
     min-height: 44px !important;
     padding: 0.6rem 1rem !important;
   }
-  
+
   /* ChatButton адаптация */
   .chat-button {
     bottom: 16px !important;
@@ -419,7 +425,7 @@ html {
     width: auto !important;
     max-width: 200px !important;
   }
-  
+
   /* ChatBot адаптация */
   .chatbot-container {
     width: 100% !important;
@@ -427,26 +433,26 @@ html {
     height: 80vh !important;
     border-radius: 20px 20px 0 0 !important;
   }
-  
+
   /* Изображения адаптивные */
   img {
     max-width: 100% !important;
     height: auto !important;
   }
-  
+
   /* Адаптируем фоновые изображения экранов */
   .intro-screen {
     background-size: cover !important;
     background-position: center center !important;
     background-attachment: scroll !important;
   }
-  
+
   .categories-screen {
     background-size: cover !important;
     background-position: center center !important;
     background-attachment: scroll !important;
   }
-  
+
   .category-screen,
   .badge-screen,
   .badge-level-screen {
@@ -454,7 +460,7 @@ html {
     background-position: center top !important;
     background-attachment: scroll !important;
   }
-  
+
   .introduction-screen,
   .additional-material-screen,
   .about-camp-screen,
@@ -463,7 +469,7 @@ html {
     background-position: center center !important;
     background-attachment: scroll !important;
   }
-  
+
   /* Иконки категорий */
   .category-1-icon,
   .category-2-icon,
@@ -499,7 +505,7 @@ html {
     margin: 0 1.5rem !important;
     box-sizing: border-box !important;
   }
-  
+
   /* ГЕНИАЛЬНОЕ РЕШЕНИЕ для планшетов: АДАПТИВНЫЙ СТЕК */
   .intro-screen {
     display: flex !important;
@@ -508,36 +514,38 @@ html {
     padding: 1.5rem !important;
   }
 
-    .intro-logo {
-      position: static !important; /* Убираем абсолютное позиционирование */
-      margin-bottom: 3rem !important; /* Больше пространства под сияющую надпись */
-      transform: scale(1.1) !important; /* Немного увеличиваем */
-      order: 1 !important; /* Логотип сверху */
-    }
+  .intro-logo {
+    position: static !important; /* Убираем абсолютное позиционирование */
+    margin-bottom: 3rem !important; /* Больше пространства под сияющую надпись */
+    transform: scale(1.1) !important; /* Немного увеличиваем */
+    order: 1 !important; /* Логотип сверху */
+  }
 
-    .intro-logo .logo-hover-text {
-      font-size: 1rem !important;
-      letter-spacing: 0.16rem !important;
-      bottom: -36px !important;
-      color: #fff7c2 !important;
-      text-transform: uppercase !important;
-      text-shadow: 0 0 16px rgba(255, 215, 0, 0.8), 0 0 28px rgba(255, 195, 110, 0.6) !important;
-      filter: drop-shadow(0 0 22px rgba(255, 215, 0, 0.55)) !important;
-      animation: logoTaglinePulse 3.6s ease-in-out infinite !important;
-      opacity: 1 !important;
-    }
+  .intro-logo .logo-hover-text {
+    font-size: 1rem !important;
+    letter-spacing: 0.16rem !important;
+    bottom: -36px !important;
+    color: #fff7c2 !important;
+    text-transform: uppercase !important;
+    text-shadow:
+      0 0 16px rgba(255, 215, 0, 0.8),
+      0 0 28px rgba(255, 195, 110, 0.6) !important;
+    filter: drop-shadow(0 0 22px rgba(255, 215, 0, 0.55)) !important;
+    animation: logoTaglinePulse 3.6s ease-in-out infinite !important;
+    opacity: 1 !important;
+  }
 
-    .intro-content {
-      flex: 1 !important; /* Занимает оставшееся пространство */
-      margin: 0 !important; /* Убираем все отступы */
-      padding: 1.6rem 1.25rem 1.25rem !important; /* Дополнительный отступ сверху под лозунг */
-      max-width: 100% !important; /* Полная ширина */
-      max-height: calc(100vh - 300px) !important; /* Высота с учетом увеличенного логотипа */
-      order: 2 !important; /* Контент снизу */
-      overflow-y: auto !important; /* Скролл если нужно */
-      -webkit-overflow-scrolling: touch !important;
-    }
-  
+  .intro-content {
+    flex: 1 !important; /* Занимает оставшееся пространство */
+    margin: 0 !important; /* Убираем все отступы */
+    padding: 1.6rem 1.25rem 1.25rem !important; /* Дополнительный отступ сверху под лозунг */
+    max-width: 100% !important; /* Полная ширина */
+    max-height: calc(100vh - 300px) !important; /* Высота с учетом увеличенного логотипа */
+    order: 2 !important; /* Контент снизу */
+    overflow-y: auto !important; /* Скролл если нужно */
+    -webkit-overflow-scrolling: touch !important;
+  }
+
   /* Улучшаем заголовки для планшетов */
   .header {
     padding: 2rem !important;
@@ -546,53 +554,53 @@ html {
     background-size: 160% !important; /* Увеличиваем масштаб для планшетов */
     margin: -1.5rem -3rem 2rem -3rem !important; /* Выводим за рамки экрана */
   }
-  
+
   /* Центрируем элементы для планшетов */
   .categories-grid,
   .badges-grid {
     align-items: center !important;
     justify-content: center !important;
   }
-  
+
   /* ChatButton для планшетов */
   .chat-button {
     max-width: 250px !important;
     right: 20px !important;
     left: auto !important;
   }
-  
+
   .categories-grid {
     grid-template-columns: repeat(2, 1fr) !important;
     gap: 1.5rem !important;
   }
-  
+
   .badges-grid {
     grid-template-columns: repeat(2, 1fr) !important;
     gap: 1.5rem !important;
   }
-  
+
   .category-card {
     min-width: 70px !important;
     min-height: 70px !important;
     max-width: 90px !important;
     max-height: 90px !important;
   }
-  
+
   .badge-card {
     min-width: 160px !important;
     max-width: 180px !important;
   }
-  
+
   .badge-card__icon {
     width: 70px !important;
     height: 70px !important;
   }
-  
+
   .chatbot-container {
     width: 90vw !important;
     max-width: 500px !important;
   }
-  
+
   /* Адаптируем контейнеры контента для планшетов */
   .introduction-content,
   .additional-material-content,
@@ -632,12 +640,17 @@ html {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes neonPulse {
-  0%, 100% {
+  0%,
+  100% {
     text-shadow:
       0 0 10px rgba(59, 173, 255, 0.45),
       0 0 24px rgba(142, 68, 255, 0.4),
@@ -652,7 +665,8 @@ html {
 }
 
 @keyframes logoTaglinePulse {
-  0%, 100% {
+  0%,
+  100% {
     text-shadow:
       0 0 12px rgba(255, 215, 0, 0.75),
       0 0 24px rgba(255, 190, 80, 0.55),
@@ -676,8 +690,8 @@ html {
 }
 
 .heading-gold {
-  color: #FFD700;
-  text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+  color: #ffd700;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
   font-weight: bold;
 }
 
@@ -696,11 +710,16 @@ html {
 }
 
 .heading-neon::after {
-  content: '';
+  content: "";
   position: absolute;
   inset: -6px -12px;
   border-radius: 12px;
-  background: radial-gradient(circle, rgba(59, 173, 255, 0.22) 0%, rgba(255, 99, 214, 0.16) 55%, transparent 100%);
+  background: radial-gradient(
+    circle,
+    rgba(59, 173, 255, 0.22) 0%,
+    rgba(255, 99, 214, 0.16) 55%,
+    transparent 100%
+  );
   filter: blur(6px);
   opacity: 0.6;
   pointer-events: none;
@@ -708,10 +727,14 @@ html {
 }
 
 .subtitle-orange {
-  color: #FFA500;
-  text-shadow: 1px 1px 2px rgba(0,0,0,0.6);
+  color: #ffa500;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.6);
   font-weight: 600;
 }
 
-.pre-wrap { white-space: pre-wrap; }
-.cursor-pointer { cursor: pointer; }
+.pre-wrap {
+  white-space: pre-wrap;
+}
+.cursor-pointer {
+  cursor: pointer;
+}

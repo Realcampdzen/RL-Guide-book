@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import type React from 'react';
+import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { SmartHint } from '../components/SmartHint';
 import { lockScroll, unlockScroll } from '../utils/scrollLock';
 
@@ -12,7 +13,10 @@ export interface HintStep {
 
 interface HintOverlayContextType {
   showHint: (step: HintStep) => void;
-  startTutorial: (steps: HintStep[], options?: { onComplete?: () => void; onStepChange?: (stepIdx: number) => void }) => void;
+  startTutorial: (
+    steps: HintStep[],
+    options?: { onComplete?: () => void; onStepChange?: (stepIdx: number) => void }
+  ) => void;
   hideHint: () => void;
   isHintActive: boolean;
 }
@@ -32,52 +36,68 @@ export const HintOverlayProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const [currentStepIdx, setCurrentStepIdx] = useState(-1);
   const [isOpen, setIsOpen] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
-  
+
   const [onCompleteCallback, setOnCompleteCallback] = useState<(() => void) | undefined>(undefined);
-  const [onStepChangeCallback, setOnStepChangeCallback] = useState<((stepIdx: number) => void) | undefined>(undefined);
+  const [onStepChangeCallback, setOnStepChangeCallback] = useState<
+    ((stepIdx: number) => void) | undefined
+  >(undefined);
 
-  const performStepChange = useCallback(async (idx: number, steps: HintStep[]) => {
-    const step = steps[idx];
-    if (!step) return;
-    
-    setIsTransitioning(true);
-    setCurrentStepIdx(idx);
+  const performStepChange = useCallback(
+    async (idx: number, steps: HintStep[]) => {
+      const step = steps[idx];
+      if (!step) return;
 
-    if (step.beforeAction) {
-      try {
-        await step.beforeAction();
-      } catch (e) {
-        console.error('HintStep beforeAction failed:', e);
+      setIsTransitioning(true);
+      setCurrentStepIdx(idx);
+
+      if (step.beforeAction) {
+        try {
+          await step.beforeAction();
+        } catch (e) {
+          console.error('HintStep beforeAction failed:', e);
+        }
       }
-    }
 
-    if (step.delayBeforeMeasure || step.beforeAction) {
-      setTimeout(() => {
+      if (step.delayBeforeMeasure || step.beforeAction) {
+        setTimeout(() => {
+          setIsTransitioning(false);
+          if (onStepChangeCallback) onStepChangeCallback(idx);
+        }, step.delayBeforeMeasure ?? 300);
+      } else {
         setIsTransitioning(false);
         if (onStepChangeCallback) onStepChangeCallback(idx);
-      }, step.delayBeforeMeasure ?? 300);
-    } else {
-      setIsTransitioning(false);
-      if (onStepChangeCallback) onStepChangeCallback(idx);
-    }
-  }, [onStepChangeCallback]);
+      }
+    },
+    [onStepChangeCallback]
+  );
 
-  const showHint = useCallback((step: HintStep) => {
-    setCurrentSteps([step]);
-    setIsOpen(true);
-    setOnCompleteCallback(undefined);
-    setOnStepChangeCallback(undefined);
-    void performStepChange(0, [step]);
-  }, [performStepChange]);
+  const showHint = useCallback(
+    (step: HintStep) => {
+      setCurrentSteps([step]);
+      setIsOpen(true);
+      setOnCompleteCallback(undefined);
+      setOnStepChangeCallback(undefined);
+      void performStepChange(0, [step]);
+    },
+    [performStepChange]
+  );
 
-  const startTutorial = useCallback((steps: HintStep[], options?: { onComplete?: () => void; onStepChange?: (stepIdx: number) => void }) => {
-    if (!steps || steps.length === 0) return;
-    setCurrentSteps(steps);
-    setIsOpen(true);
-    setOnCompleteCallback(options?.onComplete ? () => options.onComplete!() : undefined);
-    setOnStepChangeCallback(options?.onStepChange ? (idx: number) => options.onStepChange!(idx) : undefined);
-    void performStepChange(0, steps);
-  }, [performStepChange]);
+  const startTutorial = useCallback(
+    (
+      steps: HintStep[],
+      options?: { onComplete?: () => void; onStepChange?: (stepIdx: number) => void }
+    ) => {
+      if (!steps || steps.length === 0) return;
+      setCurrentSteps(steps);
+      setIsOpen(true);
+      setOnCompleteCallback(options?.onComplete ? () => options.onComplete!() : undefined);
+      setOnStepChangeCallback(
+        options?.onStepChange ? (idx: number) => options.onStepChange!(idx) : undefined
+      );
+      void performStepChange(0, steps);
+    },
+    [performStepChange]
+  );
 
   const hideHint = useCallback(() => {
     setIsOpen(false);
@@ -122,7 +142,9 @@ export const HintOverlayProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const activeStep = currentStepIdx >= 0 ? currentSteps[currentStepIdx] : null;
 
   return (
-    <HintOverlayContext.Provider value={{ showHint, startTutorial, hideHint, isHintActive: isOpen }}>
+    <HintOverlayContext.Provider
+      value={{ showHint, startTutorial, hideHint, isHintActive: isOpen }}
+    >
       {children}
       {activeStep && !isTransitioning && (
         <SmartHint
@@ -133,7 +155,11 @@ export const HintOverlayProvider: React.FC<{ children: React.ReactNode }> = ({ c
           targetSelector={activeStep.targetSelector}
           step={currentStepIdx + 1}
           totalSteps={currentSteps.length > 1 ? currentSteps.length : undefined}
-          onNext={currentSteps.length > 1 || currentStepIdx < currentSteps.length - 1 ? handleNext : undefined}
+          onNext={
+            currentSteps.length > 1 || currentStepIdx < currentSteps.length - 1
+              ? handleNext
+              : undefined
+          }
           onPrev={currentStepIdx > 0 ? handlePrev : undefined}
         />
       )}

@@ -1,5 +1,11 @@
 import { useCallback, useState } from 'react';
-import type { AdditionalMaterial, Badge, Category, RegistrationFormData, View } from '../types/guide';
+import type {
+  AdditionalMaterial,
+  Badge,
+  Category,
+  RegistrationFormData,
+  View,
+} from '../types/guide';
 
 type UseNavigationArgs = {
   categories: Category[];
@@ -16,7 +22,8 @@ export const useNavigation = ({ categories }: UseNavigationArgs) => {
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   const [selectedBadge, setSelectedBadge] = useState<Badge | null>(null);
   const [selectedLevel, setSelectedLevel] = useState<string>('');
-  const [selectedAdditionalMaterial, setSelectedAdditionalMaterial] = useState<AdditionalMaterial | null>(null);
+  const [selectedAdditionalMaterial, setSelectedAdditionalMaterial] =
+    useState<AdditionalMaterial | null>(null);
   const [badgeBackTarget, setBadgeBackTarget] = useState<View>('category');
   const [formData, setFormData] = useState<RegistrationFormData>({
     childName: '',
@@ -44,14 +51,17 @@ export const useNavigation = ({ categories }: UseNavigationArgs) => {
     setCategoryBackTarget(origin);
   }, []);
 
-  const handleBadgeClick = useCallback((badge: Badge, options?: { origin?: View }) => {
-    setBadgeBackTarget(options?.origin === 'profile' ? 'profile' : 'category');
-    const cat = categories.find((c) => c.id === badge.category_id);
-    if (cat) setSelectedCategory(cat);
-    setSelectedBadge(badge);
-    setCurrentView('badge');
-    setSelectedLevel('');
-  }, [categories]);
+  const handleBadgeClick = useCallback(
+    (badge: Badge, options?: { origin?: View }) => {
+      setBadgeBackTarget(options?.origin === 'profile' ? 'profile' : 'category');
+      const cat = categories.find((c) => c.id === badge.category_id);
+      if (cat) setSelectedCategory(cat);
+      setSelectedBadge(badge);
+      setCurrentView('badge');
+      setSelectedLevel('');
+    },
+    [categories]
+  );
 
   const handleLevelClick = useCallback((level: string) => {
     setSelectedLevel(level);
@@ -91,7 +101,7 @@ export const useNavigation = ({ categories }: UseNavigationArgs) => {
     // Проверяем, пришли ли мы с HTML страницы
     const referrer = document.referrer;
     const isFromHTML = referrer.includes('bluenest.html') || referrer.includes('categories.html');
-    
+
     if (isFromHTML) {
       // Возвращаем на стартовую HTML страницу
       window.location.href = 'bluenest.html';

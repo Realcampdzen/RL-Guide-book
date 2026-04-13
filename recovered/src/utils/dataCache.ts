@@ -36,7 +36,10 @@ export const readAiDataCache = (version: string): AiDataCache | null => {
   }
 };
 
-export const writeAiDataCache = (version: string, payload: { categories: Category[]; badges: Badge[] }): void => {
+export const writeAiDataCache = (
+  version: string,
+  payload: { categories: Category[]; badges: Badge[] }
+): void => {
   if (!isStorageAvailable()) return;
   try {
     const loadedCategoryIds = Array.from(

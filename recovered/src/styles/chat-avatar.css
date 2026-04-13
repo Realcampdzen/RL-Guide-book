@@ -56,7 +56,12 @@
   width: calc(100% + 8px);
   height: calc(100% + 8px);
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(168, 85, 247, 0.8) 0%, rgba(192, 132, 252, 0.8) 50%, rgba(217, 70, 239, 0.8) 100%);
+  background: radial-gradient(
+    circle,
+    rgba(168, 85, 247, 0.8) 0%,
+    rgba(192, 132, 252, 0.8) 50%,
+    rgba(217, 70, 239, 0.8) 100%
+  );
   filter: blur(8px);
   opacity: 0.7;
   transition: opacity 0.3s ease;
@@ -76,14 +81,18 @@
   height: calc(100% + 4px);
   border-radius: 50%;
   border: 3px solid rgba(168, 85, 247, 0.9);
-  box-shadow: 0 0 15px rgba(168, 85, 247, 0.6), 0 0 30px rgba(192, 132, 252, 0.3);
+  box-shadow:
+    0 0 15px rgba(168, 85, 247, 0.6),
+    0 0 30px rgba(192, 132, 252, 0.3);
   transition: all 0.3s ease;
   pointer-events: none;
 }
 
 .chat-avatar-button.is-open .chat-avatar-ring {
   border-color: rgba(217, 70, 239, 1);
-  box-shadow: 0 0 20px rgba(217, 70, 239, 0.8), 0 0 40px rgba(217, 70, 239, 0.4);
+  box-shadow:
+    0 0 20px rgba(217, 70, 239, 0.8),
+    0 0 40px rgba(217, 70, 239, 0.4);
 }
 
 /* Изображение аватара */

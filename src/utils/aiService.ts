@@ -1,5 +1,12 @@
 export interface AiSloganContext {
-  kind: 'start_route' | 'route_manifest_challenge' | 'achieved_level' | 'favorite' | 'progress_summary' | 'progress_callout' | 'stories_reels_meme';
+  kind:
+    | 'start_route'
+    | 'route_manifest_challenge'
+    | 'achieved_level'
+    | 'favorite'
+    | 'progress_summary'
+    | 'progress_callout'
+    | 'stories_reels_meme';
   badgeTitle?: string;
   levelLabel?: string;
   rank?: string;
@@ -14,8 +21,8 @@ export interface AiSloganContext {
   favoriteBadgeTitles?: string[];
 }
 
-import { loadAuthStorage, fireOn401 } from './authStorage';
 import { canUseChat } from '../types/authRole';
+import { fireOn401, loadAuthStorage } from './authStorage';
 
 function getChatHeaders(chatbotUrl: string): Record<string, string> {
   const h: Record<string, string> = { 'Content-Type': 'application/json' };
@@ -57,20 +64,40 @@ export const fetchAiSlogan = async (ctx: AiSloganContext): Promise<AiSloganResul
   const prompt = (() => {
     switch (ctx.kind) {
       case 'start_route':
-        return import.meta.env.VITE_PROMPT_START_ROUTE || `Ты — НейроВалюша, ИИ-проводник Реального Лагеря с реальнолагерным вайбом. Придумай ОДНУ КОРОТКУЮ (до 10 слов) вдохновляющую фразу о том, что игрок выбрал маршрут к значку "${ctx.badgeTitle}". Используй лагерный сленг, космические метафоры (звёзды, путь, орбита) или обращение "Бро". Без кавычек.`;
+        return (
+          import.meta.env.VITE_PROMPT_START_ROUTE ||
+          `Ты — НейроВалюша, ИИ-проводник Реального Лагеря с реальнолагерным вайбом. Придумай ОДНУ КОРОТКУЮ (до 10 слов) вдохновляющую фразу о том, что игрок выбрал маршрут к значку "${ctx.badgeTitle}". Используй лагерный сленг, космические метафоры (звёзды, путь, орбита) или обращение "Бро". Без кавычек.`
+        );
       case 'route_manifest_challenge':
-        return import.meta.env.VITE_PROMPT_MANIFEST || `Ты — НейроВалюша. Игрок выбрал маршрут к значку "${ctx.badgeTitle || 'новый значок'}". Придумай ОДНО короткое конкретное задание на сегодня (вызов), один шаг по пути к этому значку, до 10 слов. Тон: лагерный вайб, можно "Бро". Без кавычек.`;
+        return (
+          import.meta.env.VITE_PROMPT_MANIFEST ||
+          `Ты — НейроВалюша. Игрок выбрал маршрут к значку "${ctx.badgeTitle || 'новый значок'}". Придумай ОДНО короткое конкретное задание на сегодня (вызов), один шаг по пути к этому значку, до 10 слов. Тон: лагерный вайб, можно "Бро". Без кавычек.`
+        );
       case 'achieved_level':
-        return import.meta.env.VITE_PROMPT_ACHIEVED || `Ты — НейроВалюша с лагерным вайбом. Придумай ОДНУ КОРОТКУЮ (до 10 слов) победную или мемную фразу о том, что уровень "${ctx.levelLabel}" значка "${ctx.badgeTitle}" выполнен. Можно с космической метафорой или "Бро". Без кавычек.`;
+        return (
+          import.meta.env.VITE_PROMPT_ACHIEVED ||
+          `Ты — НейроВалюша с лагерным вайбом. Придумай ОДНУ КОРОТКУЮ (до 10 слов) победную или мемную фразу о том, что уровень "${ctx.levelLabel}" значка "${ctx.badgeTitle}" выполнен. Можно с космической метафорой или "Бро". Без кавычек.`
+        );
       case 'favorite':
-        return import.meta.env.VITE_PROMPT_FAVORITE || `Ты — НейроВалюша. Придумай ОДНУ КОРОТКУЮ (до 10 слов) фразу о том, что значок "${ctx.badgeTitle}" теперь в избранном — мечта и цель, можно с вайбом или "Бро". Без кавычек.`;
+        return (
+          import.meta.env.VITE_PROMPT_FAVORITE ||
+          `Ты — НейроВалюша. Придумай ОДНУ КОРОТКУЮ (до 10 слов) фразу о том, что значок "${ctx.badgeTitle}" теперь в избранном — мечта и цель, можно с вайбом или "Бро". Без кавычек.`
+        );
       case 'progress_summary': {
         const achieved = ctx.totalLevelsAchieved ?? 0;
         const started = ctx.totalBadgesStarted ?? 0;
-        const inPath = (ctx.badgeTitlesInPath && ctx.badgeTitlesInPath.length > 0) ? ctx.badgeTitlesInPath.join(', ') : 'пока нет';
-        const inFav = (ctx.favoriteBadgeTitles && ctx.favoriteBadgeTitles.length > 0) ? ctx.favoriteBadgeTitles.join(', ') : 'пока нет';
-        
-        const template = import.meta.env.VITE_PROMPT_SUMMARY || `Ты — НейроВалюша, голос Путеводителя Реального Лагеря (педагогика, маршруты развития, рост). Контекст: игрок {{nickname}}, ранг {{rank}}, закрыто уровней {{achieved}}, в пути значков {{started}}. Значки в пути: {{inPath}}. В избранном: {{inFav}}. Учитывай направление и приоритеты (какие сферы/темы выбраны), можно обыграть в слогане.
+        const inPath =
+          ctx.badgeTitlesInPath && ctx.badgeTitlesInPath.length > 0
+            ? ctx.badgeTitlesInPath.join(', ')
+            : 'пока нет';
+        const inFav =
+          ctx.favoriteBadgeTitles && ctx.favoriteBadgeTitles.length > 0
+            ? ctx.favoriteBadgeTitles.join(', ')
+            : 'пока нет';
+
+        const template =
+          import.meta.env.VITE_PROMPT_SUMMARY ||
+          `Ты — НейроВалюша, голос Путеводителя Реального Лагеря (педагогика, маршруты развития, рост). Контекст: игрок {{nickname}}, ранг {{rank}}, закрыто уровней {{achieved}}, в пути значков {{started}}. Значки в пути: {{inPath}}. В избранном: {{inFav}}. Учитывай направление и приоритеты (какие сферы/темы выбраны), можно обыграть в слогане.
 
 Верни ровно ДВЕ строки через вертикальную черту (|), без кавычек.
 1) Первая строка — слоган для карточки (до 10–12 слов): тон поддерживающий, реальнолагерный вайб, лагерный сленг или космические метафоры (звёзды, орбита, маршрут), можно "Бро". Без соревнования и призывов "обойти" или "кто больше".
@@ -88,7 +115,9 @@ export const fetchAiSlogan = async (ctx: AiSloganContext): Promise<AiSloganResul
       case 'progress_callout': {
         const achieved = ctx.totalLevelsAchieved ?? 0;
         const started = ctx.totalBadgesStarted ?? 0;
-        const template = import.meta.env.VITE_PROMPT_CALLOUT || `Ты — НейроВалюша, голос Путеводителя Реального Лагеря. Нужна ОДНА короткая строка (до 6–8 слов) для подписи под карточкой прогресса. Контекст: игрок {{nickname}}, ранг {{rank}}, закрыто уровней {{achieved}}, в пути значков {{started}}. Требования: лёгкий юмор, педагогический тон, лагерный вайб. Не повторяй формулировку «N уровней закрыто, M в пути» — интерпретируй прогресс по-другому (например: «Три значка в пути — выбор сделан», «Стартуем: есть куда расти», «Участник на маршруте»). Без кавычек.`;
+        const template =
+          import.meta.env.VITE_PROMPT_CALLOUT ||
+          `Ты — НейроВалюша, голос Путеводителя Реального Лагеря. Нужна ОДНА короткая строка (до 6–8 слов) для подписи под карточкой прогресса. Контекст: игрок {{nickname}}, ранг {{rank}}, закрыто уровней {{achieved}}, в пути значков {{started}}. Требования: лёгкий юмор, педагогический тон, лагерный вайб. Не повторяй формулировку «N уровней закрыто, M в пути» — интерпретируй прогресс по-другому (например: «Три значка в пути — выбор сделан», «Стартуем: есть куда расти», «Участник на маршруте»). Без кавычек.`;
         return template
           .replace('{{nickname}}', ctx.nickname || 'Искатель')
           .replace('{{rank}}', ctx.rank || 'в пути')
@@ -98,7 +127,9 @@ export const fetchAiSlogan = async (ctx: AiSloganContext): Promise<AiSloganResul
       case 'stories_reels_meme': {
         const achieved = ctx.totalLevelsAchieved ?? 0;
         const started = ctx.totalBadgesStarted ?? 0;
-        const template = import.meta.env.VITE_PROMPT_STORIES || `Ты — НейроВалюша с мемным тоном для сторис и рилсов. Контекст: игрок {{nickname}}, ранг {{rank}}, закрыто уровней {{achieved}}, в пути значков {{started}}.
+        const template =
+          import.meta.env.VITE_PROMPT_STORIES ||
+          `Ты — НейроВалюша с мемным тоном для сторис и рилсов. Контекст: игрок {{nickname}}, ранг {{rank}}, закрыто уровней {{achieved}}, в пути значков {{started}}.
 
 Придумай ОДНУ короткую фразу (6–10 слов) в стиле сторис/рилсов. Разрешённые форматы: «когда…», «пока все… а я…», «этот момент когда», «я и мои N уровней» и подобные. Лагерный/космический вайб, можно «Бро». Ответ — одна строка, без кавычек.`;
         return template
@@ -119,7 +150,7 @@ export const fetchAiSlogan = async (ctx: AiSloganContext): Promise<AiSloganResul
       body: JSON.stringify({
         message: prompt,
         user_id: 'social_gen',
-        context: { is_social_prompt: true }
+        context: { is_social_prompt: true },
       }),
     });
 
@@ -154,27 +185,26 @@ export type Pedagogy4kInput = {
   nickname?: string;
 };
 
-export const fetchPedagogy4k = async (
-  input: Pedagogy4kInput
-): Promise<string | null> => {
+export const fetchPedagogy4k = async (input: Pedagogy4kInput): Promise<string | null> => {
   if (shouldSkipAiCall()) return null;
   const hostname = window.location.hostname;
-  const useLocalApi =
-    import.meta.env.DEV ||
-    hostname === 'localhost' ||
-    hostname === '127.0.0.1';
+  const useLocalApi = import.meta.env.DEV || hostname === 'localhost' || hostname === '127.0.0.1';
   const chatbotUrl = useLocalApi
     ? '/api/chat'
     : 'https://real-vibe-ai-studio.pages.dev/api/putevoditel/chat';
 
-  const inPath = (input.badgeTitlesInPath && input.badgeTitlesInPath.length > 0)
-    ? input.badgeTitlesInPath.join(', ')
-    : 'пока нет';
-  const inFav = (input.favoriteBadgeTitles && input.favoriteBadgeTitles.length > 0)
-    ? input.favoriteBadgeTitles.join(', ')
-    : 'пока нет';
+  const inPath =
+    input.badgeTitlesInPath && input.badgeTitlesInPath.length > 0
+      ? input.badgeTitlesInPath.join(', ')
+      : 'пока нет';
+  const inFav =
+    input.favoriteBadgeTitles && input.favoriteBadgeTitles.length > 0
+      ? input.favoriteBadgeTitles.join(', ')
+      : 'пока нет';
 
-  const template = import.meta.env.VITE_PROMPT_PEDAGOGY_4K || `Ты — НейроВалюша, голос Путеводителя Реального Лагеря с опорой на педагогику и 4К-навыки (критическое мышление, креативность, коммуникация, коллаборация).
+  const template =
+    import.meta.env.VITE_PROMPT_PEDAGOGY_4K ||
+    `Ты — НейроВалюша, голос Путеводителя Реального Лагеря с опорой на педагогику и 4К-навыки (критическое мышление, креативность, коммуникация, коллаборация).
 
 Контекст: игрок {{nickname}}, ранг {{rank}}. Значки в пути: {{inPath}}. В избранном: {{inFav}}.
 
@@ -244,7 +274,9 @@ export type VibeCheckResult = {
   stat_buff: string;
 };
 
-const VIBE_CHECK_SYSTEM = import.meta.env.VITE_PROMPT_VIBE_SYSTEM || `Ты — генератор вирусных подписей для приложения детского лагеря "Реальный Лагерь". Твоя целевая аудитория — подростки (Gen Z и Gen Alpha). Твоя задача — взять серьезное описание значка или прогресса и превратить его в смешной, жизненный или мемный мини-контент для сторис.
+const VIBE_CHECK_SYSTEM =
+  import.meta.env.VITE_PROMPT_VIBE_SYSTEM ||
+  `Ты — генератор вирусных подписей для приложения детского лагеря "Реальный Лагерь". Твоя целевая аудитория — подростки (Gen Z и Gen Alpha). Твоя задача — взять серьезное описание значка или прогресса и превратить его в смешной, жизненный или мемный мини-контент для сторис.
 
 ТЫ ИСПОЛЬЗУЕШЬ СЛЕНГ: вайб, краш, кринж (аккуратно), имба, соло, база, POV, тюбик, масик, чечик, сигма, рил, жиза, ачивка, aura points.
 
@@ -259,28 +291,29 @@ const VIBE_CHECK_SYSTEM = import.meta.env.VITE_PROMPT_VIBE_SYSTEM || `Ты — �
 - Не используй длинные предложения.`;
 
 const trimField = (s: string, max: number): string =>
-  String(s || '').trim().slice(0, max);
+  String(s || '')
+    .trim()
+    .slice(0, max);
 
-export const fetchVibeCheck = async (
-  input: VibeCheckInput
-): Promise<VibeCheckResult | null> => {
+export const fetchVibeCheck = async (input: VibeCheckInput): Promise<VibeCheckResult | null> => {
   if (shouldSkipAiCall()) return null;
   const hostname = window.location.hostname;
-  const useLocalApi =
-    import.meta.env.DEV ||
-    hostname === 'localhost' ||
-    hostname === '127.0.0.1';
+  const useLocalApi = import.meta.env.DEV || hostname === 'localhost' || hostname === '127.0.0.1';
   const chatbotUrl = useLocalApi
     ? '/api/chat'
     : 'https://real-vibe-ai-studio.pages.dev/api/putevoditel/chat';
 
-  const badgeTemplate = import.meta.env.VITE_PROMPT_VIBE_BADGE || `Название значка: {{badgeTitle}}
+  const badgeTemplate =
+    import.meta.env.VITE_PROMPT_VIBE_BADGE ||
+    `Название значка: {{badgeTitle}}
 Категория: {{categoryTitle}}
 Описание: {{description}}
 
 Сгенерируй мемный контент для этого значка. Ответь ТОЛЬКО валидным JSON в одну строку: {"meme_header":"...","meme_text":"...","stat_buff":"..."}`;
 
-  const profileTemplate = import.meta.env.VITE_PROMPT_VIBE_PROFILE || `Прогресс игрока в Путеводителе: ник {{nickname}}, ранг {{rank}}, закрыто уровней {{achieved}}, в пути значков {{started}}. Значки в пути: {{inPath}}. В избранном: {{inFav}}.
+  const profileTemplate =
+    import.meta.env.VITE_PROMPT_VIBE_PROFILE ||
+    `Прогресс игрока в Путеводителе: ник {{nickname}}, ранг {{rank}}, закрыто уровней {{achieved}}, в пути значков {{started}}. Значки в пути: {{inPath}}. В избранном: {{inFav}}.
 
 Сгенерируй мемный контент для карточки прогресса. Комментарий в meme_header / meme_text / stat_buff должен отражать направление и приоритеты человека по этим значкам (темы, сферы, «вайб» выбора), а не только ранг и цифры. Ответь ТОЛЬКО валидным JSON в одну строку: {"meme_header":"...","meme_text":"...","stat_buff":"..."}`;
 
@@ -295,8 +328,18 @@ export const fetchVibeCheck = async (
           .replace('{{rank}}', input.rank || 'в пути')
           .replace('{{achieved}}', String(input.totalLevelsAchieved ?? 0))
           .replace('{{started}}', String(input.totalBadgesStarted ?? 0))
-          .replace('{{inPath}}', (input.badgeTitlesInPath && input.badgeTitlesInPath.length > 0) ? input.badgeTitlesInPath.join(', ') : 'пока нет')
-          .replace('{{inFav}}', (input.favoriteBadgeTitles && input.favoriteBadgeTitles.length > 0) ? input.favoriteBadgeTitles.join(', ') : 'пока нет');
+          .replace(
+            '{{inPath}}',
+            input.badgeTitlesInPath && input.badgeTitlesInPath.length > 0
+              ? input.badgeTitlesInPath.join(', ')
+              : 'пока нет'
+          )
+          .replace(
+            '{{inFav}}',
+            input.favoriteBadgeTitles && input.favoriteBadgeTitles.length > 0
+              ? input.favoriteBadgeTitles.join(', ')
+              : 'пока нет'
+          );
 
   const message = `${VIBE_CHECK_SYSTEM}\n\n---\n\nВХОДНЫЕ ДАННЫЕ:\n\n${inputBlock}`;
 
@@ -313,10 +356,7 @@ export const fetchVibeCheck = async (
 
     if (!handleChatResponse(response) || !response.ok) return null;
     const data = await response.json();
-    const raw =
-      (data.reply ?? data.response ?? '')
-        .replace(/["«»]/g, '"')
-        .trim() || '';
+    const raw = (data.reply ?? data.response ?? '').replace(/["«»]/g, '"').trim() || '';
     if (!raw) return null;
 
     // Try to extract JSON from reply (model might wrap in markdown or add text)
@@ -372,7 +412,7 @@ export type BadgePlanInput = {
   squadProgram3d?: string;
   campProgram3d?: string;
   priority?: string;
-  userPlanDraft?: string;      // Текст участника «мой план»
+  userPlanDraft?: string; // Текст участника «мой план»
   existingChecklist?: string[]; // Уже сформированные шаги
 };
 
@@ -410,7 +450,7 @@ export const checkPlanApiAvailable = async (): Promise<boolean> => {
     const res = await fetch(url, {
       method: 'POST',
       headers: getChatHeaders(url),
-      body: JSON.stringify({ message: 'ping', user_id: 'health_check' })
+      body: JSON.stringify({ message: 'ping', user_id: 'health_check' }),
     });
     if (res.status === 401) fireOn401();
     return res.status > 0 && res.status !== 401;
@@ -424,7 +464,9 @@ export const structureUserPlan = async (
   input: StructureUserPlanInput
 ): Promise<StructureUserPlanResult | null> => {
   const chatbotUrl = getChatbotUrl();
-  const template = import.meta.env.VITE_PROMPT_STRUCTURE_PLAN || `Ты — НейроВалюша, ИИ-проводник Реального Лагеря. Участник написал свои мысли о том, как получить значок «{{badgeTitle}}».
+  const template =
+    import.meta.env.VITE_PROMPT_STRUCTURE_PLAN ||
+    `Ты — НейроВалюша, ИИ-проводник Реального Лагеря. Участник написал свои мысли о том, как получить значок «{{badgeTitle}}».
 
 ТЕКСТ УЧАСТНИКА:
 {{myPlanDraft}}
@@ -447,26 +489,36 @@ export const structureUserPlan = async (
       body: JSON.stringify({
         message,
         user_id: 'structure_plan',
-        context: { is_social_prompt: true }
-      })
+        context: { is_social_prompt: true },
+      }),
     });
     if (!handleChatResponse(response)) return null;
     if (!response.ok) {
       const body = await response.text();
-      console.error('[structureUserPlan] API error:', response.status, response.statusText, body.slice(0, 200));
+      console.error(
+        '[structureUserPlan] API error:',
+        response.status,
+        response.statusText,
+        body.slice(0, 200)
+      );
       return null;
     }
     const data = await response.json();
     const reply = (data.reply || data.response || '').trim();
     if (!reply) return null;
 
-    const lines = reply.split('\n').map((s: string) => s.trim()).filter(Boolean);
+    const lines = reply
+      .split('\n')
+      .map((s: string) => s.trim())
+      .filter(Boolean);
     const checklistItems: string[] = [];
     for (const line of lines) {
       const dashMatch = line.match(/^[-*]\s*(.+)$/);
       const numMatch = line.match(/^\d+[.)]\s*(.+)$/);
       if (dashMatch || numMatch) {
-        const text = (dashMatch?.[1] || numMatch?.[1] || '').replace(/^[Шш]аг\s*\d+[.:]\s*/i, '').trim();
+        const text = (dashMatch?.[1] || numMatch?.[1] || '')
+          .replace(/^[Шш]аг\s*\d+[.:]\s*/i, '')
+          .trim();
         if (text) checklistItems.push(text);
       }
     }
@@ -477,13 +529,10 @@ export const structureUserPlan = async (
   }
 };
 
-export const fetchBadgePlan = async (
-  input: BadgePlanInput
-): Promise<BadgePlanResult | null> => {
+export const fetchBadgePlan = async (input: BadgePlanInput): Promise<BadgePlanResult | null> => {
   if (shouldSkipAiCall()) return null;
   const hostname = window.location.hostname;
-  const useLocalApi =
-    import.meta.env.DEV || hostname === 'localhost' || hostname === '127.0.0.1';
+  const useLocalApi = import.meta.env.DEV || hostname === 'localhost' || hostname === '127.0.0.1';
   const base = import.meta.env.BASE_URL || '';
   const chatbotUrl = useLocalApi
     ? '/api/chat'
@@ -500,8 +549,9 @@ export const fetchBadgePlan = async (
         const days = data.days.slice(0, shiftLen);
         campProgramSummary = days
           .slice(Math.max(0, input.currentDay - 2), Math.min(days.length, input.currentDay + 4))
-          .map((d: { day: number; theme: string; activities?: string[] }) =>
-            `День ${d.day}: ${d.theme} — ${(d.activities || []).join(', ')}`
+          .map(
+            (d: { day: number; theme: string; activities?: string[] }) =>
+              `День ${d.day}: ${d.theme} — ${(d.activities || []).join(', ')}`
           )
           .join('\n');
       }
@@ -517,37 +567,52 @@ export const fetchBadgePlan = async (
     : '(не указана)';
   const squadPlanBlock = input.squadPlan3d?.trim()
     ? `План вожатых на 3 дня:\n${input.squadPlan3d}`
-    : (input.squadProgram3d?.trim() ? `План вожатых на 3 дня:\n${input.squadProgram3d}` : '(не указан)');
+    : input.squadProgram3d?.trim()
+      ? `План вожатых на 3 дня:\n${input.squadProgram3d}`
+      : '(не указан)';
   const campBlock = input.campProgram3d?.trim()
     ? `Программа лагеря на 3 дня:\n${input.campProgram3d}`
     : '(не указана)';
   const priorityBlock = input.priority || 'оба равны';
 
-  const hasUserProgram = !!(input.squadProgramGrid?.trim() || input.squadPlan3d?.trim() || input.campProgram3d?.trim());
-  const programHint = !hasUserProgram && campProgramSummary
-    ? ' Участник не указал детальную программу отряда/лагеря — используй типовую программу ниже и общие формулировки с указанием дня.'
-    : !campProgramSummary ? ' Программа не загружена — формулируй шаги с указанием дня и общих мероприятий.' : '';
+  const hasUserProgram = !!(
+    input.squadProgramGrid?.trim() ||
+    input.squadPlan3d?.trim() ||
+    input.campProgram3d?.trim()
+  );
+  const programHint =
+    !hasUserProgram && campProgramSummary
+      ? ' Участник не указал детальную программу отряда/лагеря — используй типовую программу ниже и общие формулировки с указанием дня.'
+      : !campProgramSummary
+        ? ' Программа не загружена — формулируй шаги с указанием дня и общих мероприятий.'
+        : '';
 
   const userBlock = input.userPlanDraft?.trim()
     ? `УЧАСТНИК НАПИСАЛ СВОЙ ПЛАН:\n${input.userPlanDraft}\n\n`
     : '';
-  const existingBlock = input.existingChecklist && input.existingChecklist.length > 0
-    ? `УЖЕ ЕСТЬ ШАГИ (дополни/уточни с учётом программы):\n${input.existingChecklist.map((s, i) => `${i + 1}. ${s}`).join('\n')}\n\n`
-    : '';
+  const existingBlock =
+    input.existingChecklist && input.existingChecklist.length > 0
+      ? `УЖЕ ЕСТЬ ШАГИ (дополни/уточни с учётом программы):\n${input.existingChecklist.map((s, i) => `${i + 1}. ${s}`).join('\n')}\n\n`
+      : '';
   const personalizationRule = `КРИТИЧЕСКИ ВАЖНО: каждый шаг должен содержать название мероприятия из программы и день. Привяжи каждый шаг к конкретному дню и мероприятию. Формулируй так: «На [название мероприятия] / в День N — [действие]». Избегай общих фраз («участвуй в делах», «помогай товарищам») — только конкретика: где, когда, что делать.${programHint}`;
-  const taskInstruction = (userBlock || existingBlock)
-    ? `Дополни и обогати план участника. Переформулируй общие шаги: привяжи их к Дню ${input.currentDay} и мероприятиям из программы ниже. Сохрани идеи участника, добавь конкретику. ${personalizationRule}`
-    : `Создай план, привязанный к текущему дню (${input.currentDay}) и мероприятиям из программы. ${personalizationRule}`;
+  const taskInstruction =
+    userBlock || existingBlock
+      ? `Дополни и обогати план участника. Переформулируй общие шаги: привяжи их к Дню ${input.currentDay} и мероприятиям из программы ниже. Сохрани идеи участника, добавь конкретику. ${personalizationRule}`
+      : `Создай план, привязанный к текущему дню (${input.currentDay}) и мероприятиям из программы. ${personalizationRule}`;
 
   const levelLabel = input.badgeLevel ? `, уровень ${input.badgeLevel}` : '';
   const badgeContext = [
     input.badgeNameExplanation ? `ОПИСАНИЕ ЗНАЧКА: ${input.badgeNameExplanation}` : '',
     input.badgeCriteria ? `КРИТЕРИИ: ${input.badgeCriteria.slice(0, 1000)}` : '',
     input.badgeSkillTips ? `ПОДСКАЗКИ: ${input.badgeSkillTips}` : '',
-    input.badgeConfirmation ? `ПОДТВЕРЖДЕНИЕ: ${input.badgeConfirmation}` : ''
-  ].filter(Boolean).join('\n');
+    input.badgeConfirmation ? `ПОДТВЕРЖДЕНИЕ: ${input.badgeConfirmation}` : '',
+  ]
+    .filter(Boolean)
+    .join('\n');
 
-  const template = import.meta.env.VITE_PROMPT_BADGE_PLAN || `Ты — НейроВалюша, ИИ-проводник Реального Лагеря. Задача: персонализированный план получения значка.
+  const template =
+    import.meta.env.VITE_PROMPT_BADGE_PLAN ||
+    `Ты — НейроВалюша, ИИ-проводник Реального Лагеря. Задача: персонализированный план получения значка.
 
 ВАЖНО: Ты получаешь точные данные значка. НЕ придумывай описание — строго опирайся на критерии и описание ниже.
 
@@ -581,7 +646,12 @@ export const fetchBadgePlan = async (
     .replace('{{existingBlock}}', existingBlock)
     .replace('{{shiftLen}}', String(shiftLen))
     .replace('{{currentDay}}', String(input.currentDay))
-    .replace('{{campProgramSummary}}', campProgramSummary ? `- Программа лагеря (дни ${Math.max(1, input.currentDay - 2)}–${Math.min(shiftLen, input.currentDay + 4)}):\n${campProgramSummary}` : '')
+    .replace(
+      '{{campProgramSummary}}',
+      campProgramSummary
+        ? `- Программа лагеря (дни ${Math.max(1, input.currentDay - 2)}–${Math.min(shiftLen, input.currentDay + 4)}):\n${campProgramSummary}`
+        : ''
+    )
     .replace('{{squadGridBlock}}', squadGridBlock)
     .replace('{{squadPlanBlock}}', squadPlanBlock)
     .replace('{{campBlock}}', campBlock)
@@ -595,20 +665,28 @@ export const fetchBadgePlan = async (
       body: JSON.stringify({
         message,
         user_id: 'badge_plan',
-        context: { is_social_prompt: true }
-      })
+        context: { is_social_prompt: true },
+      }),
     });
 
     if (!response.ok) {
       const body = await response.text();
-      console.error('[fetchBadgePlan] API error:', response.status, response.statusText, body.slice(0, 200));
+      console.error(
+        '[fetchBadgePlan] API error:',
+        response.status,
+        response.statusText,
+        body.slice(0, 200)
+      );
       return null;
     }
     const data = await response.json();
     const reply = (data.reply || data.response || '').trim();
     if (!reply) return null;
 
-    const lines = reply.split('\n').map((s: string) => s.trim()).filter(Boolean);
+    const lines = reply
+      .split('\n')
+      .map((s: string) => s.trim())
+      .filter(Boolean);
     const checklistItems: string[] = [];
     let planText = '';
 
@@ -658,8 +736,7 @@ export const fetchCouncilInitiative = async (
 ): Promise<CouncilInitiativeResult | null> => {
   if (shouldSkipAiCall()) return null;
   const hostname = typeof window !== 'undefined' ? window.location.hostname : '';
-  const useLocalApi =
-    import.meta.env.DEV || hostname === 'localhost' || hostname === '127.0.0.1';
+  const useLocalApi = import.meta.env.DEV || hostname === 'localhost' || hostname === '127.0.0.1';
   const base = import.meta.env.BASE_URL || '';
   const chatbotUrl = useLocalApi
     ? '/api/chat'
@@ -702,7 +779,9 @@ export const fetchCouncilInitiative = async (
     ? `Программа смены (дни около ${input.currentDay}):\n${campProgramSummary}`
     : 'Программа смены не указана.';
 
-  const template = import.meta.env.VITE_PROMPT_COUNCIL || `Ты — НейроВалюша, ИИ-проводник Реального Лагеря. Задача: сформулировать инициативу для Совета Лагеря.
+  const template =
+    import.meta.env.VITE_PROMPT_COUNCIL ||
+    `Ты — НейроВалюша, ИИ-проводник Реального Лагеря. Задача: сформулировать инициативу для Совета Лагеря.
 
 Совет Лагеря — площадка для идей: новые игры, мероприятия, улучшение традиций, идеи от Движков. Цикл: Идеи → Обсуждение → Решения → Задачи → Артефакты.
 
@@ -739,14 +818,22 @@ export const fetchCouncilInitiative = async (
 
     if (!response.ok) {
       const body = await response.text();
-      console.error('[fetchCouncilInitiative] API error:', response.status, response.statusText, body.slice(0, 200));
+      console.error(
+        '[fetchCouncilInitiative] API error:',
+        response.status,
+        response.statusText,
+        body.slice(0, 200)
+      );
       return null;
     }
     const data = await response.json();
     const reply = (data.reply || data.response || '').trim();
     if (!reply) return null;
 
-    const lines = reply.split('\n').map((s: string) => s.trim()).filter(Boolean);
+    const lines = reply
+      .split('\n')
+      .map((s: string) => s.trim())
+      .filter(Boolean);
     const steps: string[] = [];
     let initiativeText = '';
 
@@ -754,7 +841,9 @@ export const fetchCouncilInitiative = async (
       const dashMatch = line.match(/^[-*]\s*(.+)$/);
       const numMatch = line.match(/^\d+[.)]\s*(.+)$/);
       if (dashMatch || numMatch) {
-        const text = (dashMatch?.[1] || numMatch?.[1] || '').replace(/^[Шш]аг\s*\d+[.:]\s*/i, '').trim();
+        const text = (dashMatch?.[1] || numMatch?.[1] || '')
+          .replace(/^[Шш]аг\s*\d+[.:]\s*/i, '')
+          .trim();
         if (text) steps.push(text);
       } else if (!steps.length) {
         initiativeText += (initiativeText ? '\n' : '') + line;

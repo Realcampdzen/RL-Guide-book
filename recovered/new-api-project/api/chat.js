@@ -1,6 +1,7 @@
 // API endpoint для чат-бота НейроВалюши - ВЕРСИЯ 4.0 - ПРИНУДИТЕЛЬНОЕ ОБНОВЛЕНИЕ
-import { dataLoaderAIData } from '../data_loader_ai_data.js';
+
 import { contextManager } from '../context_manager.js';
+import { dataLoaderAIData } from '../data_loader_ai_data.js';
 import { responseGenerator } from '../response_generator.js';
 
 export default async function handler(req, res) {
@@ -17,9 +18,9 @@ export default async function handler(req, res) {
   if (req.method === 'POST') {
     try {
       const { message, user_id = 'web_user', context } = req.body;
-      
+
       if (!message) {
-        res.status(400).json({ error: "Сообщение не может быть пустым" });
+        res.status(400).json({ error: 'Сообщение не может быть пустым' });
         return;
       }
 
@@ -31,38 +32,43 @@ export default async function handler(req, res) {
 
       // Получаем историю сообщений пользователя
       const conversationHistory = contextManager.getConversationHistory(user_id);
-      console.log(`💬 История диалога (${conversationHistory.length} сообщений):`, JSON.stringify(conversationHistory.slice(-3), null, 2));
-      
+      console.log(
+        `💬 История диалога (${conversationHistory.length} сообщений):`,
+        JSON.stringify(conversationHistory.slice(-3), null, 2)
+      );
+
       // Получаем обновленный контекст для отладки
       const userContext = contextManager.getUserContext(user_id);
-      console.log(`👤 Контекст пользователя после обновления:`, JSON.stringify(userContext, null, 2));
-      
+      console.log(
+        `👤 Контекст пользователя после обновления:`,
+        JSON.stringify(userContext, null, 2)
+      );
+
       // Добавляем новое сообщение пользователя в историю
       contextManager.addMessageToHistory(user_id, {
-        role: "user",
+        role: 'user',
         content: message,
-        metadata: {}
+        metadata: {},
       });
-      
+
       // Генерируем ответ
       const response = await responseGenerator.generateResponse(
         message,
         user_id,
         conversationHistory
       );
-      
+
       // Добавляем ответ бота в историю
       contextManager.addMessageToHistory(user_id, {
-        role: "assistant",
+        role: 'assistant',
         content: response.response,
-        metadata: response.metadata
+        metadata: response.metadata,
       });
-      
-      res.status(200).json(response);
 
+      res.status(200).json(response);
     } catch (error) {
-      console.error("Ошибка AI:", error);
-      
+      console.error('Ошибка AI:', error);
+
       // Fallback ответ при ошибке AI
       const { message } = req.body;
       res.status(200).json({
@@ -87,10 +93,10 @@ export default async function handler(req, res) {
 - 🔍 Значки Инспектора Пользы
 
 Попробуйте перезагрузить страницу или задать вопрос позже! 😊`,
-        metadata: { source: "fallback", error: error.message }
+        metadata: { source: 'fallback', error: error.message },
       });
     }
   } else {
-    res.status(405).json({ error: "Метод не поддерживается" });
+    res.status(405).json({ error: 'Метод не поддерживается' });
   }
 }

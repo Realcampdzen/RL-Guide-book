@@ -10,32 +10,32 @@ const SKILL_LABELS: Record<Skill4K, string> = {
   collaboration: 'Коллаборация',
   critical: 'Критическое мышление',
   creativity: 'Креативность',
-  communication: 'Коммуникация'
+  communication: 'Коммуникация',
 };
 
 const SKILL_EMOJI: Record<Skill4K, string> = {
   collaboration: '🤝',
   critical: '🧠',
   creativity: '🎨',
-  communication: '💬'
+  communication: '💬',
 };
 
 /** Маппинг categoryId (первая часть badgeId) → навыки 4К */
 const CATEGORY_TO_4K: Record<string, Skill4K[]> = {
-  '1': ['creativity', 'critical'],       // За личные достижения
-  '2': ['creativity', 'communication'],  // За легендарные дела
-  '3': ['creativity', 'communication'],  // Медиа значки
-  '4': ['collaboration'],                // За лагерные дела
+  '1': ['creativity', 'critical'], // За личные достижения
+  '2': ['creativity', 'communication'], // За легендарные дела
+  '3': ['creativity', 'communication'], // Медиа значки
+  '4': ['collaboration'], // За лагерные дела
   '5': ['collaboration', 'communication'], // За отрядные дела
-  '6': ['critical'],                     // Гармония и порядок
-  '7': ['creativity'],                   // За творческие достижения
+  '6': ['critical'], // Гармония и порядок
+  '7': ['creativity'], // За творческие достижения
   '8': ['collaboration', 'communication'], // Движки
   '9': ['communication', 'collaboration'], // Бро
-  '10': ['collaboration'],               // Флаг отряда
-  '11': ['critical'],                    // Осознанность
-  '12': ['creativity', 'critical'],      // ИИ
+  '10': ['collaboration'], // Флаг отряда
+  '11': ['critical'], // Осознанность
+  '12': ['creativity', 'critical'], // ИИ
   '13': ['collaboration', 'critical', 'creativity', 'communication'], // Софт-скиллз
-  '14': ['collaboration', 'communication']  // Инспектор
+  '14': ['collaboration', 'communication'], // Инспектор
 };
 
 export const ALL_SKILLS: Skill4K[] = ['collaboration', 'critical', 'creativity', 'communication'];
@@ -71,7 +71,7 @@ const ZERO_PROFILE: Profile4KRaw = {
   collaboration: 0,
   critical: 0,
   creativity: 0,
-  communication: 0
+  communication: 0,
 };
 
 /**
@@ -112,7 +112,7 @@ export function compute4kProfile(params: {
  * Если все нули — возвращаем нули.
  */
 export function normalize4kProfile(raw: Profile4KRaw): Record<Skill4K, number> {
-  const max = Math.max(...ALL_SKILLS.map(s => raw[s] || 0), 1);
+  const max = Math.max(...ALL_SKILLS.map((s) => raw[s] || 0), 1);
   const result: Record<Skill4K, number> = {} as Record<Skill4K, number>;
   for (const s of ALL_SKILLS) {
     result[s] = Math.round(((raw[s] || 0) / max) * 100);
@@ -127,13 +127,13 @@ export type ProgramTrack2026 = 'soft_skills' | 'counseling' | 'ai_creativity';
 const PROGRAM_TRACK_LABELS: Record<ProgramTrack2026, string> = {
   soft_skills: '4r soft skills интенсив',
   counseling: 'Обучение вожатскому мастерству',
-  ai_creativity: 'Нейросети для обучения и творчества'
+  ai_creativity: 'Нейросети для обучения и творчества',
 };
 
 const PROGRAM_TRACK_EMOJI: Record<ProgramTrack2026, string> = {
   soft_skills: '🎯',
   counseling: '👑',
-  ai_creativity: '🤖'
+  ai_creativity: '🤖',
 };
 
 /** Маппинг categoryId → треки программы 2026 (8,9,10,14 = counseling; 12 = ai_creativity; 13 = soft_skills) */
@@ -143,10 +143,14 @@ export const CATEGORY_TO_PROGRAM_2026: Record<string, ProgramTrack2026> = {
   '10': 'counseling',
   '12': 'ai_creativity',
   '13': 'soft_skills',
-  '14': 'counseling'
+  '14': 'counseling',
 };
 
-export const ALL_PROGRAM_TRACKS: ProgramTrack2026[] = ['soft_skills', 'counseling', 'ai_creativity'];
+export const ALL_PROGRAM_TRACKS: ProgramTrack2026[] = [
+  'soft_skills',
+  'counseling',
+  'ai_creativity',
+];
 
 /** Возвращает строку с ID категорий программы 2026 (например "8, 9, 10, 12, 13, 14") */
 export const getProgram2026CategoryIds = (): string =>
@@ -177,7 +181,7 @@ export type ProgramProfileRaw = Record<ProgramTrack2026, number>;
 const ZERO_PROGRAM: ProgramProfileRaw = {
   soft_skills: 0,
   counseling: 0,
-  ai_creativity: 0
+  ai_creativity: 0,
 };
 
 /**
@@ -215,8 +219,10 @@ export function computeProgram2026Profile(params: {
 /**
  * Нормализация профиля программы 2026 к 0–100 (относительно максимума).
  */
-export function normalizeProgram2026Profile(raw: ProgramProfileRaw): Record<ProgramTrack2026, number> {
-  const max = Math.max(...ALL_PROGRAM_TRACKS.map(t => raw[t] || 0), 1);
+export function normalizeProgram2026Profile(
+  raw: ProgramProfileRaw
+): Record<ProgramTrack2026, number> {
+  const max = Math.max(...ALL_PROGRAM_TRACKS.map((t) => raw[t] || 0), 1);
   const result: Record<ProgramTrack2026, number> = {} as Record<ProgramTrack2026, number>;
   for (const t of ALL_PROGRAM_TRACKS) {
     result[t] = Math.round(((raw[t] || 0) / max) * 100);

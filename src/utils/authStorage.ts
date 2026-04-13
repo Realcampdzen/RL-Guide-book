@@ -40,7 +40,20 @@ type TokenClaims = {
 function normalizeRole(input: unknown): UserRole {
   const raw = typeof input === 'string' ? input : '';
   if (raw === 'organizer') return 'shift_leader';
-  if ((['traveler', 'participant', 'parent', 'counselor', 'educator', 'shift_leader', 'camp_director', 'developer'] as const).includes(raw as UserRole)) {
+  if (
+    (
+      [
+        'traveler',
+        'participant',
+        'parent',
+        'counselor',
+        'educator',
+        'shift_leader',
+        'camp_director',
+        'developer',
+      ] as const
+    ).includes(raw as UserRole)
+  ) {
     return raw as UserRole;
   }
   return DEFAULT_ROLE;
@@ -71,7 +84,8 @@ function decodeTokenClaims(token: string | undefined): TokenClaims {
       baseDeviceId: typeof parsed.baseDeviceId === 'string' ? parsed.baseDeviceId : undefined,
       personId: typeof parsed.personId === 'string' ? parsed.personId : undefined,
       accountId: typeof parsed.accountId === 'string' ? parsed.accountId : undefined,
-      legacyOwnerRole: typeof parsed.legacyOwnerRole === 'string' ? parsed.legacyOwnerRole : undefined,
+      legacyOwnerRole:
+        typeof parsed.legacyOwnerRole === 'string' ? parsed.legacyOwnerRole : undefined,
     };
   } catch {
     return {};
@@ -123,10 +137,13 @@ export function loadAuthStorage(): AuthStorage {
     }
 
     const scopedDeviceId = (data.deviceId || tokenClaims.deviceId || baseDeviceId).trim();
-    const resolvedBaseDeviceId = (data.baseDeviceId || tokenClaims.baseDeviceId || baseDeviceId).trim() || baseDeviceId;
+    const resolvedBaseDeviceId =
+      (data.baseDeviceId || tokenClaims.baseDeviceId || baseDeviceId).trim() || baseDeviceId;
     const personId = (data.personId || tokenClaims.personId || '').trim() || undefined;
     const accountId = (data.accountId || tokenClaims.accountId || '').trim() || undefined;
-    const legacyRoleOwner = normalizeLegacyRoleOwner(data.legacyRoleOwner ?? tokenClaims.legacyOwnerRole);
+    const legacyRoleOwner = normalizeLegacyRoleOwner(
+      data.legacyRoleOwner ?? tokenClaims.legacyOwnerRole
+    );
 
     return {
       role,
@@ -148,7 +165,7 @@ export function loadAuthStorage(): AuthStorage {
 export function saveAuthStorage(data: Partial<AuthStorage>): void {
   if (typeof window === 'undefined') return;
   const current = loadAuthStorage();
-  const hasIncomingToken = Object.prototype.hasOwnProperty.call(data, 'accessToken');
+  const hasIncomingToken = Object.hasOwn(data, 'accessToken');
   const resolvedToken = hasIncomingToken ? data.accessToken : current.accessToken;
   const tokenClaims = decodeTokenClaims(resolvedToken);
   const keepCurrentIdentity = !hasIncomingToken || !resolvedToken;
@@ -184,11 +201,17 @@ export function saveAuthStorage(data: Partial<AuthStorage>): void {
     deviceId: nextDeviceId || nextBaseDeviceId,
     baseDeviceId: nextBaseDeviceId,
     personId:
-      (data.personId ?? tokenClaims.personId ?? (keepCurrentIdentity ? current.personId : undefined))?.trim() ||
-      undefined,
+      (
+        data.personId ??
+        tokenClaims.personId ??
+        (keepCurrentIdentity ? current.personId : undefined)
+      )?.trim() || undefined,
     accountId:
-      (data.accountId ?? tokenClaims.accountId ?? (keepCurrentIdentity ? current.accountId : undefined))?.trim() ||
-      undefined,
+      (
+        data.accountId ??
+        tokenClaims.accountId ??
+        (keepCurrentIdentity ? current.accountId : undefined)
+      )?.trim() || undefined,
     legacyRoleOwner:
       normalizeLegacyRoleOwner(data.legacyRoleOwner) ??
       normalizeLegacyRoleOwner(tokenClaims.legacyOwnerRole) ??

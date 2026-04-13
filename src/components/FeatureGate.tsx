@@ -1,4 +1,4 @@
-import React from 'react';
+import type React from 'react';
 import { useAuth } from '../context/AuthContext';
 import type { UserRole } from '../types/authRole';
 import { ROLE_LABELS } from '../types/authRole';
@@ -27,7 +27,7 @@ const lockShellStyle: React.CSSProperties = {
   border: '1px solid rgba(255, 193, 7, 0.35)',
   background: 'linear-gradient(180deg, rgba(22, 22, 36, 0.92), rgba(12, 12, 20, 0.92))',
   color: 'rgba(255,255,255,0.95)',
-  padding: 14
+  padding: 14,
 };
 
 export const FeatureGate: React.FC<FeatureGateProps> = ({
@@ -39,7 +39,7 @@ export const FeatureGate: React.FC<FeatureGateProps> = ({
   onLogin,
   mode = 'overlay',
   className,
-  children
+  children,
 }) => {
   const { role, accessToken } = useAuth();
 
@@ -73,16 +73,16 @@ export const FeatureGate: React.FC<FeatureGateProps> = ({
       effectiveCtaLabel = ctaLabel || 'Войти';
       effectiveOnCta = onLogin || onCta;
     } else {
-      const roleNames = requiredRoles
-        .map((r) => ROLE_LABELS[r] || r)
-        .join(', ');
+      const roleNames = requiredRoles.map((r) => ROLE_LABELS[r] || r).join(', ');
       effectiveReason = `Доступно для: ${roleNames}`;
     }
   }
 
   const lockContent = (
     <div style={lockShellStyle} role="note" aria-live="polite">
-      <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>Раздел доступен после разблокировки</div>
+      <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>
+        Раздел доступен после разблокировки
+      </div>
       <p style={{ margin: 0, fontSize: 12, lineHeight: 1.5, opacity: 0.9 }}>{effectiveReason}</p>
       {effectiveCtaLabel && effectiveOnCta && (
         <button
@@ -103,7 +103,16 @@ export const FeatureGate: React.FC<FeatureGateProps> = ({
 
   return (
     <div className={className} style={{ position: 'relative' }}>
-      <div aria-hidden style={{ opacity: 0.45, filter: 'grayscale(0.18)', pointerEvents: 'none', maxHeight: 180, overflow: 'hidden' }}>
+      <div
+        aria-hidden
+        style={{
+          opacity: 0.45,
+          filter: 'grayscale(0.18)',
+          pointerEvents: 'none',
+          maxHeight: 180,
+          overflow: 'hidden',
+        }}
+      >
         {children}
       </div>
       <div
@@ -115,7 +124,7 @@ export const FeatureGate: React.FC<FeatureGateProps> = ({
           justifyContent: 'center',
           padding: '24px 14px 14px',
           background: 'linear-gradient(180deg, rgba(9, 9, 15, 0.82), rgba(9, 9, 15, 0.62))',
-          borderRadius: 14
+          borderRadius: 14,
         }}
       >
         <div style={{ width: 'min(560px, 100%)' }}>{lockContent}</div>

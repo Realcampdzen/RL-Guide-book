@@ -45,7 +45,7 @@
    - ::before: blurred cover fill (prevents empty areas)
    - ::after: sharper image scaled down a bit (looks less "zoomed" + less pixelation) */
 .profile-view::before {
-  content: '';
+  content: "";
   position: fixed;
   top: 0;
   left: 0;
@@ -54,7 +54,7 @@
   height: 100lvh;
   pointer-events: none;
   z-index: -2;
-  background-image: url('/RL-Guide-book/фон для лк десктоп.jpg');
+  background-image: url("/RL-Guide-book/фон для лк десктоп.jpg");
   background-position: center center;
   background-size: cover;
   background-repeat: no-repeat;
@@ -65,7 +65,7 @@
 }
 
 .profile-view::after {
-  content: '';
+  content: "";
   position: fixed;
   top: 0;
   left: 0;
@@ -75,12 +75,21 @@
   pointer-events: none;
   z-index: -1;
   background-image:
-    linear-gradient(135deg, rgba(15, 10, 31, 0.62) 0%, rgba(26, 15, 46, 0.56) 50%, rgba(42, 26, 61, 0.5) 100%),
-    url('/RL-Guide-book/фон для лк десктоп.jpg');
-  background-position: center center, center center;
+    linear-gradient(
+      135deg,
+      rgba(15, 10, 31, 0.62) 0%,
+      rgba(26, 15, 46, 0.56) 50%,
+      rgba(42, 26, 61, 0.5) 100%
+    ),
+    url("/RL-Guide-book/фон для лк десктоп.jpg");
+  background-position:
+    center center,
+    center center;
   background-repeat: no-repeat, no-repeat;
   /* "Zoom out" a bit vs cover (scale by width), but still no side fields on desktop */
-  background-size: 100% 100%, 100vw auto;
+  background-size:
+    100% 100%,
+    100vw auto;
   background-color: #0f0a1f;
 }
 
@@ -115,7 +124,7 @@
     left: 0;
     right: 0;
     height: 400px;
-    background-image: url('/фон_лк_нижняя_декор.png');
+    background-image: url("/фон_лк_нижняя_декор.png");
     background-size: 200% 200%;
     background-position: bottom center;
     background-repeat: no-repeat;
@@ -142,7 +151,11 @@
 
   .profile-view.profile-view--mobile-scope .profile-view-content-wrapper {
     --profile-mobile-content-pad-x: 14px;
-    padding: var(--profile-mobile-content-pad-top, 8px) var(--profile-mobile-content-pad-x, 14px) calc(var(--profile-mobile-nav-clearance, 160px) + var(--profile-mobile-content-pad-bottom, 24px));
+    padding: var(--profile-mobile-content-pad-top, 8px) var(--profile-mobile-content-pad-x, 14px)
+      calc(
+        var(--profile-mobile-nav-clearance, 160px) +
+        var(--profile-mobile-content-pad-bottom, 24px)
+      );
   }
 
   .profile-view.profile-view--mobile-scope .header,
@@ -180,10 +193,19 @@
     filter: none;
     transform: none;
     background-image:
-      linear-gradient(135deg, rgba(15, 10, 31, 0.62) 0%, rgba(26, 15, 46, 0.56) 50%, rgba(42, 26, 61, 0.5) 100%),
+      linear-gradient(
+        135deg,
+        rgba(15, 10, 31, 0.62) 0%,
+        rgba(26, 15, 46, 0.56) 50%,
+        rgba(42, 26, 61, 0.5) 100%
+      ),
       url("/RL-Guide-book/фон лк для мобайл.png");
-    background-position: center center, 50% 50%;
-    background-size: 100% 100%, cover;
+    background-position:
+      center center,
+      50% 50%;
+    background-size:
+      100% 100%,
+      cover;
     background-repeat: no-repeat, no-repeat;
     background-color: #0f0a1f;
   }
@@ -196,7 +218,9 @@
 @media (max-width: 360px) {
   .profile-view::before {
     /* Slightly lower framing for very small screens */
-    background-position: center center, 50% 55%;
+    background-position:
+      center center,
+      50% 55%;
   }
 }
 
@@ -230,7 +254,7 @@
   width: 100%;
 }
 
-.share-center-v2 .share-center-results>div {
+.share-center-v2 .share-center-results > div {
   text-align: center;
   display: flex;
   flex-direction: column;
@@ -267,11 +291,13 @@
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.15);
   border: 1px solid rgba(255, 255, 255, 0.2);
-  transition: background 0.2s ease, border-color 0.2s ease;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease;
 }
 
 .share-center-v2 .share-center-toggle-track::after {
-  content: '';
+  content: "";
   position: absolute;
   top: 2px;
   left: 2px;
@@ -283,16 +309,16 @@
   transition: transform 0.2s ease;
 }
 
-.share-center-v2 .share-center-toggle-input:checked+.share-center-toggle-track {
+.share-center-v2 .share-center-toggle-input:checked + .share-center-toggle-track {
   background: rgba(139, 0, 255, 0.6);
   border-color: rgba(139, 0, 255, 0.8);
 }
 
-.share-center-v2 .share-center-toggle-input:checked+.share-center-toggle-track::after {
+.share-center-v2 .share-center-toggle-input:checked + .share-center-toggle-track::after {
   transform: translateX(20px);
 }
 
-.share-center-v2 .share-center-toggle-input:focus-visible+.share-center-toggle-track {
+.share-center-v2 .share-center-toggle-input:focus-visible + .share-center-toggle-track {
   outline: 2px solid rgba(139, 0, 255, 0.8);
   outline-offset: 2px;
 }
@@ -307,7 +333,9 @@
   font-size: 14px;
   font-weight: 800;
   cursor: pointer;
-  transition: opacity 0.2s ease, transform 0.05s ease;
+  transition:
+    opacity 0.2s ease,
+    transform 0.05s ease;
   box-shadow: 0 2px 12px rgba(139, 0, 255, 0.35);
 }
 
@@ -380,7 +408,10 @@
   border: 1px solid rgba(139, 0, 255, 0.5);
   border-radius: 10px;
   cursor: pointer;
-  transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
   text-align: left;
 }
 
@@ -428,11 +459,17 @@
   background: rgba(20, 10, 35, 0.98);
   border: 1px solid rgba(139, 0, 255, 0.4);
   border-radius: 10px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.06) inset, 0 0 32px rgba(139, 0, 255, 0.2);
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(255, 255, 255, 0.06) inset,
+    0 0 32px rgba(139, 0, 255, 0.2);
   opacity: 0;
   visibility: hidden;
   transform: translateY(-4px);
-  transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease,
+    visibility 0.2s ease;
   z-index: 1000;
   max-height: 280px;
   overflow-y: auto;
@@ -470,7 +507,9 @@
   font-weight: 500;
   color: rgba(255, 255, 255, 0.9);
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
 }
 
 .profile-sandbox-role__option:hover {
@@ -516,7 +555,6 @@
   line-height: 1.3;
 }
 
-
 /* CampProgramByDays — новый канбан-стиль (компонент использует inline-стили) */
 .camp-program-by-days {
   height: 100%;
@@ -526,9 +564,9 @@
 }
 
 /* Прячем горизонтальный скролл переключателя дней */
-.camp-program-by-days--day-scroll::-webkit-scrollbar { display: none; }
-
-
+.camp-program-by-days--day-scroll::-webkit-scrollbar {
+  display: none;
+}
 
 /* Стили профиля (перенесены из inline для совместимости со сборкой) */
 .profile-view .avatar-circle {
@@ -935,7 +973,7 @@
   position: relative;
   z-index: 1;
   width: 100%;
-  background-image: url('/избранное.png');
+  background-image: url("/избранное.png");
   background-repeat: no-repeat;
   background-position: center bottom;
   background-size: contain;
@@ -992,7 +1030,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.2s, border-color 0.2s;
+  transition:
+    background 0.2s,
+    border-color 0.2s;
   position: relative;
   z-index: 10;
 }
@@ -1061,7 +1101,7 @@
   transform: rotateY(calc(var(--slot-offset, 0) * var(--step-deg))) translateZ(var(--radius));
 }
 
-.profile-view .shelf-carousel--cylinder .shelf-item--cylinder>div {
+.profile-view .shelf-carousel--cylinder .shelf-item--cylinder > div {
   width: 100%;
   height: 100%;
   position: relative;
@@ -1070,7 +1110,7 @@
 
 /* LED-полоса по контуру значка: яркое кольцо сзади, без размытия */
 .profile-view .shelf-carousel--cylinder .shelf-item--cylinder::before {
-  content: '';
+  content: "";
   position: absolute;
   left: 50%;
   top: 50%;
@@ -1081,7 +1121,9 @@
   border-radius: 50%;
   background: transparent;
   border: 3px solid rgba(200, 170, 255, 0.95);
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.5), 0 0 8px 2px rgba(176, 136, 255, 0.5);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.5),
+    0 0 8px 2px rgba(176, 136, 255, 0.5);
   z-index: 0;
   pointer-events: none;
 }
@@ -1117,7 +1159,7 @@
   justify-content: center;
 }
 
-.profile-view .shelf-item--static>div:first-child {
+.profile-view .shelf-item--static > div:first-child {
   width: 100%;
   height: 100%;
   cursor: pointer;
@@ -1157,7 +1199,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.2s, border-color 0.2s;
+  transition:
+    background 0.2s,
+    border-color 0.2s;
   position: relative;
   z-index: 10;
 }
@@ -1210,7 +1254,7 @@
   transform: rotateY(calc(var(--slot-offset, 0) * var(--step-deg))) translateZ(var(--radius));
 }
 
-.profile-view .path-carousel__item--cylinder>.path-card {
+.profile-view .path-carousel__item--cylinder > .path-card {
   width: 100%;
   height: 100%;
   position: relative;
@@ -1243,7 +1287,7 @@
   max-width: none;
 }
 
-.profile-view .path-carousel__item--static>.path-card {
+.profile-view .path-carousel__item--static > .path-card {
   width: 144px;
   min-width: 144px;
   height: auto;
@@ -1322,7 +1366,7 @@
 }
 
 .profile-view .path-card__avatar .badge-icon-wrap,
-.profile-view .path-card__avatar>div {
+.profile-view .path-card__avatar > div {
   width: 84px;
   height: 84px;
 }
@@ -1419,11 +1463,12 @@
   scroll-snap-align: center;
   transform-style: preserve-3d;
   backface-visibility: hidden;
-  transform: rotateY(calc(var(--center-offset, 0) * 18deg)) scale(calc(1 - abs(var(--center-offset, 0)) * 0.08));
+  transform: rotateY(calc(var(--center-offset, 0) * 18deg))
+    scale(calc(1 - abs(var(--center-offset, 0)) * 0.08));
 }
 
 /* Clickable wrapper: match icon size */
-.profile-view .shelf-item>div {
+.profile-view .shelf-item > div {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1431,15 +1476,15 @@
 }
 
 /* BadgeIcon root div has inline 48px – override so the actual icon is 128px */
-.profile-view .shelf-item>div>div {
+.profile-view .shelf-item > div > div {
   width: 128px !important;
   height: 128px !important;
   min-width: 128px !important;
   min-height: 128px !important;
 }
 
-.profile-view .shelf-item>div>div img,
-.profile-view .shelf-item>div picture img {
+.profile-view .shelf-item > div > div img,
+.profile-view .shelf-item > div picture img {
   width: 100% !important;
   height: 100% !important;
   min-width: 100% !important;
@@ -1531,7 +1576,9 @@
   pointer-events: auto;
 }
 
-.profile-organizer-modals-root .profile-utility-panel--organizer-modal .profile-utility-panel-header {
+.profile-organizer-modals-root
+  .profile-utility-panel--organizer-modal
+  .profile-utility-panel-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1540,13 +1587,18 @@
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.profile-organizer-modals-root .profile-utility-panel--organizer-modal .profile-utility-panel-header span {
+.profile-organizer-modals-root
+  .profile-utility-panel--organizer-modal
+  .profile-utility-panel-header
+  span {
   font-size: 14px;
   font-weight: 700;
   color: rgba(255, 255, 255, 0.95);
 }
 
-.profile-organizer-modals-root .profile-utility-panel--organizer-modal .profile-utility-panel-close {
+.profile-organizer-modals-root
+  .profile-utility-panel--organizer-modal
+  .profile-utility-panel-close {
   width: 28px;
   height: 28px;
   border: none;
@@ -1559,7 +1611,9 @@
   cursor: pointer;
 }
 
-.profile-organizer-modals-root .profile-utility-panel--organizer-modal .profile-utility-panel-close:hover {
+.profile-organizer-modals-root
+  .profile-utility-panel--organizer-modal
+  .profile-utility-panel-close:hover {
   background: rgba(255, 255, 255, 0.18);
 }
 
@@ -1609,7 +1663,7 @@
   pointer-events: none;
 }
 
-.profile-view .profile-utility-bubbles>* {
+.profile-view .profile-utility-bubbles > * {
   pointer-events: auto;
 }
 
@@ -1630,7 +1684,9 @@
   text-align: center;
   line-height: 1.2;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .profile-view .profile-utility-bubble:hover {
@@ -2187,7 +2243,7 @@
   border-radius: 10px;
 }
 
-.profile-view .active-tab-content__col--badges .badge-row-complex+.badge-row-complex {
+.profile-view .active-tab-content__col--badges .badge-row-complex + .badge-row-complex {
   margin-top: 12px;
 }
 
@@ -2283,7 +2339,11 @@
   cursor: pointer;
   font-size: 12px;
   font-family: inherit;
-  transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    background 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .profile-view .btn-secondary:hover,
@@ -2299,7 +2359,10 @@
 }
 
 .profile-view .btn-primary-gold {
-  transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    background 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .profile-view .btn-primary-gold:active {
@@ -2327,7 +2390,7 @@
   font-weight: 700;
 }
 
-.profile-view-parents-section .parents-section-block>div+div {
+.profile-view-parents-section .parents-section-block > div + div {
   margin-top: 10px;
 }
 
@@ -2354,7 +2417,7 @@
 
 .profile-view-parents-section .parents-section__contacts a {
   font-size: 13px;
-  color: #FFD700;
+  color: #ffd700;
   text-decoration: none;
 }
 
@@ -2385,7 +2448,7 @@
   text-align: left;
   background: rgba(139, 0, 255, 0.15);
   border: 1px solid rgba(139, 0, 255, 0.4);
-  color: #B088FF;
+  color: #b088ff;
   font-family: inherit;
 }
 
@@ -2398,13 +2461,13 @@
   text-align: left;
   background: rgba(255, 215, 0, 0.12);
   border: 1px solid rgba(255, 215, 0, 0.35);
-  color: #FFD700;
+  color: #ffd700;
   font-family: inherit;
 }
 
 /* Ранг: по умолчанию фиолетовый; Легенда — тёмно-фиолетовый и бордовый, подсветка 0.33 */
 .profile-view .profile-view-rank {
-  color: #B088FF;
+  color: #b088ff;
 }
 
 .profile-view .profile-view-rank--legendary {
@@ -2471,7 +2534,10 @@
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 10px;
   cursor: pointer;
-  transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    color 0.2s ease;
   font-family: inherit;
 }
 
@@ -2521,7 +2587,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.2s, border-color 0.2s;
+  transition:
+    background 0.2s,
+    border-color 0.2s;
   position: relative;
   z-index: 10;
 }
@@ -2583,7 +2651,9 @@
   flex-shrink: 0;
 }
 
-.profile-view .workshop-squad-ideas-carousel__item--placeholder .workshop-squad-ideas-carousel__cell {
+.profile-view
+  .workshop-squad-ideas-carousel__item--placeholder
+  .workshop-squad-ideas-carousel__cell {
   font-size: 28px;
   color: rgba(255, 255, 255, 0.5);
 }
@@ -2707,7 +2777,9 @@
   border: 1px solid rgba(139, 0, 255, 0.4);
   border-radius: 8px;
   cursor: pointer;
-  transition: background 0.2s ease, border-color 0.2s ease;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease;
 }
 
 .vozhatifikator-badge-block__btn:hover {
@@ -2733,7 +2805,9 @@
   border: 1px solid rgba(139, 0, 255, 0.4);
   border-radius: 10px;
   text-decoration: none;
-  transition: background 0.2s ease, border-color 0.2s ease;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease;
 }
 
 .vozhatifikator-download:hover {
@@ -2778,7 +2852,9 @@
   border: 1px solid transparent;
   border-radius: 8px;
   cursor: pointer;
-  transition: background 0.2s ease, border-color 0.2s ease;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease;
 }
 
 .vozhatifikator-toc-item:hover {
@@ -2935,7 +3011,7 @@
   margin: 12px 0;
 }
 
-.vozhatifikator-book__content p+p {
+.vozhatifikator-book__content p + p {
   margin-top: 14px;
 }
 
@@ -2999,7 +3075,10 @@
   border: 1px solid transparent;
   border-radius: 8px;
   cursor: pointer;
-  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
 }
 
 .vozhatifikator-tab:hover {
@@ -3034,7 +3113,10 @@
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 999px;
   cursor: pointer;
-  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
   white-space: nowrap;
 }
 
@@ -3075,19 +3157,38 @@
 
 /* Чек-лист Путеводные огни — Premium Design */
 @keyframes vozh-fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes vozh-progressGlow {
-  0%, 100% { box-shadow: 0 0 8px rgba(139, 0, 255, 0.3); }
-  50% { box-shadow: 0 0 18px rgba(139, 0, 255, 0.55), 0 0 4px rgba(93, 228, 255, 0.2); }
+  0%,
+  100% {
+    box-shadow: 0 0 8px rgba(139, 0, 255, 0.3);
+  }
+  50% {
+    box-shadow:
+      0 0 18px rgba(139, 0, 255, 0.55),
+      0 0 4px rgba(93, 228, 255, 0.2);
+  }
 }
 
 @keyframes vozh-checkPop {
-  0% { transform: scale(1); }
-  40% { transform: scale(1.25); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.25);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 .vozhatifikator-checklist {
@@ -3114,7 +3215,7 @@
 }
 
 .vozhatifikator-checklist__title {
-  font-family: var(--f-display, 'Syne', sans-serif);
+  font-family: var(--f-display, "Syne", sans-serif);
   font-size: 22px;
   font-weight: 800;
   text-transform: uppercase;
@@ -3128,7 +3229,7 @@
 }
 
 .vozhatifikator-checklist__intro {
-  font-family: var(--f-body, 'Space Grotesk', sans-serif);
+  font-family: var(--f-body, "Space Grotesk", sans-serif);
   font-size: 13px;
   color: rgba(255, 255, 255, 0.55);
   margin: 0 0 18px;
@@ -3148,12 +3249,13 @@
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(139, 0, 255, 0.22);
   border-radius: 14px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15),
-              inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+  box-shadow:
+    0 4px 20px rgba(0, 0, 0, 0.15),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.04);
 }
 
 .vozhatifikator-checklist__points {
-  font-family: var(--f-display, 'Syne', sans-serif);
+  font-family: var(--f-display, "Syne", sans-serif);
   font-size: 22px;
   font-weight: 800;
   background: linear-gradient(135deg, #fff, #c4b5fd);
@@ -3164,7 +3266,7 @@
 }
 
 .vozhatifikator-checklist__level {
-  font-family: var(--f-body, 'Space Grotesk', sans-serif);
+  font-family: var(--f-body, "Space Grotesk", sans-serif);
   font-size: 12px;
   font-weight: 700;
   color: #fff;
@@ -3199,7 +3301,7 @@
 }
 
 .vozhatifikator-checklist__level-desc {
-  font-family: var(--f-body, 'Space Grotesk', sans-serif);
+  font-family: var(--f-body, "Space Grotesk", sans-serif);
   font-size: 12px;
   font-style: italic;
   color: rgba(255, 255, 255, 0.5);
@@ -3226,7 +3328,10 @@
   background: transparent;
   cursor: pointer;
   user-select: none;
-  transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.1s ease;
+  transition:
+    background 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.1s ease;
   animation: vozh-fadeIn 0.35s ease-out backwards;
 }
 
@@ -3292,12 +3397,14 @@
 
 /* ── Label ── */
 .vozhatifikator-checklist__label {
-  font-family: var(--f-body, 'Space Grotesk', sans-serif);
+  font-family: var(--f-body, "Space Grotesk", sans-serif);
   font-size: 13.5px;
   color: rgba(255, 255, 255, 0.88);
   line-height: 1.4;
   letter-spacing: 0.005em;
-  transition: color 0.2s ease, opacity 0.2s ease;
+  transition:
+    color 0.2s ease,
+    opacity 0.2s ease;
 }
 
 .vozhatifikator-checklist__label--done {
@@ -3308,7 +3415,7 @@
 
 /* ── Points pill ── */
 .vozhatifikator-checklist__pts {
-  font-family: var(--f-body, 'Space Grotesk', sans-serif);
+  font-family: var(--f-body, "Space Grotesk", sans-serif);
   font-size: 11px;
   font-weight: 700;
   color: #c4b5fd;
@@ -3332,7 +3439,7 @@
 
 .vozhatifikator-checklist__proof-title {
   margin: 0;
-  font-family: var(--f-display, 'Syne', sans-serif);
+  font-family: var(--f-display, "Syne", sans-serif);
   font-size: 15px;
   font-weight: 700;
   color: #fff;
@@ -3341,7 +3448,7 @@
 
 .vozhatifikator-checklist__proof-desc {
   margin: 0;
-  font-family: var(--f-body, 'Space Grotesk', sans-serif);
+  font-family: var(--f-body, "Space Grotesk", sans-serif);
   font-size: 12px;
   color: rgba(255, 255, 255, 0.5);
   line-height: 1.5;
@@ -3360,11 +3467,14 @@
   background: rgba(139, 0, 255, 0.08);
   border: 1px solid rgba(139, 0, 255, 0.2);
   color: #c4b5fd;
-  font-family: var(--f-body, 'Space Grotesk', sans-serif);
+  font-family: var(--f-body, "Space Grotesk", sans-serif);
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    color 0.15s;
 }
 
 .vozhatifikator-checklist__photo-btn:hover {
@@ -3385,12 +3495,14 @@
   padding: 12px 24px;
   border-radius: 12px;
   border: none;
-  font-family: var(--f-body, 'Space Grotesk', sans-serif);
+  font-family: var(--f-body, "Space Grotesk", sans-serif);
   font-size: 14px;
   font-weight: 600;
   color: #fff;
   cursor: pointer;
-  transition: opacity 0.2s, transform 0.1s;
+  transition:
+    opacity 0.2s,
+    transform 0.1s;
   align-self: flex-start;
 }
 
@@ -3412,7 +3524,7 @@
 .vozhatifikator-checklist__toast {
   padding: 10px 16px;
   border-radius: 10px;
-  font-family: var(--f-body, 'Space Grotesk', sans-serif);
+  font-family: var(--f-body, "Space Grotesk", sans-serif);
   font-size: 13px;
   font-weight: 500;
   animation: vozh-fadeIn 0.3s ease-out;
@@ -3485,7 +3597,9 @@
   background: rgba(15, 10, 42, 0.12);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.2),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.06);
   align-content: start;
   align-self: start;
 }
@@ -3645,7 +3759,6 @@
 }
 
 @media (max-width: 900px) {
-
   .real-diary-schedule-editor__row,
   .real-diary-schedule-row {
     grid-template-columns: 1fr;
@@ -3727,7 +3840,6 @@
 }
 
 @media (max-width: 1200px) {
-
   .team-path-grid,
   .team-path-grid--compact {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -3735,7 +3847,6 @@
 }
 
 @media (max-width: 760px) {
-
   .team-path-grid,
   .team-path-grid--compact {
     grid-template-columns: 1fr;
@@ -3925,8 +4036,14 @@
   animation: initFadeUp 0.3s ease-out;
 }
 @keyframes initFadeUp {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* ── Template Grid ── */
@@ -4052,7 +4169,10 @@
   background-position: right 12px center;
   padding-right: 32px;
 }
-.init-constructor__select option { background: #1a0b2e; color: #fff; }
+.init-constructor__select option {
+  background: #1a0b2e;
+  color: #fff;
+}
 .init-constructor__row {
   display: flex;
   gap: 12px;
@@ -4198,8 +4318,15 @@
   transition: all 0.1s;
   font-family: inherit;
 }
-.init-block__move:disabled { opacity: 0.2; cursor: default; }
-.init-block__remove:hover { background: rgba(239, 68, 68, 0.15); color: #f87171; border-color: rgba(239, 68, 68, 0.3); }
+.init-block__move:disabled {
+  opacity: 0.2;
+  cursor: default;
+}
+.init-block__remove:hover {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border-color: rgba(239, 68, 68, 0.3);
+}
 .init-block__title-input {
   padding: 8px 10px;
   border-radius: 8px;
@@ -4210,7 +4337,10 @@
   font-weight: 700;
   font-family: inherit;
 }
-.init-block__title-input:focus { outline: none; border-color: var(--block-color, #6366f1); }
+.init-block__title-input:focus {
+  outline: none;
+  border-color: var(--block-color, #6366f1);
+}
 .init-block__desc-input {
   padding: 6px 10px;
   border-radius: 8px;
@@ -4223,7 +4353,10 @@
   resize: vertical;
   line-height: 1.4;
 }
-.init-block__desc-input:focus { outline: none; border-color: rgba(255, 255, 255, 0.2); }
+.init-block__desc-input:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.2);
+}
 .init-block__meta-row {
   display: flex;
   gap: 6px;
@@ -4241,7 +4374,10 @@
   font-weight: 500;
   font-family: inherit;
 }
-.init-block__meta-input:focus { outline: none; border-color: rgba(255, 255, 255, 0.15); }
+.init-block__meta-input:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.15);
+}
 
 /* ── Add Block Row ── */
 .init-constructor__add-row {
@@ -4343,7 +4479,7 @@
   padding-left: 20px;
 }
 .init-constructor__timeline::before {
-  content: '';
+  content: "";
   position: absolute;
   left: 14px;
   top: 16px;
@@ -4721,8 +4857,10 @@
   align-items: center;
   justify-content: center;
   padding: 0;
-  transition: color 0.15s, opacity 0.15s;
-  filter: drop-shadow(0 1px 3px rgba(0,0,0,0.6));
+  transition:
+    color 0.15s,
+    opacity 0.15s;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.6));
 }
 
 .cabinet-mobile-hamburger-btn:active {
@@ -4751,8 +4889,9 @@
   width: 265px;
   max-width: 85vw;
   z-index: 100002;
-  background: linear-gradient(180deg, rgba(120,80,255,0.06) 0%, transparent 40%),
-              linear-gradient(180deg, #111827 0%, #0B1020 100%);
+  background:
+    linear-gradient(180deg, rgba(120, 80, 255, 0.06) 0%, transparent 40%),
+    linear-gradient(180deg, #111827 0%, #0b1020 100%);
   -webkit-backdrop-filter: blur(24px);
   backdrop-filter: blur(24px);
   border-right: 1px solid rgba(255, 255, 255, 0.06);
@@ -4767,8 +4906,14 @@
 }
 
 @keyframes cabinet-sidebar-slide-in {
-  from { transform: translateX(-100%); opacity: 0; }
-  to   { transform: translateX(0);     opacity: 1; }
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 
 /* ── Tab list backdrop (reused class) ── */
@@ -4783,15 +4928,18 @@
 }
 
 @keyframes cabinet-backdrop-in {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 /* ── Unused old tab overlay — kept for reference, not rendered ── */
 .cabinet-mobile-tabs-overlay {
   display: none;
 }
-
 
 /* On mobile: tighter padding for content (fills 100% width without col1) */
 @media (max-width: 767px) {
@@ -4804,5 +4952,3 @@
     display: none !important;
   }
 }
-
-

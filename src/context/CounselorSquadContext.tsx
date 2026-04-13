@@ -1,10 +1,19 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, ReactNode } from 'react';
+import type React from 'react';
+import {
+  createContext,
+  type ReactNode,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import type {
+  CounselorFlagBadgeRequest,
+  CounselorSquadCardData,
+  CounselorSquadContextType,
   CounselorSquadCreated,
   CounselorSquadJoined,
-  CounselorSquadContextType,
-  CounselorSquadCardData,
-  CounselorFlagBadgeRequest
 } from '../types/counselorSquad';
 
 const CounselorSquadContext = createContext<CounselorSquadContextType | undefined>(undefined);
@@ -99,7 +108,10 @@ export const CounselorSquadProvider: React.FC<{ children: ReactNode }> = ({ chil
 
   const activeSquadId = myCreatedSquad?.id ?? myJoinedSquad?.squadId ?? null;
   const activeSquadName = myCreatedSquad?.name ?? myJoinedSquad?.squadName ?? null;
-  const activeSquadCard = useMemo(() => (activeSquadId ? (cards[activeSquadId] ?? null) : null), [activeSquadId, cards]);
+  const activeSquadCard = useMemo(
+    () => (activeSquadId ? (cards[activeSquadId] ?? null) : null),
+    [activeSquadId, cards]
+  );
 
   const createSquad = useCallback((name: string) => {
     const id = `S-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
@@ -108,7 +120,7 @@ export const CounselorSquadProvider: React.FC<{ children: ReactNode }> = ({ chil
       id,
       name: name.trim(),
       createdAt: new Date().toISOString(),
-      inviteCode
+      inviteCode,
     });
     setCards((prev) => ({ ...prev, [id]: { name: name.trim() } }));
   }, []);
@@ -151,38 +163,57 @@ export const CounselorSquadProvider: React.FC<{ children: ReactNode }> = ({ chil
     setMyJoinedSquad(null);
   }, []);
 
-  const updateActiveSquadCard = useCallback((fields: Partial<CounselorSquadCardData>) => {
-    if (!activeSquadId) return;
-    setCards((prev) => {
-      const current = prev[activeSquadId] ?? {};
-      return { ...prev, [activeSquadId]: { ...current, ...fields } };
-    });
-  }, [activeSquadId]);
+  const updateActiveSquadCard = useCallback(
+    (fields: Partial<CounselorSquadCardData>) => {
+      if (!activeSquadId) return;
+      setCards((prev) => {
+        const current = prev[activeSquadId] ?? {};
+        return { ...prev, [activeSquadId]: { ...current, ...fields } };
+      });
+    },
+    [activeSquadId]
+  );
 
-  const approveActiveFlagBadgeRequest = useCallback((badgeId: string) => {
-    if (!activeSquadId) return;
-    setCards((prev) => {
-      const current = prev[activeSquadId] ?? {};
-      const requests = (current.flagBadgeRequests ?? []).map((r) =>
-        r.badgeId === badgeId ? { ...r, status: 'approved' as const, resolvedAt: new Date().toISOString() } : r
-      );
-      const approved = [...(current.flagBadgesApproved ?? []), badgeId].filter((id, i, arr) => arr.indexOf(id) === i);
-      return { ...prev, [activeSquadId]: { ...current, flagBadgeRequests: requests, flagBadgesApproved: approved } };
-    });
-  }, [activeSquadId]);
+  const approveActiveFlagBadgeRequest = useCallback(
+    (badgeId: string) => {
+      if (!activeSquadId) return;
+      setCards((prev) => {
+        const current = prev[activeSquadId] ?? {};
+        const requests = (current.flagBadgeRequests ?? []).map((r) =>
+          r.badgeId === badgeId
+            ? { ...r, status: 'approved' as const, resolvedAt: new Date().toISOString() }
+            : r
+        );
+        const approved = [...(current.flagBadgesApproved ?? []), badgeId].filter(
+          (id, i, arr) => arr.indexOf(id) === i
+        );
+        return {
+          ...prev,
+          [activeSquadId]: {
+            ...current,
+            flagBadgeRequests: requests,
+            flagBadgesApproved: approved,
+          },
+        };
+      });
+    },
+    [activeSquadId]
+  );
 
-  const addOrUpdateActiveFlagBadgeRequest = useCallback((req: CounselorFlagBadgeRequest) => {
-    if (!activeSquadId) return;
-    setCards((prev) => {
-      const current = prev[activeSquadId] ?? {};
-      const requests = current.flagBadgeRequests ?? [];
-      const existing = requests.findIndex((r) => r.badgeId === req.badgeId);
-      const nextRequests = existing >= 0
-        ? requests.map((r, i) => (i === existing ? req : r))
-        : [...requests, req];
-      return { ...prev, [activeSquadId]: { ...current, flagBadgeRequests: nextRequests } };
-    });
-  }, [activeSquadId]);
+  const addOrUpdateActiveFlagBadgeRequest = useCallback(
+    (req: CounselorFlagBadgeRequest) => {
+      if (!activeSquadId) return;
+      setCards((prev) => {
+        const current = prev[activeSquadId] ?? {};
+        const requests = current.flagBadgeRequests ?? [];
+        const existing = requests.findIndex((r) => r.badgeId === req.badgeId);
+        const nextRequests =
+          existing >= 0 ? requests.map((r, i) => (i === existing ? req : r)) : [...requests, req];
+        return { ...prev, [activeSquadId]: { ...current, flagBadgeRequests: nextRequests } };
+      });
+    },
+    [activeSquadId]
+  );
 
   const value: CounselorSquadContextType = {
     myCreatedSquad,
@@ -198,14 +229,10 @@ export const CounselorSquadProvider: React.FC<{ children: ReactNode }> = ({ chil
     leaveSquad,
     updateActiveSquadCard,
     approveActiveFlagBadgeRequest,
-    addOrUpdateActiveFlagBadgeRequest
+    addOrUpdateActiveFlagBadgeRequest,
   };
 
-  return (
-    <CounselorSquadContext.Provider value={value}>
-      {children}
-    </CounselorSquadContext.Provider>
-  );
+  return <CounselorSquadContext.Provider value={value}>{children}</CounselorSquadContext.Provider>;
 };
 
 export const useCounselorSquad = (): CounselorSquadContextType => {

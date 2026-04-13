@@ -1,6 +1,6 @@
-import React from 'react';
-import { LoadingScreen } from './app/LoadingScreen';
+import type React from 'react';
 import { AppViewRouter } from './app/AppViewRouter';
+import { LoadingScreen } from './app/LoadingScreen';
 import { useAppController } from './app/useAppController';
 
 // Layout configuration overrides for specific badge groups

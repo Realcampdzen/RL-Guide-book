@@ -11,7 +11,12 @@ test.describe('Team scoped UI smoke', () => {
 
     let opened = false;
     for (const trigger of openProfileCandidates) {
-      if (await trigger.first().isVisible().catch(() => false)) {
+      if (
+        await trigger
+          .first()
+          .isVisible()
+          .catch(() => false)
+      ) {
         await trigger.first().click();
         opened = true;
         break;

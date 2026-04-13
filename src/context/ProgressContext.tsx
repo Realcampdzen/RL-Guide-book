@@ -1,7 +1,14 @@
-import React, { useEffect, useRef, ReactNode, createContext } from 'react';
+import type React from 'react';
+import { createContext, type ReactNode, useEffect, useRef } from 'react';
+import {
+  getProgressStorageKey as _getProgressStorageKey,
+  applyTestDefaults,
+  initialData,
+  normalizeUserData,
+  useProgressStore,
+} from '../store/progressStore';
+import type { IUserData } from '../types/userProgress';
 import { useAuth } from './AuthContext';
-import { useProgressStore, getProgressStorageKey as _getProgressStorageKey, initialData, applyTestDefaults, normalizeUserData } from '../store/progressStore';
-import { IUserData } from '../types/userProgress';
 
 const LEGACY_STORAGE_KEY = 'rl_guide_progress_v1';
 
@@ -25,7 +32,7 @@ export const ProgressProvider: React.FC<{ children: ReactNode }> = ({ children }
   const isLoading = useProgressStore((state) => state.isLoading);
   // We don't subscribe to EVERYTHING to avoid massive ProgressProvider re-renders,
   // but we do need to re-render it if userData changes to save it.
-  
+
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingDataRef = useRef<IUserData | null>(null);
   const hydratedKeyRef = useRef<string>('');
@@ -64,7 +71,7 @@ export const ProgressProvider: React.FC<{ children: ReactNode }> = ({ children }
     }
     pendingDataRef.current = null;
     hydratedKeyRef.current = '';
-    
+
     useProgressStore.getState().setIsLoading(true);
 
     const stored = localStorage.getItem(storageKey);
@@ -92,10 +99,10 @@ export const ProgressProvider: React.FC<{ children: ReactNode }> = ({ children }
   useEffect(() => {
     if (isLoading) return;
     if (hydratedKeyRef.current !== storageKey) return;
-    
+
     pendingDataRef.current = userData;
     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-    
+
     saveTimeoutRef.current = setTimeout(() => {
       saveTimeoutRef.current = null;
       const data = pendingDataRef.current;
@@ -105,13 +112,15 @@ export const ProgressProvider: React.FC<{ children: ReactNode }> = ({ children }
       } catch (e) {
         if (e instanceof DOMException && (e.name === 'QuotaExceededError' || e.code === 22)) {
           console.error('Слишком много данных (например, фото).');
-          alert('Не удалось сохранить: слишком много данных. Удалите несколько фото в отрядном уголке.');
+          alert(
+            'Не удалось сохранить: слишком много данных. Удалите несколько фото в отрядном уголке.'
+          );
         } else {
           console.error('Failed to save progress', e);
         }
       }
     }, 500);
-    
+
     return () => {
       if (saveTimeoutRef.current) {
         clearTimeout(saveTimeoutRef.current);
@@ -128,11 +137,7 @@ export const ProgressProvider: React.FC<{ children: ReactNode }> = ({ children }
     };
   }, [isLoading, storageKey, userData]);
 
-  return (
-    <ProgressContext.Provider value={{}}>
-      {children}
-    </ProgressContext.Provider>
-  );
+  return <ProgressContext.Provider value={{}}>{children}</ProgressContext.Provider>;
 };
 
 export const useUserProgress = () => {

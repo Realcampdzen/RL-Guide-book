@@ -1,4 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
+import type React from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { canUseExpensiveActions } from '../types/authRole';
 
@@ -36,7 +37,8 @@ const DEFAULT_LABELS: Record<ImageContextId, ImageSourceBlockLabels> = {
     generateModalTitle: 'Создать визуал команды',
     generateModalDescription: 'ИИ создаст уникальный герб по названию команды и стилю.',
     processModalTitle: 'Обработать изображение ИИ',
-    processModalDescription: 'Загрузите фото и при необходимости опишите правки. ИИ сохранит ключевые элементы и дополнит айдентикой лагеря.',
+    processModalDescription:
+      'Загрузите фото и при необходимости опишите правки. ИИ сохранит ключевые элементы и дополнит айдентикой лагеря.',
     placeholder: 'Фото',
     saveAs: 'Сохранить как герб',
     close: 'Закрыть',
@@ -173,12 +175,15 @@ export const ImageSourceBlock: React.FC<ImageSourceBlockProps> = ({
   const [processPreviewUrl, setProcessPreviewUrl] = useState<string | null>(null);
 
   const labels = { ...DEFAULT_LABELS[context], ...labelsProp };
-  const uploadLabel = value && isImageUrl(value) ? (labels.uploadReplace ?? labels.upload) : labels.upload;
+  const uploadLabel =
+    value && isImageUrl(value) ? (labels.uploadReplace ?? labels.upload) : labels.upload;
   const showGenerate = !!onGenerate;
   const showProcess = !!onProcess;
   const expensiveActionsAllowed = canUseExpensiveActions(role);
   const aiActionsLocked = (showGenerate || showProcess) && !expensiveActionsAllowed;
-  const lockText = lockReason || 'Генерация и обработка изображений доступны участникам смены после разблокировки по коду.';
+  const lockText =
+    lockReason ||
+    'Генерация и обработка изображений доступны участникам смены после разблокировки по коду.';
 
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -205,7 +210,10 @@ export const ImageSourceBlock: React.FC<ImageSourceBlockProps> = ({
           canvas.width = width;
           canvas.height = height;
           const ctx = canvas.getContext('2d');
-          if (!ctx) { onChange(dataUrl); return; }
+          if (!ctx) {
+            onChange(dataUrl);
+            return;
+          }
           ctx.drawImage(img, 0, 0, width, height);
           const compressed = canvas.toDataURL('image/jpeg', QUALITY);
           onChange(compressed.length < dataUrl.length ? compressed : dataUrl);
@@ -245,7 +253,11 @@ export const ImageSourceBlock: React.FC<ImageSourceBlockProps> = ({
       });
       setPreviewUrl(result);
     } catch (e) {
-      setGenerateError(e instanceof Error ? e.message : 'Не удалось сгенерировать изображение. Проверь подключение или попробуй позже.');
+      setGenerateError(
+        e instanceof Error
+          ? e.message
+          : 'Не удалось сгенерировать изображение. Проверь подключение или попробуй позже.'
+      );
     } finally {
       setGenerating(false);
     }
@@ -329,20 +341,31 @@ export const ImageSourceBlock: React.FC<ImageSourceBlockProps> = ({
         ? { width: 120, height: 213, borderRadius: 12 }
         : { width: 120, height: 80, borderRadius: 12 };
 
-  const buttonsContainerStyle: React.CSSProperties = buttonLayout === 'bento'
-    ? { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }
-    : {
-      display: 'flex',
-      flexDirection: buttonLayout === 'column' ? 'column' : 'row',
-      gap: 8,
-      flexWrap: buttonLayout === 'column' ? 'nowrap' : 'wrap',
-    };
+  const buttonsContainerStyle: React.CSSProperties =
+    buttonLayout === 'bento'
+      ? { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }
+      : {
+          display: 'flex',
+          flexDirection: buttonLayout === 'column' ? 'column' : 'row',
+          gap: 8,
+          flexWrap: buttonLayout === 'column' ? 'nowrap' : 'wrap',
+        };
 
   return (
-    <div className={className} style={buttonLayout === 'bento'
-      ? { display: 'grid', gap: 12 }
-      : { display: 'flex', flexDirection: buttonLayout === 'column' ? 'column' : 'row', alignItems: buttonLayout === 'column' ? 'stretch' : 'center', gap: 12, flexWrap: 'wrap' }
-    }>
+    <div
+      className={className}
+      style={
+        buttonLayout === 'bento'
+          ? { display: 'grid', gap: 12 }
+          : {
+              display: 'flex',
+              flexDirection: buttonLayout === 'column' ? 'column' : 'row',
+              alignItems: buttonLayout === 'column' ? 'stretch' : 'center',
+              gap: 12,
+              flexWrap: 'wrap',
+            }
+      }
+    >
       {!hidePreview && (
         <div
           style={{
@@ -363,7 +386,9 @@ export const ImageSourceBlock: React.FC<ImageSourceBlockProps> = ({
               style={{ width: '100%', height: '100%', objectFit: 'cover' }}
             />
           ) : (
-            <span style={{ fontSize: 11, opacity: 0.5, textAlign: 'center', padding: '0 4px' }}>{labels.placeholder ?? 'Фото'}</span>
+            <span style={{ fontSize: 11, opacity: 0.5, textAlign: 'center', padding: '0 4px' }}>
+              {labels.placeholder ?? 'Фото'}
+            </span>
           )}
         </div>
       )}
@@ -372,23 +397,120 @@ export const ImageSourceBlock: React.FC<ImageSourceBlockProps> = ({
         {buttonLayout === 'bento' ? (
           <>
             {showGenerate && (
-              <button type="button" className="cab-btn-accent" onClick={openModal} disabled={!expensiveActionsAllowed} style={{ padding: '12px 10px', fontSize: 13, fontWeight: 500, minWidth: 'unset', width: '100%', cursor: expensiveActionsAllowed ? 'pointer' : 'not-allowed', opacity: expensiveActionsAllowed ? 1 : 0.55 }}>{labels.generate ?? 'Сгенерировать'}</button>
+              <button
+                type="button"
+                className="cab-btn-accent"
+                onClick={openModal}
+                disabled={!expensiveActionsAllowed}
+                style={{
+                  padding: '12px 10px',
+                  fontSize: 13,
+                  fontWeight: 500,
+                  minWidth: 'unset',
+                  width: '100%',
+                  cursor: expensiveActionsAllowed ? 'pointer' : 'not-allowed',
+                  opacity: expensiveActionsAllowed ? 1 : 0.55,
+                }}
+              >
+                {labels.generate ?? 'Сгенерировать'}
+              </button>
             )}
             {showProcess && (
-              <button type="button" className="cab-btn-glass" aria-label="Обработать изображение с помощью ИИ" onClick={openProcessModal} disabled={!expensiveActionsAllowed} style={{ padding: '12px 10px', fontSize: 13, fontWeight: 500, minWidth: 'unset', width: '100%', cursor: expensiveActionsAllowed ? 'pointer' : 'not-allowed', opacity: expensiveActionsAllowed ? 1 : 0.55 }}>{labels.process ?? 'Обработать ИИ'}</button>
+              <button
+                type="button"
+                className="cab-btn-glass"
+                aria-label="Обработать изображение с помощью ИИ"
+                onClick={openProcessModal}
+                disabled={!expensiveActionsAllowed}
+                style={{
+                  padding: '12px 10px',
+                  fontSize: 13,
+                  fontWeight: 500,
+                  minWidth: 'unset',
+                  width: '100%',
+                  cursor: expensiveActionsAllowed ? 'pointer' : 'not-allowed',
+                  opacity: expensiveActionsAllowed ? 1 : 0.55,
+                }}
+              >
+                {labels.process ?? 'Обработать ИИ'}
+              </button>
             )}
-            <button type="button" className="cab-btn-glass" onClick={() => fileInputRef.current?.click()} style={{ gridColumn: '1 / -1', padding: '12px 14px', fontSize: 13, fontWeight: 500, minWidth: 'unset', width: '100%', cursor: 'pointer' }}>{uploadLabel}</button>
-            <input ref={fileInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleUpload} />
+            <button
+              type="button"
+              className="cab-btn-glass"
+              onClick={() => fileInputRef.current?.click()}
+              style={{
+                gridColumn: '1 / -1',
+                padding: '12px 14px',
+                fontSize: 13,
+                fontWeight: 500,
+                minWidth: 'unset',
+                width: '100%',
+                cursor: 'pointer',
+              }}
+            >
+              {uploadLabel}
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              style={{ display: 'none' }}
+              onChange={handleUpload}
+            />
           </>
         ) : (
           <>
-            <button type="button" onClick={() => fileInputRef.current?.click()} className="cab-btn-glass" style={{ padding: '8px 14px', fontSize: 13, minWidth: 'unset', fontWeight: 500 }}>{uploadLabel}</button>
-            <input ref={fileInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleUpload} />
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="cab-btn-glass"
+              style={{ padding: '8px 14px', fontSize: 13, minWidth: 'unset', fontWeight: 500 }}
+            >
+              {uploadLabel}
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              style={{ display: 'none' }}
+              onChange={handleUpload}
+            />
             {showGenerate && (
-              <button type="button" onClick={openModal} disabled={!expensiveActionsAllowed} className="cab-btn-accent" style={{ padding: '8px 14px', fontSize: 13, minWidth: 'unset', fontWeight: 500, opacity: expensiveActionsAllowed ? 1 : 0.55 }}>{labels.generate ?? 'Сгенерировать'}</button>
+              <button
+                type="button"
+                onClick={openModal}
+                disabled={!expensiveActionsAllowed}
+                className="cab-btn-accent"
+                style={{
+                  padding: '8px 14px',
+                  fontSize: 13,
+                  minWidth: 'unset',
+                  fontWeight: 500,
+                  opacity: expensiveActionsAllowed ? 1 : 0.55,
+                }}
+              >
+                {labels.generate ?? 'Сгенерировать'}
+              </button>
             )}
             {showProcess && (
-              <button type="button" aria-label="Обработать изображение с помощью ИИ" onClick={openProcessModal} className="cab-btn-glass" disabled={!expensiveActionsAllowed} style={{ padding: '8px 14px', fontSize: 13, minWidth: 'unset', fontWeight: 500, opacity: expensiveActionsAllowed ? 1 : 0.55, cursor: expensiveActionsAllowed ? 'pointer' : 'not-allowed' }}>{labels.process ?? 'Обработать ИИ'}</button>
+              <button
+                type="button"
+                aria-label="Обработать изображение с помощью ИИ"
+                onClick={openProcessModal}
+                className="cab-btn-glass"
+                disabled={!expensiveActionsAllowed}
+                style={{
+                  padding: '8px 14px',
+                  fontSize: 13,
+                  minWidth: 'unset',
+                  fontWeight: 500,
+                  opacity: expensiveActionsAllowed ? 1 : 0.55,
+                  cursor: expensiveActionsAllowed ? 'pointer' : 'not-allowed',
+                }}
+              >
+                {labels.process ?? 'Обработать ИИ'}
+              </button>
             )}
           </>
         )}
@@ -475,9 +597,12 @@ export const ImageSourceBlock: React.FC<ImageSourceBlockProps> = ({
                         borderRadius: 8,
                         cursor: 'pointer',
                         fontWeight: 600,
-                        background: generateStyle === s ? 'rgba(139, 0, 255, 0.4)' : 'rgba(255,255,255,0.08)',
+                        background:
+                          generateStyle === s ? 'rgba(139, 0, 255, 0.4)' : 'rgba(255,255,255,0.08)',
                         border:
-                          generateStyle === s ? '1px solid #8b00ff' : '1px solid rgba(255,255,255,0.15)',
+                          generateStyle === s
+                            ? '1px solid #8b00ff'
+                            : '1px solid rgba(255,255,255,0.15)',
                         color: 'white',
                       }}
                     >
@@ -699,7 +824,11 @@ export const ImageSourceBlock: React.FC<ImageSourceBlockProps> = ({
                     border: '1px solid rgba(255,255,255,0.2)',
                   }}
                 >
-                  <img src={processImage} alt="" style={{ width: '100%', height: 'auto', display: 'block' }} />
+                  <img
+                    src={processImage}
+                    alt=""
+                    style={{ width: '100%', height: 'auto', display: 'block' }}
+                  />
                 </div>
               )}
             </div>
@@ -736,7 +865,12 @@ export const ImageSourceBlock: React.FC<ImageSourceBlockProps> = ({
             {processError ? (
               <div className="profile-error profile-error--not-found" style={{ marginBottom: 16 }}>
                 {processError}
-                <button type="button" className="btn-secondary" style={{ marginTop: 8 }} onClick={handleProcessRetry}>
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  style={{ marginTop: 8 }}
+                  onClick={handleProcessRetry}
+                >
                   {labels.retry ?? 'Повторить'}
                 </button>
               </div>
@@ -788,7 +922,9 @@ export const ImageSourceBlock: React.FC<ImageSourceBlockProps> = ({
                 style={{
                   width: '100%',
                   padding: '12px 16px',
-                  background: processImage ? 'linear-gradient(90deg, #8b00ff, #4dacff)' : 'rgba(255,255,255,0.1)',
+                  background: processImage
+                    ? 'linear-gradient(90deg, #8b00ff, #4dacff)'
+                    : 'rgba(255,255,255,0.1)',
                   color: 'white',
                   border: 'none',
                   borderRadius: 12,

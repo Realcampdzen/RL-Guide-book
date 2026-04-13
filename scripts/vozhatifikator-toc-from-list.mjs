@@ -22,7 +22,9 @@ const outPath = path.join(root, 'public', 'vozhatifikator-toc.json');
 const listPath = process.argv[2];
 if (!listPath) {
   console.error('Usage: node scripts/vozhatifikator-toc-from-list.mjs <path-to-list>');
-  console.error('Example: node scripts/vozhatifikator-toc-from-list.mjs public/vozhatifikator-toc-list.example.txt');
+  console.error(
+    'Example: node scripts/vozhatifikator-toc-from-list.mjs public/vozhatifikator-toc-list.example.txt'
+  );
   process.exit(1);
 }
 
@@ -33,7 +35,10 @@ if (!fs.existsSync(absPath)) {
 }
 
 const raw = fs.readFileSync(absPath, 'utf8');
-const lines = raw.split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
+const lines = raw
+  .split(/\r?\n/)
+  .map((s) => s.trim())
+  .filter(Boolean);
 const toc = [];
 
 for (const line of lines) {
@@ -51,7 +56,10 @@ for (const line of lines) {
       const num = parseInt(last, 10);
       if (!Number.isNaN(num)) {
         page = num;
-        title = parts.slice(0, -1).join(sep === '\t' ? ' ' : ', ').trim();
+        title = parts
+          .slice(0, -1)
+          .join(sep === '\t' ? ' ' : ', ')
+          .trim();
       } else {
         title = line;
       }

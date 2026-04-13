@@ -8,11 +8,7 @@
  * x(u,v) = cx + f·X(u)/Z(u), y(u,v) = cy + f·Y(v)/Z(u)
  */
 
-import {
-  homographyFromRectToQuad,
-  cssMatrix3dFromH,
-  type Quad,
-} from './cabinPlaneProjection';
+import { cssMatrix3dFromH, homographyFromRectToQuad, type Quad } from './cabinPlaneProjection';
 
 export interface CylinderParams {
   /** Ширина панели (px) */
@@ -89,16 +85,7 @@ export function radiusFromSag(W: number, s: number): number {
  * Координаты возвращаются в пространстве панели: origin top-left, т.е. к x,y прибавляем (W/2, H/2).
  */
 export function getCylinderStripQuads(params: CylinderParams): Quad[] {
-  const {
-    W,
-    H,
-    N,
-    s = 18,
-    Z0 = 600,
-    f: fParam,
-    cx: cxParam,
-    cy: cyParam,
-  } = params;
+  const { W, H, N, s = 18, Z0 = 600, f: fParam, cx: cxParam, cy: cyParam } = params;
 
   const R = params.R ?? radiusFromSag(W, s);
   const A = getA(W, R);

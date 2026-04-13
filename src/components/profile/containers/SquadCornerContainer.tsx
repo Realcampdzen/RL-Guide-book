@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import type React from 'react';
+import { useEffect, useState } from 'react';
 import { FeatureGate } from '../../../components/FeatureGate';
 import { SquadCabinetPanel } from '../../../components/SquadCabinetPanel';
 import { SquadCornerDashboard } from '../../../components/SquadCornerDashboard';
@@ -49,7 +50,7 @@ export const SquadCornerContainer: React.FC<SquadCornerContainerProps> = ({
   onNavigateToBadge,
   hasSquadMembership,
   persistSquadCorner,
-  createSquadFromCorner
+  createSquadFromCorner,
 }) => {
   const [squadCornerActiveTab, setSquadCornerActiveTab] = useState<SquadCornerTabId>('squad');
 
@@ -68,13 +69,25 @@ export const SquadCornerContainer: React.FC<SquadCornerContainerProps> = ({
     setSquadCornerReturnToOrganizer(false);
     setActiveTab('active');
     openCabinPanel(null, null);
-    setTimeout(() => document.getElementById('organizer-shifts-tab-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
+    setTimeout(
+      () =>
+        document
+          .getElementById('organizer-shifts-tab-section')
+          ?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
+      80
+    );
   };
 
   const handleOpenShifts = () => {
     setActiveTab('squads');
     openCabinPanel(null, null);
-    setTimeout(() => document.getElementById('organizer-shifts-tab-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
+    setTimeout(
+      () =>
+        document
+          .getElementById('organizer-shifts-tab-section')
+          ?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
+      80
+    );
   };
 
   const renderContent = () => {
@@ -82,7 +95,9 @@ export const SquadCornerContainer: React.FC<SquadCornerContainerProps> = ({
       return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {(canEditSquadCorner || squadCornerReturnToOrganizer) && (
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'space-between' }}>
+            <div
+              style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'space-between' }}
+            >
               {squadCornerReturnToOrganizer ? (
                 <button
                   type="button"
@@ -92,9 +107,16 @@ export const SquadCornerContainer: React.FC<SquadCornerContainerProps> = ({
                 >
                   Назад к Сменам и отрядам
                 </button>
-              ) : <span />}
+              ) : (
+                <span />
+              )}
               {canEditSquadCorner && (
-                <button type="button" className="btn-secondary" style={{ padding: '8px 12px' }} onClick={() => setSquadCornerActiveTab('photos')}>
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  style={{ padding: '8px 12px' }}
+                  onClick={() => setSquadCornerActiveTab('photos')}
+                >
                   Редактировать уголок
                 </button>
               )}
@@ -109,7 +131,11 @@ export const SquadCornerContainer: React.FC<SquadCornerContainerProps> = ({
             onRefresh={loadMySquadInfo}
             onAfterLeave={() => setSquadCornerActiveTab('squad')}
             onShowHint={({ title, content }) => showHint({ title, content })}
-            onEditCorner={canEditSquadCorner ? ((t) => setSquadCornerActiveTab(t === 'planner' ? 'planner' : 'photos')) : undefined}
+            onEditCorner={
+              canEditSquadCorner
+                ? (t) => setSquadCornerActiveTab(t === 'planner' ? 'planner' : 'photos')
+                : undefined
+            }
           />
         </div>
       );
@@ -151,7 +177,12 @@ export const SquadCornerContainer: React.FC<SquadCornerContainerProps> = ({
 
   if (travelerMode) {
     return (
-      <FeatureGate allowed={false} reason={travelerGateReason || undefined} ctaLabel="Разблокировать по коду" onCta={openUnlockByCode}>
+      <FeatureGate
+        allowed={false}
+        reason={travelerGateReason || undefined}
+        ctaLabel="Разблокировать по коду"
+        onCta={openUnlockByCode}
+      >
         {renderContent()}
       </FeatureGate>
     );

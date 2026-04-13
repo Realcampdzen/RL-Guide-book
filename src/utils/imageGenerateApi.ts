@@ -19,7 +19,9 @@ function getApiBase(): string {
   if (typeof window === 'undefined') return '';
   const hostname = window.location.hostname;
   const useLocal = import.meta.env.DEV || hostname === 'localhost' || hostname === '127.0.0.1';
-  return useLocal ? '' : ((import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || '')).replace(/\/$/, '');
+  return useLocal
+    ? ''
+    : (import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || '').replace(/\/$/, '');
 }
 
 /** Error response body from POST /api/images/generate (429/503 etc.) */
@@ -100,7 +102,7 @@ export async function requestImageGenerate(
     mode: options.mode,
     context: options.context,
     prompt: (options.prompt ?? '').trim(),
-    imageBase64: options.mode === 'process' ? toRawBase64(options.imageBase64 ?? '') : ''
+    imageBase64: options.mode === 'process' ? toRawBase64(options.imageBase64 ?? '') : '',
   };
   if (options.context === 'gerb') {
     if (options.teamId) body.teamId = options.teamId;
@@ -110,7 +112,12 @@ export async function requestImageGenerate(
   }
 
   const res = await fetch(url, { method: 'POST', headers, body: JSON.stringify(body) });
-  const data = (await res.json().catch(() => ({}))) as { error?: string; hint?: string; retryAfter?: number; imageBase64?: string };
+  const data = (await res.json().catch(() => ({}))) as {
+    error?: string;
+    hint?: string;
+    retryAfter?: number;
+    imageBase64?: string;
+  };
 
   if (!res.ok) {
     throw new Error(userMessageFromStatus(res.status, data));
@@ -128,5 +135,5 @@ export const IMAGE_CONTEXT_TO_BACKEND: Record<string, string> = {
   passport_avatar: 'passport',
   workshop_badge: 'workshop',
   team_flag: 'team_flag',
-  gerb: 'gerb'
+  gerb: 'gerb',
 };

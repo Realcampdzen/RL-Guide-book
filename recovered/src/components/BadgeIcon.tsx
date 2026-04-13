@@ -1,4 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
+import type React from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { getBadgeImagePath } from '../utils/badgeImages';
 
 interface BadgeIconProps {
@@ -58,14 +59,14 @@ const BadgeIcon: React.FC<BadgeIconProps> = ({
   }
 
   return (
-    <div 
+    <div
       className={className}
-      style={{ 
-        position: 'relative', 
-        width: getImageSize(size), 
-        height: getImageSize(size), 
-        display: 'flex', 
-        alignItems: 'center', 
+      style={{
+        position: 'relative',
+        width: getImageSize(size),
+        height: getImageSize(size),
+        display: 'flex',
+        alignItems: 'center',
         justifyContent: 'center',
         minWidth: getImageSize(size),
         minHeight: getImageSize(size),
@@ -74,7 +75,16 @@ const BadgeIcon: React.FC<BadgeIconProps> = ({
       }}
     >
       {!imageLoaded && !imageError && (
-        <div className="badge-emoji" style={{ fontSize: getEmojiSize(size), opacity: 0.3, position: 'absolute', pointerEvents: 'none', zIndex: 1 }}>
+        <div
+          className="badge-emoji"
+          style={{
+            fontSize: getEmojiSize(size),
+            opacity: 0.3,
+            position: 'absolute',
+            pointerEvents: 'none',
+            zIndex: 1,
+          }}
+        >
           {emoji}
         </div>
       )}

@@ -1,7 +1,12 @@
 /* App Inline Styles - Extracted from App.tsx */
 
 /* Отключение tap highlight для всех интерактивных элементов */
-a, button, .badge-card, .category-card, .clickable, .hover-target {
+a,
+button,
+.badge-card,
+.category-card,
+.clickable,
+.hover-target {
   -webkit-tap-highlight-color: transparent;
   -webkit-touch-callout: none;
 }
@@ -21,7 +26,7 @@ a, button, .badge-card, .category-card, .clickable, .hover-target {
 }
 
 .intro-screen::before {
-  content: '';
+  content: "";
   position: fixed;
   top: 0;
   left: 0;
@@ -30,9 +35,14 @@ a, button, .badge-card, .category-card, .clickable, .hover-target {
   height: 100lvh;
   pointer-events: none;
   z-index: -1;
-  background: 
-    linear-gradient(135deg, rgba(12, 12, 12, 0.3) 0%, rgba(26, 26, 46, 0.3) 50%, rgba(22, 33, 62, 0.3) 100%),
-    url('/RL-Guide-book/ai_camp.png') center center / cover no-repeat;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(12, 12, 12, 0.3) 0%,
+      rgba(26, 26, 46, 0.3) 50%,
+      rgba(22, 33, 62, 0.3) 100%
+    ),
+    url("/RL-Guide-book/ai_camp.png") center center / cover no-repeat;
 }
 
 .intro-logo {
@@ -75,7 +85,7 @@ a, button, .badge-card, .category-card, .clickable, .hover-target {
   object-fit: cover;
   object-position: center;
   border-radius: 18px;
-  box-shadow: 
+  box-shadow:
     0 6px 20px rgba(0, 0, 0, 0.4),
     0 0 0 2px rgba(255, 215, 0, 1),
     0 0 20px rgba(255, 215, 0, 0.5),
@@ -106,7 +116,7 @@ a, button, .badge-card, .category-card, .clickable, .hover-target {
 }
 
 .intro-logo:hover img {
-  box-shadow: 
+  box-shadow:
     0 12px 32px rgba(0, 0, 0, 0.5),
     0 0 0 3px rgba(255, 215, 0, 1),
     0 0 30px rgba(255, 215, 0, 0.8),
@@ -122,10 +132,10 @@ a, button, .badge-card, .category-card, .clickable, .hover-target {
   bottom: -40px;
   left: 50%;
   transform: translateX(-50%);
-  color: #FFD700;
+  color: #ffd700;
   font-size: 14px;
   font-weight: bold;
-  text-shadow: 
+  text-shadow:
     0 0 10px rgba(255, 215, 0, 0.8),
     0 0 20px rgba(255, 215, 0, 0.6),
     0 0 30px rgba(255, 215, 0, 0.4);
@@ -167,13 +177,13 @@ a, button, .badge-card, .category-card, .clickable, .hover-target {
   cursor: pointer;
   position: relative;
   overflow: hidden;
-  background: 
+  background:
     linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)),
-    url('/RL-Guide-book/pattern_stickers.jpg') center/cover no-repeat;
+    url("/RL-Guide-book/pattern_stickers.jpg") center / cover no-repeat;
 }
 
 .benefit-item.clickable::after {
-  content: '👆';
+  content: "👆";
   position: absolute;
   top: 10px;
   right: 10px;
@@ -194,13 +204,13 @@ a, button, .badge-card, .category-card, .clickable, .hover-target {
 }
 
 .benefit-item h4 {
-  color: #FFD700;
+  color: #ffd700;
   margin-bottom: 10px;
   font-size: 18px;
 }
 
 .benefit-item.clickable h4 {
-  color: #FFD700;
+  color: #ffd700;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
   font-weight: bold;
 }
@@ -276,7 +286,7 @@ a, button, .badge-card, .category-card, .clickable, .hover-target {
 }
 
 .cta-section h3 {
-  color: #FFD700;
+  color: #ffd700;
   font-size: 24px;
   margin-bottom: 15px;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
@@ -307,14 +317,14 @@ a, button, .badge-card, .category-card, .clickable, .hover-target {
 .post-main-title {
   font-size: 1rem;
   font-weight: bold;
-  color: #FFD700;
+  color: #ffd700;
   margin-bottom: 0.3rem;
-  text-shadow: 1px 1px 2px rgba(0,0,0,0.6);
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.6);
 }
 
 .post-subtitle {
   font-size: 0.8rem;
-  color: #E6F7FF;
+  color: #e6f7ff;
   margin-bottom: 0.5rem;
   line-height: 1.2;
 }
@@ -329,7 +339,7 @@ a, button, .badge-card, .category-card, .clickable, .hover-target {
 .highlight {
   font-size: 0.7rem;
   background: rgba(78, 205, 196, 0.2);
-  color: #4ECDC4;
+  color: #4ecdc4;
   padding: 0.2rem 0.4rem;
   border-radius: 4px;
   border: none;
@@ -363,7 +373,7 @@ a, button, .badge-card, .category-card, .clickable, .hover-target {
   font-size: 0.9rem;
   line-height: 1.45;
   margin-bottom: 0.6rem;
-  color: #E6F7FF;
+  color: #e6f7ff;
   max-width: 70ch;
   margin-left: auto;
   margin-right: auto;
@@ -382,7 +392,7 @@ a, button, .badge-card, .category-card, .clickable, .hover-target {
 
 .philosophy-main {
   font-size: 1rem !important;
-  color: #CFEAF5 !important;
+  color: #cfeaf5 !important;
   text-align: center;
   margin-bottom: 0.6rem !important;
 }
@@ -400,7 +410,7 @@ a, button, .badge-card, .category-card, .clickable, .hover-target {
   padding: 0.5rem;
   background: rgba(255, 255, 255, 0.02);
   border-radius: 10px;
-  border-left: 3px solid #62FFD0;
+  border-left: 3px solid #62ffd0;
 }
 
 .point-icon {
@@ -414,7 +424,7 @@ a, button, .badge-card, .category-card, .clickable, .hover-target {
 }
 
 .point strong {
-  color: #62FFD0;
+  color: #62ffd0;
   display: block;
   margin-bottom: 0.2rem;
 }
@@ -422,7 +432,7 @@ a, button, .badge-card, .category-card, .clickable, .hover-target {
 .philosophy-ending {
   text-align: center;
   font-size: 0.9rem !important;
-  color: #62FFD0 !important;
+  color: #62ffd0 !important;
   margin-top: 0.6rem !important;
   padding: 0.5rem;
   background: rgba(98, 255, 208, 0.05);
@@ -470,7 +480,7 @@ a, button, .badge-card, .category-card, .clickable, .hover-target {
 }
 
 .categories-screen::before {
-  content: '';
+  content: "";
   position: fixed;
   top: 0;
   left: 0;
@@ -479,9 +489,14 @@ a, button, .badge-card, .category-card, .clickable, .hover-target {
   height: 100lvh;
   pointer-events: none;
   z-index: -1;
-  background: 
-    linear-gradient(135deg, rgba(12, 12, 12, 0.3) 0%, rgba(26, 26, 46, 0.3) 50%, rgba(22, 33, 62, 0.3) 100%),
-    url('/RL-Guide-book/экран 2 фон.png') center center / cover no-repeat;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(12, 12, 12, 0.3) 0%,
+      rgba(26, 26, 46, 0.3) 50%,
+      rgba(22, 33, 62, 0.3) 100%
+    ),
+    url("/RL-Guide-book/экран 2 фон.png") center center / cover no-repeat;
 }
 
 .category-screen,
@@ -501,7 +516,7 @@ a, button, .badge-card, .category-card, .clickable, .hover-target {
 
 .category-screen::before,
 .badge-screen::before {
-  content: '';
+  content: "";
   position: fixed;
   top: 0;
   left: 0;
@@ -510,9 +525,14 @@ a, button, .badge-card, .category-card, .clickable, .hover-target {
   height: 100lvh;
   pointer-events: none;
   z-index: -1;
-  background: 
-    linear-gradient(135deg, rgba(12, 12, 12, 0.3) 0%, rgba(26, 26, 46, 0.3) 50%, rgba(22, 33, 62, 0.3) 100%),
-    url('/RL-Guide-book/экран 3 фон.png') center top / cover no-repeat;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(12, 12, 12, 0.3) 0%,
+      rgba(26, 26, 46, 0.3) 50%,
+      rgba(22, 33, 62, 0.3) 100%
+    ),
+    url("/RL-Guide-book/экран 3 фон.png") center top / cover no-repeat;
 }
 
 .badge-level-screen {
@@ -528,8 +548,7 @@ a, button, .badge-card, .category-card, .clickable, .hover-target {
 
 .header {
   margin-bottom: 0.4rem;
-  background: 
-    url('/RL-Guide-book/pattern_stickers.jpg') center center / 100% no-repeat;
+  background: url("/RL-Guide-book/pattern_stickers.jpg") center center / 100% no-repeat;
   padding: 0.3rem;
   border-radius: 15px;
   backdrop-filter: blur(5px);
@@ -546,9 +565,13 @@ a, button, .badge-card, .category-card, .clickable, .hover-target {
   position: relative;
   padding: 0.8rem 1.2rem;
   border-radius: 20px;
-  background: 
-    linear-gradient(180deg, rgba(6, 12, 28, 0.85) 0%, rgba(9, 20, 38, 0.75) 70%, rgba(6, 14, 32, 0.8) 100%);
-  box-shadow: 
+  background: linear-gradient(
+    180deg,
+    rgba(6, 12, 28, 0.85) 0%,
+    rgba(9, 20, 38, 0.75) 70%,
+    rgba(6, 14, 32, 0.8) 100%
+  );
+  box-shadow:
     0 4px 15px rgba(0, 0, 0, 0.4),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(8px);
@@ -560,9 +583,13 @@ a, button, .badge-card, .category-card, .clickable, .hover-target {
   position: relative;
   padding: 0.8rem 1.2rem;
   border-radius: 20px;
-  background: 
-    linear-gradient(180deg, rgba(6, 12, 28, 0.85) 0%, rgba(9, 20, 38, 0.75) 70%, rgba(6, 14, 32, 0.8) 100%);
-  box-shadow: 
+  background: linear-gradient(
+    180deg,
+    rgba(6, 12, 28, 0.85) 0%,
+    rgba(9, 20, 38, 0.75) 70%,
+    rgba(6, 14, 32, 0.8) 100%
+  );
+  box-shadow:
     0 4px 15px rgba(0, 0, 0, 0.4),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(8px);
@@ -574,9 +601,13 @@ a, button, .badge-card, .category-card, .clickable, .hover-target {
   position: relative;
   padding: 0.8rem 1.2rem;
   border-radius: 20px;
-  background: 
-    linear-gradient(180deg, rgba(6, 12, 28, 0.85) 0%, rgba(9, 20, 38, 0.75) 70%, rgba(6, 14, 32, 0.8) 100%);
-  box-shadow: 
+  background: linear-gradient(
+    180deg,
+    rgba(6, 12, 28, 0.85) 0%,
+    rgba(9, 20, 38, 0.75) 70%,
+    rgba(6, 14, 32, 0.8) 100%
+  );
+  box-shadow:
     0 4px 15px rgba(0, 0, 0, 0.4),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(8px);
@@ -588,9 +619,13 @@ a, button, .badge-card, .category-card, .clickable, .hover-target {
   position: relative;
   padding: 0.8rem 1.2rem;
   border-radius: 20px;
-  background: 
-    linear-gradient(180deg, rgba(6, 12, 28, 0.85) 0%, rgba(9, 20, 38, 0.75) 70%, rgba(6, 14, 32, 0.8) 100%);
-  box-shadow: 
+  background: linear-gradient(
+    180deg,
+    rgba(6, 12, 28, 0.85) 0%,
+    rgba(9, 20, 38, 0.75) 70%,
+    rgba(6, 14, 32, 0.8) 100%
+  );
+  box-shadow:
     0 4px 15px rgba(0, 0, 0, 0.4),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(8px);
@@ -602,9 +637,13 @@ a, button, .badge-card, .category-card, .clickable, .hover-target {
   position: relative;
   padding: 0.8rem 1.2rem;
   border-radius: 20px;
-  background: 
-    linear-gradient(180deg, rgba(6, 12, 28, 0.85) 0%, rgba(9, 20, 38, 0.75) 70%, rgba(6, 14, 32, 0.8) 100%);
-  box-shadow: 
+  background: linear-gradient(
+    180deg,
+    rgba(6, 12, 28, 0.85) 0%,
+    rgba(9, 20, 38, 0.75) 70%,
+    rgba(6, 14, 32, 0.8) 100%
+  );
+  box-shadow:
     0 4px 15px rgba(0, 0, 0, 0.4),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(8px);
@@ -616,9 +655,13 @@ a, button, .badge-card, .category-card, .clickable, .hover-target {
   position: relative;
   padding: 0.8rem 1.2rem;
   border-radius: 20px;
-  background: 
-    linear-gradient(180deg, rgba(6, 12, 28, 0.85) 0%, rgba(9, 20, 38, 0.75) 70%, rgba(6, 14, 32, 0.8) 100%);
-  box-shadow: 
+  background: linear-gradient(
+    180deg,
+    rgba(6, 12, 28, 0.85) 0%,
+    rgba(9, 20, 38, 0.75) 70%,
+    rgba(6, 14, 32, 0.8) 100%
+  );
+  box-shadow:
     0 4px 15px rgba(0, 0, 0, 0.4),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(8px);
@@ -630,9 +673,13 @@ a, button, .badge-card, .category-card, .clickable, .hover-target {
   position: relative;
   padding: 0.8rem 1.2rem;
   border-radius: 20px;
-  background: 
-    linear-gradient(180deg, rgba(6, 12, 28, 0.85) 0%, rgba(9, 20, 38, 0.75) 70%, rgba(6, 14, 32, 0.8) 100%);
-  box-shadow: 
+  background: linear-gradient(
+    180deg,
+    rgba(6, 12, 28, 0.85) 0%,
+    rgba(9, 20, 38, 0.75) 70%,
+    rgba(6, 14, 32, 0.8) 100%
+  );
+  box-shadow:
     0 4px 15px rgba(0, 0, 0, 0.4),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(8px);
@@ -644,9 +691,13 @@ a, button, .badge-card, .category-card, .clickable, .hover-target {
   position: relative;
   padding: 0.8rem 1.2rem;
   border-radius: 20px;
-  background: 
-    linear-gradient(180deg, rgba(6, 12, 28, 0.85) 0%, rgba(9, 20, 38, 0.75) 70%, rgba(6, 14, 32, 0.8) 100%);
-  box-shadow: 
+  background: linear-gradient(
+    180deg,
+    rgba(6, 12, 28, 0.85) 0%,
+    rgba(9, 20, 38, 0.75) 70%,
+    rgba(6, 14, 32, 0.8) 100%
+  );
+  box-shadow:
     0 4px 15px rgba(0, 0, 0, 0.4),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(8px);
@@ -789,7 +840,8 @@ a, button, .badge-card, .category-card, .clickable, .hover-target {
 }
 
 @keyframes float {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0px);
   }
   50% {
@@ -798,7 +850,7 @@ a, button, .badge-card, .category-card, .clickable, .hover-target {
 }
 
 .category-card::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 50%;
   left: 50%;
@@ -813,11 +865,12 @@ a, button, .badge-card, .category-card, .clickable, .hover-target {
 }
 
 @keyframes pulse {
-  0%, 100% { 
+  0%,
+  100% {
     transform: translate(-50%, -50%) scale(1);
     opacity: 0.3;
   }
-  50% { 
+  50% {
     transform: translate(-50%, -50%) scale(1.1);
     opacity: 0.6;
   }
@@ -828,16 +881,21 @@ a, button, .badge-card, .category-card, .clickable, .hover-target {
   .category-container.floating {
     animation: none !important;
   }
-  
+
   .category-card::before {
     animation: none !important;
   }
 
   /* Кастомная анимация для тапов */
-  a:active, button:active, .badge-card:active, .category-card:active {
+  a:active,
+  button:active,
+  .badge-card:active,
+  .category-card:active {
     transform: scale(0.98);
     opacity: 0.9;
-    transition: transform 0.1s ease, opacity 0.1s ease;
+    transition:
+      transform 0.1s ease,
+      opacity 0.1s ease;
   }
 }
 
@@ -847,7 +905,7 @@ a, button, .badge-card, .category-card, .clickable, .hover-target {
     transform: none !important;
     box-shadow: none !important;
   }
-  
+
   .category-card:hover::before {
     animation-duration: 3s !important;
   }
@@ -1109,12 +1167,12 @@ a, button, .badge-card, .category-card, .clickable, .hover-target {
   .badge-card:hover {
     transform: none !important;
   }
-  
+
   .badge-card:hover .badge-card__icon {
     transform: none !important;
     box-shadow: none !important;
   }
-  
+
   .badge-card:hover .badge-emoji {
     transform: none !important;
     filter: none !important;
@@ -1155,22 +1213,22 @@ a, button, .badge-card, .category-card, .clickable, .hover-target {
 }
 
 @media (min-width: 576px) {
-  .badges-grid { 
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); 
+  .badges-grid {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     max-width: 1200px;
   }
 }
 
 @media (min-width: 768px) {
-  .badges-grid { 
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+  .badges-grid {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     max-width: 1300px;
   }
 }
 
 @media (min-width: 1200px) {
-  .badges-grid { 
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); 
+  .badges-grid {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     max-width: 1400px;
   }
 }
@@ -1191,6 +1249,14 @@ a, button, .badge-card, .category-card, .clickable, .hover-target {
 }
 
 /* ——— Fix: ensure back button is clickable on category screen (z-index/pointer events) ——— */
-.category-screen .header { z-index: 1000; }
-.category-screen .header::before { pointer-events: none; }
-.back-button { position: relative; z-index: 2000; pointer-events: auto; }
+.category-screen .header {
+  z-index: 1000;
+}
+.category-screen .header::before {
+  pointer-events: none;
+}
+.back-button {
+  position: relative;
+  z-index: 2000;
+  pointer-events: auto;
+}

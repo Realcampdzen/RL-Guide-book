@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import type React from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useUserProgress } from '../hooks/useUserProgress';
 import { lockScroll, unlockScroll } from '../utils/scrollLock';
@@ -10,7 +11,11 @@ interface BroBonfireProps {
   usePortal?: boolean;
 }
 
-export const BroBonfire: React.FC<BroBonfireProps> = ({ onComplete, onCancel, usePortal = false }) => {
+export const BroBonfire: React.FC<BroBonfireProps> = ({
+  onComplete,
+  onCancel,
+  usePortal = false,
+}) => {
   const { selectWingMentor } = useUserProgress();
   const [step, setStep] = useState<'intro' | 'recipe' | 'words' | 'wing'>('intro');
   const [wingName, setWingName] = useState('');
@@ -66,7 +71,11 @@ export const BroBonfire: React.FC<BroBonfireProps> = ({ onComplete, onCancel, us
       <div className="bro-bonfire-shell">
         <div className="bro-bonfire-actions">
           {onCancel && (
-            <button type="button" className="bro-bonfire-btn bro-bonfire-btn--ghost" onClick={onCancel}>
+            <button
+              type="button"
+              className="bro-bonfire-btn bro-bonfire-btn--ghost"
+              onClick={onCancel}
+            >
               Вернуться к Бропаспорту
             </button>
           )}
@@ -74,12 +83,18 @@ export const BroBonfire: React.FC<BroBonfireProps> = ({ onComplete, onCancel, us
 
         {step === 'intro' && (
           <div className="bro-bonfire-card bro-bonfire-fade-in">
-            <div className="bro-bonfire-emoji bro-bonfire-emoji--intro" aria-hidden>🔥</div>
+            <div className="bro-bonfire-emoji bro-bonfire-emoji--intro" aria-hidden>
+              🔥
+            </div>
             <h2 className="bro-bonfire-title">БРО-КОСТЕР</h2>
             <p className="bro-bonfire-text">
               Время финала. Самый теплый момент Бросвящения. Собираемся в круг...
             </p>
-            <button type="button" className="bro-bonfire-btn bro-bonfire-btn--orange" onClick={() => setStep('recipe')}>
+            <button
+              type="button"
+              className="bro-bonfire-btn bro-bonfire-btn--orange"
+              onClick={() => setStep('recipe')}
+            >
               ГОТОВИТЬ БРОТЕРБРОДЫ
             </button>
           </div>
@@ -87,7 +102,9 @@ export const BroBonfire: React.FC<BroBonfireProps> = ({ onComplete, onCancel, us
 
         {step === 'recipe' && (
           <div className="bro-bonfire-card bro-bonfire-fade-in">
-            <div className="bro-bonfire-emoji" aria-hidden>🍞🧂🌻</div>
+            <div className="bro-bonfire-emoji" aria-hidden>
+              🍞🧂🌻
+            </div>
             <h2 className="bro-bonfire-title bro-bonfire-title--orange">ОСОБЫЙ РЕЦЕПТ</h2>
             <ul className="bro-bonfire-list">
               <li>Нарежь хлеб аккуратными кусочками</li>
@@ -95,7 +112,11 @@ export const BroBonfire: React.FC<BroBonfireProps> = ({ onComplete, onCancel, us
               <li>Сбрызни подсолнечным маслом</li>
               <li>Жарь на костре как шашлычок до хруста</li>
             </ul>
-            <button type="button" className="bro-bonfire-btn bro-bonfire-btn--purple" onClick={() => setStep('words')}>
+            <button
+              type="button"
+              className="bro-bonfire-btn bro-bonfire-btn--purple"
+              onClick={() => setStep('words')}
+            >
               СЛУШАТЬ НАПУТСТВИЯ
             </button>
           </div>
@@ -103,12 +124,19 @@ export const BroBonfire: React.FC<BroBonfireProps> = ({ onComplete, onCancel, us
 
         {step === 'words' && (
           <div className="bro-bonfire-card bro-bonfire-fade-in">
-            <div className="bro-bonfire-emoji" aria-hidden>📢</div>
+            <div className="bro-bonfire-emoji" aria-hidden>
+              📢
+            </div>
             <h2 className="bro-bonfire-title bro-bonfire-title--lavender">СЛОВА СТАРШИХ</h2>
             <p className="bro-bonfire-text bro-bonfire-text--quote">
-              "Бро - это не просто статус. Это ответственность за младших, за лагерь и за самих себя. Помни традиции, храни огонь."
+              "Бро - это не просто статус. Это ответственность за младших, за лагерь и за самих
+              себя. Помни традиции, храни огонь."
             </p>
-            <button type="button" className="bro-bonfire-btn bro-bonfire-btn--gold" onClick={() => setStep('wing')}>
+            <button
+              type="button"
+              className="bro-bonfire-btn bro-bonfire-btn--gold"
+              onClick={() => setStep('wing')}
+            >
               СФОРМИРОВАТЬ КРЫЛО
             </button>
           </div>
@@ -116,7 +144,9 @@ export const BroBonfire: React.FC<BroBonfireProps> = ({ onComplete, onCancel, us
 
         {step === 'wing' && (
           <div className="bro-bonfire-card bro-bonfire-fade-in">
-            <div className="bro-bonfire-emoji" aria-hidden>🦅</div>
+            <div className="bro-bonfire-emoji" aria-hidden>
+              🦅
+            </div>
             <h2 className="bro-bonfire-title">ТВОЕ КРЫЛО</h2>
             <p className="bro-bonfire-text bro-bonfire-text--small">
               Объединитесь и выберите своего Наставника

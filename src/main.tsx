@@ -1,16 +1,16 @@
-import React from 'react'
-import ReactDOM from 'react-dom/client'
-import App from './App.tsx'
-import ErrorBoundary from './components/ErrorBoundary'
-import { ProgressProvider } from './context/ProgressContext'
-import { HintOverlayProvider } from './context/HintOverlayContext'
-import { TeamProvider } from './context/TeamContext'
-import { CounselorSquadProvider } from './context/CounselorSquadContext'
-import { AuthProvider } from './context/AuthContext'
-import { setupGodModeInterceptor } from './utils/godModeInterceptor'
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App.tsx';
+import ErrorBoundary from './components/ErrorBoundary';
+import { AuthProvider } from './context/AuthContext';
+import { CounselorSquadProvider } from './context/CounselorSquadContext';
+import { HintOverlayProvider } from './context/HintOverlayContext';
+import { ProgressProvider } from './context/ProgressContext';
+import { TeamProvider } from './context/TeamContext';
+import { setupGodModeInterceptor } from './utils/godModeInterceptor';
 
-import './styles/tailwind.css'
-import './styles/profile-view-spaceship.css'
+import './styles/tailwind.css';
+import './styles/profile-view-spaceship.css';
 
 // Init Presenter God Mode early
 setupGodModeInterceptor();
@@ -21,19 +21,19 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
       <AuthProvider>
         <ProgressProvider>
           <TeamProvider>
-          <CounselorSquadProvider>
-          <HintOverlayProvider>
-            <div className="profile-spaceship-root" data-profile-mode="spaceship">
-              <App />
-            </div>
-          </HintOverlayProvider>
-          </CounselorSquadProvider>
-        </TeamProvider>
-      </ProgressProvider>
+            <CounselorSquadProvider>
+              <HintOverlayProvider>
+                <div className="profile-spaceship-root" data-profile-mode="spaceship">
+                  <App />
+                </div>
+              </HintOverlayProvider>
+            </CounselorSquadProvider>
+          </TeamProvider>
+        </ProgressProvider>
       </AuthProvider>
     </ErrorBoundary>
-  </React.StrictMode>,
-)
+  </React.StrictMode>
+);
 
 // Register Service Worker only in production builds.
 // Extra safety: when running a production build on localhost, auto-unregister any SW to avoid "stale UI" from cache.
@@ -44,11 +44,14 @@ if (import.meta.env.PROD && 'serviceWorker' in navigator) {
 
   window.addEventListener('load', () => {
     if (isLocalhost) {
-      navigator.serviceWorker.getRegistrations().then((regs) => {
-        for (const r of regs) r.unregister();
-      }).catch(() => {
-        // Silent: SW must never break app startup.
-      });
+      navigator.serviceWorker
+        .getRegistrations()
+        .then((regs) => {
+          for (const r of regs) r.unregister();
+        })
+        .catch(() => {
+          // Silent: SW must never break app startup.
+        });
       return;
     }
 

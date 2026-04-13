@@ -12,7 +12,7 @@
  * - focus on category 1 to keep the check fast and scoped
  */
 import { existsSync, readdirSync, statSync } from 'fs';
-import { join, resolve, relative, extname } from 'path';
+import { extname, join, relative, resolve } from 'path';
 
 const root = process.cwd();
 const targetDirs = [
@@ -90,4 +90,3 @@ if (missing.length > 100) {
 }
 
 process.exit(1);
-

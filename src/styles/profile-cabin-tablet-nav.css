@@ -12,7 +12,9 @@
   min-width: 280px;
   margin-left: auto;
   margin-right: auto;
-  background: linear-gradient(140deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02)), var(--mobile-glass-bg);
+  background:
+    linear-gradient(140deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02)),
+    var(--mobile-glass-bg);
   backdrop-filter: blur(18px) saturate(1.1);
   -webkit-backdrop-filter: blur(18px) saturate(1.1);
   border: 1px solid var(--mobile-glass-border);
@@ -36,7 +38,7 @@
   background: none;
   padding: 4px 0;
   color: rgba(255, 255, 255, 0.6);
-  font-family: var(--f-display-nav, 'Syne', 'Montserrat', sans-serif);
+  font-family: var(--f-display-nav, "Syne", "Montserrat", sans-serif);
   font-size: 0;
   letter-spacing: 0.1em;
   font-weight: 700;
@@ -46,7 +48,9 @@
   align-items: center;
   gap: 0;
   cursor: pointer;
-  transition: color 0.2s ease, transform 0.2s ease;
+  transition:
+    color 0.2s ease,
+    transform 0.2s ease;
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
   position: relative;
 }
@@ -89,7 +93,10 @@
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.14);
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
-  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
 }
 
 .profile-cabin-tablet-nav__icon {

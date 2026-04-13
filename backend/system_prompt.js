@@ -442,48 +442,48 @@ export const SYSTEM_PROMPT = `
 
 // Функция для получения системного промпта с контекстом
 export function getSystemPromptWithContext(context = {}) {
-  let contextSection = "";
-  
+  let contextSection = '';
+
   if (context.currentView) {
     const viewNames = {
-      'intro': 'Главная страница',
-      'categories': 'Список категорий',
-      'category': 'Категория значков',
-      'badge': 'Страница значка',
+      intro: 'Главная страница',
+      categories: 'Список категорий',
+      category: 'Категория значков',
+      badge: 'Страница значка',
       'badge-level': 'Уровень значка',
-      'profile': 'Личный кабинет',
-      'introduction': 'Введение в путеводитель',
+      profile: 'Личный кабинет',
+      introduction: 'Введение в путеводитель',
       'additional-material': 'Дополнительные материалы',
       'about-camp': 'Информация о лагере',
-      'registration-form': 'Форма регистрации'
+      'registration-form': 'Форма регистрации',
     };
     const viewName = viewNames[context.currentView] || context.currentView;
     contextSection += `\n\n## Текущий контекст:\n- Пользователь находится на экране: ${viewName}`;
   }
-  
+
   if (context.currentCategory) {
     contextSection += `\n- Пользователь изучает категорию: ${context.currentCategory}`;
   }
-  
+
   if (context.currentBadge) {
     contextSection += `\n- Пользователь интересуется значком: ${context.currentBadge}`;
   }
-  
+
   if (context.currentLevel) {
     contextSection += `\n- Текущий уровень значка: ${context.currentLevel}`;
   }
-  
+
   if (context.currentLevelBadgeTitle) {
     contextSection += `\n- Название конкретного уровня значка: ${context.currentLevelBadgeTitle}`;
   }
-  
+
   if (context.userLevel) {
     contextSection += `\n- Уровень пользователя: ${context.userLevel}`;
   }
-  
+
   if (context.userInterests && context.userInterests.length > 0) {
     contextSection += `\n- Интересы пользователя: ${context.userInterests.join(', ')}`;
   }
-  
+
   return SYSTEM_PROMPT + contextSection;
 }

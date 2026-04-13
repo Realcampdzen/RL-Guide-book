@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { Badge, View } from '../types/guide';
 import { useDataLoader } from '../hooks/useDataLoader';
 import { useNavigation } from '../hooks/useNavigation';
 import { useUserProgress } from '../hooks/useUserProgress';
+import type { Badge, View } from '../types/guide';
 import { cleanHtmlContent, markdownToHtml, processIntroductionHtml } from '../utils/markdown';
 import { forceUnlock } from '../utils/scrollLock';
 
@@ -33,12 +33,7 @@ export function useAppController() {
     masterIndex,
   } = useDataLoader();
 
-  const {
-    userData,
-    completeTutorial,
-    updateBadgeSkin,
-    setCustomBadgeImage,
-  } = useUserProgress();
+  const { userData, completeTutorial, updateBadgeSkin, setCustomBadgeImage } = useUserProgress();
 
   const navigation = useNavigation({ categories });
 
@@ -415,7 +410,11 @@ export function useAppController() {
             prev && prev.id === selectedCategory.id
               ? {
                   ...prev,
-                  introduction: { has_introduction: true, html: introduction.html, markdown: introduction.markdown },
+                  introduction: {
+                    has_introduction: true,
+                    html: introduction.html,
+                    markdown: introduction.markdown,
+                  },
                 }
               : prev
           );
@@ -429,7 +428,7 @@ export function useAppController() {
   }, [loadCategoryIntroduction, selectedCategory, setCurrentView, setSelectedCategory]);
 
   const handleFormSubmit = useCallback(() => {
-    const message = `🎪 Заявка на осеннюю смену \"Осенний 4К-вайб в Реальном Лагере\"\n\n👶 Имя ребёнка: ${
+    const message = `🎪 Заявка на осеннюю смену "Осенний 4К-вайб в Реальном Лагере"\n\n👶 Имя ребёнка: ${
       formData.childName
     }\n👨‍👩‍👧‍👦 Имя родителя: ${formData.parentName}\n📞 Телефон: ${formData.phone}\n📧 Email: ${
       formData.email
@@ -524,13 +523,23 @@ export function useAppController() {
       setCurrentView('profile');
     };
 
-    (window as any).openBadgeById = (rawId: string, options?: { origin?: View; action?: 'plan' | 'confirm' }) => {
+    (window as any).openBadgeById = (
+      rawId: string,
+      options?: { origin?: View; action?: 'plan' | 'confirm' }
+    ) => {
       try {
         const parts = (rawId || '').split('.');
         const baseKey = parts.length >= 2 ? `${parts[0]}.${parts[1]}` : rawId;
-        const group = badges.filter((b) => (b.id || '').startsWith(baseKey + '.') || b.id === baseKey);
+        const group = badges.filter(
+          (b) => (b.id || '').startsWith(baseKey + '.') || b.id === baseKey
+        );
         if (!group.length) return;
-        const base = group.find((b) => String(b.level || '').toLowerCase().includes('базов')) || group[0];
+        const base =
+          group.find((b) =>
+            String(b.level || '')
+              .toLowerCase()
+              .includes('базов')
+          ) || group[0];
         const cat = categories.find((c) => c.id === base.category_id);
         if (cat) {
           setSelectedCategory(cat);
@@ -541,7 +550,14 @@ export function useAppController() {
         // ignore
       }
     };
-  }, [badges, categories, handleAdditionalMaterialClick, handleBadgeClick, setCurrentView, setSelectedCategory]);
+  }, [
+    badges,
+    categories,
+    handleAdditionalMaterialClick,
+    handleBadgeClick,
+    setCurrentView,
+    setSelectedCategory,
+  ]);
 
   const introductionHtml = useMemo(() => {
     if (!selectedCategory?.introduction?.has_introduction) return null;
@@ -620,4 +636,3 @@ export function useAppController() {
     handleIntroClick: wrapForward(handleIntroClick),
   };
 }
-

@@ -5,12 +5,12 @@ console.log('Testing Vite server on port 4000...');
 const req = http.get('http://localhost:4000/', (res) => {
   console.log(`Status: ${res.statusCode}`);
   console.log(`Headers:`, res.headers);
-  
+
   let data = '';
   res.on('data', (chunk) => {
     data += chunk;
   });
-  
+
   res.on('end', () => {
     if (res.statusCode === 200) {
       console.log('✅ Vite server is working!');
@@ -31,4 +31,3 @@ req.setTimeout(5000, () => {
   console.error('❌ Request timeout');
   req.destroy();
 });
-

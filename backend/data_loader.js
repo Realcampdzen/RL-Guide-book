@@ -4,8 +4,8 @@ import path from 'path';
 
 // Кэш для данных
 let badgeDataCache = null;
-let categoriesCache = new Map();
-let badgesCache = new Map();
+const categoriesCache = new Map();
+const badgesCache = new Map();
 
 export class DataLoader {
   constructor() {
@@ -20,9 +20,9 @@ export class DataLoader {
 
     try {
       const data = JSON.parse(fs.readFileSync(this.dataPath, 'utf8'));
-      
+
       // Загружаем категории
-      const categories = data.categories.map(catInfo => {
+      const categories = data.categories.map((catInfo) => {
         const category = {
           id: catInfo.id,
           title: catInfo.title,
@@ -30,20 +30,20 @@ export class DataLoader {
           path: `category-${catInfo.id}`,
           badges: [],
           introduction: null,
-          philosophy: null
+          philosophy: null,
         };
-        
+
         categoriesCache.set(category.id, category);
         return category;
       });
 
       // Загружаем значки
       const badgeGroups = new Map();
-      
-      data.badges.forEach(badgeData => {
+
+      data.badges.forEach((badgeData) => {
         const badgeId = badgeData.id;
         const baseId = badgeId.includes('.') ? badgeId.split('.').slice(0, 2).join('.') : badgeId;
-        
+
         if (!badgeGroups.has(baseId)) {
           badgeGroups.set(baseId, []);
         }
@@ -53,15 +53,15 @@ export class DataLoader {
       // Создаем значки с уровнями
       badgeGroups.forEach((badgeGroup, baseId) => {
         const mainBadge = badgeGroup[0];
-        
+
         // Создаем уровни
-        const levels = badgeGroup.map(levelData => ({
+        const levels = badgeGroup.map((levelData) => ({
           id: levelData.id,
-          level: levelData.level || "Базовый уровень",
+          level: levelData.level || 'Базовый уровень',
           title: levelData.title,
           emoji: levelData.emoji,
-          criteria: levelData.criteria || "",
-          confirmation: levelData.confirmation || ""
+          criteria: levelData.criteria || '',
+          confirmation: levelData.confirmation || '',
         }));
 
         // Создаем значок
@@ -70,17 +70,17 @@ export class DataLoader {
           title: mainBadge.title,
           emoji: mainBadge.emoji,
           categoryId: mainBadge.category_id,
-          description: mainBadge.description || "",
+          description: mainBadge.description || '',
           nameExplanation: mainBadge.nameExplanation || null,
           skillTips: mainBadge.skillTips || null,
           examples: mainBadge.examples || null,
           philosophy: mainBadge.philosophy || null,
           howToBecome: mainBadge.howToBecome || null,
-          levels: levels
+          levels: levels,
         };
 
         badgesCache.set(badge.id, badge);
-        
+
         // Добавляем значок в категорию
         const category = categoriesCache.get(badge.categoryId);
         if (category) {
@@ -89,11 +89,11 @@ export class DataLoader {
       });
 
       badgeDataCache = {
-        project: "Путеводитель",
-        version: "1.0",
+        project: 'Путеводитель',
+        version: '1.0',
         totalCategories: categories.length,
         totalBadges: badgesCache.size,
-        categories: categories
+        categories: categories,
       };
 
       return badgeDataCache;
@@ -140,31 +140,32 @@ export class DataLoader {
     if (!badgeDataCache) {
       this.loadAllData();
     }
-    
+
     const queryLower = query.toLowerCase();
-    return Array.from(badgesCache.values()).filter(badge => 
-      badge.title.toLowerCase().includes(queryLower) ||
-      badge.description.toLowerCase().includes(queryLower)
+    return Array.from(badgesCache.values()).filter(
+      (badge) =>
+        badge.title.toLowerCase().includes(queryLower) ||
+        badge.description.toLowerCase().includes(queryLower)
     );
   }
 
   // Получает эмодзи для категории
   getCategoryEmoji(categoryId) {
     const emojis = {
-      '1': '⭐',
-      '2': '🌟', 
-      '3': '📱',
-      '4': '🏕',
-      '5': '👥',
-      '6': '🎵',
-      '7': '🎨',
-      '8': '🚀',
-      '9': '💪',
-      '10': '🏁',
-      '11': '🧘',
-      '12': '🤖',
-      '13': '💪',
-      '14': '🔍'
+      1: '⭐',
+      2: '🌟',
+      3: '📱',
+      4: '🏕',
+      5: '👥',
+      6: '🎵',
+      7: '🎨',
+      8: '🚀',
+      9: '💪',
+      10: '🏁',
+      11: '🧘',
+      12: '🤖',
+      13: '💪',
+      14: '🔍',
     };
     return emojis[categoryId] || '📋';
   }
@@ -174,11 +175,14 @@ export class DataLoader {
     if (!badgeDataCache) {
       this.loadAllData();
     }
-    
+
     return {
       totalCategories: badgeDataCache.totalCategories,
       totalBadges: badgeDataCache.totalBadges,
-      totalLevels: Array.from(badgesCache.values()).reduce((sum, badge) => sum + badge.levels.length, 0)
+      totalLevels: Array.from(badgesCache.values()).reduce(
+        (sum, badge) => sum + badge.levels.length,
+        0
+      ),
     };
   }
 }
