@@ -1,4 +1,5 @@
 import type React from 'react';
+import '../../../styles/TeamContainer.css';
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { TeamDashboard, type TeamTabId } from '../../../components/TeamDashboard';

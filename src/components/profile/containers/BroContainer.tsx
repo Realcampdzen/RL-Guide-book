@@ -1,4 +1,5 @@
 import type React from 'react';
+import '../../../styles/BroContainer.css';
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { BroInitiation } from '../../../components/BroInitiation';

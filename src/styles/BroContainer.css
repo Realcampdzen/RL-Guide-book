@@ -1,0 +1,20 @@
+
+
+.profile-spaceship-root .profile-view-cabin-center--bro .bro-cabin-content {
+  width: 100%;
+  box-sizing: border-box;
+  padding-inline: clamp(40px, 5vw, 56px);
+  display: grid;
+  gap: 16px;
+}
+
+.profile-spaceship-root .profile-view-cabin-center--bro .bro-cabin-section {
+  width: 100%;
+  min-width: 0;
+}
+
+.profile-spaceship-root .profile-view-cabin-center--bro .bro-cabin-section .w-input {
+  width: 100% !important;
+  max-width: none !important;
+  box-sizing: border-box;
+}

@@ -1,4 +1,5 @@
 import type React from 'react';
+import '../../../styles/SquadCorner.css';
 import { patchSquadCorner, type SquadCorner } from '../../../utils/badgeApprovalApi';
 import { CampProgramByDays } from '../../CampProgramByDays';
 import { RealDiaryDashboard } from '../../RealDiaryDashboard';

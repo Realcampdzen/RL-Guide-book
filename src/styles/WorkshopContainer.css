@@ -1,0 +1,387 @@
+
+.profile-spaceship-root .profile-view-cabin-center-scroll .workshop-view {
+  padding-bottom: 32px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-content: start;
+}
+
+.profile-spaceship-root .profile-view-cabin-center-scroll .workshop-view__nav {
+  grid-column: 1 / -1;
+  margin-bottom: 0;
+}
+
+.profile-spaceship-root .profile-view-cabin-center-scroll .workshop-view__nav-inner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.profile-spaceship-root .profile-view-cabin-center-scroll .workshop-view__nav-btn {
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    color 0.2s ease;
+  font-family: inherit;
+}
+
+.profile-spaceship-root .profile-view-cabin-center-scroll .workshop-view__nav-btn:hover,
+.profile-spaceship-root .profile-view-cabin-center-scroll .workshop-view__nav-btn:focus-visible {
+  border-color: var(--cabin-btn-border-hover);
+  background: rgba(var(--cabin-neon-cyan-rgb), 0.1);
+  color: #fff;
+  box-shadow: var(--cabin-focus-shadow);
+  outline: none;
+}
+
+.profile-spaceship-root .profile-view-cabin-center-scroll .workshop-view__section {
+  min-width: 0;
+}
+
+.profile-spaceship-root
+  .profile-view-cabin-center-scroll
+  .workshop-view__section
+  + .workshop-view__section {
+  margin-top: 0;
+}
+
+@media (max-width: 560px) {
+  .profile-spaceship-root .profile-view-cabin-center-scroll .workshop-view {
+    grid-template-columns: 1fr;
+  }
+  .profile-spaceship-root .profile-view-panel-scroll .workshop-view {
+    grid-template-columns: 1fr;
+  }
+  .profile-view .workshop-view {
+    grid-template-columns: 1fr;
+  }
+}
+
+.profile-spaceship-root .profile-view-cabin-center-scroll .workshop-community-feed--card {
+  padding: 20px;
+  background: var(--panel-alt);
+  border-radius: 24px;
+  border: 1px solid var(--border);
+}
+
+.profile-spaceship-root .profile-view-cabin-center-scroll .workshop-locked--card {
+  padding: 32px 24px;
+  text-align: center;
+  background: var(--panel-alt);
+  border-radius: 24px;
+  border: 1px solid var(--border);
+}
+
+.profile-spaceship-root .profile-view-cabin-center-scroll .workshop-form--card {
+  padding: 24px;
+  background: var(--panel-alt);
+  border-radius: 24px;
+  border: 1px solid var(--border);
+}
+
+.profile-spaceship-root .profile-view-cabin-center-scroll .workshop-my-proposals--card {
+  padding: 20px;
+  background: var(--panel-alt);
+  border-radius: 24px;
+  border: 1px solid var(--border);
+}
+
+.profile-spaceship-root .profile-view-panel-scroll .workshop-view {
+  padding-bottom: 32px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-content: start;
+}
+
+.profile-spaceship-root .profile-view-panel-scroll .workshop-view__nav {
+  grid-column: 1 / -1;
+  margin-bottom: 0;
+}
+
+.profile-spaceship-root .profile-view-panel-scroll .workshop-view__nav-inner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.profile-spaceship-root .profile-view-panel-scroll .workshop-view__nav-btn {
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    color 0.2s ease;
+  font-family: inherit;
+}
+
+.profile-spaceship-root .profile-view-panel-scroll .workshop-view__nav-btn:hover,
+.profile-spaceship-root .profile-view-panel-scroll .workshop-view__nav-btn:focus-visible {
+  border-color: var(--cabin-btn-border-hover);
+  background: rgba(var(--cabin-neon-cyan-rgb), 0.12);
+  box-shadow: var(--cabin-focus-shadow);
+  color: #fff;
+  outline: none;
+}
+
+.profile-spaceship-root .profile-view-panel-scroll .workshop-view__section {
+  min-width: 0;
+}
+
+.profile-spaceship-root
+  .profile-view-panel-scroll
+  .workshop-view__section
+  + .workshop-view__section {
+  margin-top: 0;
+}
+
+.profile-spaceship-root .profile-view-panel-scroll .workshop-community-feed--card {
+  padding: 20px;
+  background: var(--panel-alt);
+  border-radius: 24px;
+  border: 1px solid var(--border);
+}
+
+.profile-spaceship-root .profile-view-panel-scroll .workshop-locked--card {
+  padding: 32px 24px;
+  text-align: center;
+  background: var(--panel-alt);
+  border-radius: 24px;
+  border: 1px solid var(--border);
+}
+
+.profile-spaceship-root .profile-view-panel-scroll .workshop-form--card {
+  padding: 24px;
+  background: var(--panel-alt);
+  border-radius: 24px;
+  border: 1px solid var(--border);
+}
+
+.profile-spaceship-root .profile-view-panel-scroll .workshop-my-proposals--card {
+  padding: 20px;
+  background: var(--panel-alt);
+  border-radius: 24px;
+  border: 1px solid var(--border);
+}
+
+.profile-spaceship-root .profile-view-cabin-center--workshop .workshop-view {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  padding-inline: clamp(40px, 5vw, 56px);
+}
+
+.profile-spaceship-root
+  .profile-view-cabin-center--workshop
+  .workshop-view__section:has(.workshop-locked--card) {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: min(50vh, 400px);
+}
+
+.profile-spaceship-root .profile-view-cabin-center--workshop .workshop-locked--card {
+  max-width: 400px;
+  width: 100%;
+}
+
+.profile-spaceship-root .profile-view-cabin-profile-field input:focus-visible,
+.profile-spaceship-root .profile-view-cabin-profile-field textarea:focus-visible,
+.profile-spaceship-root .profile-view-cabin-nav-btn:focus-visible,
+.profile-spaceship-root .profile-view-cabin-avatar-wrap:focus-visible,
+.profile-spaceship-root .profile-view-screen:focus-visible,
+.profile-spaceship-root .profile-view-cabin-panel-header__back:focus-visible,
+.profile-spaceship-root .profile-view-cabin-side-screen__btn:focus-visible,
+.profile-spaceship-root .profile-view-cabin-center-scroll .workshop-view__nav-btn:focus-visible,
+.profile-spaceship-root .profile-view-panel-scroll .workshop-view__nav-btn:focus-visible {
+  border-color: var(--focus-ring) !important;
+  box-shadow: var(--cabin-focus-shadow) !important;
+  outline: none !important;
+}
+
+.profile-view .workshop-view {
+  padding-bottom: 32px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-content: start;
+}
+
+.profile-view .workshop-view__nav {
+  grid-column: 1 / -1;
+  margin-bottom: 0;
+}
+
+.profile-view .workshop-view__nav-inner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.profile-view .workshop-view__nav-btn {
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    color 0.2s ease;
+  font-family: inherit;
+}
+
+.profile-view .workshop-view__nav-btn:hover,
+.profile-view .workshop-view__nav-btn:focus-visible {
+  border-color: rgba(139, 0, 255, 0.4);
+  background: rgba(139, 0, 255, 0.1);
+  color: #fff;
+  outline: none;
+}
+
+.profile-view .workshop-view__section {
+  min-width: 0;
+}
+
+.profile-view .workshop-community-feed--card {
+  padding: 20px;
+  background: rgba(139, 0, 255, 0.08);
+  border-radius: 24px;
+  border: 1px solid rgba(139, 0, 255, 0.2);
+}
+
+.profile-view .workshop-squad-ideas-carousel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.profile-view .workshop-squad-ideas-carousel__btn {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  min-height: 40px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.3);
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    background 0.2s,
+    border-color 0.2s;
+  position: relative;
+  z-index: 10;
+}
+
+.profile-view .workshop-squad-ideas-carousel__btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.35);
+}
+
+.profile-view .workshop-squad-ideas-carousel__btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.profile-view .workshop-squad-ideas-carousel__viewport {
+  overflow: visible;
+  min-width: 0;
+  flex: 1;
+  min-height: 78px;
+  perspective: 1000px;
+  perspective-origin: center center;
+}
+
+.profile-view .workshop-squad-ideas-carousel__track {
+  --step-deg: 17.14deg;
+  --radius: 200px;
+  position: relative;
+  width: 100%;
+  height: 72px;
+  margin: 0;
+  padding: 0;
+  display: block;
+  transform-style: preserve-3d;
+  transform: rotateY(calc(var(--squad-ideas-rotation-steps, 0) * var(--step-deg)));
+  transition: transform 0.4s ease-out;
+}
+
+.profile-view .workshop-squad-ideas-carousel__item {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 72px;
+  height: 72px;
+  margin-left: -36px;
+  margin-top: -36px;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  transform: rotateY(calc(var(--slot-offset, 0) * var(--step-deg))) translateZ(var(--radius));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.profile-view .workshop-squad-ideas-carousel__item .workshop-squad-ideas-carousel__cell {
+  width: 64px;
+  height: 64px;
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+}
+
+.profile-view
+  .workshop-squad-ideas-carousel__item--placeholder
+  .workshop-squad-ideas-carousel__cell {
+  font-size: 28px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.profile-view .workshop-squad-ideas-carousel__item .workshop-squad-ideas-carousel__like {
+  z-index: 2;
+}
+
+.profile-view .workshop-locked--card {
+  padding: 32px 24px;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 24px;
+  border: 1px solid rgba(255, 215, 0, 0.15);
+}
+
+.profile-view .workshop-form--card {
+  padding: 24px;
+  background: rgba(255, 215, 0, 0.05);
+  border-radius: 24px;
+  border: 1px solid rgba(255, 215, 0, 0.2);
+}
+
+.profile-view .workshop-my-proposals--card {
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}

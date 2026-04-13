@@ -1,0 +1,50 @@
+
+
+.profile-spaceship-root .profile-view-cabin-center--counselor-squad .counselor-squad-cabin-content {
+  width: 100%;
+  box-sizing: border-box;
+  padding-inline: clamp(16px, 2.5vw, 24px);
+  padding-bottom: 100px;
+}
+
+.profile-spaceship-root .profile-view-cabin-center--counselor-squad .counselor-squad-cabin-section {
+  width: 100%;
+  min-width: 0;
+}
+
+.profile-spaceship-root
+  .profile-view-cabin-center--counselor-squad
+  .counselor-squad-cabin-section
+  > * {
+  max-width: 100%;
+}
+
+.profile-spaceship-root
+  .profile-view-cabin-center--counselor-squad
+  .counselor-squad-cabin-section
+  .w-input {
+  width: 100% !important;
+  max-width: none !important;
+  box-sizing: border-box;
+}
+
+.profile-spaceship-root
+  .profile-view-cabin-center--counselor-squad
+  .counselor-squad-read-only
+  input,
+.profile-spaceship-root
+  .profile-view-cabin-center--counselor-squad
+  .counselor-squad-read-only
+  textarea {
+  opacity: 0.85;
+  cursor: default;
+  pointer-events: none;
+}
+
+.profile-spaceship-root
+  .profile-view-cabin-center--counselor-squad
+  .counselor-squad-read-only
+  button:disabled {
+  opacity: var(--cabin-disabled-opacity);
+  cursor: not-allowed;
+}

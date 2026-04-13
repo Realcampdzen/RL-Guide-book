@@ -1,0 +1,1745 @@
+@media (min-width: 1181px) {
+
+  .profile-spaceship-root
+    .profile-view-cabin-center.profile-view-cabin-center--squad-corner
+    .profile-tabs-nav--squad-corner {
+    z-index: 10181 !important;
+    pointer-events: auto !important;
+  }
+
+  .profile-spaceship-root
+    .profile-view-cabin-center.profile-view-cabin-center--squad-corner
+    .profile-tabs-nav--squad-corner
+    button {
+    z-index: 10182 !important;
+    pointer-events: auto !important;
+    touch-action: manipulation;
+    transform: none !important;
+  }
+
+  .profile-spaceship-root
+    .profile-view-cabin-center.profile-view-cabin-center--squad-corner
+    .profile-tabs-nav--squad-corner
+    button:hover,
+  .profile-spaceship-root
+    .profile-view-cabin-center.profile-view-cabin-center--squad-corner
+    .profile-tabs-nav--squad-corner
+    button:focus-visible,
+  .profile-spaceship-root
+    .profile-view-cabin-center.profile-view-cabin-center--squad-corner
+    .profile-tabs-nav--squad-corner
+    button:active,
+  .profile-spaceship-root
+    .profile-view-cabin-center.profile-view-cabin-center--squad-corner
+    .profile-tabs-nav--squad-corner
+    button.active {
+    transform: none !important;
+  }
+
+  .profile-spaceship-root
+    .profile-view-cabin-center.profile-view-cabin-center--inspector
+    .profile-view-cabin-tabs-docked
+    > .profile-tabs-nav {
+    flex: 1 1 0% !important;
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+  .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--inspector
+    .profile-tabs-nav--inspector {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: stretch !important;
+    justify-content: stretch !important;
+    gap: 4px !important;
+    padding: 4px !important;
+    background: var(--tab-bar-bg) !important;
+    border-radius: 14px !important;
+    width: 100% !important;
+  }
+
+  .profile-spaceship-root
+    .profile-view-cabin-center.profile-view-cabin-center--inspector
+    .profile-tabs-nav--inspector
+    button {
+    transform: none !important;
+    flex: 1 1 0% !important;
+    min-width: 0 !important;
+    width: auto !important;
+    max-width: none !important;
+    min-height: 56px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 4px !important;
+    padding: 6px 4px !important;
+    font-size: 11px !important;
+  }
+
+  .profile-spaceship-root
+    .profile-view-cabin-center.profile-view-cabin-center--inspector
+    .profile-tabs-nav--inspector
+    .profile-tabs-nav__icon {
+    flex-shrink: 0 !important;
+  }
+
+  .profile-spaceship-root
+    .profile-view-cabin-center.profile-view-cabin-center--inspector
+    .profile-tabs-nav--inspector
+    .profile-tabs-nav__label {
+    white-space: normal !important;
+    overflow-wrap: break-word !important;
+    text-align: center !important;
+    line-height: 1.15 !important;
+  }
+
+  .profile-spaceship-root
+    .profile-view-cabin-center.profile-view-cabin-center--inspector
+    .profile-tabs-nav--inspector
+    button:hover:not(:disabled),
+  .profile-spaceship-root
+    .profile-view-cabin-center.profile-view-cabin-center--inspector
+    .profile-tabs-nav--inspector
+    button:focus-visible:not(:disabled) {
+    transform: translateY(-2px) !important;
+  }
+  .profile-spaceship-root
+    .profile-view-cabin-center.profile-view-cabin-center--hub
+    .profile-view-cabin-tabs-docked
+    .profile-tabs-nav
+    button,
+  .profile-spaceship-root
+    .profile-view-cabin-center.profile-view-cabin-center--squad-corner
+    .profile-view-cabin-tabs-docked
+    .profile-tabs-nav
+    button,
+  .profile-spaceship-root
+    .profile-view-cabin-center.profile-view-cabin-center--real-diary
+    .profile-view-cabin-tabs-docked
+    .profile-tabs-nav
+    button,
+  .profile-spaceship-root
+    .profile-view-cabin-center.profile-view-cabin-center--counselor-squad
+    .profile-view-cabin-tabs-docked
+    .profile-tabs-nav
+    button {
+    transform: perspective(500px) rotateY(6deg);
+    transform-origin: left center;
+    pointer-events: auto;
+  }
+
+  .profile-spaceship-root
+    .profile-view-cabin-center.profile-view-cabin-center--hub
+    .profile-view-cabin-tabs-docked
+    .profile-tabs-nav
+    button:hover,
+  .profile-spaceship-root
+    .profile-view-cabin-center.profile-view-cabin-center--hub
+    .profile-view-cabin-tabs-docked
+    .profile-tabs-nav
+    button:focus-visible,
+  .profile-spaceship-root
+    .profile-view-cabin-center.profile-view-cabin-center--hub
+    .profile-view-cabin-tabs-docked
+    .profile-tabs-nav
+    button.active,
+  .profile-spaceship-root
+    .profile-view-cabin-center.profile-view-cabin-center--squad-corner
+    .profile-view-cabin-tabs-docked
+    .profile-tabs-nav
+    button:hover,
+  .profile-spaceship-root
+    .profile-view-cabin-center.profile-view-cabin-center--squad-corner
+    .profile-view-cabin-tabs-docked
+    .profile-tabs-nav
+    button:focus-visible,
+  .profile-spaceship-root
+    .profile-view-cabin-center.profile-view-cabin-center--squad-corner
+    .profile-view-cabin-tabs-docked
+    .profile-tabs-nav
+    button.active,
+  .profile-spaceship-root
+    .profile-view-cabin-center.profile-view-cabin-center--real-diary
+    .profile-view-cabin-tabs-docked
+    .profile-tabs-nav
+    button:hover,
+  .profile-spaceship-root
+    .profile-view-cabin-center.profile-view-cabin-center--real-diary
+    .profile-view-cabin-tabs-docked
+    .profile-tabs-nav
+    button:focus-visible,
+  .profile-spaceship-root
+    .profile-view-cabin-center.profile-view-cabin-center--real-diary
+    .profile-view-cabin-tabs-docked
+    .profile-tabs-nav
+    button.active,
+  .profile-spaceship-root
+    .profile-view-cabin-center.profile-view-cabin-center--counselor-squad
+    .profile-view-cabin-tabs-docked
+    .profile-tabs-nav
+    button:hover,
+  .profile-spaceship-root
+    .profile-view-cabin-center.profile-view-cabin-center--counselor-squad
+    .profile-view-cabin-tabs-docked
+    .profile-tabs-nav
+    button:focus-visible,
+  .profile-spaceship-root
+    .profile-view-cabin-center.profile-view-cabin-center--counselor-squad
+    .profile-view-cabin-tabs-docked
+    .profile-tabs-nav
+    button.active {
+    transform: perspective(500px) rotateY(6deg) translateX(4px);
+  }
+
+  .profile-spaceship-root
+    .profile-view-cabin-center.profile-view-cabin-center--hub
+    .profile-view-cabin-tabs-docked
+    .profile-tabs-nav
+    button:active,
+  .profile-spaceship-root
+    .profile-view-cabin-center.profile-view-cabin-center--squad-corner
+    .profile-view-cabin-tabs-docked
+    .profile-tabs-nav
+    button:active,
+  .profile-spaceship-root
+    .profile-view-cabin-center.profile-view-cabin-center--real-diary
+    .profile-view-cabin-tabs-docked
+    .profile-tabs-nav
+    button:active,
+  .profile-spaceship-root
+    .profile-view-cabin-center.profile-view-cabin-center--counselor-squad
+    .profile-view-cabin-tabs-docked
+    .profile-tabs-nav
+    button:active {
+    transform: perspective(500px) rotateY(6deg) translateX(4px) scale(0.98);
+  }
+  .profile-spaceship-root
+    .profile-view-cabin-center.profile-view-cabin-center--hub
+    .profile-tabs-nav--docked
+    button:active,
+  .profile-spaceship-root
+    .profile-view-cabin-center.profile-view-cabin-center--squad-corner
+    .profile-tabs-nav--squad-corner
+    button:active,
+  .profile-spaceship-root
+    .profile-view-cabin-center.profile-view-cabin-center--real-diary
+    .profile-tabs-nav--real-diary
+    button:active,
+  .profile-spaceship-root
+    .profile-view-cabin-center.profile-view-cabin-center--counselor-squad
+    .profile-tabs-nav--counselor-squad
+    button:active {
+    transform: perspective(500px) rotateY(6deg) translateX(4px) scale(0.98);
+  }
+
+  .profile-spaceship-root
+    .profile-view-cabin-center.profile-view-cabin-center--profile4k
+    .profile-tabs-nav--profile4k
+    button:active,
+  .profile-spaceship-root
+    .profile-view-cabin-center.profile-view-cabin-center--team
+    .profile-tabs-nav--team
+    button:active,
+  .profile-spaceship-root
+    .profile-view-cabin-center.profile-view-cabin-center--council
+    .profile-tabs-nav--council
+    button:active,
+  .profile-spaceship-root
+    .profile-view-cabin-center.profile-view-cabin-center--bro
+    .profile-tabs-nav--bro
+    button:active,
+  .profile-spaceship-root
+    .profile-view-cabin-center.profile-view-cabin-center--vozhatifikator
+    .profile-tabs-nav--vozhatifikator
+    button:active,
+  .profile-spaceship-root
+    .profile-view-cabin-center.profile-view-cabin-center--share
+    .profile-tabs-nav--share
+    button:active,
+  .profile-spaceship-root
+    .profile-view-cabin-center.profile-view-cabin-center--workshop
+    .profile-tabs-nav--workshop
+    button:active,
+  .profile-spaceship-root
+    .profile-view-cabin-center.profile-view-cabin-center--inspector
+    .profile-tabs-nav--inspector
+    button:active:not(:disabled) {
+    transform: translateX(4px) scale(0.98);
+  }
+}
+
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--inspector
+  .profile-tabs-nav--inspector {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  flex: 1 1 0%;
+  min-width: 0;
+  width: 100%;
+  gap: 4px;
+  padding: 4px;
+  background: var(--tab-bar-bg);
+  border-radius: 14px;
+}
+
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--inspector
+  .profile-tabs-nav--inspector
+  button {
+  flex: 1 1 0%;
+  min-width: 0;
+  width: auto;
+  max-width: none;
+}
+
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--hub
+  .profile-tabs-nav--docked {
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--squad-corner
+  .profile-tabs-nav--docked {
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--real-diary
+  .profile-tabs-nav--docked {
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--profile4k
+  .profile-tabs-nav--docked {
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--team
+  .profile-tabs-nav--docked {
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--bro
+  .profile-tabs-nav--docked {
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--council
+  .profile-tabs-nav--docked {
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--counselor-squad
+  .profile-tabs-nav--docked {
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--vozhatifikator
+  .profile-tabs-nav--docked {
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--share
+  .profile-tabs-nav--docked,
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--workshop
+  .profile-tabs-nav--docked {
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--inspector
+  .profile-tabs-nav--inspector
+  button {
+  width: 132px;
+  min-height: 52px;
+  padding: 8px 10px;
+  border-radius: var(--cabin-tabs-radius);
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-primary);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  opacity: 1;
+  position: relative;
+  box-shadow: 0 14px 22px rgba(2, 9, 20, 0.35);
+  transition:
+    var(--cabin-tabs-transition),
+    opacity 0.15s ease;
+}
+
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--inspector
+  .profile-tabs-nav--inspector
+  button:hover:not(:disabled),
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--inspector
+  .profile-tabs-nav--inspector
+  button:focus-visible:not(:disabled) {
+  transform: translateX(4px);
+  background: var(--tab-hover-bg);
+  border-color: var(--border-accent);
+  box-shadow:
+    0 14px 22px rgba(2, 9, 20, 0.5),
+    0 0 20px var(--selection-glow);
+}
+
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--inspector
+  .profile-tabs-nav--inspector
+  button.active {
+  background: var(--tab-active-selected-bg);
+  border: 1px solid var(--border-accent);
+  border-bottom: 2px solid var(--tab-active-indicator);
+  color: var(--text-primary);
+  box-shadow:
+    0 0 18px var(--selection-glow),
+    0 14px 22px rgba(2, 9, 20, 0.45);
+}
+
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--inspector
+  .profile-tabs-nav--inspector
+  button:disabled {
+  opacity: var(--cabin-disabled-opacity);
+  cursor: not-allowed;
+}
+
+.profile-spaceship-root .profile-view-cabin-progress-hub .profile-tabs-nav {
+  position: sticky;
+  top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 2px 4px;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  z-index: 6;
+  transform: translateX(-14px);
+}
+
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--hub
+  .profile-tabs-nav--docked
+  button {
+  width: 112px;
+  min-height: 58px;
+  padding: 8px 10px;
+  border-radius: var(--cabin-tabs-radius);
+  border: 1px solid rgba(var(--cabin-neon-cyan-rgb), 0.26);
+  background:
+    radial-gradient(circle at 88% 12%, rgba(var(--cabin-neon-cyan-rgb), 0.2), transparent 48%),
+    linear-gradient(165deg, rgb(7, 30, 49), rgb(6, 18, 34));
+  color: rgba(238, 248, 255, 0.92);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  opacity: 1;
+  position: relative;
+  box-shadow:
+    0 14px 22px rgba(1, 6, 14, 0.42),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+  transition:
+    var(--cabin-tabs-transition),
+    opacity 0.15s ease,
+    background 0.15s ease;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  font-size: 12px;
+}
+
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--hub
+  .profile-tabs-nav--docked
+  button::before {
+  content: none;
+}
+
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--hub
+  .profile-tabs-nav--docked
+  button:hover,
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--hub
+  .profile-tabs-nav--docked
+  button:focus-visible {
+  opacity: 1;
+  background: var(--tab-hover-bg);
+  border-color: var(--border-accent);
+  box-shadow:
+    0 14px 22px rgba(1, 6, 14, 0.5),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+  outline: none;
+}
+
+.profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--hub
+  .profile-tabs-nav--docked
+  button.active {
+  background: var(--tab-active-selected-bg);
+  border: 1px solid var(--border-accent);
+  border-bottom: 2px solid var(--tab-active-indicator);
+  box-shadow: 0 14px 22px rgba(1, 6, 14, 0.45);
+}
+
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--hub
+  .profile-tabs-nav--docked
+  button.active::before {
+  content: none;
+}
+
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--hub
+  .profile-tabs-nav--docked
+  .profile-tabs-nav__label {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--hub
+  .profile-tabs-nav--docked
+  .profile-tabs-nav__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 17px;
+  line-height: 1;
+}
+
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--hub
+  .profile-tabs-nav--docked
+  button::after {
+  content: none;
+}
+
+@media (min-width: 1024px) {
+  .profile-spaceship-root
+    .profile-view-cabin-center.profile-view-cabin-center--hub
+    .profile-tabs-nav--docked
+    button {
+    background: var(--tab-active-bg);
+    border: 1px solid var(--border-accent);
+    border-bottom: 2px solid var(--tab-active-indicator);
+    box-shadow:
+      0 14px 22px rgba(1, 6, 14, 0.42),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+  }
+
+  .profile-spaceship-root
+    .profile-view-cabin-center.profile-view-cabin-center--hub
+    .profile-tabs-nav--docked
+    button.active {
+    background: var(--tab-active-selected-bg);
+    border: 1px solid var(--border-accent);
+    border-bottom: 2px solid var(--tab-active-indicator);
+    box-shadow:
+      0 14px 22px rgba(1, 6, 14, 0.45),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  }
+}
+
+.profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--squad-corner
+  .profile-tabs-nav--squad-corner
+  button,
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--real-diary
+  .profile-tabs-nav--real-diary
+  button {
+  filter: drop-shadow(0 0 8px var(--selection-glow));
+  filter: drop-shadow(0 0 8px var(--selection-glow));
+  filter: drop-shadow(0 0 8px var(--selection-glow));
+}
+
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--counselor-squad
+  .profile-tabs-nav--counselor-squad
+  button {
+  width: 132px;
+  min-height: 58px;
+  padding: 8px 10px;
+  border-radius: var(--cabin-tabs-radius);
+  border: 1px solid rgba(217, 119, 6, 0.4);
+  background:
+    radial-gradient(circle at 88% 12%, rgba(245, 158, 11, 0.28), transparent 48%),
+    linear-gradient(165deg, rgba(61, 30, 5, 0.92), rgba(28, 15, 4, 0.92));
+  color: rgba(255, 246, 235, 0.95);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  position: relative;
+  box-shadow:
+    0 14px 22px rgba(25, 12, 2, 0.42),
+    inset 0 0 0 1px rgba(255, 228, 196, 0.06);
+  transition:
+    var(--cabin-tabs-transition),
+    background 0.15s ease;
+}
+
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--profile4k
+  .profile-tabs-nav--profile4k
+  button {
+  width: 138px;
+  height: 57px;
+  min-height: 57px;
+  padding: 8px 10px;
+  border-radius: var(--cabin-tabs-radius);
+  border: 1px solid rgba(20, 184, 166, 0.42);
+  background:
+    radial-gradient(circle at 88% 12%, rgba(20, 184, 166, 0.28), transparent 48%),
+    linear-gradient(165deg, rgba(9, 49, 44, 0.92), rgba(5, 30, 27, 0.92));
+  color: rgba(232, 255, 251, 0.95);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  position: relative;
+  box-shadow:
+    0 14px 22px rgba(2, 20, 18, 0.42),
+    inset 0 0 0 1px rgba(228, 255, 252, 0.08),
+    0 0 14px rgba(20, 184, 166, 0.14);
+  transition:
+    var(--cabin-tabs-transition),
+    background 0.15s ease;
+}
+
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--profile4k
+  .profile-tabs-nav--profile4k
+  .profile-tabs-nav__icon {
+  flex: 0 0 auto;
+  font-size: 16px;
+  line-height: 1;
+  margin-top: 1px;
+}
+
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--profile4k
+  .profile-tabs-nav--profile4k
+  .profile-tabs-nav__label {
+  display: block;
+  min-width: 0;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.16;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-align: left;
+}
+
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--team
+  .profile-tabs-nav--team
+  button {
+  width: 132px;
+  min-height: 58px;
+  padding: 8px 10px;
+  border-radius: var(--cabin-tabs-radius);
+  border: 1px solid rgba(139, 0, 255, 0.44);
+  background:
+    radial-gradient(circle at 88% 12%, rgba(147, 51, 234, 0.3), transparent 48%),
+    linear-gradient(165deg, rgba(28, 10, 54, 0.92), rgba(14, 8, 36, 0.92));
+  color: rgba(244, 236, 255, 0.95);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  position: relative;
+  box-shadow:
+    0 14px 22px rgba(16, 4, 32, 0.42),
+    inset 0 0 0 1px rgba(244, 236, 255, 0.08),
+    0 0 14px rgba(147, 51, 234, 0.14);
+  transition:
+    var(--cabin-tabs-transition),
+    background 0.15s ease;
+}
+
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--council
+  .profile-tabs-nav--council
+  button {
+  width: 138px;
+  min-height: 58px;
+  padding: 8px 10px;
+  border-radius: var(--cabin-tabs-radius);
+  border: 1px solid rgba(255, 215, 0, 0.42);
+  background:
+    radial-gradient(circle at 88% 12%, rgba(255, 215, 0, 0.28), transparent 48%),
+    linear-gradient(165deg, rgba(67, 45, 7, 0.92), rgba(31, 22, 8, 0.92));
+  color: rgba(255, 247, 221, 0.96);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  position: relative;
+  box-shadow:
+    0 14px 22px rgba(30, 22, 4, 0.42),
+    inset 0 0 0 1px rgba(255, 248, 220, 0.08),
+    0 0 14px rgba(255, 215, 0, 0.14);
+  transition:
+    var(--cabin-tabs-transition),
+    background 0.15s ease;
+}
+
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--bro
+  .profile-tabs-nav--bro
+  button {
+  width: 138px;
+  min-height: 58px;
+  padding: 8px 10px;
+  border-radius: var(--cabin-tabs-radius);
+  border: 1px solid rgba(168, 85, 247, 0.45);
+  background:
+    radial-gradient(circle at 88% 12%, rgba(139, 92, 246, 0.3), transparent 48%),
+    linear-gradient(165deg, rgba(34, 13, 70, 0.92), rgba(18, 9, 45, 0.92));
+  color: rgba(245, 238, 255, 0.96);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  position: relative;
+  box-shadow:
+    0 14px 22px rgba(18, 7, 35, 0.44),
+    inset 0 0 0 1px rgba(245, 238, 255, 0.08),
+    0 0 14px rgba(168, 85, 247, 0.16);
+  transition:
+    var(--cabin-tabs-transition),
+    background 0.15s ease;
+}
+
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--vozhatifikator
+  .profile-tabs-nav--vozhatifikator
+  button {
+  width: 148px;
+  min-height: 58px;
+  padding: 8px 10px;
+  border-radius: var(--cabin-tabs-radius);
+  border: 1px solid rgba(167, 139, 250, 0.45);
+  background:
+    radial-gradient(circle at 88% 12%, rgba(196, 181, 253, 0.32), transparent 48%),
+    linear-gradient(165deg, rgba(31, 20, 58, 0.92), rgba(14, 10, 32, 0.92));
+  color: rgba(244, 240, 255, 0.96);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  position: relative;
+  box-shadow:
+    0 14px 22px rgba(13, 8, 28, 0.46),
+    inset 0 0 0 1px rgba(245, 243, 255, 0.08);
+  transition:
+    var(--cabin-tabs-transition),
+    background 0.15s ease;
+}
+
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--squad-corner
+  .profile-tabs-nav--squad-corner
+  button:hover,
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--squad-corner
+  .profile-tabs-nav--squad-corner
+  button:focus-visible,
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--real-diary
+  .profile-tabs-nav--real-diary
+  button:hover,
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--real-diary
+  .profile-tabs-nav--real-diary
+  button:focus-visible,
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--counselor-squad
+  .profile-tabs-nav--counselor-squad
+  button:hover,
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--counselor-squad
+  .profile-tabs-nav--counselor-squad
+  button:focus-visible {
+  transform: perspective(500px) rotateY(6deg) translateX(4px);
+  border-color: rgba(251, 146, 60, 0.85);
+  box-shadow:
+    0 14px 22px rgba(25, 12, 2, 0.5),
+    inset 0 0 0 1px rgba(255, 228, 196, 0.1);
+  outline: none;
+}
+
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--profile4k
+  .profile-tabs-nav--profile4k
+  button:hover,
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--profile4k
+  .profile-tabs-nav--profile4k
+  button:focus-visible {
+  transform: translateX(4px);
+  border-color: rgba(94, 234, 212, 0.9);
+  box-shadow:
+    0 14px 22px rgba(2, 20, 18, 0.55),
+    inset 0 0 0 1px rgba(228, 255, 252, 0.16);
+  outline: none;
+}
+
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--team
+  .profile-tabs-nav--team
+  button:hover,
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--team
+  .profile-tabs-nav--team
+  button:focus-visible {
+  transform: translateX(4px);
+  border-color: rgba(192, 132, 252, 0.9);
+  box-shadow:
+    0 14px 22px rgba(16, 4, 32, 0.55),
+    inset 0 0 0 1px rgba(244, 236, 255, 0.16);
+  outline: none;
+}
+
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--council
+  .profile-tabs-nav--council
+  button:hover,
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--council
+  .profile-tabs-nav--council
+  button:focus-visible {
+  transform: translateX(4px);
+  border-color: rgba(255, 224, 130, 0.92);
+  box-shadow:
+    0 14px 22px rgba(30, 22, 4, 0.54),
+    inset 0 0 0 1px rgba(255, 248, 220, 0.18),
+    0 0 20px rgba(255, 215, 0, 0.28);
+  outline: none;
+}
+
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--bro
+  .profile-tabs-nav--bro
+  button:hover,
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--bro
+  .profile-tabs-nav--bro
+  button:focus-visible {
+  transform: translateX(4px);
+  border-color: rgba(196, 181, 253, 0.94);
+  box-shadow:
+    0 14px 22px rgba(18, 7, 35, 0.56),
+    inset 0 0 0 1px rgba(245, 238, 255, 0.2),
+    0 0 20px rgba(168, 85, 247, 0.28);
+  outline: none;
+}
+
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--vozhatifikator
+  .profile-tabs-nav--vozhatifikator
+  button:hover,
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--vozhatifikator
+  .profile-tabs-nav--vozhatifikator
+  button:focus-visible {
+  transform: translateX(4px);
+  border-color: rgba(221, 214, 254, 0.94);
+  box-shadow:
+    0 14px 22px rgba(13, 8, 28, 0.56),
+    inset 0 0 0 1px rgba(245, 243, 255, 0.2),
+    0 0 20px rgba(167, 139, 250, 0.3);
+  outline: none;
+}
+
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--share
+  .profile-tabs-nav--share
+  button {
+  width: 132px;
+  min-height: 58px;
+  padding: 8px 10px;
+  border-radius: var(--cabin-tabs-radius);
+  border: 1px solid rgba(77, 172, 255, 0.45);
+  background:
+    radial-gradient(circle at 88% 12%, rgba(77, 172, 255, 0.28), transparent 48%),
+    linear-gradient(165deg, rgba(9, 45, 70, 0.92), rgba(6, 28, 54, 0.92));
+  color: rgba(232, 246, 255, 0.95);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  position: relative;
+  box-shadow:
+    0 14px 22px rgba(2, 18, 35, 0.42),
+    inset 0 0 0 1px rgba(200, 235, 255, 0.08),
+    0 0 14px rgba(77, 172, 255, 0.14);
+  transition:
+    var(--cabin-tabs-transition),
+    background 0.15s ease;
+}
+
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--share
+  .profile-tabs-nav--share
+  button:hover,
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--share
+  .profile-tabs-nav--share
+  button:focus-visible {
+  transform: translateX(4px);
+  border-color: rgba(129, 212, 250, 0.9);
+  box-shadow:
+    0 14px 22px rgba(2, 18, 35, 0.55),
+    inset 0 0 0 1px rgba(200, 235, 255, 0.16),
+    0 0 20px rgba(77, 172, 255, 0.28);
+  outline: none;
+}
+
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--share
+  .profile-tabs-nav--share
+  button.active {
+  background:
+    radial-gradient(circle at 88% 12%, rgba(77, 172, 255, 0.45), transparent 50%),
+    linear-gradient(100deg, rgba(77, 172, 255, 0.95), rgba(59, 130, 246, 0.95));
+  border-color: rgba(147, 197, 253, 0.7);
+  color: rgba(7, 30, 55, 0.95);
+  box-shadow:
+    0 0 18px rgba(77, 172, 255, 0.25),
+    0 14px 22px rgba(2, 18, 35, 0.45);
+}
+
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--workshop
+  .profile-tabs-nav--workshop
+  button {
+  width: 132px;
+  min-height: 58px;
+  padding: 8px 10px;
+  border-radius: var(--cabin-tabs-radius);
+  border: 1px solid rgba(217, 119, 6, 0.45);
+  background:
+    radial-gradient(circle at 88% 12%, rgba(245, 158, 11, 0.28), transparent 48%),
+    linear-gradient(165deg, rgba(61, 30, 5, 0.92), rgba(28, 15, 4, 0.92));
+  color: rgba(255, 246, 235, 0.95);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  position: relative;
+  box-shadow:
+    0 14px 22px rgba(25, 12, 2, 0.42),
+    inset 0 0 0 1px rgba(255, 228, 196, 0.06),
+    0 0 14px rgba(245, 158, 11, 0.1);
+  transition:
+    var(--cabin-tabs-transition),
+    background 0.15s ease;
+}
+
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--workshop
+  .profile-tabs-nav--workshop
+  button:hover,
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--workshop
+  .profile-tabs-nav--workshop
+  button:focus-visible {
+  transform: translateX(4px);
+  border-color: rgba(251, 146, 60, 0.85);
+  box-shadow:
+    0 14px 22px rgba(25, 12, 2, 0.5),
+    inset 0 0 0 1px rgba(255, 228, 196, 0.1),
+    0 0 20px rgba(251, 146, 60, 0.24);
+  outline: none;
+}
+
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--workshop
+  .profile-tabs-nav--workshop
+  button.active {
+  background:
+    radial-gradient(circle at 88% 12%, rgba(255, 237, 213, 0.45), transparent 50%),
+    linear-gradient(100deg, rgba(245, 158, 11, 0.95), rgba(217, 119, 6, 0.95));
+  border-color: rgba(255, 237, 213, 0.7);
+  color: rgba(47, 24, 6, 0.95);
+  box-shadow:
+    0 0 18px rgba(245, 158, 11, 0.25),
+    0 14px 22px rgba(25, 12, 2, 0.45);
+}
+
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--squad-corner
+  .profile-tabs-nav--squad-corner
+  button.active,
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--counselor-squad
+  .profile-tabs-nav--counselor-squad
+  button.active {
+  background:
+    radial-gradient(circle at 88% 12%, rgba(255, 237, 213, 0.45), transparent 50%),
+    linear-gradient(100deg, rgba(245, 158, 11, 0.95), rgba(217, 119, 6, 0.95));
+  border-color: rgba(255, 237, 213, 0.7);
+  color: rgba(47, 24, 6, 0.95);
+  box-shadow: 0 14px 22px rgba(25, 12, 2, 0.45);
+}
+
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--real-diary
+  .profile-tabs-nav--real-diary
+  button.active {
+  background:
+    radial-gradient(circle at 88% 12%, rgba(255, 237, 213, 0.45), transparent 50%),
+    linear-gradient(100deg, rgba(245, 158, 11, 0.95), rgba(217, 119, 6, 0.95));
+  border-color: rgba(255, 237, 213, 0.7);
+  color: rgba(47, 24, 6, 0.95);
+  box-shadow: 0 14px 22px rgba(25, 12, 2, 0.45);
+}
+
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--profile4k
+  .profile-tabs-nav--profile4k
+  button.active {
+  background:
+    radial-gradient(circle at 88% 12%, rgba(236, 253, 250, 0.48), transparent 50%),
+    linear-gradient(100deg, rgba(20, 184, 166, 0.96), rgba(13, 148, 136, 0.95));
+  border-color: rgba(204, 251, 241, 0.76);
+  color: rgba(7, 43, 39, 0.98);
+  box-shadow:
+    0 0 18px rgba(20, 184, 166, 0.3),
+    0 14px 22px rgba(2, 20, 18, 0.5);
+}
+
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--team
+  .profile-tabs-nav--team
+  button.active {
+  background:
+    radial-gradient(circle at 88% 12%, rgba(245, 243, 255, 0.45), transparent 50%),
+    linear-gradient(100deg, rgba(139, 0, 255, 0.95), rgba(99, 42, 214, 0.95));
+  border-color: rgba(233, 213, 255, 0.76);
+  color: rgba(248, 245, 255, 0.98);
+  box-shadow:
+    0 0 18px rgba(168, 85, 247, 0.28),
+    0 14px 22px rgba(16, 4, 32, 0.5);
+}
+
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--council
+  .profile-tabs-nav--council
+  button.active {
+  background:
+    radial-gradient(circle at 88% 12%, rgba(255, 251, 235, 0.48), transparent 50%),
+    linear-gradient(100deg, rgba(255, 215, 0, 0.96), rgba(184, 134, 11, 0.95));
+  border-color: rgba(255, 245, 214, 0.78);
+  color: rgba(52, 33, 3, 0.96);
+  box-shadow:
+    0 0 18px rgba(255, 215, 0, 0.3),
+    0 14px 22px rgba(30, 22, 4, 0.48);
+}
+
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--bro
+  .profile-tabs-nav--bro
+  button.active {
+  background:
+    radial-gradient(circle at 88% 12%, rgba(245, 243, 255, 0.48), transparent 50%),
+    linear-gradient(100deg, rgba(124, 58, 237, 0.96), rgba(88, 28, 135, 0.95));
+  border-color: rgba(233, 213, 255, 0.82);
+  color: rgba(251, 247, 255, 0.98);
+  box-shadow:
+    0 0 18px rgba(168, 85, 247, 0.32),
+    0 14px 22px rgba(18, 7, 35, 0.5);
+}
+
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--vozhatifikator
+  .profile-tabs-nav--vozhatifikator
+  button.active {
+  background:
+    radial-gradient(circle at 88% 12%, rgba(245, 243, 255, 0.5), transparent 50%),
+    linear-gradient(100deg, rgba(168, 85, 247, 0.96), rgba(109, 40, 217, 0.95));
+  border-color: rgba(233, 213, 255, 0.86);
+  color: rgba(252, 249, 255, 0.98);
+  box-shadow:
+    0 0 18px rgba(167, 139, 250, 0.34),
+    0 14px 22px rgba(13, 8, 28, 0.52);
+}
+
+.profile-spaceship-root .profile-view-cabin-progress-hub .profile-tabs-nav button {
+  width: 56px;
+  height: 48px;
+  padding: 0;
+  border-radius: 14px 12px 12px 14px;
+  border: 1px solid rgba(var(--cabin-neon-cyan-rgb), 0.24);
+  background: linear-gradient(180deg, rgba(7, 30, 49, 0.86), rgba(6, 18, 34, 0.68));
+  color: rgba(238, 248, 255, 0.92);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  opacity: 0.88;
+  position: relative;
+  box-shadow:
+    0 14px 22px rgba(1, 6, 14, 0.38),
+    0 0 14px rgba(var(--cabin-neon-cyan-rgb), 0.08);
+  transition:
+    var(--cabin-tabs-transition),
+    opacity 0.15s ease,
+    background 0.15s ease;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  font-size: 11px;
+}
+
+.profile-spaceship-root .profile-view-cabin-progress-hub .profile-tabs-nav button::before {
+  content: "";
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 10px;
+  height: 32px;
+  border-radius: 0 12px 12px 0;
+  background: linear-gradient(180deg, rgba(7, 30, 49, 0.52), rgba(6, 18, 34, 0.35));
+  border: 1px solid rgba(var(--cabin-neon-cyan-rgb), 0.16);
+  border-left: none;
+  opacity: 0.75;
+  pointer-events: none;
+}
+
+.profile-spaceship-root .profile-view-cabin-progress-hub .profile-tabs-nav button:hover,
+.profile-spaceship-root .profile-view-cabin-progress-hub .profile-tabs-nav button:focus-visible {
+  opacity: 1;
+  transform: translateX(3px);
+  border-color: rgba(var(--cabin-neon-magenta-rgb), 0.62);
+  box-shadow:
+    0 14px 20px rgba(1, 6, 14, 0.45),
+    0 0 18px rgba(var(--cabin-neon-magenta-rgb), 0.16);
+  outline: none;
+}
+
+.profile-spaceship-root .profile-view-cabin-progress-hub .profile-tabs-nav button.active {
+  background: linear-gradient(
+    100deg,
+    rgba(var(--cabin-neon-cyan-rgb), 0.24),
+    rgba(var(--cabin-neon-magenta-rgb), 0.26)
+  );
+  border: 1px solid rgba(var(--cabin-neon-magenta-rgb), 0.5);
+  box-shadow: 0 0 16px rgba(var(--cabin-neon-magenta-rgb), 0.22);
+}
+
+.profile-spaceship-root .profile-view-cabin-progress-hub .profile-tabs-nav button.active::before {
+  background: linear-gradient(
+    180deg,
+    rgba(var(--cabin-neon-cyan-rgb), 0.12),
+    rgba(var(--cabin-neon-magenta-rgb), 0.14)
+  );
+  border-color: rgba(var(--cabin-neon-magenta-rgb), 0.35);
+  opacity: 0.92;
+}
+
+.profile-spaceship-root .profile-view-cabin-progress-hub .profile-tabs-nav__label {
+  display: none;
+}
+
+.profile-spaceship-root .profile-view-cabin-progress-hub .profile-tabs-nav__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  line-height: 1;
+  filter: drop-shadow(0 0 8px rgba(var(--cabin-neon-cyan-rgb), 0.12));
+}
+
+.profile-spaceship-root .profile-view-cabin-progress-hub .profile-tabs-nav button::after {
+  content: attr(data-label);
+  position: absolute;
+  left: calc(100% + 10px);
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 8px 10px;
+  background: rgba(2, 10, 22, 0.92);
+  border: 1px solid rgba(var(--cabin-neon-cyan-rgb), 0.22);
+  border-radius: 10px;
+  color: rgba(238, 248, 255, 0.95);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  box-shadow:
+    0 16px 30px rgba(1, 6, 14, 0.55),
+    0 0 18px rgba(var(--cabin-neon-cyan-rgb), 0.12);
+}
+
+.profile-spaceship-root .profile-view-cabin-progress-hub .profile-tabs-nav button:hover::after,
+.profile-spaceship-root
+  .profile-view-cabin-progress-hub
+  .profile-tabs-nav
+  button:focus-visible::after {
+  opacity: 1;
+}
+
+.profile-spaceship-root .profile-view-cabin-center .profile-tabs-nav button {
+  border-color: var(--border) !important;
+  background: var(--tab-active-bg) !important;
+  color: var(--text-primary) !important;
+}
+
+.profile-spaceship-root .profile-view-cabin-center .profile-tabs-nav button:hover:not(:disabled),
+.profile-spaceship-root
+  .profile-view-cabin-center
+  .profile-tabs-nav
+  button:focus-visible:not(:disabled) {
+  background: var(--tab-hover-bg) !important;
+  border-color: var(--border-accent) !important;
+}
+
+.profile-spaceship-root .profile-view-cabin-center .profile-tabs-nav button.active {
+  background: var(--tab-active-selected-bg) !important;
+  border-color: var(--border-accent) !important;
+  border-bottom-width: 2px !important;
+  border-bottom-color: var(--tab-active-indicator) !important;
+  color: var(--tab-active-selected-text) !important;
+}
+
+.profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--hub
+  .profile-view-cabin-tabs-docked
+  .profile-tabs-nav--docked
+  button,
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--squad-corner
+  .profile-view-cabin-tabs-docked
+  .profile-tabs-nav--squad-corner
+  button,
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--real-diary
+  .profile-view-cabin-tabs-docked
+  .profile-tabs-nav--real-diary
+  button,
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--profile4k
+  .profile-view-cabin-tabs-docked
+  .profile-tabs-nav--profile4k
+  button,
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--team
+  .profile-view-cabin-tabs-docked
+  .profile-tabs-nav--team
+  button,
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--council
+  .profile-view-cabin-tabs-docked
+  .profile-tabs-nav--council
+  button,
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--bro
+  .profile-view-cabin-tabs-docked
+  .profile-tabs-nav--bro
+  button,
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--counselor-squad
+  .profile-view-cabin-tabs-docked
+  .profile-tabs-nav--counselor-squad
+  button,
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--share
+  .profile-view-cabin-tabs-docked
+  .profile-tabs-nav--share
+  button,
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--workshop
+  .profile-view-cabin-tabs-docked
+  .profile-tabs-nav--workshop
+  button {
+  background: var(--tab-active-bg) !important;
+  opacity: 1 !important;
+  width: 138px !important;
+  min-width: 138px !important;
+  height: 58px !important;
+  min-height: 58px !important;
+}
+
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--profile4k
+  .profile-view-cabin-tabs-docked
+  .profile-tabs-nav--profile4k
+  button:hover:not(:disabled),
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--profile4k
+  .profile-view-cabin-tabs-docked
+  .profile-tabs-nav--profile4k
+  button:focus-visible:not(:disabled),
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--team
+  .profile-view-cabin-tabs-docked
+  .profile-tabs-nav--team
+  button:hover:not(:disabled),
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--team
+  .profile-view-cabin-tabs-docked
+  .profile-tabs-nav--team
+  button:focus-visible:not(:disabled),
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--council
+  .profile-view-cabin-tabs-docked
+  .profile-tabs-nav--council
+  button:hover:not(:disabled),
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--council
+  .profile-view-cabin-tabs-docked
+  .profile-tabs-nav--council
+  button:focus-visible:not(:disabled),
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--bro
+  .profile-view-cabin-tabs-docked
+  .profile-tabs-nav--bro
+  button:hover:not(:disabled),
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--bro
+  .profile-view-cabin-tabs-docked
+  .profile-tabs-nav--bro
+  button:focus-visible:not(:disabled),
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--vozhatifikator
+  .profile-view-cabin-tabs-docked
+  .profile-tabs-nav--vozhatifikator
+  button:hover:not(:disabled),
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--squad-corner
+  .profile-view-cabin-tabs-docked
+  .profile-tabs-nav--squad-corner
+  button:hover:not(:disabled),
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--squad-corner
+  .profile-view-cabin-tabs-docked
+  .profile-tabs-nav--squad-corner
+  button:focus-visible:not(:disabled),
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--real-diary
+  .profile-view-cabin-tabs-docked
+  .profile-tabs-nav--real-diary
+  button:hover:not(:disabled),
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--real-diary
+  .profile-view-cabin-tabs-docked
+  .profile-tabs-nav--real-diary
+  button:focus-visible:not(:disabled),
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--vozhatifikator
+  .profile-view-cabin-tabs-docked
+  .profile-tabs-nav--vozhatifikator
+  button:focus-visible:not(:disabled),
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--counselor-squad
+  .profile-view-cabin-tabs-docked
+  .profile-tabs-nav--counselor-squad
+  button:hover:not(:disabled),
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--counselor-squad
+  .profile-view-cabin-tabs-docked
+  .profile-tabs-nav--counselor-squad
+  button:focus-visible:not(:disabled),
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--share
+  .profile-view-cabin-tabs-docked
+  .profile-tabs-nav--share
+  button:hover:not(:disabled),
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--share
+  .profile-view-cabin-tabs-docked
+  .profile-tabs-nav--share
+  button:focus-visible:not(:disabled),
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--workshop
+  .profile-view-cabin-tabs-docked
+  .profile-tabs-nav--workshop
+  button:hover:not(:disabled),
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--workshop
+  .profile-view-cabin-tabs-docked
+  .profile-tabs-nav--workshop
+  button:focus-visible:not(:disabled) {
+  background: var(--tab-hover-bg) !important;
+}
+
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--hub
+  .profile-view-cabin-tabs-docked
+  .profile-tabs-nav--docked
+  button.active,
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--squad-corner
+  .profile-view-cabin-tabs-docked
+  .profile-tabs-nav--squad-corner
+  button.active,
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--real-diary
+  .profile-view-cabin-tabs-docked
+  .profile-tabs-nav--real-diary
+  button.active,
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--profile4k
+  .profile-view-cabin-tabs-docked
+  .profile-tabs-nav--profile4k
+  button.active,
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--team
+  .profile-view-cabin-tabs-docked
+  .profile-tabs-nav--team
+  button.active,
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--council
+  .profile-view-cabin-tabs-docked
+  .profile-tabs-nav--council
+  button.active,
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--bro
+  .profile-view-cabin-tabs-docked
+  .profile-tabs-nav--bro
+  button.active,
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--vozhatifikator
+  .profile-view-cabin-tabs-docked
+  .profile-tabs-nav--vozhatifikator
+  button.active,
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--counselor-squad
+  .profile-view-cabin-tabs-docked
+  .profile-tabs-nav--counselor-squad
+  button.active,
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--share
+  .profile-view-cabin-tabs-docked
+  .profile-tabs-nav--share
+  button.active,
+.profile-spaceship-root
+  .profile-view-cabin-center.profile-view-cabin-center--workshop
+  .profile-view-cabin-tabs-docked
+  .profile-tabs-nav--workshop
+  button.active {
+  background: var(--tab-active-selected-bg) !important;
+  border-color: var(--border-accent) !important;
+  border-bottom: 2px solid var(--tab-active-indicator) !important;
+  color: var(--tab-active-selected-text) !important;
+}
+
+.profile-spaceship-root
+  .profile-view-cabin-center
+  .profile-tabs-nav
+  button.active
+  .profile-tabs-nav__label,
+.profile-spaceship-root
+  .profile-view-cabin-center
+  .profile-tabs-nav
+  button.active
+  .profile-tabs-nav__icon {
+  color: inherit !important;
+}
+
+.profile-spaceship-root .profile-view-cabin-center .profile-tabs-nav .profile-tabs-nav__icon {
+  display: none !important;
+}
+
+@media (max-width: 1180px) {
+  .profile-spaceship-root .profile-view-cabin-center
+    .profile-view-cabin-tabs-docked
+    > .profile-tabs-nav {
+    flex: 1 1 0% !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .profile-spaceship-root .profile-view-cabin-center .profile-tabs-nav,
+  .profile-spaceship-root .profile-view-cabin-center .profile-tabs-nav--docked {
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    gap: 4px !important;
+    padding: 4px !important;
+    background: var(--tab-bar-bg) !important;
+    border-radius: 14px !important;
+  }
+
+  .profile-spaceship-root .profile-view-cabin-center .profile-tabs-nav button,
+  .profile-spaceship-root .profile-view-cabin-center .profile-tabs-nav--docked button {
+    flex: 1 1 0% !important;
+    min-width: 80px !important;
+    min-height: 60px !important;
+    width: auto !important;
+    height: auto !important;
+    font-size: 14px !important;
+    padding: 10px 14px !important;
+    border-radius: 10px !important;
+    overflow: hidden !important;
+    white-space: normal !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  .profile-spaceship-root .profile-view-cabin-center .profile-tabs-nav .profile-tabs-nav__label,
+  .profile-spaceship-root
+    .profile-view-cabin-center
+    .profile-tabs-nav--docked
+    .profile-tabs-nav__label {
+    white-space: normal !important;
+    overflow-wrap: break-word !important;
+    text-align: center !important;
+    line-height: 1.2 !important;
+  }
+
+  .profile-spaceship-root .profile-view-cabin-center .profile-tabs-nav button.active,
+  .profile-spaceship-root .profile-view-cabin-center .profile-tabs-nav--docked button.active {
+    background: var(--tab-active-selected-bg) !important;
+    color: var(--tab-active-selected-text) !important;
+    box-shadow:
+      0 2px 0 0 var(--tab-active-indicator),
+      0 2px 8px rgba(0, 0, 0, 0.3) !important;
+  }
+  .profile-spaceship-root .profile-tabs-nav button,
+  .profile-spaceship-root .profile-view-cabin-center .profile-tabs-nav button,
+  .profile-spaceship-root .profile-view-cabin-center .profile-tabs-nav--docked button {
+    min-height: 48px !important;
+    min-width: 90px !important;
+  }
+
+  .profile-spaceship-root .profile-tabs-nav button:active,
+  .profile-spaceship-root .profile-view-cabin-center .profile-tabs-nav button:active,
+  .profile-spaceship-root .profile-view-cabin-center .profile-tabs-nav--docked button:active {
+    transform: scale(0.98) !important;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1180px) {
+  .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--hub
+    .profile-tabs-nav--docked,
+  .profile-spaceship-root
+    .profile-view-cabin-center.profile-view-cabin-center--squad-corner
+    .profile-tabs-nav--squad-corner,
+  .profile-spaceship-root
+    .profile-view-cabin-center.profile-view-cabin-center--real-diary
+    .profile-tabs-nav--real-diary,
+  .profile-spaceship-root
+    .profile-view-cabin-center.profile-view-cabin-center--profile4k
+    .profile-tabs-nav--profile4k,
+  .profile-spaceship-root
+    .profile-view-cabin-center.profile-view-cabin-center--team
+    .profile-tabs-nav--team,
+  .profile-spaceship-root
+    .profile-view-cabin-center.profile-view-cabin-center--council
+    .profile-tabs-nav--council,
+  .profile-spaceship-root
+    .profile-view-cabin-center.profile-view-cabin-center--bro
+    .profile-tabs-nav--bro,
+  .profile-spaceship-root
+    .profile-view-cabin-center.profile-view-cabin-center--vozhatifikator
+    .profile-tabs-nav--vozhatifikator,
+  .profile-spaceship-root
+    .profile-view-cabin-center.profile-view-cabin-center--counselor-squad
+    .profile-tabs-nav--counselor-squad,
+  .profile-spaceship-root
+    .profile-view-cabin-center.profile-view-cabin-center--share
+    .profile-tabs-nav--share,
+  .profile-spaceship-root
+    .profile-view-cabin-center.profile-view-cabin-center--workshop
+    .profile-tabs-nav--workshop,
+  .profile-spaceship-root
+    .profile-view-cabin-center.profile-view-cabin-center--inspector
+    .profile-tabs-nav--inspector {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    flex: 1 1 0% !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    grid-template-columns: unset !important;
+    grid-auto-rows: unset !important;
+    gap: 4px !important;
+  }
+  .profile-spaceship-root .profile-view-cabin-center.profile-view-cabin-center--hub
+    .profile-tabs-nav--docked
+    button,
+  .profile-spaceship-root
+    .profile-view-cabin-center.profile-view-cabin-center--squad-corner
+    .profile-tabs-nav--squad-corner
+    button,
+  .profile-spaceship-root
+    .profile-view-cabin-center.profile-view-cabin-center--real-diary
+    .profile-tabs-nav--real-diary
+    button,
+  .profile-spaceship-root
+    .profile-view-cabin-center.profile-view-cabin-center--profile4k
+    .profile-tabs-nav--profile4k
+    button,
+  .profile-spaceship-root
+    .profile-view-cabin-center.profile-view-cabin-center--team
+    .profile-tabs-nav--team
+    button,
+  .profile-spaceship-root
+    .profile-view-cabin-center.profile-view-cabin-center--council
+    .profile-tabs-nav--council
+    button,
+  .profile-spaceship-root
+    .profile-view-cabin-center.profile-view-cabin-center--bro
+    .profile-tabs-nav--bro
+    button,
+  .profile-spaceship-root
+    .profile-view-cabin-center.profile-view-cabin-center--vozhatifikator
+    .profile-tabs-nav--vozhatifikator
+    button,
+  .profile-spaceship-root
+    .profile-view-cabin-center.profile-view-cabin-center--counselor-squad
+    .profile-tabs-nav--counselor-squad
+    button,
+  .profile-spaceship-root
+    .profile-view-cabin-center.profile-view-cabin-center--share
+    .profile-tabs-nav--share
+    button,
+  .profile-spaceship-root
+    .profile-view-cabin-center.profile-view-cabin-center--workshop
+    .profile-tabs-nav--workshop
+    button,
+  .profile-spaceship-root
+    .profile-view-cabin-center.profile-view-cabin-center--inspector
+    .profile-tabs-nav--inspector
+    button {
+    flex: 1 1 0% !important;
+    min-width: 0 !important;
+    width: auto !important;
+    max-width: none !important;
+  }
+}

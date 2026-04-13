@@ -1,0 +1,102 @@
+
+
+.profile-spaceship-root .profile-view-cabin-center--council .council-cabin-content {
+  width: 100%;
+  box-sizing: border-box;
+  padding-inline: clamp(40px, 5vw, 56px);
+}
+
+.profile-spaceship-root .profile-view-cabin-center--council .council-cabin-section {
+  width: 100%;
+  min-width: 0;
+}
+
+.profile-spaceship-root .profile-view-cabin-center--council .council-cabin-engines-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.profile-spaceship-root .profile-view-cabin-center--council .council-cabin-engine-card {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(15, 10, 42, 0.35);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.profile-spaceship-root .profile-view-cabin-center--council .council-cabin-engine-card--mine {
+  border-color: rgba(255, 255, 255, 0.18);
+  box-shadow: 0 0 12px rgba(139, 0, 255, 0.15);
+}
+
+.profile-spaceship-root .profile-view-cabin-center--council .council-cabin-engine-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  padding: 2px 8px;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #3f2a08;
+  background: rgba(255, 215, 0, 0.88);
+}
+
+.profile-spaceship-root .profile-view-cabin-center--council .council-cabin-badge-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  background: linear-gradient(165deg, rgba(75, 56, 14, 0.55), rgba(31, 24, 12, 0.72));
+  color: rgba(255, 247, 227, 0.95);
+  cursor: pointer;
+  padding: 14px;
+  text-align: left;
+  transition: var(--cabin-tabs-transition);
+}
+
+.profile-spaceship-root .profile-view-cabin-center--council .council-cabin-badge-card:hover,
+.profile-spaceship-root
+  .profile-view-cabin-center--council
+  .council-cabin-badge-card:focus-visible {
+  transform: translateY(-2px);
+  border-color: rgba(255, 225, 142, 0.85);
+  box-shadow:
+    0 10px 22px rgba(31, 24, 12, 0.35),
+    0 0 0 1px rgba(255, 215, 0, 0.24);
+  outline: none;
+}
+
+.profile-spaceship-root .profile-view-cabin-center--council .council-cabin-badge-card__icon {
+  width: 96px;
+  height: 96px;
+  display: grid;
+  place-items: center;
+}
+
+.profile-spaceship-root .profile-view-cabin-center--council .council-cabin-badge-card__text {
+  min-width: 0;
+}
+
+@media (max-width: 1200px) {
+
+  .profile-spaceship-root .profile-view-cabin-center--council .council-cabin-engines-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .profile-spaceship-root .profile-view-cabin-center--council .council-cabin-badge-card {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    text-align: center;
+  }
+}

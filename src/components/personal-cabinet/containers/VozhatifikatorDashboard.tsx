@@ -1,4 +1,5 @@
 import type React from 'react';
+import '../../../styles/Vozhatificator.css';
 import { useEffect, useRef, useState } from 'react';
 import { VozhatifikatorChecklist } from '../../../components/VozhatifikatorChecklist';
 import { markdownToHtmlWithHeadingIds, parseMarkdownToc } from '../../../utils/markdown';

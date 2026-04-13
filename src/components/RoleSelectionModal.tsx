@@ -524,7 +524,7 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({
       style={{
         position: 'fixed',
         inset: 0,
-        zIndex: 1000,
+        zIndex: 100000,
         background: 'rgba(9,9,15,0.88)',
         backdropFilter: 'blur(12px)',
         display: 'flex',

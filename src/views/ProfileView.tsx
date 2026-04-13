@@ -1,4 +1,9 @@
 import fitty, { type FittyInstance } from 'fitty';
+import '../styles/ProfileTabs.css';
+import '../styles/ConsoleWidgets.css';
+import '../styles/Shelf.css';
+import '../styles/SpaceshipButtons.css';
+import '../styles/ShareCenter.css';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { BadgeCard } from '../components/BadgeCard';

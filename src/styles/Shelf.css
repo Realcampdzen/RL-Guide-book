@@ -1,0 +1,644 @@
+
+
+.profile-spaceship-root .profile-view-cabin-progress-hub .favorites-shelf-container__empty {
+  margin: 0;
+  padding: 12px 0;
+  font-size: 13px;
+  color: rgba(203, 232, 248, 0.86);
+}
+.profile-spaceship-root .profile-view-cabin-progress-hub .shelf-scroll {
+  justify-content: flex-start;
+  gap: 0;
+  padding: 24px 12px;
+  max-width: 420px;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+}
+.profile-spaceship-root .profile-view-cabin-progress-hub .shelf-scroll--carousel3d {
+  perspective: 900px;
+  perspective-origin: center center;
+  transform-style: preserve-3d;
+}
+.profile-spaceship-root
+  .profile-view-cabin-progress-hub
+  .shelf-scroll:not(:has(.shelf-item:nth-child(4))) {
+  justify-content: center;
+}
+.profile-spaceship-root .profile-view-cabin-progress-hub .shelf-item {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  scroll-snap-align: center;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  transform: rotateY(calc(var(--center-offset, 0) * 18deg))
+    scale(calc(1 - abs(var(--center-offset, 0)) * 0.08));
+}
+.profile-spaceship-root .profile-view-cabin-progress-hub .shelf-item > div > div {
+  width: 128px !important;
+  height: 128px !important;
+  min-width: 128px !important;
+  min-height: 128px !important;
+}
+.profile-spaceship-root .profile-view-cabin-progress-hub .shelf-item > div > div img,
+.profile-spaceship-root .profile-view-cabin-progress-hub .shelf-item > div picture img {
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 100% !important;
+  min-height: 100% !important;
+  display: block;
+}
+.profile-spaceship-root .profile-view-cabin-progress-hub .shelf-item .badge-emoji {
+  font-size: 64px !important;
+  width: 128px !important;
+  height: 128px !important;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+}
+.profile-spaceship-root
+  .profile-view-cabin-progress-hub
+  .active-tab-content__badges-list
+  .badge-row-complex--single
+  .btn-action-round {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+}
+.profile-spaceship-root
+  .profile-view-cabin-progress-hub
+  .active-tab-content__badges-list
+  .badge-row-main__title {
+  color: rgba(236, 247, 255, 0.96);
+}
+.profile-spaceship-root
+  .profile-view-cabin-progress-hub
+  .active-tab-content__badges-list
+  .badge-row-main__id {
+  color: rgba(203, 232, 248, 0.6);
+}
+.profile-spaceship-root .profile-view-cabin-progress-hub .favorites-shelf-container {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  background-image: url("/избранное.png");
+  background-repeat: no-repeat;
+  background-position: center bottom;
+  background-size: contain;
+  background-color: transparent;
+  border: none;
+  box-shadow: none;
+}
+.profile-spaceship-root .profile-view-cabin-progress-hub .favorites-shelf-container--empty {
+  background-image: none !important;
+}
+.profile-spaceship-root .profile-view-cabin-progress-hub .badge-row-complex {
+  background: linear-gradient(150deg, rgba(8, 21, 39, 0.72), rgba(4, 12, 24, 0.68));
+  border: 1px solid rgba(var(--cabin-neon-cyan-rgb), 0.2);
+  box-shadow: 0 10px 22px rgba(1, 6, 14, 0.34);
+}
+.profile-spaceship-root .profile-view-cabin-progress-hub .badge-row-complex {
+  width: fit-content;
+  max-width: 100%;
+  padding: 14px 16px;
+}
+.profile-spaceship-root
+  .profile-view-cabin-progress-hub
+  .active-tab-content__col--badges
+  .badge-row-complex
+  + .badge-row-complex {
+  margin-top: 12px;
+}
+.profile-spaceship-root .profile-view-cabin-progress-hub .favorites-shelf-container .shelf-header {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.profile-spaceship-root .profile-view-cabin-progress-hub .shelf-carousel {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  overflow: visible;
+  width: 100%;
+  max-width: 420px;
+  margin-left: auto;
+  margin-right: auto;
+  position: relative;
+}
+.profile-spaceship-root .profile-view-cabin-progress-hub .shelf-carousel__btn {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: 50%;
+  border: 1px solid rgba(var(--cabin-neon-magenta-rgb), 0.62);
+  background: linear-gradient(160deg, rgba(26, 9, 46, 0.9), rgba(12, 7, 30, 0.9));
+  box-shadow:
+    0 0 0 1px rgba(var(--cabin-neon-magenta-rgb), 0.18) inset,
+    0 0 14px rgba(var(--cabin-neon-magenta-rgb), 0.45),
+    0 0 24px rgba(139, 0, 255, 0.6),
+    0 0 48px rgba(139, 0, 255, 0.45),
+    0 0 72px rgba(139, 0, 255, 0.25);
+  color: rgba(236, 247, 255, 0.96);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    background 0.2s,
+    border-color 0.2s,
+    box-shadow 0.2s;
+  z-index: 10;
+}
+.profile-spaceship-root .profile-view-cabin-progress-hub .shelf-carousel__btn--prev {
+  position: absolute;
+  left: 30px;
+  top: 100px;
+  margin: 0;
+  z-index: 20;
+  transform: translateY(130px);
+}
+.profile-spaceship-root .profile-view-cabin-progress-hub .shelf-carousel__btn--next {
+  position: absolute;
+  right: 30px;
+  top: 100px;
+  margin: 0;
+  z-index: 20;
+  transform: translateY(130px);
+}
+.profile-spaceship-root .profile-view-cabin-progress-hub .shelf-carousel__btn:hover:not(:disabled),
+.profile-spaceship-root
+  .profile-view-cabin-progress-hub
+  .shelf-carousel__btn:focus-visible:not(:disabled) {
+  border-color: rgba(var(--cabin-neon-magenta-rgb), 0.85);
+  box-shadow:
+    0 0 0 1px rgba(var(--cabin-neon-magenta-rgb), 0.26) inset,
+    0 0 18px rgba(var(--cabin-neon-magenta-rgb), 0.62),
+    0 0 32px rgba(139, 0, 255, 0.7),
+    0 0 56px rgba(139, 0, 255, 0.5),
+    0 0 80px rgba(139, 0, 255, 0.3);
+  outline: none;
+}
+.profile-spaceship-root .profile-view-cabin-progress-hub .shelf-carousel__btn:disabled {
+  opacity: var(--cabin-disabled-opacity);
+  cursor: not-allowed;
+}
+.profile-spaceship-root .profile-view-cabin-progress-hub .shelf-viewport {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  padding: 24px 0;
+  margin-left: 54px;
+  margin-right: 54px;
+}
+.profile-spaceship-root .profile-view-cabin-progress-hub .shelf-viewport .shelf-track {
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  gap: 0;
+  padding: 0 12px;
+  overflow: visible;
+  transition: transform 0.3s ease-out;
+  transform: translateX(calc(50% - 64px - var(--carousel-index, 0) * 128px));
+}
+.profile-spaceship-root .profile-view-cabin-progress-hub
+  .shelf-carousel--cylinder
+  .shelf-viewport--cylinder {
+  overflow: visible;
+  min-width: 0;
+  flex: 1;
+  padding: 48px 72px;
+  perspective: 1400px;
+  perspective-origin: center center;
+}
+.profile-spaceship-root
+  .profile-view-cabin-progress-hub
+  .shelf-carousel--cylinder
+  .shelf-track--cylinder {
+  --step-deg: 36deg;
+  --radius: 440px;
+  position: relative;
+  width: 100%;
+  height: 200px;
+  margin: 0;
+  padding: 0;
+  display: block;
+  transform-style: preserve-3d;
+  transform: rotateY(calc(var(--carousel-rotation-steps, 0) * var(--step-deg)));
+  transition: transform 0.4s ease-out;
+}
+.profile-spaceship-root
+  .profile-view-cabin-progress-hub
+  .shelf-carousel--cylinder
+  .shelf-item--cylinder {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 128px;
+  height: 128px;
+  margin-left: -64px;
+  margin-top: -64px;
+  transform-style: preserve-3d;
+  backface-visibility: visible;
+  transform: rotateY(calc(var(--slot-offset, 0) * var(--step-deg))) translateZ(var(--radius));
+}
+.profile-spaceship-root
+  .profile-view-cabin-progress-hub
+  .shelf-carousel--cylinder
+  .shelf-item--cylinder
+  > div {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  z-index: 1;
+  border-radius: 50%;
+  overflow: hidden;
+  box-shadow:
+    0 0 24px rgba(139, 0, 255, 0.6),
+    0 0 48px rgba(139, 0, 255, 0.45),
+    0 0 72px rgba(139, 0, 255, 0.25);
+}
+.profile-spaceship-root .profile-view-cabin-progress-hub
+  .shelf-carousel--cylinder
+  .shelf-item--cylinder::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 100%;
+  height: 100%;
+  margin-left: -50%;
+  margin-top: -50%;
+  border-radius: 50%;
+  background: transparent;
+  border: 3px solid rgba(var(--cabin-neon-purple-rgb), 0.95);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.45),
+    0 0 8px 2px rgba(var(--cabin-neon-purple-rgb), 0.45);
+  z-index: 0;
+  pointer-events: none;
+}
+.profile-view .badge-row-complex {
+  position: relative;
+  width: fit-content;
+  max-width: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 24px;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+.profile-view .badge-row-complex--single {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.profile-view .badge-row-complex__thumb {
+  flex-shrink: 0;
+  cursor: pointer;
+}
+.profile-view .badge-row-complex__meta {
+  min-width: 0;
+  cursor: pointer;
+}
+.profile-view .badge-row-complex__meta .badge-row-main__title,
+.profile-view .badge-row-complex__meta .badge-row-main__id {
+  display: block;
+}
+.profile-view .badge-row-top {
+  margin-bottom: 12px;
+}
+.profile-view .badge-row-top__left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+  cursor: pointer;
+}
+.profile-view .badge-row-bottom {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.profile-view .badge-row-bottom__right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.profile-view .badge-row-main {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  cursor: pointer;
+  margin-bottom: 12px;
+}
+.profile-view .badge-row-main__title {
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.profile-view .badge-row-main__id {
+  font-size: 10px;
+  opacity: 0.5;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.profile-view .badge-row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+.profile-view .badge-row-actions__icons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.profile-view .badge-row-actions__primary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.profile-view .favorites-shelf-container {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  background-image: url("/избранное.png");
+  background-repeat: no-repeat;
+  background-position: center bottom;
+  background-size: contain;
+  min-height: 140px;
+  border-radius: 0;
+  padding: 16px 16px 28px;
+  margin-bottom: 24px;
+  background-color: transparent;
+  border: none;
+  box-shadow: none;
+  overflow: visible;
+}
+.profile-view .favorites-shelf-container .shelf-header {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.profile-view .shelf-carousel {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  max-width: 420px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.profile-view .shelf-carousel--cylinder {
+  max-width: 560px;
+  overflow: visible;
+  gap: 4px;
+}
+.profile-view .shelf-carousel__btn {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.3);
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    background 0.2s,
+    border-color 0.2s;
+  position: relative;
+  z-index: 10;
+}
+.profile-view .shelf-carousel--cylinder .shelf-carousel__btn {
+  z-index: 10;
+}
+.profile-view .shelf-viewport--cylinder {
+  position: relative;
+  z-index: 1;
+}
+.profile-view .shelf-carousel__btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.35);
+}
+.profile-view .shelf-carousel__btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.profile-view .shelf-viewport {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  padding: 24px 0;
+}
+.profile-view .shelf-carousel--cylinder .shelf-viewport--cylinder {
+  overflow: visible;
+  min-width: 0;
+  flex: 1;
+  padding: 48px 72px;
+  perspective: 1400px;
+  perspective-origin: center center;
+}
+.profile-view .shelf-carousel--cylinder .shelf-track--cylinder {
+  --step-deg: 36deg;
+  --radius: 440px;
+  position: relative;
+  width: 100%;
+  height: 200px;
+  margin: 0;
+  padding: 0;
+  display: block;
+  transform-style: preserve-3d;
+  transform: rotateY(calc(var(--carousel-rotation-steps, 0) * var(--step-deg)));
+  transition: transform 0.4s ease-out;
+}
+.profile-view .shelf-carousel--cylinder .shelf-item--cylinder {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 128px;
+  height: 128px;
+  margin-left: -64px;
+  margin-top: -64px;
+  transform-style: preserve-3d;
+  backface-visibility: visible;
+  transform: rotateY(calc(var(--slot-offset, 0) * var(--step-deg))) translateZ(var(--radius));
+}
+.profile-view .shelf-carousel--cylinder .shelf-item--cylinder > div {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  z-index: 1;
+}
+.profile-view .shelf-carousel--cylinder .shelf-item--cylinder::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 100%;
+  height: 100%;
+  margin-left: -50%;
+  margin-top: -50%;
+  border-radius: 50%;
+  background: transparent;
+  border: 3px solid rgba(200, 170, 255, 0.95);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.5),
+    0 0 8px 2px rgba(176, 136, 255, 0.5);
+  z-index: 0;
+  pointer-events: none;
+}
+.profile-view .shelf-carousel--static {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  max-width: 420px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 24px 0;
+}
+.profile-view .shelf-carousel__static-track {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.profile-view .shelf-item--static {
+  flex-shrink: 0;
+  position: relative;
+  width: 128px;
+  height: 128px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.profile-view .shelf-item--static > div:first-child {
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.profile-view .shelf-item--static .btn-shelf-remove {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  z-index: 2;
+}
+.profile-view .shelf-viewport .shelf-track {
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  gap: 0;
+  padding: 0 12px;
+  overflow: visible;
+  transition: transform 0.3s ease-out;
+  transform: translateX(calc(50% - 64px - var(--carousel-index, 0) * 128px));
+}
+.profile-view .shelf-scroll {
+  display: flex;
+  justify-content: flex-start;
+  gap: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 24px 12px;
+  max-width: 420px;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+.profile-view .shelf-scroll--carousel3d {
+  perspective: 900px;
+  perspective-origin: center center;
+  transform-style: preserve-3d;
+}
+.profile-view .shelf-scroll:not(:has(.shelf-item:nth-child(4))) {
+  justify-content: center;
+}
+.profile-view .shelf-item {
+  position: relative;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  scroll-snap-align: center;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  transform: rotateY(calc(var(--center-offset, 0) * 18deg))
+    scale(calc(1 - abs(var(--center-offset, 0)) * 0.08));
+}
+.profile-view .shelf-item > div {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.profile-view .shelf-item > div > div {
+  width: 128px !important;
+  height: 128px !important;
+  min-width: 128px !important;
+  min-height: 128px !important;
+}
+.profile-view .shelf-item > div > div img,
+.profile-view .shelf-item > div picture img {
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 100% !important;
+  min-height: 100% !important;
+  display: block;
+}
+.profile-view .shelf-item .badge-emoji {
+  font-size: 64px !important;
+  width: 128px !important;
+  height: 128px !important;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+}
+.profile-view .favorites-shelf-container--empty {
+  background-image: none !important;
+}
+.profile-view .favorites-shelf-container__empty {
+  margin: 0;
+  padding: 12px 0;
+  font-size: 13px;
+  color: rgba(218, 232, 246, 0.85);
+}
+.profile-view .active-tab-content__col--badges .badge-row-complex + .badge-row-complex {
+  margin-top: 12px;
+}

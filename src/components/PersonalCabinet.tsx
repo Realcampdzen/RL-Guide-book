@@ -1549,7 +1549,7 @@ export const PersonalCabinet: React.FC<{
         style={{
           position: 'fixed',
           inset: 0,
-          zIndex: showRoleModal ? 900 : 99999,
+          zIndex: 99999,
           backgroundImage: `url('/RL-Guide-book/фон кабина.png')`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',

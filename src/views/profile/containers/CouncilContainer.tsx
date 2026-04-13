@@ -1,4 +1,5 @@
 import type React from 'react';
+import '../../../styles/CouncilContainer.css';
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { CouncilDashboard, type CouncilTabId } from '../../../components/CouncilDashboard';

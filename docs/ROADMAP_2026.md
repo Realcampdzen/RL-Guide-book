@@ -1,5 +1,9 @@
 # ROADMAP 2026 — единая точка входа для агентов
 
+> [!WARNING]  
+> Спринты M1 - M17 (Продуктовые механики и Рефакторинг Фазы 1-5) УЖЕ ПОЛНОСТЬЮ ЗАВЕРШЕНЫ (по состоянию на март/апрель 2026).  
+> Этот документ оставлен ИСКЛЮЧИТЕЛЬНО для исторического контекста. Текущий технический долг определяется по реальному размеру файлов в проекте (например, CSS-монолиты).
+
 Источники: [REPORT_2026.md](../REPORT_2026.md), [ANALYSIS_AND_VISION_2026.md](../ANALYSIS_AND_VISION_2026.md), [CODEX_ANALYSIS_2026-02-04.md](../CODEX_ANALYSIS_2026-02-04.md), [STEPA_VISION_LC.md](STEPA_VISION_LC.md) (видение по механикам ЛК). При расхождении приоритетов — [WORKFLOW_GAME_CONCEPT_PLAN.md](../WORKFLOW_GAME_CONCEPT_PLAN.md). Детальный прогресс и матрица планов: [WORKFLOW_PROGRESS_AND_PLANS.md](../WORKFLOW_PROGRESS_AND_PLANS.md).
 
 ---

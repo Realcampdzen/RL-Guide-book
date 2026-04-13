@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import '../styles/Profile4K.css';
 import type { Badge } from '../types/guide';
 import type { IUserData } from '../types/userProgress';
 import { fetchPedagogy4k } from '../utils/aiService';

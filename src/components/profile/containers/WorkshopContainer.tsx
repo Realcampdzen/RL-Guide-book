@@ -1,4 +1,5 @@
 import type React from 'react';
+import '../../../styles/WorkshopContainer.css';
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { ArtInboxTab } from '../../../components/ArtInboxTab';

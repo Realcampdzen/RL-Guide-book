@@ -1,4 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
+import '../styles/CounselorSquad.css';
 import { useAuth } from '../context/AuthContext';
 import { useCounselorSquad } from '../context/CounselorSquadContext';
 import type { CounselorSquadPlanGridData } from '../types/counselorSquad';

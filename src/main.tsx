@@ -7,6 +7,7 @@ import { CounselorSquadProvider } from './context/CounselorSquadContext';
 import { HintOverlayProvider } from './context/HintOverlayContext';
 import { ProgressProvider } from './context/ProgressContext';
 import { TeamProvider } from './context/TeamContext';
+import { DataProvider } from './context/DataContext';
 import { setupGodModeInterceptor } from './utils/godModeInterceptor';
 
 import './styles/tailwind.css';
@@ -18,19 +19,21 @@ setupGodModeInterceptor();
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <ErrorBoundary>
-      <AuthProvider>
-        <ProgressProvider>
-          <TeamProvider>
-            <CounselorSquadProvider>
-              <HintOverlayProvider>
-                <div className="profile-spaceship-root" data-profile-mode="spaceship">
-                  <App />
-                </div>
-              </HintOverlayProvider>
-            </CounselorSquadProvider>
-          </TeamProvider>
-        </ProgressProvider>
-      </AuthProvider>
+      <DataProvider>
+        <AuthProvider>
+          <ProgressProvider>
+            <TeamProvider>
+              <CounselorSquadProvider>
+                <HintOverlayProvider>
+                  <div className="profile-spaceship-root" data-profile-mode="spaceship">
+                    <App />
+                  </div>
+                </HintOverlayProvider>
+              </CounselorSquadProvider>
+            </TeamProvider>
+          </ProgressProvider>
+        </AuthProvider>
+      </DataProvider>
     </ErrorBoundary>
   </React.StrictMode>
 );
