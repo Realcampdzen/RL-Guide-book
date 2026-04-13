@@ -261,7 +261,7 @@ const CategoriesGrid: React.FC<CategoriesGridProps> = ({
               className="category-image"
               loading={isHighPriorityImage ? 'eager' : 'lazy'}
               decoding="async"
-              fetchpriority={isHighPriorityImage ? 'high' : 'auto'}
+              fetchPriority={isHighPriorityImage ? 'high' : 'auto'}
               onError={() => {
                 console.error('Image load error for category:', category.id, imagePath);
                 handleImageError(category.id);
@@ -375,7 +375,7 @@ const CategoriesGrid: React.FC<CategoriesGridProps> = ({
                 src={`${import.meta.env.BASE_URL}Валюша.jpg`}
                 alt="НейроВалюша"
                 decoding="async"
-                fetchpriority="high"
+                fetchPriority="high"
               />
             </picture>
           </button>
@@ -477,7 +477,7 @@ const CategoriesGrid: React.FC<CategoriesGridProps> = ({
           alt="Домик"
           loading="eager"
           decoding="async"
-          fetchpriority="high"
+          fetchPriority="high"
           style={{
             height: 'auto',
             filter:

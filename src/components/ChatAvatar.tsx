@@ -30,7 +30,7 @@ const ChatAvatar: React.FC<ChatAvatarProps> = ({ onClick, isOpen = false }) => {
             alt="НейроВалюша"
             className="chat-avatar-img"
             decoding="async"
-            fetchpriority="high"
+            fetchPriority="high"
             draggable={false}
             onContextMenu={(e) => e.preventDefault()}
           />

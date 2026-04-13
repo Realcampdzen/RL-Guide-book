@@ -723,7 +723,7 @@ const BadgeView: React.FC<BadgeViewProps> = ({
                 src={`${import.meta.env.BASE_URL}Валюша.jpg`}
                 alt="НейроВалюша"
                 decoding="async"
-                fetchpriority="high"
+                fetchPriority="high"
               />
             </picture>
           </button>

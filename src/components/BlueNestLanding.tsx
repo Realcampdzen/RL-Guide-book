@@ -59,7 +59,12 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
   masterIndex,
 }) => {
   const { initReveal } = useScrollReveal();
-  const [loaderHidden, setLoaderHidden] = useState(false);
+  const [loaderHidden, setLoaderHidden] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return sessionStorage.getItem('rl-hero-loaded') === '1';
+    }
+    return false;
+  });
   const [isConceptOpen, setIsConceptOpen] = useState(false);
   const [showContactHint, setShowContactHint] = useState(false);
   const featureCard1Ref = useRef<HTMLDivElement>(null);
@@ -209,9 +214,12 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
   }, []);
 
   useEffect(() => {
+    if (loaderHidden) return;
     const timer = setTimeout(() => {
       setLoaderHidden(true);
-      initReveal('.reveal-item');
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('rl-hero-loaded', '1');
+      }
     }, 1500);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -397,7 +405,6 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
         className="nav-image-container nav-home hover-target"
         onClick={onAboutCampClick}
         onMouseEnter={onHoverAboutCamp}
-        onTouchStart={onHoverAboutCamp}
         aria-label="О лагере"
       >
         <img src={`${import.meta.env.BASE_URL}${NAV_HOME_IMAGE}?v=2`} alt="Домик" />
@@ -406,7 +413,6 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
         className="nav-link-left hover-target"
         onClick={onAboutCampClick}
         onMouseEnter={onHoverAboutCamp}
-        onTouchStart={onHoverAboutCamp}
       >
         О лагере
       </button>
@@ -417,9 +423,8 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
           <div className="hero-bg"></div>
           <div className="hero-content">
             <h1
-              className="hero-title reveal-item hover-target"
-              style={{ transitionDelay: '0.2s', cursor: 'pointer' }}
-              onClick={onLogoClick}
+              className="hero-title hover-target"
+              style={{ transitionDelay: '0.2s' }}
             >
               <span className="hero-title-first-word">Путеводитель</span>
               <span>по</span>
