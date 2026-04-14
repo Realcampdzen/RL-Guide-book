@@ -248,3 +248,11 @@
   initial-value: 0deg;
   inherits: false;
 }
+
+/* Lift button strictly in mobile ProfileView to prevent console overlap */
+@media (max-width: 768px) {
+  .chat-avatar-button--profile {
+    bottom: calc(188px + env(safe-area-inset-bottom)) !important;
+    z-index: 10080 !important;
+  }
+}

@@ -462,7 +462,11 @@ export const AppViewRouter: React.FC<Props> = ({ controller, fallback }) => {
         currentView !== 'categories' &&
         currentView !== 'about-camp' && (
           <Suspense fallback={null}>
-            <ChatAvatar onClick={toggleChat} isOpen={isChatOpen} />
+            <ChatAvatar 
+              onClick={toggleChat} 
+              isOpen={isChatOpen}
+              className={currentView === 'profile' ? 'chat-avatar-button--profile' : ''}
+            />
           </Suspense>
         )}
       <Suspense fallback={null}>
