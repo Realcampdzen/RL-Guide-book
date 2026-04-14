@@ -324,8 +324,6 @@ export const SquadChat: React.FC<SquadChatProps> = ({
         borderRadius: 16,
         background: 'rgba(15, 10, 42, 0.12)',
         border: '1px solid rgba(255, 255, 255, 0.08)',
-        backdropFilter: 'blur(8px)',
-        WebkitBackdropFilter: 'blur(8px)',
         display: 'flex',
         flexDirection: 'column',
         height,
@@ -758,8 +756,6 @@ export const SquadChat: React.FC<SquadChatProps> = ({
               border: '1px solid rgba(255, 255, 255, 0.12)',
               borderRadius: 14,
               padding: 10,
-              backdropFilter: 'blur(16px)',
-              WebkitBackdropFilter: 'blur(16px)',
               boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
             }}
           >
