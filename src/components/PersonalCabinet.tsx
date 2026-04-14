@@ -1550,15 +1550,27 @@ export const PersonalCabinet: React.FC<{
           position: 'fixed',
           inset: 0,
           zIndex: 99999,
-          backgroundImage: `url('/RL-Guide-book/фон кабина.png')`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
           backgroundColor: '#0a1628',
           display: 'flex',
           fontFamily: FONT,
           color: '#e8f0ff',
         }}
       >
+        {/* Фоновый слой, зафиксированный через 100lvh для фикса прыжка/растяжения на iOS/Android при скролле браузерных шторок */}
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            height: '100lvh',
+            backgroundImage: `url('/RL-Guide-book/фон кабина.png')`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            pointerEvents: 'none',
+            zIndex: -1,
+          }}
+        />
         {/* ═══ Колонка 1: Навигация разделов ═══ */}
         {/* DESKTOP: обычный flex-child */}
         {!isMobile && (
