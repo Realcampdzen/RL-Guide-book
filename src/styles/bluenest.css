@@ -998,12 +998,16 @@ html[data-perf="lite"] .hero-title::after {
   color: var(--c-stark);
   overflow: hidden;
   transform: rotate(-2deg) scale(1.1); /* Slight jaunty angle */
-  z-index: 30;
+  z-index: 2;
   margin-top: -15vh;
   box-shadow:
     0 0 8px rgba(255, 105, 0, 0.45),
     0 0 16px rgba(139, 0, 255, 0.55),
     0 0 28px rgba(139, 0, 255, 0.35);
+}
+
+.bluenest-landing .marquee {
+  z-index: 30;
 }
 
 @supports (
@@ -1534,25 +1538,37 @@ html[data-perf="lite"] .bluenest-landing .feature-card {
     top: -2vh;
   }
   .app .hero {
-    z-index: 40 !important;
+    z-index: 10 !important;
     position: relative !important;
+  }
+  .app .bluenest-landing .hero {
+    z-index: 40 !important;
   }
   .hero-title {
     font-size: clamp(4rem, 8vw + 2rem, 11rem); /* Сохраняем флюидную адаптивность */
     line-height: 0.9;
     margin-top: 2rem; /* Добавляем дополнительный отступ сверху */
-    z-index: 40 !important;
+    z-index: 10 !important;
     position: relative !important;
   }
-  .app .hero-content {
+  .bluenest-landing .hero-title {
     z-index: 40 !important;
+  }
+  .app .hero-content {
+    z-index: 10 !important;
     position: relative !important;
+  }
+  .app .bluenest-landing .hero-content {
+    z-index: 40 !important;
   }
   .marquee {
     margin-top: -16vh !important;
     top: -2vh;
   }
   .app .marquee {
+    z-index: 1 !important;
+  }
+  .app .bluenest-landing .marquee {
     z-index: 30 !important;
   }
   .subtitle-section {
@@ -1588,6 +1604,8 @@ html[data-perf="lite"] .bluenest-landing .feature-card {
     padding: calc(50px + 4vh) 6vw 5vh 4vw !important;
     align-items: flex-start !important;
     justify-content: flex-start !important;
+  }
+  .bluenest-landing .hero {
     z-index: 40 !important;
     position: relative !important;
   }
@@ -1595,6 +1613,8 @@ html[data-perf="lite"] .bluenest-landing .feature-card {
     width: 100% !important;
     max-width: 100% !important;
     text-align: left !important;
+  }
+  .bluenest-landing .hero-content {
     z-index: 40 !important;
     position: relative !important;
   }
@@ -1608,8 +1628,6 @@ html[data-perf="lite"] .bluenest-landing .feature-card {
     white-space: normal !important;
     word-break: break-word !important;
     overflow-wrap: break-word !important;
-    z-index: 40 !important;
-    position: relative !important;
   }
   .hero-title span {
     display: block !important;
@@ -1669,6 +1687,8 @@ html[data-perf="lite"] .bluenest-landing .feature-card {
     min-height: auto !important;
     justify-content: flex-start;
     align-items: flex-start;
+  }
+  .bluenest-landing .hero {
     z-index: 40 !important;
     position: relative !important;
   }
@@ -1677,6 +1697,8 @@ html[data-perf="lite"] .bluenest-landing .feature-card {
     text-align: left;
     margin-top: clamp(4rem, 10vh, 7rem) !important;
     top: 0 !important;
+  }
+  .bluenest-landing .hero-content {
     z-index: 40 !important;
     position: relative !important;
   }
@@ -1709,9 +1731,12 @@ html[data-perf="lite"] .bluenest-landing .feature-card {
   }
   .marquee {
     margin-top: -2rem !important; /* Gentle overlap instead of -55vh viewport pull */
-    z-index: 30 !important;
+    z-index: 2 !important;
     position: relative !important;
     pointer-events: none !important;
+  }
+  .bluenest-landing .marquee {
+    z-index: 30 !important;
   }
   .marquee-track {
     --marquee-duration: 25s; /* Более активный темп для мобильных экранов */
