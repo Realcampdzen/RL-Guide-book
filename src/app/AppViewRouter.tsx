@@ -16,7 +16,7 @@ const ChatAvatar = React.lazy(() => import('../components/ChatAvatar'));
 
 // Lazy load views for better performance
 const BlueNestLanding = React.lazy(() => import('../components/BlueNestLanding'));
-const MobileBottomNav = React.lazy(() => import('../components/MobileBottomNav'));
+import MobileBottomNav from '../components/MobileBottomNav';
 const AboutCampView = React.lazy(() => import('../views/AboutCampView'));
 const CategoriesGrid = React.lazy(() => import('../components/CategoriesGrid'));
 const CategoryView = React.lazy(() => import('../views/CategoryView'));
