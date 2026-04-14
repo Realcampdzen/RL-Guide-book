@@ -1,21 +1,19 @@
 import React from 'react';
 import '../styles/chat-avatar.css';
 import { toSiblingImageUrl } from '../utils/imageSources';
-
 interface ChatAvatarProps {
   onClick: () => void;
   isOpen?: boolean;
-  className?: string;
 }
 
-const ChatAvatar: React.FC<ChatAvatarProps> = ({ onClick, isOpen = false, className = '' }) => {
+const ChatAvatar: React.FC<ChatAvatarProps> = ({ onClick, isOpen = false }) => {
   const avatarJpg = `${import.meta.env.BASE_URL}Валюша.jpg`;
   const avatarWebp = toSiblingImageUrl(avatarJpg, 'webp');
 
   return (
     <button
       onClick={onClick}
-      className={`chat-avatar-button ${isOpen ? 'is-open' : ''} ${className}`.trim()}
+      className={`chat-avatar-button ${isOpen ? 'is-open' : ''}`}
       title={isOpen ? 'Закрыть чат' : 'Открыть чат'}
       aria-label={isOpen ? 'Закрыть чат' : 'Открыть чат'}
       aria-pressed={isOpen}
