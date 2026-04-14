@@ -595,10 +595,8 @@ const ChatBot: React.FC<ChatBotProps> = ({
     return clampPosToViewport(chatPos || defaultPos, effectiveHeight);
   }, [chatPos, clampPosToViewport, defaultPos, effectiveHeight]);
 
-  const reduceEffects = isKeyboardOpen || (isMobile && isMessagesScrolling);
-  const containerShadow = reduceEffects
-    ? '0 14px 28px rgba(0, 0, 0, 0.42), 0 0 0 1px rgba(225, 29, 72, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.06)'
-    : '0 24px 50px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(225, 29, 72, 0.5), 0 0 28px rgba(124, 58, 237, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.08)';
+  const reduceEffects = false;
+  const containerShadow = '0 24px 50px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(225, 29, 72, 0.5), 0 0 28px rgba(124, 58, 237, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.08)';
 
   const containerStyle: React.CSSProperties = {
     background:
@@ -625,7 +623,6 @@ const ChatBot: React.FC<ChatBotProps> = ({
     overflow: 'hidden',
     isolation: 'isolate',
     transform: 'translateZ(0)',
-    willChange: reduceEffects ? 'auto' : 'transform',
   };
 
   const messagesContainerStyle: React.CSSProperties = {
