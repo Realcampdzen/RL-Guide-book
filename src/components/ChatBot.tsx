@@ -595,7 +595,6 @@ const ChatBot: React.FC<ChatBotProps> = ({
     return clampPosToViewport(chatPos || defaultPos, effectiveHeight);
   }, [chatPos, clampPosToViewport, defaultPos, effectiveHeight]);
 
-  const reduceEffects = false;
   const containerShadow = '0 24px 50px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(225, 29, 72, 0.5), 0 0 28px rgba(124, 58, 237, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.08)';
 
   const containerStyle: React.CSSProperties = {
