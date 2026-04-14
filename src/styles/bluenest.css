@@ -1926,3 +1926,14 @@ html[data-perf="lite"] .bluenest-landing .feature-card {
 /* Home logo tap animation */
 .nav-image-container:active { transform: scale(0.95) !important; opacity: 0.8; transition: transform 0.1s ease, opacity 0.1s ease; }
 
+
+/* FIX(Z-INDEX): Isolated landing page hero overlap without bleeding into categories */
+.bluenest-landing .marquee {
+  z-index: 30 !important;
+  position: relative !important;
+}
+.bluenest-landing .hero,
+.bluenest-landing .hero-content {
+  z-index: 40 !important;
+  position: relative !important;
+}

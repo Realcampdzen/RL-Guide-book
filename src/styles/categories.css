@@ -1319,7 +1319,7 @@
 
 .categories-page .hero-marquee-mini {
   position: absolute;
-  bottom: -30px;
+  bottom: -45px;
   left: 0;
   right: 0;
   padding: 2.5rem 0;
@@ -1895,7 +1895,7 @@
 
   .categories-page .hero-marquee-mini {
     position: absolute;
-    bottom: -1.5rem;
+    bottom: -2.5rem;
     left: 0;
     right: 0;
     padding: 1.5rem 0;

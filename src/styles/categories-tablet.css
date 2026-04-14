@@ -103,7 +103,7 @@
   /* Как на десктопе: не обрезать по бокам, поверх контента героя, карточки не трогаем */
   .categories-page .hero-marquee-mini {
     position: absolute;
-    bottom: -1.5rem;
+    bottom: -2.5rem;
     left: 0;
     right: auto;
     padding: 1.5rem 0;
