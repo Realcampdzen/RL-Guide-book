@@ -1006,10 +1006,6 @@ html[data-perf="lite"] .hero-title::after {
     0 0 28px rgba(139, 0, 255, 0.35);
 }
 
-.bluenest-landing .marquee {
-  z-index: 30;
-}
-
 @supports (
     background-image: image-set(url("/RL-Guide-book/pattern_stickers.webp") type("image/webp"))
   ) {
@@ -1541,9 +1537,6 @@ html[data-perf="lite"] .bluenest-landing .feature-card {
     z-index: 10 !important;
     position: relative !important;
   }
-  .app .bluenest-landing .hero {
-    z-index: 40 !important;
-  }
   .hero-title {
     font-size: clamp(4rem, 8vw + 2rem, 11rem); /* Сохраняем флюидную адаптивность */
     line-height: 0.9;
@@ -1551,15 +1544,9 @@ html[data-perf="lite"] .bluenest-landing .feature-card {
     z-index: 10 !important;
     position: relative !important;
   }
-  .bluenest-landing .hero-title {
-    z-index: 40 !important;
-  }
   .app .hero-content {
     z-index: 10 !important;
     position: relative !important;
-  }
-  .app .bluenest-landing .hero-content {
-    z-index: 40 !important;
   }
   .marquee {
     margin-top: -16vh !important;
@@ -1567,9 +1554,6 @@ html[data-perf="lite"] .bluenest-landing .feature-card {
   }
   .app .marquee {
     z-index: 1 !important;
-  }
-  .app .bluenest-landing .marquee {
-    z-index: 30 !important;
   }
   .subtitle-section {
     margin-top: -5vh !important;
@@ -1605,18 +1589,10 @@ html[data-perf="lite"] .bluenest-landing .feature-card {
     align-items: flex-start !important;
     justify-content: flex-start !important;
   }
-  .bluenest-landing .hero {
-    z-index: 40 !important;
-    position: relative !important;
-  }
   .hero-content {
     width: 100% !important;
     max-width: 100% !important;
     text-align: left !important;
-  }
-  .bluenest-landing .hero-content {
-    z-index: 40 !important;
-    position: relative !important;
   }
   .hero-title {
     font-size: clamp(3.5rem, 7vw + 1.5rem, 9rem) !important;
@@ -1687,9 +1663,7 @@ html[data-perf="lite"] .bluenest-landing .feature-card {
     min-height: auto !important;
     justify-content: flex-start;
     align-items: flex-start;
-  }
-  .bluenest-landing .hero {
-    z-index: 40 !important;
+    z-index: 10 !important;
     position: relative !important;
   }
   .hero-content {
@@ -1697,8 +1671,6 @@ html[data-perf="lite"] .bluenest-landing .feature-card {
     text-align: left;
     margin-top: clamp(4rem, 10vh, 7rem) !important;
     top: 0 !important;
-  }
-  .bluenest-landing .hero-content {
     z-index: 40 !important;
     position: relative !important;
   }
@@ -1731,12 +1703,9 @@ html[data-perf="lite"] .bluenest-landing .feature-card {
   }
   .marquee {
     margin-top: -2rem !important; /* Gentle overlap instead of -55vh viewport pull */
-    z-index: 2 !important;
+    z-index: 30 !important;
     position: relative !important;
     pointer-events: none !important;
-  }
-  .bluenest-landing .marquee {
-    z-index: 30 !important;
   }
   .marquee-track {
     --marquee-duration: 25s; /* Более активный темп для мобильных экранов */
