@@ -57,7 +57,7 @@
   padding: calc(env(safe-area-inset-top) + 10px) 12px 12px;
   background: linear-gradient(180deg, rgba(10, 8, 18, 0.92), rgba(10, 8, 18, 0.72));
   backdrop-filter: blur(18px) saturate(1.1);
-  -webkit-backdrop-filter: blur(18px) saturate(1.1);
+
   border-bottom: 1px solid rgba(255, 255, 255, 0.12);
   box-shadow: 0 14px 30px rgba(9, 6, 20, 0.55);
 }
@@ -135,7 +135,7 @@
   box-shadow: 0 18px 38px rgba(0, 0, 0, 0.45);
   padding: clamp(16px, 3vw, 28px);
   backdrop-filter: blur(18px) saturate(1.05);
-  -webkit-backdrop-filter: blur(18px) saturate(1.05);
+
   /* Typography base */
   max-width: 860px;
   margin: 0 auto;
@@ -262,7 +262,7 @@
   .introduction-topbar,
   .introduction-prose {
     backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
+
     background: rgba(17, 14, 32, 0.92) !important;
     border-color: rgba(255, 255, 255, 0.14) !important;
   }
@@ -272,6 +272,6 @@
 html[data-perf="lite"] .introduction-topbar,
 html[data-perf="lite"] .introduction-prose {
   backdrop-filter: blur(10px) saturate(1.05);
-  -webkit-backdrop-filter: blur(10px) saturate(1.05);
+
   box-shadow: 0 12px 26px rgba(9, 6, 20, 0.48);
 }

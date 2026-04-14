@@ -137,7 +137,7 @@
     linear-gradient(120deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03)),
     var(--cat-glass-bg);
   backdrop-filter: blur(18px) saturate(1.1);
-  -webkit-backdrop-filter: blur(18px) saturate(1.1);
+
   border: 1px solid var(--cat-glass-border);
   border-radius: 18px;
   box-shadow: 0 14px 32px rgba(9, 6, 20, 0.55);
@@ -167,7 +167,7 @@
   .about-camp-container .mobile-menu-scrim,
   .about-camp-container .mobile-bottom-nav {
     backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
+
     background: rgba(17, 14, 32, 0.92) !important;
     border-color: rgba(255, 255, 255, 0.14) !important;
   }
@@ -183,7 +183,7 @@ html[data-perf="lite"] .about-camp-container .mobile-menu-panel,
 html[data-perf="lite"] .about-camp-container .mobile-menu-scrim,
 html[data-perf="lite"] .about-camp-container .mobile-bottom-nav {
   backdrop-filter: blur(10px) saturate(1.05);
-  -webkit-backdrop-filter: blur(10px) saturate(1.05);
+
   box-shadow: 0 10px 22px rgba(9, 6, 20, 0.48);
 }
 
@@ -315,7 +315,7 @@ html[data-perf="lite"] .about-camp-container .mobile-bottom-nav {
   inset: 0;
   background: rgba(6, 4, 16, 0.45);
   backdrop-filter: blur(3px);
-  -webkit-backdrop-filter: blur(3px);
+
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.25s var(--easing);
@@ -509,7 +509,7 @@ html[data-perf="lite"] .about-camp-container .mobile-bottom-nav {
     linear-gradient(140deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02)),
     var(--cat-glass-bg);
   backdrop-filter: blur(18px) saturate(1.1);
-  -webkit-backdrop-filter: blur(18px) saturate(1.1);
+
   border: 1px solid var(--cat-glass-border);
   border-radius: 22px;
   box-shadow: 0 14px 32px rgba(9, 6, 20, 0.55);
@@ -815,7 +815,7 @@ html[data-perf="lite"] .about-camp-container .mobile-bottom-nav {
 .glass-card {
   background: rgba(255, 255, 255, 0.03);
   backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+
   border: 1px solid var(--c-smoke);
   border-radius: 24px;
   padding: 3rem; /* Increased padding */

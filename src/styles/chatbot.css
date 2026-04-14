@@ -35,7 +35,7 @@
 
 .chatbot-overlay.is-keyboard-open .chatbot-container {
   backdrop-filter: blur(12px) saturate(1.02);
-  -webkit-backdrop-filter: blur(12px) saturate(1.02);
+
 }
 
 /* Scoped degradation handled automatically by reduceEffects / perf-lite */
@@ -86,7 +86,7 @@
 @supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
   .chatbot-container {
     backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
+
     background: rgba(17, 14, 32, 0.94) !important;
     border-color: rgba(255, 255, 255, 0.14) !important;
   }
@@ -95,7 +95,7 @@
 /* Perf-lite: reduce blur intensity on weak devices (auto-enabled via html[data-perf="lite"]) */
 html[data-perf="lite"] .chatbot-container {
   backdrop-filter: blur(10px) saturate(1.05);
-  -webkit-backdrop-filter: blur(10px) saturate(1.05);
+
 }
 
 /* Drag handle for moving the chat window (mouse/touch) */
@@ -693,7 +693,7 @@ html[data-perf="lite"] .chatbot-container {
   .chatbot-container,
   .chatbot-container * {
     backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
+
   }
   
   .chatbot-container::before {

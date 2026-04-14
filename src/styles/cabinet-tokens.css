@@ -57,7 +57,7 @@
   border: var(--cab-border);
   border-radius: var(--cab-radius-card);
   backdrop-filter: var(--cab-blur);
-  -webkit-backdrop-filter: var(--cab-blur);
+
 }
 
 .cab-card:hover {
@@ -72,7 +72,7 @@
   background: rgba(15, 10, 42, 0.12);
   border: var(--cab-border);
   backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+
 }
 
 .cab-empty-state__icon {
@@ -328,7 +328,7 @@
   background: var(--cab-bg-card);
   border: var(--cab-border);
   backdrop-filter: var(--cab-blur);
-  -webkit-backdrop-filter: var(--cab-blur);
+
   transition: var(--cab-transition);
   cursor: pointer;
   text-align: left;

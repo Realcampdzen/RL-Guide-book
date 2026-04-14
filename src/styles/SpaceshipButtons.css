@@ -326,7 +326,7 @@
 .real-diary-day-switcher .btn-secondary {
   background: rgba(8, 20, 40, 0.45);
   backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+
   border: 1px solid rgba(93, 228, 255, 0.12);
   color: rgba(255, 255, 255, 0.75);
 }
