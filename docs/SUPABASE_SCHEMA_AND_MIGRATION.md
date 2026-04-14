@@ -170,33 +170,42 @@ Retention:
 - Применить schema v1.
 - SQL миграция: [`backend/migrations/001_schema_v1.sql`](../backend/migrations/001_schema_v1.sql) — 9 таблиц, индексы, constraints, retention trigger.
 
-### Этап 1: Storage adapter в backend
-Добавить интерфейс `StorageProvider` (или аналог) и инкапсулировать доступы к данным:
-- `ShiftsStore`
-- `SquadsStore`
-- `MembershipsStore`
-- `SquadCornersStore`
-- `SquadInvitesStore`
-- `SquadMessagesStore`
-- `BadgeRequestsStore`
-- `ParentSnapshotsStore`
-
-### Этап 2: Supabase provider (read/write)
-- Реализовать провайдер, который делает CRUD через Supabase PostgREST или direct SQL.
-- В prod окружении включить Supabase provider по env‑флагу.
-
-### Этап 3: Dual‑read + backfill (опционально)
-Если нужно перенести данные из JSON:
-- один раз прочитать `backend/data/*.json` и залить в Supabase
-- временно читать “Supabase если есть, иначе JSON”
-
-### Этап 4: Cutover
-- В prod писать/читать только Supabase.
-- JSON остаётся для local dev и тестов.
+### Этапы 1–4: ✅ Completed
+StorageProvider полностью реализован. JSON provider для local dev, Supabase provider для prod. 25 сторов зарегистрированы (см. `backend/storage/__init__.py`). `USE_SUPABASE=true` активен на prod.
 
 ---
 
-## 6) Backups / retention / удаление смен
+## 6) Полный реестр SQL миграций
+
+| Файл | Создаёт/Изменяет | Примечания |
+|------|-------------------|------------|
+| `001_schema_v1.sql` | shifts, squads, memberships, squad_corners, squad_invite_codes, squad_messages, badge_requests, parent_snapshots, chat_daily_usage | Базовый schema (9 таблиц), retention trigger |
+| `002_council_initiatives.sql` | council_initiatives | Инициативы Совета |
+| `003_badge_plans.sql` | badge_plans | Планы получения значков |
+| `003_teams_scope.sql` | teams | ⚠️ Дублирующийся номер 003 |
+| `004_council_initiatives.sql` | council_initiatives (ALTER) | ⚠️ Дублирующийся номер 004 |
+| `004_family_links.sql` | family_links | ⚠️ Дублирующийся номер 004 |
+| `005_squad_kind.sql` | squads (ALTER) | Добавление kind колонки |
+| `006_badge_arts.sql` | badge_arts | Арты на значки |
+| `007_engines.sql` | engines, engine_members | Движки + RLS |
+| `008_inspector.sql` | inspector_progress | Инспектор Пользы |
+| `009_bro.sql` | bro_events, bro_passports | БРО Движение |
+| `010_shift_schedule.sql` | shift_schedule | Расписание смены |
+| `011_workshops.sql` | workshops | Мастерская |
+| `012_director_proposal.sql` | (ALTER?) | Директорские предложения |
+| `013_parent_suggestions.sql` | parent_suggestions | Рекомендации родителям |
+| `014_users.sql` | users | Пользователи |
+| `015_workshop_proposals_and_council.sql` | workshop_proposals, council_members, council_protocols | 3 таблицы одним файлом |
+| `m10_combined_003_006.sql` | — | Объединённая миграция (003–006) для batch apply |
+| `m12_bro_initiatives_submissions.sql` | bro_initiatives, bro_submissions | БРО инициативы |
+| `m17_combined_007_014.sql` | — | Объединённая миграция (007–014) для batch apply |
+| `m18_shift_avatar.sql` | shifts (ALTER ADD avatar_url) | Аватарки смен |
+
+> **⚠️ Проблемы нумерации:** Два файла с номером 003 и два файла с номером 004. Файлы `m10_*`, `m12_*`, `m17_*`, `m18_*` используют альтернативную нумерацию по спринтам (M10, M12 и т.д.). Рекомендуется привести к единой схеме при следующей ревизии.
+
+---
+
+## 7) Backups / retention / удаление смен
 
 Backups:
 - использовать Supabase backups (план по тарифу) + экспорт ключевых таблиц перед сменой.
@@ -208,4 +217,3 @@ Retention:
 Удаление смены:
 - только admin/staff действие с подтверждением.
 - удаление смены каскадно удаляет squads, corners, messages, invites, memberships (связанные), badge_requests (по camp/squad).
-

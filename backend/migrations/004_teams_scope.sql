@@ -1,4 +1,4 @@
--- Migration 003: Teams scoped engines (camp | shift | squad)
+-- Migration 004: Teams scoped engines (camp | shift | squad)
 -- Adds teams table (if missing) and scope fields for context-aware engine visibility.
 
 CREATE TABLE IF NOT EXISTS teams (

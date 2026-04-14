@@ -1,4 +1,4 @@
--- Migration 010: План-сетка смены (M12-SHIFT-PLANNER-A)
+-- Migration 012: План-сетка смены (M12-SHIFT-PLANNER-A)
 
 CREATE TABLE IF NOT EXISTS shift_schedule_events (
   id TEXT PRIMARY KEY,

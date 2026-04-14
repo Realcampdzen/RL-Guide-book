@@ -1,7 +1,7 @@
 # Technical Context
 
 ## Tech Stack
-- **Frontend:** React 18 (TS), Vite, Three.js (3D Scenes).
+- **Frontend:** React 19 (TypeScript 6.0), Vite 8, Three.js (3D Scenes).
 - **Backend:** Python (FastAPI/Flask) - Chatbot logic, webhooks, community badges.
 - **Data:** Static JSON/Markdown in `ai-data/`.
 - **Deployment:** Vercel (rl-guide-book + backend), Cloudflare (cf-api — боты VK/TG), GitHub Pages (frontend static). См. [docs/ARCHITECTURE_AND_RESOURCES.md](docs/ARCHITECTURE_AND_RESOURCES.md).
@@ -60,6 +60,18 @@
 - **PATCH /api/teams/:id:** только лидер (leaderId === deviceId); тело — частичное обновление (name, motto, logo, goals, achievements, flagImage, gerbImage); 200 — команда; 403 — не лидер.
 - **DELETE /api/teams/:id:** только лидер; 200; 403 — не лидер.
 - **GET /api/teams/:id:** без auth, публичное чтение команды по id (для пригласительных ссылок и предпросмотра по коду при вступлении).
+### Engine Projects (проекты Движков)
+- Требуется **Authorization: Bearer** (JWT), членство в Движке. **⚠️ Хранение: flat file `engine_projects.json` (legacy, не через StorageProvider).**
+- **GET /api/teams/:team_id/projects:** 200 — массив проектов для данного Движка.
+- **POST /api/teams/:team_id/projects:** создание проекта; тело `{ title, description?, plan?, targetBadgeId? }`; 201 — проект (status=draft); 403 — не член.
+- **PATCH /api/teams/:team_id/projects/:project_id:** обновление полей (title, description, plan, targetBadgeId, photos[], reflection, scenario, status). Переходы статусов: draft→in_progress, in_progress→review (submittedAt), in_progress→draft, rejected→in_progress.
+- **POST /api/teams/:team_id/projects/:project_id/review:** рецензия вожатого; тело `{ action: "approve"|"reject", note? }`; при approve — badge добавляется в achievements Движка; 400 если не в статусе review.
+### Engine Initiatives (инициативы Движков)
+- Требуется **Authorization: Bearer** (JWT), членство в Движке. **⚠️ Хранение: flat file `initiatives.json` (legacy, не через StorageProvider).**
+- **GET /api/teams/:team_id/initiatives:** 200 — массив инициатив.
+- **POST /api/teams/:team_id/initiatives:** создание; тело `{ title, description? }`; автоматический голос «за» от создателя; status=voting; 201.
+- **POST /api/teams/:team_id/initiatives/:ini_id/vote:** голосование; тело `{ vote: true|false }`; автопроверка: если все проголосовали → approved (все «за») или rejected; 400 если голосование завершено.
+- **POST /api/teams/:team_id/initiatives/:ini_id/send:** отправка одобренной инициативы в Совет Лагеря; создаёт запись в `council_initiatives` (StorageProvider); status→sent_to_council; 400 если не approved.
 ### POST /api/images/generate (универсальные ИИ-изображения для разделов ЛК)
 - **Authorization:** обязателен заголовок `Authorization: Bearer <accessToken>` (JWT). Роли те же, что у teams/chat: participant, parent, counselor, shift_leader, organizer, developer. 401 при отсутствии/невалидном токене, 403 при роли traveler.
 - **Rate limit:** N запросов в минуту (N задаётся `IMAGES_GENERATE_RATE_LIMIT`, по умолчанию 10) на ключ: deviceId из JWT, при отсутствии — IP. При превышении — **429** `{"error": "Слишком много запросов генерации. Подождите минуту.", "retryAfter": 60}`.
@@ -87,7 +99,7 @@
   - `rl-guide-book` → фронтенд (деплой через GitHub Actions, не напрямую из CLI)
   - `backend` → Flask Python API. **Production URL:** `https://backend-murex-one-40.vercel.app` (alias: `https://backend-nomorningst-2550s-projects.vercel.app`). Деплоится: push `main` → GitHub Actions → Vercel auto-deploy.
 - **Vercel Backend env vars (Production):** `USE_SUPABASE=true`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `AUTH_SECRET`, `AUTH_JWT_SECRET`, `AUTH_GENERATE_SECRET`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHANNEL_ID`, `OPENAI_API_KEY`. **ВАЖНО:** все env vars заданы через Vercel dashboard / CLI. При добавлении новых — нужен redeploy (push чего-либо в main).
-- **Supabase:** project `inkhtjcrzblzsfqvceid` (URL: `https://inkhtjcrzblzsfqvceid.supabase.co`). Migration 001 применена (9 таблиц: shifts, squads, memberships, squad_corners, squad_invites, squad_messages, badge_requests, parent_snapshots, chat_daily_usage). Migration 002 применена (council_initiatives). **USE_SUPABASE=true на prod — активен**, JSON-файлы используются только при локальной разработке (USE_SUPABASE=false).
+- **Supabase:** project `inkhtjcrzblzsfqvceid` (URL: `https://inkhtjcrzblzsfqvceid.supabase.co`). Миграции 001–018 применены (25+ таблиц; см. `backend/migrations/`). **USE_SUPABASE=true на prod — активен**, JSON-файлы используются только при локальной разработке (USE_SUPABASE=false).
 - **GitHub Variables (для GitHub Actions build):** `VITE_API_URL`, `VITE_BACKEND_URL=https://backend-murex-one-40.vercel.app` — встроены в frontend bundle Vite при сборке. Настроены в Settings → Variables (не Secrets, т.к. не секретные).
 - **cf-api (Cloudflare):** Bots VK/TG (NeuroValyusha in social). Not in Python.
 - **Roles (implemented):** Путешественник (traveler), Участник (participant), Родитель (parent), Вожатый (counselor), Старший вожатый (shift_leader), Педагог (educator), Директор (camp_director), Разработчик (developer). See [docs/ARCHITECTURE_AND_RESOURCES.md](docs/ARCHITECTURE_AND_RESOURCES.md).
@@ -96,8 +108,9 @@
 - **Паттерн:** абстракция `get_store(name)` из `backend/storage/__init__.py`. Все данные через `get_store('shifts').load()` / `.save(data)`.
 - **JSON provider** (default, `USE_SUPABASE=false`): файлы в `backend/data/*.json` — только для локальной разработки.
 - **Supabase provider** (`USE_SUPABASE=true`): таблицы в Supabase Postgres — prod/staging.
-- **Ключи сторов:** `shifts`, `memberships`, `squad_corners`, `squad_invites`, `squad_messages`, `badge_requests`, `parent_snapshots`, `chat_daily_usage`, `council_initiatives`.
-- **ВАЖНО для агентов:** не добавляй новые `_xxx_load/_xxx_save` напрямую — добавляй новый Store в `base.py`, реализуй в `json_provider.py` и `supabase_provider.py`, регистрируй в `__init__.py`. Миграцию SQL кладёт в `backend/migrations/NNN_name.sql`.
+- **Ключи сторов (25 штук):** `shifts`, `memberships`, `squad_corners`, `squad_invites`, `squad_messages`, `badge_requests`, `badge_plans`, `parent_snapshots`, `chat_daily_usage`, `council_initiatives`, `council_members`, `council_protocols`, `teams`, `badge_arts`, `engines`, `engine_members`, `inspector_progress`, `bro_events`, `bro_passports`, `bro_submissions`, `bro_initiatives`, `shift_schedule`, `workshops`, `parent_suggestions`, `users`, `workshop_proposals`, `role_requests`, `family_links`, `engine_join_requests`.
+- **НЕ в StorageProvider (legacy):** `engine_projects` и `initiatives` (инициативы Движков) — всё ещё используют прямой `open()/json.dump()` в `app.py` через `ENGINE_PROJECTS_FILE` / `INITIATIVES_FILE`. Это не работает на Vercel (serverless).
+- **ВАЖНО для агентов:** не добавляй новые `_xxx_load/_xxx_save` напрямую — добавляй новый Store в `base.py`, реализуй в `json_provider.py` и `supabase_provider.py`, регистрируй в `__init__.py`. Миграцию SQL клади в `backend/migrations/NNN_name.sql`.
 
 ## Auth Flow (prod)
 - **Коды авторизации:** `POST /api/auth/generate-code` (требует заголовок `X-Generate-Code-Secret: <AUTH_GENERATE_SECRET>`). Генерирует код на ~40 минут. Роль задаётся в теле (`role: "participant"|"shift_leader"|...`).
@@ -126,6 +139,13 @@ When implementing sync/backend for camp participants (Participant role, KV store
 - **Пустые состояния и ошибки в ЛК:** в блоках Движок (TeamDashboard), Совет (CouncilDashboard), отрядный уголок (SquadCornerDashboard) и панель входящих заявок (ProfileView) при ошибке загрузки показывается единый блок: заголовок, текст «Проверь подключение к интернету» (или аналогичный), кнопка «Повторить». Пустые состояния — через классы `.profile-empty-state`, `.profile-error` в [profile-view.css](src/styles/profile-view.css).
 - **Скроллбар:** для тёмной темы — `scrollbar-width: thin`, `scrollbar-color` (Firefox); `::-webkit-scrollbar`, `::-webkit-scrollbar-track`, `::-webkit-scrollbar-thumb` (Chrome/Edge). Цвета — в тон фона (тёмные, с акцентным цветом для thumb).
 - **Пример:** [src/styles/profile-view.css](mdc:src/styles/profile-view.css) — `.profile-sandbox-role__menu`, `.camp-program-day-card__activities`.
+
+## Mobile & UI Performance Constraints (Safari / iOS)
+Опираясь на опыт стабилизации ChatBot и мобильных модалок, зафиксированы строгие правила для Frontend UI:
+- **Viewport thrashing:** Никогда не используйте `100vh` для полноэкранных мобильных контейнеров (вызывает скачки при скролле адресной строки). Используйте `100svh` или резервные слои на `100lvh`.
+- **Backdrop-filter crashes:** Крайне опасно использовать `backdrop-filter: blur()` одновременно с анимациями появления/скроллом на мобильных (особенно iOS Safari) — это вызывает black screen flash и checkerboard GPU rendering crash. Отключайте blur или заменяйте на полупрозрачные фоны для мобилок.
+- **Layer thrashing & FPS:** Избегайте динамического переключения теней (`box-shadow`) и бесконечных спиннеров внутри часто рендерящихся или анимированных блоков. Они переполняют очередь композитинга. Ограничивайтесь `transform` и `opacity` с аппаратным ускорением (`will-change: transform`).
+- **CSS Bleed (Специфичность):** При декомпозиции CSS на доменные модули нельзя оставлять глобальные селекторы широкого спектра. Они могут "протечь" и скрыть глобальные SPA-компоненты (как ChatAvatar на других экранах).
 
 ## Critical Pitfalls (Грабли)
 - **Cyrillic Paths:** Be careful with file names in `public/`. Vite is configured to handle them, but OS operations might fail if encoding is wrong.

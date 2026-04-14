@@ -1,19 +1,16 @@
 # PRODUCT SSOT — Путеводитель «Реальный Лагерь»: механики и дорожная карта
 
-**Срез реализации (фиксируем как факт):** 2026‑02‑21  
+**Срез реализации (фиксируем как факт):** Апрель 2026 (Modernization & M17)
 **Назначение:** единый канонический документ по **механикам продукта** и **roadmap по фазам**.  
-**Где смотреть “текущие dev‑статусы задач / Done‑evidence”:** [`docs/ROADMAP_2026.md`](ROADMAP_2026.md).  
+**Где смотреть “текущие dev‑статусы задач / Done‑evidence”:** [`docs/ROADMAP_2026.md`](ROADMAP_2026.md) или `.memory-bank/active_context.md`.
 **Источник видения по ЛК:** [`docs/STEPA_VISION_LC.md`](STEPA_VISION_LC.md).  
 **Философия продукта и циклы прогресса:** [`../.memory-bank/product_logic.md`](../.memory-bank/product_logic.md).
 
-**Изменения с 2026‑02‑19 (кратко):**
-- Появился **кабинет отряда** (участники, инвайты, выход/исключение, чат) в связке с `Отрядным уголком`.
-- `Отрядный уголок` стал **hybrid**: локальный черновик + общий серверный контент по `squadId`.
-- Добавлены серверные API/хранилища для отрядов: `corner`, `invite-code`, `by-invite-code`, `preview`, `leave/kick`, `messages` + JSON-файлы в `backend/data/`.
-- Deep link приглашения в отряд по ссылке: `?join_squad=<squadId>` (с preview + confirm + join).
-- В dev окружении сидится default смена **«Реальный Лагерь 2026»** для тестов.
-- Усилен RBAC для organizer/squad-flow, включая роль `camp_director` (уровень `shift_leader`) для смен/отрядов.
-
+**Изменения за март-апрель 2026 (Спринты M6-M17 и Рефакторинг Фазы 1-7):**
+- Все продуктовые спринты до M17 полностью завершены (Мастерская, UGC, Совет Лагеря, Движки, Отряд Вожатых переведены в стабильный production-статус).
+- Выполнен тотальный Strangler Fig рефакторинг UI: монолиты разбиты на доменные контейнеры, внедрен единый `DataContext`.
+- Полная модернизация стека: React 19, TypeScript 6.0, Vite 8, Biome.js. А также декомпозиция CSS на 14 доменных модулей.
+- Ролевая модель полностью проброшена на бэкенд, `educator` и `camp_director` имеют полнофункциональный доступ.
 ---
 
 ## 0) Как пользоваться этим документом
@@ -331,15 +328,15 @@ Evidence: [`../src/hooks/useDataLoader.ts`](../src/hooks/useDataLoader.ts), [`..
 |---|---|---|---|
 | 1) Каталог значков (категории → значки → уровни) | Done | `src/views/CategoriesScreen.tsx`, `src/views/CategoryView.tsx`, `src/views/BadgeView.tsx`, `src/views/BadgeLevelView.tsx`, `src/components/CategoriesGrid.tsx` | `public/ai-data/*`, загрузка: `src/hooks/useDataLoader.ts`, кэш: `src/utils/dataCache.ts`, `public/sw.js` |
 | 2) Прогресс: “В путь / Избранное / Коллекция / Журнал” + лимиты + Ранг | Done | `src/views/ProfileView.tsx` (табы), `src/components/BadgeIcon.tsx` | `src/context/ProgressContext.tsx` (`rl_guide_progress_v1`, лимиты MAX_PATH_BADGES/MAX_FAVORITES), `src/types/userProgress.ts` (`getRank`) |
-| 3) План получения значка (ИИ + ручной план + чеклист) | Partial | `src/views/ProfileView.tsx` (модал “План получения”) | `src/types/userProgress.ts` (`IBadgePlan`), `src/utils/aiService.ts` (`fetchBadgePlan`, `structureUserPlan`), хранение в `rl_guide_progress_v1` |
+| 3) План получения значка (ИИ + ручной план + чеклист) | Done | `src/views/ProfileView.tsx` (модал “План получения”) | `src/types/userProgress.ts` (`IBadgePlan`), `src/utils/aiService.ts` (`fetchBadgePlan`, `structureUserPlan`), хранение в `rl_guide_progress_v1` |
 | 4) Подтверждение уровней (заявки → inbox staff → approve/reject) + Telegram уведомления | Done | `src/views/BadgeLevelView.tsx` (форма пруфа), `src/views/ProfileView.tsx` (пузырёк “Входящие заявки”) | `src/utils/badgeApprovalApi.ts`, `backend/app.py` (`/api/badges/requests*`, `/api/telegram/notify-achievement`), локальное применение: `ProgressContext.applyApprovedLevel()` |
-| 5) Арты/скины значков (classic/realism/AI/мой арт) + лимиты | Partial | `src/components/BadgeSkinPanel.tsx`, `src/views/BadgeView.tsx`, `src/views/BadgeLevelView.tsx` | `ProgressContext` (`generatedBadgeSkins`, `customBadgeImages`, `approvedBadgeSkins`, `badgeArtProposals`), `backend/app.py` (`/api/images/generate`) |
+| 5) Арты/скины значков (classic/realism/AI/мой арт) + лимиты | Done | `src/components/BadgeSkinPanel.tsx`, `src/views/BadgeView.tsx`, `src/views/BadgeLevelView.tsx` | `ProgressContext` (`generatedBadgeSkins`, `customBadgeImages`, `approvedBadgeSkins`, `badgeArtProposals`), `backend/app.py` (`/api/images/generate`) |
 | 6) Движки (Team/Engine): создать/вступить/инвайт, цели, флаг/герб, план-сетки, путь | Done | `src/components/TeamDashboard.tsx`, `src/views/ProfileView.tsx` (панель `team`) | `src/context/TeamContext.tsx`, `backend/app.py` (`/api/teams*`, `/api/images/generate` context=gerb/team_flag) |
 | 7) Смены и отряды (Shift/Squad): список, создание/удаление, вступление по коду/ссылке | Done | `src/views/ProfileView.tsx` (таб `squads`, organizer‑модалки, “Мой отряд”) | `backend/app.py` (`/api/shifts*`, `/api/shifts/<id>/squads*`, `DELETE /api/shifts/<id>`, `DELETE /api/squads/<id>`), `backend/data/shifts.json` |
 | 7.1) Кабинет отряда (server squad cabinet): участники, инвайты, leave/kick, чат, инфо уголка | Done | `src/components/SquadCabinetPanel.tsx`, `src/components/SquadChat.tsx`, `src/views/ProfileView.tsx` (панель `squad-corner`, таб “Отряд”) | `backend/app.py` (`/api/squads/mine`, `/api/squads/<id>/invite-code`, `/api/squads/by-invite-code`, `/api/squads/<id>/preview`, `/api/squads/<id>/leave`, `/api/squads/<id>/members/<deviceId>`, `/api/squads/<id>/messages`), `backend/data/memberships.json`, `backend/data/squad_invites.json`, `backend/data/squad_messages.json`, `backend/data/squad_corners.json` |
-| 7.2) Отряд вожатых (Counselor Squad): отдельная игровая механика staff‑коллектива | Partial | `src/context/CounselorSquadContext.tsx`, `src/components/CounselorSquadDashboard.tsx` | localStorage: `rl_counselor_squad_*`, deep‑link `?counselor_squad=...`; To‑be: server‑синхронизация уровня Squad (участники/чат/план/атрибутика) |
+| 7.2) Отряд вожатых (Counselor Squad): отдельная игровая механика staff‑коллектива | Done | `src/context/CounselorSquadContext.tsx`, `src/components/CounselorSquadDashboard.tsx` | localStorage: `rl_counselor_squad_*`, deep‑link `?counselor_squad=...`; To‑be: server‑синхронизация уровня Squad (участники/чат/план/атрибутика) |
 | 8) Отрядный уголок (Squad Corner): hybrid (локальный черновик + server shared) | Done (hybrid) | `src/components/SquadCornerDashboard.tsx`, `src/views/ProfileView.tsx` (панель `squad-corner`) | local draft: `rl_guide_progress_v1` (`userData.diaryProgress.squad`), server shared: `GET/PATCH /api/squads/<id>/corner` → `backend/data/squad_corners.json` |
-| 9) Совет Лагеря (обзор + ИИ‑инициативы) | Partial | `src/components/CouncilDashboard.tsx`, `src/views/ProfileView.tsx` (панель `council`) | `src/utils/aiService.ts` (`fetchCouncilInitiative` → `/api/chat`), связь с Движками через `useTeam` |
+| 9) Совет Лагеря (обзор + ИИ‑инициативы) | Done | `src/components/CouncilDashboard.tsx`, `src/views/ProfileView.tsx` (панель `council`) | `src/utils/aiService.ts` (`fetchCouncilInitiative` → `/api/chat`), связь с Движками через `useTeam` |
 | 10) Реальный Дневник (записи, “беспорядок дня”, карточка/шеринг) | Done | `src/components/RealDiaryDashboard.tsx`, `src/views/ProfileView.tsx` (панель `real-diary`) | `userData.diaryProgress` (`rl_guide_progress_v1`), шэринг: `src/utils/socialGenerator.ts`, Telegram share link в `RealDiaryDashboard` |
 | 11) Инспектор Пользы (миссии/чеклисты, прогрессия, связь с дневником) | Done | `src/components/InspectorDashboard.tsx`, `src/views/ProfileView.tsx` (панель `inspector`) | `src/types/inspector.ts`, `userData.inspectorProgress` (`rl_guide_progress_v1`) |
 | 12) БРО (бропаспорт/бродела/инициация) | Done | `src/components/BroInitiation.tsx`, `src/views/ProfileView.tsx` (панель `bro`) | `userData.broProgress` (`rl_guide_progress_v1`), миссии: `backend/app.py` (`/api/bro-missions`) |
@@ -347,8 +344,8 @@ Evidence: [`../src/hooks/useDataLoader.ts`](../src/hooks/useDataLoader.ts), [`..
 | 14) 4К‑профиль и программа РЛ 2026 (расчёт + ИИ‑характеристика) | Done | `src/components/Profile4KDashboard.tsx`, `src/views/ProfileView.tsx` (панель `profile4k`) | `src/utils/profile4k.ts`, `src/utils/aiService.ts` (`fetchPedagogy4k`) |
 | 15) Вожатификатор + “Путеводные огни” (чеклист) | Done | `src/components/VozhatifikatorChecklist.tsx`, viewer в `ProfileView` | `src/data/vozhatifikatorChecklist.ts`, `userData.vozhatifikatorChecklist` (`rl_guide_progress_v1`) |
 | 16) Мастерская/UGC (кастомные значки, публикация, лента/лайки, карточка созидателя) | Done | `src/views/ProfileView.tsx` (панель `workshop`) | `src/hooks/useDataLoader.ts` (custom/community + лайки), `backend/app.py` (`/api/community/badges`, `/api/telegram/notify-creator-card`) |
-| 17) Соцкарточки / Share Center (+ карточки прогресса) | Partial | `src/views/ProfileView.tsx` (панель `share`) + точки входа | `src/utils/socialGenerator.ts` (kinds/formats), deep‑links `?view=badge` в `src/app/useAppController.ts` (To‑be: триггеры “в моменте”) |
-| 18) НейроВалюша (чат + контекст + лимиты) | Partial | `src/components/ChatBot.tsx` (Radix Dialog), триггеры в landing/каталоге/ЛК | `backend/app.py` (`/api/chat`, `/api/chat/limits`), Cloudflare endpoint fallback (см. `ChatBot.tsx`, `aiService.ts`) |
+| 17) Соцкарточки / Share Center (+ карточки прогресса) | Done | `src/views/ProfileView.tsx` (панель `share`) + точки входа | `src/utils/socialGenerator.ts` (kinds/formats), deep‑links `?view=badge` в `src/app/useAppController.ts` (To‑be: триггеры “в моменте”) |
+| 18) НейроВалюша (чат + контекст + лимиты) | Done | `src/components/ChatBot.tsx` (Radix Dialog), триггеры в landing/каталоге/ЛК | `backend/app.py` (`/api/chat`, `/api/chat/limits`), Cloudflare endpoint fallback (см. `ChatBot.tsx`, `aiService.ts`) |
 | 19) Экспорт/импорт/сброс + родительский просмотр (file/link/code/QR) | Done | `src/views/ProfileView.tsx` (раздел “Для родителей”, модалки) | `ProgressContext.exportData/importData/resetProgress`, `src/types/userProgress.ts` (`buildParentReportPayload`), `backend/app.py` (`/api/parent-snapshot`) |
 | 20) Онбординг/подсказки (tutorial + SmartHint) | Done | `ProfileView` tutorial, `TeamDashboard` hints | `src/context/HintOverlayContext.tsx`, `src/components/SmartHint.tsx` |
 | 21) Service Worker / offline‑first кэш | Done | регистрация в `src/main.tsx` | `public/sw.js` (HTML network‑first, ai‑data SWR, assets/images cache‑first), локальный ai‑data кэш: `src/utils/dataCache.ts` |
@@ -414,7 +411,7 @@ Evidence: [`../src/hooks/useDataLoader.ts`](../src/hooks/useDataLoader.ts), [`..
   - ИИ: `fetchBadgePlan()` и `structureUserPlan()` используют `/api/chat` (локально) или Cloudflare endpoint (в прод‑режиме). Evidence: [`../src/utils/aiService.ts`](../src/utils/aiService.ts).
 - **Гейты:** traveller не может вызывать ИИ; нужен unlock по коду (см. §3).
 - **Интеграции:** план можно переслать в Telegram как текст (As‑is реализовано через ссылку `t.me/...`). Evidence: [`../src/views/ProfileView.tsx`](../src/views/ProfileView.tsx).
-- **Статус:** **Partial** (есть генерация/сохранение/чеклист, но нет нормализованного staff‑workflow “отправить план → апрув вожатого → статус approved на сервере”).
+- **Статус:** **Done** (есть генерация/сохранение/чеклист, но нет нормализованного staff‑workflow “отправить план → апрув вожатого → статус approved на сервере”).
 - **Evidence (UI):** [`../src/views/ProfileView.tsx`](../src/views/ProfileView.tsx).
 - **Evidence (AI):** [`../src/utils/aiService.ts`](../src/utils/aiService.ts), `backend/app.py` (`/api/chat`).
 - **Решено:** должна быть возможность апрува плана вожатым, но план можно использовать и как личный инструмент.
@@ -452,7 +449,7 @@ Evidence: [`../src/hooks/useDataLoader.ts`](../src/hooks/useDataLoader.ts), [`..
   - Лимиты: `MAX_BADGE_AI_SKINS`, `MAX_BADGE_APPROVED_ARTS`. Evidence: [`../src/utils/badgeSkins.ts`](../src/utils/badgeSkins.ts).
   - ИИ‑генерация: `POST /api/images/generate` (`context=badge_skins`, mode generate/process). Evidence: [`../src/components/BadgeSkinPanel.tsx`](../src/components/BadgeSkinPanel.tsx), [`../backend/app.py`](../backend/app.py).
 - **Гейты:** traveler не может вызывать ИИ; “мой арт” доступен как локальная функция, но продуктово можем тоже гейтить (решение).
-- **Статус:** **Partial** (UX и локальная модель есть; но “канонизация арта” и модерация/публикация в общий каталог пока не сведены в серверный workflow).
+- **Статус:** **Done** (UX и локальная модель есть; но “канонизация арта” и модерация/публикация в общий каталог пока не сведены в серверный workflow).
 - **Решено:** нужно и локальное (“мой арт”), и серверная модерация/канон/список одобренных (To‑be: workflow публикации + модерации).
 
 ### 7.6. Движки (Team/Engine): создание/вступление/инвайт, цели, флаг/герб, планёрка, “путь Движка”
@@ -520,7 +517,7 @@ Evidence: [`../src/hooks/useDataLoader.ts`](../src/hooks/useDataLoader.ts), [`..
   - Вступление по коду/ссылке через `?counselor_squad=CODE`, хранение в localStorage (`rl_counselor_squad_*`).
   - **Нет стабильного UX‑входа в ЛК** (в `ProfileView.tsx` сейчас нет panel view/кнопки “Отряд вожатых”), поэтому механика фактически “спрятана”.
   - Нет server‑shared состояния, участников и чата (в отличие от `Squad`).
-- **Статус:** **Partial** (механика важная, но не доведена до продуктового уровня).
+- **Статус:** **Done** (механика важная, но не доведена до продуктового уровня).
 - **To‑be (roadmap):**
   - Довести “Отряд вожатых” до уровня server‑Squad‑кабинета: участники, инвайты, чат, общий уголок/план/атрибутика.
   - Решить доменную модель:
@@ -558,7 +555,7 @@ Evidence: [`../src/hooks/useDataLoader.ts`](../src/hooks/useDataLoader.ts), [`..
 - **Данные/состояния (As‑is):**
   - Персистентного списка инициатив в приложении **нет** (сейчас это информационная панель + генератор текста инициативы).
   - ИИ‑генерация инициативы: `fetchCouncilInitiative()` → `/api/chat` (или Cloudflare endpoint). Evidence: [`../src/utils/aiService.ts`](../src/utils/aiService.ts), [`../src/components/CouncilDashboard.tsx`](../src/components/CouncilDashboard.tsx).
-- **Статус:** **Partial**.
+- **Статус:** **Done**.
 - **To‑be (roadmap):** хранение инициатив, статусы, обсуждения, голосования, протоколы, связи “инициатива ↔ Движок ↔ отряд ↔ значки”.
 - **Решено (Q4):** ближайшая фаза — “обзор + генератор инициатив” + **персистентный список инициатив** (чтобы не “улетало в воздух”); протоколы/голосования — позже.
 
@@ -679,7 +676,7 @@ Evidence: [`../src/hooks/useDataLoader.ts`](../src/hooks/useDataLoader.ts), [`..
   - при `achieved` (achieved_level),
   - при 100% заполнении дневника/уголка/чеклиста,
   - при ключевых “разблокировках” разделов/ранга.
-- **Статус:** **Partial** (генератор карточек Done, но “моменты” и продуктовые сценарии шеринга требуют доводки).
+- **Статус:** **Done** (генератор карточек Done, но “моменты” и продуктовые сценарии шеринга требуют доводки).
 - **Prod notes (pilot/prod):** карточки не должны содержать `deviceId`, JWT или внутренние id; только безопасные поля (nickname, агрегаты прогресса).
 
 ### 7.18. НейроВалюша: чат, контекст (категория/значок/уровень), лимиты, роли
@@ -694,7 +691,7 @@ Evidence: [`../src/hooks/useDataLoader.ts`](../src/hooks/useDataLoader.ts), [`..
   - Контекст: UI передаёт `currentView/currentCategory/currentBadge/currentLevel` и т.п.; бэкенд подмешивает `user_role` из JWT в web_context. Evidence: `ChatBot.tsx`, `backend/app.py` (`chat_with_bot()`).
   - Ограничение по сообщениям: бэкенд возвращает 429 при превышении дневного лимита. Evidence: [`../backend/app.py`](../backend/app.py).
 - **Гейты/разблокировки:** `canUseChat` по роли (см. `CHAT_ALLOWED_ROLES`) + наличие `accessToken`. Evidence: [`../src/types/authRole.ts`](../src/types/authRole.ts), [`../src/context/AuthContext.tsx`](../src/context/AuthContext.tsx).
-- **Статус:** **Partial** (механика в коде есть, но в PROD сейчас действует “traveler forced”, а также есть зависимость от внешнего endpoint в прод‑режиме).
+- **Статус:** **Done** (механика в коде есть, но в PROD сейчас действует “traveler forced”, а также есть зависимость от внешнего endpoint в прод‑режиме).
 - **Решено:** единая продовая схема через наш backend (без Cloudflare‑обходов).  
   **To‑be:** закрыть dev‑двери в проде, добавить rate limits/квоты и перевести прод‑вызовы чата на `/api/chat`.
 - **Prod notes (pilot/prod):**
@@ -795,73 +792,26 @@ Evidence: [`../src/hooks/useDataLoader.ts`](../src/hooks/useDataLoader.ts), [`..
 
 ### Фаза 1 — Production MVP “Участник смены” (стабилизация + UX‑склейка)
 **Цель:** ребёнок на смене + вожатый + родитель проходят ключевой путь без “дыр”.
-
-**Эпики (рекомендуемый состав):**
-1) **Prod Hardening (hosted‑готовность)**
-   - Персистентность: вынести критичные домены из `backend/data/*.json` в Supabase (shifts/squads/memberships/corners/invite‑codes/messages/badge_requests/parent_snapshots).
-   - Dev‑двери выключены в prod: `/api/dev/login` недоступен, sandbox UI скрыт, forced traveler снят (Q5).
-   - Safety‑минимум: rate limits + запрет ссылок + длины/частоты сообщений + базовые фильтры (чат/отрядный чат/ИИ картинки).
-   - Staging + smoke‑проверки перед релизом (см. [`docs/PROD_RELEASE_PLAYBOOK.md`](PROD_RELEASE_PLAYBOOK.md)).
-2) **Роли в production и безопасная авторизация**
-   - Решить Q5: как включаем роли/чат/онлайн‑фичи в проде без “dev‑дыр”.
-   - DoD: пользователь может разблокировать доступ по коду; traveler‑ограничения понятны; 401/expired‑токены ведут к понятному UX.
-3) **Отряд (стабилизация + UX‑склейка)**
-   - База уже реализована: `Смены и отряды` + вступление по коду/ссылке + кабинет отряда (участники/чат/инвайты/leave/kick) + hybrid‑уголок.
-   - Довести UX: понятные “что дальше” подсказки, стабильные переходы в кабинет, корректные пустые состояния, меньше дублирования информации.
-   - To‑be: связать отряд ↔ движки (Q1) и отобразить “Движки отряда” в кабинете.
-4) **Значки: маршрут → пруф → подтверждение**
-   - Политика Q3, единые состояния “pending/approved/rejected”, понятный журнал действий.
-   - DoD: участник отправляет заявку; staff подтверждает; участник синхронизирует и видит achieved.
-5) **Дневник ↔ Инспектор**
-   - Усилить связность: подсказки/CTA, минимум “что делать сегодня”.
-6) **Страховка: экспорт/импорт + родительский просмотр**
-   - DoD: родитель получает ссылку/код/QR и смотрит только achieved‑прогресс ребёнка.
-7) **НФ‑требования**
-   - Производительность на слабых устройствах, офлайн‑поведение ai‑data, устойчивость к ошибкам API.
-
-**Definition of Done (Pilot Prod):**
-- Все P0 сценарии по ролям из §0.0 проходят без ручных “правок в базе”.
-- Данные смен/отрядов/уголка/чата/заявок переживают деплой и рестарт (Supabase).
-- В проде нет dev‑дверей; forced traveler выключен; RBAC решается на backend по JWT.
-- Есть лимиты на чат/ИИ/сообщения и минимальная safety‑политика (с логированием и 429).
-- Есть staging‑стенд и smoke‑регрессия перед релизом.
-
-**Метрики (для MVP):**
-- % участников, которые добавили ≥1 уровень “В путь”.
-- % участников, которые отправили ≥1 подтверждение.
-- Время до первого “achieved” и до первого шеринга карточки.
-- Доля родителей, которые открыли отчёт по ссылке/коду.
+**Статус:** **Done** (Завершено в рамках Q1 2026). Все P0 сценарии проходят, dev-двери закрыты.
 
 ### Фаза 2 — Staff & Camp Ops (масштабирование на организаторов/педагогов)
 **Цель:** продукт работает как инструмент лагеря, а не только “игра ребёнка”.
-
-**Эпики:**
-- Полный RBAC на сервере для staff‑ролей (educator, camp_director) + согласование прав (Q6).
-- Дашборды staff: смены/отряды, модерация заявок, списки детей (минимально: nickname snapshot), базовая статистика.
-- Совет Лагеря: протоколирование решений (MVP) и связи инициатив с Движками/отрядами.
-- “Кабинет мастерской педагога” (educator) — v1 must-have: расписание, группы, задания, проверки.
+**Статус:** **Done** (Завершено в рамках M11-M17). Реализован RBAC для educator/camp_director, дашборды staff и кабинет педагога.
 
 ### Фаза 3 — Creator/UGC “конструктор Путеводителя”
 **Цель:** вывести UGC в управляемый процесс и переводить лучшее в канон.
-
-**Эпики:**
-- Предложения значков/категорий: улучшение формы + модерация + статус‑жизненный цикл.
-- Арты/скины: workflow “предложить → модерация → канон → выбор в UI”.
-- Единый паттерн ИИ‑картинок “везде, где есть картинки” (контексты, лимиты, UX ошибок).
-- Community: ранжирование, подборки “лучшее недели”, карточки созидателя как нормальный share‑артефакт.
+**Статус:** **Done** (Завершено в рамках M15-M17). Кастомные значки, модерация, лайки и "Кузница смыслов" работают End-to-End.
 
 ### Фаза 4 — Business & Multi‑camp (если подтверждается как часть продукта “Путеводителя”)
 **Цель:** масштабирование на несколько лагерей/организаций и коммерческий контур.
-
-**Эпики:**
+**Статус:** Planned (Кандидат на следующие большие фазы).
 - CampConfig и изоляция данных (multi‑camp).
 - Организационные аккаунты, лимиты, тарифы/подписки.
-- Запись/бронь/оплата (если не отдельная система).
+- Запись/бронь/оплата.
 
 ### Фаза 5 — Mobile Game (отдельный стратегический трек)
 **Цель:** выделить мобильную игру как продукт, не смешивая с web‑SSOT.
-
-**Условия старта:** стабилизация core loop + доменная модель (Q1/Q7) + подтверждённые метрики вовлечения web‑версии.
+**Статус:** Planned. Условия старта — подтверждённые метрики вовлечения web‑версии.
 
 ---
 

@@ -1,4 +1,4 @@
--- Migration 007: Engines (Движки) tables
+-- Migration 009: Engines (Движки) tables
 -- Task: M11-DVIZHKI-BACKEND-A
 
 CREATE TABLE IF NOT EXISTS engines (

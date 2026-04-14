@@ -1,4 +1,4 @@
--- Migration 006: Badge Arts table
+-- Migration 008: Badge Arts table
 -- Task: M9-ART-MODERATION-A
 
 CREATE TABLE IF NOT EXISTS badge_arts (

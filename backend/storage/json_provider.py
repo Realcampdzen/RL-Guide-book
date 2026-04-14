@@ -26,6 +26,8 @@ from .base import (
     RoleRequestsStore,
     FamilyLinksStore,
     EngineJoinRequestsStore,
+    EngineProjectsStore,
+    EngineInitiativesStore,
 )
 
 _DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
@@ -682,6 +684,56 @@ class JsonEngineJoinRequestsStore(EngineJoinRequestsStore):
             _write_json(_ENGINE_JOIN_REQUESTS_FILE, data if isinstance(data, dict) else {})
 
 
+# --- EngineProjectsStore ---
+
+_ENGINE_PROJECTS_FILE = os.path.join(_DATA_DIR, "engine_projects.json")
+_ENGINE_PROJECTS_LOCK = threading.Lock()
+
+class JsonEngineProjectsStore(EngineProjectsStore):
+    def load(self) -> dict:
+        _ensure_data_dir()
+        with _ENGINE_PROJECTS_LOCK:
+            data = _read_json(_ENGINE_PROJECTS_FILE, {"projects": []})
+            # fallback for old json format where it was just a list
+            if isinstance(data, list):
+                data = {"projects": data}
+            elif not isinstance(data, dict):
+                data = {"projects": []}
+            if not isinstance(data.get("projects"), list):
+                data["projects"] = []
+            return data
+
+    def save(self, data: dict) -> None:
+        _ensure_data_dir()
+        with _ENGINE_PROJECTS_LOCK:
+            _write_json(_ENGINE_PROJECTS_FILE, data if isinstance(data, dict) else {})
+
+
+# --- EngineInitiativesStore ---
+
+_ENGINE_INITIATIVES_FILE = os.path.join(_DATA_DIR, "initiatives.json")
+_ENGINE_INITIATIVES_LOCK = threading.Lock()
+
+class JsonEngineInitiativesStore(EngineInitiativesStore):
+    def load(self) -> dict:
+        _ensure_data_dir()
+        with _ENGINE_INITIATIVES_LOCK:
+            data = _read_json(_ENGINE_INITIATIVES_FILE, {"initiatives": []})
+            # fallback for old json format where it was just a list
+            if isinstance(data, list):
+                data = {"initiatives": data}
+            elif not isinstance(data, dict):
+                data = {"initiatives": []}
+            if not isinstance(data.get("initiatives"), list):
+                data["initiatives"] = []
+            return data
+
+    def save(self, data: dict) -> None:
+        _ensure_data_dir()
+        with _ENGINE_INITIATIVES_LOCK:
+            _write_json(_ENGINE_INITIATIVES_FILE, data if isinstance(data, dict) else {})
+
+
 JSON_STORES = {
     "shifts":          JsonShiftsStore(),
     "memberships":     JsonMembershipsStore(),
@@ -712,5 +764,7 @@ JSON_STORES = {
     "role_requests":    JsonRoleRequestsStore(),
     "family_links":     JsonFamilyLinksStore(),
     "engine_join_requests": JsonEngineJoinRequestsStore(),
+    "engine_projects":  JsonEngineProjectsStore(),
+    "engine_initiatives": JsonEngineInitiativesStore(),
 }
 

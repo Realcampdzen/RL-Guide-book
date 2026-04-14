@@ -1,4 +1,4 @@
--- Migration 015: Workshop proposals + Council members/protocols (Supabase parity)
+-- Migration 017: Workshop proposals + Council members/protocols (Supabase parity)
 -- Fixes missing tables that caused HTTP 500 in Supabase mode.
 
 -- ---------------------------------------------------------------------------

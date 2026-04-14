@@ -1081,10 +1081,9 @@ CORS(app)  # Разрешаем CORS для фронтенда
 DATA_FILE = os.path.join(os.path.dirname(__file__), "perfect_parsed_data.json")
 COMMUNITY_FILE = os.path.join(os.path.dirname(__file__), "community_badges.json")
 TEAMS_FILE = os.path.join(os.path.dirname(__file__), "teams.json")
-INITIATIVES_FILE = os.path.join(os.path.dirname(__file__), "initiatives.json")
 BRO_MISSIONS_FILE = os.path.join(os.path.dirname(__file__), "bro_missions.json")
 WINGS_FILE = os.path.join(os.path.dirname(__file__), "wings.json")
-ENGINE_PROJECTS_FILE = os.path.join(os.path.dirname(__file__), "engine_projects.json")
+
 
 def ensure_json_files():
     for f_path in [COMMUNITY_FILE, TEAMS_FILE, INITIATIVES_FILE, BRO_MISSIONS_FILE, WINGS_FILE, ENGINE_PROJECTS_FILE]:
@@ -1529,17 +1528,11 @@ def teams_leave(team_id):
 # Engine Projects — проекты Движков
 # ---------------------------------------------------------------------------
 def _engine_projects_load():
-    try:
-        with open(ENGINE_PROJECTS_FILE, 'r', encoding='utf-8') as f:
-            raw = f.read()
-        data = json.loads(raw) if raw.strip() else []
-        return data if isinstance(data, list) else []
-    except (json.JSONDecodeError, OSError):
-        return []
+    data = get_store('engine_projects').load()
+    return data.get('projects') or []
 
 def _engine_projects_save(projects):
-    with open(ENGINE_PROJECTS_FILE, 'w', encoding='utf-8') as f:
-        json.dump(projects, f, ensure_ascii=False, indent=2)
+    get_store('engine_projects').save({"projects": projects})
 
 
 @app.route('/api/teams/<team_id>/projects', methods=['GET', 'POST'])
@@ -1676,18 +1669,12 @@ def handle_team_project_review(team_id, project_id):
 # ---------------------------------------------------------------------------
 def _initiatives_load():
     """Load all initiatives from storage."""
-    try:
-        with open(INITIATIVES_FILE, 'r', encoding='utf-8') as f:
-            raw = f.read()
-        data = json.loads(raw) if raw.strip() else []
-        return data if isinstance(data, list) else []
-    except (json.JSONDecodeError, OSError):
-        return []
+    data = get_store('engine_initiatives').load()
+    return data.get('initiatives') or []
 
 
 def _initiatives_save(initiatives):
-    with open(INITIATIVES_FILE, 'w', encoding='utf-8') as f:
-        json.dump(initiatives, f, ensure_ascii=False, indent=2)
+    get_store('engine_initiatives').save({"initiatives": initiatives})
 
 
 @app.route('/api/teams/<team_id>/initiatives', methods=['GET', 'POST'])

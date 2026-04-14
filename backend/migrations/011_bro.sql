@@ -1,4 +1,4 @@
--- Migration 009: БРО — Бросвящение + Крыло (M12-BRO-BACKEND-A)
+-- Migration 011: БРО — Бросвящение + Крыло (M12-BRO-BACKEND-A)
 
 CREATE TABLE IF NOT EXISTS bro_events (
   id TEXT PRIMARY KEY,

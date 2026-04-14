@@ -30,10 +30,11 @@ Before starting any task, agents MUST read `agent.md` and the contents of `.memo
 
 ## 🛠 Tech Stack
 
-*   **Frontend:** React 18, TypeScript 5, Three.js, Vite 4.
-*   **Backend:** Python 3.8+ (Flask, FastAPI), Node.js.
-*   **AI:** OpenAI API (GPT-4o mini), Google Generative AI (listed in package.json).
-*   **Styling:** CSS Modules, potentially Tailwind (check if present, otherwise standard CSS).
+*   **Frontend:** React 19, TypeScript 6.0, Three.js, Vite 8.
+*   **Backend:** Python 3.8+ (Flask), Node.js 22+.
+*   **Database:** Supabase Postgres (prod), JSON files (local dev). StorageProvider abstraction (25 stores).
+*   **AI:** OpenAI API (GPT-4o mini, GPT Image 1.5).
+*   **Styling:** Vanilla CSS (domain modules). No Tailwind.
 *   **Package Manager:** npm, pip.
 
 ## 📂 Directory Structure
@@ -52,7 +53,7 @@ Before starting any task, agents MUST read `agent.md` and the contents of `.memo
 ## 🚀 Development Workflow
 
 ### Prerequisites
-*   Node.js 18+
+*   Node.js 22+ (Vite 8 requires Node 20+)
 *   Python 3.8+
 *   OpenAI API Key (in `.env`)
 

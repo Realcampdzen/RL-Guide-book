@@ -462,3 +462,30 @@ class EngineJoinRequestsStore(ABC):
 
     @abstractmethod
     def save(self, data: dict) -> None: ...
+
+
+class EngineProjectsStore(ABC):
+    """
+    Хранилище Проектов Движков (Движки).
+    Формат: {'projects': [...]}
+    Каждый: {id, team_id, title, description, plan, targetBadgeId, status, reflection, scenario, submittedAt, createdAt}
+    """
+    @abstractmethod
+    def load(self) -> dict: ...
+
+    @abstractmethod
+    def save(self, data: dict) -> None: ...
+
+
+class EngineInitiativesStore(ABC):
+    """
+    Хранилище Инициатив для Движков / Совета Лагеря.
+    Формат: {'initiatives': [...]}
+    Каждый: {id, team_id, title, description, status, votes, createdAt}
+    """
+    @abstractmethod
+    def load(self) -> dict: ...
+
+    @abstractmethod
+    def save(self, data: dict) -> None: ...
+

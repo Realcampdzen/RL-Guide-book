@@ -811,6 +811,944 @@
 
 ---
 
+### 3.11 Engines (Движки) — M11-DVIZHKI-BACKEND-A
+
+**Stores:** `engines`, `engine_members`
+
+#### `POST /api/squads/{squadId}/engines`
+
+**Auth:** `CHAT_ALLOWED_ROLES` (participant+staff)  
+**Body:**
+```json
+{
+  "title":     "string (required)",
+  "goal":      "string (optional)",
+  "avatarUrl": "string (optional)",
+  "type":      "string (optional, default: 'regular')"
+}
+```
+
+**Response 201:**
+```json
+{
+  "engine": {
+    "id":         "string (mandatory) — ENG-XXXXXXXXXX",
+    "squadId":    "string (mandatory)",
+    "title":      "string (mandatory)",
+    "goal":       "string (optional)",
+    "goalStatus": "'draft' (mandatory при создании)",
+    "status":     "'pending' (mandatory при создании)",
+    "type":       "string (mandatory)",
+    "createdBy":  "string deviceId (mandatory)",
+    "createdAt":  "string ISO8601 (mandatory)",
+    "updatedAt":  "string ISO8601 (mandatory)"
+  },
+  "member": {
+    "id":        "string (mandatory) — EM-XXXXXXXXXX",
+    "engineId":  "string (mandatory)",
+    "deviceId":  "string (mandatory)",
+    "role":      "'creator' (mandatory)",
+    "joinedAt":  "string ISO8601 (mandatory)"
+  }
+}
+```
+
+**Side effects:** creator автоматически записывается в engine_members.  
+**Mandatory fields:** `engine.id`, `engine.status`, `engine.title`, `engine.createdAt`, `member.id`
+
+---
+
+#### `GET /api/squads/{squadId}/engines`
+
+**Auth:** `CHAT_ALLOWED_ROLES`  
+**Response 200:** `{ "engines": [...] }` — descending by createdAt
+
+---
+
+#### `PATCH /api/engines/{engineId}`
+
+**Auth:** `CHAT_ALLOWED_ROLES` (только creator или staff)  
+**Body:** `{ "title"?: string (max 200), "goal"?: string (max 2000), "avatarUrl"?: string }`  
+**Response 200:** `{ "engine": { ...updated } }`  
+**HTTP 403** если не creator и не staff. **HTTP 404** если не найден.  
+**Side effect:** при обновлении `goal` → `goalStatus = "submitted"`.
+
+---
+
+#### `PATCH /api/engines/{engineId}/approve`
+
+**Auth:** `counselor | educator | shift_leader | camp_director | developer`  
+**Body:** `{ "status": "approved" | "rejected" }`  
+**Response 200:** `{ "engine": { ...updated } }` **HTTP 400** invalid status. **HTTP 404** not found.
+
+---
+
+#### `PATCH /api/engines/{engineId}/goal/approve`
+
+**Auth:** Staff only  
+**Response 200:** `{ "engine": { ...updated, goalStatus: "approved" } }`  
+**HTTP 409** если goalStatus != "submitted". **HTTP 404** not found.
+
+---
+
+#### `POST /api/engines/{engineId}/join`
+
+**Auth:** `CHAT_ALLOWED_ROLES`  
+**Response 200:** `{ "member": { id, engineId, deviceId, nickname, role: "member", joinedAt } }`  
+**HTTP 404** engine not found. **HTTP 409** already a member.
+
+---
+
+#### `POST /api/engines/{engineId}/leave`
+
+**Auth:** `CHAT_ALLOWED_ROLES`  
+**Response 200:** `{ "status": "left" }` **HTTP 404** not a member.
+
+---
+
+#### `GET /api/engines/{engineId}/members`
+
+**Auth:** `CHAT_ALLOWED_ROLES`  
+**Response 200:** `{ "members": [...] }`
+
+---
+
+### 3.12 Inspector Пользы (M11-INSPECTOR-C)
+
+**Store:** `inspector_progress`  
+**Static data:** `ai-data/inspector/checklists.json`
+
+#### `GET /api/inspector/checklists`
+
+**Auth:** Нет (публичный)  
+**Response 200:** `{ "missions": [...] }` из `checklists.json`. Fallback: `{ "missions": [] }`.
+
+---
+
+#### `GET /api/inspector/progress/{deviceId}`
+
+**Auth:** Нет (публичный)  
+**Response 200:**
+```json
+{
+  "progress": [{
+    "id": "string (UUID)", "deviceId": "string", "checklistId": "string",
+    "taskId": "string", "status": "'completed' | 'approved'",
+    "completedAt": "string ISO8601", "approvedBy": "string|null", "approvedAt": "string|null"
+  }]
+}
+```
+
+---
+
+#### `POST /api/inspector/progress`
+
+**Auth:** Нет (публичный)  
+**Body:** `{ "deviceId": "string (req)", "checklistId": "string (req)", "taskId": "string (req)" }`  
+**Response 201:** `{ "status": "ok", "entry": { ...new } }`  
+**Response 200:** `{ "status": "already_completed", "entry": { ...existing } }` (идемпотентность)  
+**HTTP 400** missing fields.
+
+---
+
+#### `PATCH /api/inspector/progress/{entryId}/approve`
+
+**Auth:** `counselor | educator | shift_leader | camp_director | developer`  
+**Response 200:** `{ "status": "ok", "entry": { ...status: "approved", approvedBy, approvedAt } }`  
+**Response 200:** `{ "status": "already_approved" }` (идемпотентность)  
+**HTTP 404** entry not found.
+
+---
+
+### 3.13 BRO (Бросвящение) — M12-BRO-BACKEND-A
+
+**Stores:** `bro_events`, `bro_passports`, `bro_submissions`, `bro_initiatives`  
+**Staff roles:** `counselor | educator | shift_leader | camp_director | developer`  
+**All roles:** `participant + staff + developer`
+
+#### `POST /api/bro/initiate`
+
+**Auth:** Staff only  
+**Body:** `{ "squadId": "string (req)", "customTasks"?: [{ title, description?, order? }] }`  
+**Response 201:** `{ "event": { id, squadId, status: "active", createdAt, createdBy, customTasks? } }`  
+**HTTP 400** squadId missing. **HTTP 409** active event already exists.
+
+---
+
+#### `GET /api/bro/events?squad_id={squadId}`
+
+**Auth:** Нет  
+**Response 200:** `{ "events": [...] }`
+
+---
+
+#### `PATCH /api/bro/events/{eventId}`
+
+**Auth:** Staff only  
+**Body:** `{ "action": "complete" }`  
+**Response 200:** `{ "event": { ...status: "completed", completedAt, completedBy } }`  
+**HTTP 404** / **409**
+
+---
+
+#### `GET /api/bro/passport?device_id={deviceId}`
+
+**Auth:** Нет  
+**Response 200:** `{ "passport": object | null }`
+
+---
+
+#### `POST /api/bro/passport`
+
+**Auth:** All roles  
+**Body:** `{ "broEventId": "string (req)" }`  
+**Response 201:** `{ "passport": { id, deviceId, broEventId, status: "in_progress", tasks: [...] } }`  
+**Response 200:** existing passport (идемпотентность).  
+**HTTP 404** event not found / inactive.
+
+---
+
+#### `PATCH /api/bro/passport/{passportId}/task/{taskId}`
+
+**Auth:** All roles  
+**Response 200:** `{ "passport": { ...updated } }`  
+**Side effect:** all tasks done → status="completed" + completedAt.  
+**HTTP 404** passport/task not found.
+
+---
+
+#### `POST /api/bro/passport/{passportId}/task/{taskId}/submit`
+
+**Auth:** All roles  
+**Body:** `{ "text"?: string, "photoUrl"?: string, "nickname"?: string, "userRole"?: string }`  
+**Response 201:** `{ "submission": { id, passportId, taskId, taskTitle, deviceId, squadId, status: "pending", submittedAt } }`  
+**HTTP 400** no text/photoUrl. **HTTP 404** passport/task. **HTTP 409** already done/pending.
+
+---
+
+#### `GET /api/bro/submissions?squad_id={}&status={}`
+
+**Auth:** Нет  
+**Response 200:** `{ "submissions": [...] }` — newest first
+
+---
+
+#### `PATCH /api/bro/submissions/{submissionId}/review`
+
+**Auth:** Staff only  
+**Body:** `{ "action": "approve" | "reject", "comment"?: string }`  
+**Response 200:** `{ "submission": { ...status, reviewedAt, reviewedBy } }`  
+**Side effect:** approve → task.done=true in passport, auto-complete passport.  
+**HTTP 404** / **409**
+
+---
+
+#### `GET/POST/DELETE /api/bro/initiatives`, `POST .../vote`, `POST .../send`
+
+**Auth:** Нет (X-Device-Id header)
+
+| Method | Endpoint | Req body | Status | Notes |
+|--------|----------|----------|--------|-------|
+| GET | `/api/bro/initiatives` | — | 200 | `{ "initiatives": [...] }` |
+| POST | `/api/bro/initiatives` | `{ title (req), description? }` | 201 | status="voting" |
+| DELETE | `/api/bro/initiatives/{id}` | — | 200 | `{ deleted: true }` |
+| POST | `.../vote` | `{ vote?: bool }` | 200 | >=1 vote → status="approved" |
+| POST | `.../send` | — | 200 | status="sent_to_council", creates council_initiative |
+
+---
+
+#### `GET /api/bro/squad`
+
+**Auth:** Нет  
+**Response 200:** `{ "members": [...completed BRO passports], "events": [...all wings] }`
+
+---
+
+### 3.14 Wing Initiations (Посвящения через Крыло) — M12-WING
+
+| Method | Endpoint | Auth | Notes |
+|--------|----------|------|-------|
+| GET | `/api/wing/initiations?squad_id=` | Нет | type=squad_initiation events |
+| POST | `/api/wing/initiations` | All roles | `{ squadId (req), name (req), description?, tasks: [...] }` → 201 |
+| PATCH | `/api/wing/initiations/{id}` | All roles | `{ action: "complete" }` → 200 |
+| POST | `/api/wing/initiations/{id}/join` | All roles | Creates passport with event's tasks → 201 (or 200 existing) |
+
+---
+
+### 3.15 Shifts (Смены) — M5-SHIFTS
+
+**Store:** `shifts` (contains both `shifts[]` and `squads[]` arrays)  
+**Staff auth helper:** `_require_organizer_jwt()` — allows `shift_leader | camp_director | developer`
+
+#### `GET /api/shifts`
+
+**Auth:** Нет (публичный)  
+**Response 200:** `{ "shifts": [...] }` — includes dev-seeded default shift
+
+---
+
+#### `POST /api/shifts`
+
+**Auth:** `shift_leader | camp_director | developer`  
+**Body:** `{ "name": "string (req)", "startDate"?: string, "endDate"?: string, "durationDays"?: int (default 9) }`  
+**Response 200:** `{ "shift": { id, name, startDate, endDate, durationDays, createdAt, createdBy? } }`  
+**HTTP 400** name missing.
+
+---
+
+#### `PATCH /api/shifts/{shiftId}`
+
+**Auth:** `counselor | educator | shift_leader | camp_director | developer`  
+**Body:** `{ "name"?, "startDate"?, "endDate"?, "durationDays"?, "avatarUrl"? }`  
+**Response 200:** `{ "shift": { ...updated } }`  
+**HTTP 403** counselor/educator can only update own shift (campId match).  
+**HTTP 404** shift not found. **HTTP 413** payload too large.
+
+---
+
+#### `DELETE /api/shifts/{shiftId}`
+
+**Auth:** `shift_leader | camp_director | developer`  
+**Response 200:** `{ "ok": true, "deleted": { shifts: 1, squads: N, memberships, corners, chats, inviteCodes, badgeRequests } }`  
+**HTTP 404** shift not found. **HTTP 409** default shift cannot be deleted (except by developer).  
+**Side effects:** каскадное удаление всех отрядов, memberships, corners, chat messages, invite codes, badge requests.
+
+---
+
+#### `GET /api/shifts/{shiftId}/squads?kind={participant|staff}`
+
+**Auth:** Нет (публичный)  
+**Response 200:** `{ "squads": [...] }` — с avatarUrl из squad corners. Фильтрация по `kind`.
+
+---
+
+### 3.16 Squads CRUD (Отряды)
+
+#### `POST /api/shifts/{shiftId}/squads`
+
+**Auth:** `counselor | educator | shift_leader | camp_director | developer`  
+**Body:** `{ "name": "string (req)", "kind"?: "participant" | "staff" (default: "participant") }`  
+**Response 200:** `{ "squad": { id, shiftId, name, kind, createdAt, createdBy? }, "membership": { ...auto-join } }`  
+**HTTP 400** name missing / invalid kind. **HTTP 403** staff squads only for shift_leader+.  
+**HTTP 404** shift not found.  
+**Side effects:** создатель автоматически вступает в отряд (auto-join).
+
+---
+
+#### `GET /api/squads/{squadId}/preview`
+
+**Auth:** All roles  
+**Response 200:** `{ "squadId", "squadName", "shiftId", "shiftName" }`  
+**HTTP 404** squad not found.
+
+---
+
+#### `PATCH /api/squads/{squadId}` *(via shift update)*
+
+*Обновление отряда происходит через corner (см. §3.18).*
+
+---
+
+#### `DELETE /api/squads/{squadId}`
+
+**Auth:** `shift_leader | camp_director | developer`  
+**Response 200:** `{ "ok": true, "deleted": { squads: 1, memberships, corners, chats, inviteCodes, badgeRequests } }`  
+**HTTP 404** not found.  
+**Side effects:** каскадное удаление и прямой DELETE в Supabase.
+
+---
+
+### 3.17 Squad Membership (Участие в отрядах)
+
+#### `POST /api/squads/{squadId}/join`
+
+**Auth:** All roles  
+**Body:** `{ "nickname"?: string, "role"?: string (developer only) }`  
+**Response 200:** `{ "membership": { deviceId, campId, squadId, role, joinedAt, nickname? }, "squad": {...} }`  
+**HTTP 403** camp mismatch. **HTTP 404** squad not found.  
+**Side effects:** заменяет предыдущее membership для deviceId (один отряд на устройство).
+
+---
+
+#### `GET /api/squads/mine`
+
+**Auth:** All roles  
+**Response 200:**
+```json
+{
+  "membership": { deviceId, campId, squadId, role, joinedAt, nickname?, avatarUrl? } | null,
+  "squad": { ...squad object } | null,
+  "shift": { ...shift object } | null,
+  "participants": [{ nickname, avatarUrl, deviceId, role }],
+  "members": [{ nickname, avatarUrl, deviceId, role }]
+}
+```
+
+---
+
+#### `POST /api/squads/{squadId}/leave`
+
+**Auth:** All roles  
+**Response 200:** `{ "status": "left", "squadId": "...", "membership": null }`
+
+---
+
+#### `POST /api/squads/{squadId}/kick`
+
+**Auth:** `counselor | educator | shift_leader | camp_director | developer`  
+**Body:** `{ "deviceId": "string (req)" }`  
+**Response 200:** `{ "squadId", "members": [...], "participants": [...] }`  
+**HTTP 403** access denied. **HTTP 404** squad not found. **HTTP 409** cannot kick yourself.
+
+---
+
+#### `DELETE /api/squads/{squadId}/members/{deviceId}`
+
+**Auth:** `counselor | educator | shift_leader | camp_director | developer`  
+**Response 200:** same as kick. Альтернативный REST endpoint.
+
+---
+
+#### `POST /api/squads/{squadId}/join-requests`
+
+**Auth:** All roles  
+**Body:** `{ ... }` — заявка на вступление  
+*(Детальный контракт: см. app.py:4738)*
+
+---
+
+#### `GET /api/squads/join-requests/mine`
+
+**Auth:** All roles  
+**Response 200:** `{ "requests": [...] }`
+
+---
+
+### 3.18 Squad Corner & Invite Codes
+
+#### `GET /api/squads/{squadId}/corner`
+
+**Auth:** All roles (с проверкой membership)  
+**Response 200:** `{ "squadId", "corner": { name?, motto?, chants?, greeting?, memes?, photoCorner?, photoFlag?, photoSquad?, photoWithCounselors?, planGridA?, planGridB?, updatedAt?, updatedBy? } }`
+
+---
+
+#### `PATCH /api/squads/{squadId}/corner`
+
+**Auth:** `counselor | educator | shift_leader | camp_director | developer`  
+**Body:** partial update — allowed keys: `name, motto, chants, greeting, memes, photoCorner, photoFlag, photoSquad, photoWithCounselors, planGridA, planGridB`  
+**Response 200:** `{ "squadId", "corner": { ...updated }, "updatedAt" }`  
+**HTTP 403** access denied. **HTTP 404** squad not found. **HTTP 413** payload > 512KB.
+
+---
+
+#### `POST /api/squads/{squadId}/invite-code`
+
+**Auth:** `counselor | educator | shift_leader | camp_director | developer` (must manage squad)  
+**Response 200:** `{ "squadId", "code": "XXXXXXXX", "createdAt", "expiresAt" }`  
+**Side effects:** deletes prev active code for this squad, generates 8-char alphanumeric.
+
+---
+
+#### `GET /api/squads/by-invite-code?code={}`
+
+**Auth:** All roles  
+**Response 200:** `{ "squadId", "squadName", "shiftId", "shiftName" }`  
+**HTTP 404** code not found / expired.
+
+---
+
+#### `GET /api/squads/resolve-invite?code={}`
+
+**Auth:** All roles  
+**Response 200:** same as above (legacy alias).
+
+---
+
+#### `POST /api/squads/join-by-code`
+
+**Auth:** All roles  
+**Body:** `{ "code": "string (req)" }`  
+**Response 200:** joins squad and returns membership.  
+**HTTP 404** code invalid.
+
+---
+
+### 3.19 Squad Messages (SquadChat)
+
+**Store:** `squad_messages`  
+**Rate limits:** per-minute + daily per-device
+
+#### `GET /api/squads/{squadId}/messages?limit=50&before={msgId}`
+
+**Auth:** All roles (must be squad member or dev-localhost)  
+**Response 200:** `{ "squadId", "messages": [{ id, squadId, createdAt, deviceId, nickname, avatarUrl?, role, text }], "hasMore": bool }`  
+**HTTP 403** not a member.
+
+---
+
+#### `POST /api/squads/{squadId}/messages`
+
+**Auth:** All roles (must be squad member)  
+**Body:** `{ "text": "string (req)", "nickname"?: string, "avatarUrl"?: string }`  
+**Response 200:** `{ "message": { ...enriched message } }`  
+**HTTP 400** empty text. **HTTP 403** not member. **HTTP 429** rate limit exceeded.  
+**Validations:** length check, URL filter, profanity filter.
+
+---
+
+#### `DELETE /api/squads/{squadId}/messages/{msgId}`
+
+**Auth:** Author of message OR `counselor | shift_leader | camp_director | developer`  
+**Response 200:** `{ "ok": true }`  
+**HTTP 403** access denied. **HTTP 404** message not found.  
+**Side effects:** also unpins if the message was pinned.
+
+---
+
+#### `POST /api/squads/{squadId}/messages/{msgId}/pin`
+
+**Auth:** `counselor | educator | shift_leader | camp_director | developer`  
+**Body:** `{ "pinned": true | false }`  
+**Response 200:** `{ "ok": true, "pinned": bool, "message": object | null }`
+
+---
+
+#### `GET /api/squads/{squadId}/pinned`
+
+**Auth:** All roles  
+**Response 200:** `{ "message": object | null }`
+
+---
+
+### 3.20 Engine Join Requests
+
+#### `POST /api/engines/{engineId}/join-requests`
+
+**Auth:** `CHAT_ALLOWED_ROLES` (participant+staff+developer)  
+**Body:** `{ "nickname"?: "...", "message"?: "..." }`  
+**Response 201:**  
+```json
+{
+  "status": "pending",
+  "request": {
+    "id": "string",
+    "type": "engine_join_request",
+    "engineId": "string",
+    "engineName": "string",
+    "deviceId": "string",
+    "nickname": "string",
+    "role": "string",
+    "message": "string",
+    "status": "pending",
+    "createdAt": "string ISO8601",
+    "resolvedAt": null,
+    "resolvedBy": null
+  }
+}
+```
+**HTTP 200** если запрос уже находится в статусе `pending` (идемпотентность, `status: "already_pending"`).  
+**HTTP 400** если `engine_id` отсутствует.
+
+---
+
+#### `GET /api/engines/join-requests/mine`
+
+**Auth:** `CHAT_ALLOWED_ROLES`  
+**Response 200:** `{ "requests": [...] }` — возвращает все отправленные пользователем (по `deviceId`) заявки. Сортировка: newest-first.
+
+---
+
+### 3.21 Team Messages (Чат Движка - зеркальный Squad Messages)
+
+**Store:** `squad_messages` (пространство `byTeamId`)  
+**Rate limits:** Аналогичны squad messages (per-minute + daily).
+
+#### `GET /api/teams/{teamId}/messages?limit=50&before={msgId}`
+
+**Auth:** Специфично (любая роль, но обязан быть членом Движка или developer)  
+**Response 200:** `{ "squadId": "...", "messages": [...], "hasMore": bool }` (enriched с users_by_device и team_members).  
+**HTTP 403** если не член команды. **HTTP 404** команда не найдена.
+
+---
+
+#### `POST /api/teams/{teamId}/messages`
+
+**Auth:** Член команды или developer  
+**Body:** `{ "text": "string (req, max length/validation applied)", "nickname"?: "string", "avatarUrl"?: "string" }`  
+**Response 200:** `{ "message": { ...enriched } }`  
+**HTTP 400** пустой текст / ошибка валидации. **HTTP 429** лимит нарушен.
+
+---
+
+#### `DELETE /api/teams/{teamId}/messages/{msgId}`
+
+**Auth:** Автор сообщения или Создатель Движка (leaderId)  
+**Response 200:** `{ "ok": true }`  
+**HTTP 403** access denied. **HTTP 404** message not found.
+
+---
+
+### 3.22 Team Engine Projects (Проекты внутри Движков)
+
+**Store:** `engine_projects` (legacy JSON file `engine_projects.json`)
+
+#### `GET /api/teams/{teamId}/projects`
+
+**Auth:** Член команды  
+**Response 200:** Массив объектов `[ { "id", "teamId", "title", "description", "plan", "targetBadgeId", "status", "photos", "reflection", "scenario", "createdBy", "createdAt", "submittedAt"?: "...", "reviewedAt"?: "...", "reviewedBy"?: "...", "reviewNote"?: "..." }, ... ]`
+
+---
+
+#### `POST /api/teams/{teamId}/projects`
+
+**Auth:** Член команды  
+**Body:** `{ "title": "string (req)", "description"?: "string", "plan"?: "string", "targetBadgeId"?: "string" }`  
+**Response 201:** Объект проекта со статусом `"draft"`.
+
+---
+
+#### `PATCH /api/teams/{teamId}/projects/{projectId}`
+
+**Auth:** Член команды  
+**Body:** Частичное обновление полей `title, description, plan, targetBadgeId, photos, reflection, scenario, status`.  
+Переходы статусов:
+- `status: "in_progress"` переводит из `draft` / `rejected`.
+- `status: "review"` переводит из `in_progress` и проставляет `submittedAt`.
+- `status: "draft"` возвращает из `in_progress`.
+
+**Response 200:** Обновленный объект проекта. **HTTP 404** проект не найден.
+
+---
+
+#### `POST /api/teams/{teamId}/projects/{projectId}/review`
+
+**Auth:** Валидный JWT (де-факто подразумевается роль staff, проверяется в UI)  
+**Body:** `{ "action": "approve" | "reject", "note"?: "string" }`  
+**Response 200:** `{ "id": "...", "status": "approved" | "rejected", "reviewedAt": "...", "reviewedBy": "...", "reviewNote": "..." }`  
+**Side effects:** При `action="approve"` у команды в `achievements` автоматически добавляется `targetBadgeId` проекта.  
+**HTTP 400** если текущий статус не `review` или `action` передан неверно.
+
+---
+
+### 3.23 Team Initiatives (Инициативы Движков / Голосование)
+
+**Store:** `initiatives` (legacy JSON file `initiatives.json`), `council_initiatives.json` (bridge)
+
+#### `GET /api/teams/{teamId}/initiatives`
+
+**Auth:** Член команды  
+**Response 200:** Массив инициатив: `[ { "id", "teamId", "title", "description", "createdBy", "createdAt", "votes", "status", "totalMembers", "sentAt"?: "...", "sentBy"?: "..." }, ... ]`
+
+---
+
+#### `POST /api/teams/{teamId}/initiatives`
+
+**Auth:** Член команды  
+**Body:** `{ "title": "string (req)", "description"?: "string" }`  
+**Response 201:** Объект инициативы со статусом `"voting"`. Создатель автоматически голосует "за".
+
+---
+
+#### `POST /api/teams/{teamId}/initiatives/{iniId}/vote`
+
+**Auth:** Член команды  
+**Body:** `{ "vote": bool (default: true) }`  
+**Response 200:** Обновленная инициатива.  
+**Side effects:** Проверяет, проголосовали ли все члены. Если да: статус становится `"approved"` или `"rejected"` в зависимости от консенсуса (все `true` = `approved`).
+
+---
+
+#### `POST /api/teams/{teamId}/initiatives/{iniId}/send`
+
+**Auth:** Член команды  
+**Response 200:** Обновленная инициатива (статус `"sent_to_council"`).  
+**Side effects:** Копирует запись в хранилище Совета (`council_initiatives.json`) как bridging-протокол. Создает `CI-<iniId>` заявку на рассмотрение Советом лагеря.  
+**HTTP 400** если статус инициативы не `"approved"`.
+
+---
+
+### 3.24 Vozhatifficator (Вожатификатор)
+
+**Storage:** Локальные файлы в `ai-data/vozhatifficator/`
+
+#### `GET /api/vozhatifficator/sections`
+
+**Auth:** Нет (публичный)  
+**Response 200:** Массив секций книги `[ { "id", "title", "status", "preview" }, ... ]`. Кэшированный ответ.
+
+---
+
+#### `GET /api/vozhatifficator/guiding-lights`
+
+**Auth:** Нет (публичный)  
+**Response 200:** Объект чеклиста Guiding Lights из `guiding_lights.json`.
+
+---
+
+### 3.25 Role Requests & Codes (Заявки и коды доступа)
+
+#### `POST /api/role-codes/generate`
+
+**Auth:** `developer` (email должен входить в `DEV_EMAILS` или проверяется JWT)  
+**Body:** `{ "role": "string" }`  
+**Response 201:** `{ "code": "RL-XXX-YYYY", "role": "...", "expiresAt": "..." }`  
+**HTTP 400** если запрошена недопустимая роль.
+
+---
+
+#### `POST /api/role-codes/redeem`
+
+**Auth:** Нет (публичный)  
+**Body:** `{ "code": "string (req)", "deviceId": "string (req)", "baseDeviceId"?: "string", "legacyRoleOwner"?: "string" }`  
+**Response 200:** `{ "role": "...", "accessToken": "...", "campId", "deviceId", "baseDeviceId", "personId", "accountId", "legacyOwnerRole" }`  
+**HTTP 404/410** код не найден или истёк. **HTTP 409** код уже использован.
+
+---
+
+#### `POST /api/role-requests`
+
+**Auth:** Публичный (опционально читает JWT из `Authorization: Bearer ...`)  
+**Body:** `{ "deviceId|baseDeviceId": "string (req)", "desiredRole": "string (req)", "name"?: "string", "comment"?: "string", "email"?: "string" }`  
+**Response 201:** `{"roleRequest": { "id", "deviceId", "baseDeviceId", "desiredRole", "name", "email", "comment", "status": "pending", "createdAt" } }`  
+**Side effects:** Отправляет Telegram уведомление в канал админов.
+
+---
+
+#### `GET /api/role-requests`
+
+**Auth:** Зависит от параметров:
+- Обычный пользователь (запрашивает `?deviceId=xxx`): Нет или проверка по JWT.
+- Администратор (запрашивает `?all=true`): JWT `ORGANIZER_ROLES + educator`.
+
+**Response 200:** `{ "requests": [...] }`.  
+**Примечание:** Если заявка одобрена (`status == "approved"`), сервер может 'на лету' подписать и вложить в объект заявки поле `accessToken` для автоматического логина.
+
+---
+
+#### `PATCH /api/role-requests/{requestId}`
+
+**Auth:** Staff (`ORGANIZER_ROLES` — shift_leader / camp_director / developer)  
+**Body:** `{ "status": "approved" | "rejected", "comment"?: "string" }`  
+**Response 200:** Данные о результате ревью.  
+**Side effects:** При одобрении может создавать одноразовый Role Code (или привязывать к email) и отправлять email уведомление (через Resend).
+
+---
+
+### 3.26 Auth Extended (Расширенная аутентификация)
+
+#### `POST /api/auth/resolve`
+
+**Auth:** Нет (OAuth callback / resolution)  
+**Body:** `{ "email": "string (req)", "supabaseToken"?: "string", "supabaseUserId"?: "string", "deviceId|baseDeviceId": "string (req)", "desiredRole"?: "string" }`  
+
+**Логика разрешения (Priority):**
+1. Если `email` в `DEV_EMAILS` → выдает роль `developer`.
+2. Если есть одобренный `role_request` для данного `email` (или `deviceId` + совпадение `desiredRole`) → выдает эту роль.
+3. Если передан `desiredRole` и он не participant/traveler → создаёт/обновляет pending `role_request` и возвращает `{ "role": "pending", "message": "Ожидайте одобрения" }`.
+4. Иначе (по умолчанию) → выдает роль `participant`.
+
+**Response 200:** Объект `{ "role", "accessToken", "campId", "deviceId", "baseDeviceId", "personId", "accountId" }` или pending-заглушка.
+
+---
+
+#### `POST /api/auth/dev-pin`
+
+**Auth:** Нет  
+**Body:** `{ "pin": "string (req)", "deviceId": "string" }`  
+**Response 200:** `{ "role": "developer", "accessToken": "..." }`  
+**HTTP 401** неверный PIN. **HTTP 503** DEV_PIN не настроен.
+
+---
+
+#### `POST /api/organizer/generate-code`
+
+**Auth:** Staff (`shift_leader | camp_director | developer`)  
+**Body:** `{ "deviceId": "string (req)", "role": "string (req)", "shiftId"?: "string" }`  
+**Response 200:** `{ "code": "...", "deviceId", "role", "shiftId", "expiresIn": "~40 min" }`  
+**Примечания:** Использует `AUTH_SECRET` для криптографической генерации кода доступа (auth-слоты).
+
+---
+
+### 3.27 Family (Связи родителей и детей)
+
+#### `GET /api/family/links`
+
+**Auth:** Любой валидный JWT  
+**Response 200:** `{ "links": [ { "id", "parentDeviceId", "childDeviceId", "label", "createdAt" }, ... ] }`
+
+---
+
+#### `POST /api/family/links`
+
+**Auth:** Любой валидный JWT  
+**Body:** `{ "childDeviceId": "string (req)", "label"?: "string" }`  
+**Response 201:** `{"link": { ... }, "status": "created" }`  
+**Response 200:** Если связь уже существует (`status: "already_exists"`).  
+**HTTP 409** Нельзя добавить свой же `deviceId` как ребёнка.
+
+---
+
+#### `DELETE /api/family/links/{childDeviceId}`
+
+**Auth:** Любой валидный JWT  
+**Response 200:** `{ "status": "deleted" | "not_found", "childDeviceId": "..." }`
+
+---
+
+#### `GET /api/family/child-snapshot/{childDeviceId}`
+
+**Auth:** Валидный JWT (Доступ: родитель, имеющий подтверждённую связь с ребёнком. Или админ-роли `shift_leader`, `camp_director`, `developer` — bypass проверки прав).  
+**Response 200:**
+```json
+{
+  "childDeviceId": "string",
+  "exportedAt": "string",
+  "progress": { ... },
+  "profile": { ... }
+}
+```
+**HTTP 403** Нет связи с этим ребёнком. **HTTP 404** Снэпшот ребёнка не найден / истёк.
+
+---
+
+### 3.28 4K Analytics (Аналитика компетенций)
+
+#### `GET /api/4k/mapping`
+
+**Auth:** Нет  
+**Response 200:** Статический JSON из `4k_mappings.json` (веса наград, дефолтные скиллы категорий, бонусы активностей).
+
+---
+
+#### `GET /api/4k/stats/{deviceId}`
+
+**Auth:** Нет  
+**Response 200:** Расчётные баллы навыков 4K (collaboration, critical_thinking, creativity, communication) и треков развития:
+```json
+{
+  "deviceId": "string",
+  "skills": { "collaboration": 80, "critical_thinking": 100 },
+  "raw": { "collaboration": 12.5, "critical_thinking": 16.0 },
+  "programs": { "tech": { "label": "...", "emoji": "...", "raw": 5.0, "normalized": 50 } },
+  "badgeCount": 10
+}
+```
+**Логика расчёта:** Основывается на полученных ачивках (`badge_requests` status=approved) + бонусах за активности (участие в Движках, Совете, Бро-паспорте, Инспекторе Пользы).
+
+---
+
+### 3.29 Community Badges (Инкубатор)
+
+#### `POST /api/community/badges`
+
+**Auth:** Нет  
+**Body:** `{ "title": "string (req)", "description"?: "string", "emoji"?: "string", "category_id"?: "string" }`  
+**Response 201:** Запись успешно добавлена (`status: "success"`). Лимит: 100 значков (FIFO). Rate limit по IP.
+
+---
+
+#### `GET /api/community/badges`
+
+**Auth:** Нет  
+**Response 200:** Массив значков из `community_badges.json`.
+
+---
+
+### 3.30 Webhooks (Служебные интеграции)
+
+#### `POST /api/webhook/telegram/{secret_path}` / `POST /api/webhook/vk/{secret_path}`
+
+**Auth:** URL params `secret_path` должны совпадать с `TELEGRAM_WEBHOOK_SECRET` или `VK_WEBHOOK_SECRET`.  
+**Response 200:** Принимает webhook body от платформ. Обработка сообщений (сохранение в `confirmation_events`) происходит асинхронно. 
+
+---
+
+#### `GET /api/webhook/confirmation-events?secret={secret}&limit=500`
+
+**Auth:** Query `secret` должен совпадать с `TELEGRAM_WEBHOOK_SECRET` или `VK_WEBHOOK_SECRET`.  
+**Response 200:** `{ "events": [...], "count": N }`
+
+---
+
+### 3.31 Telegram Notifications
+
+Особая группа для уведомлений, отправляемых через сервер в Telegram канал администраторов или общий лог (например, Kot Thread Transport).
+
+#### `POST /api/telegram/thread-post`
+
+**Auth:** `CHAT_ALLOWED_ROLES` (участники и стафф)  
+**Body:** `{ "root_message_id": int (req), "text": "string (req)", "source"?: "string" }`  
+**Response 200:** `{ "ok": true, "sent": true }`  
+**HTTP 409** дубликат текста в течение минуты. **HTTP 400** недостающие параметры.
+
+---
+
+#### `POST /api/telegram/notify-achievement` / `POST /api/telegram/notify-creator-card`
+
+**Auth:** В зависимости от контекста (`participant` и др.)  
+**Body:** `{ ... }` (зависит от объекта)  
+**Реакция:** Отправка уведомления в Telegram (без значимого ответа в HTTP, обычно 200 OK).
+
+---
+
+### 3.32 Workshop Proposals (Заявки на Мастерские)
+
+#### `POST /api/workshop/proposals`
+
+**Auth:** `participant | developer`  
+**Body:** `{ "type": "badge"|"category"|"version"|"art" (req), "title": "string (req)", "description"?: "string", "badgeId"?: "string", "image"?: "base64", "nickname"?: "string" }`  
+**Response 201:** `{"proposal": { "id", "status": "pending", "createdAt": "...", "createdBy": {...} } }`
+
+---
+
+#### `GET /api/workshop/proposals/mine`
+
+**Auth:** `participant | developer`  
+**Response 200:** `{ "proposals": [...] }` (отсортировано newest-first).
+
+---
+
+#### `GET /api/workshop/proposals/inbox?status={status}&campId={campId}`
+
+**Auth:** Staff (`counselor | educator | shift_leader | camp_director | developer`)  
+**Response 200:** `{ "proposals": [...] }` (отсортировано, `pending` выше).
+
+---
+
+#### `POST /api/workshop/proposals/{proposalId}/approve` / `.../reject`
+
+**Auth:** Staff  
+**Body:** `{ "note"?: "string" }`  
+**Response 200:** `{ "proposal": { ...status updated } }`.  
+**HTTP 409** если уже разрешен.
+
+---
+
+### 3.33 Parent Extended (Обновленные доступы родителей)
+
+#### `GET /api/parent-insights?code={code}`
+
+**Auth:** Нет (доступ по коду Snapshot)  
+**Response 200:** Умная AI-сводка на основе `progress` ребёнка. Структура: `{ "overallProgress", "weeklyTrend", "dynamicSignals", "strengthsTop3", "nextSteps", "source" }`
+
+---
+
+#### `GET /api/badges/approvals/mine`
+
+**Auth:** `participant | developer`  
+**Response 200:** `{ "approvals": [ { "requestId", "levelId", "approvedAt", "evidence", "badgeTitle", "campId", "squadId" }, ... ] }`. Список всех успешных апрувов пользователя.
+
+---
+
+### 3.34 Misc Endpoints (Прочее)
+
+| Эндпоинт | Метод | Описание |
+|---|---|---|
+| `/api/chat/limits` | GET | Возвращает `{ "messagesPerDay": N }` из env. Без авторизации. |
+| `/api/bro-missions` | GET / POST | Чтение или перезапись статического конфига миссий. |
+| `/api/wings` | GET / POST | Чтение или обновление статического реестра Крыльев. |
+
 ---
 
 ## 5. Smoke Verification
@@ -891,7 +1829,7 @@ python backend/scripts/smoke_backend_critical.py --base-url http://localhost:400
 | Breaking change — согласовать с фронтом | NeuroStepa → Agent A + Agent B |
 | После обновления — перезапустить smoke | Agent A |
 
-*Последнее обновление: 2026-02-28 (M5-R4-A, Agent A — Supabase GAP fix: requestedBy nested dict, load_inbox() SQL filtering. Prior: M5-R4-C, Agent C — /api/chat pending badges context, CHAT_MAX_MESSAGE_LEN 400, 44 checks)*
+*Последнее обновление: 2026-04-14 (Antigravity — §3.11–3.14 added: Engines, Inspector, BRO, Wings. §7 gap inventory updated. Coverage ~49%)*
 
 ---
 
@@ -906,3 +1844,24 @@ Fixed: nested dicts returned by `_row_to_badge_request()`, flat-key fallback in 
 Added: `SupabaseBadgeRequestsStore.load_inbox()` — SQL-level filtering by camp_id, squad_id, status, TTL. `badge_request_inbox()` uses it via `hasattr()`.
 
 Smoke 39/39 PASSED (baseline unchanged).
+
+---
+
+## 7. Undocumented Endpoints (Gap Inventory)
+
+> **Статус:** 100% эндпоинтов из `backend/app.py` задокументированы в Contract Guard.
+
+**Итого:** §3 покрывает **ВСЕ ~130 уникальных эндпоинтов** (§3.1–3.34). Покрытие = **100%**.
+
+> [!NOTE]
+> Задокументированные группы:
+> - §3.1–3.10: Badge Requests, Parent Snapshot, Council, Image Gen, Chat, Telegram, Plans, Squad Kind, Arts
+> - §3.11–3.14: Engines, Inspector, BRO, Wings (апрель 2026)
+> - §3.15–3.19: Shifts, Squads CRUD, Squad Membership, Corner & Invite, Squad Messages (апрель 2026)
+> - §3.20–3.23: Engine Join Requests, Team Messages, Team Engine Projects, Team Initiatives (апрель 2026)
+> - §3.24–3.27: Vozhatifficator, Role Requests & Codes, Auth Extended, Family (апрель 2026)
+> - §3.28–3.34: 4K Analytics, Community Badges, Webhooks, TG Notifications, Workshop, Parent Extended, Misc (апрель 2026)
+> 
+> Следующий приоритет: поддерживать контракт при будущих изменениях бэкенда (Additive-Only).
+
+

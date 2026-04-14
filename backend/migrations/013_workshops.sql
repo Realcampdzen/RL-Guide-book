@@ -1,4 +1,4 @@
--- Migration 011: Кабинет Мастерской педагога (M13-EDUCATOR-WORKSHOP-A)
+-- Migration 013: Кабинет Мастерской педагога (M13-EDUCATOR-WORKSHOP-A)
 
 CREATE TABLE IF NOT EXISTS workshops (
   id TEXT PRIMARY KEY,

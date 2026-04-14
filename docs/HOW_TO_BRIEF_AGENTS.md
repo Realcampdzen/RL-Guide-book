@@ -12,7 +12,7 @@
 
 | Куда | Зачем |
 |------|--------|
-| [docs/ROADMAP_2026.md](ROADMAP_2026.md) | Единый источник истины: что Done (не трогать), что Not started, «Где мы сейчас», Evidence (ссылки на код). |
+| [docs/ROADMAP_2026.md](ROADMAP_2026.md) | Архив задач: таблица Done/Evidence. Проверить перед реализацией — если Done, не трогать. |
 | [.cursor/agent orchestration/AGENT_ORCHESTRATION.md](../.cursor/agent%20orchestration/AGENT_ORCHESTRATION.md) | **Перед началом работы:** Claim Board — проверить, не занята ли задача; записать агента, задачу, следующий шаг. Сводка кто что сделал. |
 | [.cursor/agent orchestration/AGENT_ROLES.md](../.cursor/agent%20orchestration/AGENT_ROLES.md) | **Система Ролей (Big Tech):** Узнать свой грейд (L3-L6) и специализацию (SWE, SRE, Arch, Staff) перед началом работы. |
 | [agent-sync.md](../agent-sync.md) | **Sync Board:** Прописать себя (Онбординг), оставить статус и лог действий для других агентов. |
@@ -64,13 +64,13 @@
 10. Взять задачу и спланировать решение, записав короткий план в `agent-sync.md`.
 11. По завершении: обновить `agent-sync.md`, Claim Board (статус Done или "Ожидает ревью") и создать отчёт.
 
-**Итог:** начало выполнения = agent.md → AGENT_ROLES.md → Выдача Роли → agent-sync.md → ROADMAP → SDD Проверка Спецификации → Git Checkout → код.
+**Итог:** начало выполнения = agent.md → AGENT_ROLES.md → Выдача Роли → agent-sync.md → active_context → ROADMAP (Done check) → SDD Проверка Спецификации → Git Checkout → код.
 
 ---
 
 ## 5. Как формулировать задания
 
-- **«Дальше по ROADMAP» / «Следующая задача из „Где мы сейчас“»** — агент сам идёт в agent.md → ROADMAP → active_context и выбирает задачу.
+- **«Дальше по ROADMAP» / «Следующая задача»** — агент идёт в agent.md → active_context → ROADMAP и выбирает задачу.
 - **«Реализуй [название из ROADMAP]» / «Сделай то-то по FEATURE_*»** — агент всё равно проверяет ROADMAP (не Done ли уже) и Evidence, сверяется с планом.
 - **«Добавь в ROADMAP инициативу X и сделай её» / «Предложи следующую задачу из видения/планов»** — агент смотрит ROADMAP, STEPA_VISION_LC, WORKFLOW_*, progress и предлагает/добавляет задачу.
 

@@ -1,8 +1,9 @@
-# ROADMAP 2026 — единая точка входа для агентов
+# ROADMAP 2026 — архив реализованных задач
 
-> [!WARNING]  
-> Спринты M1 - M17 (Продуктовые механики и Рефакторинг Фазы 1-5) УЖЕ ПОЛНОСТЬЮ ЗАВЕРШЕНЫ (по состоянию на март/апрель 2026).  
-> Этот документ оставлен ИСКЛЮЧИТЕЛЬНО для исторического контекста. Текущий технический долг определяется по реальному размеру файлов в проекте (например, CSS-монолиты).
+> [!NOTE]
+> Спринты M1–M17 (Продуктовые механики и Рефакторинг Фазы 1-7) **ПОЛНОСТЬЮ ЗАВЕРШЕНЫ** (Q1-Q2 2026).
+> Этот документ — **архив с Evidence-ссылками** на реализованный код. Используйте для проверки статуса: если задача Done — не перереализовывать.
+> **Текущий фокус и активные задачи:** см. [.memory-bank/active_context.md](../.memory-bank/active_context.md).
 
 Источники: [REPORT_2026.md](../REPORT_2026.md), [ANALYSIS_AND_VISION_2026.md](../ANALYSIS_AND_VISION_2026.md), [CODEX_ANALYSIS_2026-02-04.md](../CODEX_ANALYSIS_2026-02-04.md), [STEPA_VISION_LC.md](STEPA_VISION_LC.md) (видение по механикам ЛК). При расхождении приоритетов — [WORKFLOW_GAME_CONCEPT_PLAN.md](../WORKFLOW_GAME_CONCEPT_PLAN.md). Детальный прогресс и матрица планов: [WORKFLOW_PROGRESS_AND_PLANS.md](../WORKFLOW_PROGRESS_AND_PLANS.md).
 
@@ -10,26 +11,21 @@
 
 ## Для агентов (точки входа и страховка)
 
-1. **Перед реализацией любой задачи из этого файла:** (1) Проверь статус пункта в таблице ниже. (2) Если статус **Done** — не реализуй заново; при необходимости открой Evidence и убедись в коде/доках. (3) Текущий фокус — секция «Где мы сейчас»; бери следующую задачу оттуда или из пунктов со статусом Not started по приоритету.
+1. **Перед реализацией любой задачи из этого файла:** (1) Проверь статус пункта в таблице ниже. (2) Если статус **Done** — не реализуй заново; при необходимости открой Evidence и убедись в коде/доках. (3) Текущий фокус — в [active_context.md](../.memory-bank/active_context.md).
 2. **Детальный лог выполненного** — в [.memory-bank/progress.md](../.memory-bank/progress.md).
 
 ---
 
-## Где мы сейчас
+## Статус спринтов
 
-**Текущий фокус:** ✅ **Sprints M7–M10 завершены (2026-03-02).** Все 12 пунктов исходного плана (3 уровня) реализованы + deploy + Opus audit.
-
-**Что сделано и задеплоено (M7–M10):**
-- Badge Plans API, Council Initiatives CRUD+voting, Badge Arts moderation pipeline
-- Staff Dashboard, Educator Cabinet, requiresApproval flag, Educator RBAC
-- ImageProvider abstraction (OpenAI/FusionBrain/Stub/Auto)
-- CommunityRankingPanel, ArtGallerySection, Share triggers
-- Supabase migrations 003–006 (badge_plans, council_initiatives, squad_kind, badge_arts)
-- Vercel redeployed with IMAGE_PROVIDER=auto
-- Opus browser audit: 42/47 OK, 5 auth-gated (expected), 0 broken
-- Smoke baseline: 77/77 + 1 skip
-
-**Следующая конкретная задача:** Vision audit GAP-ы → Sprints M11–M14 (19 задач). Подробный план: [CLAIM_BOARD.md](PROD_ROADMAP_IMPL/CLAIM_BOARD.md). Приоритет: Движки + Инспектор Пользы (M11) → БРО + Вожатский Отряд (M12) → Педагог Мастерская + 4К (M13) → Pilot Hardening (M14).
+| Спринт | Содержание | Статус |
+|--------|-----------|--------|
+| M1–M6 | Core Identity, RBAC, Community, Onboarding, Sharing, Workshops | ✅ Done |
+| M7–M10 | Badge Plans, Council, Badge Arts, Staff Dashboard, Educator, ImageProvider | ✅ Done |
+| M11–M14 | Движки, Инспектор, БРО, Вожатский Отряд, 4К, Педагог Мастерская | ✅ Done |
+| M15–M17 | Workshop proposals, Council members/protocols, User management | ✅ Done |
+| Refactoring | Strangler Fig Phases 1–7, CSS decomposition, DataContext | ✅ Done |
+| Modernization | React 19, TS 6.0, Vite 8, Biome.js | ✅ Done |
 
 ---
 
@@ -202,6 +198,18 @@
 *При завершении новой задачи: обнови статус в таблице на Done, добавь Evidence, сдвинь «Где мы сейчас». Детали — в [.memory-bank/progress.md](../.memory-bank/progress.md).*
 
 ## Status Sync Log
+
+### Апрель 2026 — Завершение M6-M17, Modernization и Refactoring (Официальное закрытие архива)
+
+- **Status:** **Done (100%)**
+- **Scope delivered:**
+  - **M6-M17 Prod Delivers:** Доводка механик «Совет Лагеря», «Движки», «Мастерская (UGC)» и «Отряд Вожатых» до стабильного production-вида (перешли из Partial в Done).
+  - **Modernization Stack:** Успешный переезд проекта на React 19, TypeScript 6.0 и Vite 8.
+  - **Code Quality:** Внедрён Biome.js для глобального автоформатирования.
+  - **Refactoring (Strangler Fig Phases 1-7):** Полный распил монолитов `ProfileView`, `PersonalCabinet`, `TeamDashboard`. Извлечение доменных контейнеров (Bro, Workshop, Parents, Organizer).
+  - **Data Integration:** Декомпозиция "God Hook" (`useDataLoader.ts`), внедрение Singleton `DataContext`, избавляющего от дублирования API запросов.
+  - **CSS Decomposition:** Гигантский `profile-view-spaceship.css` благополучно разрезан на 14 независимых доменных CSS-модулей.
+- **Evidence:** `active_context.md`, ветка main (весна 2026).
 
 ### 2026-02-26 — M1 (Q1 Scoped Engines)
 

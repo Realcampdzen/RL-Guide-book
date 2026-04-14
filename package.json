@@ -1,6 +1,6 @@
 {
   "name": "rl-guide-book",
-  "version": "1.0.0",
+  "version": "2.5.0",
   "description": "Космическая визуализация Путеводителя 'Реального Лагеря'",
   "main": "index.js",
   "scripts": {

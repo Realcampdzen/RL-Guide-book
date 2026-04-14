@@ -15,16 +15,18 @@
 | **Точка входа агента** | [agent.md](../agent.md) | Шпаргалка: Memory Bank, workflow, команды. Ссылается на `.memory-bank/` |
 | **Оркестрация агентов** | [.cursor/agent orchestration/AGENT_ORCHESTRATION.md](../.cursor/agent%20orchestration/AGENT_ORCHESTRATION.md) | Claim Board: перед стартом — проверить и записать агента, задачу, следующий шаг. Сводка кто что сделал. |
 | **Как давать задания агентам** | [HOW_TO_BRIEF_AGENTS.md](HOW_TO_BRIEF_AGENTS.md) | Куда направлять, что смотреть, где проверять, с чего начать выполнение |
+| **Отдел техдокументации** | [TECHDOCS_DEPARTMENT_RUNBOOK.md](TECHDOCS_DEPARTMENT_RUNBOOK.md) | Runbook для агентов техдоков: зоны ответственности, стандартные операции, техдолг |
 | **Песочница и тест отряда вожатых** | [SANDBOX_TESTING.md](SANDBOX_TESTING.md) §6 | Тест сценария: Старший Вожатый создаёт отряд, вожатый входит по коду/ссылке |
 | **Memory Bank** | [.memory-bank/](../.memory-bank/) | `active_context.md` (текущая задача), `progress.md`, `tech_context.md`, `project_brief.md`, `product_logic.md` |
 | **Видение ЛК** | [docs/STEPA_VISION_LC.md](STEPA_VISION_LC.md) | Видение Стёпы по механикам личного кабинета, приоритет развития и 4К навыков (без соревновательности) |
 
 ---
 
-## 2. Где мы сейчас (по ROADMAP_2026)
+## 2. Где мы сейчас
 
-- **Фокус:** Песочница — Done. Auth flow — Done. Роли, авторизация, адаптация ЛК — Done. Кабина космического корабля (ЛК) — Done.
-- **Следующая задача:** выбрать из видения и планов: [STEPA_VISION_LC.md](STEPA_VISION_LC.md), [FEATURE_AUTH_ROLES_DVIZHKI_PLAN.md](FEATURE_AUTH_ROLES_DVIZHKI_PLAN.md), [WORKFLOW_GAME_CONCEPT_PLAN.md](../WORKFLOW_GAME_CONCEPT_PLAN.md) — или новая инициатива. Унификация ЛК выполнена (единая точка входа main.tsx, кабина на 3001/3002/3010).
+**Текущий фокус и состояние проекта:** см. [.memory-bank/active_context.md](../.memory-bank/active_context.md).
+**Архив реализованных задач (Done/Evidence):** см. [docs/ROADMAP_2026.md](ROADMAP_2026.md).
+**Спринты M1–M17 + Refactoring Phases 1–7 + React 19 миграция:** ✅ Всё завершено.
 
 ---
 
@@ -44,13 +46,12 @@ flowchart TD
     A --> C[.memory-bank/progress.md]
     A --> D[docs/ROADMAP_2026.md]
     B --> E[Выбрать задачу]
-    D --> E
-    E --> F{Статус Done?}
+    D --> F{Статус Done?}
     F -->|Да| G[НЕ реализовывать, проверить Evidence]
-    F -->|Нет| H[Взять задачу из секции Где мы сейчас или Not started]
-    H --> I[Спланировать в active_context]
-    I --> J[Реализовать]
-    J --> K[Обновить progress.md и ROADMAP]
+    F -->|Нет| E
+    E --> H[Спланировать]
+    H --> I[Реализовать]
+    I --> J[Обновить progress.md и active_context.md]
 ```
 
 **Кто даёт задания агентам:** см. [HOW_TO_BRIEF_AGENTS.md](HOW_TO_BRIEF_AGENTS.md) — куда направлять, что смотреть, где проверять, с чего начать.
@@ -61,7 +62,6 @@ flowchart TD
 2. Открыть [.memory-bank/active_context.md](../.memory-bank/active_context.md) — понять текущий фокус и свою роль (A/B/C/D/E).
 3. Открыть [AGENT_ORCHESTRATION.md](../.cursor/agent%20orchestration/AGENT_ORCHESTRATION.md) — проверить Claim Board; при взятии задачи — записать агента, задачу, дату, следующий шаг.
 4. Открыть [docs/ROADMAP_2026.md](ROADMAP_2026.md):
-   - проверить «Где мы сейчас»;
    - убедиться, что выбранная задача **не в списке Done**;
    - при необходимости — свериться с Evidence.
 5. Просмотреть [.memory-bank/progress.md](../.memory-bank/progress.md) — раздел «Accepted UX» и «Recent Changes».

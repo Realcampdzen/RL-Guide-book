@@ -1,4 +1,4 @@
--- 014_users.sql — Users table for Supabase Auth integration (M15-AUTH-BACKEND-A)
+-- 016_users.sql — Users table for Supabase Auth integration (M15-AUTH-BACKEND-A)
 
 CREATE TABLE IF NOT EXISTS users (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

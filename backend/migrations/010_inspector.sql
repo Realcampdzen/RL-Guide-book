@@ -1,4 +1,4 @@
--- 008_inspector.sql — Inspector Progress (M11-INSPECTOR-C)
+-- 010_inspector.sql — Inspector Progress (M11-INSPECTOR-C)
 -- Tracks mission task completion and counselor approvals.
 
 CREATE TABLE IF NOT EXISTS inspector_progress (

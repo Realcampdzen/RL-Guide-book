@@ -1,69 +1,107 @@
 # Архитектура и ресурсы — единый обзор
 
-Документ фиксирует подключённые ресурсы, их назначение и как они позволяют развивать продукт (роли, ЛК, авторизация).
+Документ фиксирует подключённые ресурсы, их назначение, разделение ответственности и реализованные роли.
+
+> **Последнее обновление:** апрель 2026
 
 ---
 
 ## Подключённые ресурсы
 
-| Ресурс | Назначение | Триггер деплоя | URL/домен |
-|--------|------------|----------------|-----------|
-| **Vercel: rl-guide-book** | Фронтенд Путеводителя | Push в `main` | — |
-| **Vercel: backend** | API (чаты, community badges, события, будущее: auth) | Push в `main` | — |
-| **cf-api (Cloudflare)** | Боты VK/TG (NeuroValyusha, автокомменты, обсуждения) | Ручной / CI | real-vibe-ai-studio.pages.dev |
-| **GitHub Pages** | Альтернативный хост фронта (если настроен) | — | — |
+| Ресурс | Назначение | Триггер деплоя | URL |
+|--------|------------|----------------|-----|
+| **GitHub Pages** | Основной хост фронтенда (React/Vite SPA) | Push в `main` → GH Actions | `realcampdzen.github.io/RL-Guide-book/` |
+| **Vercel: rl-guide-book** | Альтернативный хост фронтенда | Push в `main` → auto-deploy | — |
+| **Vercel: backend** | Flask Python API (auth, смены, отряды, chat, badges, images) | Push в `main` → auto-deploy | `backend-murex-one-40.vercel.app` |
+| **Supabase** | Postgres БД (25+ таблиц, prod storage) | Миграции вручную через Dashboard | `inkhtjcrzblzsfqvceid.supabase.co` |
+| **cf-api (Cloudflare)** | Боты VK/TG (NeuroValyusha в соцсетях) | Ручной / CI | `real-vibe-ai-studio.pages.dev` |
 
 ---
 
 ## Разделение ответственности
 
-### Vercel (frontend + backend)
-- **Фронт:** SPA Путеводителя (React, Vite).
-- **Backend:** Flask/Serverless API — webhook событий (VK, TG), community badges, чат с сайта, в перспективе — авторизация, JWT, синхронизация прогресса.
+### GitHub Pages (Frontend)
+- **SPA Путеводителя:** React 19, TypeScript 6.0, Vite 8, Three.js (3D).
+- **Build-time vars:** `VITE_BACKEND_URL` встраивается из GitHub Variables при сборке.
+- **BasePath:** `/RL-Guide-book/`
+- **Deploy:** `.github/workflows/deploy-simple.yml` → sync:ai-data → verify:webp → self-check → build → deploy.
+
+### Vercel Backend (Python API)
+- **Flask Serverless API** — авторизация (JWT), RBAC по 8 ролям, управление сменами/отрядами, чат (NeuroValyusha), заявки на значки, ИИ-изображения, Community Badges, webhooks (Telegram, VK).
+- **Хранение:** Supabase Postgres (`USE_SUPABASE=true`). JSON-файлы — только для local dev.
+- **StorageProvider:** 25 сторов через абстракцию `get_store(name)` (см. `backend/storage/__init__.py`).
+- **Env vars (Production):** `USE_SUPABASE`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `AUTH_SECRET`, `AUTH_JWT_SECRET`, `AUTH_GENERATE_SECRET`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHANNEL_ID`, `OPENAI_API_KEY`.
+
+### Supabase (Database)
+- **Project:** `inkhtjcrzblzsfqvceid`
+- **Миграции:** 001–018 применены (backend/migrations/*.sql). 25+ таблиц. См. [SUPABASE_SCHEMA_AND_MIGRATION.md](SUPABASE_SCHEMA_AND_MIGRATION.md).
+- **RLS:** Включён, но backend использует `service_role_key` и сам реализует RBAC по JWT.
 
 ### cf-api (Cloudflare)
 - **Боты:** автокомментарии VK (wall_post_new, wall_reply_new), обсуждение в TG-группе.
 - **Память:** Cloudflare KV (ветки, дедупликация).
-- **Не переносить в Python** — логика остаётся на Hono/TS.
+- **Стек:** Hono/TypeScript. **Не переносить в Python.**
 
 ---
 
-## Как ресурсы позволяют расширить продукт
+## Auth Flow (реализовано)
 
-### 1. Vercel backend — данные и авторизация
-- **Хранение:** Vercel KV, Vercel Postgres или внешний Neon/Supabase.
-- **Авторизация:** JWT по коду верификации (Telegram-запрос → код → токен).
-- **Роли:** проверка на API, разный UX по роли.
+```
+[Организатор] → POST /api/auth/generate-code (X-Generate-Code-Secret) → {code, role, expiresAt}
+[Участник]    → POST /api/auth/verify-code ({code, deviceId}) → {accessToken (JWT), role, campId, exp}
+[Frontend]    → Authorization: Bearer <accessToken> → все защищённые эндпоинты
+```
 
-### 2. cf-api — соцсети и боты
-- VK/TG автокомменты и обсуждения — без изменений.
-- При необходимости: webhook для событий лагеря (смена, отряд).
-
-### 3. Синергия
-- Фронт → Vercel backend: авторизация, синхронизация, community badges.
-- cf-api: боты в мессенджерах; backend: чат с сайта и ролевые проверки.
+- JWT payload: `{role, campId, deviceId, exp}`, подписан `AUTH_JWT_SECRET`.
+- При expired/отсутствующем токене → `role = 'traveler'`.
+- Подробности: [tech_context.md](../.memory-bank/tech_context.md) § Auth Flow.
 
 ---
 
-## Целевые роли и адаптация ЛК
+## Реализованные роли (8)
 
-| Роль | Описание | Адаптация ЛК |
-|------|----------|--------------|
-| **Путешественник** | Дефолт, оффлайн-first | Базовый ЛК, без ИИ-чата |
-| **Участник смены** | Привязан к смене, верификация | ИИ-чат, синхронизация, Движки |
-| **Родитель** | Наблюдатель за ребёнком | Read-only прогресс, CTA |
-| **Реальный вожатый** | Апрув значков, координация | Очередь подтверждений, панель отряда |
-| **Руководитель смены** | Динамика всех участников | Аналитика по смене, настройки |
-| **Организатор** | Создание смен/отрядов, управление staff | Панель «Смены и отряды», выдача кодов |
-| **Разработчик** | Полный доступ, песочница всегда | Служебные панели без DEV/sandbox |
+| # | Роль | Ключ | Адаптация ЛК |
+|---|------|------|-------------|
+| 1 | Путешественник | `traveler` | Базовый ЛК, без ИИ-чата, localStorage only |
+| 2 | Участник смены | `participant` | ИИ-чат, синхронизация, Движки, Реальный Дневник |
+| 3 | Родитель | `parent` | Read-only прогресс ребёнка, рекомендации, свой ЛК |
+| 4 | Вожатый | `counselor` | Inbox заявок на значки, панель отряда, отряд вожатых |
+| 5 | Педагог | `educator` | Кабинет педагога (задания, расписание, группы), inbox |
+| 6 | Старший вожатый | `shift_leader` | Создание смен/отрядов, выдача кодов, аналитика |
+| 7 | Директор лагеря | `camp_director` | Организаторский уровень, полное управление |
+| 8 | Разработчик | `developer` | Полный доступ, песочница, обход авторизации на localhost |
 
-**Статус:** реализовано. [authRole.ts](../src/types/authRole.ts), [AGENT_REPORT_ORGANIZER_ROLE.md](AGENT_REPORT_ORGANIZER_ROLE.md), [FEATURE_AUTH_ROLES_DVIZHKI_PLAN.md](FEATURE_AUTH_ROLES_DVIZHKI_PLAN.md).
+**Источник истины:** [authRole.ts](../src/types/authRole.ts)
+
+---
+
+## Панели Личного Кабинета (15+)
+
+| Панель | Доступ | Компонент |
+|--------|--------|-----------|
+| Паспорт | Все | ProfileView |
+| Реальный Отряд (Дневник) | Все | RealDiaryDashboard |
+| Движок (Команда) | participant+ | TeamDashboard |
+| Совет Лагеря | participant+ | CouncilDashboard |
+| Инспектор Пользы | participant+ | InspectorDashboard |
+| БРО Движение | participant+ | BroContainer |
+| Штаб Крыла | participant+ | WingDashboard |
+| Мастерская | 1.16.1/1.16.2 gate | WorkshopContainer |
+| Отрядный уголок | participant+ | SquadCornerDashboard |
+| Шеринг / Share Center | Все | ProfileView |
+| 4К Аналитика | participant+ | Profile4KDashboard |
+| Вожатификатор | counselor+ | ProfileView |
+| Кабинет педагога | educator+ | EducatorCabinetPanel |
+| Смены и отряды | shift_leader+ | ShiftsAndSquadsDashboard |
+| Для родителей | parent | ProfileView |
 
 ---
 
 ## Связь с документами
 
-- [ROADMAP_2026.md](ROADMAP_2026.md) — приоритеты, «Где мы сейчас».
-- [FEATURE_AUTH_ROLES_DVIZHKI_PLAN.md](FEATURE_AUTH_ROLES_DVIZHKI_PLAN.md) — роли, потоки верификации, Движки.
-- План централизации: Cursor plan «Centralize Bot Backend Migration».
-- [tech_context.md](../.memory-bank/tech_context.md) — стек, API, sync ai-data.
+- [active_context.md](../.memory-bank/active_context.md) — текущий фокус и статус.
+- [ROADMAP_2026.md](ROADMAP_2026.md) — архив реализованных задач с Evidence.
+- [tech_context.md](../.memory-bank/tech_context.md) — стек, API контракты, StorageProvider, грабли.
+- [SUPABASE_SCHEMA_AND_MIGRATION.md](SUPABASE_SCHEMA_AND_MIGRATION.md) — схема БД, реестр миграций.
+- [BACKEND_CONTRACT_GUARD.md](BACKEND_CONTRACT_GUARD.md) — обязательные/опциональные поля эндпоинтов.
+- [PROD_RELEASE_PLAYBOOK.md](PROD_RELEASE_PLAYBOOK.md) — чеклист деплоя и smoke-тесты.

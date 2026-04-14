@@ -30,6 +30,8 @@ from .base import (
     RoleRequestsStore,
     FamilyLinksStore,
     EngineJoinRequestsStore,
+    EngineProjectsStore,
+    EngineInitiativesStore,
 )
 
 _sb_client = None
@@ -1812,6 +1814,102 @@ class SupabaseEngineJoinRequestsStore(EngineJoinRequestsStore):
             pass  # best-effort
 
 
+class SupabaseEngineProjectsStore(EngineProjectsStore):
+    def load(self) -> dict:
+        sb = _client()
+        try:
+            rows = sb.table("engine_projects").select("*").execute().data or []
+        except Exception as exc:
+            if _is_missing_table_error(exc):
+                return {"projects": []}
+            raise
+        projects = []
+        for r in rows:
+            projects.append({
+                "id": r.get("_id") or r.get("id"),
+                "team_id": r.get("team_id"),
+                "title": r.get("title"),
+                "description": r.get("description"),
+                "plan": r.get("plan"),
+                "targetBadgeId": r.get("targetBadgeId") or r.get("target_badge_id"),
+                "status": r.get("status"),
+                "reflection": r.get("reflection"),
+                "scenario": r.get("scenario"),
+                "submittedAt": r.get("submittedAt") or r.get("submitted_at"),
+                "createdAt": r.get("createdAt") or r.get("created_at"),
+            })
+        return {"projects": projects}
+
+    def save(self, data: dict) -> None:
+        sb = _client()
+        for p in (data.get("projects") or []):
+            if not isinstance(p, dict):
+                continue
+            row = {
+                "_id": p.get("id", ""),
+                "team_id": p.get("team_id", ""),
+                "title": p.get("title", ""),
+                "description": p.get("description", ""),
+                "plan": p.get("plan", ""),
+                "targetBadgeId": p.get("targetBadgeId", ""),
+                "status": p.get("status", ""),
+                "reflection": p.get("reflection", ""),
+                "scenario": p.get("scenario", ""),
+                "submittedAt": p.get("submittedAt"),
+                "createdAt": p.get("createdAt"),
+            }
+            try:
+                sb.table("engine_projects").upsert(row).execute()
+            except Exception as exc:
+                if _is_missing_table_error(exc):
+                    return
+                raise
+
+
+class SupabaseEngineInitiativesStore(EngineInitiativesStore):
+    def load(self) -> dict:
+        sb = _client()
+        try:
+            rows = sb.table("engine_initiatives").select("*").execute().data or []
+        except Exception as exc:
+            if _is_missing_table_error(exc):
+                return {"initiatives": []}
+            raise
+        initiatives = []
+        for r in rows:
+            initiatives.append({
+                "id": r.get("_id") or r.get("id"),
+                "team_id": r.get("team_id"),
+                "title": r.get("title"),
+                "description": r.get("description"),
+                "status": r.get("status"),
+                "votes": r.get("votes", 0),
+                "createdAt": r.get("createdAt") or r.get("created_at"),
+            })
+        return {"initiatives": initiatives}
+
+    def save(self, data: dict) -> None:
+        sb = _client()
+        for i in (data.get("initiatives") or []):
+            if not isinstance(i, dict):
+                continue
+            row = {
+                "_id": i.get("id", ""),
+                "team_id": i.get("team_id", ""),
+                "title": i.get("title", ""),
+                "description": i.get("description", ""),
+                "status": i.get("status", ""),
+                "votes": i.get("votes", 0),
+                "createdAt": i.get("createdAt"),
+            }
+            try:
+                sb.table("engine_initiatives").upsert(row).execute()
+            except Exception as exc:
+                if _is_missing_table_error(exc):
+                    return
+                raise
+
+
 SUPABASE_STORES = {
     "shifts":           SupabaseShiftsStore(),
     "memberships":      SupabaseMembershipsStore(),
@@ -1842,4 +1940,6 @@ SUPABASE_STORES = {
     "role_requests":      SupabaseRoleRequestsStore(),
     "family_links":       SupabaseFamilyLinksStore(),
     "engine_join_requests": SupabaseEngineJoinRequestsStore(),
+    "engine_projects":  SupabaseEngineProjectsStore(),
+    "engine_initiatives": SupabaseEngineInitiativesStore(),
 }

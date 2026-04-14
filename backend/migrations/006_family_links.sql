@@ -1,5 +1,5 @@
--- Migration 004: family_links — parent-child relationship links
--- Apply with: python backend/migrations/apply_migration.py 004_family_links.sql
+-- Migration 006: family_links — parent-child relationship links
+-- Apply with: python backend/migrations/apply_migration.py 006_family_links.sql
 
 CREATE TABLE IF NOT EXISTS family_links (
     id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),

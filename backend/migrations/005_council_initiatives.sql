@@ -1,4 +1,4 @@
--- Migration 004: Extend council_initiatives table
+-- Migration 005: Extend council_initiatives table
 -- Task: M8-COUNCIL-INITIATIVES-A
 
 -- If table doesn't exist yet, create it
