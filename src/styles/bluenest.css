@@ -386,6 +386,12 @@ html[data-perf="lite"] .noise-overlay {
   color: var(--c-warm);
   mix-blend-mode: difference;
   pointer-events: auto;
+  animation: rl-backdrop-fade 0.25s ease-out forwards;
+}
+
+@keyframes rl-backdrop-fade {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
 }
 .sticky-nav .nav-link {
   font-family: var(--f-display-nav);
@@ -737,15 +743,24 @@ button.nav-image-container {
   pointer-events: auto;
   scrollbar-width: none;
   -ms-overflow-style: none;
+  -webkit-backdrop-filter: blur(12px);
+  transform: translateZ(0);
+  animation: rl-welcome-slide-in 0.25s ease-out forwards;
 }
 
 .subtitle-hint-backdrop {
   position: fixed;
   inset: 0;
   z-index: 1900;
-  background: rgba(6, 5, 12, 0.6);
-  backdrop-filter: blur(2px);
+  background: rgba(6, 5, 12, 0.85);
+  /* backdrop-filter removed */
   pointer-events: auto;
+  animation: rl-backdrop-fade 0.25s ease-out forwards;
+}
+
+@keyframes rl-backdrop-fade {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
 }
 
 .subtitle-hint-backdrop.is-hover {
@@ -1910,3 +1925,4 @@ html[data-perf="lite"] .bluenest-landing .feature-card {
 }
 /* Home logo tap animation */
 .nav-image-container:active { transform: scale(0.95) !important; opacity: 0.8; transition: transform 0.1s ease, opacity 0.1s ease; }
+
