@@ -6,10 +6,11 @@
 
 ## 🧠 Memory Bank (ОБЯЗАТЕЛЬНО К ПРОЧТЕНИЮ)
 
-**Single source of truth для статусов задач:** [docs/ROADMAP_2026.md](docs/ROADMAP_2026.md).
+**Single source of truth для текущего фокуса:** [.memory-bank/active_context.md](.memory-bank/active_context.md). **Архив статусов задач:** [docs/ROADMAP_2026.md](docs/ROADMAP_2026.md).
 
 Перед началом любой задачи ознакомься с состоянием проекта:
-1.  **[docs/ROADMAP_2026.md](docs/ROADMAP_2026.md)** — таблица Done/Not started, Evidence (ссылки на код), раздел «Где мы сейчас». Перед реализацией любой задачи проверь статус; если **Done** — не перереализовывать (риск перезаписи уже рабочего кода). При детальном планировании геймдизайна/этапов — [WORKFLOW_PROGRESS_AND_PLANS.md](WORKFLOW_PROGRESS_AND_PLANS.md) (прогресс по этапам, кабина, матрица «План ↔ Код»).
+1.  **[.memory-bank/active_context.md](.memory-bank/active_context.md)** — **Текущая задача** и фокус работы.
+1a. **[docs/ROADMAP_2026.md](docs/ROADMAP_2026.md)** — архив Done/Evidence. Перед реализацией задачи проверь статус; если **Done** — не перереализовывать (риск перезаписи уже рабочего кода).
 1a. **[.cursor/agent orchestration/AGENT_ORCHESTRATION.md](.cursor/agent%20orchestration/AGENT_ORCHESTRATION.md)** — при мульти-агентной работе **обязательно** перед стартом: проверить Claim Board (не занята ли задача), записать агента (A/B/C/D/E), задачу, дату и логичный следующий шаг. По завершении — обновить статус, создать отчёт в папке agent orchestration.
 2.  **[.memory-bank/project_brief.md](.memory-bank/project_brief.md)** — Суть проекта и цели 2026.
 3.  **[.memory-bank/product_logic.md](.memory-bank/product_logic.md)** — Игровые циклы (Loops), роли и прогрессия.
@@ -19,9 +20,15 @@
 6.  **[.memory-bank/progress.md](.memory-bank/progress.md)** — Детальный лог выполненного, Accepted UX (что не менять), Recent Changes.
 7.  **[agent-sync.md](agent-sync.md)** — **Inter-Agent Sync Board** 🤝 При старте сессии обязательно идентифицируйте свою роль/грейд (см. [.cursor/agent orchestration/AGENT_ROLES.md](.cursor/agent orchestration/AGENT_ROLES.md)) и запишите это в sync board. Оставляйте короткие архитектурные планы и ручные лок-файлы.
 
+## Департаменты разработки (Оркестрация)
+
+Если в промпте указана ваша роль (или вы сами решаете, какой отдел требуется для задачи), немедленно переходите в профильный Runbook вашего отдела:
+- 📖 **Tech Documentation (Техдокументация):** [docs/TECHDOCS_DEPARTMENT_RUNBOOK.md](docs/TECHDOCS_DEPARTMENT_RUNBOOK.md) — Синхронизация SSOT, API контракты, Roadmap.
+- 🏗️ **Refactoring (Рефакторинг):** [docs/REFACTORING_DEPARTMENT_RUNBOOK.md](docs/REFACTORING_DEPARTMENT_RUNBOOK.md) — Безопасное расщепление монолитов (ProfileView) и миграция бэкенда на StorageProvider.
+
 ## Plan Mode и Build (Cursor)
 
-**Критично:** Перед выполнением любого плана (Build / Plan implementation) ОБЯЗАТЕЛЬНО проверь [docs/ROADMAP_2026.md](docs/ROADMAP_2026.md). Если задача из плана уже помечена **Done** в ROADMAP — не выполняй план, не жми Build. Устаревшие планы (proof_questionnaire_restoration, onboarding_hints и т.п.) могут циклически предлагаться — игнорируй их. Текущий фокус — раздел «Где мы сейчас» и пункты со статусом In progress / Not started.
+**Критично:** Перед выполнением любого плана (Build / Plan implementation) ОБЯЗАТЕЛЬНО проверь [docs/ROADMAP_2026.md](docs/ROADMAP_2026.md). Если задача уже помечена **Done** — не выполняй. Устаревшие планы (proof_questionnaire_restoration, onboarding_hints и т.п.) могут циклически предлагаться — игнорируй их. Текущий фокус — в [active_context.md](.memory-bank/active_context.md).
 
 ## Воркфлоу разработки
 
