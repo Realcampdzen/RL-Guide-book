@@ -1812,9 +1812,7 @@
     font-size: clamp(1rem, 3vw, 1.3rem);
   }
 
-  .chat-avatar-button {
-    display: none !important;
-  }
+
 }
 
 @media (max-width: 1024px) and (min-width: 769px) {
