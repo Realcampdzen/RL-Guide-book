@@ -858,11 +858,14 @@
   z-index: 2;
   width: 100%;
   padding: 6px 8px 8px 8px;
+  padding-top: 32px !important;
   display: flex;
   flex-direction: column;
   gap: 2px;
   align-items: flex-start;
-  background: transparent;
+  background: linear-gradient(to top, rgba(14, 10, 24, 0.95) 0%, rgba(14, 10, 24, 0.6) 45%, transparent 100%);
+  border-bottom-left-radius: inherit;
+  border-bottom-right-radius: inherit;
 }
 
 /* Ensure text/content are above overlays, but DO NOT affect the cover image.
