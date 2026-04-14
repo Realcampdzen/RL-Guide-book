@@ -2061,7 +2061,7 @@
 }
 
 @media (min-width: 1024px) {
-  .categories-page .mobile-bottom-nav {
+  .mobile-bottom-nav[data-current-view="categories"] {
     left: 0;
     right: 0;
     margin: 0 auto;
