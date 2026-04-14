@@ -184,6 +184,7 @@ const CategoriesGrid: React.FC<CategoriesGridProps> = ({
       <button
         type="button"
         key={category.id}
+        data-category-id={category.id}
         data-categories-card
         className={`card item-card ${isLocked ? 'is-locked' : ''} ${extraClass ?? ''}`.trim()}
         onClick={() => {
