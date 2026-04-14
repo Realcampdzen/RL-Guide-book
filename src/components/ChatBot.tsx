@@ -523,7 +523,6 @@ const ChatBot: React.FC<ChatBotProps> = ({
     paddingLeft: isMobile ? Math.max(12, safeAreaLeft + 12) : 20,
     paddingRight: isMobile ? Math.max(12, safeAreaRight + 12) : 20,
     paddingBottom: isMobile ? mobileBottomInset : isTablet ? 5 : 20,
-    animation: 'chatFadeIn 0.3s ease-out',
     pointerEvents: 'none',
     // Provide CSS vars for potential CSS-only fallback/layout tuning.
     ['--chat-vh' as any]: `${viewport.height}px`,
@@ -614,10 +613,6 @@ const ChatBot: React.FC<ChatBotProps> = ({
     flexDirection: 'column',
     fontFamily: 'system-ui, -apple-system, sans-serif',
     border: '1px solid rgba(225, 29, 72, 0.5)',
-    animation: isMobile
-      ? 'chatSlideInFromBottom 0.4s ease-out'
-      : 'chatSlideInFromRight 0.4s ease-out',
-    backdropFilter: reduceEffects ? 'none' : 'blur(20px)',
     position: 'fixed',
     left: `${effectivePos.x}px`,
     ...(isMobile
@@ -653,7 +648,6 @@ const ChatBot: React.FC<ChatBotProps> = ({
     borderRadius: '0 0 24px 24px',
   };
 
-  if (!isOpen) return null;
 
   const onDragPointerDown = (e: React.PointerEvent) => {
     const startPos = effectivePos;
@@ -1321,3 +1315,4 @@ const ChatBot: React.FC<ChatBotProps> = ({
 };
 
 export default React.memo(ChatBot);
+

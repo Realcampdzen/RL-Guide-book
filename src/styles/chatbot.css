@@ -658,3 +658,46 @@ html[data-perf="lite"] .chatbot-container {
     font-size: 16px;
   }
 }
+
+/* Radix UI state animations */
+.chatbot-overlay[data-state="open"] {
+  animation: chatFadeIn 0.3s ease-out forwards;
+}
+.chatbot-overlay[data-state="closed"] {
+  animation: chatFadeOut 0.2s ease-in forwards;
+}
+
+.chatbot-container[data-state="open"] {
+  animation: chatSlideInFromRight 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.chatbot-container[data-state="closed"] {
+  animation: chatSlideOutToRight 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes chatFadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+@keyframes chatSlideOutToRight {
+  from { transform: translateX(0); opacity: 1; }
+  to { transform: translateX(100%); opacity: 0; }
+}
+@keyframes chatSlideOutToBottom {
+  from { transform: translateY(0); opacity: 1; }
+  to { transform: translateY(100%); opacity: 0; }
+}
+
+@media (max-width: 768px) {
+  .chatbot-container[data-state="open"] {
+    animation: chatSlideInFromBottom 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  .chatbot-container[data-state="closed"] {
+    animation: chatSlideOutToBottom 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  
+  .chatbot-container {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(225, 29, 72, 0.4) !important;
+  }
+}
