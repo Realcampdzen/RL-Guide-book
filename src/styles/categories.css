@@ -2078,6 +2078,7 @@
   .grid-container .item-card[data-category-id="11"] .card-label,
   .grid-container .item-card[data-category-id="12"] .card-label {
     padding-bottom: 56px !important;
+    background: linear-gradient(to top, rgba(14, 10, 24, 0.95) 0%, rgba(14, 10, 24, 0.85) 75%, transparent 100%) !important;
   }
 }
 
