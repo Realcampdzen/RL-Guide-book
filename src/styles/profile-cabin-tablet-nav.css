@@ -12,9 +12,8 @@
   min-width: 280px;
   margin-left: auto;
   margin-right: auto;
-  background:
-    linear-gradient(140deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02)),
-    var(--mobile-glass-bg);
+  background-image: linear-gradient(140deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
+  background-color: var(--mobile-glass-bg);
   backdrop-filter: blur(18px) saturate(1.1);
   -webkit-backdrop-filter: blur(18px) saturate(1.1);
   border: 1px solid var(--mobile-glass-border);
