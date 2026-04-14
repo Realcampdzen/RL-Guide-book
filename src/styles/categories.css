@@ -2071,7 +2071,6 @@
     width: min(360px, calc(100% - 32px)) !important;
     max-width: 360px !important;
     min-width: 280px !important;
-    bottom: calc(56px + env(safe-area-inset-bottom)) !important;
   }
 
   /* Elevate text on specific bottom row cards that sit directly behind the navbar */
