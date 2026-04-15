@@ -2,6 +2,7 @@ import type React from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { canUseExpensiveActions } from '../types/authRole';
+import { compressImage, uploadImage } from '../utils/imageUploadApi';
 
 export type ImageContextId =
   | 'gerb'
@@ -140,7 +141,7 @@ export interface ImageSourceBlockProps {
 }
 
 const isImageUrl = (s: string | null | undefined): s is string =>
-  !!s && (s.startsWith('data:') || s.startsWith('http'));
+  !!s && (s.startsWith('data:') || s.startsWith('http') || s.startsWith('/'));
 
 export const ImageSourceBlock: React.FC<ImageSourceBlockProps> = ({
   value,
@@ -158,7 +159,7 @@ export const ImageSourceBlock: React.FC<ImageSourceBlockProps> = ({
   hidePreview = false,
   buttonLayout = 'row',
 }) => {
-  const { role } = useAuth();
+  const { role, accessToken } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const processFileInputRef = useRef<HTMLInputElement>(null);
   const [modalOpen, setModalOpen] = useState(false);
@@ -173,10 +174,12 @@ export const ImageSourceBlock: React.FC<ImageSourceBlockProps> = ({
   const [processError, setProcessError] = useState<string | null>(null);
   const [processLoading, setProcessLoading] = useState(false);
   const [processPreviewUrl, setProcessPreviewUrl] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   const labels = { ...DEFAULT_LABELS[context], ...labelsProp };
-  const uploadLabel =
-    value && isImageUrl(value) ? (labels.uploadReplace ?? labels.upload) : labels.upload;
+  const uploadLabel = uploading 
+    ? 'Загрузка...' 
+    : (value && isImageUrl(value) ? (labels.uploadReplace ?? labels.upload) : labels.upload);
   const showGenerate = !!onGenerate;
   const showProcess = !!onProcess;
   const expensiveActionsAllowed = canUseExpensiveActions(role);
@@ -185,45 +188,21 @@ export const ImageSourceBlock: React.FC<ImageSourceBlockProps> = ({
     lockReason ||
     'Генерация и обработка изображений доступны участникам смены после разблокировки по коду.';
 
-  const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const r = new FileReader();
-      r.onload = () => {
-        const dataUrl = r.result as string;
-        // Compress image via canvas to avoid localStorage quota issues
-        const img = new Image();
-        img.onload = () => {
-          const MAX_DIM = 800;
-          const QUALITY = 0.7;
-          let { width, height } = img;
-          if (width > MAX_DIM || height > MAX_DIM) {
-            if (width > height) {
-              height = Math.round(height * (MAX_DIM / width));
-              width = MAX_DIM;
-            } else {
-              width = Math.round(width * (MAX_DIM / height));
-              height = MAX_DIM;
-            }
-          }
-          const canvas = document.createElement('canvas');
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext('2d');
-          if (!ctx) {
-            onChange(dataUrl);
-            return;
-          }
-          ctx.drawImage(img, 0, 0, width, height);
-          const compressed = canvas.toDataURL('image/jpeg', QUALITY);
-          onChange(compressed.length < dataUrl.length ? compressed : dataUrl);
-        };
-        img.onerror = () => onChange(dataUrl); // fallback to raw if compression fails
-        img.src = dataUrl;
-      };
-      r.readAsDataURL(file);
-    }
     e.target.value = '';
+    if (!file) return;
+
+    setUploading(true);
+    try {
+      const compressedBlob = await compressImage(file, { maxWidth: 800, maxHeight: 800, quality: 0.8 });
+      const url = await uploadImage(compressedBlob, accessToken || null, context);
+      onChange(url);
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'Не удалось загрузить изображение');
+    } finally {
+      setUploading(false);
+    }
   };
 
   const openModal = () => {
@@ -448,6 +427,7 @@ export const ImageSourceBlock: React.FC<ImageSourceBlockProps> = ({
                 width: '100%',
                 cursor: 'pointer',
               }}
+              disabled={uploading}
             >
               {uploadLabel}
             </button>
@@ -466,6 +446,7 @@ export const ImageSourceBlock: React.FC<ImageSourceBlockProps> = ({
               onClick={() => fileInputRef.current?.click()}
               className="cab-btn-glass"
               style={{ padding: '8px 14px', fontSize: 13, minWidth: 'unset', fontWeight: 500 }}
+              disabled={uploading}
             >
               {uploadLabel}
             </button>

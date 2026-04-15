@@ -125,6 +125,10 @@ export async function requestImageGenerate(
 
   const b64 = data.imageBase64;
   if (!b64 || typeof b64 !== 'string') throw new Error('Некорректный ответ сервера');
+  
+  if (b64.startsWith('http://') || b64.startsWith('https://') || b64.startsWith('/')) {
+    return b64;
+  }
   return b64.startsWith('data:') ? b64 : `data:image/png;base64,${b64}`;
 }
 

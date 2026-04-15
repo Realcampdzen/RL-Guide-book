@@ -11,7 +11,9 @@ import {
   parseAiSkinSlotIndex,
   parseApprovedArtSkinSlotIndex,
 } from '../utils/badgeSkins';
+
 import { requestImageGenerate } from '../utils/imageGenerateApi';
+import { compressImage, uploadImage } from '../utils/imageUploadApi';
 import ActionBar from './ActionBar';
 import StatusChips, { type StatusChipItem } from './StatusChips';
 
@@ -62,6 +64,7 @@ const BadgeSkinPanel: React.FC<BadgeSkinPanelProps> = ({
 
   const [artProposalModalOpen, setArtProposalModalOpen] = useState(false);
   const [artProposalDraftUrl, setArtProposalDraftUrl] = useState<string | null>(null);
+  const [artProposalFile, setArtProposalFile] = useState<File | null>(null);
   const [artProposalBusy, setArtProposalBusy] = useState(false);
   const [artProposalError, setArtProposalError] = useState<string | null>(null);
   const [artProposalSuccess, setArtProposalSuccess] = useState<string | null>(null);
@@ -216,18 +219,20 @@ const BadgeSkinPanel: React.FC<BadgeSkinPanelProps> = ({
     }
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      const dataUrl = reader.result as string;
-      if (!dataUrl) return;
-      setArtProposalDraftUrl(dataUrl);
-      setArtProposalError(null);
-      setArtProposalSuccess(null);
-      setArtProposalBusy(false);
-      setArtProposalModalOpen(true);
-      setPanelError(null);
-    };
-    reader.readAsDataURL(file);
+    
+    // Check if previous blob URL needs revoking
+    if (artProposalDraftUrl && artProposalDraftUrl.startsWith('blob:')) {
+      URL.revokeObjectURL(artProposalDraftUrl);
+    }
+    
+    const previewUrl = URL.createObjectURL(file);
+    setArtProposalFile(file);
+    setArtProposalDraftUrl(previewUrl);
+    setArtProposalError(null);
+    setArtProposalSuccess(null);
+    setArtProposalBusy(false);
+    setArtProposalModalOpen(true);
+    setPanelError(null);
     e.target.value = '';
   };
 
@@ -238,28 +243,38 @@ const BadgeSkinPanel: React.FC<BadgeSkinPanelProps> = ({
     setArtProposalSuccess(null);
   };
 
-  const handleSubmitArtProposal = () => {
-    if (disabled || artProposalBusy || !artProposalDraftUrl) return;
+  const handleSubmitArtProposal = async () => {
+    if (disabled || artProposalBusy || !artProposalDraftUrl || !artProposalFile) return;
     setArtProposalBusy(true);
     setArtProposalError(null);
-    const result = submitBadgeArtProposal({
-      badgeBaseId,
-      badgeTitle,
-      categoryId,
-      categoryTitle,
-      imageUrl: artProposalDraftUrl,
-    });
-    if (!result.ok) {
+    
+    try {
+      const compressed = await compressImage(artProposalFile);
+      const url = await uploadImage(compressed, accessToken || null, 'badge_arts');
+      
+      const result = submitBadgeArtProposal({
+        badgeBaseId,
+        badgeTitle,
+        categoryId,
+        categoryTitle,
+        imageUrl: url,
+      });
+      
+      if (!result.ok) {
+        setArtProposalBusy(false);
+        setArtProposalError(
+          result.reason === 'duplicate'
+            ? 'Этот вариант уже отправлен и ждёт согласования.'
+            : 'Не удалось отправить версию на согласование.'
+        );
+        return;
+      }
       setArtProposalBusy(false);
-      setArtProposalError(
-        result.reason === 'duplicate'
-          ? 'Этот вариант уже отправлен и ждёт согласования.'
-          : 'Не удалось отправить версию на согласование.'
-      );
-      return;
+      setArtProposalSuccess('Версия отправлена на согласование.');
+    } catch(e) {
+      setArtProposalBusy(false);
+      setArtProposalError(e instanceof Error ? e.message : 'Не удалось загрузить изображение.');
     }
-    setArtProposalBusy(false);
-    setArtProposalSuccess('Версия отправлена на согласование.');
   };
 
   const openDeleteConfirm = (kind: 'ai' | 'approved', slotIndex: number) => {

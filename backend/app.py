@@ -2000,6 +2000,62 @@ def team_message_delete(team_id: str, msg_id: str):
     return jsonify({'ok': True})
 
 
+import werkzeug.utils
+import mimetypes
+
+@app.route('/api/images/upload', methods=['POST'])
+def images_upload():
+    """Upload user images to backend/Supabase Storage."""
+    payload, err = _require_teams_auth()
+    if err is not None:
+        return err[0], err[1]
+    
+    if 'file' not in request.files:
+        return jsonify({"error": "No file parameter"}), 400
+        
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({"error": "Empty file"}), 400
+        
+    ext = mimetypes.guess_extension(file.mimetype) or ""
+    if not ext and "." in file.filename:
+        ext = f".{file.filename.split('.')[-1]}"
+    if ext == ".jpe":
+        ext = ".jpg"
+        
+    unique_name = f"upload_{uuid.uuid4().hex[:12]}{ext}"
+    
+    from storage import USE_SUPABASE
+    if USE_SUPABASE:
+        try:
+            from storage.supabase_provider import supabase
+            file_bytes = file.read()
+            supabase.storage.from_("uploads").upload(
+                file=file_bytes, 
+                path=unique_name, 
+                file_options={"content-type": file.mimetype}
+            )
+            public_url = supabase.storage.from_("uploads").get_public_url(unique_name)
+            return jsonify({"url": public_url})
+        except Exception as e:
+            app.logger.error(f"Supabase upload failed: {str(e)}")
+            return jsonify({"error": "Upload failed"}), 500
+    else:
+        # Local upload mode
+        uploads_dir = os.path.join(os.path.dirname(__file__), "data", "uploads")
+        os.makedirs(uploads_dir, exist_ok=True)
+        file_path = os.path.join(uploads_dir, unique_name)
+        file.save(file_path)
+        return jsonify({"url": f"/api/uploads/{unique_name}"})
+
+
+@app.route('/api/uploads/<path:filename>')
+def serve_upload(filename):
+    """Serve locally uploaded files in dev mode."""
+    uploads_dir = os.path.join(os.path.dirname(__file__), "data", "uploads")
+    return send_from_directory(uploads_dir, filename)
+
+
 # Context identifiers for POST /api/images/generate (LK sections)
 IMAGES_CONTEXT_PROMPTS = {
     "squad_corner": "Squad corner photo, Real Camp style, youth camp aesthetic.",
@@ -2145,13 +2201,40 @@ def images_generate():
                 "error": "Не удалось сгенерировать изображение",
                 "hint": "Проверьте ключ OpenAI, квоту и доступ к api.openai.com (при необходимости задайте OPENAI_BASE_URL)",
             }), 503
+
+    else:
+        # mode == "process"
+        result = process_fn(image_base64, full_prompt)
+        if not result:
+            return jsonify({"error": "Обработка изображений пока не поддерживается"}), 501
+
+    # Save the base64 result to storage instead of returning huge string
+    from storage import USE_SUPABASE
+    unique_name = f"gen_{uuid.uuid4().hex[:12]}.png"
+    
+    try:
+        image_data = base64.b64decode(result)
+        if USE_SUPABASE:
+            from storage.supabase_provider import supabase
+            supabase.storage.from_("uploads").upload(
+                file=image_data, 
+                path=unique_name, 
+                file_options={"content-type": "image/png"}
+            )
+            public_url = supabase.storage.from_("uploads").get_public_url(unique_name)
+            return jsonify({"imageBase64": public_url}), 200
+        else:
+            uploads_dir = os.path.join(os.path.dirname(__file__), "data", "uploads")
+            os.makedirs(uploads_dir, exist_ok=True)
+            file_path = os.path.join(uploads_dir, unique_name)
+            with open(file_path, "wb") as f:
+                f.write(image_data)
+            return jsonify({"imageBase64": f"/api/uploads/{unique_name}"}), 200
+    except Exception as e:
+        app.logger.error(f"Image saving failed: {e}")
+        # Fallback to base64 if save fails
         return jsonify({"imageBase64": result}), 200
 
-    # mode == "process"
-    result = process_fn(image_base64, full_prompt)
-    if not result:
-        return jsonify({"error": "Обработка изображений пока не поддерживается"}), 501
-    return jsonify({"imageBase64": result}), 200
 
 
 @app.route('/api/teams/<team_id>', methods=['GET', 'PATCH', 'DELETE'])

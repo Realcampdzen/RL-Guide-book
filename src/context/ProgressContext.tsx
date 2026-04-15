@@ -113,7 +113,7 @@ export const ProgressProvider: React.FC<{ children: ReactNode }> = ({ children }
         if (e instanceof DOMException && (e.name === 'QuotaExceededError' || e.code === 22)) {
           console.error('Слишком много данных (например, фото).');
           alert(
-            'Не удалось сохранить: слишком много данных. Удалите несколько фото в отрядном уголке.'
+            'Память браузера переполнена старыми фото. Убедитесь, что у вас есть подключение к интернету, чтобы новые загрузки сохранялись в облако, или удалите старые фото в отрядном уголке.'
           );
         } else {
           console.error('Failed to save progress', e);
