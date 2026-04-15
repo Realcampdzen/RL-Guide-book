@@ -346,18 +346,16 @@ const CategoryView: React.FC<CategoryViewProps> = ({
   onChatToggle,
   isChatOpen,
   onChatClose: _onChatClose,
-  onOpenCategories,
-  onTelegramContact,
-  onBackToIntro,
+
 }) => {
   const { initReveal } = useScrollReveal();
   const { getBadgeProgress, userData } = useUserProgress();
   const { deviceId } = useAuth();
   const { myTeam } = useTeam();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
   type BadgeFilter = 'all' | 'mine' | 'in_progress';
   const [badgeFilter, setBadgeFilter] = useState<BadgeFilter>('all');
-  const menuButtonRef = useRef<HTMLButtonElement | null>(null);
+
   const prefetchedCategoryIdRef = useRef<string | null>(null);
   const broGateRef = useRef<HTMLDivElement | null>(null);
 
@@ -457,49 +455,8 @@ const CategoryView: React.FC<CategoryViewProps> = ({
     }
   }, [category.id, isLoadingBadges, badges]);
 
-  useEffect(() => {
-    if (!isMenuOpen) return;
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setIsMenuOpen(false);
-      }
-    };
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [isMenuOpen]);
-
-  const handleMenuToggle = () => {
-    setIsMenuOpen((prev) => !prev);
-  };
-
-  const closeMenu = () => {
-    setIsMenuOpen(false);
-  };
-
-  useEffect(() => {
-    if (!isMenuOpen) return;
-    // Focus first actionable element in the panel for keyboard users
-    const panel = document.getElementById('category-mobile-menu-panel');
-    const firstFocusable = panel?.querySelector<HTMLButtonElement>(
-      'button, [href], [tabindex]:not([tabindex="-1"])'
-    );
-    firstFocusable?.focus();
-  }, [isMenuOpen]);
-
-  useEffect(() => {
-    if (isMenuOpen) return;
-    // Restore focus to the menu button after closing
-    menuButtonRef.current?.focus();
-  }, [isMenuOpen]);
-
   const handleChatToggle = () => {
-    setIsMenuOpen(false);
     onChatToggle();
-  };
-
-  const handleMenuAction = (action: () => void) => {
-    setIsMenuOpen(false);
-    action();
   };
 
   const titleWords = (category.title || '').trim().split(/\s+/);
@@ -588,19 +545,7 @@ const CategoryView: React.FC<CategoryViewProps> = ({
         </button>
 
         <div className="mobile-header-actions">
-          <button
-            type="button"
-            className={`mobile-header-btn mobile-header-menu${isMenuOpen ? ' is-active' : ''}`}
-            onClick={handleMenuToggle}
-            aria-label="Меню"
-            aria-expanded={isMenuOpen}
-            aria-controls="category-mobile-menu-panel"
-            ref={menuButtonRef}
-          >
-            <span className="menu-line"></span>
-            <span className="menu-line"></span>
-            <span className="menu-line"></span>
-          </button>
+
           <button
             type="button"
             className={`mobile-header-avatar${isChatOpen ? ' is-active' : ''}`}
@@ -613,60 +558,7 @@ const CategoryView: React.FC<CategoryViewProps> = ({
         </div>
       </header>
 
-      <div
-        className={`mobile-menu-scrim${isMenuOpen ? ' is-open' : ''}`}
-        onClick={closeMenu}
-        aria-hidden="true"
-      ></div>
-      <div
-        id="category-mobile-menu-panel"
-        className={`mobile-menu-panel${isMenuOpen ? ' is-open' : ''}`}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="category-menu-title"
-        aria-hidden={!isMenuOpen}
-      >
-        <div className="mobile-menu-head">
-          <span id="category-menu-title" className="mobile-menu-title">
-            Меню
-          </span>
-          <button
-            type="button"
-            className="mobile-menu-close"
-            onClick={closeMenu}
-            aria-label="Закрыть меню"
-          >
-            &times;
-          </button>
-        </div>
-        <div className="mobile-menu-list">
-          <button
-            type="button"
-            className="mobile-menu-item"
-            onClick={() => handleMenuAction(onBackToIntro)}
-          >
-            <span className="mobile-menu-item-label">Главная</span>
-            <span className="mobile-menu-item-icon">&rsaquo;</span>
-          </button>
-          <button
-            type="button"
-            className="mobile-menu-item is-active"
-            aria-current="page"
-            onClick={() => handleMenuAction(onOpenCategories)}
-          >
-            <span className="mobile-menu-item-label">Категории</span>
-            <span className="mobile-menu-item-icon">&bull;</span>
-          </button>
-          <button
-            type="button"
-            className="mobile-menu-item mobile-menu-item-cta"
-            onClick={() => handleMenuAction(onTelegramContact)}
-          >
-            <span className="mobile-menu-item-label">Записаться через Telegram</span>
-            <span className="mobile-menu-item-icon">&rsaquo;</span>
-          </button>
-        </div>
-      </div>
+
 
       {/* Header Bar */}
       <header

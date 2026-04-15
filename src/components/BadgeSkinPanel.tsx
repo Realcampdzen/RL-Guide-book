@@ -25,10 +25,11 @@ interface BadgeSkinPanelProps {
   inProgressHint: string;
   disabled?: boolean;
   disabledHint?: string;
+  workshopNode?: React.ReactNode;
 }
 
 type DeleteTarget = { kind: 'ai' | 'approved'; slotIndex: number } | null;
-type ActiveStatus = 'ai' | 'approved' | 'progress' | null;
+type ActiveStatus = 'ai' | 'approved' | 'proposals' | null;
 
 const BadgeSkinPanel: React.FC<BadgeSkinPanelProps> = ({
   badgeTitle,
@@ -37,9 +38,10 @@ const BadgeSkinPanel: React.FC<BadgeSkinPanelProps> = ({
   categoryTitle,
   inProgressCount,
   inProgressMax,
-  inProgressHint,
+
   disabled = false,
   disabledHint,
+  workshopNode,
 }) => {
   const { accessToken, role } = useAuth();
   const {
@@ -67,6 +69,7 @@ const BadgeSkinPanel: React.FC<BadgeSkinPanelProps> = ({
   const [panelError, setPanelError] = useState<string | null>(null);
   const [pendingDelete, setPendingDelete] = useState<DeleteTarget>(null);
   const [activeStatus, setActiveStatus] = useState<ActiveStatus>(null);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const currentSkin = useMemo(() => {
     return userData.selectedSkins?.[badgeBaseId] || 'auto';
@@ -89,7 +92,7 @@ const BadgeSkinPanel: React.FC<BadgeSkinPanelProps> = ({
   const isAiSkinLimitReached = generatedSkins.length >= MAX_BADGE_AI_SKINS;
   const isApprovedLimitReached = approvedSkins.length >= MAX_BADGE_APPROVED_ARTS;
   const hasApprovedArt = approvedSkins.length > 0;
-  const uploadButtonLabel = hasApprovedArt ? '📤 Предложить другой арт' : '📤 Предложить свой арт';
+  const uploadButtonLabel = hasApprovedArt ? 'Предложить другой арт' : 'Предложить свой арт';
   const isModeratorRole =
     role === 'counselor' ||
     role === 'educator' ||
@@ -284,7 +287,7 @@ const BadgeSkinPanel: React.FC<BadgeSkinPanelProps> = ({
     },
     {
       id: 'approved',
-      title: 'Одобренные арты',
+      title: 'Загруженные арты',
       count: approvedSkins.length,
       max: MAX_BADGE_APPROVED_ARTS,
       hint: approvedSkins.length > 0 ? 'Открыть список артов' : 'Пока нет одобренных версий',
@@ -292,13 +295,13 @@ const BadgeSkinPanel: React.FC<BadgeSkinPanelProps> = ({
       onClick: () => handleStatusToggle('approved'),
     },
     {
-      id: 'progress',
-      title: 'В коллекции',
-      count: inProgressCount,
-      max: inProgressMax,
-      hint: inProgressHint,
-      active: activeStatus === 'progress',
-      onClick: () => handleStatusToggle('progress'),
+      id: 'proposals',
+      title: 'Предложения',
+      count: pendingArtProposalsCount,
+      max: 0,
+      hint: pendingArtProposalsCount > 0 ? 'На проверке' : 'Нет активных предложений',
+      active: activeStatus === 'proposals',
+      onClick: () => handleStatusToggle('proposals'),
     },
   ];
 
@@ -313,247 +316,308 @@ const BadgeSkinPanel: React.FC<BadgeSkinPanelProps> = ({
         aria-hidden
       />
 
-      <ActionBar
-        activeVariant={isMyArtSelected ? 'my-art' : 'default'}
-        onCreateAi={openAiSkinModal}
-        onSelectVariant={(variant) => {
-          if (variant === 'default') {
-            handleSkinChange('default');
-            return;
-          }
-          handleSelectMyArt();
-        }}
-        onUploadArt={() => {
-          if (disabled) return;
-          customArtInputRef.current?.click();
-        }}
-        uploadButtonLabel={uploadButtonLabel}
-        pendingCount={pendingArtProposalsCount}
-        disabled={disabled}
-        aiDisabled={isAiSkinLimitReached}
-        aiTitle={
-          isAiSkinLimitReached ? `Лимит ${MAX_BADGE_AI_SKINS}/${MAX_BADGE_AI_SKINS}` : undefined
-        }
-        myArtDisabled={!hasMyArt && !isMyArtSelected}
-        myArtTitle={!hasMyArt ? 'Сначала создай арт через ИИ или загрузи свой арт' : undefined}
-        uploadTitle={
-          isApprovedLimitReached ? `Лимит одобренных артов: ${MAX_BADGE_APPROVED_ARTS}` : undefined
-        }
-      />
-
-      <StatusChips items={statusItems} />
-
-      {activeStatus === 'ai' && (
-        <div className="badge-status-content" aria-label="Панель ИИ-артов">
-          <div className="badge-skin-gallery__head">
-            <span className="badge-skin-gallery__title">ИИ-арты</span>
-            <span className="badge-skin-gallery__count">
-              {generatedSkins.length}/{MAX_BADGE_AI_SKINS}
-            </span>
-          </div>
-          {generatedSkins.length > 0 ? (
-            <div className="badge-skin-gallery__list">
-              {generatedSkins.map((url, index) => {
-                const aiSkinId = getAiSkinId(index);
-                const isActive = currentSkin === aiSkinId;
-                const isDeleteConfirmOpen =
-                  pendingDelete?.kind === 'ai' && pendingDelete.slotIndex === index;
-                return (
-                  <div
-                    key={aiSkinId}
-                    className={`badge-skin-gallery__item${isActive ? ' is-active' : ''}`}
-                  >
-                    <button
-                      type="button"
-                      className="badge-skin-gallery__pick"
-                      onClick={() => handleSkinChange(aiSkinId)}
-                      disabled={disabled}
-                      aria-label={`Выбрать ИИ-арт ${index + 1}`}
-                    >
-                      <img src={url} alt={`ИИ-арт ${index + 1}`} loading="lazy" />
-                      <span>{index + 1}</span>
-                    </button>
-                    <button
-                      type="button"
-                      className="badge-skin-gallery__remove"
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        if (isDeleteConfirmOpen) {
-                          handleRemoveAiSkin(index);
-                          return;
-                        }
-                        openDeleteConfirm('ai', index);
-                      }}
-                      disabled={disabled}
-                      aria-label={
-                        isDeleteConfirmOpen
-                          ? `Подтвердить удаление ИИ-арта ${index + 1}`
-                          : `Удалить ИИ-арт ${index + 1}`
-                      }
-                    >
-                      {isDeleteConfirmOpen ? '!' : '×'}
-                    </button>
-                    {isDeleteConfirmOpen && (
-                      <div
-                        className="badge-skin-gallery__confirm"
-                        role="dialog"
-                        aria-label={`Подтверждение удаления ИИ-арта ${index + 1}`}
-                        onClick={(event) => event.stopPropagation()}
-                      >
-                        <div className="badge-skin-gallery__confirm-text">Удалить арт?</div>
-                        <div className="badge-skin-gallery__confirm-actions">
-                          <button
-                            type="button"
-                            className="badge-skin-gallery__confirm-btn is-danger"
-                            onClick={() => handleRemoveAiSkin(index)}
-                            disabled={disabled}
-                          >
-                            Да
-                          </button>
-                          <button
-                            type="button"
-                            className="badge-skin-gallery__confirm-btn"
-                            onClick={closeDeleteConfirm}
-                            disabled={disabled}
-                          >
-                            Нет
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="badge-skin-gallery__empty">Пока пусто. Сгенерируй первый вариант.</div>
-          )}
-        </div>
-      )}
-
-      {activeStatus === 'approved' && (
-        <div className="badge-status-content" aria-label="Панель одобренных артов">
-          <div className="badge-skin-gallery__head">
-            <span className="badge-skin-gallery__title">Одобренные арты</span>
-            <span className="badge-skin-gallery__count">
-              {approvedSkins.length}/{MAX_BADGE_APPROVED_ARTS}
-            </span>
-          </div>
-          {approvedSkins.length > 0 ? (
-            <div className="badge-skin-gallery__list">
-              {approvedSkins.map((url, index) => {
-                const approvedSkinId = getApprovedArtSkinId(index);
-                const isActive = currentSkin === approvedSkinId;
-                const isDeleteConfirmOpen =
-                  pendingDelete?.kind === 'approved' && pendingDelete.slotIndex === index;
-                return (
-                  <div
-                    key={approvedSkinId}
-                    className={`badge-skin-gallery__item${isActive ? ' is-active' : ''}`}
-                  >
-                    <button
-                      type="button"
-                      className="badge-skin-gallery__pick"
-                      onClick={() => handleSkinChange(approvedSkinId)}
-                      disabled={disabled}
-                      aria-label={`Выбрать одобренный арт ${index + 1}`}
-                    >
-                      <img src={url} alt={`Одобренный арт ${index + 1}`} loading="lazy" />
-                      <span>A{index + 1}</span>
-                    </button>
-                    <button
-                      type="button"
-                      className="badge-skin-gallery__remove"
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        if (isDeleteConfirmOpen) {
-                          handleRemoveApprovedSkin(index);
-                          return;
-                        }
-                        openDeleteConfirm('approved', index);
-                      }}
-                      disabled={disabled}
-                      aria-label={
-                        isDeleteConfirmOpen
-                          ? `Подтвердить удаление арта ${index + 1}`
-                          : `Удалить арт ${index + 1}`
-                      }
-                    >
-                      {isDeleteConfirmOpen ? '!' : '×'}
-                    </button>
-                    {isDeleteConfirmOpen && (
-                      <div
-                        className="badge-skin-gallery__confirm"
-                        role="dialog"
-                        aria-label={`Подтверждение удаления арта ${index + 1}`}
-                        onClick={(event) => event.stopPropagation()}
-                      >
-                        <div className="badge-skin-gallery__confirm-text">Удалить арт?</div>
-                        <div className="badge-skin-gallery__confirm-actions">
-                          <button
-                            type="button"
-                            className="badge-skin-gallery__confirm-btn is-danger"
-                            onClick={() => handleRemoveApprovedSkin(index)}
-                            disabled={disabled}
-                          >
-                            Да
-                          </button>
-                          <button
-                            type="button"
-                            className="badge-skin-gallery__confirm-btn"
-                            onClick={closeDeleteConfirm}
-                            disabled={disabled}
-                          >
-                            Нет
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="badge-skin-gallery__empty">
-              Пока нет одобренных пользовательских артов.
-            </div>
-          )}
-        </div>
-      )}
-
-      {activeStatus === 'progress' && (
-        <div
-          className="badge-status-content badge-status-content--progress"
-          aria-label="Панель коллекции"
+      {/* Accordion trigger row */}
+      <div className="art-studio-row">
+        <button
+          type="button"
+          className={`art-studio-trigger${isExpanded ? ' is-open' : ''}`}
+          onClick={() => setIsExpanded((prev) => !prev)}
+          aria-expanded={isExpanded}
+          aria-controls="art-studio-panel"
         >
-          <div className="badge-status-content__progress">
-            <div className="badge-status-content__progress-title">В коллекции</div>
-            <div className="badge-status-content__progress-value">
-              {inProgressCount}/{inProgressMax}
-            </div>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="m9.06 11.9 8.07-8.06a2.85 2.85 0 1 1 4.03 4.03l-8.06 8.08" />
+            <path d="M7.07 14.94c-1.66 0-3 1.35-3 3.02 0 1.33-2.5 1.52-2 2.02 1.08 1.1 2.49 2.02 4 2.02 2.2 0 4-1.8 4-4.04a3.01 3.01 0 0 0-3-3.02z" />
+          </svg>
+          Арт-студия
+          <span className="art-studio-trigger__chevron" aria-hidden="true">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="m6 9 6 6 6-6"/>
+            </svg>
+          </span>
+        </button>
+        <span className="art-studio-pill">
+          <span className="art-studio-pill__value">{inProgressCount}/{inProgressMax}</span>
+          &nbsp;в коллекции
+        </span>
+      </div>
+
+      {/* Accordion body */}
+      <div
+        id="art-studio-panel"
+        className={`art-studio-body${isExpanded ? ' is-open' : ''}`}
+        aria-hidden={!isExpanded}
+      >
+        <div className="art-studio-body__inner">
+          <div className="art-studio-body__content">
+            {workshopNode && (
+              <div className="art-studio-workshop-slot">
+                {workshopNode}
+              </div>
+            )}
+            
+            <ActionBar
+              activeVariant={isMyArtSelected ? 'my-art' : 'default'}
+              onCreateAi={openAiSkinModal}
+              onSelectVariant={(variant) => {
+                if (variant === 'default') {
+                  handleSkinChange('default');
+                  return;
+                }
+                handleSelectMyArt();
+              }}
+              onUploadArt={() => {
+                if (disabled) return;
+                customArtInputRef.current?.click();
+              }}
+              uploadButtonLabel={uploadButtonLabel}
+              pendingCount={pendingArtProposalsCount}
+              disabled={disabled}
+              aiDisabled={isAiSkinLimitReached}
+              aiTitle={
+                isAiSkinLimitReached
+                  ? `Лимит ${MAX_BADGE_AI_SKINS}/${MAX_BADGE_AI_SKINS}`
+                  : undefined
+              }
+              myArtDisabled={!hasMyArt && !isMyArtSelected}
+              myArtTitle={
+                !hasMyArt ? 'Сначала создай арт через ИИ или загрузи свой арт' : undefined
+              }
+              uploadTitle={
+                isApprovedLimitReached
+                  ? `Лимит одобренных артов: ${MAX_BADGE_APPROVED_ARTS}`
+                  : undefined
+              }
+            />
+
+            <StatusChips items={statusItems} />
+
+            {activeStatus === 'ai' && (
+              <div className="badge-status-content" aria-label="Панель ИИ-артов">
+                <div className="badge-skin-gallery__head">
+                  <span className="badge-skin-gallery__title">ИИ-арты</span>
+                  <span className="badge-skin-gallery__count">
+                    {generatedSkins.length}/{MAX_BADGE_AI_SKINS}
+                  </span>
+                </div>
+                {generatedSkins.length > 0 ? (
+                  <div className="badge-skin-gallery__list">
+                    {generatedSkins.map((url, index) => {
+                      const aiSkinId = getAiSkinId(index);
+                      const isActive = currentSkin === aiSkinId;
+                      const isDeleteConfirmOpen =
+                        pendingDelete?.kind === 'ai' && pendingDelete.slotIndex === index;
+                      return (
+                        <div
+                          key={aiSkinId}
+                          className={`badge-skin-gallery__item${isActive ? ' is-active' : ''}`}
+                        >
+                          <button
+                            type="button"
+                            className="badge-skin-gallery__pick"
+                            onClick={() => handleSkinChange(aiSkinId)}
+                            disabled={disabled}
+                            aria-label={`Выбрать ИИ-арт ${index + 1}`}
+                          >
+                            <img src={url} alt={`ИИ-арт ${index + 1}`} loading="lazy" />
+                            <span>{index + 1}</span>
+                          </button>
+                          <button
+                            type="button"
+                            className="badge-skin-gallery__remove"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              if (isDeleteConfirmOpen) {
+                                handleRemoveAiSkin(index);
+                                return;
+                              }
+                              openDeleteConfirm('ai', index);
+                            }}
+                            disabled={disabled}
+                            aria-label={
+                              isDeleteConfirmOpen
+                                ? `Подтвердить удаление ИИ-арта ${index + 1}`
+                                : `Удалить ИИ-арт ${index + 1}`
+                            }
+                          >
+                            {isDeleteConfirmOpen ? '!' : '×'}
+                          </button>
+                          {isDeleteConfirmOpen && (
+                            <div
+                              className="badge-skin-gallery__confirm"
+                              role="dialog"
+                              aria-label={`Подтверждение удаления ИИ-арта ${index + 1}`}
+                              onClick={(event) => event.stopPropagation()}
+                            >
+                              <div className="badge-skin-gallery__confirm-text">Удалить арт?</div>
+                              <div className="badge-skin-gallery__confirm-actions">
+                                <button
+                                  type="button"
+                                  className="badge-skin-gallery__confirm-btn is-danger"
+                                  onClick={() => handleRemoveAiSkin(index)}
+                                  disabled={disabled}
+                                >
+                                  Да
+                                </button>
+                                <button
+                                  type="button"
+                                  className="badge-skin-gallery__confirm-btn"
+                                  onClick={closeDeleteConfirm}
+                                  disabled={disabled}
+                                >
+                                  Нет
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="badge-skin-gallery__empty">
+                    Пока пусто. Сгенерируй первый вариант.
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeStatus === 'approved' && (
+              <div className="badge-status-content" aria-label="Панель загруженных артов">
+                <div className="badge-skin-gallery__head">
+                  <span className="badge-skin-gallery__title">Загруженные арты</span>
+                  <span className="badge-skin-gallery__count">
+                    {approvedSkins.length}/{MAX_BADGE_APPROVED_ARTS}
+                  </span>
+                </div>
+                {approvedSkins.length > 0 ? (
+                  <div className="badge-skin-gallery__list">
+                    {approvedSkins.map((url, index) => {
+                      const approvedSkinId = getApprovedArtSkinId(index);
+                      const isActive = currentSkin === approvedSkinId;
+                      const isDeleteConfirmOpen =
+                        pendingDelete?.kind === 'approved' && pendingDelete.slotIndex === index;
+                      return (
+                        <div
+                          key={approvedSkinId}
+                          className={`badge-skin-gallery__item${isActive ? ' is-active' : ''}`}
+                        >
+                          <button
+                            type="button"
+                            className="badge-skin-gallery__pick"
+                            onClick={() => handleSkinChange(approvedSkinId)}
+                            disabled={disabled}
+                            aria-label={`Выбрать одобренный арт ${index + 1}`}
+                          >
+                            <img
+                              src={url}
+                              alt={`Одобренный арт ${index + 1}`}
+                              loading="lazy"
+                            />
+                            <span>A{index + 1}</span>
+                          </button>
+                          <button
+                            type="button"
+                            className="badge-skin-gallery__remove"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              if (isDeleteConfirmOpen) {
+                                handleRemoveApprovedSkin(index);
+                                return;
+                              }
+                              openDeleteConfirm('approved', index);
+                            }}
+                            disabled={disabled}
+                            aria-label={
+                              isDeleteConfirmOpen
+                                ? `Подтвердить удаление арта ${index + 1}`
+                                : `Удалить арт ${index + 1}`
+                            }
+                          >
+                            {isDeleteConfirmOpen ? '!' : '×'}
+                          </button>
+                          {isDeleteConfirmOpen && (
+                            <div
+                              className="badge-skin-gallery__confirm"
+                              role="dialog"
+                              aria-label={`Подтверждение удаления арта ${index + 1}`}
+                              onClick={(event) => event.stopPropagation()}
+                            >
+                              <div className="badge-skin-gallery__confirm-text">
+                                Удалить арт?
+                              </div>
+                              <div className="badge-skin-gallery__confirm-actions">
+                                <button
+                                  type="button"
+                                  className="badge-skin-gallery__confirm-btn is-danger"
+                                  onClick={() => handleRemoveApprovedSkin(index)}
+                                  disabled={disabled}
+                                >
+                                  Да
+                                </button>
+                                <button
+                                  type="button"
+                                  className="badge-skin-gallery__confirm-btn"
+                                  onClick={closeDeleteConfirm}
+                                  disabled={disabled}
+                                >
+                                  Нет
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="badge-skin-gallery__empty">
+                    Пока нет загруженных пользовательских артов.
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeStatus === 'proposals' && (
+              <div
+                className="badge-status-content badge-status-content--progress"
+                aria-label="Панель предложений"
+              >
+                <div className="badge-status-content__progress">
+                  <div className="badge-status-content__progress-title">Предложения</div>
+                  <div className="badge-status-content__progress-value">
+                    {pendingArtProposalsCount}
+                  </div>
+                </div>
+                <div className="badge-status-content__progress-hint">
+                  {pendingArtProposalsCount > 0
+                    ? 'Ожидают проверки модератором'
+                    : 'Нет активных предложений по улучшению'}
+                </div>
+              </div>
+            )}
+
+            {panelError && (
+              <div
+                className="badge-skin-lock-note"
+                style={{
+                  borderColor: 'rgba(255,120,120,0.45)',
+                  color: '#ffcbcb',
+                  background: 'rgba(120,20,20,0.22)',
+                }}
+              >
+                {panelError}
+              </div>
+            )}
+
+            {disabled && (
+              <div className="badge-skin-lock-note">
+                {disabledHint || 'Арты откроются после получения предыдущего уровня.'}
+              </div>
+            )}
           </div>
-          <div className="badge-status-content__progress-hint">{inProgressHint}</div>
         </div>
-      )}
-
-      {panelError && (
-        <div
-          className="badge-skin-lock-note"
-          style={{
-            borderColor: 'rgba(255,120,120,0.45)',
-            color: '#ffcbcb',
-            background: 'rgba(120,20,20,0.22)',
-          }}
-        >
-          {panelError}
-        </div>
-      )}
-
-      {disabled && (
-        <div className="badge-skin-lock-note">
-          {disabledHint || 'Арты откроются после получения предыдущего уровня.'}
-        </div>
-      )}
+      </div>
 
       {aiSkinModalOpen && (
         <div

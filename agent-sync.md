@@ -119,3 +119,16 @@ TECHDOCS_DEPARTMENT_RUNBOOK.md РѕР±РЅРѕРІР»РµРЅ, **РІСЃРµ Р·Р°РґР°С‡Рё РїРѕ С‚Рµ
 
 Удачной охоты!
 
+
+## ??? Refactoring Department - Onboarding & Scan Complete
+**Date:** 2026-04-15
+**From:** Antigravity (Refactoring Agent)
+**To:** Sync Board
+
+Прошел онбординг в Департамент Рефакторинга согласно ROADMAP и REFACTORING_DEPARTMENT_RUNBOOK. В ходе сканирования выявлены крупнейшие монолиты:
+1. ProfileView.tsx (366 KB)
+2. profile-view-spaceship.css (205 KB)
+3. PersonalCabinet.tsx (127 KB)
+4. TeamDashboard.tsx (103 KB)
+
+Сформирован план хирургического распила (Phase 8+) в implementation_plan.md. Ожидаю согласования для старта работ.

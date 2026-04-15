@@ -1,5 +1,5 @@
 import type React from 'react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { aboutCampSession } from '../data/aboutCampSession';
 import { useScrollReveal } from '../hooks/useScrollReveal';
 import { useTiltCard } from '../hooks/useTiltCard';
@@ -23,14 +23,14 @@ const AboutCampView: React.FC<AboutCampViewProps> = ({
   categories,
   contentYear = '2026',
   onOpenCategory,
-  onOpenCategories,
+
   onTelegramContact,
   onChatToggle,
   isChatOpen,
   onChatClose: _onChatClose,
 }) => {
   const { initReveal } = useScrollReveal();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
 
   // Refs for tilt cards
   const card1Ref = useRef<HTMLDivElement | null>(null);
@@ -54,33 +54,8 @@ const AboutCampView: React.FC<AboutCampViewProps> = ({
     return () => clearTimeout(timer);
   }, [initReveal]);
 
-  useEffect(() => {
-    if (!isMenuOpen) return;
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setIsMenuOpen(false);
-      }
-    };
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [isMenuOpen]);
-
-  const handleMenuToggle = () => {
-    setIsMenuOpen((prev) => !prev);
-  };
-
-  const closeMenu = () => {
-    setIsMenuOpen(false);
-  };
-
   const handleChatToggle = () => {
-    setIsMenuOpen(false);
     onChatToggle();
-  };
-
-  const handleMenuAction = (action: () => void) => {
-    setIsMenuOpen(false);
-    action();
   };
 
   const handleCategoryLink = (id: string) => {
@@ -197,19 +172,8 @@ const AboutCampView: React.FC<AboutCampViewProps> = ({
         >
           NEUROVALUSHA
         </button>
+
         <div className="mobile-header-actions">
-          <button
-            type="button"
-            className={`mobile-header-btn mobile-header-menu${isMenuOpen ? ' is-active' : ''}`}
-            onClick={handleMenuToggle}
-            aria-label="Меню"
-            aria-expanded={isMenuOpen}
-            aria-controls="about-camp-mobile-menu-panel"
-          >
-            <span className="menu-line"></span>
-            <span className="menu-line"></span>
-            <span className="menu-line"></span>
-          </button>
           <button
             type="button"
             className={`mobile-header-avatar${isChatOpen ? ' is-active' : ''}`}
@@ -222,68 +186,6 @@ const AboutCampView: React.FC<AboutCampViewProps> = ({
         </div>
       </header>
 
-      <div
-        className={`mobile-menu-scrim${isMenuOpen ? ' is-open' : ''}`}
-        onClick={closeMenu}
-        aria-hidden="true"
-      ></div>
-      <div
-        id="about-camp-mobile-menu-panel"
-        className={`mobile-menu-panel${isMenuOpen ? ' is-open' : ''}`}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="about-camp-menu-title"
-        aria-hidden={!isMenuOpen}
-      >
-        <div className="mobile-menu-head">
-          <span id="about-camp-menu-title" className="mobile-menu-title">
-            Меню
-          </span>
-          <button
-            type="button"
-            className="mobile-menu-close"
-            onClick={closeMenu}
-            aria-label="Закрыть меню"
-          >
-            &times;
-          </button>
-        </div>
-        <div className="mobile-menu-list">
-          <button
-            type="button"
-            className="mobile-menu-item"
-            onClick={() => handleMenuAction(onBack)}
-          >
-            <span className="mobile-menu-item-label">Главная</span>
-            <span className="mobile-menu-item-icon">&rsaquo;</span>
-          </button>
-          <button
-            type="button"
-            className="mobile-menu-item"
-            onClick={() => handleMenuAction(onOpenCategories)}
-          >
-            <span className="mobile-menu-item-label">Категории</span>
-            <span className="mobile-menu-item-icon">&rsaquo;</span>
-          </button>
-          <button
-            type="button"
-            className="mobile-menu-item is-active"
-            aria-current="page"
-            onClick={() => handleMenuAction(() => window.scrollTo({ top: 0, behavior: 'smooth' }))}
-          >
-            <span className="mobile-menu-item-label">О лагере</span>
-            <span className="mobile-menu-item-icon">&bull;</span>
-          </button>
-          <button
-            type="button"
-            className="mobile-menu-item mobile-menu-item-cta"
-            onClick={() => handleMenuAction(onTelegramContact)}
-          >
-            <span className="mobile-menu-item-label">Записаться через Telegram</span>
-            <span className="mobile-menu-item-icon">&rsaquo;</span>
-          </button>
-        </div>
-      </div>
 
       {/* Sticky Header Nav */}
       <div

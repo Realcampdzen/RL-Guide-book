@@ -54,8 +54,7 @@ const CategoriesGrid: React.FC<CategoriesGridProps> = ({
   onCategoryPrefetch,
   onBackClick,
   onAboutCampClick,
-  onTelegramContact,
-  onOpenProfile,
+
   onChatToggle,
   isChatOpen,
   masterIndex,
@@ -72,8 +71,8 @@ const CategoriesGrid: React.FC<CategoriesGridProps> = ({
         : null;
   const [imageErrors, setImageErrors] = useState<Set<string>>(new Set());
   const [isMobile, setIsMobile] = useState(false);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [imageKey, setImageKey] = useState(0);
+
+  const [imageKey] = useState(0);
   const [squadIdeasCarouselSteps, setSquadIdeasCarouselSteps] = useState(0);
   /** Подсказка над заблокированной карточкой (Бро/Движки): не влияет на сетку, рендер в портале */
   const [lockTooltip, setLockTooltip] = useState<{ categoryId: string; rect: DOMRect } | null>(
@@ -109,51 +108,10 @@ const CategoriesGrid: React.FC<CategoriesGridProps> = ({
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  useEffect(() => {
-    if (!isMenuOpen) return;
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setIsMenuOpen(false);
-      }
-    };
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [isMenuOpen]);
-
-  // Принудительная перезагрузка изображения домика при возврате на страницу
-  useEffect(() => {
-    // Обновляем ключ изображения при монтировании компонента
-    setImageKey((prev) => prev + 1);
-  }, []); // Пустой массив зависимостей - срабатывает только при монтировании
-
-  const handleMenuToggle = () => {
-    setIsMenuOpen((prev) => !prev);
-  };
-
-  const closeMenu = () => {
-    setIsMenuOpen(false);
-  };
-
   const handleChatToggle = () => {
-    setIsMenuOpen(false);
     onChatToggle();
   };
 
-  const handleMenuAction = (action: () => void) => {
-    setIsMenuOpen(false);
-    action();
-  };
-
-  const handleOpenShareCenter = () => {
-    if (typeof window !== 'undefined') {
-      window.location.hash = '#share';
-    }
-    onOpenProfile();
-  };
-
-  const handleOpenVk = () => {
-    window.open('https://vk.com/realcampspb', '_blank', 'noopener,noreferrer');
-  };
 
   const handleImageError = (categoryId: string) => {
     console.error('Image error for category:', categoryId);
@@ -350,19 +308,8 @@ const CategoriesGrid: React.FC<CategoriesGridProps> = ({
         >
           NEUROVALUSHA
         </button>
+
         <div className="mobile-header-actions">
-          <button
-            type="button"
-            className={`mobile-header-btn mobile-header-menu${isMenuOpen ? ' is-active' : ''}`}
-            onClick={handleMenuToggle}
-            aria-label="Меню"
-            aria-expanded={isMenuOpen}
-            aria-controls="mobile-menu-panel"
-          >
-            <span className="menu-line"></span>
-            <span className="menu-line"></span>
-            <span className="menu-line"></span>
-          </button>
           <button
             type="button"
             className={`mobile-header-avatar${isChatOpen ? ' is-active' : ''}`}
@@ -383,84 +330,6 @@ const CategoriesGrid: React.FC<CategoriesGridProps> = ({
         </div>
       </header>
 
-      <div
-        className={`mobile-menu-scrim${isMenuOpen ? ' is-open' : ''}`}
-        onClick={closeMenu}
-        aria-hidden="true"
-      ></div>
-      <div
-        id="mobile-menu-panel"
-        className={`mobile-menu-panel${isMenuOpen ? ' is-open' : ''}`}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="categories-grid-menu-title"
-        aria-hidden={!isMenuOpen}
-      >
-        <div className="mobile-menu-head">
-          <span id="categories-grid-menu-title" className="mobile-menu-title">
-            Меню
-          </span>
-          <button
-            type="button"
-            className="mobile-menu-close"
-            onClick={closeMenu}
-            aria-label="Закрыть меню"
-          >
-            &times;
-          </button>
-        </div>
-        <div className="mobile-menu-list">
-          <button
-            type="button"
-            className="mobile-menu-item"
-            onClick={() => handleMenuAction(onBackClick)}
-          >
-            <span className="mobile-menu-item-label">Главная</span>
-            <span className="mobile-menu-item-icon">&rsaquo;</span>
-          </button>
-          <button
-            type="button"
-            className="mobile-menu-item is-active"
-            aria-current="page"
-            onClick={() => handleMenuAction(() => window.scrollTo({ top: 0, behavior: 'smooth' }))}
-          >
-            <span className="mobile-menu-item-label">Категории</span>
-            <span className="mobile-menu-item-icon">&bull;</span>
-          </button>
-          <button
-            type="button"
-            className="mobile-menu-item"
-            onClick={() => handleMenuAction(handleOpenShareCenter)}
-          >
-            <span className="mobile-menu-item-label">Поделиться прогрессом</span>
-            <span className="mobile-menu-item-icon">&rsaquo;</span>
-          </button>
-          <button
-            type="button"
-            className="mobile-menu-item"
-            onClick={() => handleMenuAction(onAboutCampClick)}
-          >
-            <span className="mobile-menu-item-label">О лагере</span>
-            <span className="mobile-menu-item-icon">&rsaquo;</span>
-          </button>
-          <button
-            type="button"
-            className="mobile-menu-item"
-            onClick={() => handleMenuAction(handleOpenVk)}
-          >
-            <span className="mobile-menu-item-label">ВКонтакте</span>
-            <span className="mobile-menu-item-icon">&rsaquo;</span>
-          </button>
-          <button
-            type="button"
-            className="mobile-menu-item mobile-menu-item-cta"
-            onClick={() => handleMenuAction(onTelegramContact)}
-          >
-            <span className="mobile-menu-item-label">Записаться через Telegram</span>
-            <span className="mobile-menu-item-icon">&rsaquo;</span>
-          </button>
-        </div>
-      </div>
 
       {/* Left Navigation Link */}
       <div

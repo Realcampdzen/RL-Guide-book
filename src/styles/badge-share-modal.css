@@ -1,0 +1,322 @@
+/* ========================================
+   Badge Share Modal
+   Domain CSS: модалка "Поделиться достижением"
+   Used by: BadgeLevelView.tsx
+   ======================================== */
+
+/* --- Overlay Backdrop --- */
+.badge-share-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 8, 18, 0.72);
+  backdrop-filter: blur(6px);
+  z-index: 12000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: badge-share-overlay-in 0.25s var(--easing);
+}
+
+@keyframes badge-share-overlay-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* --- Dialog Container --- */
+.badge-share-dialog {
+  width: min(920px, 100%);
+  max-height: 90vh;
+  overflow: auto;
+  background: rgba(18, 18, 32, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+  padding: 18px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+  animation: badge-share-dialog-in 0.3s var(--easing);
+
+  scrollbar-width: thin;
+  scrollbar-color: rgba(139, 0, 255, 0.3) rgba(0, 0, 0, 0.2);
+}
+
+.badge-share-dialog::-webkit-scrollbar {
+  width: 6px;
+}
+
+.badge-share-dialog::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+.badge-share-dialog::-webkit-scrollbar-thumb {
+  background: rgba(139, 0, 255, 0.3);
+  border-radius: 3px;
+}
+
+@keyframes badge-share-dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* --- Header --- */
+.badge-share-dialog__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.badge-share-dialog__title {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--c-stark);
+}
+
+.badge-share-dialog__subtitle {
+  font-size: 12px;
+  opacity: 0.7;
+  margin-top: 4px;
+  line-height: 1.4;
+  color: var(--c-stark);
+}
+
+.badge-share-dialog__close {
+  border: none;
+  background: rgba(255, 255, 255, 0.08);
+  color: white;
+  border-radius: 10px;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  flex: 0 0 auto;
+  transition:
+    background 0.2s var(--easing),
+    transform 0.2s var(--easing);
+}
+
+.badge-share-dialog__close:hover {
+  background: rgba(255, 255, 255, 0.14);
+  transform: scale(1.05);
+}
+
+/* --- Controls Row --- */
+.badge-share-controls {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.badge-share-controls__checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--c-stark);
+}
+
+.badge-share-controls__checkbox-label input[type="checkbox"] {
+  accent-color: var(--c-electric-blue);
+}
+
+/* --- Action Buttons (shared) --- */
+.badge-share-btn {
+  padding: 10px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.10);
+  color: white;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  font-family: var(--f-display-nav);
+  transition:
+    transform 0.2s var(--easing),
+    background 0.2s var(--easing),
+    border-color 0.2s var(--easing),
+    box-shadow 0.2s var(--easing);
+}
+
+.badge-share-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.28);
+  box-shadow: 0 8px 20px rgba(7, 4, 20, 0.3);
+}
+
+.badge-share-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.badge-share-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.badge-share-btn--busy {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* Secondary button (copy caption, link) */
+.badge-share-btn--secondary {
+  font-weight: 700;
+}
+
+/* --- Status Text --- */
+.badge-share-status {
+  margin-top: 10px;
+  font-size: 12px;
+  opacity: 0.85;
+  color: var(--c-stark);
+  line-height: 1.4;
+}
+
+/* --- Preview Grid --- */
+.badge-share-previews {
+  margin-top: 14px;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.badge-share-preview {
+  flex: 1 1 260px;
+  min-width: 260px;
+}
+
+.badge-share-preview__label {
+  font-size: 12px;
+  opacity: 0.7;
+  margin-bottom: 8px;
+  color: var(--c-stark);
+}
+
+.badge-share-preview__frame {
+  width: 100%;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.22);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.badge-share-preview__frame--story {
+  aspect-ratio: 9 / 16;
+}
+
+.badge-share-preview__frame--wide {
+  aspect-ratio: 16 / 9;
+}
+
+.badge-share-preview__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.badge-share-preview__placeholder {
+  padding: 14px;
+  font-size: 12px;
+  opacity: 0.55;
+  text-align: center;
+  line-height: 1.4;
+  color: var(--c-stark);
+}
+
+/* --- Per-preview actions --- */
+.badge-share-preview__actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.badge-share-preview__download {
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.08);
+  color: white;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: var(--f-display-nav);
+  transition:
+    transform 0.2s var(--easing),
+    background 0.2s var(--easing),
+    border-color 0.2s var(--easing);
+}
+
+.badge-share-preview__download:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+.badge-share-preview__download:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* --- Mobile Adaptation --- */
+@media (max-width: 768px) {
+  .badge-share-overlay {
+    padding: 12px;
+    align-items: flex-end;
+  }
+
+  .badge-share-dialog {
+    width: 100%;
+    max-height: 85vh;
+    border-radius: 20px 20px 0 0;
+    padding: 16px;
+    animation: badge-share-dialog-in-mobile 0.35s var(--easing);
+  }
+
+  @keyframes badge-share-dialog-in-mobile {
+    from {
+      opacity: 0;
+      transform: translateY(100%);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .badge-share-previews {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .badge-share-preview {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .badge-share-controls {
+    gap: 10px;
+  }
+
+  .badge-share-btn {
+    padding: 10px 12px;
+    font-size: 11px;
+  }
+}

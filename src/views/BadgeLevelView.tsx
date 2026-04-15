@@ -29,6 +29,8 @@ import {
   stripDuplicateHeading,
 } from '../utils/textFormatting';
 import '../styles/badge-view.css';
+import '../styles/badge-completion.css';
+import '../styles/badge-share-modal.css';
 import { ArtGallerySection } from '../components/ArtGallerySection';
 import type { Badge, Category } from '../types/guide';
 
@@ -59,9 +61,8 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
   onChatToggle,
   isChatOpen,
   onChatClose: _onChatClose,
-  onOpenCategories,
-  onTelegramContact,
-  onBackToIntro,
+
+
 }) => {
   const { initReveal } = useScrollReveal();
   const {
@@ -76,7 +77,7 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
   } = useUserProgress();
   const { role, accessToken, deviceId } = useAuth();
   const { myTeam } = useTeam();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
   const [isHeroLoaded, setIsHeroLoaded] = useState(false);
   const [useHeroWebp, setUseHeroWebp] = useState(true);
 
@@ -170,33 +171,8 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
     setIsHeroLoaded(false);
   }, [badge.id, level]);
 
-  useEffect(() => {
-    if (!isMenuOpen) return;
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setIsMenuOpen(false);
-      }
-    };
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [isMenuOpen]);
-
-  const handleMenuToggle = () => {
-    setIsMenuOpen((prev: boolean) => !prev);
-  };
-
-  const closeMenu = () => {
-    setIsMenuOpen(false);
-  };
-
   const handleChatToggle = () => {
-    setIsMenuOpen(false);
     onChatToggle();
-  };
-
-  const handleMenuAction = (action: () => void) => {
-    setIsMenuOpen(false);
-    action();
   };
 
   // Context Logic
@@ -948,18 +924,7 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
           <span className="mobile-badge-title-main">{levelBadge.title}</span>
         </div>
         <div className="mobile-header-actions">
-          <button
-            type="button"
-            className={`mobile-header-btn mobile-header-menu${isMenuOpen ? ' is-active' : ''}`}
-            onClick={handleMenuToggle}
-            aria-label="Меню"
-            aria-expanded={isMenuOpen}
-            aria-controls="badge-level-mobile-menu-panel"
-          >
-            <span className="menu-line"></span>
-            <span className="menu-line"></span>
-            <span className="menu-line"></span>
-          </button>
+
           <button
             type="button"
             className={`mobile-header-avatar${isChatOpen ? ' is-active' : ''}`}
@@ -980,67 +945,6 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
         </div>
       </header>
 
-      <div
-        className={`mobile-menu-scrim${isMenuOpen ? ' is-open' : ''}`}
-        onClick={closeMenu}
-        aria-hidden="true"
-      ></div>
-      <div
-        id="badge-level-mobile-menu-panel"
-        className={`mobile-menu-panel${isMenuOpen ? ' is-open' : ''}`}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="badge-level-menu-title"
-        aria-hidden={!isMenuOpen}
-      >
-        <div className="mobile-menu-head">
-          <span id="badge-level-menu-title" className="mobile-menu-title">
-            Меню
-          </span>
-          <button
-            type="button"
-            className="mobile-menu-close"
-            onClick={closeMenu}
-            aria-label="Закрыть меню"
-          >
-            &times;
-          </button>
-        </div>
-        <div className="mobile-menu-list">
-          <button
-            type="button"
-            className="mobile-menu-item"
-            onClick={() => handleMenuAction(onBackToIntro)}
-          >
-            <span className="mobile-menu-item-label">Главная</span>
-            <span className="mobile-menu-item-icon">&rsaquo;</span>
-          </button>
-          <button
-            type="button"
-            className="mobile-menu-item"
-            onClick={() => handleMenuAction(onOpenCategories)}
-          >
-            <span className="mobile-menu-item-label">Категории</span>
-            <span className="mobile-menu-item-icon">&rsaquo;</span>
-          </button>
-          <button
-            type="button"
-            className="mobile-menu-item"
-            onClick={() => handleMenuAction(onBack)}
-          >
-            <span className="mobile-menu-item-label">Назад</span>
-            <span className="mobile-menu-item-icon">&lsaquo;</span>
-          </button>
-          <button
-            type="button"
-            className="mobile-menu-item mobile-menu-item-cta"
-            onClick={() => handleMenuAction(onTelegramContact)}
-          >
-            <span className="mobile-menu-item-label">Записаться через Telegram</span>
-            <span className="mobile-menu-item-icon">&rsaquo;</span>
-          </button>
-        </div>
-      </div>
 
       <div className="sticky-back-nav">
         <button onClick={onBack} className="nav-link-back hover-target">
@@ -1078,18 +982,6 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
                 </div>
               </FeatureGate>
             )}
-
-            <BadgeSkinPanel
-              badgeTitle={badge.title}
-              badgeBaseId={levelBaseBadgeId}
-              categoryId={category.id}
-              categoryTitle={category.title}
-              inProgressCount={collectionCount}
-              inProgressMax={totalLevels}
-              inProgressHint={collectionHint}
-              disabled={!canUseSkinPanel}
-              disabledHint={skinPanelLockHint}
-            />
 
             {startLevelId &&
               (mechanicLocked ? (
@@ -1135,6 +1027,18 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
                   )}
                 </div>
               ))}
+
+            <BadgeSkinPanel
+              badgeTitle={badge.title}
+              badgeBaseId={levelBaseBadgeId}
+              categoryId={category.id}
+              categoryTitle={category.title}
+              inProgressCount={collectionCount}
+              inProgressMax={totalLevels}
+              inProgressHint={collectionHint}
+              disabled={!canUseSkinPanel}
+              disabledHint={skinPanelLockHint}
+            />
           </div>
         </section>
 
@@ -1281,156 +1185,78 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
               onCta={mechanicGateOnCta}
             >
               <div
-                className="content-block"
-                style={{ borderLeft: isCompleted ? '4px solid #4caf50' : '4px solid transparent' }}
+                className={`content-block badge-completion${isCompleted ? ' is-achieved' : ''}`}
               >
-                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '15px' }}>
-                  <label
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      cursor: 'pointer',
-                      fontSize: '18px',
-                      fontWeight: 'bold',
-                    }}
-                  >
+                <div className="badge-completion__header">
+                  <label className="badge-completion__label">
                     <input
                       type="checkbox"
+                      className="badge-completion__checkbox"
                       checked={isCompleted}
                       onChange={handleToggleComplete}
                       disabled={mechanicLocked}
-                      style={{
-                        width: '24px',
-                        height: '24px',
-                        marginRight: '10px',
-                        accentColor: '#4caf50',
-                      }}
                     />
                     {isCompleted ? 'Уровень выполнен! 🎉' : 'Отметить выполнение'}
                   </label>
                 </div>
 
                 {!isCompleted && (
-                  <div style={{ marginBottom: '15px' }}>
-                    <label
-                      style={{
-                        display: 'block',
-                        marginBottom: '5px',
-                        fontSize: '14px',
-                        opacity: 0.8,
-                      }}
-                    >
+                  <div className="badge-completion__form">
+                    <label className="badge-completion__form-label">
                       Рефлексия (обязательно): Что я сделал(а) и чему научился(ась)?
                     </label>
                     <textarea
+                      className="badge-completion__textarea"
                       value={reflection}
                       onChange={(e) => setReflection(e.target.value)}
                       disabled={mechanicLocked}
                       placeholder="Кратко опиши свой опыт..."
-                      style={{
-                        width: '100%',
-                        minHeight: '80px',
-                        padding: '10px',
-                        borderRadius: '8px',
-                        border: '1px solid rgba(255,255,255,0.2)',
-                        background: 'rgba(0,0,0,0.2)',
-                        color: 'white',
-                        fontFamily: 'inherit',
-                      }}
                     />
-                    <button
-                      onClick={handleToggleComplete}
-                      disabled={mechanicLocked || reflection.length < 5}
-                      style={{
-                        marginTop: '10px',
-                        padding: '8px 16px',
-                        background:
-                          !mechanicLocked && reflection.length >= 5
-                            ? '#4caf50'
-                            : 'rgba(255,255,255,0.1)',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '20px',
-                        cursor:
-                          !mechanicLocked && reflection.length >= 5 ? 'pointer' : 'not-allowed',
-                        opacity: !mechanicLocked && reflection.length >= 5 ? 1 : 0.5,
-                        fontWeight: 'bold',
-                      }}
-                    >
-                      Сохранить прогресс
-                    </button>
-                    {canSendBadgeRequest && (
+                    <div className="badge-completion__actions">
                       <button
                         type="button"
-                        onClick={() => void handleSendBadgeRequest()}
-                        disabled={mechanicLocked || badgeRequestBusy}
-                        style={{
-                          marginTop: '10px',
-                          marginLeft: '10px',
-                          padding: '8px 16px',
-                          background: 'rgba(255, 215, 0, 0.18)',
-                          color: '#FFD700',
-                          border: '1px solid rgba(255, 215, 0, 0.45)',
-                          borderRadius: '20px',
-                          cursor: badgeRequestBusy ? 'not-allowed' : 'pointer',
-                          opacity: badgeRequestBusy ? 0.6 : 1,
-                          fontWeight: 'bold',
-                        }}
+                        className={`badge-completion__btn badge-completion__btn--save`}
+                        onClick={handleToggleComplete}
+                        disabled={mechanicLocked || reflection.length < 5}
                       >
-                        {badgeRequestBusy ? 'Отправка...' : 'Отправить на подтверждение вожатому'}
+                        Сохранить прогресс
                       </button>
-                    )}
+                      {canSendBadgeRequest && (
+                        <button
+                          type="button"
+                          className="badge-completion__btn badge-completion__btn--request"
+                          onClick={() => void handleSendBadgeRequest()}
+                          disabled={mechanicLocked || badgeRequestBusy}
+                        >
+                          {badgeRequestBusy ? 'Отправка...' : 'Отправить на подтверждение вожатому'}
+                        </button>
+                      )}
+                    </div>
                   </div>
                 )}
                 {badgeRequestStatus && (
-                  <div style={{ marginTop: 8, fontSize: 12, opacity: 0.86 }}>
+                  <div className="badge-completion__status">
                     {badgeRequestStatus}
                   </div>
                 )}
 
                 {isCompleted && currentProgress?.reflection && (
-                  <div
-                    style={{
-                      background: 'rgba(76, 175, 80, 0.1)',
-                      padding: '10px',
-                      borderRadius: '8px',
-                      fontSize: '14px',
-                      fontStyle: 'italic',
-                      marginTop: '10px',
-                    }}
-                  >
+                  <div className="badge-completion__reflection">
                     "{currentProgress.reflection}"
                   </div>
                 )}
 
                 {isCompleted && (
-                  <div
-                    style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '12px' }}
-                  >
+                  <div className="badge-completion__share-row">
                     <button
                       type="button"
+                      className="badge-completion__share-btn"
                       onClick={() => {
                         setShareModalOpen(true);
                         if (!shareStory || !shareWide) {
                           void handleGenerateAchievementShareCards();
                         }
                       }}
-                      style={{
-                        padding: '12px 20px',
-                        borderRadius: '14px',
-                        border: 'none',
-                        background: 'linear-gradient(90deg, #8b00ff, #4dacff)',
-                        color: 'white',
-                        cursor: 'pointer',
-                        fontSize: '13px',
-                        fontWeight: 800,
-                        letterSpacing: '0.5px',
-                        textTransform: 'uppercase',
-                        boxShadow: '0 4px 15px rgba(139, 0, 255, 0.3)',
-                        transition: 'transform 0.2s',
-                      }}
-                      onMouseEnter={(e) => (e.currentTarget.style.transform = 'translateY(-2px)')}
-                      onMouseLeave={(e) => (e.currentTarget.style.transform = 'none')}
                     >
                       🚀 Поделиться успехом
                     </button>
@@ -1479,90 +1305,41 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
 
       {shareModalOpen && (
         <div
+          className="badge-share-overlay"
           aria-hidden="true"
           onClick={() => setShareModalOpen(false)}
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(8, 8, 18, 0.72)',
-            backdropFilter: 'blur(6px)',
-            zIndex: 12000,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '20px',
-          }}
         >
           <div
+            className="badge-share-dialog"
             role="dialog"
             aria-modal="true"
             aria-labelledby="badge-level-share-dialog-title"
             onClick={(e) => e.stopPropagation()}
-            style={{
-              width: 'min(920px, 100%)',
-              maxHeight: '90vh',
-              overflow: 'auto',
-              background: 'rgba(18, 18, 32, 0.95)',
-              border: '1px solid rgba(255, 255, 255, 0.12)',
-              borderRadius: '20px',
-              padding: '18px',
-              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.45)',
-            }}
           >
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'flex-start',
-                justifyContent: 'space-between',
-                gap: '12px',
-              }}
-            >
+            <div className="badge-share-dialog__header">
               <div>
                 <div
                   id="badge-level-share-dialog-title"
-                  style={{ fontSize: '16px', fontWeight: 800 }}
+                  className="badge-share-dialog__title"
                 >
                   Поделиться достижением
                 </div>
-                <div style={{ fontSize: '12px', opacity: 0.7, marginTop: '4px', lineHeight: 1.4 }}>
+                <div className="badge-share-dialog__subtitle">
                   Сделаем 2 PNG: сторис <b>9:16</b> и пост <b>16:9</b>. Ник скрыт по умолчанию.
                 </div>
               </div>
               <button
                 type="button"
+                className="badge-share-dialog__close"
                 onClick={() => setShareModalOpen(false)}
-                style={{
-                  border: 'none',
-                  background: 'rgba(255,255,255,0.08)',
-                  color: 'white',
-                  borderRadius: '10px',
-                  padding: '6px 10px',
-                  cursor: 'pointer',
-                }}
                 aria-label="Закрыть"
               >
                 ✕
               </button>
             </div>
 
-            <div
-              style={{
-                marginTop: '12px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '14px',
-                flexWrap: 'wrap',
-              }}
-            >
-              <label
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '10px',
-                  cursor: 'pointer',
-                  fontSize: '13px',
-                }}
-              >
+            <div className="badge-share-controls">
+              <label className="badge-share-controls__checkbox-label">
                 <input
                   type="checkbox"
                   checked={shareHideNickname}
@@ -1573,176 +1350,89 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
 
               <button
                 type="button"
+                className={`badge-share-btn${shareBusy ? ' badge-share-btn--busy' : ''}`}
                 onClick={() => void handleGenerateAchievementShareCards()}
                 disabled={shareBusy}
-                style={{
-                  padding: '10px 14px',
-                  borderRadius: '14px',
-                  border: '1px solid rgba(255,255,255,0.14)',
-                  background: shareBusy ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.10)',
-                  color: 'white',
-                  cursor: shareBusy ? 'not-allowed' : 'pointer',
-                  fontSize: '12px',
-                  fontWeight: 800,
-                  letterSpacing: '0.6px',
-                  textTransform: 'uppercase',
-                }}
               >
                 {shareBusy ? 'Генерируем…' : shareStory && shareWide ? 'Обновить' : 'Сгенерировать'}
               </button>
 
               <button
                 type="button"
+                className="badge-share-btn badge-share-btn--secondary"
                 onClick={() => void handleCopyShareCaption()}
                 disabled={shareBusy || (!shareStory && !shareWide)}
-                style={{
-                  padding: '10px 12px',
-                  borderRadius: '14px',
-                  border: '1px solid rgba(255,255,255,0.14)',
-                  background: 'rgba(255,255,255,0.08)',
-                  color: 'white',
-                  cursor: shareBusy || (!shareStory && !shareWide) ? 'not-allowed' : 'pointer',
-                  fontSize: '12px',
-                  fontWeight: 700,
-                }}
               >
                 Скопировать подпись
               </button>
 
               <button
                 type="button"
+                className="badge-share-btn badge-share-btn--secondary"
                 onClick={() => void handleCopyBadgeLink()}
                 disabled={shareBusy}
-                style={{
-                  padding: '10px 12px',
-                  borderRadius: '14px',
-                  border: '1px solid rgba(255,255,255,0.14)',
-                  background: 'rgba(255,255,255,0.08)',
-                  color: 'white',
-                  cursor: shareBusy ? 'not-allowed' : 'pointer',
-                  fontSize: '12px',
-                  fontWeight: 700,
-                }}
               >
                 Ссылка на значок
               </button>
             </div>
 
             {shareStatus && (
-              <div style={{ marginTop: '10px', fontSize: '12px', opacity: 0.85 }}>
+              <div className="badge-share-status">
                 {shareStatus}
               </div>
             )}
 
-            <div style={{ marginTop: '14px', display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-              <div style={{ flex: '1 1 260px', minWidth: '260px' }}>
-                <div style={{ fontSize: '12px', opacity: 0.7, marginBottom: '8px' }}>
+            <div className="badge-share-previews">
+              <div className="badge-share-preview">
+                <div className="badge-share-preview__label">
                   Сторис 9:16
                 </div>
-                <div
-                  style={{
-                    width: '100%',
-                    aspectRatio: '9 / 16',
-                    borderRadius: '16px',
-                    border: '1px solid rgba(255,255,255,0.12)',
-                    overflow: 'hidden',
-                    background: 'rgba(0,0,0,0.22)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
+                <div className="badge-share-preview__frame badge-share-preview__frame--story">
                   {shareStoryUrl ? (
                     <img
                       src={shareStoryUrl}
                       alt="Story preview"
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      className="badge-share-preview__image"
                     />
                   ) : (
-                    <div
-                      style={{
-                        padding: '14px',
-                        fontSize: '12px',
-                        opacity: 0.55,
-                        textAlign: 'center',
-                        lineHeight: 1.4,
-                      }}
-                    >
+                    <div className="badge-share-preview__placeholder">
                       Нажми «Сгенерировать», чтобы увидеть предпросмотр.
                     </div>
                   )}
                 </div>
-                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '10px' }}>
+                <div className="badge-share-preview__actions">
                   <button
                     type="button"
+                    className="badge-share-preview__download"
                     disabled={!shareStory || shareBusy}
                     onClick={() => shareStory && void handleShareAchievementCard(shareStory)}
-                    style={{
-                      padding: '10px 12px',
-                      borderRadius: '12px',
-                      border: '1px solid rgba(255,255,255,0.14)',
-                      background: 'rgba(255,255,255,0.08)',
-                      color: 'white',
-                      cursor: !shareStory || shareBusy ? 'not-allowed' : 'pointer',
-                      fontSize: '12px',
-                      fontWeight: 700,
-                    }}
                   >
                     Поделиться / скачать
                   </button>
                 </div>
               </div>
 
-              <div style={{ flex: '1 1 260px', minWidth: '260px' }}>
-                <div style={{ fontSize: '12px', opacity: 0.7, marginBottom: '8px' }}>Пост 16:9</div>
-                <div
-                  style={{
-                    width: '100%',
-                    aspectRatio: '16 / 9',
-                    borderRadius: '16px',
-                    border: '1px solid rgba(255,255,255,0.12)',
-                    overflow: 'hidden',
-                    background: 'rgba(0,0,0,0.22)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
+              <div className="badge-share-preview">
+                <div className="badge-share-preview__label">Пост 16:9</div>
+                <div className="badge-share-preview__frame badge-share-preview__frame--wide">
                   {shareWideUrl ? (
                     <img
                       src={shareWideUrl}
                       alt="Wide preview"
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      className="badge-share-preview__image"
                     />
                   ) : (
-                    <div
-                      style={{
-                        padding: '14px',
-                        fontSize: '12px',
-                        opacity: 0.55,
-                        textAlign: 'center',
-                        lineHeight: 1.4,
-                      }}
-                    >
+                    <div className="badge-share-preview__placeholder">
                       Нажми «Сгенерировать», чтобы увидеть предпросмотр.
                     </div>
                   )}
                 </div>
-                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '10px' }}>
+                <div className="badge-share-preview__actions">
                   <button
                     type="button"
+                    className="badge-share-preview__download"
                     disabled={!shareWide || shareBusy}
                     onClick={() => shareWide && void handleShareAchievementCard(shareWide)}
-                    style={{
-                      padding: '10px 12px',
-                      borderRadius: '12px',
-                      border: '1px solid rgba(255,255,255,0.14)',
-                      background: 'rgba(255,255,255,0.08)',
-                      color: 'white',
-                      cursor: !shareWide || shareBusy ? 'not-allowed' : 'pointer',
-                      fontSize: '12px',
-                      fontWeight: 700,
-                    }}
                   >
                     Поделиться / скачать
                   </button>
@@ -1754,22 +1444,7 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
       )}
 
       {showConfetti && (
-        <div
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            width: '100vw',
-            height: '100vh',
-            pointerEvents: 'none',
-            zIndex: 9999,
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            fontSize: '5rem',
-            animation: 'fade-out 3s forwards',
-          }}
-        >
+        <div className="badge-confetti-overlay" aria-hidden="true">
           🎉 🌟 🚀
         </div>
       )}

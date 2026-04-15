@@ -141,9 +141,7 @@
 
 /* Graceful degradation: if backdrop-filter is unsupported, use a more opaque glass background */
 @supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
-  .category-view-container .mobile-glass-header,
-  .category-view-container .mobile-menu-panel,
-  .category-view-container .mobile-bottom-nav {
+  .category-view-container .mobile-glass-header {
     backdrop-filter: none !important;
 
     background: rgba(17, 14, 32, 0.92) !important;
@@ -152,9 +150,7 @@
 }
 
 /* Perf-lite: reduce blur/shadows for mobile glass UI on weak devices */
-html[data-perf="lite"] .category-view-container .mobile-glass-header,
-html[data-perf="lite"] .category-view-container .mobile-menu-panel,
-html[data-perf="lite"] .category-view-container .mobile-bottom-nav {
+html[data-perf="lite"] .category-view-container .mobile-glass-header {
   backdrop-filter: blur(10px) saturate(1.05);
 
   box-shadow: 0 10px 22px rgba(9, 6, 20, 0.48);
@@ -1206,138 +1202,7 @@ html[data-perf="lite"] .category-view-container .mobile-bottom-nav {
     box-shadow: 0 0 14px rgba(192, 132, 252, 0.65);
   }
 
-  .mobile-menu-scrim {
-    position: fixed;
-    inset: 0;
-    background: rgba(6, 4, 16, 0.45);
-    backdrop-filter: blur(3px);
 
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.25s var(--easing);
-    z-index: 1085;
-    display: block;
-  }
-
-  .mobile-menu-scrim.is-open {
-    opacity: 1;
-    pointer-events: auto;
-  }
-
-  .mobile-menu-panel {
-    position: fixed;
-    top: calc(8px + env(safe-area-inset-top) + 58px + 12px);
-    left: 12px;
-    right: 12px;
-    background:
-      linear-gradient(140deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.03)),
-      rgba(17, 14, 32, 0.68);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 20px;
-    padding: 14px;
-    box-shadow: 0 20px 45px rgba(8, 6, 20, 0.6);
-    opacity: 0;
-    transform: translateY(-10px) scale(0.98);
-    pointer-events: none;
-    transition:
-      opacity 0.25s var(--easing),
-      transform 0.25s var(--easing);
-    z-index: 1105;
-    display: block;
-  }
-
-  .mobile-menu-panel.is-open {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-    pointer-events: auto;
-  }
-
-  .mobile-menu-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 12px;
-  }
-
-  .mobile-menu-title {
-    font-family: var(--f-display-nav);
-    font-size: 0.6rem;
-    letter-spacing: 0.28em;
-    text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.6);
-  }
-
-  .mobile-menu-close {
-    width: 32px;
-    height: 32px;
-    border-radius: 10px;
-    border: 1px solid rgba(255, 255, 255, 0.16);
-    background: rgba(255, 255, 255, 0.08);
-    color: rgba(255, 255, 255, 0.8);
-    font-weight: 700;
-    font-size: 0.75rem;
-    cursor: pointer;
-    transition:
-      transform 0.2s var(--easing),
-      box-shadow 0.2s var(--easing);
-  }
-
-  .mobile-menu-list {
-    display: grid;
-    gap: 8px;
-  }
-
-  .mobile-menu-item {
-    border: none;
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    padding: 12px 14px;
-    border-radius: 14px;
-    color: rgba(255, 255, 255, 0.92);
-    font-family: var(--f-display-nav);
-    font-size: 0.7rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    cursor: pointer;
-    transition:
-      background 0.2s var(--easing),
-      border-color 0.2s var(--easing),
-      transform 0.2s var(--easing);
-  }
-
-  .mobile-menu-item.is-active {
-    background: rgba(168, 85, 247, 0.2);
-    border-color: rgba(192, 132, 252, 0.5);
-    box-shadow: 0 0 12px rgba(168, 85, 247, 0.35);
-  }
-
-  .mobile-menu-item-label {
-    text-align: left;
-    flex: 1;
-  }
-
-  .mobile-menu-item-icon {
-    font-size: 0.8rem;
-    opacity: 0.6;
-  }
-
-  .mobile-menu-item-cta {
-    text-transform: none;
-    letter-spacing: 0.02em;
-    background: linear-gradient(135deg, rgba(168, 85, 247, 0.28), rgba(255, 140, 66, 0.2));
-    border-color: rgba(192, 132, 252, 0.5);
-  }
 }
 
-/* Hide mobile navigation chrome on desktop */
-@media (min-width: 769px) {
-  .mobile-glass-header,
-  .mobile-menu-scrim,
-  .mobile-menu-panel {
-    display: none !important;
-  }
 }

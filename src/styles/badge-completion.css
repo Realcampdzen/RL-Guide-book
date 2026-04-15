@@ -1,0 +1,293 @@
+/* ========================================
+   Badge Completion Widget
+   Domain CSS: виджет отметки выполнения уровня значка
+   Used by: BadgeLevelView.tsx
+   ======================================== */
+
+/* --- Completion Block Container --- */
+.badge-completion {
+  border-left: 4px solid transparent;
+  transition: border-color 0.3s var(--easing);
+}
+
+.badge-completion.is-achieved {
+  border-left-color: var(--c-badge-success);
+}
+
+/* --- Header Row (checkbox + label) --- */
+.badge-completion__header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.badge-completion__label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-size: 18px;
+  font-weight: bold;
+  gap: 10px;
+  color: var(--c-stark);
+}
+
+.badge-completion__checkbox {
+  appearance: none;
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  border-radius: 8px;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.06);
+  cursor: pointer;
+  position: relative;
+  transition:
+    background 0.25s var(--easing),
+    border-color 0.25s var(--easing),
+    box-shadow 0.25s var(--easing);
+}
+
+.badge-completion__checkbox:checked {
+  background: var(--c-badge-success);
+  border-color: var(--c-badge-success);
+  box-shadow: 0 0 12px rgba(76, 175, 80, 0.35);
+}
+
+.badge-completion__checkbox:checked::after {
+  content: "✓";
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: white;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.badge-completion__checkbox:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px rgba(76, 175, 80, 0.35),
+    0 0 0 4px rgba(255, 255, 255, 0.08);
+}
+
+.badge-completion__checkbox:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* --- Reflection Form --- */
+.badge-completion__form {
+  margin-bottom: 15px;
+  animation: badge-completion-expand 0.3s var(--easing);
+}
+
+@keyframes badge-completion-expand {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.badge-completion__form-label {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 14px;
+  opacity: 0.8;
+  color: var(--c-stark);
+}
+
+.badge-completion__textarea {
+  width: 100%;
+  min-height: 80px;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(0, 0, 0, 0.25);
+  color: white;
+  font-family: var(--f-body);
+  font-size: 14px;
+  line-height: 1.5;
+  resize: vertical;
+  transition:
+    border-color 0.2s var(--easing),
+    box-shadow 0.2s var(--easing);
+}
+
+.badge-completion__textarea::placeholder {
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.badge-completion__textarea:focus {
+  outline: none;
+  border-color: rgba(139, 0, 255, 0.45);
+  box-shadow: 0 0 16px rgba(139, 0, 255, 0.15);
+}
+
+.badge-completion__textarea:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* --- Action Buttons --- */
+.badge-completion__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.badge-completion__btn {
+  padding: 10px 18px;
+  border: none;
+  border-radius: 20px;
+  font-weight: bold;
+  font-family: var(--f-display-nav);
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition:
+    transform 0.2s var(--easing),
+    opacity 0.2s var(--easing),
+    box-shadow 0.2s var(--easing);
+}
+
+.badge-completion__btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.badge-completion__btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.badge-completion__btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* Save progress button */
+.badge-completion__btn--save {
+  background: var(--c-badge-success);
+  color: white;
+  box-shadow: 0 4px 14px rgba(76, 175, 80, 0.3);
+}
+
+.badge-completion__btn--save:hover:not(:disabled) {
+  box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+}
+
+.badge-completion__btn--save:disabled {
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: none;
+}
+
+/* Send to counselor button */
+.badge-completion__btn--request {
+  background: rgba(255, 215, 0, 0.18);
+  color: var(--c-badge-gold);
+  border: 1px solid rgba(255, 215, 0, 0.45);
+}
+
+.badge-completion__btn--request:hover:not(:disabled) {
+  background: rgba(255, 215, 0, 0.25);
+  border-color: rgba(255, 215, 0, 0.6);
+  box-shadow: 0 4px 14px rgba(255, 215, 0, 0.2);
+}
+
+.badge-completion__btn--request:disabled {
+  opacity: 0.6;
+}
+
+/* --- Status Message --- */
+.badge-completion__status {
+  margin-top: 8px;
+  font-size: 12px;
+  opacity: 0.86;
+  color: var(--c-stark);
+  line-height: 1.4;
+}
+
+/* --- Saved Reflection Display --- */
+.badge-completion__reflection {
+  background: rgba(76, 175, 80, 0.1);
+  padding: 12px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-style: italic;
+  margin-top: 12px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.88);
+  border-left: 3px solid rgba(76, 175, 80, 0.4);
+}
+
+/* --- Share Achievement Button (post-completion) --- */
+.badge-completion__share-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+
+.badge-completion__share-btn {
+  padding: 12px 20px;
+  border-radius: 14px;
+  border: none;
+  background: linear-gradient(90deg, var(--c-electric-blue), #4dacff);
+  color: white;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  box-shadow: 0 4px 15px rgba(139, 0, 255, 0.3);
+  transition:
+    transform 0.2s var(--easing),
+    box-shadow 0.2s var(--easing);
+}
+
+.badge-completion__share-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(139, 0, 255, 0.4);
+}
+
+.badge-completion__share-btn:active {
+  transform: translateY(0);
+}
+
+/* --- Confetti Overlay --- */
+.badge-confetti-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 5rem;
+  animation: badge-confetti-fade 3s forwards;
+}
+
+@keyframes badge-confetti-fade {
+  0% {
+    opacity: 1;
+    transform: scale(0.5);
+  }
+  20% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+  40% {
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.2) translateY(-30px);
+  }
+}

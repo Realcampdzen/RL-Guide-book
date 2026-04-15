@@ -53,9 +53,7 @@ const BadgeView: React.FC<BadgeViewProps> = ({
   onChatToggle,
   isChatOpen,
   onChatClose: _onChatClose,
-  onOpenCategories,
-  onTelegramContact,
-  onBackToIntro,
+
 }) => {
   const {
     userData,
@@ -66,7 +64,7 @@ const BadgeView: React.FC<BadgeViewProps> = ({
     addFlagBadgeRequest,
   } = useUserProgress();
   const { myTeam } = useTeam();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
   const [isHeroLoaded, setIsHeroLoaded] = useState(false);
   const [useHeroWebp, setUseHeroWebp] = useState(true);
   const [startShareOpen, setStartShareOpen] = useState(false);
@@ -121,33 +119,8 @@ const BadgeView: React.FC<BadgeViewProps> = ({
     if (typeof openProfile === 'function') openProfile();
   };
 
-  useEffect(() => {
-    if (!isMenuOpen) return;
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setIsMenuOpen(false);
-      }
-    };
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [isMenuOpen]);
-
-  const handleMenuToggle = () => {
-    setIsMenuOpen((prev) => !prev);
-  };
-
-  const closeMenu = () => {
-    setIsMenuOpen(false);
-  };
-
   const handleChatToggle = () => {
-    setIsMenuOpen(false);
     onChatToggle();
-  };
-
-  const handleMenuAction = (action: () => void) => {
-    setIsMenuOpen(false);
-    action();
   };
 
   // Context Logic (ported from App.tsx)
@@ -698,18 +671,7 @@ const BadgeView: React.FC<BadgeViewProps> = ({
           <span className="mobile-badge-title-main">{badge.title}</span>
         </div>
         <div className="mobile-header-actions">
-          <button
-            type="button"
-            className={`mobile-header-btn mobile-header-menu${isMenuOpen ? ' is-active' : ''}`}
-            onClick={handleMenuToggle}
-            aria-label="Меню"
-            aria-expanded={isMenuOpen}
-            aria-controls="badge-mobile-menu-panel"
-          >
-            <span className="menu-line"></span>
-            <span className="menu-line"></span>
-            <span className="menu-line"></span>
-          </button>
+
           <button
             type="button"
             className={`mobile-header-avatar${isChatOpen ? ' is-active' : ''}`}
@@ -730,67 +692,6 @@ const BadgeView: React.FC<BadgeViewProps> = ({
         </div>
       </header>
 
-      <div
-        className={`mobile-menu-scrim${isMenuOpen ? ' is-open' : ''}`}
-        onClick={closeMenu}
-        aria-hidden="true"
-      ></div>
-      <div
-        id="badge-mobile-menu-panel"
-        className={`mobile-menu-panel${isMenuOpen ? ' is-open' : ''}`}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="badge-menu-title"
-        aria-hidden={!isMenuOpen}
-      >
-        <div className="mobile-menu-head">
-          <span id="badge-menu-title" className="mobile-menu-title">
-            Меню
-          </span>
-          <button
-            type="button"
-            className="mobile-menu-close"
-            onClick={closeMenu}
-            aria-label="Закрыть меню"
-          >
-            &times;
-          </button>
-        </div>
-        <div className="mobile-menu-list">
-          <button
-            type="button"
-            className="mobile-menu-item"
-            onClick={() => handleMenuAction(onBackToIntro)}
-          >
-            <span className="mobile-menu-item-label">Главная</span>
-            <span className="mobile-menu-item-icon">&rsaquo;</span>
-          </button>
-          <button
-            type="button"
-            className="mobile-menu-item"
-            onClick={() => handleMenuAction(onOpenCategories)}
-          >
-            <span className="mobile-menu-item-label">Категории</span>
-            <span className="mobile-menu-item-icon">&rsaquo;</span>
-          </button>
-          <button
-            type="button"
-            className="mobile-menu-item"
-            onClick={() => handleMenuAction(onBack)}
-          >
-            <span className="mobile-menu-item-label">Назад</span>
-            <span className="mobile-menu-item-icon">&lsaquo;</span>
-          </button>
-          <button
-            type="button"
-            className="mobile-menu-item mobile-menu-item-cta"
-            onClick={() => handleMenuAction(onTelegramContact)}
-          >
-            <span className="mobile-menu-item-label">Записаться через Telegram</span>
-            <span className="mobile-menu-item-icon">&rsaquo;</span>
-          </button>
-        </div>
-      </div>
 
       <div className="sticky-back-nav">
         <button onClick={onBack} className="nav-link-back hover-target">
@@ -805,16 +706,6 @@ const BadgeView: React.FC<BadgeViewProps> = ({
           <div className="badge-hero-content">
             <h1>{badge.title}</h1>
             <div className="badge-hero-category">{category.title}</div>
-
-            <BadgeSkinPanel
-              badgeTitle={badge.title}
-              badgeBaseId={baseBadgeId}
-              categoryId={category.id}
-              categoryTitle={category.title}
-              inProgressCount={collectionCount}
-              inProgressMax={totalLevels}
-              inProgressHint={collectionHint}
-            />
 
             {startLevelId &&
               (mechanicLocked ? (
@@ -860,6 +751,38 @@ const BadgeView: React.FC<BadgeViewProps> = ({
                   )}
                 </div>
               ))}
+
+            <BadgeSkinPanel
+              badgeTitle={badge.title}
+              badgeBaseId={baseBadgeId}
+              categoryId={category.id}
+              categoryTitle={category.title}
+              inProgressCount={collectionCount}
+              inProgressMax={totalLevels}
+              inProgressHint={collectionHint}
+              workshopNode={
+                <FeatureGate
+                  allowed={!mechanicLocked}
+                  reason={mechanicGateReason}
+                  ctaLabel={broLocked ? 'Бросвящение в ЛК' : 'Открыть ЛК → Движки'}
+                  onCta={openMechanicCta}
+                  mode="replace"
+                >
+                  <div className="badge-workshop-proposal">
+                    <p className="badge-workshop-proposal__hint">
+                      Предложи как улучшить значок
+                    </p>
+                    <button
+                      type="button"
+                      onClick={handleOpenWorkshopForCategory}
+                      className="badge-cta"
+                    >
+                      Свой вариант значка
+                    </button>
+                  </div>
+                </FeatureGate>
+              }
+            />
           </div>
         </section>
 
@@ -1003,37 +926,6 @@ const BadgeView: React.FC<BadgeViewProps> = ({
                 </div>
               </div>
 
-              <FeatureGate
-                allowed={!mechanicLocked}
-                reason={mechanicGateReason}
-                ctaLabel={broLocked ? 'Бросвящение в ЛК' : 'Открыть ЛК → Движки'}
-                onCta={openMechanicCta}
-                mode="replace"
-              >
-                <div
-                  className="badge-workshop-cta"
-                  style={{
-                    marginTop: '20px',
-                    padding: '16px',
-                    background: 'rgba(255,215,0,0.06)',
-                    borderRadius: '16px',
-                    border: '1px solid rgba(255,215,0,0.15)',
-                    textAlign: 'center',
-                  }}
-                >
-                  <p style={{ margin: '0 0 12px', fontSize: '14px', opacity: 0.9 }}>
-                    Этого мало? Предложи свой вариант
-                  </p>
-                  <button
-                    type="button"
-                    onClick={handleOpenWorkshopForCategory}
-                    className="badge-cta"
-                    style={{ width: '100%', padding: '12px 16px', fontSize: '13px' }}
-                  >
-                    ⚒️ Предложи свой значок в эту категорию
-                  </button>
-                </div>
-              </FeatureGate>
             </div>
           </div>
 

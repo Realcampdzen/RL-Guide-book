@@ -17,6 +17,12 @@
   --c-volt-glow: rgba(139, 0, 255, 0.35);
   --c-aurora: rgba(139, 0, 255, 0.25);
 
+  /* Badge completion & approval tokens */
+  --c-badge-success: #4caf50;
+  --c-badge-success-glow: rgba(76, 175, 80, 0.3);
+  --c-badge-gold: #FFD700;
+  --c-badge-gold-glow: rgba(255, 215, 0, 0.2);
+
   --f-display: "Syne", sans-serif;
   --f-display-nav: "Syne", "Montserrat", sans-serif;
   --f-body: "Space Grotesk", sans-serif;
