@@ -26,5 +26,8 @@ The grand monolith decomposition acts (Phases 1-5) targeting `ProfileView.tsx` a
 - **storage/__init__.py:** Docstring updated — added 6 missing store keys (council_members, council_protocols, users, workshop_proposals, role_requests, engine_join_requests).
 - **active_context.md:** Refreshed with current state, architecture notes, and focus areas.
 
-### 5. Current Focus
+### 5. Latest Fixes (April 2026)
+- **Vozhatifikator Bug:** Restored missing `docs/вожатификатор.md` (erroneously moved to `.archive/` during refactoring), correcting a Vite proxy infinite loading regression on the local server and a 404 error on production.
+
+### 6. Current Focus
 Frontend architecture is pristine. Documentation sync in progress. Backend storage gaps (engine_projects/initiatives → StorageProvider) identified, plan drafted, awaiting user decision.
