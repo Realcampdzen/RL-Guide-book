@@ -52,7 +52,7 @@ type SectionId =
   | 'counselor-squad' // Вожатский отряд
   | 'vozhatifikator' // Вожатификатор
   | 'profile4k' // 4К
-  | 'progress' // Карточки прогресса
+
   | 'admin' // Пульт управления
   | 'inspector' // Инспектор Пользы
   | 'shifts' // Смены и Отряды
@@ -103,7 +103,7 @@ const SECTIONS: SidebarSection[] = [
     roles: ['counselor', 'educator', 'shift_leader', 'camp_director', 'developer'],
   },
   { id: 'profile4k', label: '4К', group: 'staff' },
-  { id: 'progress', label: 'Карточки прогресса', group: 'staff' },
+
   { id: 'parents', label: 'Для родителей', group: 'staff', roles: ['parent', 'developer'] },
   // System
   {
@@ -192,6 +192,7 @@ const SECTION_TABS: Partial<Record<SectionId, TabDef[]>> = {
   share: [
     { id: 'invite', label: 'Пригласить друзей' },
     { id: 'qr', label: 'QR-код путеводителя' },
+    { id: 'progress', label: 'Карточки прогресса' },
   ],
   parents: [
     { id: 'program', label: 'Программа' },
@@ -288,11 +289,7 @@ const SECTION_INFO: Record<SectionId, { title: string; description: string; emoj
       'Четыре ключевых компетенции: критическое мышление, коммуникация, коллаборация, креативность',
     emoji: '',
   },
-  progress: {
-    title: 'Карточки прогресса',
-    description: 'Прогресс-карты значков, текущие цели, уровни',
-    emoji: '',
-  },
+
   inspector: {
     title: 'Инспектор Пользы',
     description: 'Ежедневные миссии, продвижение по пути пользы',
@@ -1080,7 +1077,7 @@ export const PersonalCabinet: React.FC<{
   const [favCarouselSteps, setFavCarouselSteps] = useState(0);
   const [vozhatifikatorTab, setVozhatifikatorTab] = useState<string>('book');
   const [inspectorTab, setInspectorTab] = useState<string>('cabinet');
-  const [shareTab, setShareTab] = useState<'invite' | 'qr'>('invite');
+  const [shareTab, setShareTab] = useState<'invite' | 'qr' | 'progress'>('invite');
   const [parentsTab, setParentsTab] = useState<'program' | 'squad' | 'child' | 'contacts'>(
     'program'
   );
@@ -1107,6 +1104,9 @@ export const PersonalCabinet: React.FC<{
     const handleTourNav = (e: any) => {
       if (e.detail?.section) {
         setActiveSection(e.detail.section);
+      }
+      if (e.detail?.shareTab) {
+        setShareTab(e.detail.shareTab);
       }
     };
     window.addEventListener('tour-nav-cabinet-section', handleTourNav);
@@ -2703,6 +2703,29 @@ export const PersonalCabinet: React.FC<{
                     </div>
                   </div>
                 )}
+                {shareTab === 'progress' && (
+                  <div
+                    key="progress"
+                    className="fade-in"
+                    style={{
+                      maxWidth: 720,
+                      margin: '0 auto',
+                      width: '100%',
+                    }}
+                  >
+                    <ShareContainer
+                      shareActiveTab="create-card"
+                      nickname={profile?.nickname}
+                      avatar={profile?.avatar}
+                      rank={prodRank}
+                      totalLevelsAchieved={profile?.stats?.totalLevelsAchieved ?? 0}
+                      totalBadgesStarted={profile?.stats?.totalBadgesStarted ?? 0}
+                      badgeTitlesInPath={badgeTitlesInPath}
+                      favoriteBadgeTitles={favoriteBadgeTitles}
+                      badgeCarouselItems={badgeCarouselItems}
+                    />
+                  </div>
+                )}
               </div>
             ) : activeSection === 'events' ? (
               <EventsDashboard
@@ -2712,28 +2735,7 @@ export const PersonalCabinet: React.FC<{
                 hasAuth={hasAuth}
                 userData={userData}
               />
-            ) : activeSection === 'progress' ? (
-              <div
-                key="progress"
-                className="fade-in"
-                style={{
-                  maxWidth: 720,
-                  margin: '0 auto',
-                  width: '100%',
-                }}
-              >
-                <ShareContainer
-                  shareActiveTab="create-card"
-                  nickname={profile?.nickname}
-                  avatar={profile?.avatar}
-                  rank={prodRank}
-                  totalLevelsAchieved={profile?.stats?.totalLevelsAchieved ?? 0}
-                  totalBadgesStarted={profile?.stats?.totalBadgesStarted ?? 0}
-                  badgeTitlesInPath={badgeTitlesInPath}
-                  favoriteBadgeTitles={favoriteBadgeTitles}
-                  badgeCarouselItems={badgeCarouselItems}
-                />
-              </div>
+
             ) : activeSection === 'shifts' ? (
               <div
                 key="shifts"
@@ -3198,9 +3200,7 @@ const SectionStub: React.FC<{ sectionId: SectionId }> = ({ sectionId }) => {
     profile4k: {
       features: ['Критическое мышление', 'Коммуникация', 'Коллаборация', 'Креативность'],
     },
-    progress: {
-      features: ['Текущие значки', 'Уровни прогресса', 'Планы развития', 'Достижения'],
-    },
+
     inspector: {
       features: ['Миссии дня', 'Путь пользы', 'Достижения', 'Рефлексия'],
     },

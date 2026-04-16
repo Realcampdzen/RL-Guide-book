@@ -28,6 +28,8 @@ The grand monolith decomposition acts (Phases 1-5) targeting `ProfileView.tsx` a
 
 ### 5. Latest Fixes (April 2026)
 - **Vozhatifikator Bug:** Restored missing `docs/вожатификатор.md` (erroneously moved to `.archive/` during refactoring), correcting a Vite proxy infinite loading regression on the local server and a 404 error on production.
+- **Social Generator (Progress Cards):** Refactored the `drawProgressSummaryAAA` canvas engine into a modular Bento Grid architecture for responsive 9:16 and 16:9 layouts. Fixed stats chips overlapping and container alignment issues.
+- **UI Consolidation (Cabinet):** Merged the redundant "Карточки прогресса" root section into the "Share Center" (Поделиться) sub-tabs. Implemented reliable `hashchange` interceptors in `ProfileView` for deep-linking directly into inner tabs (e.g. via `#share-progress`).
 
 ### 6. Current Focus
 Frontend architecture is pristine. Documentation sync in progress. Backend storage gaps (engine_projects/initiatives → StorageProvider) identified, plan drafted, awaiting user decision.

@@ -161,7 +161,7 @@ type ProgressAnchors = {
   footer: Rect;
 };
 
-const insetRect = (r: Rect, d: number, rr?: number): Rect => ({
+export const insetRect = (r: Rect, d: number, rr?: number): Rect => ({
   x: r.x + d,
   y: r.y + d,
   w: r.w - 2 * d,
@@ -186,9 +186,9 @@ const strokeRoundRect = (ctx: CanvasRenderingContext2D, rect: Rect) => {
   ctx.stroke();
 };
 
-const DEBUG_ANCHORS = false;
+export const DEBUG_ANCHORS = false;
 
-const drawAnchorsDebug = (ctx: CanvasRenderingContext2D, A: ProgressAnchors, S: number) => {
+export const drawAnchorsDebug = (ctx: CanvasRenderingContext2D, A: ProgressAnchors, S: number) => {
   withSaved(ctx, () => {
     ctx.globalAlpha = 0.7;
     ctx.lineWidth = 2 * S;
@@ -354,7 +354,7 @@ const drawStars = (ctx: CanvasRenderingContext2D, width: number, height: number,
 };
 
 /** Soft radial vignette over rect (progress card background). */
-const drawVignetteSoft = (ctx: CanvasRenderingContext2D, rect: Rect) => {
+export const drawVignetteSoft = (ctx: CanvasRenderingContext2D, rect: Rect) => {
   const cx = rect.x + rect.w / 2;
   const cy = rect.y + rect.h / 2;
   const r = Math.max(rect.w, rect.h) * 0.72;
@@ -367,7 +367,7 @@ const drawVignetteSoft = (ctx: CanvasRenderingContext2D, rect: Rect) => {
 };
 
 /** Darker corners with violet/blue tint (progress card). */
-const drawVignetteCorners = (ctx: CanvasRenderingContext2D, rect: Rect) => {
+export const drawVignetteCorners = (ctx: CanvasRenderingContext2D, rect: Rect) => {
   const cx = rect.x + rect.w / 2;
   const cy = rect.y + rect.h / 2;
   const r = Math.max(rect.w, rect.h) * 0.85;
@@ -380,7 +380,7 @@ const drawVignetteCorners = (ctx: CanvasRenderingContext2D, rect: Rect) => {
 };
 
 /** Rank accent glow; alpha 0.06–0.14. If useCenter true, gradient centered in rect (e.g. A.avatar); else lower third (card). */
-const drawRankAura = (
+export const drawRankAura = (
   ctx: CanvasRenderingContext2D,
   accent: string,
   rect: Rect,
@@ -488,7 +488,7 @@ const drawFrameA = (ctx: CanvasRenderingContext2D, frame: Rect, accent: string, 
 };
 
 /** Frame skin B: card edge — outer warm (gold/accent), inner cold (violet); corner arcs. */
-const drawFrameB = (ctx: CanvasRenderingContext2D, frame: Rect, _accent: string, S: number) => {
+export const drawFrameB = (ctx: CanvasRenderingContext2D, frame: Rect, _accent: string, S: number) => {
   const { x, y, w, h, r: rad } = frame;
   const r = rad ?? 0;
   withSaved(ctx, () => {
@@ -515,7 +515,7 @@ const drawFrameB = (ctx: CanvasRenderingContext2D, frame: Rect, _accent: string,
 };
 
 /** Frame skin D: stitching — dashed stroke along path; light wear at corners. */
-const drawFrameD = (ctx: CanvasRenderingContext2D, frame: Rect, _accent: string, S: number) => {
+export const drawFrameD = (ctx: CanvasRenderingContext2D, frame: Rect, _accent: string, S: number) => {
   const { x, y, w, h, r: rad } = frame;
   const r = rad ?? 0;
   withSaved(ctx, () => {
@@ -560,7 +560,7 @@ const drawFrameD = (ctx: CanvasRenderingContext2D, frame: Rect, _accent: string,
 };
 
 /** Pill skin A: glass + accent stroke + micro-blick + 3 HUD ticks each side. */
-const drawPillA = (
+export const drawPillA = (
   ctx: CanvasRenderingContext2D,
   pill: Rect,
   pillText: string,
@@ -609,7 +609,7 @@ const drawPillA = (
 };
 
 /** Pill skin B: gacha card strip — gold edge, violet inner. */
-const drawPillB = (
+export const drawPillB = (
   ctx: CanvasRenderingContext2D,
   pill: Rect,
   pillText: string,
@@ -640,7 +640,7 @@ const drawPillB = (
 };
 
 /** Pill skin D: fabric label — subtle stitch outline. */
-const drawPillD = (
+export const drawPillD = (
   ctx: CanvasRenderingContext2D,
   pill: Rect,
   pillText: string,
@@ -773,7 +773,7 @@ const PROGRESS_STORY_BG_URL = '/фон_шеринг_прогресс_стори�
  * Order: 1) BG 2) FRAME 3) BRAND+PILL 4) AVATAR 5) RANK 6) STATS (two chips) 7) SLOTS 8) BUFF 9) FOOTER, then frame on top.
  */
 /** Try load image from URL for progress card assets. Returns null on failure. */
-const tryLoadAsset = async (url: string): Promise<HTMLImageElement | null> => {
+export const tryLoadAsset = async (url: string): Promise<HTMLImageElement | null> => {
   const v = String(url || '').trim();
   if (!v) return null;
   try {
@@ -793,795 +793,338 @@ async function drawProgressSummaryAAA(
   dateLabel: string
 ): Promise<void> {
   const S = width / 1080;
-  const r = 28 * S;
-  const b1 = 2 * S;
-  const b2 = 4 * S;
-  const pad = 24 * S;
-  const frameInset = Math.max(8 * S, 10 * S);
-  const skin: 'A' | 'B' | 'D' = (input as ProgressSummaryInput).skin ?? 'A';
-  const assets = (input as ProgressSummaryInput).assets;
-
-  const card: Rect = { x: 0, y: 0, w: width, h: height };
-  const safe = insetRect(card, pad, r);
-  const frame = insetRect(card, frameInset, r);
   const isPortrait = height > width;
-  const margin = Math.round(width * 0.075);
+  const margin = Math.round(width * 0.05);
 
-  // Precompute pill rect
-  const pillText = 'МОЙ ПРОГРЕСС';
-  ctx.font = `800 ${Math.round(width * 0.022)}px ${FONT_FAMILY}`;
-  const pillPaddingX = Math.round(width * 0.018);
-  const pillPaddingY = Math.round(width * 0.012);
-  const pillW = Math.round(ctx.measureText(pillText).width) + pillPaddingX * 2;
-  const pillH = Math.round(width * 0.045) + pillPaddingY * 2;
-  const pillX = width - margin - pillW;
-  const pillY = margin * 0.72;
-  const pill: Rect = { x: pillX, y: pillY, w: pillW, h: pillH, r: pillH / 2 };
-
-  // Avatar/slots layout (portrait: center; wide: left-ish)
-  const iconSize = Math.round(Math.min(width, height) * (isPortrait ? 0.28 : 0.26));
-  const iconX = isPortrait ? Math.round((width - iconSize) / 2) : margin;
-  const iconY = isPortrait ? Math.round(height * 0.26) : Math.round(height * 0.28);
-  const avatarCx = iconX + iconSize / 2;
-  const avatarCy = iconY + iconSize / 2;
-  const avatar: Circle = { cx: avatarCx, cy: avatarCy, r: iconSize / 2 };
-
-  // Rank title position (below avatar)
-  const textX = safe.x;
-  const textMaxW = safe.w;
-  const rankTitleY = iconY + iconSize + Math.round(margin * 0.65);
-  const rankTitle = { x: textX, y: rankTitleY, maxW: textMaxW, baseline: 'alphabetic' as const };
-
-  // Stats: two lines for two chips
-  const achieved = Number(input.profile?.totalLevelsAchieved ?? 0);
-  const inProgress = Number(input.profile?.totalBadgesStarted ?? 0);
-  const levelsWord = pluralizeRu(achieved, ['уровень', 'уровня', 'уровней']);
-  const statsS1 = `Закрыто ${achieved} ${levelsWord}`;
-  const statsS2 = `В пути ${inProgress}`;
-
-  const rankText = String(input.profile?.rank || 'Мой путь').trim();
-  const rankBaseSize = Math.min(52, Math.round(72 * S)); // cap so rank isn't oversized on wide
-  const rankFontSize = fitFontSize(
-    ctx,
-    rankText,
-    rankTitle.maxW,
-    rankBaseSize,
-    Math.round(24 * S),
-    FONT_FAMILY
-  );
-  ctx.font = `900 ${rankFontSize}px ${FONT_FAMILY}`;
-  const rankTextWidth = ctx.measureText(rankText).width;
-  const ribbonPaddingX = Math.round(24 * S);
-  const ribbonW = Math.min(rankTextWidth + ribbonPaddingX * 2, rankTitle.maxW);
-  const ribbonH = rankFontSize + Math.round(16 * S);
-  const ribbonY = rankTitleY - Math.round(8 * S);
-  const rankRibbon: Rect = { x: textX, y: ribbonY, w: ribbonW, h: ribbonH, r: Math.round(12 * S) };
-
-  // Stats chips: two rects by measureText(s1), measureText(s2)
-  const statsFontSize = Math.round(28 * S);
-  ctx.font = `700 ${statsFontSize}px ${FONT_FAMILY}`;
-  const chipPadX = Math.round(14 * S);
-  const chipPadY = Math.round(10 * S);
-  const w1 = ctx.measureText(statsS1).width + chipPadX * 2;
-  const w2 = ctx.measureText(statsS2).width + chipPadX * 2;
-  const chipH = statsFontSize + chipPadY * 2;
-  const statsY = rankTitleY + ribbonH + Math.round(12 * S);
-  const chipGap = Math.round(20 * S); // visible gap between two chips
-  const statsChipsLeft: Rect = { x: textX, y: statsY - chipPadY, w: w1, h: chipH, r: chipH / 2 };
-  const statsChipsRight: Rect = {
-    x: textX + w1 + chipGap,
-    y: statsY - chipPadY,
-    w: w2,
-    h: chipH,
-    r: chipH / 2,
+  const applyShadow = (blur = 12, alpha = 0.8) => {
+    ctx.shadowBlur = blur;
+    ctx.shadowColor = `rgba(0,0,0,${alpha})`;
   };
+  const clearShadow = () => { ctx.shadowBlur = 0; ctx.shadowColor = 'transparent'; };
 
-  // Footer — fixed at bottom; content above must stay above maxContentY
-  const footerLineH = Math.round(width * 0.032);
-  const footerDividerY = height - margin - footerLineH - Math.round(width * 0.028);
-  const footerDivider: Rect = { x: margin, y: footerDividerY, w: width - margin * 2, h: 2 };
-  const maxContentY = footerDividerY - Math.round(35 * S); // BUFF must not draw below this
-
-  const buffY = statsY + chipH + Math.round(20 * S);
-  const footer: Rect = {
-    x: margin,
-    y: height - margin - footerLineH,
-    w: width - margin * 2,
-    h: footerLineH,
-  };
-  const A: ProgressAnchors = {
-    card,
-    safe,
-    frame,
-    pill,
-    avatar,
-    avatarRing: { cx: avatarCx, cy: avatarCy, r: avatar.r + 12 },
-    rankTitle,
-    rankRibbon,
-    statsLine: { x: textX, y: statsY, maxW: textMaxW },
-    statsChips: { left: statsChipsLeft, right: statsChipsRight },
-    slotsRow: { y: 0, r: 0, slots: [] },
-    buff: { x: textX, y: buffY, w: textMaxW, h: maxContentY - buffY },
-    footerDivider,
-    footer,
-  };
-
-  // 1) BG — wide: PROGRESS_WIDE_BG_URL; story: PROGRESS_STORY_BG_URL; fallback: gradient + overlays
-  let usedImageBg = false;
-  if (input.format === 'wide') {
-    try {
-      const bgImg = await loadImage(PROGRESS_WIDE_BG_URL);
-      ctx.drawImage(bgImg, 0, 0, width, height);
-      usedImageBg = true;
-    } catch {
-      // fallback to gradient below
-    }
-  } else if (input.format === 'story') {
-    try {
-      const bgImg = await loadImage(PROGRESS_STORY_BG_URL);
-      ctx.drawImage(bgImg, 0, 0, width, height);
-      usedImageBg = true;
-    } catch {
-      // fallback to gradient below
-    }
-  }
-  if (!usedImageBg) {
-    const bg = ctx.createLinearGradient(0, 0, width, height);
-    bg.addColorStop(0, 'rgba(9,6,20,1)');
-    bg.addColorStop(0.45, 'rgba(26,15,46,1)');
-    bg.addColorStop(1, 'rgba(10,7,22,1)');
-    ctx.fillStyle = bg;
-    ctx.fillRect(0, 0, width, height);
+  const drawGlassCard = (x: number, y: number, w: number, h: number, r: number) => {
     ctx.save();
-    ctx.globalAlpha = 0.18;
-    const glow = ctx.createRadialGradient(
-      width * 0.82,
-      height * 0.18,
-      0,
-      width * 0.82,
-      height * 0.18,
-      width * 0.62
-    );
-    glow.addColorStop(0, accent);
-    glow.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.fillStyle = glow;
-    ctx.fillRect(0, 0, width, height);
-    ctx.restore();
-    drawStars(ctx, width, height, seed);
-    drawVignetteSoft(ctx, card);
-    drawVignetteCorners(ctx, card);
-    const auraSize = Math.max(A.avatar.r * 4, width * 0.35);
-    const avatarAuraRect: Rect = {
-      x: A.avatar.cx - auraSize / 2,
-      y: A.avatar.cy - auraSize / 2,
-      w: auraSize,
-      h: auraSize,
-    };
-    drawRankAura(ctx, accent, avatarAuraRect, true);
-    drawNoisePattern(ctx, card);
-  }
-
-  // 2) FRAME
-  let frameDrawn = false;
-  if (assets?.framePng) {
-    const img = await tryLoadAsset(assets.framePng);
-    if (img) {
-      ctx.drawImage(img, frame.x, frame.y, frame.w, frame.h);
-      frameDrawn = true;
+    try {
+      roundRectPath(ctx, x, y, w, h, r);
+      ctx.fillStyle = 'rgba(255,255,255,0.03)';
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+      ctx.lineWidth = 2 * S;
+      ctx.stroke();
+    } finally {
+      ctx.restore();
     }
-  }
-  if (!frameDrawn) {
-    drawFrameA(ctx, frame, accent, S);
-  }
+  };
+  
+  // 1) BACKGROUND (Deep mesh gradient + stars)
+  const bg = ctx.createLinearGradient(0, 0, 0, height);
+  bg.addColorStop(0, '#0a0a16');
+  bg.addColorStop(0.5, '#0e0c24');
+  bg.addColorStop(1, '#080512');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, width, height);
 
-  // 3) BRAND + PILL
+  ctx.globalCompositeOperation = 'screen';
+  const glow = ctx.createRadialGradient(width/2, height*0.3, 0, width/2, height*0.3, width*0.8);
+  glow.addColorStop(0, accent);
+  glow.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.globalAlpha = 0.35;
+  ctx.fillStyle = glow;
+  ctx.fillRect(0, 0, width, height);
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.globalAlpha = 1;
+  
+  drawStars(ctx, width, height, seed);
+  drawNoisePattern(ctx, {x:0, y:0, w:width, h:height});
+
+  // 2) HEADER
+  ctx.fillStyle = 'rgba(255,255,255,0.95)';
+  ctx.font = `900 ${Math.round(48 * S)}px ${FONT_FAMILY}`;
   ctx.textAlign = 'left';
   ctx.textBaseline = 'top';
-  ctx.fillStyle = 'rgba(255,255,255,0.92)';
-  ctx.font = `900 ${Math.round(width * 0.05)}px ${FONT_FAMILY}`;
-  ctx.fillText('Путеводитель', A.safe.x, pad * 0.7);
-  ctx.fillStyle = 'rgba(255,255,255,0.65)';
-  ctx.font = `700 ${Math.round(width * 0.028)}px ${FONT_FAMILY}`;
-  ctx.fillText('Реальный Лагерь', A.safe.x, pad * 0.7 + Math.round(width * 0.06));
+  applyShadow(10);
+  ctx.fillText('ПУТЕВОДИТЕЛЬ', margin, margin);
+  ctx.fillStyle = 'rgba(255,255,255,0.6)';
+  ctx.font = `700 ${Math.round(24 * S)}px ${FONT_FAMILY}`;
+  ctx.fillText('РЕАЛЬНЫЙ ЛАГЕРЬ', margin, margin + 50 * S);
+  clearShadow();
 
-  // 3b) PILL — asset hook then procedural by skin
-  let pillDrawn = false;
-  if (assets?.pillPng) {
-    const img = await tryLoadAsset(assets.pillPng);
-    if (img) {
-      ctx.drawImage(img, A.pill.x, A.pill.y, A.pill.w, A.pill.h);
-      pillDrawn = true;
-    }
-  }
-  if (!pillDrawn) {
-    if (skin === 'B') drawPillB(ctx, A.pill, pillText, pillPaddingX, accent, S);
-    else if (skin === 'D') drawPillD(ctx, A.pill, pillText, pillPaddingX, accent, S);
-    else drawPillA(ctx, A.pill, pillText, pillPaddingX, accent, S);
+  ctx.fillStyle = 'rgba(255,255,255,0.15)';
+  roundRectPath(ctx, width - margin - 240*S, margin, 240*S, 65*S, 32*S);
+  ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,0.95)';
+  ctx.font = `800 ${Math.round(24 * S)}px ${FONT_FAMILY}`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('МОЙ ПРОГРЕСС', width - margin - 120*S, margin + 32*S);
+
+  // 3) PROFILE BENTO CARD
+  const cardPad = 40 * S;
+  
+  let pX = margin;
+  let pY = margin + 140 * S;
+  let pW = width - margin * 2;
+  let pH = 340 * S;
+  
+  let cX = margin;
+  let cY = pY + pH + 40 * S;
+  let cW = width - margin * 2;
+  let cH = 280 * S;
+  
+  if (!isPortrait) {
+     pY = margin + 110 * S;
+     pW = (width - margin * 2) * 0.55 - 20 * S;
+     pH = 290 * S;
+     cX = pX + pW + 40 * S;
+     cY = pY;
+     cW = (width - margin * 2) - pW - 40 * S;
+     cH = pH; // match profile height
   }
 
-  // 4) AVATAR
-  const avatarImage = await tryLoadAvatarImage(input.profile?.avatar);
-  const emojiFallback = String(input.profile?.avatar || '🧑‍🚀').trim() || '🧑‍🚀';
-  const ringSteps = Math.min(7, Math.max(4, Math.round(6 * S)));
-  glowStroke(
-    ctx,
-    () => ctx.arc(A.avatarRing.cx, A.avatarRing.cy, A.avatarRing.r, 0, Math.PI * 2),
-    accent,
-    4,
-    ringSteps,
-    0.35
-  );
+  drawGlassCard(pX, pY, pW, pH, 40 * S);
+  
+  // Avatar
+  const avatarSize = isPortrait ? 220 * S : 160 * S;
+  const avatarX = pX + cardPad;
+  const avatarY = pY + (pH - avatarSize)/2;
+  const avatarCx = avatarX + avatarSize/2;
+  const avatarCy = avatarY + avatarSize/2;
+
+  glowStroke(ctx, () => ctx.arc(avatarCx, avatarCy, avatarSize/2, 0, Math.PI*2), accent, 4, 5, 0.4);
   ctx.strokeStyle = accent;
-  ctx.globalAlpha = 0.85;
-  ctx.lineWidth = 10;
+  ctx.lineWidth = 6 * S;
   ctx.beginPath();
-  ctx.arc(A.avatarRing.cx, A.avatarRing.cy, A.avatarRing.r, 0, Math.PI * 2);
+  ctx.arc(avatarCx, avatarCy, avatarSize/2, 0, Math.PI*2);
   ctx.stroke();
-  ctx.globalAlpha = 1;
-  ctx.strokeStyle = 'rgba(255,255,255,0.35)';
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.arc(A.avatarRing.cx, A.avatarRing.cy, A.avatar.r + 6, 0, Math.PI * 2);
-  ctx.stroke();
-  // Sparks/dust around ring (6–12 points)
-  const rand = mulberry32(seed + 1);
-  const sparkCount = 6 + Math.floor(rand() * 7);
-  for (let i = 0; i < sparkCount; i++) {
-    const angle = (i / sparkCount) * Math.PI * 2 + rand() * 0.5;
-    const dist = A.avatarRing.r + 4 + rand() * 12;
-    const px = A.avatarRing.cx + Math.cos(angle) * dist;
-    const py = A.avatarRing.cy + Math.sin(angle) * dist;
-    ctx.fillStyle = `rgba(255,255,255,${0.15 + rand() * 0.25})`;
-    ctx.beginPath();
-    ctx.arc(px, py, skin === 'B' ? 2 * S : 1 * S, 0, Math.PI * 2);
-    ctx.fill();
-  }
-  // Skin A: 2–3 arc segments (HUD style)
-  if (skin === 'A') {
-    withSaved(ctx, () => {
-      ctx.strokeStyle = accent;
-      ctx.globalAlpha = 0.5;
-      ctx.lineWidth = Math.max(1, 2 * S);
-      ctx.lineCap = 'round';
-      const segR = A.avatarRing.r + 6;
-      for (let i = 0; i < 3; i++) {
-        const start = (i / 3) * Math.PI * 2 + 0.1;
-        ctx.beginPath();
-        ctx.arc(A.avatarRing.cx, A.avatarRing.cy, segR, start, start + Math.PI * 0.35);
-        ctx.stroke();
-      }
-    });
-  }
-  // Skin B: mini crystal/rarity badge near ring
-  if (skin === 'B') {
-    const cxX = A.avatarRing.cx + A.avatarRing.r * 0.82;
-    const cxY = A.avatarRing.cy - A.avatarRing.r * 0.3;
-    withSaved(ctx, () => {
-      ctx.fillStyle = '#e8c547';
-      ctx.globalAlpha = 0.9;
-      ctx.beginPath();
-      ctx.moveTo(cxX, cxY - 8 * S);
-      ctx.lineTo(cxX + 6 * S, cxY + 4 * S);
-      ctx.lineTo(cxX - 6 * S, cxY + 4 * S);
-      ctx.closePath();
-      ctx.fill();
-      ctx.strokeStyle = 'rgba(255,255,255,0.4)';
-      ctx.lineWidth = 1;
-      ctx.stroke();
-    });
-  }
-  // Skin D: second contour with jitter (fabric ring)
-  if (skin === 'D') {
-    withSaved(ctx, () => {
-      ctx.strokeStyle = 'rgba(200,180,160,0.4)';
-      ctx.lineWidth = Math.max(1, 1.5 * S);
-      const jitterR = A.avatarRing.r + 8;
-      const jitterRand = mulberry32(seed + 2);
-      ctx.beginPath();
-      for (let i = 0; i <= 24; i++) {
-        const t = i / 24;
-        const j = (jitterRand() - 0.5) * 3 * S;
-        const angle = t * Math.PI * 2;
-        const rx = A.avatarRing.cx + Math.cos(angle) * (jitterR + j);
-        const ry = A.avatarRing.cy + Math.sin(angle) * (jitterR + j);
-        if (i === 0) ctx.moveTo(rx, ry);
-        else ctx.lineTo(rx, ry);
-      }
-      ctx.closePath();
-      ctx.stroke();
-    });
-  }
+
+  const avatarImage = await tryLoadAvatarImage(input.profile?.avatar);
   ctx.save();
   ctx.beginPath();
-  ctx.arc(A.avatar.cx, A.avatar.cy, A.avatar.r, 0, Math.PI * 2);
+  ctx.arc(avatarCx, avatarCy, avatarSize/2 - 4*S, 0, Math.PI*2);
   ctx.clip();
   if (avatarImage) {
-    ctx.drawImage(avatarImage, iconX, iconY, iconSize, iconSize);
+    ctx.drawImage(avatarImage, avatarX + 4*S, avatarY + 4*S, avatarSize - 8*S, avatarSize - 8*S);
   } else {
-    ctx.fillStyle = 'rgba(255,255,255,0.06)';
-    ctx.fillRect(iconX, iconY, iconSize, iconSize);
+    ctx.fillStyle = 'rgba(255,255,255,0.1)';
+    ctx.fillRect(avatarX, avatarY, avatarSize, avatarSize);
+    ctx.font = `900 ${100*S}px ${FONT_FAMILY}`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.font = `900 ${Math.round(iconSize * 0.55)}px ${FONT_FAMILY}`;
-    ctx.fillStyle = 'rgba(255,255,255,0.92)';
-    ctx.fillText(emojiFallback, A.avatar.cx, A.avatar.cy + Math.round(iconSize * 0.03));
+    ctx.fillText('🧑‍🚀', avatarCx, avatarCy + 8*S);
   }
   ctx.restore();
 
-  // 5) RANK — ribbon by skin, fitTextToWidth already used; emblem left of text
-  const rr = A.rankRibbon!;
-  const emblemSize = Math.round(20 * S);
-  const emblemX = A.rankTitle.x;
-  const rankTextX = A.rankTitle.x + emblemSize + Math.round(8 * S);
-  roundRectPath(ctx, rr.x, rr.y, rr.w, rr.h, rr.r!);
-  if (skin === 'B') {
-    const ribbonGrad = ctx.createLinearGradient(rr.x, rr.y, rr.x + rr.w, rr.y);
-    ribbonGrad.addColorStop(0, accent);
-    ribbonGrad.addColorStop(1, 'rgba(120,80,180,0.4)');
-    ctx.fillStyle = ribbonGrad;
-    ctx.globalAlpha = 0.4;
-    ctx.fill();
-    ctx.globalAlpha = 1;
-    ctx.strokeStyle = '#e8c547';
-    ctx.lineWidth = Math.max(1, 1.5 * S);
-    roundRectPath(ctx, rr.x, rr.y, rr.w, rr.h, rr.r!);
-    ctx.stroke();
-  } else if (skin === 'D') {
-    ctx.fillStyle = accent;
-    ctx.globalAlpha = 0.3;
-    ctx.fill();
-    ctx.globalAlpha = 1;
-    ctx.strokeStyle = 'rgba(160,140,120,0.6)';
-    ctx.lineWidth = Math.max(1, 1 * S);
-    roundRectPath(ctx, rr.x, rr.y, rr.w, rr.h, rr.r!);
-    ctx.stroke();
-  } else {
-    const ribbonGrad = ctx.createLinearGradient(rr.x, rr.y, rr.x + rr.w, rr.y + rr.h);
-    ribbonGrad.addColorStop(0, accent);
-    ribbonGrad.addColorStop(0.5, accent);
-    ribbonGrad.addColorStop(1, accent);
-    ctx.fillStyle = ribbonGrad;
-    ctx.globalAlpha = 0.35;
-    ctx.fill();
-    ctx.globalAlpha = 1;
-  }
-  // Emblem (shield/star) left of rank text
-  withSaved(ctx, () => {
-    const cx = emblemX + emblemSize / 2;
-    const cy = A.rankTitle.y + rankFontSize - emblemSize / 2;
-    ctx.fillStyle = 'rgba(255,255,255,0.35)';
-    ctx.strokeStyle = accent;
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    for (let i = 0; i < 5; i++) {
-      const a = (i / 5) * Math.PI * 2 - Math.PI / 2;
-      const r = emblemSize / 2;
-      const x = cx + Math.cos(a) * r;
-      const y = cy + Math.sin(a) * r;
-      if (i === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
-    }
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-  });
-  ctx.font = `900 ${rankFontSize}px ${FONT_FAMILY}`;
-  ctx.textAlign = 'left';
-  ctx.textBaseline = 'alphabetic';
-  ctx.strokeStyle = 'rgba(0,0,0,0.35)';
-  ctx.lineWidth = 2.5;
-  ctx.strokeText(rankText, rankTextX, A.rankTitle.y + rankFontSize);
-  ctx.fillStyle = 'rgba(255,255,255,0.95)';
-  ctx.fillText(rankText, rankTextX, A.rankTitle.y + rankFontSize);
+  // Profile Text
+  const textX = avatarX + avatarSize + cardPad + 10*S;
+  let nameY = pY + cardPad + 10*S;
+  
+  const rankText = String(input.profile?.rank || 'Мой путь').trim();
+  const nickname = String(input.profile?.nickname || 'Игрок').trim();
 
-  // 6) STATS — two chips with icon/dot left, border, highlight; A/B/D variants
-  const drawChip = (r: Rect, label: string, sk: 'A' | 'B' | 'D') => {
-    withSaved(ctx, () => {
-      roundRectPath(ctx, r.x, r.y, r.w, r.h, r.r!);
-      const chipGrad = ctx.createLinearGradient(r.x, r.y, r.x, r.y + r.h);
-      chipGrad.addColorStop(0, 'rgba(255,255,255,0.1)');
-      chipGrad.addColorStop(1, 'rgba(0,0,0,0.25)');
-      ctx.fillStyle = chipGrad;
+  applyShadow(12);
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'top';
+  ctx.fillStyle = 'rgba(255,255,255,0.7)';
+  ctx.font = `700 ${36*S}px ${FONT_FAMILY}`;
+  ctx.fillText(nickname, textX, nameY);
+  
+  ctx.fillStyle = 'rgba(255,255,255,1)';
+  let rankFontSize = fitFontSize(ctx, rankText.toUpperCase(), pW - (textX - pX) - cardPad, 68*S, 32*S, FONT_FAMILY);
+  ctx.font = `900 ${rankFontSize}px ${FONT_FAMILY}`;
+  ctx.fillText(rankText.toUpperCase(), textX, nameY + 50*S);
+  clearShadow();
+
+  // Stats Chips
+  const achieved = Number(input.profile?.totalLevelsAchieved ?? 0);
+  const inProgress = Number(input.profile?.totalBadgesStarted ?? 0);
+  const chipY = nameY + rankFontSize + (isPortrait ? 70*S : 35*S);
+  
+  const drawChip = (x: number, y: number, label: string) => {
+    ctx.font = `800 ${25*S}px ${FONT_FAMILY}`;
+    const tw = ctx.measureText(label).width;
+    const w = tw + 60*S;
+    const h = 55*S;
+    
+    ctx.save();
+    try {
+      roundRectPath(ctx, x, y, w, h, h/2);
+      let grad = ctx.createLinearGradient(x, y, x, y + h);
+      grad.addColorStop(0, 'rgba(255,255,255,0.15)');
+      grad.addColorStop(1, 'rgba(255,255,255,0.04)');
+      ctx.fillStyle = grad;
       ctx.fill();
-      if (sk === 'B') {
-        ctx.strokeStyle = '#e8c547';
-        ctx.lineWidth = Math.max(1, b1);
-        roundRectPath(ctx, r.x, r.y, r.w, r.h, r.r!);
-        ctx.stroke();
-        ctx.strokeStyle = 'rgba(120,80,180,0.5)';
-        ctx.lineWidth = 1;
-        roundRectPath(ctx, r.x + 2 * S, r.y + 2 * S, r.w - 4 * S, r.h - 4 * S, (r.r ?? 0) - 2 * S);
-        ctx.stroke();
-      } else if (sk === 'D') {
-        ctx.strokeStyle = 'rgba(160,140,120,0.55)';
-        ctx.lineWidth = Math.max(1, b1);
-        roundRectPath(ctx, r.x, r.y, r.w, r.h, r.r!);
-        ctx.stroke();
-      } else {
-        ctx.strokeStyle = accent;
-        ctx.globalAlpha = 0.55;
-        ctx.lineWidth = Math.max(1.5, b2);
-        roundRectPath(ctx, r.x, r.y, r.w, r.h, r.r!);
-        ctx.stroke();
-        ctx.globalAlpha = 1;
-      }
-      roundRectPath(ctx, r.x, r.y, r.w, r.h, r.r!);
-      ctx.save();
-      ctx.clip();
-      ctx.fillStyle = 'rgba(255,255,255,0.12)';
-      ctx.fillRect(r.x, r.y, r.w, Math.max(2, r.h * 0.25));
-      ctx.restore();
-      const iconX = r.x + Math.round(12 * S);
-      const iconY = r.y + r.h / 2;
-      ctx.fillStyle = accent;
-      ctx.globalAlpha = 0.9;
-      ctx.beginPath();
-      ctx.arc(iconX, iconY, 4 * S, 0, Math.PI * 2);
-      ctx.fill();
+      ctx.strokeStyle = accent;
+      ctx.globalAlpha = 0.5;
+      ctx.lineWidth = 1.5*S;
+      ctx.stroke();
+      
       ctx.globalAlpha = 1;
-      ctx.fillStyle = 'rgba(255,255,255,0.88)';
-      ctx.font = `700 ${statsFontSize}px ${FONT_FAMILY}`;
+      ctx.fillStyle = accent;
+      ctx.beginPath();
+      ctx.arc(x + 22*S, y + h/2, 5*S, 0, Math.PI*2);
+      ctx.fill();
+      
+      applyShadow(8);
+      ctx.fillStyle = 'rgba(255,255,255,0.95)';
       ctx.textAlign = 'left';
       ctx.textBaseline = 'middle';
-      ctx.fillText(label, r.x + chipPadX + Math.round(18 * S), r.y + r.h / 2);
-    });
+      ctx.fillText(label, x + 38*S, y + h/2);
+    } finally {
+      ctx.restore();
+    }
+    return w;
   };
-  const statsChips = A.statsChips!;
-  drawChip(statsChips.left, statsS1, skin);
-  drawChip(statsChips.right, statsS2, skin);
-
-  // 7) SLOTS — slot base under each circle, then badge; slotPng hook; locked = lock icon + darken
-  let slotImg: HTMLImageElement | null = null;
-  if (assets?.slotPng) slotImg = await tryLoadAsset(assets.slotPng);
-  if (input.badgeCarouselItems && input.badgeCarouselItems.length > 0) {
-    const items = input.badgeCarouselItems.slice(0, 8);
-    const cellSize = Math.round(width * (isPortrait ? 0.1 : 0.06));
-    const gap = Math.round(width * 0.018);
-    const carouselY = A.pill.y + A.pill.h + Math.round(width * 0.028);
-    A.slotsRow.y = carouselY;
-    A.slotsRow.r = cellSize / 2;
-    const totalW = items.length * cellSize + (items.length - 1) * gap;
-    const startX = isPortrait ? (width - totalW) / 2 : A.safe.x;
-    const slotR = cellSize / 2 + 4 * S;
-    for (let i = 0; i < items.length; i++) {
-      const item = items[i];
-      const cx = startX + i * (cellSize + gap) + cellSize / 2;
-      const cy = carouselY + cellSize / 2;
-      const locked = false;
-      A.slotsRow.slots.push({ cx, locked });
-      if (slotImg) {
-        ctx.drawImage(slotImg, cx - slotR, cy - slotR, slotR * 2, slotR * 2);
-      } else {
-        ctx.beginPath();
-        ctx.arc(cx, cy, slotR, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(0,0,0,0.45)';
-        ctx.fill();
-        if (skin === 'B') {
-          ctx.strokeStyle = '#e8c547';
-          ctx.lineWidth = Math.max(1, b1);
-          ctx.stroke();
-          ctx.strokeStyle = 'rgba(120,80,180,0.5)';
-          ctx.lineWidth = 1;
-          ctx.beginPath();
-          ctx.arc(cx, cy, slotR - 2 * S, 0, Math.PI * 2);
-          ctx.stroke();
-        } else if (skin === 'D') {
-          ctx.strokeStyle = 'rgba(160,140,120,0.5)';
-          ctx.lineWidth = Math.max(1, b1);
-          ctx.stroke();
-        } else {
-          glowStroke(ctx, () => ctx.arc(cx, cy, slotR, 0, Math.PI * 2), accent, 2, 3, 0.2);
-          ctx.strokeStyle = accent;
-          ctx.globalAlpha = 0.6;
-          ctx.lineWidth = Math.max(1, b2);
-          ctx.beginPath();
-          ctx.arc(cx, cy, slotR, 0, Math.PI * 2);
-          ctx.stroke();
-          ctx.globalAlpha = 1;
-        }
-      }
-      const img = await tryLoadBadgeImage({
-        baseId: item.baseId,
-        id: item.baseId,
-        title: item.title,
-        categoryId: item.categoryId,
-        emoji: item.emoji,
-      });
-      const isLocked = !img && !item.emoji;
-      if (isLocked) {
-        ctx.fillStyle = 'rgba(0,0,0,0.5)';
-        ctx.beginPath();
-        ctx.arc(cx, cy, cellSize / 2, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = 'rgba(255,255,255,0.5)';
-        ctx.font = `900 ${Math.round(cellSize * 0.35)}px ${FONT_FAMILY}`;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText('🔒', cx, cy);
-      } else {
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(cx, cy, cellSize / 2, 0, Math.PI * 2);
-        ctx.clip();
-        if (img) {
-          ctx.drawImage(img, cx - cellSize / 2, cy - cellSize / 2, cellSize, cellSize);
-        } else {
-          ctx.fillStyle = 'rgba(255,255,255,0.08)';
-          ctx.beginPath();
-          ctx.arc(cx, cy, cellSize / 2, 0, Math.PI * 2);
-          ctx.fill();
-          if (item.emoji) {
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.font = `900 ${Math.round(cellSize * 0.5)}px ${FONT_FAMILY}`;
-            ctx.fillStyle = 'rgba(255,255,255,0.9)';
-            ctx.fillText(item.emoji, cx, cy);
-          }
-        }
-        ctx.restore();
-      }
-      if (!isLocked) {
-        ctx.strokeStyle = accent;
-        ctx.globalAlpha = 0.6;
-        ctx.lineWidth = Math.max(1, b1);
-        ctx.beginPath();
-        ctx.arc(cx, cy, cellSize / 2 + 1, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.globalAlpha = 1;
-      }
-    }
+  
+  ctx.font = `800 ${25*S}px ${FONT_FAMILY}`;
+  const label1 = `Закрыто ${achieved}`;
+  const label2 = `В пути ${inProgress}`;
+  const w1 = ctx.measureText(label1).width + 60*S;
+  const w2 = ctx.measureText(label2).width + 60*S;
+  
+  if (textX + w1 + 15*S + w2 > pX + pW - cardPad) {
+      drawChip(textX, chipY, label1);
+      drawChip(textX, chipY + 55*S + 12*S, label2);
+  } else {
+      drawChip(textX, chipY, label1);
+      drawChip(textX + w1 + 15*S, chipY, label2);
   }
 
-  // 8) BUFF — caption, callout, vibe (A.buff area; stay above maxContentY)
-  let cursorY = A.buff.y;
-  const rawCaption = String(input.customCaption || '').trim();
-  if (rawCaption && cursorY < maxContentY) {
-    const maxCaptionLen = 80;
-    const captionText =
-      rawCaption.length > maxCaptionLen
-        ? rawCaption.slice(0, maxCaptionLen - 1).trim() + '…'
-        : rawCaption;
-    const captionLines = wrapText(ctx, captionText, A.safe.w).slice(0, 2);
-    const captionFontSize = Math.round(38 * S);
-    const captionLineH = Math.round(48 * S);
-    const captionHeight = captionLines.length * captionLineH + Math.round(25 * S);
-    if (cursorY + captionHeight <= maxContentY) {
-      ctx.font = `800 ${captionFontSize}px ${FONT_FAMILY}`;
-      ctx.fillStyle = accent;
-      ctx.textAlign = 'left';
-      ctx.textBaseline = 'top';
-      captionLines.forEach((line, idx) =>
-        ctx.fillText(line, A.safe.x, cursorY + idx * captionLineH)
-      );
-      cursorY += captionHeight;
-    }
-  }
-  const rawCallout = String(input.customCallout || '').trim();
-  const calloutText = isCalloutValid(rawCallout) ? rawCallout : '';
-  if (calloutText && cursorY < maxContentY) {
-    const calloutMaxLen = 50;
-    const calloutDisplay =
-      calloutText.length > calloutMaxLen
-        ? calloutText.slice(0, calloutMaxLen - 1).trim() + '…'
-        : calloutText;
-    const lineH = Math.round(40 * S);
-    if (cursorY + lineH <= maxContentY) {
-      ctx.fillStyle = 'rgba(255,255,255,0.7)';
-      ctx.font = `700 ${Math.round(28 * S)}px ${FONT_FAMILY}`;
-      ctx.textAlign = 'left';
-      ctx.textBaseline = 'top';
-      ctx.fillText(calloutDisplay, A.safe.x, cursorY);
-      cursorY += lineH;
-    }
-  }
-  const rawStoriesLine = String(input.customStoriesLine || '').trim();
-  if (rawStoriesLine && cursorY < maxContentY) {
-    const storiesMaxLen = 50;
-    const storiesDisplay =
-      rawStoriesLine.length > storiesMaxLen
-        ? rawStoriesLine.slice(0, storiesMaxLen - 1).trim() + '…'
-        : rawStoriesLine;
-    const storiesLines = wrapText(ctx, storiesDisplay, A.safe.w).slice(0, 2);
-    const storiesFontSize = Math.round(24 * S);
-    const storiesLineH = Math.round(32 * S);
-    const storiesHeight = storiesLines.length * storiesLineH + Math.round(8 * S);
-    if (cursorY + storiesHeight <= maxContentY) {
-      ctx.font = `600 italic ${storiesFontSize}px ${FONT_FAMILY}`;
-      ctx.fillStyle = 'rgba(255,255,255,0.55)';
-      ctx.textAlign = 'left';
-      ctx.textBaseline = 'top';
-      storiesLines.forEach((line, idx) =>
-        ctx.fillText(line, A.safe.x, cursorY + idx * storiesLineH)
-      );
-      cursorY += storiesHeight;
-    }
-  }
-  const vc = input.vibeCheck;
-  if (vc && (vc.memeHeader || vc.memeText || vc.statBuff) && cursorY < maxContentY) {
-    cursorY += Math.round(20 * S);
-    const vcHeaderFontSize = Math.round(24 * S);
-    const vcTextFontSize = Math.round(32 * S);
-    const vcStatFontSize = Math.round(22 * S);
-    const vcLineH = Math.round(38 * S);
-    if (vc.memeHeader && cursorY + vcLineH <= maxContentY) {
-      const headerDisplay = String(vc.memeHeader).trim().slice(0, 50).toUpperCase();
-      ctx.fillStyle = 'rgba(255,255,255,0.45)';
-      ctx.font = `700 ${vcHeaderFontSize}px ${FONT_FAMILY}`;
-      ctx.fillText(headerDisplay, A.safe.x, cursorY);
-      cursorY += vcLineH;
-    }
-    if (vc.memeText && cursorY < maxContentY) {
-      const memeDisplay = String(vc.memeText).trim().slice(0, 120);
-      const memeLines = wrapText(ctx, memeDisplay, A.safe.w).slice(0, 2);
-      const memeH = memeLines.length * vcLineH + Math.round(15 * S);
-      if (cursorY + memeH <= maxContentY) {
-        ctx.font = `800 ${vcTextFontSize}px ${FONT_FAMILY}`;
-        ctx.fillStyle = accent;
-        memeLines.forEach((line, idx) => ctx.fillText(line, A.safe.x, cursorY + idx * vcLineH));
-        cursorY += memeH;
-      }
-    }
-    if (vc.statBuff && cursorY < maxContentY) {
-      const statDisplay = String(vc.statBuff).trim().slice(0, 50);
-      const statPlaqueH = Math.round(55 * S);
-      if (cursorY + statPlaqueH <= maxContentY) {
-        const statPlaqueY = cursorY;
-        const statPlaquePadding = Math.round(20 * S);
-        withSaved(ctx, () => {
-          roundRectPath(ctx, A.safe.x, statPlaqueY, A.safe.w, statPlaqueH, statPlaqueH / 2);
-          ctx.fillStyle = 'rgba(255,255,255,0.08)';
-          ctx.fill();
-          const grad = ctx.createLinearGradient(
-            A.safe.x,
-            statPlaqueY,
-            A.safe.x + A.safe.w,
-            statPlaqueY
-          );
-          grad.addColorStop(0, accent);
-          grad.addColorStop(0.5, accent);
-          grad.addColorStop(1, accent);
-          ctx.strokeStyle = grad;
-          ctx.globalAlpha = 0.7;
-          ctx.lineWidth = Math.max(1.5, b2);
-          roundRectPath(ctx, A.safe.x, statPlaqueY, A.safe.w, statPlaqueH, statPlaqueH / 2);
-          ctx.stroke();
-          ctx.globalAlpha = 1;
-          roundRectPath(ctx, A.safe.x, statPlaqueY, A.safe.w, statPlaqueH, statPlaqueH / 2);
-          ctx.clip();
-          ctx.fillStyle = 'rgba(255,255,255,0.15)';
-          ctx.fillRect(A.safe.x, statPlaqueY, A.safe.w, Math.max(2, statPlaqueH * 0.25));
-        });
-        const iconSz = Math.round(statPlaqueH * 0.55);
-        ctx.font = `700 ${iconSz}px ${FONT_FAMILY}`;
-        ctx.fillStyle = accent;
-        ctx.textAlign = 'left';
-        ctx.textBaseline = 'middle';
-        ctx.fillText('⚡', A.safe.x + statPlaquePadding, statPlaqueY + statPlaqueH / 2);
-        if (skin === 'B') {
-          const starY = statPlaqueY + statPlaqueH / 2;
-          for (let si = 0; si < 3; si++) {
-            const sx = A.safe.x + A.safe.w - statPlaquePadding - (2 - si) * 18 * S;
-            ctx.fillStyle = si < 2 ? accent : 'rgba(255,255,255,0.4)';
-            ctx.globalAlpha = 0.9;
-            ctx.beginPath();
-            ctx.arc(sx, starY, 4 * S, 0, Math.PI * 2);
-            ctx.fill();
-          }
-          ctx.globalAlpha = 1;
-        }
-        ctx.font = `700 ${vcStatFontSize}px ${FONT_FAMILY}`;
-        ctx.fillStyle = 'rgba(255,255,255,0.9)';
-        ctx.fillText(
-          statDisplay,
-          A.safe.x + statPlaquePadding + iconSz + Math.round(15 * S),
-          statPlaqueY + statPlaqueH / 2
-        );
-        cursorY += statPlaqueH + Math.round(15 * S);
-      }
-    }
+  // 4) BADGES COLLECTION BENTO CARD
+  drawGlassCard(cX, cY, cW, cH, 40*S);
+  
+  applyShadow(12);
+  ctx.fillStyle = 'rgba(255,255,255,0.85)';
+  ctx.font = `800 ${28*S}px ${FONT_FAMILY}`;
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'top';
+  ctx.fillText('КОЛЛЕКЦИЯ ЗНАЧКОВ', cX + cardPad, cY + cardPad);
+  clearShadow();
+
+  const items = input.badgeCarouselItems?.slice(0, 10) || [];
+  const badgeSize = isPortrait ? 130 * S : 120 * S;
+  const badgeGap = 20 * S;
+  
+  // Calculate how many fit in row
+  const rowCapacity = Math.floor((cW - cardPad * 2 + badgeGap) / (badgeSize + badgeGap));
+  const cols = Math.min(rowCapacity, Math.max(1, items.length));
+  
+  const slotsW = cols * badgeSize + Math.max(0, cols - 1) * badgeGap;
+  // Center horizontally within cX..cX+cW
+  const rowStartX = cX + (cW - slotsW)/2;
+  
+  // If wide format, we might have 2 rows depending on items!
+  const startY = cY + cardPad + 60*S;
+  
+  if (items.length === 0) {
+      ctx.fillStyle = 'rgba(255,255,255,0.4)';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.font = `600 ${32*S}px ${FONT_FAMILY}`;
+      ctx.fillText('Пока нет значков. Выбери маршрут!', cX + cW/2, startY + badgeSize/2);
   }
 
-  // Optional nickname (only if space left)
-  const nickname = String(input.profile?.nickname || '').trim();
-  if (!input.hideNickname && nickname && cursorY + Math.round(30 * S) <= maxContentY) {
-    ctx.fillStyle = 'rgba(255,255,255,0.62)';
-    ctx.font = `700 ${Math.round(27 * S)}px ${FONT_FAMILY}`;
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'top';
-    ctx.fillText(`Игрок: ${nickname}`, A.safe.x, cursorY);
-  }
+  for(let i=0; i<items.length; i++) {
+    if (!isPortrait && items.length > cols * 2) break; // safety
+    if (isPortrait && i >= cols) break; // only 1 row in portrait
+    
+    const rowIdx = Math.floor(i / cols);
+    const colIdx = i % cols;
+    const bx = rowStartX + colIdx * (badgeSize + badgeGap);
+    const by = startY + rowIdx * (badgeSize + badgeGap + 20*S);
+    
+    if (by + badgeSize > cY + cH) break; // don't overflow card vertically
+    
+    ctx.fillStyle = 'rgba(0,0,0,0.4)';
+    ctx.beginPath();
+    ctx.arc(bx + badgeSize/2, by + badgeSize/2, badgeSize/2 + 6*S, 0, Math.PI*2);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
 
-  // 9) FOOTER — divider: asset hook then by skin (A: HUD line + marks; B: gold gradient; D: stitch)
-  const div = A.footerDivider;
-  const divY1 = snap(div.y + 1);
-  let dividerDrawn = false;
-  if (assets?.dividerPng) {
-    const img = await tryLoadAsset(assets.dividerPng);
+    const img = await tryLoadBadgeImage({
+      baseId: items[i].baseId || '',
+      id: items[i].baseId || '',
+      title: items[i].title,
+      categoryId: items[i].categoryId,
+      emoji: items[i].emoji,
+    });
+    
     if (img) {
-      ctx.drawImage(img, div.x, div.y, div.w, div.h);
-      dividerDrawn = true;
-    }
-  }
-  if (!dividerDrawn) {
-    if (skin === 'B') {
-      const divGrad = ctx.createLinearGradient(div.x, divY1, div.x + div.w, divY1);
-      divGrad.addColorStop(0, 'rgba(0,0,0,0)');
-      divGrad.addColorStop(0.35, '#e8c547');
-      divGrad.addColorStop(0.5, '#e8c547');
-      divGrad.addColorStop(0.65, '#e8c547');
-      divGrad.addColorStop(1, 'rgba(0,0,0,0)');
-      ctx.strokeStyle = divGrad;
-      ctx.globalAlpha = 0.6;
-      ctx.lineWidth = Math.max(1, 2 * S);
+      ctx.save();
       ctx.beginPath();
-      ctx.moveTo(snap(div.x), divY1);
-      ctx.lineTo(snap(div.x + div.w), divY1);
-      ctx.stroke();
-      ctx.globalAlpha = 1;
-    } else if (skin === 'D') {
-      ctx.strokeStyle = 'rgba(160,140,120,0.5)';
-      ctx.lineWidth = 1;
-      const step = 10 * S;
-      for (let px = div.x; px < div.x + div.w; px += step) {
-        ctx.beginPath();
-        ctx.moveTo(snap(px), divY1);
-        ctx.lineTo(snap(Math.min(px + 4 * S, div.x + div.w)), divY1);
-        ctx.stroke();
-      }
+      ctx.arc(bx + badgeSize/2, by + badgeSize/2, badgeSize/2, 0, Math.PI*2);
+      ctx.clip();
+      ctx.drawImage(img, bx, by, badgeSize, badgeSize);
+      ctx.restore();
     } else {
-      ctx.strokeStyle = 'rgba(255,255,255,0.53)';
-      ctx.lineWidth = 1;
+      ctx.fillStyle = 'rgba(255,255,255,0.08)';
       ctx.beginPath();
-      ctx.moveTo(snap(div.x), divY1);
-      ctx.lineTo(snap(div.x + div.w), divY1);
-      ctx.stroke();
-      const markLen = Math.max(6, Math.round(6 * S));
-      ctx.beginPath();
-      ctx.moveTo(snap(div.x), divY1);
-      ctx.lineTo(snap(div.x), divY1 + markLen);
-      ctx.moveTo(snap(div.x + div.w), divY1);
-      ctx.lineTo(snap(div.x + div.w), divY1 + markLen);
-      ctx.stroke();
-      const divGrad = ctx.createLinearGradient(div.x, divY1, div.x + div.w, divY1);
-      divGrad.addColorStop(0, 'rgba(0,0,0,0)');
-      divGrad.addColorStop(0.4, accent);
-      divGrad.addColorStop(0.5, accent);
-      divGrad.addColorStop(0.6, accent);
-      divGrad.addColorStop(1, 'rgba(0,0,0,0)');
-      ctx.strokeStyle = divGrad;
-      ctx.globalAlpha = 0.28;
-      ctx.beginPath();
-      ctx.moveTo(snap(div.x), divY1);
-      ctx.lineTo(snap(div.x + div.w), divY1);
-      ctx.stroke();
-      ctx.globalAlpha = 1;
+      ctx.arc(bx + badgeSize/2, by + badgeSize/2, badgeSize/2, 0, Math.PI*2);
+      ctx.fill();
+      if (items[i].emoji) {
+          ctx.fillStyle = 'rgba(255,255,255,0.95)';
+          ctx.font = `900 ${65*S}px ${FONT_FAMILY}`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(items[i].emoji || '', bx + badgeSize/2, by + badgeSize/2 + 6*S);
+      } else {
+          ctx.fillStyle = 'rgba(255,255,255,0.4)';
+          ctx.font = `900 ${35*S}px ${FONT_FAMILY}`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText('🔒', bx + badgeSize/2, by + badgeSize/2);
+      }
     }
   }
 
-  const footerFontSize = Math.round(width * 0.022);
-  ctx.font = `700 ${footerFontSize}px ${FONT_FAMILY}`;
-  ctx.fillStyle = 'rgba(255,255,255,0.5)';
-  ctx.textBaseline = 'bottom';
-  ctx.textAlign = 'left';
-  ctx.fillText(CTA_FOOTER, A.footer.x, A.footer.y);
-  ctx.textAlign = 'right';
-  ctx.fillText(HASHTAGS, A.footer.x + A.footer.w, A.footer.y);
-  ctx.textAlign = 'left';
-  ctx.fillStyle = 'rgba(255,255,255,0.45)';
-  ctx.fillText(FOOTER_TAGLINE.slice(0, 60), A.footer.x, height - pad);
-  ctx.textAlign = 'right';
-  ctx.fillText(dateLabel, A.footer.x + A.footer.w, height - pad);
+  // 5) AI TEXT / VIBE CHECK BENTO
+  let currentY = Math.max(pY + pH, cY + cH) + 40*S;
+  const hasText = input.customCaption || input.customCallout || (input.vibeCheck && input.vibeCheck.memeText);
+  if (hasText && currentY < height - 160*S) {
+     const bannerH = height - currentY - 140*S; 
+     drawGlassCard(margin, currentY, width - margin*2, bannerH, 40*S);
+     
+     let textCursorY = currentY + cardPad;
+     applyShadow(12);
 
-  // Frame on top (same skin / asset as step 2)
-  if (!frameDrawn) {
-    if (skin === 'B') drawFrameB(ctx, A.frame, accent, S);
-    else if (skin === 'D') drawFrameD(ctx, A.frame, accent, S);
-    else drawFrameA(ctx, A.frame, accent, S);
+     if (input.vibeCheck?.memeHeader) {
+       ctx.fillStyle = accent;
+       ctx.font = `900 ${42*S}px ${FONT_FAMILY}`;
+       ctx.textAlign = 'left';
+       ctx.textBaseline = 'top';
+       const headLines = wrapText(ctx, input.vibeCheck.memeHeader.toUpperCase(), width - margin*2 - cardPad*2);
+       headLines.forEach((l, idx) => {
+         ctx.fillText(l, margin + cardPad, textCursorY + idx*52*S);
+       });
+       textCursorY += headLines.length * 52*S + 25*S;
+     }
+
+     const textStr = input.customCaption || input.customCallout || input.vibeCheck?.memeText || '';
+     if (textStr) {
+       ctx.fillStyle = 'rgba(255,255,255,0.95)';
+       ctx.font = `800 ${36*S}px ${FONT_FAMILY}`;
+       ctx.textAlign = 'left';
+       ctx.textBaseline = 'top';
+       const lines = wrapText(ctx, textStr, width - margin*2 - cardPad*2).slice(0, 5);
+       lines.forEach((l, idx) => {
+         ctx.fillText(l, margin + cardPad, textCursorY + idx*48*S);
+       });
+     }
+     clearShadow();
   }
 
-  if (DEBUG_ANCHORS) {
-    drawAnchorsDebug(ctx, A, S);
-  }
+  // 6) FOOTER
+  ctx.fillStyle = 'rgba(255,255,255,0.15)';
+  ctx.fillRect(margin, height - 100*S, width - margin*2, 2*S);
+  
+  ctx.fillStyle = 'rgba(255,255,255,0.6)';
+  ctx.font = `700 ${24*S}px ${FONT_FAMILY}`;
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'top';
+  ctx.fillText('ПРИСОЕДИНЯЙСЯ К ПУТЕВОДИТЕЛЮ', margin, height - 70*S);
+  ctx.textAlign = 'right';
+  ctx.fillText(dateLabel, width - margin, height - 70*S);
 }
 
 export const generateSocialCard = async (input: SocialCardInput): Promise<SocialCardResult> => {

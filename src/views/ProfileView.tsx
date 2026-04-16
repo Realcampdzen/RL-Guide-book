@@ -1852,43 +1852,45 @@ export const ProfileView: React.FC<any> = (props) => {
       .catch(() => showHint({ title: 'Ошибка', content: 'Не удалось загрузить данные по коду.' }));
   }, [role, openCabinPanel]);
 
-  const initialHashHandledRef = useRef(false);
   useEffect(() => {
-    const h = window.location.hash;
-    if (h === '#share' || h === '#share-center') {
-      const scrollToShareCenter = () => {
-        const el = document.getElementById('profile-share-center');
-        if (el) {
-          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          window.history.replaceState(null, '', window.location.pathname + window.location.search);
-          return true;
+    const handleHash = () => {
+      const h = window.location.hash;
+      if (h === '#share' || h === '#share-center' || h === '#share-progress') {
+        openCabinPanel('share', 'right');
+        if (h === '#share-progress') {
+          setTimeout(() => {
+            window.dispatchEvent(
+              new CustomEvent('tour-nav-cabinet-section', {
+                detail: { section: 'share', shareTab: 'progress' },
+              })
+            );
+          }, 50);
         }
-        return false;
-      };
-      const run = () => {
-        if (scrollToShareCenter()) return;
-        window.setTimeout(scrollToShareCenter, 150);
-      };
-      requestAnimationFrame(() => requestAnimationFrame(run));
-    }
-    if (h === '#workshop' || (h.startsWith('#workshop') && h.length > 8)) {
-      const hasOpenWorkshopFlag =
-        typeof sessionStorage !== 'undefined' && !!sessionStorage.getItem('rl_open_workshop');
-      if (hasOpenWorkshopFlag) {
-        if (initialHashHandledRef.current) return;
-        initialHashHandledRef.current = true;
         try {
-          sessionStorage.removeItem('rl_open_workshop');
-        } catch {}
-        setActiveTab('workshop');
-        openCabinPanel('workshop', 'right');
-      } else {
-        try {
-          const url = window.location.pathname + window.location.search;
-          window.history.replaceState(null, '', url);
+          window.history.replaceState(null, '', window.location.pathname + window.location.search);
         } catch {}
       }
-    }
+      if (h === '#workshop' || (h.startsWith('#workshop') && h.length > 8)) {
+        const hasOpenWorkshopFlag =
+          typeof sessionStorage !== 'undefined' && !!sessionStorage.getItem('rl_open_workshop');
+        if (hasOpenWorkshopFlag) {
+          try {
+            sessionStorage.removeItem('rl_open_workshop');
+          } catch {}
+          setActiveTab('workshop');
+          openCabinPanel('workshop', 'right');
+        } else {
+          try {
+            const url = window.location.pathname + window.location.search;
+            window.history.replaceState(null, '', url);
+          } catch {}
+        }
+      }
+    };
+
+    handleHash();
+    window.addEventListener('hashchange', handleHash);
+    return () => window.removeEventListener('hashchange', handleHash);
   }, [openCabinPanel]);
 
   const PROFILE_TUTORIAL_STEPS: HintStep[] = [

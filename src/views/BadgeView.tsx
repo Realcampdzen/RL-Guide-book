@@ -517,7 +517,7 @@ const BadgeView: React.FC<BadgeViewProps> = ({
 
   const handleOpenShareCenter = () => {
     try {
-      window.location.hash = '#share';
+      window.location.hash = '#share-progress';
     } catch {
       // ignore
     }
@@ -584,7 +584,7 @@ const BadgeView: React.FC<BadgeViewProps> = ({
           <div className="badge-share-toast__actions">
             <button
               type="button"
-              className="badge-share-toast__btn"
+              className="btn-solid-purple"
               onClick={handleShareStart}
               disabled={startShareBusy}
             >
@@ -592,15 +592,15 @@ const BadgeView: React.FC<BadgeViewProps> = ({
             </button>
             <button
               type="button"
-              className="badge-share-toast__btn"
+              className="btn-space-tutorial hover-target"
               onClick={handleOpenShareCenter}
               disabled={startShareBusy}
             >
-              Share Center
+              Карточки прогресса (в ЛК)
             </button>
             <button
               type="button"
-              className="badge-share-toast__btn"
+              className="btn-space-tutorial hover-target"
               onClick={handleCopyBadgeLink}
               disabled={startShareBusy}
             >
@@ -608,7 +608,7 @@ const BadgeView: React.FC<BadgeViewProps> = ({
             </button>
             <button
               type="button"
-              className="badge-share-toast__btn badge-share-toast__btn--ghost"
+              className="btn-solid-ghost"
               onClick={() => setStartShareOpen(false)}
               disabled={startShareBusy}
             >
