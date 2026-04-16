@@ -27,6 +27,7 @@ import { ProgressionHubContainer } from './personal-cabinet/containers/Progressi
 import { SquadCornerContainer } from './personal-cabinet/containers/SquadCornerContainer';
 import { VozhatifikatorDashboard } from './personal-cabinet/containers/VozhatifikatorDashboard';
 import { WorkshopDashboard } from './personal-cabinet/containers/WorkshopDashboard';
+import { ShareContainer } from './profile/containers/ShareContainer';
 import { useSquadData } from './personal-cabinet/hooks/useSquadData';
 import { RealDiaryDashboard, type RealDiaryTabId } from './RealDiaryDashboard';
 import { type RoleFlowResult, RoleSelectionModal } from './RoleSelectionModal';
@@ -1078,7 +1079,7 @@ export const PersonalCabinet: React.FC<{
   const [pathCarouselSteps, setPathCarouselSteps] = useState(0);
   const [favCarouselSteps, setFavCarouselSteps] = useState(0);
   const [vozhatifikatorTab, setVozhatifikatorTab] = useState<string>('book');
-  const [inspectorTab, setInspectorTab] = useState<string>('missions');
+  const [inspectorTab, setInspectorTab] = useState<string>('cabinet');
   const [shareTab, setShareTab] = useState<'invite' | 'qr'>('invite');
   const [parentsTab, setParentsTab] = useState<'program' | 'squad' | 'child' | 'contacts'>(
     'program'
@@ -1307,7 +1308,7 @@ export const PersonalCabinet: React.FC<{
     return parts.length >= 2 ? `${parts[0]}.${parts[1]}` : clean;
   };
 
-  const { badgeTitlesInPath, favoriteBadgeTitles } = useMemo(() => {
+  const { badgeTitlesInPath, favoriteBadgeTitles, badgeCarouselItems } = useMemo(() => {
     const pathTitles = new Set<string>();
     const favTitles = new Set<string>();
     const resolveTitle = (baseId: string): string | null => {
@@ -1327,10 +1328,41 @@ export const PersonalCabinet: React.FC<{
       const baseId = getBaseId(favId);
       const title = resolveTitle(baseId);
       if (title) favTitles.add(title);
+      if (title) favTitles.add(title);
+    });
+    const carouselBaseIds = new Map<
+      string,
+      { baseId: string; title: string; categoryId: string; emoji?: string }
+    >();
+    const resolveBadge = (
+      baseId: string
+    ): { baseId: string; title: string; categoryId: string; emoji?: string } | null => {
+      const b = badgeLookupMap.get(baseId);
+      if (b?.title && b?.category_id)
+        return { baseId, title: b.title, categoryId: b.category_id, emoji: b.emoji };
+      const found = allBadges.find(
+        (badgeItem: any) => badgeItem.id === baseId || String(badgeItem.id).startsWith(baseId + '.')
+      );
+      if (found?.title && found?.category_id)
+        return { baseId, title: found.title, categoryId: found.category_id, emoji: found.emoji };
+      return null;
+    };
+    Object.keys(progress || {}).forEach((id) => {
+      const baseId = getBaseId(id);
+      if (carouselBaseIds.has(baseId)) return;
+      const item = resolveBadge(baseId);
+      if (item) carouselBaseIds.set(baseId, item);
+    });
+    (favorites || []).forEach((favId: string) => {
+      const baseId = getBaseId(favId);
+      if (carouselBaseIds.has(baseId)) return;
+      const item = resolveBadge(baseId);
+      if (item) carouselBaseIds.set(baseId, item);
     });
     return {
       badgeTitlesInPath: Array.from(pathTitles).slice(0, 10),
       favoriteBadgeTitles: Array.from(favTitles).slice(0, 10),
+      badgeCarouselItems: Array.from(carouselBaseIds.values()).slice(0, 8),
     };
   }, [progress, favorites, badgeLookupMap, allBadges]);
 
@@ -2685,21 +2717,22 @@ export const PersonalCabinet: React.FC<{
                 key="progress"
                 className="fade-in"
                 style={{
-                  padding: 32,
-                  borderRadius: 16,
-                  background: 'rgba(8, 20, 40, 0.15)',
-                  border: '1px solid rgba(93, 228, 255, 0.12)',
-                  textAlign: 'center' as const,
                   maxWidth: 720,
                   margin: '0 auto',
                   width: '100%',
                 }}
               >
-                <div style={{ fontSize: 32, marginBottom: 12 }}>📊</div>
-                <h3 style={{ margin: '0 0 8px', fontSize: 16, color: '#e8f0ff' }}>
-                  Карточки прогресса
-                </h3>
-                <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)' }}>Раздел в разработке.</p>
+                <ShareContainer
+                  shareActiveTab="create-card"
+                  nickname={profile?.nickname}
+                  avatar={profile?.avatar}
+                  rank={prodRank}
+                  totalLevelsAchieved={profile?.stats?.totalLevelsAchieved ?? 0}
+                  totalBadgesStarted={profile?.stats?.totalBadgesStarted ?? 0}
+                  badgeTitlesInPath={badgeTitlesInPath}
+                  favoriteBadgeTitles={favoriteBadgeTitles}
+                  badgeCarouselItems={badgeCarouselItems}
+                />
               </div>
             ) : activeSection === 'shifts' ? (
               <div

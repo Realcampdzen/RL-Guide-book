@@ -113,6 +113,7 @@ export const InspectorCabinetPanel: React.FC<InspectorCabinetPanelProps> = ({
 
   const handleEnroll = useCallback(() => {
     setInspectorDay(1);
+    setActiveMission('friendship');
   }, [setInspectorDay]);
 
   // ------ INLINE MISSION VIEW ------
