@@ -434,7 +434,7 @@ const drawNoisePattern = (ctx: CanvasRenderingContext2D, rect: Rect) => {
 };
 
 /** Frame skin A: double stroke + inner bevel + HUD corner brackets. */
-const drawFrameA = (ctx: CanvasRenderingContext2D, frame: Rect, accent: string, S: number) => {
+export const drawFrameA = (ctx: CanvasRenderingContext2D, frame: Rect, accent: string, S: number) => {
   const { x, y, w, h, r } = frame;
   const rad = r ?? 0;
   withSaved(ctx, () => {
