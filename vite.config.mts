@@ -366,8 +366,8 @@ export default defineConfig(({ mode, command }) => {
     devtools: true,
     plugins,
     // Dev should work from http://localhost:3001/ without requiring /RL-Guide-book/ prefix.
-    // Build/preview keeps the GitHub Pages base path.
-    base: isDevServer ? '/' : '/RL-Guide-book/',
+    // Build/preview keeps the GitHub Pages base path, unless deployed on Vercel.
+    base: isDevServer ? '/' : (process.env.VERCEL ? '/' : '/RL-Guide-book/'),
     server: {
       forwardConsole: true,
       port: 3001,
