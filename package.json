@@ -40,6 +40,7 @@
     "@google/generative-ai": "^0.24.1",
     "@radix-ui/react-dialog": "^1.1.15",
     "@supabase/supabase-js": "^2.98.0",
+    "@vercel/speed-insights": "^2.0.0",
     "agentation-mcp": "^1.2.0",
     "fitty": "^2.4.2",
     "framer-motion": "^11.18.2",

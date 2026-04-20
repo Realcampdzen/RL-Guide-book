@@ -1,13 +1,14 @@
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App.tsx';
 import ErrorBoundary from './components/ErrorBoundary';
 import { AuthProvider } from './context/AuthContext';
 import { CounselorSquadProvider } from './context/CounselorSquadContext';
+import { DataProvider } from './context/DataContext';
 import { HintOverlayProvider } from './context/HintOverlayContext';
 import { ProgressProvider } from './context/ProgressContext';
 import { TeamProvider } from './context/TeamContext';
-import { DataProvider } from './context/DataContext';
 import { setupGodModeInterceptor } from './utils/godModeInterceptor';
 
 import './styles/tailwind.css';
@@ -27,6 +28,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
                 <HintOverlayProvider>
                   <div className="profile-spaceship-root" data-profile-mode="spaceship">
                     <App />
+                    <SpeedInsights />
                   </div>
                 </HintOverlayProvider>
               </CounselorSquadProvider>
