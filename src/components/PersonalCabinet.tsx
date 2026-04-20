@@ -3082,18 +3082,22 @@ export const PersonalCabinet: React.FC<{
                   })()}
                 {['intro-doc', 'methodology-doc', 'active-checklist-doc'].includes(inspectorTab) &&
                   (() => {
+                    const baseUrl = import.meta.env.BASE_URL || '/';
+                    const prefix = baseUrl.endsWith('/') ? baseUrl : baseUrl + '/';
+                    const aiDataRoot = `${prefix}ai-data`;
+
                     const DOC_CONFIG: Record<string, { title: string; path: string }> = {
                       'intro-doc': {
                         title: '📖 Введение в Инспектора Пользы',
-                        path: `${import.meta.env.VITE_AI_DATA_URL || '/RL-Guide-book/ai-data'}/category-14/introduction.md`,
+                        path: `${aiDataRoot}/category-14/introduction.md`,
                       },
                       'methodology-doc': {
                         title: '📘 Методика «Инспектор Пользы»',
-                        path: `${import.meta.env.VITE_AI_DATA_URL || '/RL-Guide-book/ai-data'}/category-14/methodology/inspector-methodology.md`,
+                        path: `${aiDataRoot}/category-14/methodology/inspector-methodology.md`,
                       },
                       'active-checklist-doc': {
                         title: '✅ Активный чек-лист',
-                        path: `${import.meta.env.VITE_AI_DATA_URL || '/RL-Guide-book/ai-data'}/category-14/checklists/active-checklist.md`,
+                        path: `${aiDataRoot}/category-14/checklists/active-checklist.md`,
                       },
                     };
                     const cfg = DOC_CONFIG[inspectorTab];

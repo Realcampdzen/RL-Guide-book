@@ -455,11 +455,15 @@ export function useAppController() {
         };
         const normalizedKey = alias(key);
 
-        const primaryPath = `${import.meta.env.VITE_AI_DATA_URL || '/RL-Guide-book/ai-data'}/category-${selectedCategory.id}/${type}/${normalizedKey}`;
+        const baseUrl = import.meta.env.BASE_URL || '/';
+        const prefix = baseUrl.endsWith('/') ? baseUrl : baseUrl + '/';
+        const aiDataRoot = `${prefix}ai-data`;
+
+        const primaryPath = `${aiDataRoot}/category-${selectedCategory.id}/${type}/${normalizedKey}`;
         let response = await fetch(primaryPath);
 
         if (!response.ok) {
-          const fallbackPath = `${import.meta.env.VITE_AI_DATA_URL || '/RL-Guide-book/ai-data'}/category-14/${type}/${normalizedKey}`;
+          const fallbackPath = `${aiDataRoot}/category-14/${type}/${normalizedKey}`;
           response = await fetch(fallbackPath);
           if (!response.ok) {
             return;
