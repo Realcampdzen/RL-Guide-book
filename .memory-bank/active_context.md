@@ -11,7 +11,6 @@
 - **StorageProvider:** 25 stores registered in `backend/storage/`. Two legacy gaps remain: `engine_projects` and `initiatives` (Движки) still use raw `open()/json.dump()` in `app.py` — not persistent on Vercel serverless.
 
 ## Current Focus (Pending User Input)
-The core React and State Management refactoring phases are complete. Our remaining technical debt points include:
+The core React and State Management refactoring phases are complete. DevOps orchestration is active. Our remaining technical debt points include:
 - **Documentation sync:** Bringing `tech_context.md`, `__init__.py` docstrings, and `ROADMAP_2026.md` up to date with reality.
-- **Backend storage gaps:** `engine_projects` / `initiatives` need migration to StorageProvider (plan drafted, awaiting approval).
-- **Consolidating feature branches:** Merging the `feature/refactor-*` branches into `main` safely.
+- **Backend storage gaps:** `engine_projects` / `initiatives` use `StorageProvider` in code (Testing/Validation phase for Vercel persistence).

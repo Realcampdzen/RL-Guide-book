@@ -9,6 +9,11 @@
 **Single source of truth для текущего фокуса:** [.memory-bank/active_context.md](.memory-bank/active_context.md). **Архив статусов задач:** [docs/ROADMAP_2026.md](docs/ROADMAP_2026.md).
 
 Перед началом любой задачи ознакомься с состоянием проекта:
+0.  **[CLAUDE.md](CLAUDE.md)** — **Глобальные правила кодинга агента** (скиллы Карпаты: хирургическая точность, никаких додумок, Goal-Driven).
+0x. **[.agents/standards/](.agents/standards/)** — **Индекс архитектурных стандартов проекта (Agent OS Index)**. Инжектить нужные в зависимости от задачи (Storage Provider, Vanilla CSS, Strangler Fig).
+0a. **[.agents/skills/frontend-design/SKILL.md](.agents/skills/frontend-design/SKILL.md)** — **Принципы эстетического UI/UX дизайна** (от Design OS). Не создавать generic AI интерфейсы.
+0b. **[.agents/workflows/design-os-handoff.md](.agents/workflows/design-os-handoff.md)** — **Пайплайн Handoff UI**. Сначала планируем и проектируем интерфейс/данные, только потом пишем код UI.
+0c. **[.agents/workflows/tech-spec-handoff.md](.agents/workflows/tech-spec-handoff.md)** — **Пайплайн Handoff Business Logic**. Обязательно писать `TECH_SPEC.md` со ссылками на стандарты ДО кодинга API или интеграции логики.
 1.  **[.memory-bank/active_context.md](.memory-bank/active_context.md)** — **Текущая задача** и фокус работы.
 1a. **[docs/ROADMAP_2026.md](docs/ROADMAP_2026.md)** — архив Done/Evidence. Перед реализацией задачи проверь статус; если **Done** — не перереализовывать (риск перезаписи уже рабочего кода).
 1a. **[.cursor/agent orchestration/AGENT_ORCHESTRATION.md](.cursor/agent%20orchestration/AGENT_ORCHESTRATION.md)** — при мульти-агентной работе **обязательно** перед стартом: проверить Claim Board (не занята ли задача), записать агента (A/B/C/D/E), задачу, дату и логичный следующий шаг. По завершении — обновить статус, создать отчёт в папке agent orchestration.

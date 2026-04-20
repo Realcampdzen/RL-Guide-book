@@ -747,15 +747,16 @@ const ChatBot: React.FC<ChatBotProps> = ({
                 className="chatbot-header-info"
                 style={{ display: 'flex', alignItems: 'center', gap: '12px' }}
               >
-                <div className="chatbot-avatar" style={{ position: 'relative' }}>
+                <div className="chatbot-avatar" style={{ position: 'relative', width: '56px', height: '56px', flexShrink: 0 }}>
                   <img
                     src={`${import.meta.env.BASE_URL}Валюша.jpg`}
                     alt="НейроВалюша"
                     draggable={false}
                     onContextMenu={(e) => e.preventDefault()}
                     style={{
-                      width: '56px',
-                      height: '56px',
+                      width: '100%',
+                      height: '100%',
+                      display: 'block',
                       borderRadius: '50%',
                       objectFit: 'cover',
                       border: '2px solid rgba(225, 29, 72, 0.5)',
@@ -765,8 +766,8 @@ const ChatBot: React.FC<ChatBotProps> = ({
                   <div
                     style={{
                       position: 'absolute',
-                      bottom: '0px',
-                      right: '0px',
+                      bottom: '2px',
+                      right: '2px',
                       width: '14px',
                       height: '14px',
                       background: '#ff4f8b',

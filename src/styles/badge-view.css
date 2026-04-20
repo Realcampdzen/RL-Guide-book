@@ -55,64 +55,40 @@
   bottom: calc(var(--mobile-nav-height) + env(safe-area-inset-bottom) + 14px);
   z-index: var(--z-toast);
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  align-items: stretch;
   gap: 12px;
   padding: 12px 14px;
   border-radius: 18px;
   border: 1px solid rgba(255, 255, 255, 0.14);
-  background: rgba(20, 20, 35, 0.92);
-  box-shadow: 0 14px 44px rgba(0, 0, 0, 0.42);
-  color: rgba(255, 255, 255, 0.92);
+  background: var(--mobile-glass-bg, rgba(20, 20, 35, 0.92));
+  backdrop-filter: blur(12px);
+  box-shadow: 0 14px 44px rgba(0, 0, 0, 0.42), 0 0 20px rgba(139, 0, 255, 0.15);
+  color: rgba(255, 255, 255, 0.95);
 }
 
 .badge-share-toast__text {
-  flex: 1 1 240px;
+  text-align: center;
   font-size: 13px;
   line-height: 1.35;
+  margin-bottom: 4px;
 }
 
 .badge-share-toast__actions {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 10px;
-  flex: 0 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  width: 100%;
+  gap: 8px;
 }
 
-.badge-share-toast__btn {
-  padding: 10px 12px;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.92);
-  font-family: var(--f-display-nav);
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition:
-    transform 0.2s var(--easing),
-    background 0.2s var(--easing),
-    border-color 0.2s var(--easing);
-}
-
-.badge-share-toast__btn:hover {
-  transform: translateY(-1px);
-  background: rgba(255, 255, 255, 0.14);
-  border-color: rgba(255, 255, 255, 0.26);
-}
-
-.badge-share-toast__btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.badge-share-toast__btn--ghost {
-  background: rgba(0, 0, 0, 0.18);
+/* Форсируем компактный размер для кнопок, чтобы они идеально строились сеткой 2x2 */
+.badge-share-toast button[class*="btn-"] {
+  padding: 8px 10px !important;
+  font-size: 10px !important;
+  text-align: center;
+  min-height: 38px;
+  line-height: 1.2;
+  white-space: normal;
 }
 
 @media (min-width: 769px) {
@@ -120,7 +96,7 @@
     left: 24px;
     right: auto;
     bottom: 24px;
-    max-width: 520px;
+    max-width: 440px; /* Уменьшено для компактности сетки 2x2 на десктопе */
   }
 }
 

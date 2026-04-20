@@ -18,7 +18,7 @@ function section(title) {
 // Ports consistency
 section('Ports consistency');
 const pkg = JSON.parse(read('package.json'));
-const viteConfig = read('vite.config.ts') || '';
+const viteConfig = read('vite.config.ts') || read('vite.config.mts') || '';
 const startAll = read('start_all_services.bat') || '';
 
 const devScript = pkg.scripts?.dev || '';
