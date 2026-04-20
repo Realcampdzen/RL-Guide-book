@@ -19,6 +19,7 @@ Before starting any task, agents MUST read `agent.md` and the contents of `.memo
 
 **Name:** rl-guide-book (Путеводитель "Реальный Лагерь")
 **Description:** A comprehensive digital ecosystem for the "Real Camp" (Реальный Лагерь) badge system. It features an interactive 3D web application, a comprehensive knowledge base of 119 badges, and an AI assistant named "NeuroValyusha" (НейроВалюша).
+**Core Vision:** This is NOT just a B2B management platform. This is a game ecosystem that develops 4K skills, co-management, and transforms children into shift organizers and future counselors. The management portal is secondary to the pedagogical impact of raising leaders and building camp traditions.
 
 ### Key Components
 1.  **Frontend:** React (TypeScript) application with Three.js for 3D visualization.

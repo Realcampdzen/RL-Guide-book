@@ -1,7 +1,7 @@
 {
   "name": "rl-guide-book",
   "version": "2.5.0",
-  "description": "Космическая визуализация Путеводителя 'Реального Лагеря'",
+  "description": "Игровая экосистема для лагерной смены и развития 4К-навыков",
   "main": "index.js",
   "scripts": {
     "dev": "vite --host --port 3001",

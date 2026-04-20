@@ -1,7 +1,7 @@
 {
   "name": "rl-guide-api",
   "version": "1.0.0",
-  "description": "API для Путеводителя Реального Лагеря с полной архитектурой",
+  "description": "API-платформа планирования и управления лагерными сменами",
   "type": "module",
   "dependencies": {
     "openai": "^4.28.0"
