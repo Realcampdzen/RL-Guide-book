@@ -10,7 +10,6 @@
   isolation: isolate;
   background-color: var(--c-midnight);
   --rf-topbar-height: 60px;
-  --rf-topbar-offset: calc(env(safe-area-inset-top) + var(--rf-topbar-height) + 22px);
 }
 
 /* Fixed background layer to prevent flashes during fast scroll/compositing */
@@ -119,8 +118,8 @@
 }
 
 .registration-form-content {
-  padding-top: var(--rf-topbar-offset);
-  padding-bottom: calc(env(safe-area-inset-bottom) + var(--mobile-nav-height) + 24px);
+  padding-top: calc(env(safe-area-inset-top, 0px) + 96px);
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 110px);
   padding-left: 12px;
   padding-right: 12px;
   width: min(980px, calc(100% - 24px));
