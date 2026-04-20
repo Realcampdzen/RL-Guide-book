@@ -9,7 +9,7 @@ export function getApiBase(): string {
   
   // RKN Anti-Proxy Shield: force route Vercel backend through Cloudflare
   if (baseUrl.includes('backend-murex-one-40.vercel.app')) {
-      baseUrl = 'https://api.realcampguide.ru';
+      baseUrl = '/proxy-api';
   }
   
   return baseUrl;
