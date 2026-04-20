@@ -49,8 +49,7 @@
 }
 
 .registration-form-topbar {
-  position: fixed;
-  inset: 0 0 auto 0;
+  position: relative;
   z-index: 12010;
   padding: calc(env(safe-area-inset-top) + 10px) 12px 12px;
   background: linear-gradient(180deg, rgba(10, 8, 18, 0.92), rgba(10, 8, 18, 0.72));
@@ -118,7 +117,7 @@
 }
 
 .registration-form-content {
-  padding-top: calc(env(safe-area-inset-top, 0px) + 96px);
+  padding-top: 24px;
   padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 110px);
   padding-left: 12px;
   padding-right: 12px;
