@@ -490,7 +490,7 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
         {/* Manifesto Section */}
         <section className="manifesto">
           <div className="manifesto-statement reveal-on-scroll">
-            <h2>Значки здесь — не награды, а маршруты развития.</h2>
+            <h2>Значки здесь — <span style={{ whiteSpace: 'nowrap', hyphens: 'none', WebkitHyphens: 'none' }}>не награды,</span> а маршруты развития.</h2>
             <p>
               В Реальном Лагере значки — не просто «ачивки» за выполнение заданий. Это путеводные
               звёзды, которые помогают выбрать твой собственный путь. Каждый значок — не медаль за
