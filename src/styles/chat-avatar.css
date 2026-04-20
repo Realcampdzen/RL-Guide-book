@@ -248,3 +248,11 @@
   initial-value: 0deg;
   inherits: false;
 }
+
+/* Скрыть пузырь на специфических страницах только для мобильных */
+@media (max-width: 768px) {
+  .chat-avatar-wrapper.view-badge,
+  .chat-avatar-wrapper.view-badge-level {
+    display: none !important;
+  }
+}

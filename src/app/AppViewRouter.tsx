@@ -459,6 +459,7 @@ export const AppViewRouter: React.FC<Props> = ({ controller, fallback }) => {
       {/* Global ChatBot overlay + floating avatar — works on every view */}
       <Suspense fallback={null}>
         <div
+          className={`chat-avatar-wrapper view-${currentView}`}
           style={{
             display:
               !loading &&
