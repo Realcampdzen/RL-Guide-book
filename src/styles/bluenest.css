@@ -745,7 +745,19 @@ button.nav-image-container {
   -ms-overflow-style: none;
 
   transform: translateZ(0);
+}
+
+.subtitle-hint[data-placement="anchor"] {
   animation: rl-welcome-slide-in 0.25s ease-out forwards;
+}
+
+.subtitle-hint[data-placement="center"] {
+  animation: rl-welcome-slide-in-center 0.25s ease-out forwards;
+}
+
+@keyframes rl-welcome-slide-in-center {
+  from { opacity: 0; transform: translate(-50%, calc(-50% + 20px)); }
+  to { opacity: 1; transform: translate(-50%, -50%); }
 }
 
 .subtitle-hint-backdrop {
