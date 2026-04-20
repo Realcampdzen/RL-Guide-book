@@ -5,7 +5,7 @@
    - Respect subpath deployments (/RL-Guide-book/)
 */
 
-const VERSION = 'v2';
+const VERSION = 'v3';
 const CACHE_HTML = `rlgb-html-${VERSION}`;
 const CACHE_ASSETS = `rlgb-assets-${VERSION}`;
 const CACHE_IMAGES = `rlgb-images-${VERSION}`;
