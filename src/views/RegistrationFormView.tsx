@@ -48,7 +48,13 @@ const RegistrationFormView: React.FC<RegistrationFormViewProps> = ({
         </div>
       </header>
 
-      <main className="registration-form-content" style={{ paddingTop: '24px' }}>
+      <main 
+        className="registration-form-content" 
+        style={{ 
+          paddingTop: '24px', 
+          paddingBottom: 'calc(env(safe-area-inset-bottom, 20px) + 90px)' 
+        }}
+      >
         <section className="registration-form-card">
           <h2>📝 Заполните анкету</h2>
           <p>Мы свяжемся с вами в ближайшее время.</p>
