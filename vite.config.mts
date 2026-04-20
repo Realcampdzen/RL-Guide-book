@@ -401,7 +401,6 @@ export default defineConfig(({ mode, command }) => {
       rollupOptions: {
         input: {
           main: resolve(__dirname, 'index.html'),
-          'profile-desktop': resolve(__dirname, 'profile-desktop.html'),
         },
         output: {
           manualChunks(id) {
