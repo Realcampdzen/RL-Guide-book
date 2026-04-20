@@ -19,3 +19,30 @@
 
 /* Skeletons / loading placeholders */
 @import url("./styles/skeleton.css");
+
+/*
+========================================
+ GLOBAL MOBILE GLASS HEADER FIXES
+========================================
+*/
+
+/* 1. Make the chatbot bubble avatar larger */
+.mobile-glass-header .mobile-header-avatar {
+  width: 48px !important;
+  height: 48px !important;
+}
+
+@media (max-width: 360px) {
+  .mobile-glass-header .mobile-header-avatar {
+    width: 40px !important;
+    height: 40px !important;
+  }
+}
+
+/* 2. Fix the glow clipping on "NEUROVALUSHA" text by adding padding to expand the 
+      element bounds, and neutralizing it with negative margin to preserve layout */
+.mobile-glass-header .mobile-header-logo {
+  padding: 8px 12px !important;
+  margin: -8px -12px !important;
+  overflow: visible !important;
+}
