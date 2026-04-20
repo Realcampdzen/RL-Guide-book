@@ -22,6 +22,10 @@
       "src": "/proxy-api/(.*)",
       "dest": "https://backend-murex-one-40.vercel.app/$1"
     },
+    {
+      "src": "/RL-Guide-book/(.*)",
+      "dest": "/$1"
+    },
     { "handle": "filesystem" },
     {
       "src": "/(.*)",
