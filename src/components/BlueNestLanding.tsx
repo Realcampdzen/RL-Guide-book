@@ -793,7 +793,7 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
                   анализировать свой опыт.
                 </p>
 
-                <div style={{ display: 'flex', gap: '12px', marginTop: '24px', flexWrap: 'wrap' }}>
+                <div className="subtitle-hint-actions" style={{ display: 'flex', gap: '12px', marginTop: '24px', flexWrap: 'wrap' }}>
                   <button
                     onClick={handleStartGameCTA}
                     onMouseEnter={onHoverLogin}
