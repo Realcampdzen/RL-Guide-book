@@ -754,8 +754,8 @@ const ChatBot: React.FC<ChatBotProps> = ({
                     draggable={false}
                     onContextMenu={(e) => e.preventDefault()}
                     style={{
-                      width: '40px',
-                      height: '40px',
+                      width: '56px',
+                      height: '56px',
                       borderRadius: '50%',
                       objectFit: 'cover',
                       border: '2px solid rgba(225, 29, 72, 0.5)',
@@ -765,10 +765,10 @@ const ChatBot: React.FC<ChatBotProps> = ({
                   <div
                     style={{
                       position: 'absolute',
-                      bottom: '-1px',
-                      right: '-1px',
-                      width: '12px',
-                      height: '12px',
+                      bottom: '0px',
+                      right: '0px',
+                      width: '14px',
+                      height: '14px',
                       background: '#ff4f8b',
                       borderRadius: '50%',
                       border: '2px solid rgba(12, 12, 12, 0.95)',
