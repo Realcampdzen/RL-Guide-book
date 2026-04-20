@@ -13,6 +13,8 @@ import { setupGodModeInterceptor } from './utils/godModeInterceptor';
 import './styles/tailwind.css';
 import './styles/profile-view-spaceship.css';
 
+import { SpeedInsights } from '@vercel/speed-insights/react';
+
 // Init Presenter God Mode early
 setupGodModeInterceptor();
 
@@ -27,6 +29,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
                 <HintOverlayProvider>
                   <div className="profile-spaceship-root" data-profile-mode="spaceship">
                     <App />
+                    <SpeedInsights />
                   </div>
                 </HintOverlayProvider>
               </CounselorSquadProvider>
