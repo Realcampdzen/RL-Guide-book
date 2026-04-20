@@ -14,5 +14,8 @@
 /* Global custom cursor (enabled only when html[data-cursor="on"]) */
 @import url("./styles/cursor.css");
 
+/* Глобальные современные кнопки */
+@import url("./styles/global-buttons.css");
+
 /* Skeletons / loading placeholders */
 @import url("./styles/skeleton.css");

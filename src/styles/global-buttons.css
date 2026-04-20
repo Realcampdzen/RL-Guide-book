@@ -1,0 +1,88 @@
+/* 
+  Глобальные классы для современных "solid" кнопок интерфейса.
+  Основаны на эталонном дизайне из модальных окон главной страницы.
+*/
+
+.btn-solid-gold {
+  padding: 12px 24px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #FFD700 0%, #FFA000 100%);
+  border: none;
+  color: #1a1a2e;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+  transition: all 0.2s ease;
+}
+
+.btn-solid-gold:hover,
+.btn-solid-gold:focus-visible {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 215, 0, 0.6);
+  outline: none;
+}
+
+.btn-solid-gold:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 10px rgba(255, 215, 0, 0.4);
+}
+
+.btn-solid-purple {
+  padding: 12px 24px;
+  border-radius: 8px;
+  background: linear-gradient(90deg, #8b00ff, #ffd700);
+  border: none;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 15px rgba(139, 0, 255, 0.2);
+}
+
+.btn-solid-purple:hover,
+.btn-solid-purple:focus-visible {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(139, 0, 255, 0.4);
+  outline: none;
+}
+
+.btn-solid-purple:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 10px rgba(139, 0, 255, 0.2);
+}
+
+.btn-solid-ghost {
+  padding: 12px 24px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.btn-solid-ghost:hover,
+.btn-solid-ghost:focus-visible {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 1);
+  outline: none;
+}
