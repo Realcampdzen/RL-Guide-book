@@ -20,7 +20,7 @@
     },
     {
       "src": "/proxy-api/(.*)",
-      "dest": "https://backend-murex-one-40.vercel.app/api/$1"
+      "dest": "https://backend-murex-one-40.vercel.app/$1"
     },
     { "handle": "filesystem" },
     {
