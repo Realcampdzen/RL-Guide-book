@@ -252,7 +252,8 @@
 /* Скрыть пузырь на специфических страницах только для мобильных */
 @media (max-width: 768px) {
   .chat-avatar-wrapper.view-badge,
-  .chat-avatar-wrapper.view-badge-level {
+  .chat-avatar-wrapper.view-badge-level,
+  .chat-avatar-wrapper.view-category {
     display: none !important;
   }
 }
