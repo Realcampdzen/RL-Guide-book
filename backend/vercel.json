@@ -6,7 +6,7 @@
       "use": "@vercel/node"
     },
     {
-      "src": "api/flask_app.py",
+      "src": "flask_entry.py",
       "use": "@vercel/python"
     }
   ],
@@ -21,7 +21,7 @@
     },
     {
       "src": "/api/(.*)",
-      "dest": "/api/flask_app.py"
+      "dest": "/flask_entry.py"
     }
   ]
 }
