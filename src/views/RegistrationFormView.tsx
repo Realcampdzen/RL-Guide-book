@@ -52,7 +52,7 @@ const RegistrationFormView: React.FC<RegistrationFormViewProps> = ({
         className="registration-form-content" 
         style={{ 
           paddingTop: '24px', 
-          paddingBottom: 'calc(env(safe-area-inset-bottom, 20px) + 90px)' 
+          paddingBottom: '120px' 
         }}
       >
         <section className="registration-form-card">
@@ -128,6 +128,7 @@ const RegistrationFormView: React.FC<RegistrationFormViewProps> = ({
             🚀 Отправить в Telegram
           </button>
         </section>
+        <div aria-hidden="true" style={{ height: '120px', width: '100%', flexShrink: 0 }} />
       </main>
     </div>
   );
