@@ -723,12 +723,12 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
                       maxHeight: `calc(100vh - ${effectiveAnchor.top + 16}px)`,
                       overflowY: 'auto',
                     }
-                  : {
+                    : {
                       position: 'fixed',
                       top: '50%',
                       left: '50%',
                       transform: 'translate(-50%, -50%)',
-                      maxHeight: '85vh',
+                      maxHeight: '92dvh',
                       overflowY: 'auto',
                       width: 'min(90vw, 720px)',
                     }
@@ -798,53 +798,19 @@ const BlueNestLanding: React.FC<BlueNestLandingProps> = ({
                     onClick={handleStartGameCTA}
                     onMouseEnter={onHoverLogin}
                     onTouchStart={onHoverLogin}
-                    className="hover-target"
-                    style={{
-                      padding: '12px 24px',
-                      borderRadius: '8px',
-                      background: 'linear-gradient(135deg, #FFD700 0%, #FFA000 100%)',
-                      border: 'none',
-                      color: '#1a1a2e',
-                      fontSize: '13px',
-                      fontWeight: 800,
-                      letterSpacing: '0.1em',
-                      textTransform: 'uppercase',
-                      cursor: 'pointer',
-                      flex: '1 1 auto',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      boxShadow: '0 4px 15px rgba(255, 215, 0, 0.4)',
-                      transition: 'all 0.2s ease',
-                    }}
+                    className="hover-target btn-solid-gold"
+                    style={{ flex: '1 1 auto' }}
                   >
                     Войти в игру
                   </button>
                   <button
                     onClick={handleContactCTA}
-                    className="hover-target"
-                    style={{
-                      padding: '12px 24px',
-                      borderRadius: '8px',
-                      background: 'linear-gradient(90deg, #8b00ff, #ffd700)',
-                      border: 'none',
-                      color: '#ffffff',
-                      fontSize: '13px',
-                      fontWeight: 700,
-                      letterSpacing: '0.1em',
-                      textTransform: 'uppercase',
-                      cursor: 'pointer',
-                      flex: '1 1 auto',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      transition: 'all 0.2s ease',
-                      boxShadow: 'none',
-                    }}
+                    className="hover-target btn-solid-purple"
+                    style={{ flex: '1 1 auto' }}
                   >
                     Сотрудничество
                   </button>
-                  <button onClick={handleStartTourCTA} className="hover-target btn-space-tutorial">
+                  <button onClick={handleStartTourCTA} className="hover-target btn-space-tutorial" style={{ flex: '1 1 auto' }}>
                     Пройти обучение
                   </button>
                 </div>
