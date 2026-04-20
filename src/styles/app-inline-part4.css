@@ -1,4 +1,4 @@
-/* App Inline Styles Part 4 - Extracted from App.tsx */
+﻿/* App Inline Styles Part 4 - Extracted from App.tsx */
 
 /* Session Info Styles */
 .session-info {
@@ -362,7 +362,7 @@
       rgba(26, 26, 46, 0.3) 50%,
       rgba(22, 33, 62, 0.3) 100%
     ),
-    url("/RL-Guide-book/экран 1 фон copy.png") center center / cover no-repeat;
+    url("/RL-Guide-book/screen1_bg_copy.png") center center / cover no-repeat;
 }
 
 .additional-material-content {
@@ -435,3 +435,4 @@
   font-size: 1.1em;
   line-height: 1.6;
 }
+

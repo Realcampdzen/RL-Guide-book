@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import '../styles/chat-avatar.css';
 import { toSiblingImageUrl } from '../utils/imageSources';
 interface ChatAvatarProps {
@@ -7,7 +7,7 @@ interface ChatAvatarProps {
 }
 
 const ChatAvatar: React.FC<ChatAvatarProps> = ({ onClick, isOpen = false }) => {
-  const avatarJpg = `${import.meta.env.BASE_URL}Валюша.jpg`;
+  const avatarJpg = `${import.meta.env.BASE_URL}valusha.jpg`;
   const avatarWebp = toSiblingImageUrl(avatarJpg, 'webp');
 
   return (
@@ -40,3 +40,4 @@ const ChatAvatar: React.FC<ChatAvatarProps> = ({ onClick, isOpen = false }) => {
 };
 
 export default React.memo(ChatAvatar);
+

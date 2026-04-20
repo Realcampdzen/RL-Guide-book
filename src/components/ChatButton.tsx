@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+﻿import React, { useEffect, useRef, useState } from 'react';
 import { rafThrottle } from '../utils/rafThrottle';
 
 interface ChatButtonProps {
@@ -279,7 +279,7 @@ const ChatButton: React.FC<ChatButtonProps> = ({ onClick, isOpen = false, classN
             }}
           />
           <img
-            src={`${import.meta.env.BASE_URL}Валюша.jpg`}
+            src={`${import.meta.env.BASE_URL}valusha.jpg`}
             alt="НейроВалюша"
             draggable={false}
             onContextMenu={(e) => e.preventDefault()}
@@ -333,3 +333,4 @@ const ChatButton: React.FC<ChatButtonProps> = ({ onClick, isOpen = false, classN
 };
 
 export default React.memo(ChatButton);
+

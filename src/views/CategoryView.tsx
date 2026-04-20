@@ -1,4 +1,4 @@
-import type React from 'react';
+﻿import type React from 'react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import BadgeIcon from '../components/BadgeIcon';
 import DataErrorState from '../components/DataErrorState';
@@ -553,7 +553,7 @@ const CategoryView: React.FC<CategoryViewProps> = ({
             aria-label={isChatOpen ? 'Закрыть чат' : 'Открыть чат'}
             aria-pressed={isChatOpen}
           >
-            <img src={`${import.meta.env.BASE_URL}Валюша.jpg`} alt="НейроВалюша" />
+            <img src={`${import.meta.env.BASE_URL}valusha.jpg`} alt="НейроВалюша" />
           </button>
         </div>
       </header>
@@ -855,3 +855,4 @@ const CategoryView: React.FC<CategoryViewProps> = ({
 };
 
 export default CategoryView;
+

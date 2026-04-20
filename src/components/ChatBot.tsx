@@ -1,4 +1,4 @@
-import * as Dialog from '@radix-ui/react-dialog';
+﻿import * as Dialog from '@radix-ui/react-dialog';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import '../styles/chatbot.css';
 import { useAuth } from '../context/AuthContext';
@@ -749,7 +749,7 @@ const ChatBot: React.FC<ChatBotProps> = ({
               >
                 <div className="chatbot-avatar" style={{ position: 'relative', width: '56px', height: '56px', flexShrink: 0 }}>
                   <img
-                    src={`${import.meta.env.BASE_URL}Валюша.jpg`}
+                    src={`${import.meta.env.BASE_URL}valusha.jpg`}
                     alt="НейроВалюша"
                     draggable={false}
                     onContextMenu={(e) => e.preventDefault()}
@@ -1020,7 +1020,7 @@ const ChatBot: React.FC<ChatBotProps> = ({
                       }}
                     >
                       <img
-                        src={`${import.meta.env.BASE_URL}Валюша.jpg`}
+                        src={`${import.meta.env.BASE_URL}valusha.jpg`}
                         alt="НейроВалюша"
                         draggable={false}
                         onContextMenu={(e) => e.preventDefault()}
@@ -1312,4 +1312,5 @@ const ChatBot: React.FC<ChatBotProps> = ({
 };
 
 export default React.memo(ChatBot);
+
 

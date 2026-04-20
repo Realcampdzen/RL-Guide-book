@@ -1,4 +1,4 @@
-import type React from 'react';
+﻿import type React from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import BadgeIcon from '../components/BadgeIcon';
 import BadgeSkinPanel from '../components/BadgeSkinPanel';
@@ -933,9 +933,9 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
             aria-pressed={isChatOpen}
           >
             <picture>
-              <source type="image/webp" srcSet={`${import.meta.env.BASE_URL}Валюша.webp`} />
+              <source type="image/webp" srcSet={`${import.meta.env.BASE_URL}valusha.webp`} />
               <img
-                src={`${import.meta.env.BASE_URL}Валюша.jpg`}
+                src={`${import.meta.env.BASE_URL}valusha.jpg`}
                 alt="НейроВалюша"
                 decoding="async"
                 fetchPriority="high"
@@ -1453,3 +1453,4 @@ const BadgeLevelView: React.FC<BadgeLevelViewProps> = ({
 };
 
 export default BadgeLevelView;
+

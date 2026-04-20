@@ -1,4 +1,4 @@
-/* About Camp Screen Styles - Fully inherited from "BlueNest" Design System */
+﻿/* About Camp Screen Styles - Fully inherited from "BlueNest" Design System */
 
 .about-camp-container {
   min-height: 100vh;
@@ -35,12 +35,12 @@
       rgba(26, 15, 46, 0.55) 50%,
       rgba(42, 26, 61, 0.5) 100%
     ),
-    url("/RL-Guide-book/экран 1 фон copy.png") center top / 120% calc(100vh + 5vh) no-repeat;
+    url("/RL-Guide-book/screen1_bg_copy.png") center top / 120% calc(100vh + 5vh) no-repeat;
   background-color: #0f0a1f;
 }
 
 @supports (
-    background-image: image-set(url("/RL-Guide-book/экран 1 фон copy.webp") type("image/webp"))
+    background-image: image-set(url("/RL-Guide-book/screen1_bg_copy.webp") type("image/webp"))
   ) {
   .about-camp-container::before {
     background:
@@ -51,8 +51,8 @@
         rgba(42, 26, 61, 0.5) 100%
       ),
       image-set(
-        url("/RL-Guide-book/экран 1 фон copy.webp") type("image/webp"),
-        url("/RL-Guide-book/экран 1 фон copy.png") type("image/png")
+        url("/RL-Guide-book/screen1_bg_copy.webp") type("image/webp"),
+        url("/RL-Guide-book/screen1_bg_copy.png") type("image/png")
       )
       center top / 120% calc(100vh + 5vh) no-repeat;
   }
@@ -1235,3 +1235,4 @@ html[data-perf="lite"] .about-camp-container .mobile-bottom-nav {
     padding: 10px 12px;
   }
 }
+

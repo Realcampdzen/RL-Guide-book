@@ -1,4 +1,4 @@
-import type React from 'react';
+﻿import type React from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { MasterIndexMeta } from '../hooks/useDataLoader';
@@ -318,9 +318,9 @@ const CategoriesGrid: React.FC<CategoriesGridProps> = ({
             aria-pressed={isChatOpen}
           >
             <picture>
-              <source type="image/webp" srcSet={`${import.meta.env.BASE_URL}Валюша.webp`} />
+              <source type="image/webp" srcSet={`${import.meta.env.BASE_URL}valusha.webp`} />
               <img
-                src={`${import.meta.env.BASE_URL}Валюша.jpg`}
+                src={`${import.meta.env.BASE_URL}valusha.jpg`}
                 alt="НейроВалюша"
                 decoding="async"
                 fetchPriority="high"
@@ -591,3 +591,4 @@ const CategoriesGrid: React.FC<CategoriesGridProps> = ({
 };
 
 export default CategoriesGrid;
+

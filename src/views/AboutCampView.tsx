@@ -1,4 +1,4 @@
-import type React from 'react';
+﻿import type React from 'react';
 import { useEffect, useRef } from 'react';
 import { aboutCampSession } from '../data/aboutCampSession';
 import { useScrollReveal } from '../hooks/useScrollReveal';
@@ -181,7 +181,7 @@ const AboutCampView: React.FC<AboutCampViewProps> = ({
             aria-label={isChatOpen ? 'Закрыть чат' : 'Открыть чат'}
             aria-pressed={isChatOpen}
           >
-            <img src={`${baseUrl}Валюша.jpg`} alt="НейроВалюша" />
+            <img src={`${baseUrl}valusha.jpg`} alt="НейроВалюша" />
           </button>
         </div>
       </header>
@@ -566,3 +566,4 @@ const AboutCampView: React.FC<AboutCampViewProps> = ({
 };
 
 export default AboutCampView;
+
