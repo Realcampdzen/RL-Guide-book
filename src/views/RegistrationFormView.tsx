@@ -34,7 +34,11 @@ const RegistrationFormView: React.FC<RegistrationFormViewProps> = ({
     !formData.childName || !formData.parentName || !formData.phone || !formData.childAge;
   return (
     <div className="registration-form-view">
-      <header className="registration-form-topbar" aria-label="Навигация">
+      <header 
+        className="registration-form-topbar" 
+        aria-label="Навигация"
+        style={{ position: 'relative', inset: 'auto' }}
+      >
         <div className="registration-form-topbar-inner">
           <button type="button" onClick={onBack} className="registration-form-back">
             <span aria-hidden="true">←</span>
@@ -44,7 +48,7 @@ const RegistrationFormView: React.FC<RegistrationFormViewProps> = ({
         </div>
       </header>
 
-      <main className="registration-form-content">
+      <main className="registration-form-content" style={{ paddingTop: '24px' }}>
         <section className="registration-form-card">
           <h2>📝 Заполните анкету</h2>
           <p>Мы свяжемся с вами в ближайшее время.</p>
