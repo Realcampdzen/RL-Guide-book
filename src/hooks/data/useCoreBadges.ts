@@ -60,9 +60,10 @@ export type AiBadge = {
 };
 
 const getAiDataRoot = () => {
-  const customRoot = import.meta.env.VITE_AI_DATA_URL;
-  if (customRoot) return customRoot.replace(/\/$/, '');
-  return '/RL-Guide-book/ai-data';
+  // Always use local static folder to bypass RKN blocking of Supabase
+  const baseUrl = import.meta.env.BASE_URL || '/';
+  const prefix = baseUrl.endsWith('/') ? baseUrl : baseUrl + '/';
+  return `${prefix}ai-data`;
 };
 
 const MASTER_URL = () => `${getAiDataRoot()}/MASTER_INDEX.json`;
