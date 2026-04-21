@@ -26,11 +26,6 @@
       "src": "/proxy-supabase/(.*)",
       "dest": "https://inkhtjcrzblzsfqvceid.supabase.co/$1"
     },
-    {
-      "src": "/RL-Guide-book/(.*)",
-      "dest": "/$1",
-      "continue": true
-    },
     { "handle": "filesystem" },
     {
       "src": "/(.*)",
