@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Стили кабины «Пульт» (desktop).
  * Подключаются в main.tsx. Корень .profile-spaceship-root всегда присутствует.
  * Все селекторы — только под .profile-spaceship-root.
@@ -864,7 +864,7 @@
 }
 
 .profile-spaceship-root .profile-view::after {
-  background-image: url("/RL-Guide-book/фон кабина.png");
+  background-image: url("/RL-Guide-book/cabin_bg.png");
   background-size: cover;
   background-position: center;
 }
@@ -1584,7 +1584,7 @@
 }
 
 .profile-spaceship-root .profile-view::after {
-  background-image: url("/RL-Guide-book/фон кабина.png");
+  background-image: url("/RL-Guide-book/cabin_bg.png");
   background-size: cover;
   background-position: center;
 }
@@ -1675,7 +1675,7 @@
     pointer-events: none;
     z-index: -1;
     border-radius: inherit;
-    background: url('/RL-Guide-book/центральная консоль.png') center / 138% 138% no-repeat;
+    background: url('/RL-Guide-book/central_console.png') center / 138% 138% no-repeat;
   }
 }
 */
@@ -6322,3 +6322,4 @@
     padding-top: 40px;
   }
 }
+

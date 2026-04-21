@@ -1,4 +1,4 @@
-/* 
+﻿/* 
         ========================================
         CORE VARIABLES & RESET
         ========================================
@@ -100,7 +100,7 @@
       rgba(26, 15, 46, 0.55) 50%,
       rgba(42, 26, 61, 0.5) 100%
     ),
-    url("/RL-Guide-book/фон для лк десктоп.jpg") center center / cover no-repeat;
+    url("/RL-Guide-book/desktop_profile_bg.jpg") center center / cover no-repeat;
   background-color: #0f0a1f;
 }
 
@@ -1952,3 +1952,4 @@ html[data-perf="lite"] .categories-page .mobile-bottom-nav {
   background-color: transparent !important;
   background-image: none !important;
 }
+

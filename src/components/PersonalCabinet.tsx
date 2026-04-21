@@ -1,4 +1,4 @@
-import { QRCodeSVG } from 'qrcode.react';
+﻿import { QRCodeSVG } from 'qrcode.react';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useTeam } from '../context/TeamContext';
@@ -1596,7 +1596,7 @@ export const PersonalCabinet: React.FC<{
             left: 0,
             right: 0,
             height: '100lvh',
-            backgroundImage: `url('/RL-Guide-book/фон кабина.png')`,
+            backgroundImage: `url('/RL-Guide-book/cabin_bg.png')`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
             pointerEvents: 'none',
@@ -3299,3 +3299,4 @@ const SectionStub: React.FC<{ sectionId: SectionId }> = ({ sectionId }) => {
 };
 
 export default PersonalCabinet;
+

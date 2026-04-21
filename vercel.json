@@ -23,8 +23,13 @@
       "dest": "https://backend-murex-one-40.vercel.app/$1"
     },
     {
+      "src": "/proxy-supabase/(.*)",
+      "dest": "https://inkhtjcrzblzsfqvceid.supabase.co/$1"
+    },
+    {
       "src": "/RL-Guide-book/(.*)",
-      "dest": "/$1"
+      "dest": "/$1",
+      "continue": true
     },
     { "handle": "filesystem" },
     {

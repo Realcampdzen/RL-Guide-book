@@ -1,4 +1,4 @@
-/* 
+﻿/* 
         ========================================
         CORE VARIABLES & RESET (Agency Standard)
         ========================================
@@ -53,7 +53,7 @@ body::before {
       rgba(26, 15, 46, 0.55) 50%,
       rgba(42, 26, 61, 0.5) 100%
     ),
-    url("/RL-Guide-book/фон для лк десктоп.jpg");
+    url("/RL-Guide-book/desktop_profile_bg.jpg");
   background-position: center center;
   background-size: cover;
   background-repeat: no-repeat;
@@ -1058,7 +1058,7 @@ html[data-perf="lite"] .hero-title::after {
       rgba(26, 15, 46, 0.55) 50%,
       rgba(42, 26, 61, 0.5) 100%
     ),
-    url("/RL-Guide-book/фон для лк десктоп.jpg") center center / cover no-repeat;
+    url("/RL-Guide-book/desktop_profile_bg.jpg") center center / cover no-repeat;
   background-color: var(--c-midnight);
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -1441,7 +1441,7 @@ html[data-perf="lite"] .bluenest-landing .feature-card {
       rgba(26, 15, 46, 0.55) 50%,
       rgba(42, 26, 61, 0.5) 100%
     ),
-    url("/RL-Guide-book/фон для лк десктоп.jpg") center center / cover no-repeat;
+    url("/RL-Guide-book/desktop_profile_bg.jpg") center center / cover no-repeat;
   background-color: var(--c-midnight);
   position: relative;
   overflow: hidden;
@@ -1959,3 +1959,4 @@ html[data-perf="lite"] .bluenest-landing .feature-card {
     order: -1;
   }
 }
+

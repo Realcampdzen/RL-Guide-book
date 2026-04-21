@@ -1,4 +1,4 @@
-/* Screen-reader only (a11y labels) */
+﻿/* Screen-reader only (a11y labels) */
 .sr-only {
   position: absolute;
   width: 1px;
@@ -54,7 +54,7 @@
   height: 100lvh;
   pointer-events: none;
   z-index: -2;
-  background-image: url("/RL-Guide-book/фон для лк десктоп.jpg");
+  background-image: url("/RL-Guide-book/desktop_profile_bg.jpg");
   background-position: center center;
   background-size: cover;
   background-repeat: no-repeat;
@@ -81,7 +81,7 @@
       rgba(26, 15, 46, 0.56) 50%,
       rgba(42, 26, 61, 0.5) 100%
     ),
-    url("/RL-Guide-book/фон для лк десктоп.jpg");
+    url("/RL-Guide-book/desktop_profile_bg.jpg");
   background-position:
     center center,
     center center;
@@ -193,7 +193,7 @@
         rgba(26, 15, 46, 0.56) 50%,
         rgba(42, 26, 61, 0.5) 100%
       ),
-      url("/RL-Guide-book/фон лк для мобайл.png");
+      url("/RL-Guide-book/mobile_profile_bg.png");
     background-position:
       center center,
       50% 50%;
@@ -3049,3 +3049,4 @@
     display: none !important;
   }
 }
+
